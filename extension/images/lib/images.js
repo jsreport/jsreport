@@ -9,8 +9,8 @@
     async = require("async"),
     _ = require("underscore"),
     Q = require("q");
-join = require("path").join,
-moment = require("moment");
+join = require("path").join;
+
 
 
 var logger = winston.loggers.get('jsreport');

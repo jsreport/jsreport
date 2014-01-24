@@ -36,6 +36,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include=".travis.yml" />
     <Content Include="extensionsManager.js">
       <SubType>Content</SubType>
     </Content>

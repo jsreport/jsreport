@@ -5,8 +5,7 @@
     util = require("util"),
     sformat = require("stringformat"),
     async = require("async"),
-    _ = require("underscore"),
-    moment = require("moment");
+    _ = require("underscore");
 
 
 var logger = winston.loggers.get('jsreport');
