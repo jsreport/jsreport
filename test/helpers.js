@@ -26,6 +26,7 @@ exports.describeReporting = function (extensions, isPlayground, nestedSuite) {
         });
        
         beforeEach(function (done) {
+            this.timeout(10000);
             reporter.init(function () {
                      done();
             });
@@ -33,6 +34,7 @@ exports.describeReporting = function (extensions, isPlayground, nestedSuite) {
         
 
         afterEach(function(done) {
+            this.timeout(10000);
             async.eachSeries(reporter.context.getType().memberDefinitions.asArray(), function (memDef, cb) {
                         if (memDef.dataType == $data.EntitySet) {
                             reporter.context[memDef.name].deleteEnabled = true;
