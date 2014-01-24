@@ -1,0 +1,4 @@
+﻿{
+  "name": "phantom",
+  "main": "lib/phantom.js"
+}

@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "jsreport", "jsreport.njsproj", "{2BC372A6-1CE6-4108-93E8-60CE6472300E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jsreport-server-mvc", "jsreport-server-mvc\jsreport-server-mvc.csproj", "{7F9989A7-0283-4F88-8CEA-71C3DD296A12}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2BC372A6-1CE6-4108-93E8-60CE6472300E}.Release|x86.ActiveCfg = Release|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{7F9989A7-0283-4F88-8CEA-71C3DD296A12}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,39 @@
+﻿<style>
+    .qq-upload-list {
+        display: none
+    }
+
+    #fine-uploader>div {
+        display: inline
+    }
+    #fine-uploader>div>div {
+        display: inline
+    }
+    #fine-uploader>div>div>div {
+        display: inline
+    }
+</style>
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Upload image</h4>
+        </div>
+        <div class="modal-body">
+           
+            <div style="margin-top: 16px">
+            {{for items}}
+            <div>
+                <span>{{:name}}</span>
+                <a href="{{:~getUrl(#data)}}">{{:~getUrl(#data)}}</a>
+            </div>
+            {{/for}}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span id="fine-uploader"></span>            
+            <button type="button" id="saveCommand" class="btn btn-primary" data-dismiss="modal">Save</button>
+        </div>
+    </div>
+</div>
+

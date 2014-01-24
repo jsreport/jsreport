@@ -1,0 +1,5 @@
+{
+    "getData": function() {
+        return [ { Name: "Jan Blaha", PhoneNumber: "43055500043" }];
+    }
+}

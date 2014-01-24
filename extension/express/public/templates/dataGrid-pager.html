@@ -1,0 +1,7 @@
+﻿<ul class="pagination">
+    <li data-number="1" ><a>&laquo;</a></li>
+    {{for pages}}
+    <li data-number="{{:number}}" class="{{if active}}active{{else}}{{/if}}"><a>{{:number}}</a></li>
+    {{/for}}
+    <li data-number="{{:lastPageNumber}}" ><a>&raquo;</a></li>
+</ul>

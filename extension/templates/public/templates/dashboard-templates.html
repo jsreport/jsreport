@@ -1,0 +1,25 @@
+﻿<div class="jumbotron">
+    <h2>Templates</h2>
+    <a href="#templates">See all</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Recipe</th>
+                <th>Engine</th>
+                <th>Last modified</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{for items}}
+            <tr data-id="{{:shortid}}">
+                <td>{{:name}}</td>
+                <td>{{:recipe}}</td>
+                <td>{{:engine}}</td>
+                <td>{{:~dateToString(modificationDate)}}</td>
+            </tr>
+            {{/for}}
+          
+        </tbody>
+    </table>
+</div>

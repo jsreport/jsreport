@@ -1,0 +1,7 @@
+{{for items}}
+<h1><a href="{{:link}}"> {{:title}} </a></h1>
+{{if image != null}}
+<img src="{{:image.url}}"/>	
+{{else}}{{/if}}
+<p>{{:description}}</p>
+{{/for}}

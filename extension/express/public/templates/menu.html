@@ -1,0 +1,29 @@
+﻿<ul class="nav navbar-nav">
+    {{:~renderMenuParts()}}
+    
+    {{if ~getMode() == false}}
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Actions <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+            {{:~renderMenuActionParts()}}
+        </ul>
+    </li>
+    {{else}}{{/if}}
+</ul>
+
+{{if ~getSettings().mode == "multitenant" }}
+<ul class="nav navbar-nav pull-right" style="margin-right: 15px">
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{:~getTenant().name}} ( {{:~getTenant().email}} ) <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+            <li>
+                <a id='logoutLink' onclick=" $('#logoutBtn').click()">Logout</a>
+                <form method="POST" action="/Logout">
+                    <input type="submit" id="logoutBtn" style="display: none"/>
+                </form>
+            </li>
+
+        </ul>
+    </li>
+</ul>    
+{{else}}{{/if}}

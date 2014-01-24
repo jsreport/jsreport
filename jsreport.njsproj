@@ -1,0 +1,790 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ProjectGuid>2bc372a6-1ce6-4108-93e8-60ce6472300e</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectHome>.</ProjectHome>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <StartupFile>server.js</StartupFile>
+    <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <ProjectView>ShowAllFiles</ProjectView>
+    <Name>jsreport</Name>
+    <NodejsPort>3000</NodejsPort>
+    <NodeExePath />
+    <NodeExeArguments />
+    <ScriptArguments />
+    <StartWebBrowser>False</StartWebBrowser>
+    <LaunchUrl />
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <Name>jsreport</Name>
+    <RootNamespace>jsreport</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="extensionsManager.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\lib\data.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.dialog.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-create.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-detail.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-list-header.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-list-rows.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-list.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-template-extension.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-dialog.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\templates\data-toolbar.html" />
+    <Content Include="extension\data\test\dataTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\complexScript.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\complexScript.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\compute.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\compute.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\inlineData.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\inlineData.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\helloWorld.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\helloWorld.xml">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\lib\examples\script.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\public\js\main.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\examples\test\examplesTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\lib\reporter.express.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\css\split-pane.css">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\css\style.css" />
+    <Content Include="extension\express\public\fonts\glyphicons-halflings-regular.eot" />
+    <Content Include="extension\express\public\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="extension\express\public\fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="extension\express\public\fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="extension\express\public\js\core\jquery.bootstrap.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\listenerCollection.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.fineuploader-3.0.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\split-pane.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\fop\lib\fop.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\fop\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\fop\test\fopTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\html\lib\html.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\html\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\html\test\htmlTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\lib\images.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\js\images.dialog.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\js\images.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\js\images.template.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\js\main_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\templates\images-detail.html" />
+    <Content Include="extension\images\public\templates\images-list-header.html" />
+    <Content Include="extension\images\public\templates\images-list-rows.html" />
+    <Content Include="extension\images\public\templates\images-list.html" />
+    <Content Include="extension\images\public\templates\images-dialog.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\templates\images-template.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\images\public\templates\images-toolbar.html" />
+    <Content Include="extension\images\test\imagesTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\phantom\lib\convertToPdf.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\phantom\lib\phantom.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\phantom\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\phantom\test\phantomTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\lib\reports.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\dashboard.reports.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\dashboard.reports.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\main_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\report.detail.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\report.list.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\report.list.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\report.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\js\report.templateToolbar.view.js" />
+    <Content Include="extension\reports\public\templates\dashboard-reports.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\templates\report-detail.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\templates\report-list-header.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\templates\report-list-rows.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\templates\report-list.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\reports\public\templates\report-template-toolbar.html" />
+    <Content Include="extension\reports\test\reportsTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\lib\scriptEvalChild.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\lib\scripts.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\js\main_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\js\scripts.dialog.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\js\scripts.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\js\scripts.template.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\templates\scripts-create.html" />
+    <Content Include="extension\scripts\public\templates\scripts-detail.html" />
+    <Content Include="extension\scripts\public\templates\scripts-dialog.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\templates\scripts-list-header.html" />
+    <Content Include="extension\scripts\public\templates\scripts-list-rows.html" />
+    <Content Include="extension\scripts\public\templates\scripts-list.html" />
+    <Content Include="extension\scripts\public\templates\scripts-template.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\scripts\public\templates\scripts-toolbar.html" />
+    <Content Include="extension\scripts\test\scriptsTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\lib\statistics.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\public\js\dashboard.statistics.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\public\js\dashboard.statistics.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\public\js\main_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\public\templates\dashboard-statistics.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\statistics\test\statisticsTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\lib\templates.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\dashboard.templates.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\dashboard.templates.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\main_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\template.detail.toolbar.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\template.detail.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\template.list.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\template.list.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\js\template.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\dashboard-templates.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-detail-csharp.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-detail-rest.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-detail-toolbar.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-detail.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-list-header.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-list-rows.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\public\templates\template-list.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\templates\test\templatesTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Gruntfile.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ListenerCollection.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\backbone.sync.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\basicModel.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\errorAlert.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\extensions\extension.list.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\extensions\extension.list.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\extensions\extension.manager.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\extensions\module.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\jsrender.bootstrap.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\marionette.bootstrap.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\dashboard\module.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\dashboard\dashboard.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\dataGrid.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.template.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\main_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\dialog.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\menu.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\jaydataModel.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\dataContext.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\hello.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\layout.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\require_main.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.create.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.detail.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.list.model.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\data\public\js\data.list.view.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\app_dev.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\utils.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\js\core\view.base.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\backbone.modelBinder.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\codemirror\codemirror.bootstrap.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.parseJSON.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jsrender.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\text.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\toastr.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\backbone.babysitter.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\backbone.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\require.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\async.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\codemirror\codemirror.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\codemirror\xml.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\codemirror\javascript.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jaydata.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\oDataProvider.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\deferred.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\datajs-1.1.1.min.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\datajs-1.1.1.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\backbone.marionette.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\backbone.wreqr.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.ui.core.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.ui.widget.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.ui.mouse.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.ui.selectable.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\json2.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.flot.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\jquery.flot.time.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\lib\underscore.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\error-alert.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\dashboard.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\dataGrid-pager.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\dataGrid.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\extension-list.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\layout.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\templates\menu.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\css\bootstrap.css" />
+    <Content Include="extension\express\public\css\codemirror.css" />
+    <Content Include="extension\express\public\css\toastr.css" />
+    <Content Include="extension\express\public\lib\bootstrap.js" />
+    <Content Include="blobStorage\fileSystem.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="package.json">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="render\jsrenderEngine.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="render\handlebarsEngine.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="render\render.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="render\renderExecution.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="reporter.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="server.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Settings.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ListenerCollectionTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\fileSystemTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\handlebarsTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\helpers.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\jsrenderTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\renderTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\reporterTest.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ui\expect.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ui\foo.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ui\mocha.css">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ui\mocha.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ui\squire.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test\ui\tests.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="util.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="extension\express\public\views\root.html">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="views\tenantRegistration.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="blobStorage" />
+    <Folder Include="extension" />
+    <Folder Include="extension\data" />
+    <Folder Include="extension\data\lib" />
+    <Folder Include="extension\data\public\templates\" />
+    <Folder Include="extension\data\test" />
+    <Folder Include="extension\data\public" />
+    <Folder Include="extension\data\public\js" />
+    <Folder Include="extension\examples\lib" />
+    <Folder Include="extension\examples\lib\examples" />
+    <Folder Include="extension\examples\public\js" />
+    <Folder Include="extension\examples\test" />
+    <Folder Include="extension\examples\public" />
+    <Folder Include="extension\express\" />
+    <Folder Include="extension\express\lib" />
+    <Folder Include="extension\express\public\fonts\" />
+    <Folder Include="extension\express\public\views\" />
+    <Folder Include="extension\fop\lib\" />
+    <Folder Include="extension\fop\test\" />
+    <Folder Include="extension\html" />
+    <Folder Include="extension\html\lib\" />
+    <Folder Include="extension\html\test" />
+    <Folder Include="extension\fop" />
+    <Folder Include="extension\examples" />
+    <Folder Include="extension\images" />
+    <Folder Include="extension\images\lib" />
+    <Folder Include="extension\images\public\js" />
+    <Folder Include="extension\images\public\templates" />
+    <Folder Include="extension\images\test" />
+    <Folder Include="extension\images\public" />
+    <Folder Include="extension\test\" />
+    <Folder Include="extension\scripts" />
+    <Folder Include="extension\phantom" />
+    <Folder Include="extension\phantom\lib" />
+    <Folder Include="extension\phantom\test" />
+    <Folder Include="extension\reports\public\templates" />
+    <Folder Include="extension\reports\test" />
+    <Folder Include="extension\reports\public" />
+    <Folder Include="extension\reports\public\js" />
+    <Folder Include="extension\scripts\lib\" />
+    <Folder Include="extension\scripts\public\" />
+    <Folder Include="extension\scripts\public\js\" />
+    <Folder Include="extension\scripts\public\templates" />
+    <Folder Include="extension\scripts\test\" />
+    <Folder Include="extension\statistics\public" />
+    <Folder Include="extension\statistics\public\js" />
+    <Folder Include="extension\statistics\public\templates" />
+    <Folder Include="extension\statistics\test" />
+    <Folder Include="extension\templates" />
+    <Folder Include="extension\statistics" />
+    <Folder Include="extension\reports" />
+    <Folder Include="extension\reports\lib" />
+    <Folder Include="extension\statistics\lib" />
+    <Folder Include="extension\templates\lib" />
+    <Folder Include="extension\templates\public\templates" />
+    <Folder Include="extension\templates\test" />
+    <Folder Include="extension\templates\public" />
+    <Folder Include="extension\templates\public\js" />
+    <Folder Include="extension\express\public\" />
+    <Folder Include="extension\express\public\css\" />
+    <Folder Include="extension\express\public\img" />
+    <Folder Include="extension\express\public\js\core\extensions" />
+    <Folder Include="extension\express\public\js\dashboard" />
+    <Folder Include="extension\express\public\js\core" />
+    <Folder Include="extension\express\public\lib" />
+    <Folder Include="extension\express\public\js" />
+    <Folder Include="extension\express\public\lib\codemirror" />
+    <Folder Include="extension\express\public\templates" />
+    <Folder Include="extension\test\public\" />
+    <Folder Include="extension\test\public\js\" />
+    <Folder Include="config\" />
+    <Folder Include="render" />
+    <Folder Include="test" />
+    <Folder Include="test\ui\" />
+    <Folder Include="views\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="config.js" />
+    <Compile Include="config\debug.playground.config.js" />
+    <Compile Include="config\production.multitenant.config.js" />
+    <Compile Include="config\production.playground.config.js" />
+    <Compile Include="extension\data\public\js\data.dialog.model.js" />
+    <Compile Include="extension\data\public\js\data.toolbar.view.js" />
+    <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
+    <Compile Include="extension\express\public\lib\backbone.augment.js" />
+    <Compile Include="extension\express\public\lib\bootstrap.min.js" />
+    <Compile Include="extension\express\public\lib\codemirror.js" />
+    <Compile Include="extension\images\public\js\images.detail.view.js" />
+    <Compile Include="extension\images\public\js\images.list.model.js" />
+    <Compile Include="extension\images\public\js\images.list.view.js" />
+    <Compile Include="extension\images\public\js\images.ref.model.js" />
+    <Compile Include="extension\images\public\js\images.toolbar.view.js" />
+    <Compile Include="extension\images\public\js\images.uploader.js" />
+    <Compile Include="extension\scripts\public\js\scripts.create.view.js" />
+    <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
+    <Compile Include="extension\scripts\public\js\scripts.dialog.model.js" />
+    <Compile Include="extension\scripts\public\js\scripts.list.model.js" />
+    <Compile Include="extension\scripts\public\js\scripts.list.view.js" />
+    <Compile Include="extension\scripts\public\js\scripts.toolbar.view.js" />
+    <Compile Include="extension\test\public\js\list.js" />
+    <Compile Include="extension\test\public\js\main.js" />
+    <Compile Include="mongoTmp.js" />
+    <Compile Include="multitenancy.js" />
+    <Compile Include="config\debug.multitenant.config.js" />
+    <Compile Include="reporter.install.js" />
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:48022/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>True</UseCustomServer>
+          <CustomServerUrl>http://localhost:1337</CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+</Project>

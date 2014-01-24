@@ -1,0 +1,278 @@
+/* Side Menu template */
+body {
+  margin-top: 75px;
+}
+
+#wrapper {
+  padding-left: 0;
+}
+
+#page-wrapper {
+  width: 100%;
+  padding: 0px 15px;
+}
+
+li { cursor: pointer; cursor: hand;}
+
+/* Nav Messages */
+.messages-dropdown .dropdown-menu .message-preview .avatar,
+.messages-dropdown .dropdown-menu .message-preview .name,
+.messages-dropdown .dropdown-menu .message-preview .message,
+.messages-dropdown .dropdown-menu .message-preview .time {
+  display: block;
+}
+
+.messages-dropdown .dropdown-menu .message-preview .avatar {
+  float: left;
+  margin-right: 15px;
+}
+
+.messages-dropdown .dropdown-menu .message-preview .name {
+  font-weight: bold;
+}
+
+.messages-dropdown .dropdown-menu .message-preview .message {
+  font-size: 12px;
+}
+
+.messages-dropdown .dropdown-menu .message-preview .time {
+  font-size: 12px;
+}
+
+
+/* Nav Announcements */
+
+.announcement-heading {
+  font-size: 50px;
+  margin: 0;
+}
+
+.announcement-text {
+  margin: 0;
+}
+
+/* Table Headers */
+
+table.tablesorter thead {
+  cursor: pointer;
+}
+
+table.tablesorter thead tr th:hover {
+  background-color: #f5f5f5;
+}
+
+/* Flot Chart Containers */
+
+.flot-chart {
+  display: block;
+  height: 400px;
+}
+
+.flot-chart-content {
+  width: 100%;
+  height: 100%;
+}
+
+/* Edit Below to Customize Widths > 768px */
+@media (min-width:768px) {
+
+  /* Wrappers */
+
+  #wrapper {
+	padding-left: 190px;
+  }
+
+  #page-wrapper {
+	padding: 0px 25px;
+  }
+
+  /* Side Nav */
+
+  .side-nav {
+	margin-left: -190px;
+	left: 190px;
+	width: 190px;
+	position: fixed;
+    clear: both;
+	height: 100%;
+	border-radius: 0;
+    top: 77px;
+	border: none;
+	background-color: #e7e7e7;
+    border-right: 1px solid #c4c4c4;
+	overflow-y: auto;
+  }
+
+  /* Bootstrap Default Overrides - Customized Dropdowns for the Side Nav */
+
+  .side-nav>li.dropdown>ul.dropdown-menu {
+	position: relative;
+	min-width: 190px;
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background-color: transparent;
+	box-shadow: none;
+	-webkit-box-shadow: none;
+  }
+
+  .side-nav>li.dropdown>ul.dropdown-menu>li>a {
+	color: #000;
+	padding: 15px 15px 15px 25px;
+  }
+
+  .side-nav>li.dropdown>ul.dropdown-menu>li>a:hover,
+  .side-nav>li.dropdown>ul.dropdown-menu>li>a.active,
+  .side-nav>li.dropdown>ul.dropdown-menu>li>a:focus {
+	color: #000;
+	background-color: #dddddd;
+  }
+
+  .side-nav>li>a {
+	width: 190px;
+    height: 32px;
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .navbar-inverse .navbar-nav>li>a:hover,
+  .navbar-inverse .navbar-nav>li>a:focus {
+    background-color: #006687;
+  }
+}
+
+/* Override CSS */
+/* Navbar JS Report Logotype */
+.navbar-brand {
+  display: block;
+  margin: 10px 0px 0px 10px;
+  width: 180px;
+  height: 26px;
+  background: url(../img/jsreport-logo.png) no-repeat;
+ }
+
+/* Navbar Submenu UL, LI, A */
+.sub-header {
+	clear: both;
+	width: 100%;
+ 	background: #007aa3;
+	font-size: 13px;
+    height: 32px;
+}
+
+.sub-header > ul > li > a {
+    padding: 6px 12px 5px 10px;
+}
+
+/* Navbar Submenu Text */
+.navbar-inverse .navbar-text {
+    color: #ffffff;
+    display: block;
+    min-width: 180px;
+	margin: 8px 0px 0px 10px;
+}
+
+
+/* Side Menu */
+.side-nav > ul > li > a {
+    color: black;
+}
+
+/* Navbar Bottom */
+.navbar-fixed-bottom {
+    min-height: 80px;
+}
+
+.breadcrumb.none {
+    border: 0px;
+    background: none;
+    padding: 0px;
+}
+
+.top20 {
+margin-top: 20px;
+}
+
+.container {
+    width: 100%;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+/* side-nav menu */
+.navbar-inverse .navbar-nav.nav-list>li>a{display:block;height: 38px;line-height:38px;padding: 0 16px 0 12px;background-color:#f5f5f5;color:#585858;text-shadow:none!important;font-size:13px;text-decoration:none;border-bottom: 1px solid #e5e5e5;}
+.navbar-inverse .navbar-nav.nav-list>li>a.dropdown-toggle{display:block;height: 38px;line-height:38px;padding: 0 16px 0 12px;background-color:#f5f5f5;color:#585858;text-shadow:none!important;font-size:13px;text-decoration:none;border-bottom: 1px solid #e5e5e5;}
+
+.nav-list>li>a>[class*="icon-"]:first-child{display:inline-block;vertical-align:middle;min-width:20px;color:#333333;text-align:center;font-size: 14px;font-weight:normal;margin-right:2px;}
+.nav-list>li>a:hover>:first-child{color:#007aa3;}
+.nav-list>li>a:hover{color:#007aa3;}
+/*.nav-list>li>a:hover:before{display:block;content:"";position:absolute;top: -1px;bottom:0;left:0;width:4px;max-width:4px;overflow:hidden;color:#585858;background-color:#007aa3;}
+*/
+/* side-nav menu dropdown items */
+.navbar-inverse .navbar-nav.nav-list>li>ul>li>a{display:block;height: 38px;line-height:38px;padding: 0 16px 0 16px;background-color:#ffffff;text-shadow:none!important;font-size:12px;text-decoration:none;border-bottom: 1px dotted #e5e5e5;}
+.navbar-inverse .navbar-nav.nav-list>li>ul>li>a:hover {background-color:#ffffff; border-bottom: 1px dotted #d4d4d4; color: #007aa3;}
+.navbar-inverse .navbar-nav.nav-list>li>ul>li>a:before{padding-left: 4px; content: "\00BB \0020"; margin-right: 6px;}
+
+/* side-nav menu for special john's features :) */
+.navbar-inverse .navbar-nav.nav-list>div>li>a {
+clear: both;
+display: block;
+height: 38px;
+line-height:38px;
+padding: 0 16px 0 12px;
+margin: 0px;
+background: #f5f5f5;
+color: #585858;
+text-decoration: none;
+text-shadow:none!important;
+border-bottom: 1px solid #e5e5e5;
+}
+
+.navbar-inverse .navbar-nav.nav-list>div>li>a>[class*="icon-"]:first-child{display:inline-block;vertical-align:middle;min-width:20px;color:#333333;text-align:center;font-size: 14px;font-weight:normal;margin-right:2px;}
+.navbar-inverse .navbar-nav.nav-list>div>li>a:hover>:first-child{color:#007aa3;}
+.navbar-inverse .navbar-nav.nav-list>div>li>a:hover{color:#007aa3;}
+/*.navbar-inverse .navbar-nav.nav-list>div>li>a:hover:before{display:block;content:"";position:absolute;top: -1px;bottom:0;left:0;width:4px;max-width:4px;max-height: 38px;overflow:hidden;color:#585858;background-color:#007aa3;} */
+
+
+#extensionsBox div {
+ /*toto kurvi animace, tak to nejak pores nebo smaz*/
+/*min-height: 38px;*/
+}
+
+/* Components properties */
+.properties {padding: 6px; left: 0px;background: #fff;}
+.properties li {padding: 6px; font-size: 12px; font-weight: normal;}
+.area-mini {height: 26px; font-size: 12px;}
+.side-setup {background-color: #fff;}
+.side-title {display: inline-block; width: 100%; margin-top: 4px; margin-bottom: 2px; border-bottom: 1px solid #dddddd;}
+
+/* Glyphicon */
+i.glyphicon {margin-right: 4px;}
+.side-nav i.glyphicon {margin-right: 10px; top: -1px;}
+
+.nav.nav-tabs > li.dropdown.active.open > a, 
+.nav.nav-tabs > li.dropdown.active.open > ul.dropdown-menu a:hover,
+.nav.nav-tabs > li.dropdown.open > a, 
+.nav.nav-tabs > li.dropdown.open > ul.dropdown-menu a:hover
+{
+  color: #fff;
+  background-color: #b91773;
+  border-color: #fff;
+}
+
+.expandable-body {
+background-color: #fff;
+}
+
+/* Modal fixing width 80% */
+.modal-dialog {
+  width: 80%;
+  height: 80%;
+  padding: 0;
+}
+
+.modal-content {
+  height: 80%;
+  min-height: 80%;
+  border-radius: 0;
+}
