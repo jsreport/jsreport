@@ -63,7 +63,8 @@
         },
         mochaTest: {
             test: {
-                src: ['extension/*/test/*.js', 'test/*.js']
+                src: ['test/mongoTest.js']
+                //src: ['extension/*/test/*.js', 'test/*.js']
                 //src: ['test/ListenerCollectionTest.js']
                 //src: ['extension/templates' + '/test/*.js']
             },
