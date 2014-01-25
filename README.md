@@ -1,5 +1,7 @@
 # jsreport (javascript based reporting)
 
+[![Build Status](https://travis-ci.org/jsreport/jsreport.png?branch=master)](https://travis-ci.org/jsreport/jsreport)
+
 ## License 
 
 (The MIT License)
