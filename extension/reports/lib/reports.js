@@ -6,7 +6,8 @@
     sformat = require("stringformat"),
     async = require("async"),
     _ = require("underscore"),
-    Q = require("q");
+    Q = require("q"),
+    toArray = require('stream-to-array');
 
 
 var logger = winston.loggers.get('jsreport');
@@ -35,7 +36,10 @@ Reporting.prototype.configureExpress = function (app) {
     var self = this;
     app.get("/report/:id/content", function (req, res, next) {
         self.entitySet.find(req.params.id, function (result) {
-            self.reporter.blobStorage.read(result.blobName).pipe(res);
+            self.reporter.blobStorage.read(result.blobName, function(err, stream) {
+               res.setHeader('Content-Type', result.contentType);
+               stream.pipe(res); 
+            });
         });
     });
 };
@@ -46,12 +50,15 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     if (!request.options.async)
         return;
 
-    logger.info("Report is stream: " + response.isStream);
-    if (!response.isStream) {
-        var str = new Readable();
-        str.push(response.result);
-        str.push(null);
-        response.result = str;
+    function ensureBuffer(cb) {
+        if (response.isStream) {
+            return toArray(response.result, function(err, arr) {
+                response.result = Buffer.concat(arr);
+                cb();
+            });
+        }
+
+        cb();
     }
     
     var report = new this.ReportType({
@@ -59,10 +66,14 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         name: request.template.name + "-" + request.template.generatedReportsCounter++,
         templateId: request.template._id,
         creationDate: new Date(),
+        contentType: response.contentType,
     });
 
     var deferred = Q.defer();
     async.waterfall([
+            function(callback) {
+                ensureBuffer(callback);
+            },
             function (callback) {
                 logger.info("Inserting report to storage.");
                 self.entitySet.add(report);
@@ -74,7 +85,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             },
             function (res, callback) {
                 logger.info("Writing report content to blob.");
-                self.reporter.blobStorage.write(report._id + "." + request.template.recipe.toLowerCase(), response.result, callback);
+                self.reporter.blobStorage.write(report._id + "." + response.fileExtension, response.result, callback);
             },
             function (blobName, callback) {
                 logger.info("Updating report blob name " + blobName);
@@ -105,6 +116,7 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
         creationDate: { type: "date" },
         recipe: { type: "string" },
         blobName: { type: "string" },
+        contentType: { type: "string" },
         name: { type: "string" },
         templateId: { type: "id" },
     }, null);

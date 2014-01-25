@@ -64,9 +64,12 @@
         mochaTest: {
             test: {
                 src: ['extension/*/test/*.js', 'test/*.js']
-                //src: ['test/ListenerCollectionTest.js']
+               //src: ['test/gridFSTest.js', 'extension/reports' + '/test/*.js']
                 //src: ['extension/templates' + '/test/*.js']
             },
+            testAll: {
+                src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           
+            }
         },
 
         copy: {
@@ -82,10 +85,8 @@
                     baseUrl: "./extension/express/public/js",
                     mainConfigFile: './extension/express/public/js/require_main.js',
                     out: "extension/express/public/js/app.js",
-                    // optimize: "none",
                     name: 'app_dev',
                     removeCombined: true,
-                    //findNestedDependencies: true,
                     onBuildWrite: function(moduleName, path, contents) {
                         return contents.replace("define('app_dev',", "define(");
                     }
@@ -109,7 +110,7 @@
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     //'mochaTest'
-    grunt.registerTask('default', ['mochaTest']);
+    grunt.registerTask('default', ['mochaTest:test']);
 
     grunt.registerTask('deploy', ['requirejs']);
     
@@ -118,4 +119,6 @@
     
     grunt.registerTask('playground-debug', ['copy:playgroundDebug']);
     grunt.registerTask('playground-production', ['requirejs', 'copy:playgroundProduction']);
+    
+    grunt.registerTask('test-all', ['mochaTest:testAll']);
 };

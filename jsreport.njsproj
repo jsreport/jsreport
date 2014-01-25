@@ -719,6 +719,7 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="blobStorage\gridFS.js" />
     <Compile Include="config.js" />
     <Compile Include="config\debug.playground.config.js" />
     <Compile Include="config\production.multitenant.config.js" />
@@ -747,6 +748,8 @@
     <Compile Include="multitenancy.js" />
     <Compile Include="config\debug.multitenant.config.js" />
     <Compile Include="reporter.install.js" />
+    <Compile Include="test\gridFSTest.js" />
+    <Compile Include="test\mongoTest.js" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
   <ProjectExtensions>
