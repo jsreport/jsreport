@@ -43,6 +43,7 @@
 	"request": "*",   
 	"request-json": "*",   
 	"shortid": "*",   
+	"stream-to-array": "*",
 	"string": "*",   
 	"stringformat": "*",
 	"underscore": "*",   
