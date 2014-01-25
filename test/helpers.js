@@ -20,8 +20,8 @@ exports.describeReporting = function (extensions, isPlayground, nestedSuite) {
         var reporter = new Reporter({
             playgroundMode: isPlayground,
             tenant: { name: "test"},
-            connectionString: { name: "mongoDB", databaseName: "test", address: "localhost", port: 27017 },
-            extensions: _.union(["templates", "html", "phantom", "fop", "data", "reports", "statistics"], extensions),
+            connectionString: { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 },
+            extensions: _.union(["templates", "html", "phantom", "fop", "data"/*, "reports", "statistics"*/], extensions),
             loadExtensionsFromPersistedSettings: false
         });
        
