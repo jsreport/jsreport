@@ -1,0 +1,21 @@
+﻿<div class="jumbotron">
+    <h2>Reports</h2>
+    <a href="#reports">See all</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{for items}}
+                <tr data-id="{{:_id}}">
+                    <td>{{:name}}</td>
+                    <td>{{:~dateToString(creationDate)}}</td>
+                </tr>
+            {{/for}}
+        </tbody>
+    </table>
+</div>
+
