@@ -125,7 +125,7 @@ UpgradeLog*.XML
 
 
 reports
-test-reports
+test-reports/*
 *.log
 config/*
 extension/phantom/lib/reports-tmpl/*
