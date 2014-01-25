@@ -61,7 +61,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         creationDate: new Date(),
     });
 
-    var deffered = Q.defer();
+    var deferred = Q.defer();
     async.waterfall([
             function (callback) {
                 logger.info("Inserting report to storage.");
@@ -92,10 +92,10 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             blobName: report.blobName,
             name: report.name
         };
-        deffered.resolve();
+        deferred.resolve();
     });
 
-    return deffered.promise;
+    return deferred.promise;
 };
 
 Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
