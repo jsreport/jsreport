@@ -1,7 +1,13 @@
 ﻿<ul class="pagination">
-    <li data-number="1" ><a>&laquo;</a></li>
-    {{for pages}}
-    <li data-number="{{:number}}" class="{{if active}}active{{else}}{{/if}}"><a>{{:number}}</a></li>
-    {{/for}}
-    <li data-number="{{:lastPageNumber}}" ><a>&raquo;</a></li>
+    {{if displayPager }}
+    <li id="firstPage"><a style="background-color: lightskyblue; margin-right: 30px">1</a></li>
+   
+    
+    <li id="previousPage"><a>&laquo;</a></li>
+    <li data-number="{{:pageNumber}}" class="active"><a>{{:pageNumber}}</a></li>
+    <li id="nextPage"><a>&raquo;</a></li>
+   
+  
+    <li id="lastPage" ><a style="background-color: lightskyblue; margin-left: 30px">{{:lastPageNumber}}</a></li>
+    {{else}}{{/if}}
 </ul>

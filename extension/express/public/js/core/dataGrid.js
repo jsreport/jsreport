@@ -22,17 +22,29 @@
 
             events: {
                 "click #nextPage": "nextPage",
-                "click li": "changePage"
+                "click #previousPage": "previousPage",
+                "click #firstPage": "firstPage",
+                "click #lastPage": "lastPage"
             },
 
             nextPage: function() {
-                this.model.set("pageNumber", this.model.get("pageNumber") + 1);
+                if (this.model.get("pageNumber") <  (this.model.get("lastPageNumber") - 1))
+                   this.model.set("pageNumber", this.model.get("pageNumber") + 1);
+                return false;
+            },
+            
+            previousPage: function() {
+                if (this.model.get("pageNumber") > 1)
+                    this.model.set("pageNumber", this.model.get("pageNumber") - 1);
                 return false;
             },
 
-            changePage: function(ev, data) {
-                var pageNumber = $(ev.target).closest("li").attr("data-number");
-                this.model.set("pageNumber", pageNumber);
+            firstPage: function(ev, data) {
+                this.model.set("pageNumber", 1);
+            },
+            
+            lastPage: function(ev, data) {
+                this.model.set("pageNumber", this.model.get("lastPageNumber"));
             }
         });
 
@@ -85,6 +97,7 @@
                     });
                 }, function() {
                     self.filter.set("totalCount", self.filter.get("totalCount") - selectedRows.length);
+                    self.filter.trigger("apply");
                     self.collection.trigger("sync");
                 });
             },
@@ -107,29 +120,11 @@
             },
 
             onTotalCountChanged: function() {
-                var pages = [];
-
                 var totalCount = this.get("totalCount");
-                var pageNumber = this.get("pageNumber");
                 var pageSize = this.get("pageSize");
-
-                var maxPagesLimit = 3;
                 var lastPageNumber = Math.ceil(totalCount / pageSize);
                 this.set("lastPageNumber", lastPageNumber);
-                var pagesCount = Math.min(lastPageNumber, maxPagesLimit);
-
-                var windowStart = Math.min(lastPageNumber - pagesCount + 1,
-                    Math.max(Math.ceil(pageNumber - (pagesCount / pageSize)), 1));
-                var windowEnd = windowStart + pagesCount;
-
-                for (var i = windowStart; i < windowEnd; i++) {
-                    pages.push({
-                        number: i,
-                        active: this.get("pageNumber") == i
-                    });
-                }
-
-                this.set("pages", pages);
+                this.set("displayPager", lastPageNumber > 1);
             },
 
             defaults: {

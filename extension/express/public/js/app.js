@@ -23,7 +23,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                         }
                     }
                     
-                    var templateBust = "1390762207497";
+                    var templateBust = "";
 
                     if (templateBust != "" && localStorage.getItem("templates-" +  templateBust) != null) {
                         compileTemplates(JSON.parse(localStorage.getItem("templates-" +  templateBust)));
