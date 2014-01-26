@@ -37,10 +37,8 @@ Statistics.prototype.handleAfterRender = function (request, response) {
     
     if (!request.options.async)
         return;
-
-    var context = this.reporter.startContext();
     
-    return context.statistics.filter(function (s) {
+    return request.context.statistics.filter(function (s) {
         return s.day > this.dayBefore && s.day < this.dayAfter && s.templateShortid == this.templateShortid;
     }, { dayAfter: dayAfter, dayBefore: dayBefore, templateShortid: request.template.shortid }).toArray()
         .then(function(res) {
@@ -52,14 +50,14 @@ Statistics.prototype.handleAfterRender = function (request, response) {
                     templateShortid: request.template.shortid,
                     templateName: request.template.name
                 });
-                context.statistics.add(stat);
+                request.context.statistics.add(stat);
             } else {
                 logger.info("Updating existing stats");
-                context.statistics.attach(res[0]);
+                request.context.statistics.attach(res[0]);
                 res[0].amount++;
             }
 
-            return context.statistics.saveChanges();
+            return request.context.statistics.saveChanges();
         });
 };
 

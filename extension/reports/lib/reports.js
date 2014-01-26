@@ -21,12 +21,6 @@ Reporting = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
     
-    Object.defineProperty(this, "entitySet", {
-        get: function () {
-            return reporter.context.reports;
-        }
-    });
-    
     this.reporter.extensionsManager.afterRenderListeners.add(definition.name, this, Reporting.prototype.handleAfterRender);
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Reporting.prototype.createEntitySetDefinitions);
     this.reporter.on("express-configure", Reporting.prototype.configureExpress.bind(this));
@@ -35,7 +29,7 @@ Reporting = function (reporter, definition) {
 Reporting.prototype.configureExpress = function (app) {
     var self = this;
     app.get("/report/:id/content", function (req, res, next) {
-        self.entitySet.find(req.params.id, function (result) {
+        self.reporter.startContext().reports.find(req.params.id, function (result) {
             self.reporter.blobStorage.read(result.blobName, function(err, stream) {
                res.setHeader('Content-Type', result.contentType);
                stream.pipe(res); 
@@ -63,7 +57,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     
     var report = new this.ReportType({
         recipe: request.options.recipe,
-        name: request.template.name + "-" + request.template.generatedReportsCounter++,
+        name: request.template.name + " - " + request.template.generatedReportsCounter,
         templateId: request.template._id,
         creationDate: new Date(),
         contentType: response.contentType,
@@ -76,8 +70,8 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             },
             function (callback) {
                 logger.info("Inserting report to storage.");
-                self.entitySet.add(report);
-                self.entitySet.saveChanges().then(function () {
+                request.context.reports.add(report);
+                request.context.reports.saveChanges().then(function () {
                     callback(null, null);
                 }).fail(function (e) {
                     callback(e, null);
@@ -89,9 +83,9 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             },
             function (blobName, callback) {
                 logger.info("Updating report blob name " + blobName);
-                self.entitySet.attach(report);
+                request.context.reports.attach(report);
                 report.blobName = blobName;
-                return self.entitySet.saveChanges().then(function () { callback(null, null); });
+                return request.context.reports.saveChanges().then(function () { callback(null, null); });
             }
     ], function (err) {
         if (err)
@@ -127,5 +121,5 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
 };
 
 Reporting.prototype.find = function (preficate, params, cb) {
-    this.entitySet.filter(preficate, params).toArray().then(function (res) { cb(null, res); });
+    this.reporter.context.reports.filter(preficate, params).toArray().then(function (res) { cb(null, res); });
 };

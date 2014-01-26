@@ -15,6 +15,10 @@
         });
 
         dataContext.onReady(function() {
+            dataContext.prepareRequest = function(r) {
+                r[0].headers["If-Modified-Since"] = "Sat, 1 Jan 2005 00:00:00 GMT";
+            };
+            
             $data.Queryable.prototype.applyFilter = function (filter) {
                 return this
                    .withInlineCount()

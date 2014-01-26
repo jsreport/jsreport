@@ -68,7 +68,7 @@ var _renderHtml = function (request, response, cb) {
     });
     
     child.send({
-        template: request.template,
+        template: request.template.initData || request.template,
         data: request.data
     });
 

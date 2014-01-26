@@ -10,6 +10,7 @@ describeReporting(["statistics"], function(reporter) {
             
             var request = {
                 reporter: reporter,
+                context: reporter.context,
                 template: { },
                 options: { async: true }
             };
@@ -39,6 +40,7 @@ describeReporting(["statistics"], function(reporter) {
         it('should group by template', function(done) {
             var request = {
                 reporter: reporter,
+                context: reporter.context,
                 template: { html: "html"},
                 options: { async: true }
             };
@@ -65,7 +67,5 @@ describeReporting(["statistics"], function(reporter) {
                 });
             });
          });
-
-           
     });
 });

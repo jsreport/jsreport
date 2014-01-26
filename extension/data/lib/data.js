@@ -62,8 +62,6 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
     return FindDataItem().then(function(di) {
         di = di.dataJson || di;
-        logger.info("Applying data - " + di);
-
         request.data = JSON.parse(di);
     });
 };

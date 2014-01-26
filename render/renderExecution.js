@@ -1,7 +1,7 @@
 ﻿
 
 process.on('message', function (m) {
-    console.log("Rendering.. " + m.template.html);
+    //console.log("Rendering.. " + m.template.html);
     
     try {
         var safeExecute = function (func, m) {

@@ -107,7 +107,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             child.kill();
             logger.error("Child process resulted in timeout.");
             return deferred.reject({ message: "Timeout error during script execution" });
-        }, 3000);
+        }, 60000);
 
         return deferred.promise;
     });

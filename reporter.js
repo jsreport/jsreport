@@ -37,9 +37,7 @@ function Reporter(options) {
     this.initializeListener = utils.attachLogToListener(new ListenerCollection(), "reporter initialize", self.logger);
 
     this.settings = new Settings();
-}
-
-;
+};
 
 util.inherits(Reporter, events.EventEmitter);
 
@@ -47,12 +45,13 @@ Reporter.prototype.init = function(cb) {
     var self = this;
     //initialize context for standard entities like settings
     this._initializeDataContext(false, function() {
-        if (!self.options.blobStorage) {
+      
+          if (!self.options.blobStorage) {//WARN async init
             require("mongodb").MongoClient.connect('mongodb://' + self.options.connectionString.address + ':' + self.options.connectionString.port + '/' + self.options.connectionString.databaseName, {}, function(err, db) {
                 self.blobStorage = new(require("./blobStorage/gridFS.js"))(db);
             });
         }
-
+        
         //load all the settings to the memory
         self.settings.init(self.context, function() {
             //initialize all the extensions - this will trigger context reinit
@@ -68,8 +67,8 @@ Reporter.prototype.init = function(cb) {
 };
 
 Reporter.prototype.extendGlobalTypeName = function(typeName) {
-    var nsType = typeName.split(",");
-    return nsType[0] + this.options.tenant.name + nsType[1];
+    var nsType = typeName.split(".");
+    return nsType[0] + "." + this.options.tenant.name + "." + nsType[1];
 };
 
 
@@ -131,6 +130,7 @@ Reporter.prototype.render = function(template, data, options, cb) {
 
     var request = {
         template: template,
+        context: this.startContext(),
         data: data,
         options: options,
         reporter: self
@@ -147,6 +147,9 @@ Reporter.prototype.render = function(template, data, options, cb) {
         .then(function() {
             self.emit("after-render", request, response);
             return self.extensionsManager.afterRenderListeners.fire(request, response);
+        })
+        .then(function() {
+            return request.context.saveChanges();
         })
         .then(function() {
             cb(null, response);

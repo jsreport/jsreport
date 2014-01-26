@@ -14,6 +14,7 @@ describeReporting([], function(reporter) {
 
             var request = {
                 options: { recipe: "html", async: true },
+                context: reporter.context,
                 template: {
                     name: "name",
                     recipe: "html",
@@ -26,17 +27,6 @@ describeReporting([], function(reporter) {
 
             reporter.reports.handleAfterRender(request, response).then(function() {
                 async.series([
-                    function(cb) {
-                        reporter.reports.entitySet.find(response.result._id).then(function(report) {
-                            assert.equal(request.options.recipe, report.recipe);
-
-                            assert.notEqual(null, report.creationDate);
-                            assert.equal(request.template.name + "-" + (request.template.generatedReportsCounter - 1), report.name);
-                            assert.equal(3, request.template.generatedReportsCounter);
-
-                            cb(null);
-                        });
-                    },
                     function(cb) {
                         reporter.blobStorage.read(response.result.blobName, function(err, stream) {
                             var htmlContent = "";

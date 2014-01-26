@@ -45,6 +45,7 @@ module.exports = function(app, options) {
         opts.express = { app: main };
         opts.tenant = tenant;
         opts.playgroundMode = false;
+        opts.connectionString = _.extend({}, opts.connectionString);
         opts.connectionString.databaseName = tenant.name;
         var rep = new Reporter(opts);
 
@@ -64,6 +65,34 @@ module.exports = function(app, options) {
     app.use(passport.initialize());
     app.use(passport.session());
 
+    app.use(function(err, req, res, next) {
+        res.status(500);
+
+        if (_.isString(err)) {
+            err = {
+                message: err
+            };
+        }
+        
+        err = err || {};
+        err.message = err.message || "Unrecognized error";
+        
+        if (err.code == "TENANT_NOT_FOUND") {
+            req.session = null;
+            return res.redirect("/");
+        }
+
+        if (req.get('Content-Type') != "application/json") {
+            res.write("Error occured - " + err.message + "\n");
+            if (err.stack != null)
+                res.write("Stack - " + err.stack);
+            res.end();
+            return;
+        }
+
+        res.json(err);
+    });
+
     passport.use(new LocalStrategy(function(username, password, done) {
         var tenant = multitenancy.authenticate(username, password);
         if (tenant == null)
@@ -73,12 +102,12 @@ module.exports = function(app, options) {
     }));
 
     passport.use(new BasicStrategy(function(username, password, done) {
-            var tenant = multitenancy.authenticate(username, password);
-            if (tenant == null)
-                return done(null, false);
+        var tenant = multitenancy.authenticate(username, password);
+        if (tenant == null)
+            return done(null, false);
 
-            return done(null, true);
-        }
+        return done(null, true);
+    }
     ));
 
     app.use(function(req, res, next) {
@@ -114,7 +143,15 @@ module.exports = function(app, options) {
     });
 
     passport.deserializeUser(function(id, done) {
-        done(null, multitenancy.findTenant(id));
+        var tenant = multitenancy.findTenant(id);
+
+        if (tenant == null)
+            return done({
+                message: "Tenant not found.",
+                code: "TENANT_NOT_FOUND"
+            });
+
+        return done(null, tenant);
     });
 
     app.get("/ping", function(req, res, next) {
@@ -129,7 +166,7 @@ module.exports = function(app, options) {
                 return next();
             } else {
                 domains.unshift(req.user.name);
-                res.redirect("http://" + domains.join("."));
+                return res.redirect("http://" + domains.join("."));
             }
         }
 

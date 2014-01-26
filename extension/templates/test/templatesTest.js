@@ -15,6 +15,7 @@ describeReporting([], function(reporter) {
         it('should callback error when missing template', function(done) {
             var request = {
                 template: { _id: "AAAAAAAAAAAAAAAAAAAAAAAA" },
+                context: reporter.context,
                 options: { recipe: "html" },
             };
 
@@ -44,6 +45,7 @@ describeReporting([], function(reporter) {
         it('handleBefore should find and use template', function(done) {
             var request = {
                 template: {},
+                context: reporter.context,
                 options: { recipe: "html" },
             };
 

@@ -12,29 +12,6 @@ module.exports = function(reporter, definition) {
 
     var app = definition.options.app;
 
-    app.use(function(err, req, res, next) {
-        res.status(500);
-
-        if (_.isString(err)) {
-            err = {
-                message: err
-            };
-        }
-
-        err = err || {};
-        err.message = err.message || "Unrecognized error";
-
-        if (req.get('Content-Type') != "application/json") {
-            res.write("Error occured - " + err.message + "\n");
-            if (err.stack != null)
-                res.write("Stack - " + err.stack);
-            res.end();
-            return;
-        }
-
-        res.json(err);
-    });
-
     app.set('views', path.join(__dirname, '../public/views'));
     app.use(express.static(path.join(__dirname, '../public')));
     app.engine('html', require('ejs').renderFile);
@@ -99,7 +76,6 @@ module.exports = function(reporter, definition) {
     });
 
     app.post("/report", function(req, res, next) {
-
         reporter.render(req.body.template, req.body.data, req.body.options, function(err, response) {
             if (err) {
                 return next(err);
@@ -115,77 +91,7 @@ module.exports = function(reporter, definition) {
             }
         });
     });
-
-    app.post("/template", function(req, res, next) {
-        reporter.templates.create(req.body, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
-    app.put("/template/:id", function(req, res, next) {
-        reporter.templates.update(req.body, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
-    app.get("/template", function(req, res, next) {
-        reporter.templates.find({}, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
-    app.delete("/template/:id", function(req, res, next) {
-        reporter.templates.delete({ _id: req.params.id }, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
-    app.get("/report", function(req, res, next) {
-        reporter.templates.find({}, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
-    app.get("/report/:id", function(req, res, next) {
-        reporter.reports.find({ _id: req.params.id }, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
-    app.delete("/report/:id", function(req, res, next) {
-        reporter.reports.delete(req.params.id, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
-
+    
     app.get("/recipe", function(req, res, next) {
         res.json(_.map(reporter.extensionsManager.recipes, function(r) { return r.name; }));
     });
@@ -216,5 +122,76 @@ module.exports = function(reporter, definition) {
             return res.send("ok");
         });
     });
+    
+
+        app.post("/template", function(req, res, next) {
+        reporter.templates.create(req.body, function(err, result) {
+            if (err) {
+                return next(err);
+            }
+
+            return res.json(result);
+        });
+    });
+
+    //app.put("/template/:id", function(req, res, next) {
+    //    reporter.templates.update(req.body, function(err, result) {
+    //        if (err) {
+    //            return next(err);
+    //        }
+
+    //        return res.json(result);
+    //    });
+    //});
+
+    //app.get("/template", function(req, res, next) {
+    //    reporter.templates.find({}, function(err, result) {
+    //        if (err) {
+    //            return next(err);
+    //        }
+
+    //        return res.json(result);
+    //    });
+    //});
+
+    //app.delete("/template/:id", function(req, res, next) {
+    //    reporter.templates.delete({ _id: req.params.id }, function(err, result) {
+    //        if (err) {
+    //            return next(err);
+    //        }
+
+    //        return res.json(result);
+    //    });
+    //});
+
+    //app.get("/report", function(req, res, next) {
+    //    reporter.templates.find({}, function(err, result) {
+    //        if (err) {
+    //            return next(err);
+    //        }
+
+    //        return res.json(result);
+    //    });
+    //});
+
+    //app.get("/report/:id", function(req, res, next) {
+    //    reporter.reports.find({ _id: req.params.id }, function(err, result) {
+    //        if (err) {
+    //            return next(err);
+    //        }
+
+    //        return res.json(result);
+    //    });
+    //});
+
+    //app.delete("/report/:id", function(req, res, next) {
+    //    reporter.reports.delete(req.params.id, function(err, result) {
+    //        if (err) {
+    //            return next(err);
+    //        }
+
+    //        return res.json(result);
+    //    });
+    //});
 
 };

@@ -21,6 +21,7 @@ Templating = function(reporter, definition) {
     this.definition = definition;
     this._versionCache = [];
     this.updateEnabled = false;
+    this._updatePromise = Q();
 
     this._defineEntities();
 
@@ -45,7 +46,6 @@ Templating = function(reporter, definition) {
 Templating.prototype.handleBeforeRender = function(request, response) {
     logger.info("Handling templates before rendering report");
 
-    var self = this;
     if (request.template._id == null) {
         logger.info("Its a inline template");
         request.template.html = request.template.html == null || request.template.html == "" ? " " : request.template.html;
@@ -53,15 +53,16 @@ Templating.prototype.handleBeforeRender = function(request, response) {
     }
 
     logger.info("Searching for template in db");
-    var context = this.reporter.startContext();
-    return context.templates.find(request.template._id).then(function (template) {
-        request.template = template;
-        context.templates.attach(template);
+    
+    return this._updatePromise =  this._updatePromise.then(function() {
+        return request.context.templates.find(request.template._id).then(function(template) {
+            request.context.templates.attach(template);
+            template.generatedReportsCounter = template.generatedReportsCounter + 1;
+            
+            request.template = template;
 
-        request.template = template;
-        template.generatedReportsCounter++;
-
-        return context.templates.saveChanges();
+            return request.context.saveChanges();
+        });
     });
 };
 
@@ -73,7 +74,7 @@ Templating.prototype.create = function(tmpl) {
     this.entitySet.add(template);
 
     return this.entitySet.saveChanges().then(function() {
-         return Q(template);
+        return Q(template);
     });
 };
 
@@ -104,13 +105,13 @@ Templating.prototype._beforeDeleteHandler = function(args, entity) {
 
 Templating.prototype._defineEntities = function() {
     var self = this;
-    
+
     Object.defineProperty(this, "entitySet", {
         get: function() {
             return self.reporter.context.templates;
         }
     });
-    
+
 
     var templateAttributes = {
         _id: { type: "id", key: true, computed: true, nullable: false },
@@ -126,7 +127,7 @@ Templating.prototype._defineEntities = function() {
 
     if (this.reporter.playgroundMode) {
         templateAttributes.version = { type: "string" };
-        
+
         self.TemplateVersionType = $data.Class.define(self.reporter.extendGlobalTypeName("$entity.TemplateVersion"), $data.Entity, null, {
             _id: { type: "id", key: true, computed: true, nullable: false },
             shortid: { type: "string" },

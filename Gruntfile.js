@@ -41,6 +41,8 @@
     function copyFiles(mode) {
         var result = [];
         result.push({ src: ['./config/debug.' + mode + '.config.js'], dest: './config.js' });
+        
+        result.push({ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app.js' });
 
         extensions.forEach(function(e) {
             result.push({
