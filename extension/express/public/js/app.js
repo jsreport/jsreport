@@ -1,4 +1,4 @@
-﻿define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap", "codemirror"], function ($, Marionette, async, Utils, ListenerCollection) {
+define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap", "codemirror"], function ($, Marionette, async, Utils, ListenerCollection) {
     var app = new Backbone.Marionette.Application();
     app.serverUrl = "/";
 
@@ -17,10 +17,22 @@
     app.addInitializer(function () {
         async.parallel([
                 function (cb) {
-                    $.getJSON(app.serverUrl + "html-templates", function (templates) {
+                    function compileTemplates(templates) {
                         for (var i = 0; i < templates.length; i++) {
                             $.templates(templates[i].name, templates[i].content);
                         }
+                    }
+                    
+                    var templateBust = "1390762207497";
+
+                    if (templateBust != "" && localStorage.getItem("templates-" +  templateBust) != null) {
+                        compileTemplates(JSON.parse(localStorage.getItem("templates-" +  templateBust)));
+                        return cb(null, null);
+                    }
+                    
+                    $.getJSON(app.serverUrl + "html-templates", function (templates) {
+                        localStorage.setItem("templates-" +  templateBust, JSON.stringify(templates));
+                        compileTemplates(templates);
                         cb(null, null);
                     });
                 },

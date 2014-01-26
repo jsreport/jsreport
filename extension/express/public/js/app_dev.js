@@ -17,10 +17,22 @@
     app.addInitializer(function () {
         async.parallel([
                 function (cb) {
-                    $.getJSON(app.serverUrl + "html-templates", function (templates) {
+                    function compileTemplates(templates) {
                         for (var i = 0; i < templates.length; i++) {
                             $.templates(templates[i].name, templates[i].content);
                         }
+                    }
+                    
+                    var templateBust = "{{templateBust}}";
+
+                    if (templateBust != "" && localStorage.getItem("templates-" +  templateBust) != null) {
+                        compileTemplates(JSON.parse(localStorage.getItem("templates-" +  templateBust)));
+                        return cb(null, null);
+                    }
+                    
+                    $.getJSON(app.serverUrl + "html-templates", function (templates) {
+                        localStorage.setItem("templates-" +  templateBust, JSON.stringify(templates));
+                        compileTemplates(templates);
                         cb(null, null);
                     });
                 },

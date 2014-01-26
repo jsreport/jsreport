@@ -34,14 +34,16 @@
                 }
             }
         };
-    };
+    }
+
+    ;
 
     var extensions = ["express", "templates", "html", "phantom", "fop", "scripts", "data", "images", "examples", "statistics", "reports"];
-    
+
     function copyFiles(mode) {
         var result = [];
         result.push({ src: ['./config/debug.' + mode + '.config.js'], dest: './config.js' });
-        
+
         result.push({ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app.js' });
 
         extensions.forEach(function(e) {
@@ -66,8 +68,8 @@
         mochaTest: {
             test: {
                 src: ['extension/*/test/*.js', 'test/*.js']
-               //src: ['test/gridFSTest.js', 'extension/reports' + '/test/*.js']
-                //src: ['extension/templates' + '/test/*.js']
+                //src: ['test/gridFSTest.js', 'extension/reports' + '/test/*.js']
+               //src: ['extension/templates' + '/test/*.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           
@@ -76,10 +78,10 @@
         },
 
         copy: {
-            multitenantDebug: { files: copyFiles("multitenant")},
-            multitenantProduction: { files: [{src: ['./config/production.multitenant.config.js'], dest: './config.js' }]},
-            playgroundDebug: { files: copyFiles("playground")},
-            playgroundProduction: { files: [{src: ['./config/production.playground.config.js'], dest: './config.js' }]},
+            multitenantDebug: { files: copyFiles("multitenant") },
+            multitenantProduction: { files: [{ src: ['./config/production.multitenant.config.js'], dest: './config.js' }] },
+            playgroundDebug: { files: copyFiles("playground") },
+            playgroundProduction: { files: [{ src: ['./config/production.playground.config.js'], dest: './config.js' }] },
         },
 
         requirejs: {
@@ -102,6 +104,36 @@
             compileData: extensionOptimization("data"),
             compileReports: extensionOptimization("reports"),
             compileStatistics: extensionOptimization("statistics"),
+        },
+        //extension\express\public\js
+        replace: {
+            debugRoot: {
+                src: ['./extension/express/public/views/root_dev.html'],
+                dest: ['./extension/express/public/views/root.html'],
+                replacements: [ { from: '{{dynamicBust}}', to: "new Date().getTime()" },  { from: '{{staticBust}}', to: "" } ]
+            },
+            debugApp: {
+               src: ['./extension/express/public/js/app.js'],
+                overwrite:true,
+                replacements: [ 
+                    { from: '{{templateBust}}',  to: "" }, 
+                ]
+            },
+            productionRoot: {
+                src: ['./extension/express/public/views/root_dev.html'],
+                dest: ['./extension/express/public/views/root.html'],
+                replacements: [ 
+                    { from: '{{dynamicBust}}',  to: "\"" + new Date().getTime() + "\"" }, 
+                    { from: '{{staticBust}}', to: new Date().getTime() + "" } 
+                ]
+            },
+            productionApp: {
+                src: ['./extension/express/public/js/app.js'],
+                overwrite:true,
+                replacements: [ 
+                    { from: '{{templateBust}}',  to: new Date().getTime() + "" }, 
+                ]
+            }
         }
     });
 
@@ -111,17 +143,18 @@
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-text-replace');
 
     //'mochaTest'
     grunt.registerTask('default', ['mochaTest:test']);
 
     grunt.registerTask('deploy', ['requirejs']);
-    
-    grunt.registerTask('multitenant-debug', ['copy:multitenantDebug']);
-    grunt.registerTask('multitenant-production', ['requirejs', 'copy:multitenantProduction']);
-    
-    grunt.registerTask('playground-debug', ['copy:playgroundDebug']);
-    grunt.registerTask('playground-production', ['requirejs', 'copy:playgroundProduction']);
-    
+
+    grunt.registerTask('multitenant-debug', ['copy:multitenantDebug', 'replace:debugRoot', 'replace:debugApp']);
+    grunt.registerTask('multitenant-production', ['requirejs', 'copy:multitenantProduction', 'replace:productionRoot', 'replace:productionApp']);
+
+    grunt.registerTask('playground-debug', ['copy:playgroundDebug', 'replace:debugRoot', 'replace:debugApp']);
+    grunt.registerTask('playground-production', ['requirejs', 'copy:playgroundProduction', 'replace:productionRoot', 'replace:productionApp']);
+
     grunt.registerTask('test-all', ['mochaTest:testAll']);
 };

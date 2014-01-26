@@ -9,7 +9,6 @@
 
 
 module.exports = function(reporter, definition) {
-
     var app = definition.options.app;
 
     app.set('views', path.join(__dirname, '../public/views'));
