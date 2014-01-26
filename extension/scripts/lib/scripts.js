@@ -60,7 +60,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         if (request.template.script != null && request.template.script != "")
             return Q(request.template.script);
         
-        logger.info("Searching for before script to apply - " + request.template.scriptId);
+        logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
         return self.entitySet.find(request.template.scriptId);
     };
@@ -70,7 +70,6 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         script = script.content || script;
 
         var child = fork(join(__dirname, "scriptEvalChild.js"));
-        logger.info("Found script " + script);
 
         var isDone = false;
 
@@ -79,7 +78,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             if (m.error) {
                 logger.error("Child process process resulted in error " + JSON.stringify(m.error));
                 logger.error(m);
-                return deferred.reject({ message: m.error, stack: m.errorStack })
+                return deferred.reject({ message: m.error, stack: m.errorStack });
             }
 
             logger.info("Child process successfully finished.");
@@ -89,12 +88,10 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         });
 
         logger.info(JSON.stringify(request.template));
-
-        var serializableRequest = _.extend({}, request);
-        serializableRequest.reporter = null;
+        
         child.send({
             script: script,
-            request: serializableRequest,
+            request: { data: request.data},
             response: response
         });
 

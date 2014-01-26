@@ -44,21 +44,22 @@ Templating = function(reporter, definition) {
 };
 
 Templating.prototype.handleBeforeRender = function(request, response) {
-    logger.info("Handling templates before rendering report");
-
-    if (request.template._id == null) {
-        logger.info("Its a inline template");
+    if (request.template._id == null && request.template.shortid == null) {
+        logger.debug("Its a inline template");
         request.template.html = request.template.html == null || request.template.html == "" ? " " : request.template.html;
         return;
     }
 
-    logger.info("Searching for template in db");
-    
-    return this._updatePromise =  this._updatePromise.then(function() {
-        return request.context.templates.find(request.template._id).then(function(template) {
+    logger.debug("Searching for template in db");
+
+    return this._updatePromise = this._updatePromise.then(function() {
+        var findPromise = (request.template._id != null) ? request.context.templates.find(request.template._id) :
+            request.context.templates.single(function(t) { return t.shortid == this.shortid; }, { shortid: request.template.shortid });
+
+        return findPromise.then(function(template) {
             request.context.templates.attach(template);
             template.generatedReportsCounter = template.generatedReportsCounter + 1;
-            
+
             request.template = template;
 
             return request.context.saveChanges();

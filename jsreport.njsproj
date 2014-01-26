@@ -145,9 +145,6 @@
     <Content Include="extension\fop\package.json">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\fop\test\fopTest.js">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\html\lib\html.js">
       <SubType>Content</SubType>
     </Content>
@@ -196,9 +193,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\phantom\package.json">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\phantom\test\phantomTest.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\reports\lib\reports.js">
@@ -659,8 +653,8 @@
     <Folder Include="extension\express\lib" />
     <Folder Include="extension\express\public\fonts\" />
     <Folder Include="extension\express\public\views\" />
+    <Folder Include="extension\fop\integrationTest\" />
     <Folder Include="extension\fop\lib\" />
-    <Folder Include="extension\fop\test\" />
     <Folder Include="extension\html" />
     <Folder Include="extension\html\lib\" />
     <Folder Include="extension\html\test" />
@@ -672,11 +666,11 @@
     <Folder Include="extension\images\public\templates" />
     <Folder Include="extension\images\test" />
     <Folder Include="extension\images\public" />
+    <Folder Include="extension\phantom\integrationTest\" />
     <Folder Include="extension\test\" />
     <Folder Include="extension\scripts" />
     <Folder Include="extension\phantom" />
     <Folder Include="extension\phantom\lib" />
-    <Folder Include="extension\phantom\test" />
     <Folder Include="extension\reports\public\templates" />
     <Folder Include="extension\reports\test" />
     <Folder Include="extension\reports\public" />
@@ -730,12 +724,14 @@
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />
     <Compile Include="extension\express\public\lib\codemirror.js" />
+    <Compile Include="extension\fop\integrationTest\fopTest.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />
     <Compile Include="extension\images\public\js\images.list.model.js" />
     <Compile Include="extension\images\public\js\images.list.view.js" />
     <Compile Include="extension\images\public\js\images.ref.model.js" />
     <Compile Include="extension\images\public\js\images.toolbar.view.js" />
     <Compile Include="extension\images\public\js\images.uploader.js" />
+    <Compile Include="extension\phantom\integrationTest\phantomTest.js" />
     <Compile Include="extension\scripts\public\js\scripts.create.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.dialog.model.js" />

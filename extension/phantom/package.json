@@ -1,4 +1,5 @@
 ﻿{
   "name": "phantom",
-  "main": "lib/phantom.js"
+  "main": "lib/phantom.js",
+  "hasPublicPart": false
 }

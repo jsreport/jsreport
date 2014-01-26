@@ -7,12 +7,8 @@
 
 describeReporting([], function(reporter) {
     describe('templating', function() {
-        it('should callback error when missing template', function(done) {
-            reporter.templates.create({}).then(function(template) {
-                done();
-            });
-        });
-        it('should callback error when missing template', function(done) {
+        
+         it('should callback error when missing template', function(done) {
             var request = {
                 template: { _id: "AAAAAAAAAAAAAAAAAAAAAAAA" },
                 context: reporter.context,
@@ -26,23 +22,9 @@ describeReporting([], function(reporter) {
                 done();
             });
         });
+      
 
-        it('should create and find template', function(done) {
-            var tmpl = {
-                name: "test",
-                html: "html",
-                helpers: "helpers",
-                engine: "engine"
-            };
-
-            reporter.templates.create(tmpl).then(function(template) {
-                reporter.templates.entitySet.find(template._id).then(function(t) {
-                    done();
-                });
-            });
-        });
-
-        it('handleBefore should find and use template', function(done) {
+        it('handleBefore should find by _id and use template', function(done) {
             var request = {
                 template: {},
                 context: reporter.context,
@@ -51,6 +33,24 @@ describeReporting([], function(reporter) {
 
             reporter.templates.create({ html: "foo" }).then(function(t) {
                 request.template._id = t._id;
+                reporter.templates.handleBeforeRender(request, {}).then(function() {
+                    assert.equal("foo", request.template.html);
+                    assert.equal(1, request.template.generatedReportsCounter);
+
+                    done();
+                });
+            });
+        });
+        
+         it('handleBefore should find by shortid and use template', function(done) {
+            var request = {
+                template: {},
+                context: reporter.context,
+                options: { recipe: "html" },
+            };
+
+            reporter.templates.create({ html: "foo" }).then(function(t) {
+                request.template.shortid = t.shortid;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
                     assert.equal("foo", request.template.html);
                     assert.equal(1, request.template.generatedReportsCounter);

@@ -7,7 +7,7 @@
 
 <div>
     {{if template != null}}
-    <a href="#/extension/templates/{{:template.shortid}}">Go to template</a>
+    <a href="#/extension/templates/{{:templateShortid}}">Go to template</a>
     {{else}}{{/if}}
 </div>
 
@@ -15,10 +15,10 @@
 
 <div>
     <div>
-        <span>Preview </span><a href="{{:~getServerUrl()}}report/{{:~decode(_id)}}/content" target="_blank">New window</a>
+        <span>Preview </span><a href="{{:~getServerUrl()}}report/{{:shortid}}/content" target="_blank">New window</a>
     </div>
     <div style="height: 623px; width: 600px">
-        <iframe src="{{:~getServerUrl()}}report/{{:~decode(_id)}}/content" frameborder="0" allowtransparency="true" allowfullscreen="true" style="width: 100%; height: 100%;"></iframe>
+        <iframe src="{{:~getServerUrl()}}report/{{:shortid}}/content" frameborder="0" allowtransparency="true" allowfullscreen="true" style="width: 100%; height: 100%;"></iframe>
     </div>
     
 </div>

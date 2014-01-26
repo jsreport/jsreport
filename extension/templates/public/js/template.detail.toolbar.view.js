@@ -87,7 +87,7 @@
 
                 var uiState = this.getUIState();
                 for (var key in uiState) {
-                    if (uiState.hasOwnProperty(key) && key != "_id") {
+                    if (uiState.hasOwnProperty(key) && key != "_id" && key != "shortid") {
                         this.addInput(mapForm, "template[" + key + "]", uiState[key]);
                     }
                 }

@@ -71,6 +71,7 @@
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           
+                //src: ['extension/templates/test/*.js']           
             }
         },
 

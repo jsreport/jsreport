@@ -20,6 +20,29 @@ module.exports = function(reporter, definition) {
         res.render(path.join(__dirname, '../public/views', 'root.html'));
     });
 
+    app.use(function(err, req, res, next) {
+        res.status(500);
+
+        if (_.isString(err)) {
+            err = {
+                message: err
+            };
+        }
+
+        err = err || {};
+        err.message = err.message || "Unrecognized error";
+
+        if (req.get('Content-Type') != "application/json") {
+            res.write("Error occured - " + err.message + "\n");
+            if (err.stack != null)
+                res.write("Stack - " + err.stack);
+            res.end();
+            return;
+        }
+
+        res.json(err);
+    });
+
     reporter.initializeListener.add(definition.name, this, function() {
         app.stack = _.reject(app.stack, function(s) {
             return s.route == "/odata";
@@ -91,7 +114,7 @@ module.exports = function(reporter, definition) {
             }
         });
     });
-    
+
     app.get("/recipe", function(req, res, next) {
         res.json(_.map(reporter.extensionsManager.recipes, function(r) { return r.name; }));
     });
@@ -122,9 +145,9 @@ module.exports = function(reporter, definition) {
             return res.send("ok");
         });
     });
-    
 
-        app.post("/template", function(req, res, next) {
+
+    app.post("/template", function(req, res, next) {
         reporter.templates.create(req.body, function(err, result) {
             if (err) {
                 return next(err);

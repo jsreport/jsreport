@@ -42,9 +42,9 @@ module.exports = Phantom = function(reporter, definition) {
                         childProcess.execFile("phantomjs.CMD", childArgs, function(error, stdout, stderr) {
                             logger.info("Rastering pdf child process end.");
 
-                            console.log(stdout);
-                            console.log(stderr);
-                            console.log(error);
+                            //console.log(stdout);
+                            //console.log(stderr);
+                            //console.log(error);
 
                             if (error !== null) {
                                 logger.error('exec error: ' + error);

@@ -1,4 +1,5 @@
 ﻿{
   "name": "html",
-  "main": "lib/html.js"
+  "main": "lib/html.js",
+  "hasPublicPart": false
 }

@@ -1,4 +1,5 @@
 ﻿{
   "name": "fop",
-  "main": "lib/fop.js"
+  "main": "lib/fop.js",
+  "hasPublicPart": false
 }

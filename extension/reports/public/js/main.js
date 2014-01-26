@@ -26,14 +26,16 @@
 
                 reportDetail: function(id) {
                     var model = new ReportModel();
-                    model.set("_id", id);
-                    var view = new ReportDetailView({
-                        model: model
+                    model.set("shortid", id);
+                    model.fetch({
+                        success: function() {
+                            var view = new ReportDetailView({
+                                model: model
+                            });
+
+                            app.layout.content.show(view);
+                        }
                     });
-
-                    app.layout.content.show(view);
-
-                    model.fetch();
                 },
             });
 
@@ -54,7 +56,7 @@
                 });
 
                 app.on("template-extensions-toolbar-render", function(context) {
-                    var view = new TemplateToolbarView( { model: context.template});
+                    var view = new TemplateToolbarView({ model: context.template });
                     context.region.show(view);
                 });
             }
@@ -66,8 +68,9 @@
                     '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
                     'creationDate': { 'type': 'Edm.DateTime' },
                     'name': { 'type': 'Edm.String' },
-                    'type': 'Edm.String',
-                    'template': { 'type': '$entity.Template', 'inverseProperty': 'reports' }
+                    'shortid': { 'type': 'Edm.String' },
+                    'type': { 'type': 'Edm.String' },
+                    'templateShortid': { 'type': 'Edm.String' }
                 });
 
                 $entity.Report.prototype.toString = function() {

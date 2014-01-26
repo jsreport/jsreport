@@ -28,8 +28,8 @@ Reporting = function (reporter, definition) {
 
 Reporting.prototype.configureExpress = function (app) {
     var self = this;
-    app.get("/report/:id/content", function (req, res, next) {
-        self.reporter.startContext().reports.find(req.params.id, function (result) {
+    app.get("/report/:shortid/content", function (req, res, next) {
+        self.reporter.startContext().reports.single(function(r) { return r.shortid == this.shortid; }, { shortid: req.params.shortid }).then(function (result) {
             self.reporter.blobStorage.read(result.blobName, function(err, stream) {
                res.setHeader('Content-Type', result.contentType);
                stream.pipe(res); 
@@ -58,7 +58,8 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     var report = new this.ReportType({
         recipe: request.options.recipe,
         name: request.template.name + " - " + request.template.generatedReportsCounter,
-        templateId: request.template._id,
+        templateShortid: request.template.shortid,
+        shortid: shortid.generate(),
         creationDate: new Date(),
         contentType: response.contentType,
     });
@@ -93,10 +94,13 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         
         response.result = {
             _id: report._id,
+            shortid: report.shortid,
             creationDate: report.creationDate,
             blobName: report.blobName,
             name: report.name
         };
+
+        console.log(JSON.stringify(response.result));
         deferred.resolve();
     });
 
@@ -108,11 +112,12 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
     this.ReportType = $data.Class.define(this.reporter.extendGlobalTypeName("$entity.Report"), $data.Entity, null, {
         _id: { type: "id", key: true, computed: true, nullable: false },
         creationDate: { type: "date" },
+        shortid: { type: "string" },
         recipe: { type: "string" },
         blobName: { type: "string" },
         contentType: { type: "string" },
         name: { type: "string" },
-        templateId: { type: "id" },
+        templateShortid: { type: "string" },
     }, null);
     
     entitySets["reports"] = { type: $data.EntitySet, elementType: this.ReportType };
