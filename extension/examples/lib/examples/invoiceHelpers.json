@@ -1,0 +1,14 @@
+{
+
+    "getSubTotal": function (data) {
+        return "subtotal";
+    },
+
+    "getTotal": function(data) {
+        return "total";
+    },
+
+    "getTaxes": function (data) {
+        return "taxes";
+    }
+}

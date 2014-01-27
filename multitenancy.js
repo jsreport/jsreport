@@ -1,6 +1,7 @@
 ﻿var Q = require("q"),
-    _ = require("underscore");
-require("odata-server");
+    _ = require("underscore"),
+    passwordHash = require('password-hash');
+    require("odata-server");
 
 module.exports = Multitenancy = function() {
     $data.Entity.extend("$entity.Tenant", {
@@ -46,7 +47,7 @@ Multitenancy.prototype.findTenantByName = function(name) {
 Multitenancy.prototype.registerTenant = function(email, name, password) {
     var tenant = new $entity.Tenant({
         email: email,
-        password: password,
+        password: passwordHash.generate(password),
         name: name
     });
 
@@ -61,5 +62,5 @@ Multitenancy.prototype.registerTenant = function(email, name, password) {
 Multitenancy.prototype.authenticate = function(username, password) {
     var tenant = this._tenantsCache[username];
 
-    return (tenant != null && tenant.password == password) ? tenant : null;
+    return (tenant != null && passwordHash.verify(password, tenant.password)) ? tenant : null;
 };

@@ -1,0 +1,8 @@
+{
+	"nummber": "1",
+	"date": "01-01-2014",
+	"dueDate": "01-20-2014",
+	"to": {},
+	"from": { "name": "Jan Blaha" , "description": "", "mail": "jan.blaha@finmail.com", "address":"U Sluncové 603", "city":"Prague", "country":"Czech Republic"},
+	"items" : []
+}

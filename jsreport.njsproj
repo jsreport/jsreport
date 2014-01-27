@@ -101,6 +101,8 @@
     <Content Include="extension\examples\lib\examples\helloWorld.xml">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\examples\lib\examples\invoice.html" />
+    <Content Include="extension\examples\lib\examples\invoice.json" />
     <Content Include="extension\examples\lib\examples\script.js">
       <SubType>Content</SubType>
     </Content>
@@ -721,6 +723,7 @@
     <Compile Include="config\production.playground.config.js" />
     <Compile Include="extension\data\public\js\data.dialog.model.js" />
     <Compile Include="extension\data\public\js\data.toolbar.view.js" />
+    <Compile Include="extension\examples\lib\examples\invoiceHelpers.json" />
     <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />

@@ -30,7 +30,7 @@ Examples = function(reporter, definition) {
                     return Q();
                 }
 
-                return helloWorld().then(jsHelpers).then(phantomPdf).then(fop).then(script).then(data).then(function() {
+                return helloWorld().then(jsHelpers).then(phantomPdf).then(fop).then(script).then(data).then(invoice).then(function() {
                     logger.info("Examples successfully created.");
                 });
             });
@@ -118,6 +118,39 @@ Examples = function(reporter, definition) {
         var templateObj = {
             name: "6. Inline Data extension",
             html: fs.readFileSync(join(__dirname, 'examples/inlineData.html')).toString("utf8"),
+            engine: "jsrender",
+            recipe: "html",
+            isExample: true,
+        };
+
+        function finishTemplate() {
+            if (!reporter.playgroundMode) {
+                return reporter.data.create(dataObj).then(function(dataItemEntity) {
+                    templateObj.dataItemId = dataItemEntity._id;
+                    return Q(templateObj);
+                });
+            } else {
+                templateObj.dataItem = dataObj;
+                return Q(dataObj);
+            }
+        }
+
+
+        return finishTemplate().then(function() {
+            return self.reporter.templates.create(templateObj);
+        });
+    }
+    
+    function invoice() {
+        var dataObj = {
+             name: "Invoice",
+             dataJson: fs.readFileSync(join(__dirname, 'examples/invoice.json')).toString("utf8")
+        };
+
+        var templateObj = {
+            name: "8. Invoice",
+            html: fs.readFileSync(join(__dirname, 'examples/invoice.html')).toString("utf8"),
+            helpers: fs.readFileSync(join(__dirname, 'examples/invoiceHelpers.json')).toString("utf8"),
             engine: "jsrender",
             recipe: "html",
             isExample: true,
