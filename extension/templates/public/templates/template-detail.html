@@ -1,28 +1,21 @@
-﻿{{if modificationDate != null}}
-<span>{{:name}}</span><span style="font-size: 10px; margin-left: 5px">created on {{:~dateToString(modificationDate)}}</span>
-{{else}}
-{{/if}}
-<div class="row top20 split-pane fixed-left" style="height: 800px; min-height: 100%;">
-    <div class="split-pane-component" style="width: 50em">
-        <div style="border: 1px solid #808080;">
+﻿<div class="split-pane fixed-left">
+    <div class="split-pane-component" style="width: 50%">
             <ul class="nav nav-tabs">
                 <li class="active"><a href="#html" data-toggle="tab">Html</a></li>
                 <li><a href="#helpers" data-toggle="tab">Helpers</a></li>
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane active" id="html" style="height: 623px">
-                    <textarea id="htmlArea" style="height: 623px">{{:html}}</textarea>
+                <div class="tab-pane active" id="html">
+                    <textarea id="htmlArea">{{:html}}</textarea>
                 </div>
-                <div class="tab-pane" id="helpers" style="height: 623px">
+                <div class="tab-pane" id="helpers">
                     <textarea id="helpersArea">{{:helpers}}</textarea>
                 </div>
             </div>
-        </div>
     </div>
-    <div class="split-pane-divider" id="my-divider" style="left: 50em; width: 5px;"></div>
-    <div class="split-pane-component" style="left: 50em; margin-left: 5px;">
-        <div style="border: 1px solid #808080;">
+    <div class="split-pane-divider" id="my-divider" style="left: 50%; width: 5px;"></div>
+    <div class="split-pane-component" style="left: 50%; margin-left: 5px;">
             <ul class="nav nav-tabs">
                 <li>
                     <a href="#" class="active">Preview
@@ -32,11 +25,9 @@
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane active" style="height: 1523px">
-                    <iframe name="previewFrame" frameborder="0" allowtransparency="true" allowfullscreen="true" style="width: 100%; height: 100%;"></iframe>
+                <div class="tab-pane active">
+                    <iframe name="previewFrame" id="preview" frameborder="0"></iframe>
                 </div>
             </div>
-        </div>
     </div>
 </div>
-

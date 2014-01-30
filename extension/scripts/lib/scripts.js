@@ -27,6 +27,7 @@ Scripts = function (reporter, definition) {
     });
     
     this.ScriptType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Script"), $data.Entity, null, {
+        shortid: { type: "string"},
         content: { type: "string" },
         name: { type: "string" },
     }, null);
@@ -37,7 +38,8 @@ Scripts = function (reporter, definition) {
         this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
         reporter.templates.TemplateType.addMember("scriptId", { type: "id" });
     }
-
+    
+    this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
     this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
@@ -108,6 +110,11 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
         return deferred.promise;
     });
+};
+
+Scripts.prototype._beforeCreateHandler = function(args, entity) {
+     if (entity.shortid == null)
+        entity.shortid = shortid.generate();
 };
 
 function createEntitySetDefinitions(entitySets, next) {

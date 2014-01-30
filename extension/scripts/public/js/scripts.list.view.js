@@ -8,11 +8,12 @@
         },
 
         onDomRefresh: function () {
-            DataGrid.show({
+            this.dataGrid = DataGrid.show({
                 collection: this.collection,
                 filter: this.collection.filter,
+                idKey: "shortid",
                 onShowDetail: function (id) {
-                    window.location.hash = "extension/scripts/" + id;
+                    window.location.hash = "extension/scripts/detail/" + id;
                 },
                 el: $("#scriptsGridBox"),
                 headerTemplate: "scripts-list-header",

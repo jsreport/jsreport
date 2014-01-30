@@ -1,51 +1,48 @@
 ﻿define(["app", "marionette", "backbone",
-        "./data.list.model", "./data.list.view",
+        "./data.list.model", "./data.list.view", "./data.list.toolbar.view",
         "./data.model", "./data.detail.view",
-        "./data.create.view", "./data.template.view", "./data.toolbar.view"],
-    function(app, Marionette, Backbone, DataListModel, DataListView, DataModel, DataDetailView, DataCreateView, TemplateView, ToolbarView) {
+        "./data.template.view", "./data.toolbar.view"],
+    function(app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView, TemplateView, ToolbarView) {
 
         app.module("data", function(module) {
             var Router = Backbone.Router.extend({
+                
+                initialize: function() {
+                    app.listenTo(app, "data-saved", function(model) {
+                        window.location.hash = "/extension/data/detail/" + model.get("shortid");
+                    });  
+                },
+
                 routes: {
-                    "extension/data": "data",
-                    "extension/data/:id": "dataDetail",
+                    "extension/data/list": "data",
+                    "extension/data/detail/:id": "dataDetail",
+                    "extension/data/detail": "dataDetail",
                 },
 
                 data: function() {
-                    this.navigate("/extension/data");
+                    this.navigate("/extension/data/list");
 
                     var model = new DataListModel();
-                    var view = new DataListView({
-                        collection: model
-                    });
+                    
+                    app.layout.showToolbarViewComposition(new DataListView({ collection: model }), new DataListToolbarView({ collection: model }));
 
-                    app.layout.content.show(view);
 
                     model.fetch();
                 },
 
                 dataDetail: function(id) {
                     var model = new DataModel();
-                    model.set("_id", id);
-                    
                     app.layout.showToolbarViewComposition(new DataDetailView({model: model}), new ToolbarView({model: model}) );
 
-                    model.fetch();
+                    if (id != null) {
+                        model.set("shortid", id);
+                        model.fetch();
+                    }
                 },
-
-                dataCreate: function() {
-                    app.layout.dialog.show(new DataCreateView({
-                        model: new DataModel()
-                    }));
-                }
             });
 
             app.data.on("created", function() {
                 app.data.router.data();
-            });
-
-            app.data.on("create", function() {
-                app.data.router.dataCreate();
             });
 
             app.data.router = new Router();
@@ -53,16 +50,11 @@
             if (!app.settings.playgroundMode) {
 
                 app.on("menu-render", function(context) {
-                    context.result += "<li><a href='#/extension/data'>Data</a></li>";
+                    context.result += "<li><a href='#/extension/data/list'>Data</a></li>";
                 });
 
                 app.on("menu-actions-render", function(context) {
-                    context.result += "<li><a id='createDataLink'>Create Data</a></li>";
-                    context.on("after-render", function($el) {
-                        $el.find("#createDataLink").click(function() {
-                            app.data.router.dataCreate();
-                        });
-                    });
+                    context.result += "<li><a href='#/extension/data/detail'createDataLink'>Create Data</a></li>";
                 });
             }
 
@@ -82,6 +74,7 @@
             app.on("entity-registration", function(context) {
 
                 $data.Class.define("$entity.DataItem", $data.Entity, null, {
+                    'shortid': { 'type': 'Edm.String'},
                     'name': { 'type': 'Edm.String' },
                     'dataJson': { 'type': 'Edm.String' },
                 }, null);

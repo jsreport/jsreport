@@ -1,6 +1,8 @@
+html, body {height:100%;overflow: hidden;}
+
 /* Side Menu template */
 body {
-  margin-top: 75px;
+  margin-top: 70px;
 }
 
 #wrapper {
@@ -83,7 +85,7 @@ table.tablesorter thead tr th:hover {
   }
 
   #page-wrapper {
-	padding: 0px 25px;
+	padding: 0px 15px;
   }
 
   /* Side Nav */
@@ -139,6 +141,16 @@ table.tablesorter thead tr th:hover {
   .navbar-inverse .navbar-nav>li>a:focus {
     background-color: #006687;
   }
+
+   .sub-header .navbar-nav>li>a,
+   .sub-header .navbar-nav>li>a {
+	color: #ececec;
+}
+
+   .sub-header .navbar-nav>li>a:hover,
+   .sub-header .navbar-nav>li>a:focus {
+    background-color: #212121;
+	color: #ffffff;
 }
 
 /* Override CSS */
@@ -155,7 +167,7 @@ table.tablesorter thead tr th:hover {
 .sub-header {
 	clear: both;
 	width: 100%;
- 	background: #007aa3;
+ 	background: #333333;
 	font-size: 13px;
     height: 32px;
 }
@@ -180,7 +192,7 @@ table.tablesorter thead tr th:hover {
 
 /* Navbar Bottom */
 .navbar-fixed-bottom {
-    min-height: 80px;
+    min-height: 60px;
 }
 
 .breadcrumb.none {
@@ -195,17 +207,18 @@ margin-top: 20px;
 
 .container {
     width: 100%;
-    padding-left: 25px;
-    padding-right: 25px;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 /* side-nav menu */
 .navbar-inverse .navbar-nav.nav-list>li>a{display:block;height: 38px;line-height:38px;padding: 0 16px 0 12px;background-color:#f5f5f5;color:#585858;text-shadow:none!important;font-size:13px;text-decoration:none;border-bottom: 1px solid #e5e5e5;}
 .navbar-inverse .navbar-nav.nav-list>li>a.dropdown-toggle{display:block;height: 38px;line-height:38px;padding: 0 16px 0 12px;background-color:#f5f5f5;color:#585858;text-shadow:none!important;font-size:13px;text-decoration:none;border-bottom: 1px solid #e5e5e5;}
+.navbar-inverse .navbar-nav.nav-list>li>a:hover{background-color:#ffffff;}
 
-.nav-list>li>a>[class*="icon-"]:first-child{display:inline-block;vertical-align:middle;min-width:20px;color:#333333;text-align:center;font-size: 14px;font-weight:normal;margin-right:2px;}
-.nav-list>li>a:hover>:first-child{color:#007aa3;}
-.nav-list>li>a:hover{color:#007aa3;}
+.nav-list>li>a>[class*="icon-"]:first-child{display:inline-block;vertical-align:middle;min-width:20px;color:#333333;text-align:center;font-size: 13px;font-weight:normal;margin-right:2px;}
+.nav-list>li>a:hover>:first-child{color:#333333;}
+.nav-list>li>a:hover{color:#333333;}
 /*.nav-list>li>a:hover:before{display:block;content:"";position:absolute;top: -1px;bottom:0;left:0;width:4px;max-width:4px;overflow:hidden;color:#585858;background-color:#007aa3;}
 */
 /* side-nav menu dropdown items */
@@ -249,6 +262,8 @@ border-bottom: 1px solid #e5e5e5;
 /* Glyphicon */
 i.glyphicon {margin-right: 4px;}
 .side-nav i.glyphicon {margin-right: 10px; top: -1px;}
+.glyphicon-sm {font-size: 11px;}
+.glyphicon-sm2 {font-size: 10px;}
 
 .nav.nav-tabs > li.dropdown.active.open > a, 
 .nav.nav-tabs > li.dropdown.active.open > ul.dropdown-menu a:hover,
@@ -260,19 +275,45 @@ i.glyphicon {margin-right: 4px;}
   border-color: #fff;
 }
 
-.expandable-body {
-background-color: #fff;
-}
+.expandable-body {background-color: #fff;}
 
 /* Modal fixing width 80% */
-.modal-dialog {
-  width: 80%;
-  height: 80%;
-  padding: 0;
+.modal-dialog {width: 80%; height: 80%; padding: 0;}
+.modal-content {height: 80%; min-height: 80%; border-radius: 0;}
+
+/* Example Report Title */
+blockquote {margin-bottom: 10px;}
+
+/* HTML, HELPERS, PREVIEW */
+.nav-tabs a {
+   height: 37px;
+   padding-top: 7px;
+   font-size: 13px;
 }
 
-.modal-content {
-  height: 80%;
-  min-height: 80%;
-  border-radius: 0;
+.tab-content {border: 1px solid #e7e7e7;}
+
+.dropdown-header{margin-top: 5px;border-bottom: 1px solid #37afcf;}
+
+.side-nav .caret-right {float: right; margin-left: 0; margin-top: 17px; color: #b2b2b2;}
+
+
+/* Template Detail */
+img.preview-loader {
+    width: 24px;
+    height: 24px;
+}
+
+.tab-content {height: 87%;}
+.tab-pane {height: 100%;}
+
+iframe#preview {
+width: 100%;
+    height: 100%;
+}
+
+.split-pane {
+    position: absolute; 
+    height: 83%; 
+    max-width: 88%;
 }

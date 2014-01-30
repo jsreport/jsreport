@@ -1,8 +1,8 @@
 ﻿define(["app", "marionette", "backbone",
-        "./report.list.model", "./report.list.view",
+        "./report.list.model", "./report.list.view", "./report.list.toolbar.view",
         "./report.model", "./report.detail.view",
         "./dashboard.reports.model", "./dashboard.reports.view", "./report.templateToolbar.view"],
-    function(app, Marionette, Backbone, ReportListModel, ReportListView, ReportModel, ReportDetailView,
+    function(app, Marionette, Backbone, ReportListModel, ReportListView, ReportListToolbarView, ReportModel, ReportDetailView,
         DashboardModel, DashboardView, TemplateToolbarView) {
         app.module("report", function(module) {
             var Router = Backbone.Router.extend({
@@ -15,11 +15,8 @@
                     this.navigate("/extension/reports");
 
                     var model = new ReportListModel();
-                    var view = new ReportListView({
-                        collection: model
-                    });
 
-                    app.layout.content.show(view);
+                    app.layout.showToolbarViewComposition(new ReportListView({ collection: model }), new ReportListToolbarView({ collection: model }));
 
                     model.fetch();
                 },

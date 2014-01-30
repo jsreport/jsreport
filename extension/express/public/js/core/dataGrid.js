@@ -15,6 +15,12 @@
             var pager = new DataGrid.PagerView({ model: options.filter });
             pager.setElement($(view.el).find("#pagerBox"));
             pager.render();
+
+            return {
+                deleteItems: function() {
+                    view.deleteAction();
+                }                    
+            };
         };
 
         DataGrid.PagerView = ViewBase.extend({

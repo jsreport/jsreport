@@ -72,6 +72,9 @@ module.exports = function(reporter, definition) {
 
         async.eachSeries(paths, function(p, icb) {
             dir.readFiles(p, function(err, content, filename, nextFile) {
+                if (content.charAt(0) === '\uFEFF') 
+                    content = content.substr(1);
+                
                 templates.push({
                     name: path.basename(filename, '.html'),
                     content: content

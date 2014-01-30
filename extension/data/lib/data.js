@@ -29,6 +29,7 @@ Data = function (reporter, definition) {
     this.DataItemType = $data.Class.define(reporter.extendGlobalTypeName("$entity.DataItem"), $data.Entity, null, {
         dataJson: { type: "string" },
         name: { type: "string" },
+        shortid: { type: "string"}
     }, null);
     
     if (this.reporter.playgroundMode) {
@@ -38,6 +39,7 @@ Data = function (reporter, definition) {
         reporter.templates.TemplateType.addMember("dataItemId", { type: "id" });
     }
     
+    this.DataItemType.addEventListener("beforeCreate", Data.prototype._beforeCreateHandler.bind(this));
     this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
@@ -75,6 +77,11 @@ Data.prototype.create = function (dataItem) {
     return this.entitySet.saveChanges().then(function() { return Q(ent); });
 };
 
+Data.prototype._beforeCreateHandler = function(args, entity) {
+     if (entity.shortid == null)
+        entity.shortid = shortid.generate();
+};
+
 function createEntitySetDefinitions(entitySets, next) {
     if (!this.reporter.playgroundMode) {
         entitySets["data"] = { type: $data.EntitySet, elementType: this.DataItemType };
@@ -82,3 +89,4 @@ function createEntitySetDefinitions(entitySets, next) {
 
     next();
 };
+

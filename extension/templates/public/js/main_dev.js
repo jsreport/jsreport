@@ -1,9 +1,9 @@
 ﻿define(["jquery", "app", "marionette", "backbone",
-        "./template.list.model", "./template.list.view",
+        "./template.list.model", "./template.list.view","./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",
         "./template.detail.toolbar.view"],
-    function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateModel,
+    function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel,
         TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
         return app.module("template", function(module) {
 
@@ -29,13 +29,10 @@
 
                 templates: function() {
                     this.navigate("/extension/templates");
-
                     var model = new TemplateListModel();
-                    var view = new TemplateListView({
-                        collection: model
-                    });
-
-                    app.layout.content.show(view);
+                    
+                    app.layout.showToolbarViewComposition(new TemplateListView({ collection: model }), new TemplateListTooolbarView({ collection: model }));
+                    
                     model.fetch();
                 },
                 

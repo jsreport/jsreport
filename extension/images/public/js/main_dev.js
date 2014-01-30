@@ -1,7 +1,7 @@
 ﻿define(["jquery", "app", "marionette", "backbone",
-        "./images.template.view", "./images.list.view", "./images.list.model",
+        "./images.template.view", "./images.list.view",  "./images.list.toolbar.view", "./images.list.model",
         "./images.toolbar.view", "./images.detail.view", "./images.model", "./images.uploader"],
-    function($, app, Marionette, Backbone, TemplateView, ImagesListView, ImagesListModel,
+    function($, app, Marionette, Backbone, TemplateView, ImagesListView, ImagesListToolbarView, ImagesListModel,
         ImageToolbarView, ImageDetailView, ImageModel) {
 
         app.module("images", function(module) {
@@ -15,11 +15,8 @@
                     this.navigate("/extension/images");
 
                     var model = new ImagesListModel();
-                    var view = new ImagesListView({
-                        collection: model
-                    });
-
-                    app.layout.content.show(view);
+                    
+                    app.layout.showToolbarViewComposition(new ImagesListView({ collection: model }), new ImagesListToolbarView({ collection: model }));
 
                     model.fetch();
                 },

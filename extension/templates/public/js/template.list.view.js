@@ -9,7 +9,7 @@
         },
 
         onDomRefresh: function () {
-            DataGrid.show({
+            this.dataGrid = DataGrid.show({
                 collection: this.collection,
                 filter: this.collection.filter,
                 idKey: "shortid",

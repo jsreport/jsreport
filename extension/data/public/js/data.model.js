@@ -3,9 +3,9 @@
     return ModelBase.extend({
         contextSet: function() { return app.dataContext.data; },
 
-        fetchQuery: function() {
-            return app.dataContext.data.find(this.get("_id"));
-        },                
+        fetchQuery: function (cb) {
+            return this.contextSet().single(function(r) { return r.shortid == this.id; }, { id: this.get("shortid") });
+        },        
 
         _initialize: function() {
             var self = this;

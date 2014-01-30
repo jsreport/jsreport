@@ -20,7 +20,7 @@
                     app.trigger("template-extensions-toolbar-render", contextToolbar);
                 });
 
-                _.bindAll(this, "preview");
+                _.bindAll(this, "preview", "previewNewPanel");
             },
             
             getRecipes: function () {
@@ -45,6 +45,7 @@
             events: {
                 "click #saveCommand": "save",
                 "click #previewCommand": "preview",
+                "click #previewNewTabCommand": "previewNewPanel",
             },
 
             
@@ -71,17 +72,26 @@
                 input.value = value;
                 form.appendChild(input);
             },
-          
-            preview: function () {
+            
+            previewNewPanel: function() {
+                this._preview("_blank");
+                this.contentView.$el.find(".preview-loader").hide();
+            },
+            
+            preview: function() {
+                this._preview("previewFrame");
+            },
+            
+            _preview: function (target) {
                 if (!this.validate())
                     return;
-
+                
                 this.contentView.$el.find(".preview-loader").show();
                 //http://connect.microsoft.com/IE/feedback/details/809377/ie-11-load-event-doesnt-fired-for-pdf-in-iframe
                 //this.contentView.$el.find("[name=previewFrame]").hide();
                 
                 var mapForm = document.createElement("form");
-                mapForm.target = "previewFrame";
+                mapForm.target = target;
                 mapForm.method = "POST";
                 mapForm.action = app.serverUrl + "report";
 

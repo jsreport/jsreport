@@ -8,7 +8,7 @@
     Q = require("q");
 
 
-var logger = winston.loggers.get('jsreport');
+var logger = winston.loggers.has('jsreport.templates') ? winston.loggers.get('jsreport.templates') : winston.loggers.get('jsreport');
 
 module.exports = function(reporter, definition) {
     reporter[definition.name] = new Templating(reporter, definition);
@@ -45,12 +45,12 @@ Templating = function(reporter, definition) {
 
 Templating.prototype.handleBeforeRender = function(request, response) {
     if (request.template._id == null && request.template.shortid == null) {
-        logger.debug("Its a inline template");
+        logger.info("Its a inline template");
         request.template.html = request.template.html == null || request.template.html == "" ? " " : request.template.html;
         return;
     }
 
-    logger.debug("Searching for template in db");
+    logger.info("Searching for template in db");
 
     return this._updatePromise = this._updatePromise.then(function() {
         var findPromise = (request.template._id != null) ? request.context.templates.find(request.template._id) :

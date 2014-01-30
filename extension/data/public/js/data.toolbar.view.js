@@ -8,7 +8,12 @@
             },
 
             save: function() {
-                this.model.save();
+                var self = this;
+                this.model.save({}, {
+                    success: function() {
+                        app.trigger("data-saved", self.model);
+                    }
+                });
             },
         });
     });

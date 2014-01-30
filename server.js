@@ -2,7 +2,6 @@
     _ = require("underscore"),
     winston = require("winston"),
     expressWinston = require("express-winston"),
-    install = require("./reporter.install.js"),
     path = require("path"),
     connect = require("connect"),
     config = require("./config.js");
@@ -19,7 +18,7 @@ app.use(express.methodOverride());
 app.use(express.static(path.join(__dirname, 'views')));
 app.engine('html', require('ejs').renderFile);
 app.use(express.cookieParser());
-app.use(express.cookieSession(config.cookie));
+app.use(express.cookieSession(config.cookieSession));
     
 /* LOGGING */
 var transportSettings = {
@@ -28,16 +27,28 @@ var transportSettings = {
     level: "debug"
 };
 
-winston.remove(winston.transports.Console).add(winston.transports.Console, transportSettings);
-var logger = winston.loggers.add('jsreport');
-logger.remove(winston.transports.Console).add(winston.transports.Console, transportSettings);
-logger.add(winston.transports.File, { filename: 'reporter.log' });
-/*  --- */
+var consoleTransport = new (winston.transports.Console)(transportSettings);
+var fileTransport = new (winston.transports.File)({ name: "main", filename: 'reporter.log', maxsize: 10485760, json: false });
+var errorFileTransport = new (winston.transports.File)({ name: "error", level: 'error', filename: 'error.log', handleExceptions: true,json: false });
 
-install(app, {
+winston.loggers.add('jsreport', {
+    transports: [ consoleTransport, fileTransport, errorFileTransport ]
+});
+
+var logger = winston.loggers.add('jsreport.templates', {
+    transports: [
+        consoleTransport,
+        fileTransport,
+        new (winston.transports.File)({ name: "templates", filename: 'templates.log', maxsize: 10485760, json: false }),
+        errorFileTransport
+    ]
+});
+
+require("./reporter.install.js")(app, {
     mode: config.mode,
     connectionString: config.connectionString,
     extensions: config.extensions
+}, function() {
+    app.listen(config.port);    
 });
 
-app.listen(config.port);

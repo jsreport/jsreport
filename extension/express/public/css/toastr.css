@@ -78,8 +78,8 @@ button.toast-close-button {
   right: 12px;
 }
 .toast-bottom-right {
-  right: 12px;
-  bottom: 12px;
+  right: 15px;
+  bottom: 60px;
 }
 .toast-bottom-left {
   bottom: 12px;
@@ -99,7 +99,7 @@ button.toast-close-button {
 #toast-container > div {
   margin: 0 0 6px;
   padding: 15px 15px 15px 50px;
-  width: 300px;
+  width: 100%;
   -moz-border-radius: 3px 3px 3px 3px;
   -webkit-border-radius: 3px 3px 3px 3px;
   border-radius: 3px 3px 3px 3px;
@@ -149,7 +149,7 @@ button.toast-close-button {
   background-color: #bd362f;
 }
 .toast-info {
-  background-color: #2f96b4;
+  background-color: #3d9e61;
 }
 .toast-warning {
   background-color: #f89406;

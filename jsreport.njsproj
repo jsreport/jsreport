@@ -49,9 +49,6 @@
     <Content Include="extension\data\public\js\data.dialog.view.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\data\public\templates\data-create.html">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\data\public\templates\data-detail.html">
       <SubType>Content</SubType>
     </Content>
@@ -61,6 +58,7 @@
     <Content Include="extension\data\public\templates\data-list-rows.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\data\public\templates\data-list-toolbar.html" />
     <Content Include="extension\data\public\templates\data-list.html">
       <SubType>Content</SubType>
     </Content>
@@ -175,6 +173,7 @@
     <Content Include="extension\images\public\templates\images-detail.html" />
     <Content Include="extension\images\public\templates\images-list-header.html" />
     <Content Include="extension\images\public\templates\images-list-rows.html" />
+    <Content Include="extension\images\public\templates\images-list-toolbar.html" />
     <Content Include="extension\images\public\templates\images-list.html" />
     <Content Include="extension\images\public\templates\images-dialog.html">
       <SubType>Content</SubType>
@@ -235,6 +234,7 @@
     <Content Include="extension\reports\public\templates\report-list-rows.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\reports\public\templates\report-list-toolbar.html" />
     <Content Include="extension\reports\public\templates\report-list.html">
       <SubType>Content</SubType>
     </Content>
@@ -263,13 +263,13 @@
     <Content Include="extension\scripts\public\js\scripts.template.view.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\scripts\public\templates\scripts-create.html" />
     <Content Include="extension\scripts\public\templates\scripts-detail.html" />
     <Content Include="extension\scripts\public\templates\scripts-dialog.html">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\scripts\public\templates\scripts-list-header.html" />
     <Content Include="extension\scripts\public\templates\scripts-list-rows.html" />
+    <Content Include="extension\scripts\public\templates\scripts-list-toolbar.html" />
     <Content Include="extension\scripts\public\templates\scripts-list.html" />
     <Content Include="extension\scripts\public\templates\scripts-template.html">
       <SubType>Content</SubType>
@@ -350,6 +350,7 @@
     <Content Include="extension\templates\public\templates\template-list-rows.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\templates\public\templates\template-list-toolbar.html" />
     <Content Include="extension\templates\public\templates\template-list.html">
       <SubType>Content</SubType>
     </Content>
@@ -426,9 +427,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\express\public\js\require_main.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\data\public\js\data.create.view.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\data\public\js\data.detail.view.js">
@@ -719,6 +717,7 @@
     <Compile Include="config\production.multitenant.config.js" />
     <Compile Include="config\production.playground.config.js" />
     <Compile Include="extension\data\public\js\data.dialog.model.js" />
+    <Compile Include="extension\data\public\js\data.list.toolbar.view.js" />
     <Compile Include="extension\data\public\js\data.toolbar.view.js" />
     <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
     <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
@@ -728,17 +727,20 @@
     <Compile Include="extension\fop\integrationTest\fopTest.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />
     <Compile Include="extension\images\public\js\images.list.model.js" />
+    <Compile Include="extension\images\public\js\images.list.toolbar.view.js" />
     <Compile Include="extension\images\public\js\images.list.view.js" />
     <Compile Include="extension\images\public\js\images.ref.model.js" />
     <Compile Include="extension\images\public\js\images.toolbar.view.js" />
     <Compile Include="extension\images\public\js\images.uploader.js" />
     <Compile Include="extension\phantom\integrationTest\phantomTest.js" />
-    <Compile Include="extension\scripts\public\js\scripts.create.view.js" />
+    <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.dialog.model.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.model.js" />
+    <Compile Include="extension\scripts\public\js\scripts.list.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.toolbar.view.js" />
+    <Compile Include="extension\templates\public\js\template.list.toolbar.view.js" />
     <Compile Include="extension\test\public\js\list.js" />
     <Compile Include="extension\test\public\js\main.js" />
     <Compile Include="mongoTmp.js" />

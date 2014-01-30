@@ -1,56 +1,107 @@
-﻿<html>
-    <head>
-        <title>Tenant registration</title>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="jsreport - javascript business reports">
+    <meta name="author" content="Jan Blaha">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <title>JS Report - SignUp</title>
+    <!-- CSS links -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/registration.css" rel="stylesheet">
     </head>
-    <body>
-        
-        <h1> Sign In</h1>
-        <form action="/login" method="POST">
-            <div>
-                <span>Email for login</span> <input type="text" name="username" value=""/>
-            </div>
-            <div>
-                <span>Password</span> <input type="password" name="password" value=""/>
-            </div>
-        
-            <div>
-                <input type="submit" value="Login"/>
-            </div>
-            <div>
-                <% if (viewModel.login) { %>
-                <h4 style="color: red"><%= viewModel.login %></h4>
-                <% } %>
-            </div>
-        </form>
-        
-        <h1> Register new account</h1>
-        <form action="/register" method="POST">
-            <div>
-                <span>Email for login</span> <input type="text" name="username" value="<%= viewModel.previousUsername || '' %>"/>
-            </div>
-            <div>
-                <span>Name</span> <input type="text" name="name" value="<%= viewModel.previousName || '' %>"/>
-                <% if (viewModel.name) { %>
-                <h4 style="color: red"><%= viewModel.name %></h4>
-                <% } %>
-            </div>
-            
-            <div>
-                <span>Password</span> <input type="password" name="password"/>
-                <% if (viewModel.password) { %>
-                <h4 style="color: red"><%= viewModel.password %></h4>
-                <% } %>
-            </div>
-            <div>
-                <span>Password Confirmation</span> <input type="password" name="passwordConfirm"/>
-                <% if (viewModel.passwordConfirm) { %>
-                <h4 style="color: red"><%= viewModel.passwordConfirm %></h4>
-                <% } %>
-            </div>
-        
-            <div>
-                <input type="submit" value="Register"/>
-            </div>
-        </form>
-    </body>
+<body>
+    <nav class="navbar navbar-default" role="navigation">
+  <!-- Brand and toggle get grouped for better mobile display -->
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="#"><span class="sub-brand">/ Happy Morning, John.</span></a>
+  </div></nav>
+    
+    <div class="container">
+    <div class="row vertical-offset-100">
+    	<div class="col-md-4 col-md-offset-4">
+    		<div class="panel panel-default">
+			  	<div class="panel-heading">
+			    	<h3 class="panel-title">Please sign in</h3>
+			 	</div>
+			  	<div class="panel-body">
+			    	<form accept-charset="UTF-8" action="/login" method="POST" role="form">
+                    <fieldset>
+			    	  	<div class="form-group">
+			    		    <input class="form-control" placeholder="E-mail" name="username" type="text">
+			    		</div>
+			    		<div class="form-group">
+			    			<input class="form-control" placeholder="Password" name="password" type="password" value="">
+			    		</div>
+			    		<div class="checkbox">
+			    	    	<label>
+			    	    		<input name="remember" type="checkbox" value="Remember Me"> Remember Me
+			    	    	</label>
+			    	    </div>
+                        <div>
+                            <% if (viewModel.login) { %>
+                            <h5 style="color: red"><%= viewModel.login %></h5>
+                            <% } %>
+                        </div>
+			    		<input class="btn btn-lg btn-success btn-block" type="submit" value="Login">
+			    	</fieldset>
+			      	</form>
+			    </div>
+			</div>
+		</div>
+	</div>
+                
+                
+    <div class="row vertical-offset-100">
+    	<div class="col-md-4 col-md-offset-4">
+    		<div class="panel panel-default">
+			  	<div class="panel-heading">
+			    	<h3 class="panel-title">Register new account</h3>
+			 	</div>
+			  	<div class="panel-body">
+			    	<form accept-charset="UTF-8" action="/register" method="POST" role="form">
+                    <fieldset>
+			    	  	<div class="form-group">
+			    		    <input class="form-control" placeholder="E-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
+			    		</div>
+                        <div class="form-group">
+			    		    <input class="form-control" placeholder="Name" type="text" name="name" value="<%= viewModel.previousName || '' %>">
+			    		        <% if (viewModel.name) { %>
+                                <h5 style="color: red"><%= viewModel.name %></h5>
+                                <% } %>
+                        </div>
+			    		<div class="form-group">
+			    			<input class="form-control" placeholder="Password" name="password" type="password" value="">
+                            <% if (viewModel.password) { %>
+                            <h5 style="color: red"><%= viewModel.password %></h5>
+                            <% } %> 
+			    		</div>
+                        <div class="form-group">
+			    			<input class="form-control" placeholder="Confirm password" type="password" name="passwordConfirm" value="">
+                            <% if (viewModel.passwordConfirm) { %>
+                            <h4 style="color: red"><%= viewModel.passwordConfirm %></h4>
+                            <% } %>
+			    		</div>
+                        <div>
+			    		<input class="btn btn-lg btn-primary btn-block" type="submit" value="Register">
+			    	</fieldset>
+			      	</form>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+    <footer class="footer">
+      <div class="container">
+        <p class="muted credit"><a href="#">About</a> <a href="#">Help</a> <a href="#">Developers</a> <a href="#">Terms</a> © 2014 JSReport</p>
+      </div>
+    </footer>
+</div>
+</body>
 </html>

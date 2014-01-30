@@ -2,17 +2,18 @@
     winston = require("winston"),
     expressWinston = require("express-winston"),
     path = require("path"),
+    async = require("async"),
     _ = require("underscore"),
     express = require("express");
 
-module.exports = function(app, options) {
+module.exports = function(app, options, cb) {
 
     if (options.mode == "playground") {
         options.express = { app: app };
         options.playgroundMode = true;
         options.connectionString.databaseName = "playground";
         var reporter = new Reporter(options);
-        reporter.init();
+        reporter.init(cb);
         return;
     }
 
@@ -21,7 +22,7 @@ module.exports = function(app, options) {
         options.playgroundMode = false;
         options.connectionString.databaseName = "standard";
         var reporter = new Reporter(options);
-        reporter.init();
+        reporter.init(cb);
         return;
     }
 
@@ -33,7 +34,7 @@ module.exports = function(app, options) {
         LocalStrategy = require('passport-local').Strategy,
         BasicStrategy = require('passport-http').BasicStrategy;
 
-    function activateTenant(tenant, cb) {
+    function activateTenant(tenant, tcb) {
         var opts = _.extend({}, options);
         var main = express();
 
@@ -52,14 +53,15 @@ module.exports = function(app, options) {
         app.use(express.vhost(tenant.name + '.*', main));
 
         rep.init(function() {
-            if (cb != null)
-                cb(null);
+            if (tcb != null)
+                tcb(null);
         });
     }
 
     var multitenancy = new Multitenancy();
     multitenancy.findTenants().then(function(tenants) {
-        tenants.forEach(function(t) { activateTenant(t); });
+        async.eachSeries(tenants, function(t, tcb) { activateTenant(t, tcb); });
+        cb();
     });
 
     app.use(passport.initialize());
@@ -73,10 +75,10 @@ module.exports = function(app, options) {
                 message: err
             };
         }
-        
+
         err = err || {};
         err.message = err.message || "Unrecognized error";
-        
+
         if (err.code == "TENANT_NOT_FOUND") {
             req.session = null;
             return res.redirect("/");
@@ -225,7 +227,18 @@ module.exports = function(app, options) {
 
         multitenancy.registerTenant(req.body.username, req.body.name, req.body.password).then(function(tenant) {
             activateTenant(tenant, function() {
-                passport.authenticate('local', { successReturnToOrRedirect: '/' })(req, res);
+                passport.authenticate('local', function(err, user, info) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    req.logIn(user, function(err) {
+                        if (err) {
+                            return next(err);
+                        }
+                        return res.redirect('/');
+                    });
+                })(req, res);
             });
         }, function() {
 

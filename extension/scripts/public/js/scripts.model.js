@@ -2,9 +2,9 @@
     return ModelBase.extend({
         contextSet: function () { return app.dataContext.scripts; },
 
-        fetchQuery: function () {
-            return app.dataContext.scripts.find(this.get("_id"));
-        },
+       fetchQuery: function (cb) {
+            return this.contextSet().single(function(r) { return r.shortid == this.id; }, { id: this.get("shortid") });
+        },    
         
         setTemplateModel: function(templateModel) {
             this.templateModel = templateModel;
