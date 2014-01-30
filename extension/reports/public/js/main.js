@@ -1,8 +1,8 @@
 ﻿define(["app", "marionette", "backbone",
         "./report.list.model", "./report.list.view", "./report.list.toolbar.view",
-        "./report.model", "./report.detail.view",
+        "./report.model", "./report.detail.view", "./report.toolbar.view",
         "./dashboard.reports.model", "./dashboard.reports.view", "./report.templateToolbar.view"],
-    function(app, Marionette, Backbone, ReportListModel, ReportListView, ReportListToolbarView, ReportModel, ReportDetailView,
+    function(app, Marionette, Backbone, ReportListModel, ReportListView, ReportListToolbarView, ReportModel, ReportDetailView, ReportToolbarView,
         DashboardModel, DashboardView, TemplateToolbarView) {
         app.module("report", function(module) {
             var Router = Backbone.Router.extend({
@@ -26,12 +26,7 @@
                     model.set("shortid", id);
                     model.fetch({
                         success: function() {
-                            var view = new ReportDetailView({
-                                model: model
-                            });
-
-                            app.layout.content.show(view);
-                        }
+                            app.layout.showToolbarViewComposition(new ReportDetailView({ model: model }), new ReportToolbarView({ model: model }));}
                     });
                 },
             });

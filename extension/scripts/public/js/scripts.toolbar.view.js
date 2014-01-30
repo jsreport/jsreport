@@ -15,5 +15,18 @@
                     }
                 });
             },
+
+            onDomRefresh: function() {
+                var self = this;
+
+                this.$el.find("#editableBox").hover(function() {
+                    self.$el.find("#nameInput").show();
+                    self.$el.find("#name").hide();
+                }, function() {
+                    self.$el.find("#nameInput").hide();
+                    self.$el.find("#name").html(self.$el.find("#nameInput").val());
+                    self.$el.find("#name").show();
+                });
+            },
         });
     });

@@ -115,6 +115,9 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 Scripts.prototype._beforeCreateHandler = function(args, entity) {
      if (entity.shortid == null)
         entity.shortid = shortid.generate();
+    
+     if (entity.name == null)
+        entity.name = "not set";
 };
 
 function createEntitySetDefinitions(entitySets, next) {

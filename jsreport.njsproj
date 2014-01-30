@@ -239,6 +239,7 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\reports\public\templates\report-template-toolbar.html" />
+    <Content Include="extension\reports\public\templates\report-toolbar.html" />
     <Content Include="extension\reports\test\reportsTest.js">
       <SubType>Content</SubType>
     </Content>
@@ -734,6 +735,7 @@
     <Compile Include="extension\images\public\js\images.uploader.js" />
     <Compile Include="extension\phantom\integrationTest\phantomTest.js" />
     <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
+    <Compile Include="extension\reports\public\js\report.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.dialog.model.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.model.js" />

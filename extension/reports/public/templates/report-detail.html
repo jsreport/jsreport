@@ -1,26 +1,7 @@
-﻿<h2>Report - <span name="name">{{:name}}</span></h2>
-<br />
-
-<div>
-    <span>Name :</span><span name="name">{{:name}}</span>
-</div>
-
-<div>
-    {{if template != null}}
-    <a href="#/extension/templates/{{:templateShortid}}">Go to template</a>
-    {{else}}{{/if}}
-</div>
-
-<br>
-
-<div>
-    <div>
-        <span>Preview </span><a href="{{:~getServerUrl()}}report/{{:shortid}}/content" target="_blank">New window</a>
-    </div>
+﻿<div>
     <div style="height: 623px; width: 600px">
         <iframe src="{{:~getServerUrl()}}report/{{:shortid}}/content" frameborder="0" allowtransparency="true" allowfullscreen="true" style="width: 100%; height: 100%;"></iframe>
     </div>
-    
 </div>
 
 <!--<div class="panel panel-info">
