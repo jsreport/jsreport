@@ -12,9 +12,9 @@
         },
         
         onDomRefresh: function () {
-
-            if (this.model.get("_id") == null)
-                return;
+            //why is this here?
+            //if (this.model.get("_id") == null)
+            //    return;
             
             this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
                 mode: "javascript",

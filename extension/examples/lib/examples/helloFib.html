@@ -1,0 +1,51 @@
+<h1>Hello world with Fibonacci!</h1>
+
+<p>
+    This first example should explain the most basic techniques used in 
+    jsreport. 
+</p>
+
+<p>
+    Assembling reports in jsreport is based on javascript templating engines. 
+    You define a xml template like this one with special tags and jsreport will
+    render report output for you. Output can be html, pdf and others will come.  
+    This example is rendering simple html, but you will learn about other output
+    formats in the next examples.
+</p>
+
+<p>
+    In the integrated templated designer is the template on the left side. You
+    can find a preview of the final report on the right side. Using "Run" butotn
+    from the toolbar will invoke post to the jsreport server and displays the
+    output in the previe. Go ahead and try it!
+</p>
+
+<p>
+    Every jsrender template contains a html and javascript helpers. This 
+    comes from basic concepts of javascript templating engines. The html
+    contains the report design and the helpers can contain any javascript function
+    that can do the some computations required in the report.
+</p>
+
+<p>
+    Enought of theory, go now and check out the next example rendering 
+    fibonacci table.
+</p>
+
+<table border="1">  
+    <th>n-position</th>
+    <th>fib value</th>
+   
+    <!-- we can call helper functions in jsrender using ~ -->
+    {{for ~fibSequence(10)}}
+    <tr style="
+
+     background-color:#DD66{{:#data.i}}0">
+        <!-- #data is floating context that is always referencing current
+            item source.
+            --> 
+        <td>{{:#data.i}}</td>
+        <td>{{:#data.val}}</td>
+    </tr>    
+    {{/for}}
+</table>

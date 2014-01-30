@@ -83,10 +83,7 @@
     <Content Include="extension\examples\lib\examples\complexScript.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\examples\lib\examples\compute.html">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\examples\lib\examples\compute.json">
+    <Content Include="extension\examples\lib\examples\helloFib.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\examples\lib\examples\inlineData.html">
@@ -95,14 +92,14 @@
     <Content Include="extension\examples\lib\examples\inlineData.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\examples\lib\examples\helloWorld.html">
+    <Content Include="extension\examples\lib\examples\helloFib.html">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\examples\lib\examples\helloWorld.xml">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\examples\lib\examples\invoice.html" />
-    <Content Include="extension\examples\lib\examples\invoice.json" />
+    <Content Include="extension\examples\lib\examples\invoice.js" />
     <Content Include="extension\examples\lib\examples\script.js">
       <SubType>Content</SubType>
     </Content>
@@ -723,7 +720,7 @@
     <Compile Include="config\production.playground.config.js" />
     <Compile Include="extension\data\public\js\data.dialog.model.js" />
     <Compile Include="extension\data\public\js\data.toolbar.view.js" />
-    <Compile Include="extension\examples\lib\examples\invoiceHelpers.json" />
+    <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
     <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />

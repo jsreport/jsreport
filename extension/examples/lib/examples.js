@@ -30,7 +30,7 @@ Examples = function(reporter, definition) {
                     return Q();
                 }
 
-                return helloWorld().then(jsHelpers).then(phantomPdf).then(fop).then(script).then(data).then(invoice).then(function() {
+                return helloWorld().then(phantomPdf).then(fop).then(script).then(data).then(invoice).then(function() {
                     logger.info("Examples successfully created.");
                 });
             });
@@ -39,20 +39,10 @@ Examples = function(reporter, definition) {
     function helloWorld() {
         return self.reporter.templates.create({
             name: "1. Hello World",
-            html: fs.readFileSync(join(__dirname, 'examples/helloWorld.html')).toString("utf8"),
+            html: fs.readFileSync(join(__dirname, 'examples/helloFib.html')).toString("utf8"),
+            helpers: fs.readFileSync(join(__dirname, 'examples/helloFib.js')).toString("utf8"),
             engine: "jsrender",
             recipe: "html",
-            isExample: true
-        });
-    }
-
-    function jsHelpers() {
-        return self.reporter.templates.create({
-            name: "2. Js Helpers",
-            html: fs.readFileSync(join(__dirname, 'examples/compute.html')).toString("utf8"),
-            engine: "jsrender",
-            recipe: "html",
-            helpers: fs.readFileSync(join(__dirname, 'examples/compute.json')).toString("utf8"),
             isExample: true
         });
     }
@@ -60,7 +50,7 @@ Examples = function(reporter, definition) {
     function phantomPdf() {
         return self.reporter.templates.create({
             name: "3. Hello World Phantom Pdf",
-            html: fs.readFileSync(join(__dirname, 'examples/helloWorld.html')).toString("utf8"),
+            html: fs.readFileSync(join(__dirname, 'examples/helloFib.html')).toString("utf8"),
             engine: "jsrender",
             recipe: "phantom",
             isExample: true
@@ -144,13 +134,13 @@ Examples = function(reporter, definition) {
     function invoice() {
         var dataObj = {
              name: "Invoice",
-             dataJson: fs.readFileSync(join(__dirname, 'examples/invoice.json')).toString("utf8")
+             dataJson: fs.readFileSync(join(__dirname, 'examples/invoice.js')).toString("utf8")
         };
 
         var templateObj = {
             name: "8. Invoice",
             html: fs.readFileSync(join(__dirname, 'examples/invoice.html')).toString("utf8"),
-            helpers: fs.readFileSync(join(__dirname, 'examples/invoiceHelpers.json')).toString("utf8"),
+            helpers: fs.readFileSync(join(__dirname, 'examples/invoiceHelpers.js')).toString("utf8"),
             engine: "jsrender",
             recipe: "html",
             isExample: true,
