@@ -5,12 +5,11 @@
     function(app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView, TemplateView, ToolbarView) {
 
         app.module("data", function(module) {
-            var Router = Backbone.Router.extend({
-                
+            var Router = Backbone.Router.extend({                
                 initialize: function() {
                     app.listenTo(app, "data-saved", function(model) {
                         window.location.hash = "/extension/data/detail/" + model.get("shortid");
-                    });  
+                    });
                 },
 
                 routes: {
@@ -23,7 +22,7 @@
                     this.navigate("/extension/data/list");
 
                     var model = new DataListModel();
-                    
+
                     app.layout.showToolbarViewComposition(new DataListView({ collection: model }), new DataListToolbarView({ collection: model }));
 
 
@@ -32,7 +31,7 @@
 
                 dataDetail: function(id) {
                     var model = new DataModel();
-                    app.layout.showToolbarViewComposition(new DataDetailView({model: model}), new ToolbarView({model: model}) );
+                    app.layout.showToolbarViewComposition(new DataDetailView({ model: model }), new ToolbarView({ model: model }));
 
                     if (id != null) {
                         model.set("shortid", id);
@@ -64,17 +63,24 @@
                 context.extensionsRegion.show(view);
             });
 
+
             app.on("template-extensions-get-state", function(model, state) {
+                if (!app.settings.playgroundMode) {
+                    state.dataItemId = model.get("dataItemId");
+                    return;
+                }
+
                 if (model.get("dataItem") != null && model.get("dataItem").dataJson != null)
                     state.dataItem = model.get("dataItem").dataJson;
                 else
                     state.dataItem = null;
             });
 
+
             app.on("entity-registration", function(context) {
 
                 $data.Class.define("$entity.DataItem", $data.Entity, null, {
-                    'shortid': { 'type': 'Edm.String'},
+                    'shortid': { 'type': 'Edm.String' },
                     'name': { 'type': 'Edm.String' },
                     'dataJson': { 'type': 'Edm.String' },
                 }, null);

@@ -60,6 +60,7 @@
                     '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
                     'creationDate': { 'type': 'Edm.DateTime' },
                     'name': { 'type': 'Edm.String' },
+                    'fileExtension': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
                     'type': { 'type': 'Edm.String' },
                     'templateShortid': { 'type': 'Edm.String' }

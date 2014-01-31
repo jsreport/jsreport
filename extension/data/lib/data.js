@@ -36,7 +36,7 @@ Data = function (reporter, definition) {
         reporter.templates.TemplateType.addMember("dataItem", { type:  this.DataItemType });
     } else {
         this.DataItemType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
-        reporter.templates.TemplateType.addMember("dataItemId", { type: "id" });
+        reporter.templates.TemplateType.addMember("dataItemId", { type: "string" });
     }
     
     this.DataItemType.addEventListener("beforeCreate", Data.prototype._beforeCreateHandler.bind(this));
@@ -59,7 +59,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
         logger.info("Searching for before dataItem to apply");
 
-        return self.entitySet.find(request.template.dataItemId);
+        return self.entitySet.single(function(d) { return d.shortid == this.id; }, { id: request.template.dataItemId } );
     };
 
     return FindDataItem().then(function(di) {

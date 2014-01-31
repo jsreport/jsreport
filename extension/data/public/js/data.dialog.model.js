@@ -55,7 +55,7 @@
             }
 
             app.dataContext.data.saveChanges().then(function () {
-                self.templateModel.set("dataItemId", entity._id);
+                self.templateModel.set("dataItemId", entity.shortid);
                 options.success();
             });
         },

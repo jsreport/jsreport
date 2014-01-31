@@ -40,6 +40,8 @@
         <li><a id="previewCommand"><i class="glyphicon glyphicon-sm glyphicon-play"></i>Run</a></li>
         <li><a id="previewNewTabCommand"><i class="glyphicon glyphicon-sm glyphicon-fullscreen"></i>Run in new panel</a></li>
         <li><a id="saveCommand"><i class="glyphicon glyphicon-sm glyphicon-floppy-disk"></i>Save</a></li>
-        <li class="pull-right"><a id="saveCommand" class="pull-right"><i class="glyphicon glyphicon-sm glyphicon-question-sign"></i>API</a></li>
+        {{if ~getSettings().mode != "playground" }}
+            <li class="pull-right"><a id="apiHelpCommnand" class="pull-right"><i class="glyphicon glyphicon-sm glyphicon-question-sign"></i>API</a></li>
+        {{else}}{{/if}}
     </ul>
 </div>

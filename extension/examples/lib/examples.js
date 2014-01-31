@@ -84,7 +84,7 @@ Examples = function(reporter, definition) {
         function finishTemplate() {
             if (!reporter.playgroundMode) {
                 return reporter.scripts.create(scriptObj).then(function(scriptEntity) {
-                    templateObj.scriptId = scriptEntity._id;
+                    templateObj.scriptId = scriptEntity.shortid;
                     return Q(templateObj);
                 });
             } else {
@@ -116,7 +116,7 @@ Examples = function(reporter, definition) {
         function finishTemplate() {
             if (!reporter.playgroundMode) {
                 return reporter.data.create(dataObj).then(function(dataItemEntity) {
-                    templateObj.dataItemId = dataItemEntity._id;
+                    templateObj.dataItemId = dataItemEntity.shortid;
                     return Q(templateObj);
                 });
             } else {
@@ -149,7 +149,7 @@ Examples = function(reporter, definition) {
         function finishTemplate() {
             if (!reporter.playgroundMode) {
                 return reporter.data.create(dataObj).then(function(dataItemEntity) {
-                    templateObj.dataItemId = dataItemEntity._id;
+                    templateObj.dataItemId = dataItemEntity.shortid;
                     return Q(templateObj);
                 });
             } else {

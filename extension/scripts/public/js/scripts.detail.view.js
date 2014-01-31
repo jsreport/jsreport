@@ -15,17 +15,6 @@
             });
             
             codeMirrorBinder(this.model, "content", this.contentCodeMirror);
-
-            var self = this;
-            this.$el.find("#name").hover(function() {
-                alert("in");
-                self.$el.find("#nameInput").show();
-                self.$el.find("#name").hide();
-            }, function() {
-                alert("out");
-                self.$el.find("#nameInput").hide();
-                self.$el.find("#name").show();
-            });
         },
    });
 });

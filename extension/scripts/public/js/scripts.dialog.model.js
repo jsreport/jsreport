@@ -53,7 +53,7 @@
             }
 
             app.dataContext.scripts.saveChanges().then(function () {
-                self.templateModel.set("scriptId", entity._id);
+                self.templateModel.set("scriptId", entity.shortid);
                 options.success();
             });
         },

@@ -333,10 +333,7 @@
     <Content Include="extension\templates\public\templates\dashboard-templates.html">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\templates\public\templates\template-detail-csharp.html">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\templates\public\templates\template-detail-rest.html">
+    <Content Include="extension\templates\public\templates\template-detail-api.html">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\templates\public\templates\template-detail-toolbar.html">
@@ -725,6 +722,8 @@
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />
     <Compile Include="extension\express\public\lib\codemirror.js" />
+    <Compile Include="extension\express\public\lib\jaydata.min.js" />
+    <Compile Include="extension\express\public\lib\require.min.js" />
     <Compile Include="extension\fop\integrationTest\fopTest.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />
     <Compile Include="extension\images\public\js\images.list.model.js" />

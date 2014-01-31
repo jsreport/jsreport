@@ -36,7 +36,7 @@ Scripts = function (reporter, definition) {
         reporter.templates.TemplateType.addMember("script", { type: this.ScriptType });
     } else {
         this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
-        reporter.templates.TemplateType.addMember("scriptId", { type: "id" });
+        reporter.templates.TemplateType.addMember("scriptId", { type: "string" });
     }
     
     this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
@@ -64,7 +64,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         
         logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
-        return self.entitySet.find(request.template.scriptId);
+        return self.entitySet.single(function(s) { return s.shortid == this.id; }, { id: request.template.scriptId });
     };
 
     return FindScript().then(function (script) {

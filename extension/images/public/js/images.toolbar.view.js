@@ -5,7 +5,7 @@
 
             events: {
                 "click #saveCommand": "save",
-                "click #uploadCommand": "upload",
+                "click #embedCommand": "embed",
             },
 
             onDomRefresh: function() {
@@ -25,8 +25,12 @@
                 this.uploader.open();
             },
 
-            save: function() {
-                this.model.save();
+            embed: function() {
+                  $.dialog({
+                        header: "Insert image into template",
+                        content: "To insert this image into template. Paste following code: <br><br> <code style='border: 1px'>&lt;img src='/image/name/" + this.model.get("name") + "'/&gt;</code>",
+                        hideSubmit: true
+                    });
             },
         });
     });

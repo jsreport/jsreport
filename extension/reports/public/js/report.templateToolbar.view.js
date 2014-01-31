@@ -12,6 +12,8 @@
         },
 
         renderReport: function() {
+            app.trigger("toastr:info", "Report generation started ...");
+            
             $.ajax({
                 url: app.serverUrl + "report",
                 type: 'POST',
@@ -21,7 +23,7 @@
                 })
             })
                 .then(function() {
-                    app.trigger("toastr:info", "Report was generated");
+                    app.trigger("toastr:info", "Report generation succefully finished.");
                 })
                 .fail(function(e) {
                     $.dialog({

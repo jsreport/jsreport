@@ -20,7 +20,7 @@
                     app.trigger("template-extensions-toolbar-render", contextToolbar);
                 });
 
-                _.bindAll(this, "preview", "previewNewPanel");
+                _.bindAll(this, "preview", "previewNewPanel", "getBody");
             },
             
             getRecipes: function () {
@@ -46,6 +46,7 @@
                 "click #saveCommand": "save",
                 "click #previewCommand": "preview",
                 "click #previewNewTabCommand": "previewNewPanel",
+                "click #apiHelpCommnand": "apiHelp"
             },
 
             
@@ -97,20 +98,24 @@
 
                 var uiState = this.getUIState();
                 for (var key in uiState) {
-                    if (uiState.hasOwnProperty(key) && key != "_id" && key != "shortid") {
-                        this.addInput(mapForm, "template[" + key + "]", uiState[key]);
-                    }
+                     this.addInput(mapForm, "template[" + key + "]", uiState[key]);
                 }
-
+                
                 document.body.appendChild(mapForm);
                 mapForm.submit();
+
             },
 
             getUIState: function () {
-                var state = $.extend({}, this.model.attributes);
-
+                var state = {
+                    recipe : this.model.get("recipe") || "html",
+                    engine: this.model.get("engine"),
+                    html: this.model.get("html"),
+                    helpers: this.model.get("helpers")
+                };
+               
                 app.trigger("template-extensions-get-state", this.model, state);
-                state.recipe = state.recipe || "html";
+                
                 return state;
             },
 
@@ -123,6 +128,30 @@
                     });
 
                 return res;
+            },
+            
+            getCurrentLocation: function() {
+                return window.location.protocol + "//" + window.location.host + "/";
+            },
+            
+            getBody: function() {
+                var properties = [];
+                
+                var uiState = this.getUIState();
+                for (var key in uiState) {
+                    if (key != "html" && key != "helpers")
+                     properties.push({ key: key, value: uiState[key]});
+                }
+                
+                return properties;
+            },
+           
+            apiHelp: function() {
+                $.dialog({
+                     header: "jsreport API",
+                     content: $.render["template-detail-api"](this.model.toJSON(), this),
+                     hideSubmit: true                       
+                });
             }
         });
     });

@@ -6,8 +6,7 @@
 
         app.module("scripts", function(module) {
 
-            var Router = Backbone.Router.extend({
-                
+            var Router = Backbone.Router.extend({                
                 initialize: function() {
                     app.listenTo(app, "script-saved", function(model) {
                         window.location.hash = "/extension/scripts/detail/" + model.get("shortid");
@@ -33,9 +32,9 @@
 
                 scriptsDetail: function(id) {
                     var model = new ScriptsModel();
-                    
+
                     app.layout.showToolbarViewComposition(new ScriptsDetailView({ model: model }), new ToolbarView({ model: model }));
-                    
+
                     if (id != null) {
                         model.set("shortid", id);
                         model.fetch();
@@ -48,7 +47,7 @@
                     }));
                 }
             });
-            
+
 
             app.scripts.router = new Router();
 
@@ -69,12 +68,19 @@
                 context.extensionsRegion.show(view);
             });
 
+
             app.on("template-extensions-get-state", function(model, state) {
+                if (!app.settings.playgroundMode) {
+                    state.scriptId = model.get("scriptId");
+                    return;
+                }
+
                 if (model.get("script") != null && model.get("script").content != null)
                     state.script = model.get("script").content;
                 else
                     state.script = null;
             });
+
 
             app.on("entity-registration", function(context) {
 

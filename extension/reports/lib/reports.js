@@ -58,6 +58,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     var report = new this.ReportType({
         recipe: request.options.recipe,
         name: request.template.name + " - " + request.template.generatedReportsCounter,
+        fileExtension: response.fileExtension,
         templateShortid: request.template.shortid,
         shortid: shortid.generate(),
         creationDate: new Date(),
@@ -117,6 +118,7 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
         blobName: { type: "string" },
         contentType: { type: "string" },
         name: { type: "string" },
+        fileExtension: { type: "string" },
         templateShortid: { type: "string" },
     }, null);
     

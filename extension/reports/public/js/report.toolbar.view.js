@@ -8,7 +8,7 @@
             },
 
             download: function() {
-                var self = this;
+                //window.location.assign(app.serverUrl + "report/" + this.model.get("shortid") + "/content");
             },
         });
     });
