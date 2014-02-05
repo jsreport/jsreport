@@ -84,6 +84,7 @@
     <Content Include="extension\examples\lib\examples\helloFib.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\examples\lib\examples\helloPhantom.html" />
     <Content Include="extension\examples\lib\examples\inlineData.html">
       <SubType>Content</SubType>
     </Content>

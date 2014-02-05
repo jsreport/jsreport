@@ -71,6 +71,10 @@
 
             app.on("template-extensions-get-state", function(model, state) {
                 if (!app.settings.playgroundMode) {
+
+                    if (model.get("scriptId") == null)
+                        return;
+
                     state.scriptId = model.get("scriptId");
                     return;
                 }

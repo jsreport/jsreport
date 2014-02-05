@@ -110,7 +110,7 @@
                 var state = {
                     recipe : this.model.get("recipe") || "html",
                     engine: this.model.get("engine"),
-                    html: this.model.get("html"),
+                    html: this.model.get("html") || "",
                     helpers: this.model.get("helpers")
                 };
                

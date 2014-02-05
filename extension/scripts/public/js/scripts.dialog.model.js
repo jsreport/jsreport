@@ -14,7 +14,8 @@
             app.dataContext.scripts.toArray().then(function(items) {
                 self.items = items;
                 if (self.templateModel.get("scriptId")) {
-                    return app.dataContext.scripts.find(self.templateModel.get("scriptId")).then(function(res) {
+                    return app.dataContext.scripts.single(function(s) {
+                        return s.shortid == this.id; }, { id: self.templateModel.get("scriptId") }).then(function(res) {
                         self.set(self.parse(res.initData), { silent: true });
                         return options.success();
                     });

@@ -13,7 +13,7 @@ describeReporting(["scripts"], function (reporter) {
             return reporter.scripts.entitySet.saveChanges().then(function () {
                 return reporter.templates.create({
                     html: "foo",
-                    scriptId: script._id
+                    scriptId: script.shortid
                 });
             });
         }
@@ -27,10 +27,19 @@ describeReporting(["scripts"], function (reporter) {
             });
         }
 
-        it('shoulb be able to modify response', function (done) {
-            prepareRequest("response.test = 'xxx'; done()").then(function(res) {
+        it('shoulb be able to modify request.data', function (done) {
+            prepareRequest("request.data = 'xxx'; done()").then(function(res) {
                 reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
-                    assert.equal('xxx', res.response.test);
+                    assert.equal('xxx', res.request.data);
+                    done();
+                });
+            });
+        });
+        
+         it('shoulb be able to modify request.template.html', function (done) {
+            prepareRequest("request.template.html = 'xxx'; done()").then(function(res) {
+                reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
+                    assert.equal('xxx', res.request.template.html);
                     done();
                 });
             });
@@ -39,12 +48,12 @@ describeReporting(["scripts"], function (reporter) {
         it('shoulb be able to use linked modules', function (done) {
             var scriptContent = "var h = require('handlebars'); " +
                 "var compiledTemplate = h.compile('foo'); " +
-                "response.test = compiledTemplate();" +
+                "request.template.html = compiledTemplate();" +
                 "done();";
             
             prepareRequest(scriptContent).then(function (res) {
                 reporter.scripts.handleBeforeRender(res.request, res.response).then(function() {
-                    assert.equal('foo', res.response.test);
+                    assert.equal('foo', res.request.template.html);
                     done();
                 });
             });

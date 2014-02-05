@@ -15,7 +15,7 @@ describeReporting(["data"], function (reporter) {
                 reporter.logger.info(JSON.stringify(data));
                 var request = {
                     reporter: reporter,
-                    template: { html: "html", dataItemId: data._id },
+                    template: { html: "html", dataItemId: data.shortid },
                     options: { recipe: "html" },
                 };
 

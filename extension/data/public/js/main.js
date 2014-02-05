@@ -66,6 +66,9 @@
 
             app.on("template-extensions-get-state", function(model, state) {
                 if (!app.settings.playgroundMode) {
+                     if (model.get("dataItemId") == null)
+                        return;
+                    
                     state.dataItemId = model.get("dataItemId");
                     return;
                 }
