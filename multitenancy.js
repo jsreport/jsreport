@@ -1,9 +1,228 @@
 ﻿var Q = require("q"),
     _ = require("underscore"),
-    passwordHash = require('password-hash');
-    require("odata-server");
+    passwordHash = require('password-hash'),
+    extend = require("node.extend"),
+    passport = require('passport'),
+    LocalStrategy = require('passport-local').Strategy,
+    BasicStrategy = require('passport-http').BasicStrategy,
+    async = require("async"),
+    express = require("express"),
+    Reporter = require("./reporter.js");
+require("odata-server");
 
-module.exports = Multitenancy = function() {
+module.exports = function(app, options, cb) {
+
+    function activateTenant(tenant, tcb) {
+        var opts = extend(true, {}, options);
+        var main = express();
+
+        opts.express = { app: main };
+        opts.tenant = tenant;
+        opts.playgroundMode = false;
+        opts.connectionString.databaseName = tenant.name;
+        var rep = new Reporter(opts);
+
+        app.use(express.vhost(tenant.name + '.*', main));
+
+        rep.init(function() {
+            if (tcb != null)
+                tcb(null);
+        });
+    }
+
+    var multitenancy = new Multitenancy(options);
+    multitenancy.findTenants().then(function(tenants) {
+        async.eachSeries(tenants, function(t, tcb) { activateTenant(t, tcb); }, cb);
+    });
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    app.use(function(err, req, res, next) {
+        res.status(500);
+
+        if (_.isString(err)) {
+            err = {
+                message: err
+            };
+        }
+
+        err = err || {};
+        err.message = err.message || "Unrecognized error";
+
+        if (err.code == "TENANT_NOT_FOUND") {
+            req.session = null;
+            return res.redirect("/");
+        }
+
+        if (req.get('Content-Type') != "application/json") {
+            res.write("Error occured - " + err.message + "\n");
+            if (err.stack != null)
+                res.write("Stack - " + err.stack);
+            res.end();
+            return;
+        }
+
+        res.json(err);
+    });
+
+    passport.use(new LocalStrategy(function(username, password, done) {
+        var tenant = multitenancy.authenticate(username, password);
+        if (tenant == null)
+            return done(null, false, { message: "Invalid password or user does not exists." });
+
+        return done(null, tenant);
+    }));
+
+    passport.use(new BasicStrategy(function(username, password, done) {
+        var tenant = multitenancy.authenticate(username, password);
+        if (tenant == null)
+            return done(null, false);
+
+        return done(null, true);
+    }
+    ));
+
+    app.use(function(req, res, next) {
+        var isUrlRequirignAuthnetication =
+        (req.method != "POST" || req.url != "/login") &&
+            (req.method != "GET" || req.url != "/") &&
+            (req.method != "POST" || req.url != "/register");
+
+        if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
+
+            if (req.headers["authorization"] != null) {
+                passport.authenticate('basic', function(err, result, info) {
+                    if (!result) {
+                        return res.send(401);
+                    }
+                    return next();
+                })(req, res, next);
+            } else {
+
+                if (req.session) {
+                    req.session.returnTo = req.originalUrl || req.url;
+                }
+
+                return res.redirect("/");
+            }
+        } else {
+            return next();
+        }
+    });
+
+    passport.serializeUser(function(user, done) {
+        done(null, user.email);
+    });
+
+    passport.deserializeUser(function(id, done) {
+        var tenant = multitenancy.findTenant(id);
+
+        if (tenant == null)
+            return done({
+                message: "Tenant not found.",
+                code: "TENANT_NOT_FOUND"
+            });
+
+        return done(null, tenant);
+    });
+
+    app.get("/ping", function(req, res, next) {
+        res.send("pong");
+    });
+
+    app.get("/", function(req, res, next) {
+        if (req.user != null) {
+            var domains = req.headers.host.split('.');
+
+            if (domains.length == 3) {
+                return next();
+            } else {
+                domains.unshift(req.user.name);
+                return res.redirect("https://" + domains.join("."));
+            }
+        }
+
+        var viewModel = _.extend({}, req.session.viewModel || {});
+        req.session.viewModel = null;
+        res.render(path.join(__dirname, 'views', 'tenantRegistration.html'), { viewModel: viewModel });
+    });
+
+    app.post('/login', function(req, res, next) {
+        req.session.viewModel = req.session.viewModel || {};
+
+        passport.authenticate('local', function(err, user, info) {
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                req.session.viewModel.login = info.message;
+                return res.redirect('/');
+            }
+
+            req.session.viewModel = {};
+            req.logIn(user, function(err) {
+                if (err) {
+                    return next(err);
+                }
+                return res.redirect('/');
+            });
+        })(req, res, next);
+    });
+
+    app.post("/register", function(req, res) {
+        req.session.viewModel = req.session.viewModel || {};
+        req.session.viewModel.previousName = req.body.name;
+        req.session.viewModel.previousUsername = req.body.username;
+
+        var regex = /^[a-zA-Z0-9]+$/;
+        if (!regex.test(req.body.name)) {
+            req.session.viewModel.name = "Name must contain only numbers and letters.";
+            return res.redirect('/');
+        }
+
+        if (multitenancy.findTenantByName(req.body.name) != null) {
+            req.session.viewModel.name = "Tenant name is already taken.";
+            return res.redirect('/');
+        }
+
+        if (req.body.password == null || req.body.password.length < 4) {
+            req.session.viewModel.password = "Password must be at least 4 characters long.";
+            return res.redirect('/');
+        }
+
+        if (req.body.password != req.body.passwordConfirm) {
+            req.session.viewModel.passwordConfirm = "Passwords are not the same.";
+            return res.redirect('/');
+        }
+
+        multitenancy.registerTenant(req.body.username, req.body.name, req.body.password).then(function(tenant) {
+            activateTenant(tenant, function() {
+                passport.authenticate('local', function(err, user, info) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    req.logIn(user, function(err) {
+                        if (err) {
+                            return next(err);
+                        }
+                        return res.redirect('/');
+                    });
+                })(req, res);
+            });
+        }, function() {
+
+        });
+    });
+
+    app.post("/logout", function(req, res) {
+        req.logout();
+        res.redirect('/');
+    });
+}
+
+var Multitenancy = function(options) {
     $data.Entity.extend("$entity.Tenant", {
         _id: { type: "id", key: true, computed: true, nullable: false },
         createdOn: { type: "date" },
@@ -16,18 +235,21 @@ module.exports = Multitenancy = function() {
     $data.EntityContext.extend("$entity.TenantContext", {
         tenants: { type: $data.EntitySet, elementType: $entity.Tenant }
     });
-    
+
+    this.options = extend(true, {}, options);
+    this.options.connectionString.databaseName = "root";
+
     this._tenantsCache = [];
 };
 
 Multitenancy.prototype.findTenants = function() {
     var self = this;
-    
+
     return this._createContext().tenants.toArray().then(function(tenants) {
         tenants.forEach(function(t) {
             self._tenantsCache[t.email] = t;
         });
-        
+
         return Q(tenants);
     });
 };
@@ -46,18 +268,18 @@ Multitenancy.prototype.registerTenant = function(email, name, password) {
     var tenant = new $entity.Tenant({
         email: email,
         password: passwordHash.generate(password),
-        createdOn: new Date(), 
+        createdOn: new Date(),
         name: name
     });
 
     this._tenantsCache[email] = tenant;
     context.tenants.add(tenant);
-     
+
     return context.saveChanges().then(function() {
         return Q(tenant);
     });
 };
-    
+
 Multitenancy.prototype.authenticate = function(username, password) {
     var tenant = this._tenantsCache[username];
 
@@ -73,6 +295,5 @@ Multitenancy.prototype.authenticate = function(username, password) {
 };
 
 Multitenancy.prototype._createContext = function() {
-    return new $entity.TenantContext({ name: "mongoDB", databaseName: "root", address: "localhost", port: 27017, 
-        serverOptions: {'auto_reconnect': true,'poolSize': 50} });
+    return new $entity.TenantContext(this.options.connectionString);
 };

@@ -28,5 +28,4 @@ GridFS.prototype.read  = function (blobName, cb) {
     });
 };
 
-
 module.exports = GridFS;

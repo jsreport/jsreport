@@ -75,30 +75,6 @@ ListenerCollection.prototype.fire = function() {
                 return Q.reject(err);
             });
         });
-
-//recursion --
-
-        //return Q.all(this._listeners.map(function(l) {
-        //    var currentArgs = args.slice(0);
-
-        //    function applyHook(hookArrayNane, aditionalParam) {
-        //        self[hookArrayNane].forEach(function(p) {
-        //            if (aditionalParam)
-        //                currentArgs.unshift(aditionalParam);
-        //            p.apply(l, currentArgs);
-        //        });
-        //    }
-
-        //    applyHook("_pre");
-
-        //    return Q.when(l.fn.apply(l.context, currentArgs), function(val) {
-        //        applyHook("_post");
-        //        return Q(val);
-        //    }, function(err) {
-        //        applyHook("_postFail", err);
-        //        return Q.reject(err);
-        //    });
-        //}));
     }
 
     //remove callback

@@ -1,12 +1,27 @@
-# jsreport (javascript based reporting)
+# jsReport
 
 [![Build Status](https://travis-ci.org/jsreport/jsreport.png?branch=master)](https://travis-ci.org/jsreport/jsreport)
+
+jsReport is free open source platform for designing and rendering various business reports.
+
+It uses different aproach than the most of the other comercial platforms. It's intention is not to provide an ultimate fancy UI with report designer like other does. Idea is that any fancy wysiwyg editor will never be good enought to the developers. jsReport lets developers to define reports using code (mostly javascript).
+
+
+The reports are defined using standard javascript templating engines (like jsrender or handlebars) which developers can choose. Using markup langage these engines provides is the report afterwards defined. jsReport is great for rendering output formats based on xml like html. It can also easily convert html into pdf using phantomjs. Or even generate precise pdf using Apache FOP. Output formats can be easily extended by jsReport recipes.
+
+There are three versions of jsReport:
+
+ * [playground](http://jsreport.net/plaground) for trying and fiddling with reports
+ * [on-prem](http://jsreport.net/on-prem) for installing jsReport on your server
+ * [online](http://jsreport.net/online) for using multitenant SaaS jsReport in the cloud
+
+For more informations visit http://jsreport.net
 
 ## License 
 
 (The MIT License)
 
-Copyright (c) 2014 Jan Blaha &lt;jan.blaha@hotmail.com&gt;
+Copyright (c) 2013 Louis Chatriot &lt;louis.chatriot@gmail.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

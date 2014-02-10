@@ -4,6 +4,9 @@
     expressWinston = require("express-winston"),
     path = require("path"),
     connect = require("connect"),
+    http = require('http'),
+    https = require('https'),
+    fs = require("fs"),
     config = require("./config.js");
 
 
@@ -28,8 +31,8 @@ var transportSettings = {
 };
 
 var consoleTransport = new (winston.transports.Console)(transportSettings);
-var fileTransport = new (winston.transports.File)({ name: "main", filename: 'reporter.log', maxsize: 10485760, json: false });
-var errorFileTransport = new (winston.transports.File)({ name: "error", level: 'error', filename: 'error.log', handleExceptions: true,json: false });
+var fileTransport = new (winston.transports.File)({ name: "main", filename: 'logs/reporter.log', maxsize: 10485760, json: false });
+var errorFileTransport = new (winston.transports.File)({ name: "error", level: 'error', filename: 'logs/error.log', handleExceptions: true,json: false });
 
 winston.loggers.add('jsreport', {
     transports: [ consoleTransport, fileTransport, errorFileTransport ]
@@ -39,7 +42,7 @@ var logger = winston.loggers.add('jsreport.templates', {
     transports: [
         consoleTransport,
         fileTransport,
-        new (winston.transports.File)({ name: "templates", filename: 'templates.log', maxsize: 10485760, json: false }),
+        new (winston.transports.File)({ name: "templates", filename: 'logs/templates.log', maxsize: 10485760, json: false }),
         errorFileTransport
     ]
 });
@@ -49,6 +52,20 @@ require("./reporter.install.js")(app, {
     connectionString: config.connectionString,
     extensions: config.extensions
 }, function() {
-    app.listen(config.port);    
+    var credentials = {
+        key: fs.readFileSync(config.certificate.key, 'utf8'),
+        cert: fs.readFileSync(config.certificate.cert, 'utf8'),
+        rejectUnauthorized: false
+    };
+
+    //http.createServer(function(req, res) {
+    //    res.writeHead(302, {
+    //         'Location': "https://" + req.headers.host + req.url
+    //    });
+    //    res.end();
+    //}).listen(config.httpPort);
+
+    var httpsServer = https.createServer(credentials, app);
+    httpsServer.listen(config.port);    
 });
 

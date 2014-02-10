@@ -564,6 +564,7 @@
     <Content Include="package.json">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="README.md" />
     <Content Include="render\jsrenderEngine.js">
       <SubType>Content</SubType>
     </Content>

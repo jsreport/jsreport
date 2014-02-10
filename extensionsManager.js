@@ -46,7 +46,7 @@ ExtensionsManager.prototype.init = function (cb) {
 
             self.reporter.settings.add("registeredExtensions", self.defaultExtensions.toString(), function() {
                 self.use(self.defaultExtensions, function () {
-                    logger.info("Extensions loaded");
+                    logger.info("Extensions loaded.");
                     cb();
                 });
             });
@@ -121,7 +121,7 @@ ExtensionsManager.prototype._findAvailableExtensions = function (cb) {
         if (err) {
             throw err;
         }
-
+        
         var availableExtensions = files.map(function (file) {
             return path.join(extensoinsDir, file);
         }).filter(function (file) {
