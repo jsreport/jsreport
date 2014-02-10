@@ -21,7 +21,7 @@ For more informations visit http://jsreport.net
 
 (The MIT License)
 
-Copyright (c) 2013 Louis Chatriot &lt;louis.chatriot@gmail.com&gt;
+Copyright (c) 2014 Jan Blaha &lt;jan.blaha@hotmail.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
