@@ -26,11 +26,7 @@
                     app.trigger("toastr:info", "Report generation succefully finished.");
                 })
                 .fail(function(e) {
-                    $.dialog({
-                        header: e.statusText,
-                        content: e.responseText,
-                        hideSubmit: true
-                    });
+                    app.trigger("error", e);
                 });
         },
     });

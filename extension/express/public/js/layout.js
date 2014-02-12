@@ -30,11 +30,17 @@
                     toastr.info(model.toString() + " was created.");
             });
 
-            app.on("read:error create:error update:error delete:error", function(e) {
+            app.on("read:error create:error update:error delete:error error", function(e) {
                 self.hideLoader();
+
+                var responseText = e.responseText.substring(0, 800);
+                if (e.responseText.length > 800)
+                    responseText += " ...";
+
                 $.dialog({
-                    header: "Error occured when processing request",
-                    content: e.name
+                    header: e.statusText,
+                    content: $('<div/>').text(responseText).html(),
+                    hideSubmit: true
                 });
             });
 

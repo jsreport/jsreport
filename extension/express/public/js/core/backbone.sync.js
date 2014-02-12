@@ -121,7 +121,7 @@
             })
             .fail(function (e) {
                 options.error(e);
-                app.trigger(":error", e);
+                app.trigger(method + ":error", e);
             });
     };
 });
