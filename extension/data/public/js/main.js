@@ -51,11 +51,11 @@
             if (!app.settings.playgroundMode) {
 
                 app.on("menu-render", function(context) {
-                    context.result += "<li><a href='#/extension/data/list'>Data</a></li>";
+                    context.result += "<li><a href='/#/extension/data/list'>Data</a></li>";
                 });
 
                 app.on("menu-actions-render", function(context) {
-                    context.result += "<li><a href='#/extension/data/detail'createDataLink'>Create Data</a></li>";
+                    context.result += "<li><a href='/#/extension/data/detail'createDataLink'>Create Data</a></li>";
                 });
             }
 
@@ -98,6 +98,8 @@
                 $data.Class.define("$entity.DataItem", $data.Entity, null, {
                     'shortid': { 'type': 'Edm.String' },
                     'name': { 'type': 'Edm.String' },
+                    "creationDate": { type: "date" },
+                    "modificationDate": { type: "date" },
                     'dataJson': { 'type': 'Edm.String' },
                 }, null);
 

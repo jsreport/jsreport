@@ -34,6 +34,15 @@ Images = function(reporter, definition) {
     reporter.templates.TemplateType.addEventListener("beforeCreate", function(args, template) {
         template.images = template.images || [];
     });
+    
+    this.ImageType.addEventListener("beforeCreate", function(args, entity) {
+        entity.creationDate = new Date();
+        entity.modificationDate = new Date();
+    });
+    
+    this.ImageType.addEventListener("beforeUpdate", function(args, entity) {
+        entity.modificationDate = new Date();
+    });
 
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Images.prototype._createEntitySetDefinitions.bind(this));
     this.reporter.on("express-configure", Images.prototype._configureExpress.bind(this));
@@ -129,6 +138,8 @@ Images.prototype._defineEntities = function() {
         "_id": { type: "id", key: true, computed: true, nullable: false },
         "shortid": { type: "string" },
         "name": { type: "string" },
+        "creationDate": { type: "date" },
+        "modificationDate": { type: "date" },
         "content": { type: "blob" },
         "contentType": { type: "string" },
     }, null);

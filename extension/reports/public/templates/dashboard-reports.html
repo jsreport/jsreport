@@ -9,6 +9,7 @@
             <tr>
                 <th>NAME</th>
                 <th>CREATED</th>
+                <th>CONTENT TYPE</th>
             </tr>
         </thead>
         <tbody>
@@ -16,6 +17,7 @@
                 <tr data-id="{{:_id}}">
                     <td>{{:name}}</td>
                     <td>{{:~dateToString(creationDate)}}</td>
+                    <td>{{:contentType}}</td>
                 </tr>
             {{/for}}
         </tbody>

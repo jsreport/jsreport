@@ -78,6 +78,8 @@
                     '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
                     "shortid": { 'type': 'Edm.String' },
                     "name": { 'type': 'Edm.String' },
+                    "creationDate": { type: "date" },
+                    "modificationDate": { type: "date" },
                 }, null);
 
                 $entity.Image.prototype.toString = function() {

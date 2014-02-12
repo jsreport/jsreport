@@ -22,7 +22,7 @@
                 },
 
                 scripts: function() {
-                    this.navigate("/extension/scripts");
+                    this.navigate("/extension/scripts/list");
 
                     var model = new ScriptsListModel();
 
@@ -56,7 +56,7 @@
             if (!app.settings.playgroundMode) {
 
                 app.on("menu-render", function(context) {
-                    context.result += "<li><a href='#/extension/scripts/list'>Scripts</a></li>";
+                    context.result += "<li><a href='/#/extension/scripts/list'>Scripts</a></li>";
                 });
 
                 app.on("menu-actions-render", function(context) {
@@ -105,7 +105,9 @@
                 $data.Class.define("$entity.Script", $data.Entity, null, {
                     'content': { 'type': 'Edm.String' },
                     'name': { 'type': 'Edm.String' },
-                    'shortid': { 'type': 'Edm.String' }
+                    'shortid': { 'type': 'Edm.String' },
+                    "creationDate": { type: "date" },
+                    "modificationDate": { type: "date" },
                 }, null);
 
                 $entity.Script.prototype.toString = function() {

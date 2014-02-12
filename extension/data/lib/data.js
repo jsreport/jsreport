@@ -29,7 +29,9 @@ Data = function (reporter, definition) {
     this.DataItemType = $data.Class.define(reporter.extendGlobalTypeName("$entity.DataItem"), $data.Entity, null, {
         dataJson: { type: "string" },
         name: { type: "string" },
-        shortid: { type: "string"}
+        creationDate: { type: "date" },
+        shortid: { type: "string"},
+        modificationDate: { type: "date" },
     }, null);
     
     if (this.reporter.playgroundMode) {
@@ -40,6 +42,8 @@ Data = function (reporter, definition) {
     }
     
     this.DataItemType.addEventListener("beforeCreate", Data.prototype._beforeCreateHandler.bind(this));
+    this.DataItemType.addEventListener("beforeUpdate", Data.prototype._beforeUpdateHandler.bind(this));
+    
     this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
@@ -70,7 +74,6 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
 Data.prototype.create = function (dataItem) {
     logger.info(sformat("Creating dataItem {0}.", dataItem.name));
-
     var ent = new this.DataItemType(dataItem);
     this.entitySet.add(ent);
     
@@ -81,8 +84,12 @@ Data.prototype._beforeCreateHandler = function(args, entity) {
      if (entity.shortid == null)
         entity.shortid = shortid.generate();
     
-      if (entity.name == null)
-        entity.name = "not set";
+    entity.creationDate = new Date();
+    entity.modificationDate = new Date();
+};
+
+Data.prototype._beforeUpdateHandler = function(args, entity) {
+     entity.modificationDate = new Date();
 };
 
 function createEntitySetDefinitions(entitySets, next) {

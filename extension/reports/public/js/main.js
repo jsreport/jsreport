@@ -62,7 +62,7 @@
                     'name': { 'type': 'Edm.String' },
                     'fileExtension': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
-                    'type': { 'type': 'Edm.String' },
+                    'contentType': { 'type': 'Edm.String' },
                     'templateShortid': { 'type': 'Edm.String' }
                 });
 

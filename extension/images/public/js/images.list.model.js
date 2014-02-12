@@ -19,7 +19,7 @@
         
         fetchQuery: function () {
             return app.dataContext.images.map(function(i) {
-                 return { shortid: i.shortid, _id: i._id, name: i.name };
+                 return { shortid: i.shortid, _id: i._id, name: i.name, creationDate: i.creationDate, modificationDate: i.modificationDate };
             }).applyFilter(this.filter).toArray();
         },
 

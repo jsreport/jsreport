@@ -28,6 +28,8 @@ Scripts = function (reporter, definition) {
     
     this.ScriptType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Script"), $data.Entity, null, {
         shortid: { type: "string"},
+        creationDate: { type: "date" },
+        modificationDate: { type: "date" },
         content: { type: "string" },
         name: { type: "string" },
     }, null);
@@ -40,6 +42,8 @@ Scripts = function (reporter, definition) {
     }
     
     this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
+    this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
+    
     this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
@@ -125,8 +129,12 @@ Scripts.prototype._beforeCreateHandler = function(args, entity) {
      if (entity.shortid == null)
         entity.shortid = shortid.generate();
     
-     if (entity.name == null)
-        entity.name = "not set";
+    entity.creationDate = new Date();
+    entity.modificationDate = new Date();
+};
+
+Scripts.prototype._beforeUpdateHandler = function(args, entity) {
+    entity.modificationDate = new Date();
 };
 
 function createEntitySetDefinitions(entitySets, next) {
