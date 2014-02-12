@@ -1,5 +1,19 @@
-﻿<div class="jumbotron">
-    <h2>Statistics</h2>
-    <div id="chartBox"style="height: 300px; width: 450px"></div>
+﻿<div class="panel panel-primary col-lg-8">
+    <div class="panel-heading">
+        <h3 class="panel-title">Statistics</h3>
+    </div>
+    <div class="panel-body">
+         <div class="btn-group dropdown" data-binding="filter">
+                <button class="btn btn-primary btn-sm dropdown-button" id="filter" data-value="hour">Last hour</button>
+                <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a data-value="hour">Last hour</a></li>
+                    <li><a data-value="day">Last 24 hours</a></li>
+                    <li><a data-value="week">Last 7 days</a></li>
+                </ul>
+            </div>
+    <div id="chartBox"style="height: 300px;"></div>
+    </div>
 </div>
-

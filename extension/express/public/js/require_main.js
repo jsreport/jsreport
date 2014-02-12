@@ -14,6 +14,8 @@
         bootstrap: "../lib/bootstrap",
         "jquery.flot": "../lib/jquery.flot",
         "jquery.flot.time": "../lib/jquery.flot.time",
+        "jquery.flot.axislabels": "../lib/jquery.flot.axislabels",
+        "jquery.flot.symbol": "../lib/jquery.flot.symbol",
         dialog: "core/dialog",
         errorAlert: "core/errorAlert",
         "jsrender.bootstrap": "core/jsrender.bootstrap",
@@ -71,7 +73,10 @@
             exports: "$"
         },
         "jquery.flot": ["originaljquery"],
-        "jquery.flot.time": ["originaljquery", "jquery.flot"],
+        "jquery.flot.axislabels": ["jquery.flot"],
+        "jquery.flot.symbol": ["jquery.flot.axislabels"],
+        "jquery.flot.time": ["originaljquery",  "jquery.flot.axislabels"],
+
         dialog: ["originaljquery", "bootstrap"],
         errorAlert: ["originaljquery", "jsrender", "bootstrap"],
         "jquery.ui.core": ["originaljquery"],

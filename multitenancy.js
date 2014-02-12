@@ -7,7 +7,8 @@
     BasicStrategy = require('passport-http').BasicStrategy,
     async = require("async"),
     express = require("express"),
-    Reporter = require("./reporter.js");
+    Reporter = require("./reporter.js"),
+    path = require("path");
 require("odata-server");
 
 module.exports = function(app, options, cb) {

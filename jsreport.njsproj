@@ -725,6 +725,9 @@
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />
     <Compile Include="extension\express\public\lib\codemirror.js" />
     <Compile Include="extension\express\public\lib\jaydata.min.js" />
+    <Compile Include="extension\express\public\lib\jquery.flot.axislabels.js" />
+    <Compile Include="extension\express\public\lib\jquery.flot.canvas.js" />
+    <Compile Include="extension\express\public\lib\jquery.flot.symbol.js" />
     <Compile Include="extension\express\public\lib\require.min.js" />
     <Compile Include="extension\fop\integrationTest\fopTest.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />

@@ -24,51 +24,52 @@ Statistics = function (reporter, definition) {
         }
     });
     
+    this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Statistics.prototype.handleBeforeRender);
     this.reporter.extensionsManager.afterRenderListeners.add(definition.name, this, Statistics.prototype.handleAfterRender);
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Statistics.prototype.createEntitySetDefinitions);
 };
 
-Statistics.prototype.handleAfterRender = function (request, response) {
+Statistics.prototype.handleBeforeRender = function (request, response) {
     var self = this;
-    var now = new Date();
-    var day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var dayAfter = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    var dayBefore = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    
-    if (!request.options.async)
-        return;
-    
-    return request.context.statistics.filter(function (s) {
-        return s.day > this.dayBefore && s.day < this.dayAfter && s.templateShortid == this.templateShortid;
-    }, { dayAfter: dayAfter, dayBefore: dayBefore, templateShortid: request.template.shortid }).toArray()
+
+    var fiveMinuteDate = new Date((Math.floor(new Date().getTime() / 1000 / 60 / 5) * 1000 * 60 * 5));
+
+    return request.context.statistics.filter(function(s) { return s.fiveMinuteDate == this.fiveMinuteDate; }, { fiveMinuteDate: fiveMinuteDate}).toArray()
         .then(function(res) {
+            var stat;
             if (res.length == 0) {
-                logger.info("Creating new stats");
-                var stat = new self.StatisticType({
-                    day: day,
+                stat = new self.StatisticType({
                     amount: 1,
-                    templateShortid: request.template.shortid,
-                    templateName: request.template.name
+                    success: 0,
+                    fiveMinuteDate: fiveMinuteDate,
                 });
                 request.context.statistics.add(stat);
             } else {
-                logger.info("Updating existing stats");
-                request.context.statistics.attach(res[0]);
-                res[0].amount++;
+                stat = res[0];
+                request.context.statistics.attach(stat);
+                stat.amount++;
             }
 
-            return request.context.statistics.saveChanges();
+            return request.context.statistics.saveChanges().then(function() {
+                response.currentStatistic = stat;
+            });
         });
 };
+
+Statistics.prototype.handleAfterRender = function (request, response) {
+    request.context.statistics.attach(response.currentStatistic);
+    response.currentStatistic.success++;
+    return request.context.statistics.saveChanges();
+};
+
 
 Statistics.prototype.createEntitySetDefinitions = function (entitySets, next) {
     
     this.StatisticType = $data.Class.define(this.reporter.extendGlobalTypeName("$entity.Statistic"), $data.Entity, null, {
         _id: { type: "id", key: true, computed: true, nullable: false },
-        day: { type: "date" },
+        fiveMinuteDate: { type: "date" },
         amount: { type: "int" },
-        templateName: { type: "string" },
-        templateShortid: { type: "string" },
+        success: { type: "int" },
     }, null);
     
     entitySets["statistics"] = { type: $data.EntitySet, elementType: this.StatisticType };

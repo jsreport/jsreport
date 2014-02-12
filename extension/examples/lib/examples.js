@@ -49,7 +49,7 @@ Examples = function(reporter, definition) {
 
     function phantomPdf() {
         return self.reporter.templates.create({
-            name: "3. Hello World Phantom Pdf",
+            name: "2. Hello World Phantom Pdf",
             html: fs.readFileSync(join(__dirname, 'examples/helloPhantom.html')).toString("utf8"),
             helpers: fs.readFileSync(join(__dirname, 'examples/helloFib.js')).toString("utf8"),
             engine: "jsrender",
@@ -60,7 +60,7 @@ Examples = function(reporter, definition) {
 
     function fop() {
         return self.reporter.templates.create({
-            name: "4. Hello World FOP Pdf",
+            name: "3. Hello World FOP Pdf",
             html: fs.readFileSync(join(__dirname, 'examples/helloWorld.xml')).toString("utf8"),
             helpers: fs.readFileSync(join(__dirname, 'examples/helloFib.js')).toString("utf8"),
             engine: "jsrender",
@@ -76,7 +76,7 @@ Examples = function(reporter, definition) {
         };
 
         var templateObj = {
-            name: "6. Scripts extension",
+            name: "4. Scripts extension",
             html: fs.readFileSync(join(__dirname, 'examples/complexScript.html')).toString("utf8"),
             engine: "jsrender",
             recipe: "phantom",
@@ -140,7 +140,7 @@ Examples = function(reporter, definition) {
         };
 
         var templateObj = {
-            name: "8. Invoice",
+            name: "6. Invoice",
             html: fs.readFileSync(join(__dirname, 'examples/invoice.html')).toString("utf8"),
             helpers: fs.readFileSync(join(__dirname, 'examples/invoiceHelpers.js')).toString("utf8"),
             engine: "jsrender",

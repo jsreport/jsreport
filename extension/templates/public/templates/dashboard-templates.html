@@ -1,25 +1,31 @@
-﻿<div class="jumbotron">
-    <h2>Templates</h2>
-    <a href="/#/extension/templates">See all</a>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Recipe</th>
-                <th>Engine</th>
-                <th>Last modified</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{for items}}
-            <tr data-id="{{:shortid}}">
-                <td>{{:name}}</td>
-                <td>{{:recipe}}</td>
-                <td>{{:engine}}</td>
-                <td>{{:~dateToString(modificationDate)}}</td>
-            </tr>
-            {{/for}}
+﻿<div class="col-lg-6">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Templates</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Recipe</th>
+                        <th>Engine</th>
+                        <th>Last modified</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{for items}}
+                    <tr data-id="{{:shortid}}">
+                        <td>{{:name}}</td>
+                        <td>{{:recipe}}</td>
+                        <td>{{:engine}}</td>
+                        <td>{{:~dateToString(modificationDate)}}</td>
+                    </tr>
+                    {{/for}}
           
-        </tbody>
-    </table>
+                </tbody>
+            </table>
+            <a class="pull-right" href="/#/extension/templates">» See all</a>
+        </div>
+    </div>
 </div>

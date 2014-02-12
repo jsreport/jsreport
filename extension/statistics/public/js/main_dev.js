@@ -4,7 +4,7 @@
             app.on("dashboard-extensions-render", function (region) {
                 var model = new DashboardModel();
                 region.show(new DashboardView({
-                    collection: model
+                    model: model
                 }));
                 model.fetch();
             });
@@ -13,9 +13,9 @@
 
                 $data.Entity.extend('$entity.Statistic', {
                     '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
-                    'day': { 'type': 'Edm.DateTime' },
+                    'fiveMinuteDate': { 'type': 'Edm.DateTime' },
                     'amount': { 'type': 'Edm.Int32' },
-                    'templateName': { 'type': 'Edm.String' },
+                    'success': { 'type': 'Edm.Int32' },
                 });
 
                 context["statistics"] = { type: $data.EntitySet, elementType: $entity.Statistic };

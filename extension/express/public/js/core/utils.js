@@ -29,6 +29,8 @@
     };
 
     Utils.liveDropdowns = function(view) {
+        var model = view.model;
+
         $(view.el).find('.dropdown-toggle').dropdown();
         
         $(view.el).find(".dropdown-toggle").next().find("li a").click(function (e) {
@@ -40,7 +42,7 @@
 
             if ($dd.attr("data-binding") != null) {
                 var path = $dd.attr("data-binding");
-                view.model.set(path, $(this).attr("data-value"));
+                model.set(path, $(this).attr("data-value"));
             }
         });
 
@@ -50,10 +52,10 @@
             if ($dd.attr("data-binding") != null) {
                 var path = $dd.attr("data-binding");
 
-                view.model.bind("change:" + path, function() {
+                model.bind("change:" + path, function() {
                     var btn = $dd.find('.dropdown-button');
-                    btn.text(view.model.get(path));
-                    btn.attr("data-value", view.model.get(path));
+                    btn.text(model.get(path));
+                    btn.attr("data-value", model.get(path));
                     btn.trigger("change");
                 });
             }

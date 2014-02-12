@@ -16,9 +16,10 @@
                 self.items = items;
 
                 if (self.templateModel.get("dataItemId") != null) {
-                    return app.dataContext.data.find(self.templateModel.get("dataItemId")).then(function (res) {
-                        self.set(self.parse(res.initData), {silent: true});
-                        return options.success();
+                    return app.dataContext.data.single(function(i) { return i.shortid == this.id; }, { id: self.templateModel.get("dataItemId") })
+                        .then(function (res) {
+                            self.set(self.parse(res.initData), {silent: true});
+                            return options.success();
                     });
                 }
 

@@ -1,22 +1,35 @@
-﻿define(["app", "backbone", "core/jaydataModel"], function (app, Backbone, ModelBase) {
+﻿define(["app", "backbone", "core/jaydataModel", "core/basicModel"], function (app, Backbone, JayDataModelBase, ModelBase) {
 
-    var ItemModel = ModelBase.extend({
+    var ItemModel = JayDataModelBase.extend({
         _initialize: function () {
             this.Entity = $entity.Statistic;
         },
     });
 
-    return Backbone.Collection.extend({
+    var CollectionModel = Backbone.Collection.extend({
         contextSet: function () { return app.dataContext.statistics; },
         fetchQuery: function () {
             var now = new Date();
-            now.setDate(now.getDate() - 20);
+            now.setDate(now.getDate() - 7);
             return this.contextSet().filter(function (s) {
-                return s.day > this.day;
+                return s.fiveMinuteDate >= this.day;
             }, { day: now }).toArray();
         },
 
         model: ItemModel,
+    });
+
+    return ModelBase.extend({
+       initialize: function() {
+           this.items = new CollectionModel();
+           this.set("filter", "hour");
+           var self = this;
+           this.listenTo(this.items, "sync", function() { self.trigger("sync"); });
+       },
+
+       fetch: function(options) {
+         this.items.fetch(options);
+       }
     });
 
 });
