@@ -5,31 +5,21 @@
     Marionette.Renderer.render = function (template, data, context) {
          return $.render[template](data, data, context);
     };
-
-    Marionette.Region.prototype.open = function (view) {
-
-        this.$el.hide();
-        this.$el.html(view.el);
-        
-        if (view.model != null) {
-            view.modelBinder = new Backbone.ModelBinder();
-            var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
-            view.modelBinder.bind(view.model, view.el, bindings);
-        }
-
-        this.$el.fadeIn("slow");
-    };
     
     Marionette.Region.prototype.open = function (view) {
-
         this.$el.hide();
         this.$el.html(view.el);
-        
-        if (view.model != null) {
-            view.modelBinder = new Backbone.ModelBinder();
-            var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
-            view.modelBinder.bind(view.model, view.el, bindings);
+    
+        function bind() {
+            if (view.model != null) {
+                var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
+                view.modelBinder.bind(view.model, view.el, bindings);
+            }
         }
+
+        bind();
+
+        this.listenTo(view, "render", bind);
 
         this.$el.fadeIn("slow");
     };

@@ -3,7 +3,8 @@
         template: "data-detail",
 
         initialize: function () {
-            this.listenTo(this.model, "sync", this.render);
+            var self = this;
+            this.listenTo(this.model, "sync", self.render);
         },
         
         onDomRefresh: function () {

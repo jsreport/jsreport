@@ -138,6 +138,7 @@
     <Content Include="extension\express\public\lib\split-pane.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\express\public\templates\title-edit.html" />
     <Content Include="extension\express\public\views\root_dev.html" />
     <Content Include="extension\fop\lib\fop.js">
       <SubType>Content</SubType>

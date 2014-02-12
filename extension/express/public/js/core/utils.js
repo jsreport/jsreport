@@ -32,8 +32,8 @@
         var model = view.model;
 
         $(view.el).find('.dropdown-toggle').dropdown();
-        
-        $(view.el).find(".dropdown-toggle").next().find("li a").click(function (e) {
+
+        $(view.el).find(".dropdown-toggle").next().find("li a").click(function(e) {
             var $dd = $(this).parent().parent().parent();
             var $btn = $dd.find('.dropdown-button');
             $btn.text($(this).text());
@@ -47,7 +47,7 @@
         });
 
 
-        $(view.el).find(".dropdown").each(function (index, dd) {
+        $(view.el).find(".dropdown").each(function(index, dd) {
             var $dd = $(dd);
             if ($dd.attr("data-binding") != null) {
                 var path = $dd.attr("data-binding");
@@ -62,11 +62,41 @@
         });
 
         $(view.el).find('.expandable-header').unbind();
-        $(view.el).find('.expandable-header').on("click", function () {
+        $(view.el).find('.expandable-header').on("click", function() {
             $(this).next().slideToggle({
                 easing: "linear"
             });
         });
+
+        $(view.el).find(".editable-title").find(".title-edit").click(function() {
+             var $this = $(this);
+             var $parent = $this.parent();
+             $parent.find(".title-input").show().val($parent.find(".title-label").html());
+             $parent.find(".title-label").hide();
+             $parent.find(".title-confirm").show();
+             $this.hide();
+        });
+        
+        
+        $(view.el).find(".editable-title").find(".title-confirm").click(function() {
+             var $this = $(this);
+             var $parent = $this.parent();
+             $parent.find(".title-label").show().html($parent.find(".title-input").val());
+             $parent.find(".title-input").focusout().hide(); 
+             $parent.find(".title-edit").show();
+             $this.hide();
+        });
+
+
+        //$(view.el).find(".editable-title").hover(function() {
+        //    var $this = $(this);
+        //    $this.find(".title-input").show().val($this.find(".title-label").html());
+        //    $this.find(".title-label").hide();
+        //}, function() {
+        //    var $this = $(this);
+        //    $this.find(".title-label").show().html($this.find(".title-input").val());
+        //    $this.find(".title-input").focusout().hide();
+        //});
     };
 
     String.prototype.decodeBase64 = function() {

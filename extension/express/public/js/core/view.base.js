@@ -16,6 +16,8 @@
             this.listenTo(this, "show", function() {
                 Utils.liveDropdowns(self);
             });
+            
+            this.modelBinder = new Backbone.ModelBinder();
         },
 
         serializeData: function () {
