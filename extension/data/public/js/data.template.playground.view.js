@@ -1,26 +1,25 @@
-﻿define(["marionette", "app", "./scripts.dialog.view", "./scripts.dialog.model", "core/view.base"], function (Marionette, app, DialogView, Model, ViewBase) {
+﻿define(["app", "marionette", "core/view.base", "core/utils", "./data.template.playground.dialog", "./data.template.playground.model"], function (app, Marionette, ViewBase, Utils, DialogView, Model) {
     return ViewBase.extend({
         tagName: "li",
-        template: "scripts-template",
+        template: "data-template-extension-playground",
         
         initialize: function () {
-            var self = this;
             _.bindAll(this, "isFilled");
+        },
+
+        events: {
+            "click #dataItemCommand": "openDialog",
+        },
+        
+        isFilled: function () {
+            return (this.templateModel.get("dataItem") != null) && (this.templateModel.get("dataItem").dataJson != null);
         },
         
         setTemplateModel: function (model) {
             this.templateModel = model;
         },
         
-        events: {
-            "click #scriptCommand": "openDialog",
-        },
-        
-        isFilled: function () {
-             return this.templateModel.get("scriptId") ||
-                 ((this.templateModel.get("script") != null) && (this.templateModel.get("script").content != null));
-        },
-        
+
         openDialog: function () {
             var self = this;
             var model = new Model();
@@ -30,7 +29,7 @@
                     var dialog = new DialogView({
                         model: model
                     });
-                    self.listenTo(dialog, "dialog-close", function () {
+                    self.listenTo(dialog, "dialog-close", function() {
                         self.render();
                         self.templateModel.save();
                     });
@@ -40,3 +39,4 @@
         }
     });
 });
+

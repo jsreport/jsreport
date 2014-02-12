@@ -5,28 +5,7 @@
             <h4 class="modal-title">Script</h4>
         </div>
         <div class="modal-body">
-            {{if ~getMode()}}
                <textarea id="contentArea">{{:content}}</textarea>
-            {{else}}
-              {{if ~getItemsLength() > 0}}
-                  Choose an existing script 
-                  <div class="btn-group" data-binding="_id" style="margin-bottom: 15px; margin-left: 10px">
-                      <button class="btn btn-primary btn-sm dropdown-button" id="schema" data-value="{{:_id}}">{{:name}}</button>
-                      <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
-                          <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu" role="menu">
-                          {{for ~getItems()}}
-                          <li role="presentation"><a role="menuitem" tabindex="-1" data-value="{{:_id}}">{{:name}}</a></li>
-                          {{/for}}
-                      </ul>
-                   </div>
-                   <textarea id="contentArea">{{:content}}</textarea>
-              {{else}}
-                        You dont have a script yet. Go ahead and create one. 
-                         <button type="button" id="createCommand" class="btn btn-primary" data-dismiss="modal">Create script</button>
-              {{/if}}
-            {{/if}}
         </div>
         <div class="modal-footer">            
             <button type="button" id="saveCommand" class="btn btn-primary" data-dismiss="modal">Save</button>

@@ -46,7 +46,7 @@
     <Content Include="extension\data\package.json">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\data\public\js\data.dialog.view.js">
+    <Content Include="extension\data\public\js\data.template.playground.dialog.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\data\public\templates\data-detail.html">
@@ -62,12 +62,13 @@
     <Content Include="extension\data\public\templates\data-list.html">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\data\public\templates\data-template-extension.html">
+    <Content Include="extension\data\public\templates\data-template-extension-playground.html">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\data\public\templates\data-dialog.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\data\public\templates\data-template-extension-standard.html" />
     <Content Include="extension\data\public\templates\data-toolbar.html" />
     <Content Include="extension\data\test\dataTest.js">
       <SubType>Content</SubType>
@@ -256,13 +257,13 @@
     <Content Include="extension\scripts\public\js\main_dev.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\scripts\public\js\scripts.dialog.view.js">
+    <Content Include="extension\scripts\public\js\scripts.template.playground.dialog.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\scripts\public\js\scripts.model.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\scripts\public\js\scripts.template.view.js">
+    <Content Include="extension\scripts\public\js\scripts.template.playground.view.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\scripts\public\templates\scripts-detail.html" />
@@ -273,9 +274,10 @@
     <Content Include="extension\scripts\public\templates\scripts-list-rows.html" />
     <Content Include="extension\scripts\public\templates\scripts-list-toolbar.html" />
     <Content Include="extension\scripts\public\templates\scripts-list.html" />
-    <Content Include="extension\scripts\public\templates\scripts-template.html">
+    <Content Include="extension\scripts\public\templates\scripts-template-playground.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\scripts\public\templates\scripts-template-standard.html" />
     <Content Include="extension\scripts\public\templates\scripts-toolbar.html" />
     <Content Include="extension\scripts\test\scriptsTest.js">
       <SubType>Content</SubType>
@@ -401,7 +403,7 @@
     <Content Include="extension\data\public\js\data.model.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\data\public\js\data.template.view.js">
+    <Content Include="extension\data\public\js\data.template.playground.view.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\data\public\js\main_dev.js">
@@ -716,8 +718,10 @@
     <Compile Include="config\debug.playground.config.js" />
     <Compile Include="config\production.multitenant.config.js" />
     <Compile Include="config\production.playground.config.js" />
-    <Compile Include="extension\data\public\js\data.dialog.model.js" />
+    <Compile Include="extension\data\public\js\data.template.playground.model.js" />
     <Compile Include="extension\data\public\js\data.list.toolbar.view.js" />
+    <Compile Include="extension\data\public\js\data.template.standard.model.js" />
+    <Compile Include="extension\data\public\js\data.template.standard.view.js" />
     <Compile Include="extension\data\public\js\data.toolbar.view.js" />
     <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
     <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
@@ -741,10 +745,12 @@
     <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
     <Compile Include="extension\reports\public\js\report.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
-    <Compile Include="extension\scripts\public\js\scripts.dialog.model.js" />
+    <Compile Include="extension\scripts\public\js\scripts.template.playground.model.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.model.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.view.js" />
+    <Compile Include="extension\scripts\public\js\scripts.template.standard.model.js" />
+    <Compile Include="extension\scripts\public\js\scripts.template.standard.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.toolbar.view.js" />
     <Compile Include="extension\templates\public\js\template.list.toolbar.view.js" />
     <Compile Include="extension\test\public\js\list.js" />

@@ -1,12 +1,14 @@
 ﻿define(["app", "marionette", "backbone",
         "./scripts.list.model", "./scripts.list.view", "./scripts.list.toolbar.view",
         "./scripts.model", "./scripts.detail.view",
-        "./scripts.template.view", "./scripts.toolbar.view"],
-    function(app, Marionette, Backbone, ScriptsListModel, ScriptsListView, ScriptsListToolbarView, ScriptsModel, ScriptsDetailView, TemplateView, ToolbarView) {
+        "./scripts.template.playground.view", "./scripts.template.standard.view", 
+        "./scripts.template.standard.model", "./scripts.toolbar.view"],
+    function(app, Marionette, Backbone, ScriptsListModel, ScriptsListView, ScriptsListToolbarView, ScriptsModel, ScriptsDetailView, PlaygroundTemplateView, 
+        StandardTemplateView, StandardTemplateModel, ToolbarView) {
 
         app.module("scripts", function(module) {
 
-            var Router = Backbone.Router.extend({                
+            var Router = Backbone.Router.extend({
                 initialize: function() {
                     app.listenTo(app, "script-saved", function(model) {
                         window.location.hash = "/extension/scripts/detail/" + model.get("shortid");
@@ -63,9 +65,21 @@
             }
 
             app.on("template-extensions-render", function(context) {
-                var view = new TemplateView();
-                view.setTemplateModel(context.template);
-                context.extensionsRegion.show(view);
+                if (app.settings.playgroundMode) {
+                    var view = new PlaygroundTemplateView();
+                    view.setTemplateModel(context.template);
+                    context.extensionsRegion.show(view);
+                } else {
+                    var model = new StandardTemplateModel();
+                    model.setTemplate(context.template);
+
+                    model.fetch({
+                        success: function() {
+                            var view = new StandardTemplateView({ model: model });
+                            context.extensionsRegion.show(view);
+                        }
+                    });
+                }
             });
 
 

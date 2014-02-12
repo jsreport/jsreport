@@ -1,8 +1,10 @@
-﻿define(["app", "marionette", "backbone",
+﻿define(["app", "marionette", "backbone",    
         "./data.list.model", "./data.list.view", "./data.list.toolbar.view",
         "./data.model", "./data.detail.view",
-        "./data.template.view", "./data.toolbar.view"],
-    function(app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView, TemplateView, ToolbarView) {
+        "./data.template.playground.view", "./data.template.standard.view", 
+        "./data.toolbar.view", "./data.template.standard.model"],
+    function(app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView, TemplatePlaygroundView,
+        TemplateStandardView, ToolbarView, TemplateStandardModel) {
 
         app.module("data", function(module) {
             var Router = Backbone.Router.extend({                
@@ -58,9 +60,20 @@
             }
 
             app.on("template-extensions-render", function(context) {
-                var view = new TemplateView();
-                view.setTemplateModel(context.template);
-                context.extensionsRegion.show(view);
+                
+                if (app.settings.playgroundMode) {
+                    var view = new TemplatePlaygroundView();
+                    view.setTemplateModel(context.template);
+                    context.extensionsRegion.show(view);
+                } else {
+                    var model = new TemplateStandardModel();
+                    model.setTemplate(context.template);
+                    
+                    model.fetch({ success: function() {
+                        var view = new TemplateStandardView({ model: model});
+                        context.extensionsRegion.show(view);     
+                    }});
+                }
             });
 
 
