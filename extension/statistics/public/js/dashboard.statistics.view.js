@@ -21,7 +21,7 @@
 
             var minutesToRound = 5;
 
-            if (this.model.get("filter") == "hour") {
+            if (this.model.get("filter") == "Last hour") {
                 min.setTime(now.getTime() + (-1 * 60 * 60 * 1000));
                 timeformat = "%h:%M";
                 minTickSize = [5, "minute"];
@@ -29,7 +29,7 @@
                 minutesToRound = 5;
             }
 
-            if (this.model.get("filter") == "day") {
+            if (this.model.get("filter") == "Last 24 hours") {
                 min.setTime(now.getTime() + (-24 * 60 * 60 * 1000));
                 timeformat = "%h:%M";
                 minTickSize = [1, "hour"];
@@ -37,7 +37,7 @@
                 minutesToRound = 60;
             }
 
-            if (this.model.get("filter") == "week") {
+            if (this.model.get("filter") == "Last 7 days") {
                 min.setTime(now.getTime() + (-7 * 24 * 60 * 60 * 1000));
                 timeformat = "%m/%d";
                 minTickSize = [12, "hour"];
@@ -152,11 +152,10 @@
                             var year = date.getUTCFullYear();
 
                             showTooltip(item.pageX, item.pageY, color,
-                                "<strong>" + item.series.label + "</strong><br>" +
                                      year + "/" + month + "/" + day + " " +
                                     padStr(dateStart.getHours()) + ":" + padStr(dateStart.getMinutes()) + " - " +
                                     padStr(date.getHours()) + ":" + padStr(date.getMinutes()) +
-                                    "<div style='text-align:center'><strong>" + y + "</strong></div>");
+                                    "<div style='text-align:center'><strong>" + item.series.label + ": " +  y + "</strong></div>");
                         }
                     } else {
                         $("#tooltip").remove();

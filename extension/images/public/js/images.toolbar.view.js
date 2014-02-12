@@ -6,6 +6,7 @@
             events: {
                 "click #saveCommand": "save",
                 "click #embedCommand": "embed",
+                "click #uploadCommand": "upload",
             },
 
             onDomRefresh: function() {

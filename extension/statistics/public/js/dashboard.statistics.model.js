@@ -22,7 +22,7 @@
     return ModelBase.extend({
        initialize: function() {
            this.items = new CollectionModel();
-           this.set("filter", "hour");
+           this.set("filter", "Last hour");
            var self = this;
            this.listenTo(this.items, "sync", function() { self.trigger("sync"); });
        },
