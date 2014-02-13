@@ -1,8 +1,8 @@
 ﻿<a class="expandable-header"><i class="glyphicon glyphicon-book"></i>Script<b class="caret caret-right" {{if ~isFilled()}}style="color: green"{{else}}{{/if}}></b></a>
 
 <div class="expandable-body properties" style="display: none">
-    {{if ~getItemsLength() > 1}}
-    <div class="btn-group" data-binding="shortid" style="margin-bottom: 15px; margin-left: 10px">
+    {{if ~getItemsLength() > 1}} 
+    <div class="btn-group" data-binding="shortid">
         <button class="btn btn-primary btn-sm dropdown-button" id="schema" data-value="{{:shortid}}">{{:name}}</button>
         <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>

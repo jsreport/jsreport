@@ -1,10 +1,10 @@
 ﻿<div class="col-lg-6">
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <h3 class="panel-title">templates</h3>
+            <h3 class="panel-title">last modified templates</h3>
         </div>
         <div class="panel-body">
-            <table class="table">
+            <table class="table table-hover fixed">
                 <thead>
                     <tr>
                         <th>NAME</th>
@@ -16,8 +16,8 @@
                 <tbody>
                     {{for items}}
                     <tr data-id="{{:shortid}}">
-                        <td>{{:name}}</td>
-                        <td>{{:recipe}}</td>
+                        <td class="link"><a>{{:name}}</a></td>
+                        <td><span class="label label-info">{{:recipe}}</span></td>
                         <td>{{:engine}}</td>
                         <td>{{:~dateToString(modificationDate)}}</td>
                     </tr>
@@ -25,7 +25,7 @@
           
                 </tbody>
             </table>
-            <a class="pull-right" href="/#/extension/templates">» See all</a>
+            <a class="pull-right" href="/#/extension/templates">&raquo; See all</a>
         </div>
     </div>
 </div>

@@ -1,22 +1,26 @@
-﻿<table class="table table-striped table-hover">
+﻿<table class="table table-hover fixed">
     <thead>
         <tr>
-            <th style="width: 20px"></th>
+            <th class="selection">
+            </span>
+            </th>
             {{if true tmpl=~getHeaderTemplate()}}{{else}}{{/if}}
         </tr>
     </thead>
     <tbody>
         {{for items}}
         <tr data-id="{{:~getIdFromIdKey(#data)}}">
-            <td class="selection" style="width: 20px"></td>
+            <td class="selection">
+                <label>
+                    <input type="checkbox" class="checkbox">
+                    <span class="lbl"></span>
+                </label>
+            </td>
             {{if true tmpl=~getRowsTemplate()}}{{else}}{{/if}}
         </tr>
         {{/for}}
           
     </tbody>
 </table>
-<!--<div>
-    <div><span id="deleteCommand" class="glyphicon glyphicon-trash"></span></div>
-</div>-->
 <div id="pagerBox">
 </div>

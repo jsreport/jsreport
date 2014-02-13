@@ -19,7 +19,7 @@
             return {
                 deleteItems: function() {
                     view.deleteAction();
-                }                    
+                }
             };
         };
 
@@ -34,11 +34,11 @@
             },
 
             nextPage: function() {
-                if (this.model.get("pageNumber") <  (this.model.get("lastPageNumber") - 1))
-                   this.model.set("pageNumber", this.model.get("pageNumber") + 1);
+                if (this.model.get("pageNumber") < (this.model.get("lastPageNumber") - 1))
+                    this.model.set("pageNumber", this.model.get("pageNumber") + 1);
                 return false;
             },
-            
+
             previousPage: function() {
                 if (this.model.get("pageNumber") > 1)
                     this.model.set("pageNumber", this.model.get("pageNumber") - 1);
@@ -48,7 +48,7 @@
             firstPage: function(ev, data) {
                 this.model.set("pageNumber", 1);
             },
-            
+
             lastPage: function(ev, data) {
                 this.model.set("pageNumber", this.model.get("lastPageNumber"));
             }
@@ -77,6 +77,12 @@
                 this.$el.find("table").selectable({
                     filter: "tr",
                     cancel: 'a',
+                    selected: function(evennt, ui) {
+                        $(".ui-selectee", this).each(function(a, b) {
+                            var has = $(b).hasClass("ui-selected");
+                            $('.checkbox', b).prop('checked', has ? "checked" : null);
+                        });
+                    }
                 });
             },
 

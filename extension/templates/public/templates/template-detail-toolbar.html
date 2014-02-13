@@ -3,7 +3,7 @@
         <a class="expandable-header"><i class="glyphicon glyphicon-sm glyphicon-cog"></i>Basics <b class="caret caret-right"></b></a>
         <div class="expandable-body properties" style="display: none">
             <span class="side-title">Name</span>
-            <input type="text" class="form-control area-mini" placeholder="Name your report" name="name">
+            <input type="text" class="form-control area-mini" placeholder="Report name" name="name">
             
             <span class="side-title">Engine</span>
             <div class="btn-group dropdown" data-binding="engine">
@@ -11,7 +11,7 @@
                 <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
                     <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu pull-right">
                     {{for ~getEngines()}}
                     <li><a data-value="{{:#data}}">{{:#data}}</a></li>
                     {{/for}}
@@ -20,11 +20,11 @@
    
             <span class="side-title">Recipe</span>
             <div class="btn-group dropdown" data-binding="recipe">
-                <button class="btn btn-primary btn-sm dropdown-button" id="recipe" data-value="{{:recipe}}">{{:recipe}}</button>
-                <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
+                <button class="btn btn-success btn-sm dropdown-button" id="recipe" data-value="{{:recipe}}">{{:recipe}}</button>
+                <button class="btn btn-success btn-sm dropdown-toggle" data-toggle="dropdown">
                     <span class="caret"></span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu pull-right">
                     {{for ~getRecipes()}}
                     <li><a data-value="{{:#data}}">{{:#data}}</a></li>
                     {{/for}}

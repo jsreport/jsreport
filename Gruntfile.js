@@ -105,7 +105,7 @@
             compileReports: extensionOptimization("reports"),
             compileStatistics: extensionOptimization("statistics"),
         },
-        //extension\express\public\js
+        
         replace: {
             debugRoot: {
                 src: ['./extension/express/public/views/root_dev.html'],
@@ -131,7 +131,9 @@
                 src: ['./extension/express/public/js/app.js'],
                 overwrite:true,
                 replacements: [ 
-                    { from: '{{templateBust}}',  to: new Date().getTime() + "" }, 
+                    //temporary avoid template caching for designer
+                    { from: '{{templateBust}}',  to: "" }, 
+                    //{ from: '{{templateBust}}',  to: new Date().getTime() + "" }, 
                 ]
             }
         }
