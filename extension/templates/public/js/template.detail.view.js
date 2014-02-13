@@ -5,7 +5,7 @@
             template: "template-detail",
             htmlCodeMirror: null,
             helpersCodeMirror: null,
-            className : 'full',
+            className : 'template-detail-wrap',
 
             initialize: function() {
                 var self = this;
@@ -17,9 +17,7 @@
 
             onDomRefresh: function() {
                 var self = this;
-
-                var topHtml = $("#htmlWrap").position().top;
-
+                
                 this.htmlCodeMirror = CodeMirror.fromTextArea(this.$el.find("#htmlArea")[0], {
                     mode: "application/xml",
                     height: "350px",
@@ -32,7 +30,6 @@
                 codeMirrorBinder(this.model, "html", this.htmlCodeMirror);
                 
                 $(this.htmlCodeMirror.getWrapperElement()).addClass(this.$el.find("#htmlArea").attr('class'));
-                $(this.htmlCodeMirror.getWrapperElement()).css("margin-top", topHtml);
                 
                 this.helpersCodeMirror = CodeMirror.fromTextArea(this.$el.find("#helpersArea")[0], {
                     mode: "javascript",
@@ -41,7 +38,6 @@
                 codeMirrorBinder(this.model, "helpers", this.helpersCodeMirror);
 
                 $(this.helpersCodeMirror.getWrapperElement()).addClass(this.$el.find("#helpersArea").attr('class'));
-                $(this.helpersCodeMirror.getWrapperElement()).css("margin-top", topHtml);
 
                 this.$el.find('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
                     self.helpersCodeMirror.refresh();
@@ -69,8 +65,8 @@
 
 
                 this.$el.find(".split-pane").splitPane();
-                
-           
+                this.htmlCodeMirror.refresh();
+                this.helpersCodeMirror.refresh();
             },
         });
     });

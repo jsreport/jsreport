@@ -8,6 +8,9 @@
         },
         
         onDomRefresh: function () {
+            
+            var top = $("#contentWrap").position().top;
+            
             this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
                 mode: "javascript",
                 height: "350px",
@@ -16,6 +19,11 @@
             });
             
              codeMirrorBinder(this.model, "dataJson", this.contentCodeMirror);
+            
+            $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
+            $(this.contentCodeMirror.getWrapperElement()).css("margin-top", top);
+
+            this.contentCodeMirror.refresh();
         },
     });
 });

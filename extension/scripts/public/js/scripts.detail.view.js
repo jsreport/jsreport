@@ -25,6 +25,8 @@
             
             $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
             $(this.contentCodeMirror.getWrapperElement()).css("margin-top", top);
+            
+            this.contentCodeMirror.refresh();
         },
    });
 });

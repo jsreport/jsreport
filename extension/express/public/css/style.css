@@ -456,6 +456,7 @@ ul.pagination li {display: inline-block;}
     margin-right:5px;
     margin-left:190px;
     border-style: solid;
+    border-color: lightgray;
     border-width: 1px
 }
 
@@ -470,7 +471,9 @@ ul.pagination li {display: inline-block;}
     margin-bottom:5px;
     margin-right:5px;
     margin-left:0px;
+    margin-top:34px;
     border-style: solid;
+    border-color: lightgray;
     border-width: 1px
 }
 
@@ -487,8 +490,6 @@ ul.pagination li {display: inline-block;}
     margin-right:5px;
     padding-left:190px;
     margin-top:80px;
-    border-style: solid;
-    border-width: 1px
 }
 
 
@@ -505,20 +506,19 @@ ul.pagination li {display: inline-block;}
     margin-left:0px;
     margin-top:34px;
     border-style: solid;
+    border-color: lightgray;
     border-width: 1px
 }
 
-.full {
-   display: block;
+.template-detail-wrap {
+    display: block;
     position:absolute;
     height:auto;
     bottom:0;
     top:0;
-    left:190px;
+    left:200px;
     right:0;
     margin-bottom:5px;
     margin-right:5px;
     margin-left:0px;
-    border-style: solid;
-    border-width: 1px
 }
