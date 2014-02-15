@@ -14,6 +14,9 @@ require("odata-server");
 module.exports = function(app, options, cb) {
 
     function activateTenant(tenant, tcb) {
+        if (tenant.isActivated) {
+            return tcb(null);
+        }
         var opts = extend(true, {}, options);
         var main = express();
 
@@ -26,15 +29,10 @@ module.exports = function(app, options, cb) {
         app.use(express.vhost(tenant.name + '.*', main));
 
         rep.init(function() {
-            if (tcb != null)
-                tcb(null);
+            tenant.isActivated = true;
+            tcb(null);
         });
     }
-
-    var multitenancy = new Multitenancy(options);
-    multitenancy.findTenants().then(function(tenants) {
-        async.eachSeries(tenants, function(t, tcb) { activateTenant(t, tcb); }, cb);
-    });
 
     app.use(passport.initialize());
     app.use(passport.session());
@@ -132,6 +130,17 @@ module.exports = function(app, options, cb) {
         res.send("pong");
     });
 
+    app.get("*", function(req, res, next) {
+        var domains = req.headers.host.split('.');
+
+        if (domains.length != 3)
+            return next();
+
+        return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
+            return next();
+        });
+    });
+
     app.get("/", function(req, res, next) {
         if (req.user != null) {
             var domains = req.headers.host.split('.');
@@ -221,7 +230,13 @@ module.exports = function(app, options, cb) {
         req.logout();
         res.redirect('/');
     });
-}
+
+    var multitenancy = new Multitenancy(options);
+    multitenancy.initialize().then(function(s) {
+        cb();
+    });
+
+};
 
 var Multitenancy = function(options) {
     $data.Entity.extend("$entity.Tenant", {
@@ -243,7 +258,7 @@ var Multitenancy = function(options) {
     this._tenantsCache = [];
 };
 
-Multitenancy.prototype.findTenants = function() {
+Multitenancy.prototype.initialize = function() {
     var self = this;
 
     return this._createContext().tenants.toArray().then(function(tenants) {
@@ -253,6 +268,10 @@ Multitenancy.prototype.findTenants = function() {
 
         return Q(tenants);
     });
+};
+
+Multitenancy.prototype.getTenants = function() {
+    return _.values(this._tenantsCache);
 };
 
 Multitenancy.prototype.findTenant = function(email) {
