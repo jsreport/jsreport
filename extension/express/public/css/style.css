@@ -444,6 +444,81 @@ ul.pagination li {display: inline-block;}
   width: 100%;
 }
 
+/* API Modal */
+.api-modal h5 {
+	font-weight: bold;
+	margin-top: 20px;
+}
+
+.api-modal .label {
+	margin-right: 10px;
+}
+
+h3 small {
+	font-size: 13px;
+	color: #777;
+	margin-left: 7px;
+}
+
+/* Editable */
+.title-input {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+}
+  
+.title-edit, .title-confirm {
+	vertical-align: bottom;
+	height: 33px	
+}
+
+/* Dashboard - Panels */
+.panel-heading {
+height: 48px;
+}
+
+.panel-warning > .panel-heading .caret {
+color: #fff;
+}
+
+.panel-heading h3 {padding-top: 7.5px; font-weight: 400;}
+
+.panel-body {
+min-height: 280px;
+}  
+
+.panel-body > .table td.link {
+  height: 46px;
+} 
+
+.panel-footer {
+min-height: 40px;
+}
+
+/* ChartBox */
+#chartBox {
+height: 300px;
+}
+
+/* Navbar - User logged */
+.user-info {
+  font-size: 13px;
+  display: inline-block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  vertical-align: middle;
+  line-height: normal;
+  position: relative;
+  max-height: 19px;
+  top: -10px;
+}
+
+.fa-logged {
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+
 .full-content {
      display: block;
     position:absolute;

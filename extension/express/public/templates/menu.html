@@ -15,10 +15,10 @@
 {{if ~getSettings().mode == "multitenant" }}
 <ul class="nav navbar-nav pull-right">
     <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-user"></i>{{:~getTenant().name}} ( {{:~getTenant().email}} ) <b class="caret"></b></a>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-user fa-logged"></i><span class="user-info"><small> Welcome,<br></small>{{:~getTenant().name}} ( {{:~getTenant().email}} ) </span> <b class="caret"></b></a>
         <ul class="dropdown-menu">
             <li>
-                <a id='logoutLink' onclick=" $('#logoutBtn').click()"><i class="glyphicon glyphicon-off"></i> Logout</a>
+                <a id='logoutLink' onclick=" $('#logoutBtn').click()"><i class="fa fa-power-off"></i> Logout</a>
                 <form method="POST" action="/Logout">
                     <input type="submit" id="logoutBtn" style="display: none"/>
                 </form>

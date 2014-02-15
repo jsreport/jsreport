@@ -60,9 +60,10 @@ Templating.prototype.handleBeforeRender = function(request, response) {
             request.context.templates.attach(template);
             template.generatedReportsCounter = template.generatedReportsCounter + 1;
 
-            request.template = template;
-
-            return request.context.saveChanges();
+            return request.context.saveChanges().then(function() {
+                _.extend(template, request.template);
+                request.template = template;
+            });
         });
     });
 };

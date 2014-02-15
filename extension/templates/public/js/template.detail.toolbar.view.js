@@ -15,7 +15,8 @@
                     
                     var contextToolbar = {
                         template: self.model,
-                        region: self.extensionsToolbarRegion
+                        region: self.extensionsToolbarRegion,
+                        view: self,
                     };
                     app.trigger("template-extensions-toolbar-render", contextToolbar);
                 });
@@ -111,7 +112,8 @@
                     recipe : this.model.get("recipe") || "html",
                     engine: this.model.get("engine"),
                     html: this.model.get("html") || "",
-                    helpers: this.model.get("helpers")
+                    helpers: this.model.get("helpers"),
+                    shortid: this.model.get("shortid")
                 };
                
                 app.trigger("template-extensions-get-state", this.model, state);

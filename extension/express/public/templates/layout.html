@@ -48,8 +48,32 @@
                         <p id="dialogContent"></p>
                     </div>
                     <div class="modal-footer" id="dialogButtons">
-                        <a id="dialogStorno" class="btn btn-primary" data-dismiss="modal">Storno</a>
-                        <a id="dialogSubmit" class="btn btn-danger">Ano</a>
+                        <a id="dialogStorno" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</a>
+                        <a id="dialogSubmit" class="btn btn-sm btn-danger">Yes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section>
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+    </div>
+    <div id="errorDialog">
+        <div class="modal fade" id="modalDialog" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h3 id="dialogHeader"><i class="fa fa-bug"></i> </h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger" id="dialogContent"></div>
+                    </div>
+                    <div class="modal-footer" id="dialogButtons">
+                        <a id="dialogStorno" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</a>
                     </div>
                 </div>
             </div>

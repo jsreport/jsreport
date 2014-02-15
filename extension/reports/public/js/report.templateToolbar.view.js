@@ -12,13 +12,14 @@
         },
 
         renderReport: function() {
+            var self = this;
             app.trigger("toastr:info", "Report generation started ...");
             
             $.ajax({
                 url: app.serverUrl + "report",
                 type: 'POST',
                 data: JSON.stringify({
-                    template: { _id: Utils.decodeBase64(this.model.get("_id")) },
+                    template: self.templateView.getUIState(),
                     options: { async: true }
                 })
             })

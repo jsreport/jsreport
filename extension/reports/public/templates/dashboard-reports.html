@@ -1,28 +1,30 @@
 ﻿<div class="col-lg-6">
-    <div class="panel panel-success">
+    <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">last modified reports</h3>
         </div>
         <div class="panel-body">
-    <table class="table table-hover fixed">
-        <thead>
-            <tr>
-                <th>NAME</th>
-                <th>CREATED</th>
-                <th>CONTENT TYPE</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{for items}}
-                <tr data-id="{{:_id}}">
-                    <td class="link"><a>{{:name}}</a></td>
-                    <td>{{:~dateToString(creationDate)}}</td>
-                    <td>{{:contentType}}</td>
+        <table class="table table-hover fixed">
+            <thead>
+                <tr>
+                    <th>NAME</th>
+                    <th>CREATED</th>
+                    <th>CONTENT TYPE</th>
                 </tr>
-            {{/for}}
-        </tbody>
-    </table>
-  <a class="pull-right" href="/#/extension/reports">&raquo; See all</a>
+            </thead>
+            <tbody>
+                {{for items}}
+                    <tr data-id="{{:_id}}">
+                        <td class="link"><a>{{:name}}</a></td>
+                        <td>{{:~dateToString(creationDate)}}</td>
+                        <td>{{:contentType}}</td>
+                    </tr>
+                {{/for}}
+            </tbody>
+        </table>        
         </div>
-    </div>
+        <div class="panel-footer">
+        <a class="pull-right" href="/#/extension/reports">&raquo; See all</a>
+        </div>
+  </div>
 </div>

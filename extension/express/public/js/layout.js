@@ -40,7 +40,8 @@
                 $.dialog({
                     header: e.statusText,
                     content: $('<div/>').text(responseText).html(),
-                    hideSubmit: true
+                    hideSubmit: true,
+                    error: true
                 });
             });
 

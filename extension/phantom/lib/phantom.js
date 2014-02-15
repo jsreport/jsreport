@@ -60,6 +60,8 @@ module.exports = Phantom = function(reporter, definition) {
                             return deferred.resolve();
                         });
                     });
+                }, function(err) {
+                    deferred.reject(err);
                 });
 
             return deferred.promise;
