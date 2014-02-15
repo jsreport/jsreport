@@ -52,18 +52,24 @@ require("./reporter.install.js")(app, {
     connectionString: config.connectionString,
     extensions: config.extensions
 }, function() {
+    
+    if (config.iisnode) {
+        app.listen(config.port);
+        return;
+    }
+
     var credentials = {
         key: fs.readFileSync(config.certificate.key, 'utf8'),
         cert: fs.readFileSync(config.certificate.cert, 'utf8'),
         rejectUnauthorized: false
     };
 
-    //http.createServer(function(req, res) {
-    //    res.writeHead(302, {
-    //         'Location': "https://" + req.headers.host + req.url
-    //    });
-    //    res.end();
-    //}).listen(config.httpPort);
+    http.createServer(function(req, res) {
+        res.writeHead(302, {
+             'Location': "https://" + req.headers.host + req.url
+        });
+        res.end();
+    }).listen(config.httpPort);
 
     var httpsServer = https.createServer(credentials, app);
     httpsServer.listen(config.port);    

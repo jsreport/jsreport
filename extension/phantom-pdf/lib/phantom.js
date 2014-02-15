@@ -16,7 +16,7 @@ module.exports = Phantom = function(reporter, definition) {
 
 
     reporter.extensionsManager.recipes.push({
-        name: "phantom",
+        name: "phantom-pdf",
         execute: function(request, response) {
             var deferred = Q.defer();
             logger.info("Rendering pdf start.");

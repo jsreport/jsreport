@@ -13,7 +13,7 @@ var logger = winston.loggers.get('jsreport');
 module.exports = Fop = function(reporter, definition) {
     
     reporter.extensionsManager.recipes.push({
-        name: "fop",
+        name: "fop-pdf",
         
         execute: function(request, response) {
             var deferred = Q.defer();

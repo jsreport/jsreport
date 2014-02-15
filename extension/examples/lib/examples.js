@@ -53,7 +53,7 @@ Examples = function(reporter, definition) {
             html: fs.readFileSync(join(__dirname, 'examples/helloPhantom.html')).toString("utf8"),
             helpers: fs.readFileSync(join(__dirname, 'examples/helloFib.js')).toString("utf8"),
             engine: "jsrender",
-            recipe: "phantom",
+            recipe: "phantom-pdf",
             isExample: true
         });
     }
@@ -64,7 +64,7 @@ Examples = function(reporter, definition) {
             html: fs.readFileSync(join(__dirname, 'examples/helloWorld.xml')).toString("utf8"),
             helpers: fs.readFileSync(join(__dirname, 'examples/helloFib.js')).toString("utf8"),
             engine: "jsrender",
-            recipe: "fop",
+            recipe: "fop-pdf",
             isExample: true
         });
     }
@@ -79,7 +79,7 @@ Examples = function(reporter, definition) {
             name: "4. Scripts extension",
             html: fs.readFileSync(join(__dirname, 'examples/complexScript.html')).toString("utf8"),
             engine: "jsrender",
-            recipe: "phantom",
+            recipe: "phantom-pdf",
             isExample: true,
         };
 

@@ -140,10 +140,10 @@
     </Content>
     <Content Include="extension\express\public\templates\title-edit.html" />
     <Content Include="extension\express\public\views\root_dev.html" />
-    <Content Include="extension\fop\lib\fop.js">
+    <Content Include="extension\fop-pdf\lib\fop.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\fop\package.json">
+    <Content Include="extension\fop-pdf\package.json">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\html\lib\html.js">
@@ -188,13 +188,13 @@
     <Content Include="extension\images\test\imagesTest.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\phantom\lib\convertToPdf.js">
+    <Content Include="extension\phantom-pdf\lib\convertToPdf.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\phantom\lib\phantom.js">
+    <Content Include="extension\phantom-pdf\lib\phantom.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\phantom\package.json">
+    <Content Include="extension\phantom-pdf\package.json">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\reports\lib\reports.js">
@@ -654,12 +654,12 @@
     <Folder Include="extension\express\lib" />
     <Folder Include="extension\express\public\fonts\" />
     <Folder Include="extension\express\public\views\" />
-    <Folder Include="extension\fop\integrationTest\" />
-    <Folder Include="extension\fop\lib\" />
+    <Folder Include="extension\fop-pdf\integrationTest\" />
+    <Folder Include="extension\fop-pdf\lib\" />
     <Folder Include="extension\html" />
     <Folder Include="extension\html\lib\" />
     <Folder Include="extension\html\test" />
-    <Folder Include="extension\fop" />
+    <Folder Include="extension\fop-pdf\" />
     <Folder Include="extension\examples" />
     <Folder Include="extension\images" />
     <Folder Include="extension\images\lib" />
@@ -667,11 +667,11 @@
     <Folder Include="extension\images\public\templates" />
     <Folder Include="extension\images\test" />
     <Folder Include="extension\images\public" />
-    <Folder Include="extension\phantom\integrationTest\" />
+    <Folder Include="extension\phantom-pdf\integrationTest\" />
     <Folder Include="extension\test\" />
     <Folder Include="extension\scripts" />
-    <Folder Include="extension\phantom" />
-    <Folder Include="extension\phantom\lib" />
+    <Folder Include="extension\phantom-pdf\" />
+    <Folder Include="extension\phantom-pdf\lib\" />
     <Folder Include="extension\reports\public\templates" />
     <Folder Include="extension\reports\test" />
     <Folder Include="extension\reports\public" />
@@ -734,7 +734,7 @@
     <Compile Include="extension\express\public\lib\jquery.flot.canvas.js" />
     <Compile Include="extension\express\public\lib\jquery.flot.symbol.js" />
     <Compile Include="extension\express\public\lib\require.min.js" />
-    <Compile Include="extension\fop\integrationTest\fopTest.js" />
+    <Compile Include="extension\fop-pdf\integrationTest\fopTest.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />
     <Compile Include="extension\images\public\js\images.list.model.js" />
     <Compile Include="extension\images\public\js\images.list.toolbar.view.js" />
@@ -742,7 +742,7 @@
     <Compile Include="extension\images\public\js\images.ref.model.js" />
     <Compile Include="extension\images\public\js\images.toolbar.view.js" />
     <Compile Include="extension\images\public\js\images.uploader.js" />
-    <Compile Include="extension\phantom\integrationTest\phantomTest.js" />
+    <Compile Include="extension\phantom-pdf\integrationTest\phantomTest.js" />
     <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
     <Compile Include="extension\reports\public\js\report.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
