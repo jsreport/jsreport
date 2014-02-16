@@ -82,6 +82,8 @@
             multitenantProduction: { files: [{ src: ['./config/production.multitenant.config.js'], dest: './config.js' }] },
             playgroundDebug: { files: copyFiles("playground") },
             playgroundProduction: { files: [{ src: ['./config/production.playground.config.js'], dest: './config.js' }] },
+            standardDebug: { files: copyFiles("standard") },
+            standardProduction: { files: [{ src: ['./config/production.standard.config.js'], dest: './config.js' }] },
         },
 
         requirejs: {
@@ -157,6 +159,9 @@
 
     grunt.registerTask('playground-debug', ['copy:playgroundDebug', 'replace:debugRoot', 'replace:debugApp']);
     grunt.registerTask('playground-production', ['requirejs', 'copy:playgroundProduction', 'replace:productionRoot', 'replace:productionApp']);
+    
+    grunt.registerTask('standard-debug', ['copy:standardDebug', 'replace:debugRoot', 'replace:debugApp']);
+    grunt.registerTask('standard-production', ['requirejs', 'copy:standardProduction', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('test-all', ['mochaTest:testAll']);
 };

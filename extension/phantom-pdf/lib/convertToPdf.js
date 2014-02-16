@@ -4,7 +4,19 @@
 
 output = system.args[2];
 page.viewportSize = { width: 600, height: 600 };
-page.paperSize = { format: "", orientation: 'portrait', margin: '1cm' };
+page.paperSize = {
+     format: "", 
+     orientation: 'portrait', 
+     margin: '1cm',
+     footer: {
+          height: "1cm",
+          contents: phantom.callback(function(pageNum, numPages) {
+              return "<h1 style='text-align:right'>Footer" + pageNum + " / " + numPages + "</h1>";
+          })
+     }
+};
+
+
 //page.content = '<html><body><p>Hello world</p></body></html>';
 page.open(system.args[1], function() {
     page.render(output);
