@@ -1,23 +1,13 @@
 ﻿define(["app", "core/basicModel", "underscore"], function (app, ModelBase, _) {
     return ModelBase.extend({
-
-        fetch: function (options) {
-            var self = this;
-            
-            var obj = this.templateModel.get("script") || {};
-            obj = obj.initData || {};
-            this.set(this.parse(obj), { silent: true });
-            return options.success();
-        },
-
+       
         setTemplateModel: function (templateModel) {
             this.templateModel = templateModel;
+            this.set("content", templateModel.get("script").content);
         },
-      
-
+        
         save: function (options) {
-            var entity = new $entity.Script(this.attributes);
-            this.templateModel.set("script", entity);
+            this.templateModel.get("script").dataJson = this.get("content");
             return options.success();
         },
     });

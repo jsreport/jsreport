@@ -6,20 +6,33 @@
          return $.render[template](data, data, context);
     };
     
+     function bind(view) {
+            if (view.model != null) {
+                var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
+
+                //remove bindings for child views
+                var filteredBindings = [];
+                for (var key in bindings) {
+                    if (view.isChild) {
+                        filteredBindings[key] = bindings[key];
+                    } else {
+                        if ($(bindings[key].selector).parents("[data-child=true]").length == 0) {
+                             filteredBindings[key] = bindings[key];
+                        }
+                    }
+                }
+
+                view.modelBinder.bind(view.model, view.el, filteredBindings);
+            }
+        }
+    
     Marionette.Region.prototype.open = function (view) {
         this.$el.hide();
         this.$el.html(view.el);
-    
-        function bind() {
-            if (view.model != null) {
-                var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
-                view.modelBinder.bind(view.model, view.el, bindings);
-            }
-        }
+        
+        bind(view);
 
-        bind();
-
-        this.listenTo(view, "render", bind);
+        this.listenTo(view, "render", function() { bind(view); });
 
         this.$el.fadeIn("slow");
     };
@@ -106,6 +119,10 @@
 
             Marionette.triggerMethod.call(view, "show");
             Marionette.triggerMethod.call(this, "show", view);
+
+            view.isChild = true;
+            view.$el.attr("data-child", true);
+            bind(view);
         },
 
         _removeViews: function (views) {

@@ -13,8 +13,20 @@
 var logger = winston.loggers.get('jsreport');
 
 module.exports = Phantom = function(reporter, definition) {
+    reporter[definition.name] = new Phantom(reporter, definition);
+};
 
+Phantom = function(reporter, definition) {
+    this._addRecipe(reporter);
+    
+    this.PhantomType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Phantom"), $data.Entity, null, {
+        margin: { type: "string" },
+    }, null);
+    
+    reporter.templates.TemplateType.addMember("phantom", { type: this.PhantomType });
+};
 
+Phantom.prototype._addRecipe = function(reporter) {
     reporter.extensionsManager.recipes.push({
         name: "phantom-pdf",
         execute: function(request, response) {
@@ -34,6 +46,7 @@ module.exports = Phantom = function(reporter, definition) {
                             join(__dirname, 'convertToPdf.js'),
                             "file:///" + htmlFile,
                             join(__dirname, "reports-tmpl", generationId + ".pdf"),
+                            request.template.phantom.margin
                         ];
 
                         //binPath variable is having path to my local development phantom
@@ -67,4 +80,5 @@ module.exports = Phantom = function(reporter, definition) {
             return deferred.promise;
         }
     });
-};
+    
+}

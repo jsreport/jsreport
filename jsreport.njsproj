@@ -197,6 +197,7 @@
     <Content Include="extension\phantom-pdf\package.json">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\phantom-pdf\public\templates\phantom-template.html" />
     <Content Include="extension\reports\lib\reports.js">
       <SubType>Content</SubType>
     </Content>
@@ -668,6 +669,9 @@
     <Folder Include="extension\images\test" />
     <Folder Include="extension\images\public" />
     <Folder Include="extension\phantom-pdf\integrationTest\" />
+    <Folder Include="extension\phantom-pdf\public\" />
+    <Folder Include="extension\phantom-pdf\public\js\" />
+    <Folder Include="extension\phantom-pdf\public\templates\" />
     <Folder Include="extension\test\" />
     <Folder Include="extension\scripts" />
     <Folder Include="extension\phantom-pdf\" />
@@ -745,6 +749,9 @@
     <Compile Include="extension\images\public\js\images.toolbar.view.js" />
     <Compile Include="extension\images\public\js\images.uploader.js" />
     <Compile Include="extension\phantom-pdf\integrationTest\phantomTest.js" />
+    <Compile Include="extension\phantom-pdf\public\js\main.js" />
+    <Compile Include="extension\phantom-pdf\public\js\phantom.template.model.js" />
+    <Compile Include="extension\phantom-pdf\public\js\phantom.template.view.js" />
     <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
     <Compile Include="extension\reports\public\js\report.toolbar.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />

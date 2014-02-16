@@ -57,7 +57,7 @@ Scripts.prototype.create = function(script) {
 Scripts.prototype.handleBeforeRender = function (request, response) {
     var self = this;
     
-    if (!request.template.scriptId && !request.template.script) {
+    if (!request.template.scriptId && !(request.template.script != null && request.template.script.content)) {
         logger.info("ScriptId not defined for this template.");
         return;
     }

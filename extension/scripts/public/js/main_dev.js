@@ -82,24 +82,6 @@
                 }
             });
 
-
-            app.on("template-extensions-get-state", function(model, state) {
-                if (!app.settings.playgroundMode) {
-
-                    if (model.get("scriptId") == null)
-                        return;
-
-                    state.scriptId = model.get("scriptId");
-                    return;
-                }
-
-                if (model.get("script") != null && model.get("script").content != null)
-                    state.script = model.get("script").content;
-                else
-                    state.script = null;
-            });
-
-
             app.on("entity-registration", function(context) {
 
                 $data.Class.define("$entity.Script", $data.Entity, null, {

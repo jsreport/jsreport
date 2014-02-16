@@ -98,26 +98,54 @@
                 mapForm.action = app.serverUrl + "report";
 
                 var uiState = this.getUIState();
-                for (var key in uiState) {
-                     this.addInput(mapForm, "template[" + key + "]", uiState[key]);
+
+                var self = this;
+                
+                function addBody(path, body) {
+                    if (body == null)
+                        return;
+
+                    for (var key in body) {
+                        if (_.isObject(body[key])) {
+                            addBody(path + key + "[", body[key]);
+                        } else {
+                            self.addInput(mapForm, path + key + "]", body[key]);
+                        }
+                    }
                 }
                 
+                addBody("template[", uiState);
+
                 document.body.appendChild(mapForm);
                 mapForm.submit();
 
             },
 
             getUIState: function () {
-                var state = {
-                    recipe : this.model.get("recipe") || "html",
-                    engine: this.model.get("engine"),
-                    html: this.model.get("html") || "",
-                    helpers: this.model.get("helpers"),
-                    shortid: this.model.get("shortid")
-                };
-               
-                app.trigger("template-extensions-get-state", this.model, state);
                 
+                function justNotNull(o) {
+                    var clone = {};
+                    for (var key in o) {
+                        if (o[key] != null)
+                            clone[key] = o[key];
+                    }
+
+                    return clone;
+                }
+                
+                var state = {};
+                var json = this.model.toJSON();
+                for (var key in json) {
+                    if (json[key] != null) {
+                        if (json[key].initData != null)
+                        state[key] = justNotNull(json[key].toJSON());
+                     else 
+                        state[key] = json[key];
+                    }
+                }                
+
+                state.html = state.html || " ";
+                state.helpers = state.helpers || "";
                 return state;
             },
 

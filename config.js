@@ -11,6 +11,6 @@
     connectionString: { name: "mongoDB", address: "localhost", port: 27017 },
     extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples", "statistics", "reports"],
     mode: "standard",
-    port: 443,
-    httpPort: 80
+    port: 3000,
+    httpPort: 4000
 }

@@ -38,7 +38,7 @@
 
     ;
 
-    var extensions = ["express", "templates", "html", "phantom", "fop", "scripts", "data", "images", "examples", "statistics", "reports"];
+    var extensions = ["express", "templates", "html", "phantom-pdf", "fop", "scripts", "data", "images", "examples", "statistics", "reports"];
 
     function copyFiles(mode) {
         var result = [];
@@ -106,6 +106,7 @@
             compileData: extensionOptimization("data"),
             compileReports: extensionOptimization("reports"),
             compileStatistics: extensionOptimization("statistics"),
+            compilePhantom: extensionOptimization("phantom-pdf"),
         },
         
         replace: {

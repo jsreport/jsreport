@@ -10,6 +10,9 @@
         
         setTemplateModel: function (model) {
             this.templateModel = model;
+            
+             if (model.get("script") == null)
+                model.set("script", new $entity.Script());
         },
         
         events: {
@@ -24,18 +27,14 @@
             var self = this;
             var model = new Model();
             model.setTemplateModel(this.templateModel);
-            model.fetch({
-                success: function () {
-                    var dialog = new DialogView({
-                        model: model
-                    });
-                    self.listenTo(dialog, "dialog-close", function () {
-                        self.render();
-                        self.templateModel.save();
-                    });
-                    app.layout.dialog.show(dialog);
-                }
+            var dialog = new DialogView({
+                model: model
             });
+            self.listenTo(dialog, "dialog-close", function () {
+                self.render();
+                self.templateModel.save();
+            });
+            app.layout.dialog.show(dialog);
         }
     });
 });

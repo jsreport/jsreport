@@ -5,7 +5,8 @@
     util = require("util"),
     sformat = require("stringformat"),
     _ = require("underscore"),
-    Q = require("q");
+    Q = require("q"),
+    extend = require("node.extend");
 
 
 var logger = winston.loggers.has('jsreport.templates') ? winston.loggers.get('jsreport.templates') : winston.loggers.get('jsreport');
@@ -61,7 +62,7 @@ Templating.prototype.handleBeforeRender = function(request, response) {
             template.generatedReportsCounter = template.generatedReportsCounter + 1;
 
             return request.context.saveChanges().then(function() {
-                _.extend(template, request.template);
+                extend(true, template, request.template);
                 request.template = template;
             });
         });

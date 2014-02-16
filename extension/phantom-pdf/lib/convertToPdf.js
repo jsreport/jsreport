@@ -7,7 +7,7 @@ page.viewportSize = { width: 600, height: 600 };
 page.paperSize = {
      format: "", 
      orientation: 'portrait', 
-     margin: '1cm',
+     margin: system.args[3] || '1cm',
      footer: {
           height: "1cm",
           contents: phantom.callback(function(pageNum, numPages) {
