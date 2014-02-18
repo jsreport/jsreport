@@ -29,7 +29,7 @@
                 optimize: "none",
                 name: "main_dev",
                 onBuildWrite: function(moduleName, path, contents) {
-                    var regExp = new RegExp("\"./", "g");
+                    var regExp = new RegExp("\"[.]/", "g");
                     return contents.replace("define('main_dev',", "define(").replace(regExp, "\"");
                 }
             }
@@ -106,7 +106,7 @@
             compileData: extensionOptimization("data"),
             compileReports: extensionOptimization("reports"),
             compileStatistics: extensionOptimization("statistics"),
-            compilePhantom: extensionOptimization("phantom-pdf"),
+          //  compilePhantom: extensionOptimization("phantom-pdf"),
         },
         
         replace: {

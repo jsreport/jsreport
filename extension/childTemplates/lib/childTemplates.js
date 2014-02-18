@@ -12,8 +12,6 @@ ChildTemplates = function(reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
-    reporter.templates.TemplateType.addMember("isChildTemplate", { type: $data.Boolean });
-
     reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, ChildTemplates.prototype.handleBeforeRender);
 };
 
@@ -31,8 +29,7 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
             });
         });
     }
-
-    //var test = /{#([a-z0-9]+)}/g;
+    
     var test = /{#([^{}]+)+}/g;
 
     asyncReplace(request.template.html, test, convert, function(er, result) {
