@@ -9,7 +9,7 @@
         cert: 'config/jsreport.net.cert'
     },
     connectionString: { name: "mongoDB", address: "localhost", port: 27017 },
-    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples", "statistics", "reports"],
+    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples", "statistics", "reports", "childTemplates"],
     mode: "standard",
     port: 3000,
     httpPort: 4000

@@ -6,7 +6,10 @@
     function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel,
         TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
         return app.module("template", function(module) {
-
+            module.TemplateListView = TemplateListView;
+            module.TemplateListModel = TemplateListModel;
+            module.TemplateListTooolbarView = TemplateListTooolbarView;
+            
             var Router = Backbone.Router.extend({                
                 initialize: function() {
                     var self = this;

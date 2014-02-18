@@ -98,7 +98,7 @@
                 mapForm.action = app.serverUrl + "report";
 
                 var uiState = this.getUIState();
-
+             
                 var self = this;
                 
                 function addBody(path, body) {

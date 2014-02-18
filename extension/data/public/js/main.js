@@ -76,23 +76,6 @@
                 }
             });
 
-
-            app.on("template-extensions-get-state", function(model, state) {
-                //if (!app.settings.playgroundMode) {
-                //     if (model.get("dataItemId") == null)
-                //        return;
-                    
-                //    state.dataItemId = model.get("dataItemId");
-                //    return;
-                //}
-
-                //if (model.get("dataItem") != null && model.get("dataItem").dataJson != null)
-                //    state.dataItem = model.get("dataItem").dataJson;
-                //else
-                //    state.dataItem = null;
-            });
-
-
             app.on("entity-registration", function(context) {
 
                 $data.Class.define("$entity.DataItem", $data.Entity, null, {

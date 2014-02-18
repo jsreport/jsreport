@@ -69,7 +69,7 @@
             test: {
                 src: ['extension/*/test/*.js', 'test/*.js']
                 //src: ['test/gridFSTest.js', 'extension/reports' + '/test/*.js']
-               //src: ['extension/templates' + '/test/*.js']
+               //src: ['extension/childTemplates' + '/test/*.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           

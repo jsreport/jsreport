@@ -4,17 +4,32 @@
 
 output = system.args[2];
 page.viewportSize = { width: 600, height: 600 };
-page.paperSize = {
+
+var paperSize = {
      format: "", 
      orientation: 'portrait', 
-     margin: system.args[3] || '1cm',
-     footer: {
-          height: "1cm",
-          contents: phantom.callback(function(pageNum, numPages) {
-              return "<h1 style='text-align:right'>Footer" + pageNum + " / " + numPages + "</h1>";
-          })
-     }
+     margin: (!system.args[3] || system.args[3] == "") ? '1cm' : system.args[3],
 };
+
+if (system.args[4] && system.args[4] != "") {
+    paperSize.header = {
+        height: "1cm",
+        contents: phantom.callback(function(pageNum, numPages) {
+            return system.args[4];
+        })
+    };
+}
+
+if (system.args[5] && system.args[5] != "") {
+    paperSize.footer = {
+        height: "1cm",
+        contents: phantom.callback(function(pageNum, numPages) {
+            return system.args[5];
+        })
+    };
+}
+
+page.paperSize = paperSize;
 
 
 //page.content = '<html><body><p>Hello world</p></body></html>';

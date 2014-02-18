@@ -26,6 +26,8 @@
         app.on("entity-registration", function(context) {
             $data.Class.define("$entity.Phantom", $data.Entity, null, {
                 'margin': { 'type': 'Edm.String' },
+                'header': { 'type': 'Edm.String' },
+                'footer': { 'type': 'Edm.String' },
             }, null);
             
             $entity.Template.addMember("phantom", { 'type': "$entity.Phantom" });

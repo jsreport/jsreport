@@ -5,17 +5,13 @@
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
             
-            if (templateModel.get("phantom") == null) {
-                 templateModel.set("phantom", new $entity.Phantom());
-            }
-            
-            this.set(templateModel.get("phantom").initData);
+            this.set("isChildTemplate", templateModel.get("isChildTemplate"));
         },
 
         initialize: function () {
             var self = this;
             this.listenTo(this, "change", function() {
-                self.copyAttributesToEntity(self.templateModel.get("phantom"));
+                self.templateModel.set("isChildTemplate", self.get("isChildTemplate"));
             });
         },
     });

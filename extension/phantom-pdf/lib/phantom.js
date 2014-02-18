@@ -21,9 +21,16 @@ Phantom = function(reporter, definition) {
     
     this.PhantomType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Phantom"), $data.Entity, null, {
         margin: { type: "string" },
+        header: { type: "string" },
+        footer: { type: "string" },
     }, null);
     
     reporter.templates.TemplateType.addMember("phantom", { type: this.PhantomType });
+
+    var self = this;
+    reporter.templates.TemplateType.addEventListener("beforeCreate", function(args, template) {
+        template.phantom = template.phantom || new (self.PhantomType)();
+    });
 };
 
 Phantom.prototype._addRecipe = function(reporter) {
@@ -46,7 +53,9 @@ Phantom.prototype._addRecipe = function(reporter) {
                             join(__dirname, 'convertToPdf.js'),
                             "file:///" + htmlFile,
                             join(__dirname, "reports-tmpl", generationId + ".pdf"),
-                            request.template.phantom.margin
+                            request.template.phantom.margin || "",
+                            request.template.phantom.header || "",
+                            request.template.phantom.footer || ""
                         ];
 
                         //binPath variable is having path to my local development phantom

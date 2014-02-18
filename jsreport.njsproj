@@ -40,6 +40,8 @@
     <Content Include="extensionsManager.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\childTemplates\package.json" />
+    <Content Include="extension\childTemplates\public\templates\childTemplates-template.html" />
     <Content Include="extension\data\lib\data.js">
       <SubType>Content</SubType>
     </Content>
@@ -640,6 +642,11 @@
   <ItemGroup>
     <Folder Include="blobStorage" />
     <Folder Include="extension" />
+    <Folder Include="extension\childTemplates\lib\" />
+    <Folder Include="extension\childTemplates\public\" />
+    <Folder Include="extension\childTemplates\public\js\" />
+    <Folder Include="extension\childTemplates\public\templates\" />
+    <Folder Include="extension\childTemplates\test\" />
     <Folder Include="extension\data" />
     <Folder Include="extension\data\lib" />
     <Folder Include="extension\data\public\templates\" />
@@ -668,6 +675,7 @@
     <Folder Include="extension\images\public\templates" />
     <Folder Include="extension\images\test" />
     <Folder Include="extension\images\public" />
+    <Folder Include="extension\childTemplates\" />
     <Folder Include="extension\phantom-pdf\integrationTest\" />
     <Folder Include="extension\phantom-pdf\public\" />
     <Folder Include="extension\phantom-pdf\public\js\" />
@@ -725,6 +733,11 @@
     <Compile Include="config\production.multitenant.config.js" />
     <Compile Include="config\production.playground.config.js" />
     <Compile Include="config\production.standard.config.js" />
+    <Compile Include="extension\childTemplates\lib\childTemplates.js" />
+    <Compile Include="extension\childTemplates\public\js\main.js" />
+    <Compile Include="extension\childTemplates\public\js\childTemplates.template.model.js" />
+    <Compile Include="extension\childTemplates\public\js\childTemplates.template.view.js" />
+    <Compile Include="extension\childTemplates\test\childTemplatesTest.js" />
     <Compile Include="extension\data\public\js\data.template.playground.model.js" />
     <Compile Include="extension\data\public\js\data.list.toolbar.view.js" />
     <Compile Include="extension\data\public\js\data.template.standard.model.js" />
