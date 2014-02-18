@@ -166,13 +166,14 @@
             
             getBody: function() {
                 var properties = [];
+                properties.push({ key: "html", value: "..." });
+                properties.push({ key: "helpers", value: "..." });
                 
-                var uiState = this.getUIState();
-                for (var key in uiState) {
-                    if (key != "html" && key != "helpers")
-                     properties.push({ key: key, value: uiState[key]});
-                }
-                
+                this.model.trigger("api-overrides", function(key, value) {
+                    value = value || "...";
+                    properties.push({ key: key, value: _.isObject(value) ? JSON.stringify(value) : "..." });
+                    
+                });
                 return properties;
             },
            

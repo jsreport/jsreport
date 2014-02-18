@@ -182,7 +182,10 @@ Templating.prototype._createEntitySetDefinitions = function(entitySets, next) {
 
         entitySets["templates"].beforeUpdate = function(i) {
             return function(callback, items) {
-                self._copyHistory(items[0]).then(function() { callback(true); });
+                if (items[0]._id == null)
+                    return callback(false);
+                
+                self._copyHistory(items[0]).then(function() { callback(true); }, function(err) { callback(false); });
             };
         };
     }

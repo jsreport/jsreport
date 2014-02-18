@@ -32,6 +32,7 @@ Reporting.prototype.configureExpress = function (app) {
         self.reporter.startContext().reports.single(function(r) { return r.shortid == this.shortid; }, { shortid: req.params.shortid }).then(function (result) {
             self.reporter.blobStorage.read(result.blobName, function(err, stream) {
                res.setHeader('Content-Type', result.contentType);
+                res.setHeader('File-Extension', result.fileExtension);
                stream.pipe(res); 
             });
         });
@@ -39,9 +40,9 @@ Reporting.prototype.configureExpress = function (app) {
 };
 
 Reporting.prototype.handleAfterRender = function (request, response) {
-    logger.info("Reporting async options: " + request.options.async);
+    logger.info("Reporting saveResult options: " + request.options.saveResult);
     var self = this;
-    if (!request.options.async)
+    if (!request.options.saveResult)
         return;
 
     function ensureBuffer(cb) {
@@ -58,11 +59,11 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     var report = new this.ReportType({
         recipe: request.options.recipe,
         name: request.template.name + " - " + request.template.generatedReportsCounter,
-        fileExtension: response.fileExtension,
+        fileExtension: response.headers["File-Extension"],
         templateShortid: request.template.shortid,
         shortid: shortid.generate(),
         creationDate: new Date(),
-        contentType: response.contentType,
+        contentType: response.headers['Content-Type'],
     });
 
     var deferred = Q.defer();
@@ -81,7 +82,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             },
             function (res, callback) {
                 logger.info("Writing report content to blob.");
-                self.reporter.blobStorage.write(report._id + "." + response.fileExtension, response.result, callback);
+                self.reporter.blobStorage.write(report._id + "." + report.fileExtension, response.result, callback);
             },
             function (blobName, callback) {
                 logger.info("Updating report blob name " + blobName);
@@ -92,16 +93,10 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     ], function (err) {
         if (err)
             return deferred.reject(err);
-        
-        response.result = {
-            _id: report._id,
-            shortid: report.shortid,
-            creationDate: report.creationDate,
-            blobName: report.blobName,
-            name: report.name
-        };
 
-        console.log(JSON.stringify(response.result));
+        response.headers["Permanent-Link"] = "/report/" + report.shortid + "/content";
+        response.headers["Report-Id"] = report._id;
+        
         deferred.resolve();
     });
 

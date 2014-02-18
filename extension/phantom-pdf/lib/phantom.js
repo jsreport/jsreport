@@ -74,8 +74,8 @@ Phantom.prototype._addRecipe = function(reporter) {
                             }
 
                             response.result = fs.createReadStream(childArgs[2]);
-                            response.contentType = "application/pdf";
-                            response.fileExtension = "pdf";
+                            response.headers["Content-Type"] = "application/pdf";
+                            response.headers["File-Extension"] = "pdf";
                             response.isStream = true;
 
                             logger.info("Rendering pdf end.");

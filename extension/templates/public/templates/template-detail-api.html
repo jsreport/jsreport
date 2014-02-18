@@ -1,20 +1,13 @@
 ﻿<div class="api-modal">
     <h5>Render and stream back report </h5>
-    <span class="label label-info">POST: </span></span><a>{{>~getCurrentLocation()}}report</a>
-    <br /><span class="label label-default">BODY:</span><code>{ "template": { "shortid" : "{{:shortid}}" } }</code>
-    <h5>Render report and return it's reference</h5>
-    <span class="label label-info">POST: </span></span><a>{{>~getCurrentLocation()}}report</a>
-    <br /><span class="label label-default">BODY:</span>
-    <code>
-        { <br/>
-            "template": { "shortid" : "{{:shortid}}" } , <br/>
-            "options": { "async" : "true" }<br/>
-        }
-    </code>
-    <h5>Possible extensions overrides</h5>
+    <span class="label label-info">POST: </span><a>{{>~getCurrentLocation()}}report</a>
+    <br /><span class="label label-default">BODY:</span><code>{ "template": { "shortid" : "{{:shortid}}" }, 
+        <br/> ["options": { "saveResult" : "true" }] }</code>
+    <h5>Possible extensions' overrides</h5>
     <code>
     {{for ~getBody()}}
-        "{{:#data.key}}": "{{:#data.value}}",
+        "{{:#data.key}}": "{{:#data.value}}"
+        <br/>
     {{/for}}
     </code>
 </div>

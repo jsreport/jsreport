@@ -106,10 +106,13 @@ module.exports = function(reporter, definition) {
                 return next(err);
             }
 
-            res.setHeader('File-Extension', response.fileExtension);
-
+            if (response.headers) {
+                for (var key in response.headers) {
+                    res.setHeader(key, response.headers[key]);
+                }
+            }
+            
             if (_.isFunction(response.result.pipe)) {
-                res.setHeader('Content-Type', response.contentType);
                 response.result.pipe(res);
             } else {
                 res.send(response.result);

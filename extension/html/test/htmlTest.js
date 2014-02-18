@@ -21,7 +21,7 @@ describeReporting([], function(reporter) {
                 data: null
             };
 
-            var response = {};
+            var response = { headers: {}};
 
             _.findWhere(reporter.extensionsManager.recipes, { name: "html" }).execute(request, response).then(function () {
                 assert.equal("Hey", response.result);

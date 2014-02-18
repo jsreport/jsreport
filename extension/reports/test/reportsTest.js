@@ -13,7 +13,7 @@ describeReporting([], function(reporter) {
         it('should insert report to storage', function(done) {
 
             var request = {
-                options: { recipe: "html", async: true },
+                options: { recipe: "html", saveResult: true },
                 context: reporter.context,
                 template: {
                     name: "name",
@@ -22,13 +22,13 @@ describeReporting([], function(reporter) {
                 }
             };
             var response = {
-                result: "Hey"
+                result: "Hey",
+                headers: {}
             };
 
             reporter.reports.handleAfterRender(request, response).then(function() {
-                async.series([
-                    function(cb) {
-                        reporter.blobStorage.read(response.result.blobName, function(err, stream) {
+                reporter.context.reports.find(response.headers["Report-Id"]).then(function(report) {
+                         reporter.blobStorage.read(report.blobName, function(err, stream) {
                             var htmlContent = "";
                             stream.on('data', function(chunk) {
                                 htmlContent += chunk;
@@ -36,13 +36,10 @@ describeReporting([], function(reporter) {
 
                             stream.on("end", function() {
                                 assert.equal("Hey", htmlContent);
-                                cb(null);
+                                done();
                             });
                         });                              
-                              
-
-                    }
-                ], function() { done(); });
+                });
             });
         });
     });

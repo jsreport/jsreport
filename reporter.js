@@ -136,7 +136,9 @@ Reporter.prototype.render = function(template, data, options, cb) {
         reporter: self
     };
 
-    var response = {};
+    var response = {
+        headers : {}
+    };
 
     self.emit("before-render", request, response);
     self.extensionsManager.beforeRenderListeners.fire(request, response)

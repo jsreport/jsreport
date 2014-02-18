@@ -21,6 +21,12 @@
 
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
+            
+            var self = this;
+            
+            this.listenTo(templateModel, "api-overrides", function(addProperty) {
+                addProperty("scriptId", self.get("shortid"));
+            });
         },
 
         initialize: function () {

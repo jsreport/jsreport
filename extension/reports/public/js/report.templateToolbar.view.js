@@ -20,7 +20,7 @@
                 type: 'POST',
                 data: JSON.stringify({
                     template: self.templateView.getUIState(),
-                    options: { async: true }
+                    options: { saveResult: true }
                 })
             })
                 .then(function() {
