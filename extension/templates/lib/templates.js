@@ -47,7 +47,7 @@ Templating = function(reporter, definition) {
 Templating.prototype.handleBeforeRender = function(request, response) {
     if (request.template._id == null && request.template.shortid == null) {
         logger.info("Its a inline template");
-        request.template.html = request.template.html == null || request.template.html == "" ? " " : request.template.html;
+        request.template.content = request.template.content == null || request.template.content == "" ? " " : request.template.content;
         return;
     }
 
@@ -121,7 +121,7 @@ Templating.prototype._defineEntities = function() {
         shortid: { type: "string" },
         name: { type: "string" },
         generatedReportsCounter: { type: "int" },
-        html: { type: "string" },
+        content: { type: "string" },
         recipe: { type: "string" },
         helpers: { type: "string" },
         engine: { type: "string" },

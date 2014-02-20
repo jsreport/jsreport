@@ -1,7 +1,7 @@
 //some of the node modules like feedparser are available to use
 var FeedParser = require("feedparser");
 
-//request.template.html
+//request.template.content
 //request.template.helpers
 //request.data
 //are available to be modified and change the rendering inputs

@@ -90,7 +90,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             logger.info("Child process successfully finished.");
 
             request.data = m.request.data;
-            request.template.html = m.request.template.html;
+            request.template.content = m.request.template.content;
             request.template.helpers = m.request.template.helpers;
         
             return deferred.resolve();
@@ -101,7 +101,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             request: {
                  data: request.data,
                  template: {
-                     html: request.template.html,
+                     content: request.template.content,
                      helpers: request.template.helpers,
                  }
             },

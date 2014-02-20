@@ -12,7 +12,7 @@ describeReporting(["scripts"], function (reporter) {
             reporter.scripts.entitySet.add(script);
             return reporter.scripts.entitySet.saveChanges().then(function () {
                 return reporter.templates.create({
-                    html: "foo",
+                    content: "foo",
                     scriptId: script.shortid
                 });
             });
@@ -36,10 +36,10 @@ describeReporting(["scripts"], function (reporter) {
             });
         });
         
-         it('shoulb be able to modify request.template.html', function (done) {
-            prepareRequest("request.template.html = 'xxx'; done()").then(function(res) {
+         it('shoulb be able to modify request.template.content', function (done) {
+            prepareRequest("request.template.content = 'xxx'; done()").then(function(res) {
                 reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
-                    assert.equal('xxx', res.request.template.html);
+                    assert.equal('xxx', res.request.template.content);
                     done();
                 });
             });
@@ -48,12 +48,12 @@ describeReporting(["scripts"], function (reporter) {
         it('shoulb be able to use linked modules', function (done) {
             var scriptContent = "var h = require('handlebars'); " +
                 "var compiledTemplate = h.compile('foo'); " +
-                "request.template.html = compiledTemplate();" +
+                "request.template.content = compiledTemplate();" +
                 "done();";
             
             prepareRequest(scriptContent).then(function (res) {
                 reporter.scripts.handleBeforeRender(res.request, res.response).then(function() {
-                    assert.equal('foo', res.request.template.html);
+                    assert.equal('foo', res.request.template.content);
                     done();
                 });
             });

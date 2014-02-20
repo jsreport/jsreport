@@ -78,19 +78,21 @@ module.exports = function(app, options, cb) {
         if (tenant == null)
             return done(null, false);
 
-        return done(null, true);
-    }
-    ));
+        activateTenant(multitenancy.findTenant(username), function() {
+            return done(null, true);
+        });
+    }));
 
     app.use(function(req, res, next) {
         var isUrlRequirignAuthnetication =
-        (req.method != "POST" || req.url != "/login") &&
+            req.url.indexOf("$metadata") == -1 && 
+            (req.method != "POST" || req.url != "/login") &&
             (req.method != "GET" || req.url != "/") &&
             (req.method != "POST" || req.url != "/register");
 
         if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
 
-            if (req.headers["authorization"] != null) {
+            if (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0) {
                 passport.authenticate('basic', function(err, result, info) {
                     if (!result) {
                         return res.send(401);
@@ -102,7 +104,7 @@ module.exports = function(app, options, cb) {
                 if (req.session) {
                     req.session.returnTo = req.originalUrl || req.url;
                 }
-
+                
                 return res.redirect("/");
             }
         } else {

@@ -34,7 +34,7 @@ var _prepareTemplate = function (request, cb) {
     if (request.template == null)
         return cb("template must be defined");
 
-    if (request.template.html == null)
+    if (request.template.content == null)
         return cb("html must be defined");
 
     request.template.helpers = request.template.helpers || "{}";

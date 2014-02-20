@@ -77,7 +77,7 @@
     
     JQuerySyncProvider.prototype.update = function (model) {
         return $.ajax({
-            url: app.serverUrl + model.url(),
+            url: app.serverUrl + "api/" + model.url(),
             type: 'PUT',
             data: JSON.stringify(model.toJSON()),
         }).then(function() {
@@ -87,7 +87,7 @@
     
     JQuerySyncProvider.prototype.create = function (model) {
         return $.ajax({
-            url: app.serverUrl + model.url(),
+            url: app.serverUrl + "api/" + model.url(),
             type: 'POST',
             data: JSON.stringify(model.toJSON()),
         }).then(function() {
@@ -97,7 +97,7 @@
     
     JQuerySyncProvider.prototype.delete = function (model) {
         return $.ajax({
-            url: app.serverUrl + model.url(),
+            url: app.serverUrl + "api/" + model.url(),
             type: 'DELETE',
             data: JSON.stringify(model.toJSON()),
         }).then(function() {

@@ -17,7 +17,7 @@ describeReporting([], function(reporter) {
             var request = {
                 options: { type: "html", timeout: 5000 },
                 reporter: reporter,
-                template: { html: "Hey" },
+                template: { content: "Hey" },
                 data: null
             };
 

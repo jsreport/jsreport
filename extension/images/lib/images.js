@@ -100,7 +100,7 @@ Images.prototype.upload = function(name, contentType, content, shortidVal) {
 Images.prototype._configureExpress = function(app) {
     var self = this;
 
-    app.get("/image/:shortid", function(req, res, next) {
+    app.get("/api/image/:shortid", function(req, res, next) {
 
         self.entitySet.single(function(t) { return t.shortid == this.id; }, { id: req.params.shortid }, function(result) {
             res.setHeader('Content-Type', result.contentType);
@@ -108,7 +108,7 @@ Images.prototype._configureExpress = function(app) {
         });
     });
     
-    app.get("/image/name/:name", function(req, res, next) {
+    app.get("/api/image/name/:name", function(req, res, next) {
 
         self.entitySet.single(function(t) { return t.name == this.name; }, { name: req.params.name }, function(result) {
             res.setHeader('Content-Type', result.contentType);
@@ -116,7 +116,7 @@ Images.prototype._configureExpress = function(app) {
         });
     });
 
-    app.post("/image/:shortid?", function(req, res, next) {
+    app.post("/api/image/:shortid?", function(req, res, next) {
         for (var f in req.files) {
             var file = req.files[f];
             fs.readFile(file.path, function(err, content) {

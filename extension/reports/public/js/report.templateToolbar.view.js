@@ -16,7 +16,7 @@
             app.trigger("toastr:info", "Report generation started ...");
             
             $.ajax({
-                url: app.serverUrl + "report",
+                url: app.serverUrl + "api/report",
                 type: 'POST',
                 data: JSON.stringify({
                     template: self.templateView.getUIState(),

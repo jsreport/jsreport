@@ -88,11 +88,11 @@ module.exports = function(reporter, definition) {
         });
     });
 
-    app.get("/version", function(req, res, next) {
+    app.get("/api/version", function(req, res, next) {
         res.send("0.1");
     });
 
-    app.get("/settings", function(req, res, next) {
+    app.get("/api/settings", function(req, res, next) {
         res.send({
             playgroundMode: reporter.playgroundMode,
             mode: reporter.options.mode,
@@ -100,7 +100,7 @@ module.exports = function(reporter, definition) {
         });
     });
 
-    app.post("/report", function(req, res, next) {
+    app.post("/api/report", function(req, res, next) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
@@ -124,11 +124,11 @@ module.exports = function(reporter, definition) {
         });
     });
 
-    app.get("/recipe", function(req, res, next) {
+    app.get("/api/recipe", function(req, res, next) {
         res.json(_.map(reporter.extensionsManager.recipes, function(r) { return r.name; }));
     });
 
-    app.get("/engine", function(req, res, next) {
+    app.get("/api/engine", function(req, res, next) {
         reporter.getEngines(function(err, engines) {
             if (err) {
                 return next(err);
@@ -138,25 +138,25 @@ module.exports = function(reporter, definition) {
         });
     });
 
-    app.get("/extensions", function(req, res, next) {
+    app.get("/api/extensions", function(req, res, next) {
         res.json(reporter.extensionsManager.availableExtensions);
     });
 
-    app.post("/extensions", function(req, res, next) {
+    app.post("/api/extensions", function(req, res, next) {
         reporter.extensionsManager.use(req.body.name, function() {
             return res.send("ok");
         });
 
     });
 
-    app.delete("/extensions", function(req, res, next) {
+    app.delete("/api/extensions", function(req, res, next) {
         reporter.extensionsManager.unregister(req.body.name, function() {
             return res.send("ok");
         });
     });
 
 
-    app.post("/template", function(req, res, next) {
+    app.post("/api/template", function(req, res, next) {
         reporter.templates.create(req.body, function(err, result) {
             if (err) {
                 return next(err);
@@ -165,65 +165,4 @@ module.exports = function(reporter, definition) {
             return res.json(result);
         });
     });
-
-    //app.put("/template/:id", function(req, res, next) {
-    //    reporter.templates.update(req.body, function(err, result) {
-    //        if (err) {
-    //            return next(err);
-    //        }
-
-    //        return res.json(result);
-    //    });
-    //});
-
-    //app.get("/template", function(req, res, next) {
-    //    reporter.templates.find({}, function(err, result) {
-    //        if (err) {
-    //            return next(err);
-    //        }
-
-    //        return res.json(result);
-    //    });
-    //});
-
-    //app.delete("/template/:id", function(req, res, next) {
-    //    reporter.templates.delete({ _id: req.params.id }, function(err, result) {
-    //        if (err) {
-    //            return next(err);
-    //        }
-
-    //        return res.json(result);
-    //    });
-    //});
-
-    //app.get("/report", function(req, res, next) {
-    //    reporter.templates.find({}, function(err, result) {
-    //        if (err) {
-    //            return next(err);
-    //        }
-
-    //        return res.json(result);
-    //    });
-    //});
-
-    //app.get("/report/:id", function(req, res, next) {
-    //    reporter.reports.find({ _id: req.params.id }, function(err, result) {
-    //        if (err) {
-    //            return next(err);
-    //        }
-
-    //        return res.json(result);
-    //    });
-    //});
-
-    //app.delete("/report/:id", function(req, res, next) {
-    //    reporter.reports.delete(req.params.id, function(err, result) {
-    //        if (err) {
-    //            return next(err);
-    //        }
-
-    //        return res.json(result);
-    //    });
-    //});
-
 };

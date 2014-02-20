@@ -31,10 +31,10 @@ describeReporting([], function(reporter) {
                 options: { recipe: "html" },
             };
 
-            reporter.templates.create({ html: "foo" }).then(function(t) {
+            reporter.templates.create({ content: "foo" }).then(function(t) {
                 request.template._id = t._id;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
-                    assert.equal("foo", request.template.html);
+                    assert.equal("foo", request.template.content);
                     assert.equal(1, request.template.generatedReportsCounter);
 
                     done();
@@ -49,10 +49,10 @@ describeReporting([], function(reporter) {
                 options: { recipe: "html" },
             };
 
-            reporter.templates.create({ html: "foo" }).then(function(t) {
+            reporter.templates.create({ content: "foo" }).then(function(t) {
                 request.template.shortid = t.shortid;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
-                    assert.equal("foo", request.template.html);
+                    assert.equal("foo", request.template.content);
                     assert.equal(1, request.template.generatedReportsCounter);
 
                     done();
@@ -80,12 +80,12 @@ describeReportingPlayground([], function(reporter) {
     describe('templating playground', function() {
 
         it('deleting template should be rejected', function(done) {
-            reporter.templates.create({ html: "foo" })
+            reporter.templates.create({ content: "foo" })
                 .then(function(t) {
                     reporter.templates.entitySet.remove(t);
                     reporter.templates.entitySet.saveChanges().then(function() {
                         reporter.templates.entitySet.find(t._id).then(function(templ) {
-                            assert.equal("foo", templ.html);
+                            assert.equal("foo", templ.content);
                             done();
                         });
                     });
@@ -93,13 +93,13 @@ describeReportingPlayground([], function(reporter) {
         });
 
         it('updating template is rejected', function(done) {
-            reporter.templates.create({ html: "foo" })
+            reporter.templates.create({ content: "foo" })
                 .then(function(t) {
                     reporter.templates.entitySet.attach(t);
-                    t.html = "modified";
+                    t.content = "modified";
                     reporter.templates.entitySet.saveChanges().then(function() {
                         reporter.templates.entitySet.find(t._id).then(function(templ) {
-                            assert.equal("foo", templ.html);
+                            assert.equal("foo", templ.content);
                             done();
                         });
                     });
@@ -107,9 +107,9 @@ describeReportingPlayground([], function(reporter) {
         });
 
         it('creating template with same shortid should increase version', function(done) {
-            reporter.templates.create({ html: "foo" })
+            reporter.templates.create({ content: "foo" })
                 .then(function(t) {
-                    return reporter.templates.create({ html: "foo", shortid: t.shortid });
+                    return reporter.templates.create({ content: "foo", shortid: t.shortid });
                 })
                 .then(function(t) {
                     assert.equal(2, t.version);
@@ -118,9 +118,9 @@ describeReportingPlayground([], function(reporter) {
         });
 
         it('creating template with different shortid should increase version', function(done) {
-            reporter.templates.create({ html: "foo" })
+            reporter.templates.create({ content: "foo" })
                 .then(function(t) {
-                    return reporter.templates.create({ html: "foo", shortid: t.shortid + "DIFFERENT" });
+                    return reporter.templates.create({ content: "foo", shortid: t.shortid + "DIFFERENT" });
                 })
                 .then(function(t) {
                     assert.equal(1, t.version);

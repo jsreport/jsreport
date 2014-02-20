@@ -27,7 +27,7 @@
                     iframeClass: 'CodeMirror'
                 });
 
-                codeMirrorBinder(this.model, "html", this.htmlCodeMirror);
+                codeMirrorBinder(this.model, "content", this.htmlCodeMirror);
                 
                 $(this.htmlCodeMirror.getWrapperElement()).addClass(this.$el.find("#htmlArea").attr('class'));
                 

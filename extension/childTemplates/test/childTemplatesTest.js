@@ -9,18 +9,18 @@ describeReporting(["childTemplates"], function(reporter) {
         it('should replace', function(done) {
 
             reporter.templates.create({
-                html: "{{>~a()}}",
+                content: "{{>~a()}}",
                 helpers: "{ a: function() { return \"foo\"; } }",
                 recipe: "html",
                 name: "child test" }).then(function(t) {
 
                 var request = {
-                    template: { html: "a{#child test}ba{#child test}" },
+                    template: { content: "a{#child test}ba{#child test}" },
                     context: reporter.context,
                 };
 
                 reporter.childTemplates.handleBeforeRender(request, {}).then(function() {
-                    assert.equal("afoobafoo", request.template.html);
+                    assert.equal("afoobafoo", request.template.content);
                     done();
                 });
             });

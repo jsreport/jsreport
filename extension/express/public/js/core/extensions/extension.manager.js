@@ -34,7 +34,7 @@
         };
 
         Manager.prototype.getExtensions = function(resultCallback) {
-            $.getJSON(app.serverUrl + "extensions", resultCallback);
+            $.getJSON(app.serverUrl + "api/extensions", resultCallback);
         };
 
         Manager.prototype.loadExtensions = function(cb) {
@@ -58,7 +58,7 @@
         };
 
         Manager.prototype.registerExtensions = function(extension, done) {
-            $.post(app.serverUrl + "extensions", extension, done);
+            $.post(app.serverUrl + "api/extensions", extension, done);
         };
 
         return Manager;

@@ -14,13 +14,13 @@ describeReporting([], function(reporter) {
             var request = {
                 options: { recipe: "phantom", timeout: 5000 },
                 reporter: reporter,
-                template: { html: "Heyx" },
+                template: { content: "Heyx" },
                 data: null
             };
 
-            var response = {};
+            var response = { headers : {}};
 
-            _.findWhere(reporter.extensionsManager.recipes, { name: "phantom" }).execute(request, response).then(function() {
+            _.findWhere(reporter.extensionsManager.recipes, { name: "phantom-pdf" }).execute(request, response).then(function() {
                 done();
             });
         });

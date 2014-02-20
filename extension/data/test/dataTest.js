@@ -14,7 +14,7 @@ describeReporting(["data"], function (reporter) {
             reporter.data.create(dataItem).then(function(data) {
                 var request = {
                     reporter: reporter,
-                    template: { html: "html", dataItemId: data.shortid },
+                    template: { content: "html", dataItemId: data.shortid },
                     options: { recipe: "html" },
                 };
 
@@ -29,7 +29,7 @@ describeReporting(["data"], function (reporter) {
         it('should callback error when missing data', function(done) {
             var request = {
                 reporter: reporter,
-                template: { html: "html", dataItemId: "AAAAAAAAAAAAAAAAAAAAAAAA" },
+                template: { content: "html", dataItemId: "AAAAAAAAAAAAAAAAAAAAAAAA" },
                 options: { recipe: "html" },
             };
 

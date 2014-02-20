@@ -27,7 +27,7 @@ Reporting = function (reporter, definition) {
 
 Reporting.prototype.configureExpress = function (app) {
     var self = this;
-    app.get("/report/:id/content", function (req, res, next) {
+    app.get("/api/report/:id/content", function (req, res, next) {
         self.reporter.startContext().reports.find(req.params.id).then(function (result) {
             self.reporter.blobStorage.read(result.blobName, function(err, stream) {
                res.setHeader('Content-Type', result.contentType);
@@ -92,7 +92,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         if (err)
             return deferred.reject(err);
 
-        response.headers["Permanent-Link"] = "https://" + request.headers.host + "/report/" + report._id + "/content";
+        response.headers["Permanent-Link"] = "https://" + request.headers.host + "/api/report/" + report._id + "/content";
         response.headers["Report-Id"] = report._id;
         
         deferred.resolve();

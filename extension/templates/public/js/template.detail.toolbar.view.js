@@ -95,7 +95,7 @@
                 var mapForm = document.createElement("form");
                 mapForm.target = target;
                 mapForm.method = "POST";
-                mapForm.action = app.serverUrl + "report";
+                mapForm.action = app.serverUrl + "api/report";
 
                 var uiState = this.getUIState();
              
@@ -144,7 +144,7 @@
                     }
                 }                
 
-                state.html = state.html || " ";
+                state.content = state.content || " ";
                 state.helpers = state.helpers || "";
                 return state;
             },

@@ -37,19 +37,19 @@
                     });
                 },
                 function (cb) {
-                    $.getJSON(app.serverUrl + "recipe", function (recipes) {
+                    $.getJSON(app.serverUrl + "api/recipe", function (recipes) {
                         app.recipes = recipes;
                         cb(null, null);
                     });
                 },
                 function (cb) {
-                    $.getJSON(app.serverUrl + "engine", function (engines) {
+                    $.getJSON(app.serverUrl + "api/engine", function (engines) {
                         app.engines = engines;
                         cb(null, null);
                     });
                 },
                  function (cb) {
-                     $.getJSON(app.serverUrl + "settings", function (settings) {
+                     $.getJSON(app.serverUrl + "api/settings", function (settings) {
                          app.settings = settings;
                          cb(null, null);
                      });

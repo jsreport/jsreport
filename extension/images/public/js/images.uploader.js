@@ -11,7 +11,7 @@
                 element: this,
                 request: {
                     endpoint: function() {
-                        return app.serverUrl + 'image/' + (options.getId != null ? options.getId() : "");
+                        return app.serverUrl + 'api/image/' + (options.getId != null ? options.getId() : "");
                     },
                 },
                 multiple: false,

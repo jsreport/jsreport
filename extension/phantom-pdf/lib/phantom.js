@@ -44,7 +44,7 @@ Phantom.prototype._processHeaderFooter = function(request, generationId, filePos
     var promise = Q.defer();
 
     var req = extend(true, {}, request);
-    req.template = { html: content, recipe: "html" };
+    req.template = { content: content, recipe: "html" };
 
     this.reporter.render(req, function(err, resp) {
         var filePath = join(__dirname, "reports-tmpl", generationId + "-" + filePostfix + ".html");

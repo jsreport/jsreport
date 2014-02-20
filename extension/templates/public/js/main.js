@@ -107,7 +107,7 @@
                     'modificationDate': { 'type': 'Edm.DateTime' },
                     'engine': { 'type': 'Edm.String' },
                     'recipe': { 'type': 'Edm.String' },
-                    'html': { 'type': 'Edm.String' },
+                    'content': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
                     'helpers': { 'type': 'Edm.String' },
                     'generatedReportsCounter': { 'type': 'Edm.Int32' },

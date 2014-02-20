@@ -53,8 +53,8 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
     
     var test = /{#([^{}]+)+}/g;
 
-    asyncReplace(request.template.html, test, convert, function(er, result) {
-        request.template.html = result;
+    asyncReplace(request.template.content, test, convert, function(er, result) {
+        request.template.content = result;
         promise.resolve();
     });
 

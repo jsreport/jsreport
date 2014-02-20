@@ -15,7 +15,7 @@ describeReporting(["statistics"], function(reporter) {
                 options: { async: true }
             };
             
-            reporter.templates.create({ html: "foo" }).then(function (t) {
+            reporter.templates.create({ content: "foo" }).then(function (t) {
                 request.template = t;
                 
                 var response = {};
@@ -44,7 +44,7 @@ describeReporting(["statistics"], function(reporter) {
                 options: { async: true }
             };
             
-            reporter.templates.create({ html: "foo" }).then(function (t) {
+            reporter.templates.create({ content: "foo" }).then(function (t) {
                 request.template = t;
                 
                 var response = {};
