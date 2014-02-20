@@ -29,7 +29,12 @@
 
         getRandom: function() {
             return new Date().getTime();
-        }
+        },
+        
+        getCurrentLocation: function() {
+            return window.location.protocol + "//" + window.location.host + "/";
+        },
+            
     });
 
     $.views.tags({ 

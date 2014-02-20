@@ -12,13 +12,12 @@ var paperSize = {
     margin: system.args[3] != "null" ? system.args[3] :  "1cm",
 };
 
-//http://stackoverflow.com/questions/10865849/phantomjs-javascript-read-a-local-file-line-by-line
-
-
 if (system.args[4] != "null") {
     paperSize.header = {
         height: system.args[6] != "null" ? system.args[6] :  "1cm",
         contents: phantom.callback(function(pageNum, numPages) {
+            //http://stackoverflow.com/questions/10865849/phantomjs-javascript-read-a-local-file-line-by-line
+            //closing file???
             return fs.open(system.args[4], "r").read();
         })
     };
@@ -35,31 +34,7 @@ if (system.args[5] != "null") {
 
 page.paperSize = paperSize;
 
-
-//page.content = '<html><body><p>Hello world</p></body></html>';
 page.open(system.args[1], function() {
     page.render(output);
     phantom.exit();
 });
-   
-
-//page.content = content;
-//page.setContent(page.content, "http://localhost:3000/");
-//var fn = function(done) {
-//    window.setTimeout(function() {
-        
-//        //rendering faild, try later
-//        if (!page.render(output)) {
-//            console.log("rendering failed, try later");
-//            return fn(done);
-//        }
-        
-//        console.log("done");
-
-//        done();
-//    }, 50);
-//};
-
-//fn(function() {
-//    phantom.exit();
-//});

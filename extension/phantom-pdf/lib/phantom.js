@@ -92,7 +92,7 @@ Phantom.prototype._addRecipe = function(reporter) {
 
                                 //binPath variable is having path to my local development phantom
                                 //I will asume here that phantom is in the path variable, its anyway inside npm
-                                //and npm is in path. We will si how this will work unde unix
+                                //and npm is in path. We will si how this will work under unix
                                 childProcess.execFile("phantomjs.CMD", childArgs, function(error, stdout, stderr) {
                                     logger.info("Rastering pdf child process end.");
 

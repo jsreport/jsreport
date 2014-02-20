@@ -175,6 +175,7 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\images\public\templates\images-detail.html" />
+    <Content Include="extension\images\public\templates\images-embed-info.html" />
     <Content Include="extension\images\public\templates\images-list-header.html" />
     <Content Include="extension\images\public\templates\images-list-rows.html" />
     <Content Include="extension\images\public\templates\images-list-toolbar.html" />

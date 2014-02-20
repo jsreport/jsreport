@@ -1,0 +1,18 @@
+﻿You can either reference image absolutely: <br/> <br/>
+
+<code style='border: 1px'>
+    &lt;img src='{{>~getCurrentLocation()}}image/name/{{:name}}'/&gt;
+</code>
+
+<br/> <br/>
+
+Or you can use base tag in your html head once and reference all images relatively afterwards: <br/> <br/>
+
+
+<code style='border: 1px'>
+&lt;head&gt; <br/>
+    &lt;base href="{{>~getCurrentLocation()}}" target="_blank"&gt; <br/>
+&lt;/head&gt; <br/>
+
+    &lt;img src='image/name/{{:name}}'/&gt;
+</code>

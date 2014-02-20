@@ -159,11 +159,7 @@
 
                 return res;
             },
-            
-            getCurrentLocation: function() {
-                return window.location.protocol + "//" + window.location.host + "/";
-            },
-            
+         
             getBody: function() {
                 var properties = [];
                 properties.push({ key: "html", value: "..." });
