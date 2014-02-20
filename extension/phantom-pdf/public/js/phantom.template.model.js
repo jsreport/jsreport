@@ -16,7 +16,9 @@
                 addProperty("phantom", {
                     maring: self.get("margin") || "...cm",
                     header: self.get("header") || "...",
-                    footer: self.get("footer") || "..."
+                    footer: self.get("footer") || "...",
+                    headerHeight: self.get("headerHeight") || "...",
+                    footerHeight: self.get("footerHeight") || "..."
                 });
             });
         },

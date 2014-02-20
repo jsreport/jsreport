@@ -12,7 +12,7 @@
             this.dataGrid = DataGrid.show({
                 collection: this.collection,
                 filter: this.collection.filter,
-                idKey: "shortid",
+                idKey: "_id",
                 onShowDetail: function (id) {
                     window.location.hash = "/extension/reports/" + id;
                 },

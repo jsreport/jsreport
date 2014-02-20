@@ -12,7 +12,6 @@ describeReporting(["data"], function (reporter) {
             };
 
             reporter.data.create(dataItem).then(function(data) {
-                reporter.logger.info(JSON.stringify(data));
                 var request = {
                     reporter: reporter,
                     template: { html: "html", dataItemId: data.shortid },

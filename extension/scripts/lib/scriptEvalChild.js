@@ -2,7 +2,7 @@
     try {
         
         var _require = function (moduleName) {
-            var allowedModules = ["handlebars", "request-json", "feedparser", "request"];
+            var allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore"];
 
             if (allowedModules.filter(function (mod) { return mod == moduleName; }).length == 1) {
                 return require(moduleName);

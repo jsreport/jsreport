@@ -23,7 +23,7 @@
 
                 reportDetail: function(id) {
                     var model = new ReportModel();
-                    model.set("shortid", id);
+                    model.set("_id", id);
                     model.fetch({
                         success: function() {
                             app.layout.showToolbarViewComposition(new ReportDetailView({ model: model }), new ReportToolbarView({ model: model }));}
@@ -62,7 +62,6 @@
                     'creationDate': { 'type': 'Edm.DateTime' },
                     'name': { 'type': 'Edm.String' },
                     'fileExtension': { 'type': 'Edm.String' },
-                    'shortid': { 'type': 'Edm.String' },
                     'contentType': { 'type': 'Edm.String' },
                     'templateShortid': { 'type': 'Edm.String' }
                 });

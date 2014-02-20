@@ -14,7 +14,7 @@ describeReporting([], function (reporter) {
         });
 
         it('should render html', function (done) {
-            reporter.render({ html: "Hey", engine: "handlebars", recipe: "html" }, null, null, function (err, resp) {
+            reporter.render({ template : { html: "Hey", engine: "handlebars", recipe: "html" } }, function (err, resp) {
                 assert.equal("Hey", resp.result);
                 done();
             });

@@ -101,7 +101,11 @@ module.exports = function(reporter, definition) {
     });
 
     app.post("/report", function(req, res, next) {
-        reporter.render(req.body.template, req.body.data, req.body.options, function(err, response) {
+        req.template = req.body.template;
+        req.data = req.body.data;
+        req.options = req.body.options;
+        
+        reporter.render(req, function(err, response) {
             if (err) {
                 return next(err);
             }

@@ -95,8 +95,6 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         
             return deferred.resolve();
         });
-
-        logger.info(JSON.stringify(request.template));
         
         child.send({
             script: script,

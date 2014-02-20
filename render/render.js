@@ -44,6 +44,12 @@ var _prepareTemplate = function (request, cb) {
 };
 
 var _renderHtml = function (request, response, cb) {
+    //todo remove for production
+    //response.result = "test";
+    //return cb(null, response);
+
+
+
     logger.info("Executing child process for rendering html");
 
     var isDone = false;

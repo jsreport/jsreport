@@ -1,6 +1,7 @@
 ﻿var winston = require("winston"),
     Q = require("q"),
-    asyncReplace = require("async-replace");
+    asyncReplace = require("async-replace"),
+    extend = require("node.extend");
 
 var logger = winston.loggers.get('jsreport');
 
@@ -23,8 +24,10 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
         request.context.templates.filter(function(t) { return t.name == this.name; }, { name: p1 }).toArray().then(function(res) {
             if (res.length < 1)
                 return done(null);
-            
-            self.reporter.render(res[0], request.data, { }, function(err, resp) {
+
+            var req = extend(true, {}, request);
+            req.template = res[0];
+            self.reporter.render(req, function(err, resp) {
                 done(null, resp.result);
             });
         });

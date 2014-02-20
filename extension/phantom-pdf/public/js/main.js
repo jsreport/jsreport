@@ -28,6 +28,8 @@
                 'margin': { 'type': 'Edm.String' },
                 'header': { 'type': 'Edm.String' },
                 'footer': { 'type': 'Edm.String' },
+                'headerHeight': { 'type': 'Edm.String' },
+                'footerHeight': { 'type': 'Edm.String' },
             }, null);
             
             $entity.Template.addMember("phantom", { 'type': "$entity.Phantom" });

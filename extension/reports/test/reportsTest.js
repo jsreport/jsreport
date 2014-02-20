@@ -19,7 +19,8 @@ describeReporting([], function(reporter) {
                     name: "name",
                     recipe: "html",
                     generatedReportsCounter: 2
-                }
+                },
+                headers: {}
             };
             var response = {
                 result: "Hey",

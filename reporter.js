@@ -118,23 +118,12 @@ Reporter.prototype._initializeDataContext = function(withExtensions, done) {
     }
 };
 
-Reporter.prototype.render = function(template, data, options, cb) {
+Reporter.prototype.render = function(request, cb) {
     var self = this;
-
-    if (_.isFunction(options)) {
-        cb = options;
-        options = null;
-    }
-
-    options = this._defaultOptions(options);
-
-    var request = {
-        template: template,
-        context: this.startContext(),
-        data: data,
-        options: options,
-        reporter: self
-    };
+    
+    request.options = this._defaultOptions(request.options);
+    request.context = this.startContext();
+    request.reporter = self;
 
     var response = {
         headers : {}
