@@ -4,12 +4,12 @@ You can communicate with jsreport using it's REST based API. jsreport will provi
 
 jsreport API is split into two different use cases:
 
-1. Rendering reports - call when you need to invoke rendering process
-2. Querying and CRUD - for maintaining templates, exporting ...
+1. Rendering reports - use it when you need to invoke rendering process
+2. Querying and CRUD - use it when you want to maintain templates, do exports ...
 
 Next two sections are describing these use cases in detail.
 
->You should sent body in json format. Content negotiation is supported for some parts of API, but anyway it's not recommended since jsreport is running in the server in javascript.
+>You should sent body in json format. Content negotiation is supported for some parts of API, but anyway it's not recommended since jsreport is running in javascript.
 
 ## Rendering report
 Invoking rendering process is the most common API method you will call. The next snippet shows the service enpoint url as well as the body schema.

@@ -45,7 +45,7 @@ var report = await service.RenderAsync(new RenderRequest() {
             });
 ```
 
-`Template` class contains only attributes that are in the core of jsreport, but many extensions are extending templates and adding additional attributes. What if you want to fill these additional attributes? For this purposes `Template` class contains dynamic additional property you can fill with any extension attributes and client will serialize them into template body.
+`Template` class contains only attributes that are in the core of jsreport, but many extensions are extending templates and adding additional attributes. What if you want to fill these additional attributes? For this purposes `Template` class contains dynamic property called `additional` you can fill with any extension attributes and client will serialize them into template body.
 
 ```c#
 var report = await service.RenderAsync(new RenderRequest() {
@@ -71,14 +71,14 @@ var report = await service.RenderAsync(new RenderRequest()
                 options = new RenderOptions() { saveResult = true }
             });
 
-var loadedReport = await _reportingService.ReadReportAsync(report.PermanentLink);
+var loadedReport = await service.ReadReportAsync(report.PermanentLink);
 ```
 
 ##Odata
 
 jsreport .net client does not include any wrap for odata API jsreport provides because there are already many libraries  you can use. Let's just quickly give you some hints how to communicate with jsreport odata api throught [Simple.OData.Client](https://github.com/object/Simple.OData.Client)
 
-You need to first install Simple.OData.Client using nuget
+You need to first install `Simple.OData.Client` using nuget
 > PM> Install-Package Simple.OData.Client 
 
 Then you need to instantiate `ODataClient` instance. When you have on-premise verion of jsreport, it's very simple:
@@ -91,7 +91,7 @@ When you are using jsreport online, it's little bit tricky because of authentica
 
 ```c#
 var odataClient = new ODataClient(new ODataClientSettings() {
-                UrlBase = "https://pofider.local.net:3000/odata",
+                UrlBase = "https://subdomain.jsreportonline.net/odata",
                 BeforeRequest = (r) =>
                 {
                     var encoded = System.Convert.ToBase64String(
@@ -101,7 +101,7 @@ var odataClient = new ODataClient(new ODataClientSettings() {
 });
 ```
 
-When you have `odataClient` you can do all the crazy stuff odata provides. It's recommended to use `odataClient` dynamic API because of flexible nature of jsreport. Every time you enable/disable a jsreport extension the odata schema can be changed and you would need to upgrade your entities without dynamic using dynamic API.
+When you have `odataClient` you can do all the crazy stuff odata provides. It's recommended to use `odataClient` dynamic API because of flexible nature of jsreport. Every time you enable/disable a jsreport extension the odata schema can be changed and you would need to upgrade your entities without using dynamic API.
 
 To understand entities jsreport odata api provides see standard odata $metadata endpoint
 

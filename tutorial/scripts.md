@@ -4,7 +4,7 @@ jsreport is designed to be highly extensible, but defining your own recipe or ex
 
 `Scripts` extensions allows you to run any custom code in javascript before the actual report rendering process starts. This script is evaluated on the jsreport server in the sandbox but allows you to modify rendering process inputs.
 
-Every script can access global variable called `request` to modify process inputs. Exactly script can alter 
+Every script can access global variable called `request` to modify process inputs. Any script can alter:
 
  - `request.template.html`
  - `request.template.helpers`

@@ -1,10 +1,10 @@
 # Getting started
 
-This is the very first article from series of tutorials about jsreport, business reporting platform based on javascript. This article is kind of "Hello world" into jsreport which will cover basic principles you need to understand to get started with jsreport. You may see the full list of all tutorials here. 
+This is the very first article from series of tutorials about jsreport, business reporting platform based on javascript. This article is kind of "Hello world" into jsreport which will cover basic principles you need to understand to get started with jsreport. You may see the full list of all tutorials [here](http://jsreport.net/learn). 
 
 ## Basic concepts
 
-To be able to render reports, you need first jsreport server. The server is responsible for rendering reports and it also hosts html based studio you can use to design and maintain your report templates.
+To be able to render reports, you need to have access to first jsreport server first. The server is responsible for rendering reports and it also hosts html based studio you can use to design and maintain your report templates.
 
 You can choose from three versions of jsreport server: 
 
@@ -18,7 +18,7 @@ When you have jsreport server you need to create a report template defining how 
 
 ?studio screenshot?
 
-Typical scenario is that you will define a report template during design time and call jsreport API in runtime to render reports. The input of rendering process is the report template and some kind of a data output report will contain. For example if you want a monthly sales report for your company. You will have one report template, but the report data will be different every month.
+Typical scenario is that you will define a report template during design time and call jsreport API in runtime to render reports. The input of rendering process is the report template and some kind of a data report will display. For example if you want a monthly sales report for your company. You will have one report template, but the report data will be different every month.
 
 ?schema of architecture, worflow?
 
@@ -28,7 +28,7 @@ Report template together with the rendering process is the hearth of jsreport. T
 
 ### Templating engines
 
-The templates are defined using common javascript templating engines (like [jsrender](https://github.com/BorisMoore/jsrender) or [handlebars](http://handlebarsjs.com/)). Using markup language these engines provides is the template afterwards defined. You can bind input data, use loops, conditions or javascript helpers... Templating engines basicaly provides you way to define any custom report you like.
+The templates are defined using common javascript templating engines (like [jsrender](https://github.com/BorisMoore/jsrender) or [handlebars](http://handlebarsjs.com/)). You can bind input data, use loops, conditions or javascript helpers... Templating engines basicaly provides you way to define any custom report you like.
 
 ```html
 <div class="entry">
@@ -58,4 +58,4 @@ Currently there are three recipes you can choose:
 Many other recipes should come in the near future, or you can even define your own.
 
 ## Extensions
-jsreport is designed to be highly extensible from the start. You can not only define your own recipes but you can also define your own extensions that will add special attributes to the templates or customize jsreport studio. jsreport ships out of the box with several extensions and if you want to read more about it, follow the next tutorial. 
+jsreport is designed to be highly extensible from the start. You can not only define your own recipes but you can also define your own extensions that will add special attributes to the templates or customize jsreport studio. jsreport ships out of the box with several extensions and if you want to read more about it, follow the next tutorials. 
