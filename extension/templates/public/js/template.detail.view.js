@@ -13,6 +13,11 @@
                 this.listenTo(this.model, "sync", function() {
                     self.render();
                 });
+                
+                $(".side-nav-right").hide();
+                this.listenTo(this, "close", function() {
+                    $(".side-nav-right").show();
+                });
             },
 
             onDomRefresh: function() {

@@ -36,12 +36,12 @@
 
 <div class="navbar-header sub-header">
     <ul class="nav navbar-nav sub-header" id="extensionsToolbarBox">
-        <p class="navbar-text" name="name">{{:name}}</p>
-        <li><a id="previewCommand"><i class="glyphicon glyphicon-sm glyphicon-play"></i>Run</a></li>
-        <li><a id="previewNewTabCommand"><i class="glyphicon glyphicon-sm glyphicon-fullscreen"></i>Run in new panel</a></li>
-        <li><a id="saveCommand"><i class="glyphicon glyphicon-sm glyphicon-floppy-disk"></i>Save</a></li>
+        <p class="navbar-text"><i class="fa fa-th-large"></i></p>
+        <li><a id="previewCommand"><i class="fa fa-play"></i>Run</a></li>
+        <li><a id="previewNewTabCommand"><i class="fa fa-desktop"></i>Run in new panel</a></li>
+        <li><a id="saveCommand"><i class="fa fa-save"></i>Save</a></li>
         {{if ~getSettings().mode != "playground" }}
-            <li class="pull-right"><a id="apiHelpCommnand" class="pull-right"><i class="glyphicon glyphicon-sm glyphicon-question-sign"></i>API</a></li>
+            <li class="pull-right"><a id="apiHelpCommnand" class="pull-right"><i class="fa fa-medkit"></i>API</a></li>
         {{else}}{{/if}}
     </ul>
 </div>
