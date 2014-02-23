@@ -40,7 +40,6 @@
     <Content Include="extensionsManager.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\childTemplates\package.json" />
     <Content Include="extension\data\lib\data.js">
       <SubType>Content</SubType>
     </Content>
@@ -116,9 +115,6 @@
     <Content Include="extension\express\lib\reporter.express.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\express\package.json">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\express\public\css\split-pane.css">
       <SubType>Content</SubType>
     </Content>
@@ -144,22 +140,13 @@
     <Content Include="extension\fop-pdf\lib\fop.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\fop-pdf\package.json">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\html\lib\html.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\html\package.json">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\html\test\htmlTest.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\images\lib\images.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\images\package.json">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\images\public\js\images.dialog.view.js">
@@ -196,14 +183,8 @@
     <Content Include="extension\phantom-pdf\lib\phantom.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\phantom-pdf\package.json">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\phantom-pdf\public\templates\phantom-template.html" />
     <Content Include="extension\reports\lib\reports.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\reports\package.json">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\reports\public\js\dashboard.reports.model.js">
@@ -255,9 +236,6 @@
     <Content Include="extension\scripts\lib\scripts.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\scripts\package.json">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\scripts\public\js\main_dev.js">
       <SubType>Content</SubType>
     </Content>
@@ -289,9 +267,6 @@
     <Content Include="extension\statistics\lib\statistics.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\statistics\package.json">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\statistics\public\js\dashboard.statistics.model.js">
       <SubType>Content</SubType>
     </Content>
@@ -308,9 +283,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\templates\lib\templates.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\templates\package.json">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\templates\public\js\dashboard.templates.model.js">
@@ -730,14 +702,18 @@
     <Compile Include="config\production.multitenant.config.js" />
     <Compile Include="config\production.playground.config.js" />
     <Compile Include="config\production.standard.config.js" />
+    <Compile Include="extension\childTemplates\jsreport.config.js" />
     <Compile Include="extension\childTemplates\lib\childTemplates.js" />
     <Compile Include="extension\childTemplates\test\childTemplatesTest.js" />
+    <Compile Include="extension\data\jsreport.config.js" />
     <Compile Include="extension\data\public\js\data.template.playground.model.js" />
     <Compile Include="extension\data\public\js\data.list.toolbar.view.js" />
     <Compile Include="extension\data\public\js\data.template.standard.model.js" />
     <Compile Include="extension\data\public\js\data.template.standard.view.js" />
     <Compile Include="extension\data\public\js\data.toolbar.view.js" />
+    <Compile Include="extension\examples\jsreport.config.js" />
     <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
+    <Compile Include="extension\express\jsreport.config.js" />
     <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />
@@ -748,6 +724,9 @@
     <Compile Include="extension\express\public\lib\jquery.flot.symbol.js" />
     <Compile Include="extension\express\public\lib\require.min.js" />
     <Compile Include="extension\fop-pdf\integrationTest\fopTest.js" />
+    <Compile Include="extension\fop-pdf\jsreport.config.js" />
+    <Compile Include="extension\html\jsreport.config.js" />
+    <Compile Include="extension\images\jsreport.config.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />
     <Compile Include="extension\images\public\js\images.list.model.js" />
     <Compile Include="extension\images\public\js\images.list.toolbar.view.js" />
@@ -756,11 +735,14 @@
     <Compile Include="extension\images\public\js\images.toolbar.view.js" />
     <Compile Include="extension\images\public\js\images.uploader.js" />
     <Compile Include="extension\phantom-pdf\integrationTest\phantomTest.js" />
+    <Compile Include="extension\phantom-pdf\jsreport.config.js" />
     <Compile Include="extension\phantom-pdf\public\js\main.js" />
     <Compile Include="extension\phantom-pdf\public\js\phantom.template.model.js" />
     <Compile Include="extension\phantom-pdf\public\js\phantom.template.view.js" />
+    <Compile Include="extension\reports\jsreport.config.js" />
     <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
     <Compile Include="extension\reports\public\js\report.toolbar.view.js" />
+    <Compile Include="extension\scripts\jsreport.config.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.template.playground.model.js" />
     <Compile Include="extension\scripts\public\js\scripts.list.model.js" />
@@ -769,6 +751,8 @@
     <Compile Include="extension\scripts\public\js\scripts.template.standard.model.js" />
     <Compile Include="extension\scripts\public\js\scripts.template.standard.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.toolbar.view.js" />
+    <Compile Include="extension\statistics\jsreport.config.js" />
+    <Compile Include="extension\templates\jsreport.config.js" />
     <Compile Include="extension\templates\public\js\template.list.toolbar.view.js" />
     <Compile Include="extension\test\public\js\list.js" />
     <Compile Include="extension\test\public\js\main.js" />

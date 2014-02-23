@@ -68,7 +68,7 @@
                 if (app.settings.playgroundMode) {
                     var view = new PlaygroundTemplateView();
                     view.setTemplateModel(context.template);
-                    context.extensionsRegion.show(view);
+                    context.extensionsRegion.show(view, "scripts");
                 } else {
                     var model = new StandardTemplateModel();
                     model.setTemplate(context.template);
@@ -76,7 +76,7 @@
                     model.fetch({
                         success: function() {
                             var view = new StandardTemplateView({ model: model });
-                            context.extensionsRegion.show(view);
+                            context.extensionsRegion.show(view, "scripts");
                         }
                     });
                 }

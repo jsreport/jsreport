@@ -6,6 +6,11 @@
             initialize: function () {
                 var self = this;
                 
+                this.listenTo(this.model, "sync", function() {
+                    self.render();
+                });
+                
+                
                 this.listenTo(this, "render", function () {
                     var context = {
                         template: self.model,

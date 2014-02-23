@@ -1,4 +1,4 @@
-﻿define(["marionette", "jquery", "underscore", "core/utils"], function (Marionette, $, _, Utils) {
+﻿define(["app", "marionette", "jquery", "underscore", "core/utils"], function (app, Marionette, $, _, Utils) {
     var protoSlice = Array.prototype.slice;
     function slice(args) {
         return protoSlice.call(args);
@@ -22,22 +22,24 @@
 
         serializeData: function () {
             var data = Marionette.ItemView.prototype.serializeData.call(this);
+            
             $.extend(this, data);
             return this;
         },
         
         validate: function () {
             var self = this;
-            $(".alert-danger").errorAlert("close");
 
             var res = true;
+
+            var messages = "";
             _.each(this.onValidate(), function (e) {
-                var el = e.el || self.$el;
-                el.errorAlert({
-                    message: e.message
-                });
+                messages += e.message + "\n";
                 res = false;
             });
+            
+            if (!res)
+                app.trigger("validation", messages);
 
             return res;
         },

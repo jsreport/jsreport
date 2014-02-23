@@ -11,11 +11,11 @@
                 self.items.unshift(empty);
 
                 if (self.templateModel.get("scriptId"))
-                  self.set(_.findWhere(items, { shortid: self.templateModel.get("scriptId") }), { silent: true });
+                  self.set(_.findWhere(items, { shortid: self.templateModel.get("scriptId") }).toJSON(), { silent: true });
                 else 
                   self.set(empty, { silent: true });
                 
-                return options.success();
+                 return options.success();
             });
         },
 

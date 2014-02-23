@@ -44,6 +44,17 @@
                     error: true
                 });
             });
+            
+            app.on("validation", function(message) {
+                self.hideLoader();
+
+                $.dialog({
+                    header: "Validations",
+                    content: $('<div/>').text(message).html(),
+                    hideSubmit: true,
+                    error: true
+                });
+            });
 
             app.on("toastr:info", function(message) {
                 toastr.info(message);

@@ -11,7 +11,7 @@
                 self.items.unshift(empty);
 
                 if (self.templateModel.get("dataItemId"))
-                  self.set(_.findWhere(items, { shortid: self.templateModel.get("dataItemId") }), { silent: true });
+                  self.set(_.findWhere(items, { shortid: self.templateModel.get("dataItemId") }).toJSON(), { silent: true });
                 else 
                   self.set(empty, { silent: true });
                 

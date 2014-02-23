@@ -50,7 +50,7 @@
                 app.on("template-extensions-toolbar-render", function(context) {
                     var view = new TemplateToolbarView({ model: context.template });
                     view.templateView = context.view;
-                    context.region.show(view);
+                    context.region.show(view, "render");
                 });
             }
 

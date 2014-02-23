@@ -64,14 +64,14 @@
                 if (app.settings.playgroundMode) {
                     var view = new TemplatePlaygroundView();
                     view.setTemplateModel(context.template);
-                    context.extensionsRegion.show(view);
+                    context.extensionsRegion.show(view, "data");
                 } else {
                     var model = new TemplateStandardModel();
                     model.setTemplate(context.template);
                     
                     model.fetch({ success: function() {
                         var view = new TemplateStandardView({ model: model});
-                        context.extensionsRegion.show(view);     
+                        context.extensionsRegion.show(view, "data");     
                     }});
                 }
             });

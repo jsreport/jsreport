@@ -2,34 +2,34 @@
 
     $.support.cors = true;
 
-    Marionette.Renderer.render = function (template, data, context) {
-         return $.render[template](data, data, context);
+    Marionette.Renderer.render = function(template, data, context) {
+        return $.render[template](data, data, context);
     };
-    
-     function bind(view) {
-            if (view.model != null) {
-                var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
 
-                //remove bindings for child views
-                var filteredBindings = [];
-                for (var key in bindings) {
-                    if (view.isChild) {
+    function bind(view) {
+        if (view.model != null) {
+            var bindings = ModelBinder.createDefaultBindings(view.el, 'name');
+
+            //remove bindings for child views
+            var filteredBindings = [];
+            for (var key in bindings) {
+                if (view.isChild) {
+                    filteredBindings[key] = bindings[key];
+                } else {
+                    if ($(bindings[key].selector).parents("[data-child=true]").length == 0) {
                         filteredBindings[key] = bindings[key];
-                    } else {
-                        if ($(bindings[key].selector).parents("[data-child=true]").length == 0) {
-                             filteredBindings[key] = bindings[key];
-                        }
                     }
                 }
-
-                view.modelBinder.bind(view.model, view.el, filteredBindings);
             }
+
+            view.modelBinder.bind(view.model, view.el, filteredBindings);
         }
-    
-    Marionette.Region.prototype.open = function (view) {
+    }
+
+    Marionette.Region.prototype.open = function(view) {
         this.$el.hide();
         this.$el.html(view.el);
-        
+
         bind(view);
 
         this.listenTo(view, "render", function() { bind(view); });
@@ -58,62 +58,55 @@
 
         copyAttributes(entity, this);
     };
-    
- 
-    Backbone.Marionette.MultiRegion = Backbone.Marionette.Region.extend({
-        currentView: [],
 
-        open: function (view) {
+
+    Backbone.Marionette.MultiRegion = Backbone.Marionette.Region.extend({
+        views: {},
+
+        open: function(view) {
             this.ensureEl();
             this.$el.append(view.el);
         },
 
-        close: function (views) {
-            if (typeof views === "object") {
-                views = [views];
+        close: function() {
+            for (var key in this.views) {
+                this._closeView(this.views[key]);
+                this._removeView(this.views[key]);
+                Marionette.triggerMethod.call(this, "close", this.views[key]);
             }
-            else if (!views || !_.isArray(views)) {
-                views = this.currentView;
-            }
-
-            _.each(views, this._closeView, this);
-
-            this._removeViews(views);
-            Marionette.triggerMethod.call(this, "close", views);
 
             return this;
         },
 
-        show: function (views) {
-            if (typeof views === "object") {
-                views = [views];
+        show: function(view, id) {
+            if (id == null)
+                id = new Date().getTime();
+            
+            if (this.views[id] != null) {
+                this._closeView(this.views[id]);
             }
-            else if (!views || !_.isArray(views)) {
-                this.renderAll();
-                return this;
-            }
+            
+            this._showView(view, id);
 
-            _.each(views, this._showView, this);
-
-            this._addViews(views);
-            Marionette.triggerMethod.call(this, "show", views);
+            this._addView(view, id);
+            Marionette.triggerMethod.call(this, "show", view);
 
             return this;
         },
 
-        _closeView: function (view) {
+        _closeView: function(view) {
             if (view.close) {
                 view.close();
-            }
-            else {
+            } else {
+                $(view.el).remove();
                 // If it doesn't have a `close` method, at least remove them from the DOM with Backbone.View's `remove`
-                view.remove();
+                //view.remove();
             }
 
             Marionette.triggerMethod.call(this, "close", view);
         },
 
-        _showView: function (view) {
+        _showView: function(view, id) {
             view.render();
             this.open(view);
 
@@ -122,32 +115,25 @@
 
             view.isChild = true;
             view.$el.attr("data-child", true);
+            this.views[id] = view;
             bind(view);
         },
 
-        _removeViews: function (views) {
-            this.currentView = _.difference(this.currentView, views);
+        _removeView: function(view, id) {
+            delete this.views[id];
         },
 
-        _addViews: function (views) {
-            _.union(this.currentView, views);
+        _addView: function(view, id) {
+            this.views[id] = view;
         },
 
-        attachView: function (view) {
+        attachView: function(view, id) {
             this.open(view);
-            this.currentView.push(view);
+            this.views[id] = view;
 
             return this;
         },
-
-        renderAll: function () {
-            _.each(this.currentView, function (view) {
-                view.render();
-            });
-
-            return this;
-        }
     });
-    
+
     return Marionette;
 });

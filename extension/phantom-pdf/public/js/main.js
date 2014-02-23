@@ -9,7 +9,7 @@
                     var model = new Model();
                     model.setTemplate(context.template);
                     view = new TemplateView({ model: model});
-                    context.extensionsRegion.show(view);
+                    context.extensionsRegion.show(view, "phantom");
                 } else {
                     if (view != null)
                         $(view.el).remove();

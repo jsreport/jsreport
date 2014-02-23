@@ -55,26 +55,28 @@ module.exports = function(reporter, definition) {
         app.use("/odata", $data.JayService.createAdapter(reporter.context.getType(), function(req, res) {
             return req.reporterContext;
         }));
+
+        reporter.extensionsManager.extensions.map(function(e) {
+            app.use('/extension/' + e.name, express.static(e.directory));
+        });
     });
 
     reporter.extensionsManager.on("extension-registered", function(extension) {
         reporter.emit("express-configure", app);
     });
 
-    app.use('/extension', express.static(path.join(__dirname, '../../')));
-
     app.get("/html-templates", function(req, res, next) {
         var paths = reporter.extensionsManager.extensions.map(function(e) {
-            return path.join(__dirname, '../../', e.name, 'public', 'templates');
+            return path.join(e.directory, 'public', 'templates');
         });
 
         var templates = [];
 
         async.eachSeries(paths, function(p, icb) {
             dir.readFiles(p, function(err, content, filename, nextFile) {
-                if (content.charAt(0) === '\uFEFF') 
+                if (content.charAt(0) === '\uFEFF')
                     content = content.substr(1);
-                
+
                 templates.push({
                     name: path.basename(filename, '.html'),
                     content: content
@@ -104,7 +106,7 @@ module.exports = function(reporter, definition) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
-        
+
         reporter.render(req, function(err, response) {
             if (err) {
                 return next(err);
@@ -115,7 +117,7 @@ module.exports = function(reporter, definition) {
                     res.setHeader(key, response.headers[key]);
                 }
             }
-            
+
             if (_.isFunction(response.result.pipe)) {
                 response.result.pipe(res);
             } else {
