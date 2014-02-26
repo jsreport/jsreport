@@ -10,7 +10,7 @@ body {
 }
  
 #page-wrapper {
-  padding: 0px 25px 0px 15px;
+  padding: 0px 205px 0px 15px;
 }
 
 li { cursor: pointer; cursor: hand;}
@@ -123,10 +123,10 @@ table.tablesorter thead tr th:hover {
 /* Navbar JS Report Logotype */
 .navbar-brand {
   display: block;
-  margin: 10px 20px 0px 10px;
-  width: 160px;
-  height: 28px;
-  background: url(../img/ .png) no-repeat;
+  margin: 10px 27px 0px 10px;
+  width: 152px;
+  height: 26px;
+  background: url(../img/js-logo.png) no-repeat;
  } 
 
 /* Navbar Submenu UL, LI, A */
@@ -547,7 +547,7 @@ height: 300px;
     left:0;
     right: 0;
     margin-bottom: 25px;
-    margin-right: 25px;
+    margin-right: 205px;
     margin-left: 200px;
     border: 1px solid #dddddd;
 }
@@ -609,6 +609,7 @@ height: 300px;
     margin-bottom:5px;
     margin-right:5px;
     margin-left:0px;
+margin-top: 70px;
 }
 
 .nav-dashboard {
@@ -620,7 +621,7 @@ margin-top: 20px;
 }
 
 .nav-tabs {border-bottom: 0px;}
-.split-pane {margin-top: 87px;}
+.split-pane {margin-top: 27px;}
 
 #footer {
   position: fixed;
@@ -635,3 +636,6 @@ margin-top: 20px;
 	font-size: 12px;
 }
 
+.navbar i.fa-home {font-size: 18px;}
+
+.nav-tabs-cm {float: right; margin-right: 3px;}

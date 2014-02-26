@@ -38,7 +38,8 @@
     });
 
     $.views.tags({ 
-        title: function(data) {
+        title: function(data, renderDate) {
+            data.renderDate = renderDate == null || renderDate === true;
             return $.render["title-edit"](data);
         } 
     });

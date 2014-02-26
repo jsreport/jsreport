@@ -1,110 +1,125 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-<head>
+<head>    
     <meta charset="utf-8">
-    <meta name="description" content="jsreport - javascript business reports">
-    <meta name="author" content="Jan Blaha">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="product" content="jsReport | Cloud reporting services">
+    <meta name="description" content="Cloud reporting services">
+    <meta name="author" content="jsReport">
+    <meta name="keywords" content="js, javascript, css, html, jsreport, template, report, opensource, pdf, cloud">
+
     <link rel="shortcut icon" href="/img/favicon.ico">
-    <title>JS Report - SignUp</title>
-    <!-- CSS links -->
-    <link href="css/bootstrap.css" rel="stylesheet">
-    <link href="css/registration.css" rel="stylesheet">
-    </head>
-<body>
-    <nav class="navbar navbar-default" role="navigation">
-  <!-- Brand and toggle get grouped for better mobile display -->
-  <div class="navbar-header">
-    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-      <span class="sr-only">Toggle navigation</span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-    </button>
-    <a class="navbar-brand" href="#"><span class="sub-brand">/ Happy Morning, John.</span></a>
-  </div></nav>
-    
-    <div class="container">
-    <div class="row vertical-offset-100">
-    	<div class="col-md-4 col-md-offset-4">
-    		<div class="panel panel-default">
-			  	<div class="panel-heading">
-			    	<h3 class="panel-title">Please sign in</h3>
-			 	</div>
-			  	<div class="panel-body">
-			    	<form accept-charset="UTF-8" action="/login" method="POST" role="form">
+    <link href="css/metro-bootstrap.css" rel="stylesheet">
+    <link href="css/metro-bootstrap-responsive.css" rel="stylesheet">
+    <link href="css/docs.css" rel="stylesheet">
+    <link href="js/prettify/prettify.css" rel="stylesheet">
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/style-login.css" rel="stylesheet">
+	
+    <!-- Load JavaScript Libraries -->
+    <script src="js/jquery/jquery.min.js"></script>
+    <script src="js/jquery/jquery.widget.min.js"></script>
+    <script src="js/jquery/jquery.mousewheel.js"></script>
+    <script src="js/prettify/prettify.js"></script>
+
+    <!-- Metro UI CSS JavaScript plugins -->
+    <script src="js/load-metro.js"></script>
+
+    <!-- Local JavaScript -->
+    <script src="js/docs.js"></script>
+    <script src="js/github.info.js"></script>
+    <title>jsReport - SignUp</title>
+</head>
+<body class="metro">
+<div id="wrap" class="bg-grayLighter">
+<nav class="navigation-bar dark">
+    <nav class="navigation-bar-content container">
+        <a class="element brand"><div class="brand-logo"></div></a>
+    </nav>
+</nav>
+<div class="bg-cyan main-title">
+   <div class="container padding20 fg-white">
+     <h1 class="fg-white"><a href="/"><i class="icon-arrow-left-3 smaller fg-white"></i></a>
+     JsReport Login<small class="on-right">STUDIO</small></h1>
+   </div>
+</div>
+
+<div class="bg-white padding20">
+<div class="container">  
+
+			    	<h3>Use your jsReport account</h3>
+
+			    	<form class="form-login span4" accept-charset="UTF-8" action="/login" method="POST" role="form">
                     <fieldset>
-			    	  	<div class="form-group">
-			    		    <input class="form-control" placeholder="E-mail" name="username" type="text">
+						<div class="input-control text" data-role="input-control">
+			    		    <input class="text" placeholder="username" name="username" type="text">
 			    		</div>
-			    		<div class="form-group">
-			    			<input class="form-control" placeholder="Password" name="password" type="password" value="">
+						<div class="input-control text" data-role="input-control">
+			    			<input class="text" placeholder="password" name="password" type="password" value="">
 			    		</div>
-			    		<div class="checkbox">
-			    	    	<label>
-			    	    		<input name="remember" type="checkbox" value="Remember Me"> Remember Me
+			    		<div class="input-control checkbox">
+			    	    	 <label>
+			    	    		<input name="remember" type="checkbox" value="Remember Me"><span class="check"></span> Remember Me
 			    	    	</label>
 			    	    </div>
                         <div>
                             <% if (viewModel.login) { %>
-                            <h5 style="color: red"><%= viewModel.login %></h5>
+                            <span class="input-err"><%= viewModel.login %></span>
                             <% } %>
                         </div>
-			    		<input class="btn btn-lg btn-success btn-block" type="submit" value="Login">
+
+						<br>
+			    		<button class="button btn-login span4 success fg-white" type="submit"><i class="icon-arrow-right-3 fg-white on-left"></i> Log in with jsReport</button>
 			    	</fieldset>
 			      	</form>
-			    </div>
-			</div>
+
+
 		</div>
 	</div>
                 
-                
-    <div class="row vertical-offset-100">
-    	<div class="col-md-4 col-md-offset-4">
-    		<div class="panel panel-default">
-			  	<div class="panel-heading">
-			    	<h3 class="panel-title">Register new account</h3>
-			 	</div>
-			  	<div class="panel-body">
-			    	<form accept-charset="UTF-8" action="/register" method="POST" role="form">
+<div class="padding20">  
+  <div class="container">                
+			    <h3>Create new account</h3>
+			    <form class="form-login span4" accept-charset="UTF-8" action="/register" method="POST" role="form">
                     <fieldset>
-			    	  	<div class="form-group">
-			    	  	    <input class="form-control" placeholder="E-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
-                                 <% if (viewModel.username) { %>
-                                <h5 style="color: red"><%= viewModel.username %></h5>
-                                <% } %>
+						<div class="input-control text" data-role="input-control">
+			    		    <input class="text" placeholder="e-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
 			    		</div>
-                        <div class="form-group">
-			    		    <input class="form-control" placeholder="Name" type="text" name="name" value="<%= viewModel.previousName || '' %>">
+						<div class="input-control text" data-role="input-control">
+			    		    <input class="text" placeholder="username" type="text" name="name" value="<%= viewModel.previousName || '' %>">
 			    		        <% if (viewModel.name) { %>
-                                <h5 style="color: red"><%= viewModel.name %></h5>
-                                <% } %>
+                                <span class="input-err"><%= viewModel.name %></span>
+                                <% } %>			    		        
                         </div>
-			    		<div class="form-group">
-			    			<input class="form-control" placeholder="Password" name="password" type="password" value="">
-                            <% if (viewModel.password) { %>
-                            <h5 style="color: red"><%= viewModel.password %></h5>
-                            <% } %> 
+						<div class="input-control text" data-role="input-control">
+			    			<input class="text" placeholder="password" name="password" type="password" value="">
+								<% if (viewModel.password) { %>
+								<span class="input-err"><%= viewModel.password %></span>
+								<% } %>            
 			    		</div>
-                        <div class="form-group">
-			    			<input class="form-control" placeholder="Confirm password" type="password" name="passwordConfirm" value="">
-                            <% if (viewModel.passwordConfirm) { %>
-                            <h4 style="color: red"><%= viewModel.passwordConfirm %></h4>
-                            <% } %>
+						<div class="input-control text" data-role="input-control">
+			    			<input class="text" placeholder="confirm password" type="password" name="passwordConfirm" value="">
 			    		</div>
-                        <div>
-			    		<input class="btn btn-lg btn-primary btn-block" type="submit" value="Register">
-			    	</fieldset>
-			      	</form>
-			    </div>
-			</div>
+								<% if (viewModel.passwordConfirm) { %>
+								<span class="input-err"><%= viewModel.passwordConfirm %></span>
+								<% } %>
+			    		<button class="button btn-login span4 info fg-white" type="submit">Create account</button>
+					</fieldset>
+			    </form>
 		</div>
 	</div>
 </div>
-    <footer class="footer">
-      <div class="container">
-        <p class="muted credit"><a href="#">About</a> <a href="#">Help</a> <a href="#">Developers</a> <a href="#">Terms</a> © 2014 JSReport</p>
-      </div>
-    </footer>
+
+<div id="footer" class="bg-dark">
+    <div class="container fg-white">
+	&copy; 2014 <a href="http://jsreport.net" class="fg-blue">jsReport</a> All rights reserved.
+	<a class="button info span3 place-right" href="https://github.com/olton/Metro-UI-CSS"><i class="icon-github"></i> Github</a>
+	</div>        
 </div>
+    <!-- JavaScript -->
+    <script src="js/jquery-1.10.2.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery.widget.min.js"></script>
+    <script src="js/metro.min.js"></script>
 </body>
 </html>

@@ -1,38 +1,41 @@
 ﻿<div class="split-pane fixed-left">
-        <div class="split-pane-component" style="width: 50%">
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="#html" data-toggle="tab">Html</a></li>
-                <li><a href="#helpers" data-toggle="tab">Helpers</a></li>
-            </ul>
+    <div class="split-pane-component" style="width: 50%">
+         <li style="margin-top: -30px; float:left">
+                {{title #data false}}{{/title}}
+            </li>
+        <ul class="nav nav-tabs nav-tabs-cm">
+            <li class="active"><a href="#html" data-toggle="tab">Html</a></li>
+            <li><a href="#helpers" data-toggle="tab">Helpers</a></li>
+        </ul>
 
-            <div class="tab-content">
-                <div class="tab-pane active" id="html">
-                    <div id="htmlWrap">
-                        <textarea id="htmlArea" class="full-content-without-menu">{{:content}}</textarea>
-                    </div>
+        <div class="tab-content">
+            <div class="tab-pane active" id="html">
+                <div id="htmlWrap">
+                    <textarea id="htmlArea" class="full-content-without-menu">{{:content}}</textarea>
                 </div>
-                <div class="tab-pane" id="helpers">
-                    <div id="helpersWrap">
-                        <textarea id="helpersArea" class="full-content-without-menu">{{:helpers}}</textarea>
-                    </div>
+            </div>
+            <div class="tab-pane" id="helpers">
+                <div id="helpersWrap">
+                    <textarea id="helpersArea" class="full-content-without-menu">{{:helpers}}</textarea>
                 </div>
             </div>
         </div>
-        <div class="split-pane-divider" id="my-divider" style="left: 50%; width: 5px;"></div>
-        <div class="split-pane-component" style="left: 50%; margin-left: 5px;">
-            <ul class="nav nav-tabs">
-                <li>
-                    <a href="#" class="active">Preview
-                        <img width="22px" height="16px" class="preview-loader" src="img/spinner-green2.gif" style="display: none" />
-                    </a>
+    </div>
+    <div class="split-pane-divider" id="my-divider" style="left: 50%; width: 5px;"></div>
+    <div class="split-pane-component" style="left: 50%; margin-left: 5px;">
+        <ul class="nav nav-tabs">
+            <li>
+                <a href="#" class="active">Preview
+                    <img width="22px" height="16px" class="preview-loader" src="img/spinner-green2.gif" style="display: none" />
+                </a>
                     
-                </li>
-            </ul>
+            </li>
+        </ul>
 
-            <div class="tab-content">
-                <div class="tab-pane active preview-pane">
-                    <iframe name="previewFrame" id="preview" frameborder="0"></iframe>
-                </div>
+        <div class="tab-content">
+            <div class="tab-pane active preview-pane">
+                <iframe name="previewFrame" id="preview" frameborder="0"></iframe>
             </div>
         </div>
- </div>
+    </div>
+</div>
