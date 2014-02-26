@@ -8,7 +8,8 @@
     async = require("async"),
     express = require("express"),
     Reporter = require("./reporter.js"),
-    path = require("path");
+    path = require("path"),
+    validator = require('validator');
 require("odata-server");
 
 module.exports = function(app, options, cb) {
@@ -197,6 +198,11 @@ module.exports = function(app, options, cb) {
             req.session.viewModel.name = "Tenant name is already taken.";
             return res.redirect('/');
         }
+        
+        if (!validator.isEmail(req.body.username)) {
+            req.session.viewModel.username = "Not valid email.";
+            return res.redirect('/');
+        }
 
         if (req.body.password == null || req.body.password.length < 4) {
             req.session.viewModel.password = "Password must be at least 4 characters long.";
@@ -230,7 +236,10 @@ module.exports = function(app, options, cb) {
 
     app.post("/logout", function(req, res) {
         req.logout();
-        res.redirect('/');
+        
+        var domains = req.headers.host.split('.');
+
+        res.redirect("https://" + domains[domains.length - 2] + "." + domains[domains.length - 1]);
     });
 
     var multitenancy = new Multitenancy(options);

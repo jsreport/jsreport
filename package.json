@@ -51,6 +51,7 @@
 	"stringformat": "*",
 	"underscore": "*",   
 	"uuid": "*",   
+	"validator": "*",   
 	"winston": "*"	
   },
   "devDependencies": {

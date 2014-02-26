@@ -93,7 +93,7 @@
                     var model = new DashboardModel();
                     region.show(new DashboardView({
                         collection: model
-                    }));
+                    }), "templates");
                     model.fetch();
                 });
             }

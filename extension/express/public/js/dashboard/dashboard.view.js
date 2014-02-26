@@ -5,7 +5,8 @@
         
         initialize: function () {
             var self = this;
-          
+
+            self.extensionsRegion.close();
             this.listenTo(this, "render", function () {
                 app.trigger("dashboard-extensions-render", self.extensionsRegion);
             });

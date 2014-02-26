@@ -68,7 +68,10 @@
 			    	<form accept-charset="UTF-8" action="/register" method="POST" role="form">
                     <fieldset>
 			    	  	<div class="form-group">
-			    		    <input class="form-control" placeholder="E-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
+			    	  	    <input class="form-control" placeholder="E-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
+                                 <% if (viewModel.username) { %>
+                                <h5 style="color: red"><%= viewModel.username %></h5>
+                                <% } %>
 			    		</div>
                         <div class="form-group">
 			    		    <input class="form-control" placeholder="Name" type="text" name="name" value="<%= viewModel.previousName || '' %>">

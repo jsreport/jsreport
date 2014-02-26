@@ -75,13 +75,15 @@
                 Marionette.triggerMethod.call(this, "close", this.views[key]);
             }
 
+            this.views = {};
+
             return this;
         },
 
         show: function(view, id) {
             if (id == null)
                 id = new Date().getTime();
-            
+
             if (this.views[id] != null) {
                 this._closeView(this.views[id]);
             }

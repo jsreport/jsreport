@@ -14,7 +14,7 @@
                     self.render();
                 });
                 
-                $(".side-nav-right").hide();
+                
                 this.listenTo(this, "close", function() {
                     $(".side-nav-right").show();
                 });
@@ -22,6 +22,8 @@
 
             onDomRefresh: function() {
                 var self = this;
+                
+                $(".side-nav-right").hide();
                 
                 this.htmlCodeMirror = CodeMirror.fromTextArea(this.$el.find("#htmlArea")[0], {
                     mode: "application/xml",

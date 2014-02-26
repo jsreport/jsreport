@@ -43,7 +43,7 @@
                     var model = new DashboardModel();
                     region.show(new DashboardView({
                         collection: model
-                    }));
+                    }), "reports");
                     model.fetch();
                 });
 

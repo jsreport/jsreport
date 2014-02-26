@@ -5,7 +5,7 @@
                 var model = new DashboardModel();
                 region.show(new DashboardView({
                     model: model
-                }));
+                }), "stats");
                 model.fetch();
             });
 
