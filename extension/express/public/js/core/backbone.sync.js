@@ -13,6 +13,7 @@
                     
                         result.resolve(res.initData || res);
                 }, function (e) {
+                    e.statusText = model.originalEntity.toString() + " not found";
                     result.reject(e);
                 });
 

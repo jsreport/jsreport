@@ -19,6 +19,10 @@
                     $(".side-nav-right").show();
                 });
             },
+            
+            events: {
+                "click #previewPane": "triggerPreview",
+            },
 
             onDomRefresh: function() {
                 var self = this;
@@ -75,5 +79,9 @@
                 this.htmlCodeMirror.refresh();
                 this.helpersCodeMirror.refresh();
             },
+            
+            triggerPreview: function() {
+                this.trigger("preview")
+            }
         });
     });

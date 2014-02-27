@@ -32,13 +32,13 @@
 
             app.on("read:error create:error update:error delete:error error", function(e) {
                 self.hideLoader();
-
-                var responseText = e.responseText.substring(0, 800);
-                if (e.responseText.length > 800)
-                    responseText += " ...";
+                
+                var responseText = (e.responseText || e.message);
+                if (responseText.length > 800)
+                    responseText = responseText.substring(0, 800) + "...";
 
                 $.dialog({
-                    header: e.statusText,
+                    header: e.statusText || "Error",
                     content: $('<div/>').text(responseText).html(),
                     hideSubmit: true,
                     error: true

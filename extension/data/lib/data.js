@@ -50,7 +50,7 @@ Data = function (reporter, definition) {
 
 Data.prototype.handleBeforeRender = function (request, response) {
     
-    if (!request.template.dataItemId && !(request.template.dataItem != null && request.template.dataItem.dataJson)) {
+    if (request.data || (!request.template.dataItemId && !(request.template.dataItem != null && request.template.dataItem.dataJson))) {
         logger.info("DateItem not defined for this template.");
         return;
     }

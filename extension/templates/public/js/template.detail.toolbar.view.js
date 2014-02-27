@@ -8,8 +8,11 @@
                 
                 this.listenTo(this.model, "sync", function() {
                     self.render();
+                    
+                    self.listenTo(self.contentView, "preview", function() {
+                         self.preview();
+                    });
                 });
-                
                 
                 this.listenTo(this, "render", function () {
                     var context = {

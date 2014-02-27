@@ -62,6 +62,7 @@ Templating.prototype.handleBeforeRender = function(request, response) {
             template.generatedReportsCounter = template.generatedReportsCounter + 1;
 
             return request.context.saveChanges().then(function() {
+                delete request.template.generatedReportsCounter;
                 extend(true, template, request.template);
                 request.template = template;
             });
@@ -184,8 +185,20 @@ Templating.prototype._createEntitySetDefinitions = function(entitySets, next) {
             return function(callback, items) {
                 if (items[0]._id == null)
                     return callback(false);
+
+                var shouldBeHistorized = false;
                 
-                self._copyHistory(items[0]).then(function() { callback(true); }, function(err) { callback(false); });
+                for (var i = 0; i < items[0].changedProperties.length; i++) {
+                    var propName = items[0].changedProperties[i].name;
+                    if (propName != "ValidationErrors" && propName != "generatedReportsCounter" && propName != "modificationDate")
+                        shouldBeHistorized = true;
+                }
+                
+
+                if (!shouldBeHistorized)
+                     return callback(true);
+                
+                 self._copyHistory(items[0]).then(function() { callback(true); }, function(err) { callback(false); });
             };
         };
     }
