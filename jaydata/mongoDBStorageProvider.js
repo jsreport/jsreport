@@ -446,6 +446,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                 }
                 
                 var set = {};
+                var inc = {};
                 var props = Container.resolveType(u.entity.getType()).memberDefinitions.getPublicMappedProperties().concat(Container.resolveType(u.physicalData.getType()).memberDefinitions.getPublicMappedProperties());
                 for (var j = 0; j < props.length; j++){
                     var p = props[j];
@@ -464,15 +465,18 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                                         arr[k] = self._typeFactory(p.elementType, arr[k], self.fieldConverter.toDb);
                                     }
                                 }
-                            }else{
-                                set[p.name] = self._typeFactory(p.type, u.physicalData[p.name], self.fieldConverter.toDb);
+                            }else{                               
+                                if (p.increment) 
+                                    inc[p.name] = 1
+                                else
+                                    set[p.name] = self._typeFactory(p.type, u.physicalData[p.name], self.fieldConverter.toDb);                                    
                             }
                         }
                     }
                 }
                 
                 var fn = function(u){
-                    collection.update(where, { $set: set }, { safe: true }, function(error, result){
+                    collection.update(where, { $set: set, $inc: inc }, { safe: true }, function(error, result){
                         if (error){
                             callBack.error(error);
                             client.close();

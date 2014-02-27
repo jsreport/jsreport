@@ -689,6 +689,7 @@
     <Folder Include="extension\test\public\" />
     <Folder Include="extension\test\public\js\" />
     <Folder Include="config\" />
+    <Folder Include="jaydata\" />
     <Folder Include="render" />
     <Folder Include="test" />
     <Folder Include="test\ui\" />
@@ -756,6 +757,7 @@
     <Compile Include="extension\templates\public\js\template.list.toolbar.view.js" />
     <Compile Include="extension\test\public\js\list.js" />
     <Compile Include="extension\test\public\js\main.js" />
+    <Compile Include="jaydata\mongoDBStorageProvider.js" />
     <Compile Include="mongoTmp.js" />
     <Compile Include="multitenancy.js" />
     <Compile Include="config\debug.multitenant.config.js" />

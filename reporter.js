@@ -11,7 +11,7 @@
     dir = require("node-dir"),
     S = require("string"),
     foo = require("odata-server"),
-    fooo = require("./mongoDBStorageProvider.js");
+    fooo = require("./jaydata/mongoDBStorageProvider.js");
     Q = require("q"),
     Settings = require("./Settings"),
     ExtensionsManager = require("./extensionsManager.js"),
