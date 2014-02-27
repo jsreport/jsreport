@@ -11,6 +11,7 @@
     dir = require("node-dir"),
     S = require("string"),
     foo = require("odata-server"),
+    fooo = require("./mongoDBStorageProvider.js");
     Q = require("q"),
     Settings = require("./Settings"),
     ExtensionsManager = require("./extensionsManager.js"),
@@ -46,7 +47,7 @@ Reporter.prototype.init = function(cb) {
     //initialize context for standard entities like settings
     this._initializeDataContext(false, function() {
       
-          if (!self.options.blobStorage) {//WARN async init
+        if (!self.options.blobStorage) {//WARN async init
             require("mongodb").MongoClient.connect('mongodb://' + self.options.connectionString.address + ':' + self.options.connectionString.port + '/' + self.options.connectionString.databaseName, {}, function(err, db) {
                 self.blobStorage = new(require("./blobStorage/gridFS.js"))(db);
             });

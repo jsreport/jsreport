@@ -34,6 +34,8 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
 
     var fiveMinuteDate = new Date((Math.floor(new Date().getTime() / 1000 / 60 / 5) * 1000 * 60 * 5));
 
+    //totalni problemy s concurency to budu muset cele nejak loknout
+
     return request.context.statistics.filter(function(s) { return s.fiveMinuteDate == this.fiveMinuteDate; }, { fiveMinuteDate: fiveMinuteDate}).toArray()
         .then(function(res) {
             var stat;
@@ -68,8 +70,8 @@ Statistics.prototype.createEntitySetDefinitions = function (entitySets, next) {
     this.StatisticType = $data.Class.define(this.reporter.extendGlobalTypeName("$entity.Statistic"), $data.Entity, null, {
         _id: { type: "id", key: true, computed: true, nullable: false },
         fiveMinuteDate: { type: "date" },
-        amount: { type: "int" },
-        success: { type: "int" },
+        amount: { type: "int", increment: true },
+        success: { type: "int", increment: true },
     }, null);
     
     entitySets["statistics"] = { type: $data.EntitySet, elementType: this.StatisticType };

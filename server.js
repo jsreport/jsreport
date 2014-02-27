@@ -7,6 +7,7 @@
     http = require('http'),
     https = require('https'),
     fs = require("fs"),
+    Q = require("q"),
     config = require("./config.js");
 
 

@@ -8,7 +8,7 @@
     extend = require("node.extend");
 
 module.exports = function(app, options, cb) {
-
+    
     if (options.mode == "playground") {
         options.express = { app: app };
         options.playgroundMode = true;

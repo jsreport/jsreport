@@ -1,5 +1,3 @@
-﻿var _dbCache = {};
-
 $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, null,
 {
     constructor: function(cfg, ctx){
@@ -44,8 +42,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
         callBack = $data.typeSystem.createCallbackSetting(callBack);
         
         var server = this._getServer();
-        this._getDb(function (error, client) {
-        //new this.driver.Db(this.providerConfiguration.databaseName, server, { safe: false }).open(function(error, client){
+        new this.driver.Db(this.providerConfiguration.databaseName, server, { safe: false }).open(function(error, client){
             if (error){
                 callBack.error(error);
                 return;
@@ -58,7 +55,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                     var countFn = function(){
                         if (--cnt <= 0){
                             callBack.success(self.context);
-                           // client.close();
+                            client.close();
                         }
                     };
 
@@ -142,12 +139,11 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
             }else fn(error, client);
         });
     },
-    _connected: function(oid, prop, prop2, _id, association){
+    _connected: function(oid, prop, prop2, it, association){
         var ret = false;
         association.ReferentialConstraint.forEach(function(ref){
-            if (ref[prop2] && oid[ref[prop2]] && _id) ret = JSON.stringify(oid[ref[prop2]]) == JSON.stringify(_id);
+            if (it && ref[prop2] && oid[ref[prop2]] != undefined) ret = JSON.stringify(oid[ref[prop2]]) == JSON.stringify(it[ref[prop]] != undefined ? it[ref[prop]] : it._id);
         });
-        
         return ret;
     },
     _compile: function(query){
@@ -248,23 +244,23 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                                         var conn = function(res){
                                             if (association.FromMultiplicity == '0..1' && association.ToMultiplicity == '*'){
                                                 var r = included.filter(function(it){
-                                                    return self._connected(it, association.ToPropertyName, association.To, res._id, association);
+                                                    return self._connected(it, association.ToPropertyName, association.To, res, association);
                                                 });
                                                 res[prop] = r;
                                             }else if (association.FromMultiplicity == '*' && association.ToMultiplicity == '0..1'){
                                                 var r = included.filter(function(it){
                                                     if (res[association.FromPropertyName] === null) return false;
-                                                    return self._connected(res, association.FromPropertyName, association.From, it._id, association);
+                                                    return self._connected(res, association.FromPropertyName, association.From, it, association);
                                                 })[0];
                                                 res[prop] = r || res[prop];
                                             }else if (association.FromMultiplicity == '1' && association.ToMultiplicity == '0..1'){
                                                 var r = included.filter(function(it){
-                                                    return self._connected(it, association.ToPropertyName, association.To, res._id, association);
+                                                    return self._connected(it, association.ToPropertyName, association.To, res, association);
                                                 })[0];
                                                 res[prop] = r || res[prop];
                                             }else if (association.FromMultiplicity == '0..1' && association.ToMultiplicity == '1'){
                                                 var r = included.filter(function(it){
-                                                    return self._connected(res, association.FromPropertyName, association.From, it._id, association);
+                                                    return self._connected(res, association.FromPropertyName, association.From, it, association);
                                                 })[0];
                                                 res[prop] = r || res[prop];
                                             }
@@ -294,21 +290,26 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                                         
                                         if (include.options.sort) {
                                             var order = Object.keys(include.options.sort);
-                                            for (var i = order.length - 1; i >= 0; i--){
-                                                var cmp = new Function('it', 'return it.' + order[i] + ';');
-                                                if (include.options.sort[order[i]])
-                                                    results.sort(function (a, b) {
-                                                        var aVal = cmp(a);
-                                                        var bVal = cmp(b);
-                                                        return aVal === bVal ? 0 : (aVal < bVal ? 1 : -1);
-                                                    });
-                                                else
-                                                    result.sort(function (a, b) {
-                                                        var aVal = cmp(a);
-                                                        var bVal = cmp(b);
-                                                        return aVal === bVal ? 0 : (aVal > bVal ? 1 : -1);
-                                                    });
-                                            }
+                                            var cmp = order.map(function(it){
+                                                return new Function('it', 'return it.' + it + ';');
+                                            });
+                                            results.sort(function (a, b) {
+                                                var result;
+                                                for (var i = 0, l = order.length; i < l; i++) {
+                                                    result = 0;
+                                                    var aVal = cmp[i](a);
+                                                    var bVal = cmp[i](b);
+
+                                                    if (include.options.sort[order[i]] == 1)
+                                                        result = aVal === bVal ? 0 : (aVal > bVal || bVal === null ? 1 : -1);
+                                                    else
+                                                        result = aVal === bVal ? 0 : (aVal < bVal || aVal === null ? 1 : -1);
+
+                                                    if (result !== 0) break;
+
+                                                }
+                                                return result;
+                                            });
                                         }
                                         
                                         if (includes && includes.length){
@@ -402,7 +403,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
             collection.insert(docs, { safe: true }, function(error, result){
                 if (error){
                     callBack.error(error);
-                    //client.close();
+                    client.close();
                     return;
                 }
                 
@@ -474,7 +475,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                     collection.update(where, { $set: set }, { safe: true }, function(error, result){
                         if (error){
                             callBack.error(error);
-                            //client.close();
+                            client.close();
                             return;
                         }
                         
@@ -544,7 +545,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                 collection.remove(r.data, { safe: true }, function(error, result){
                     if (error){
                         callBack.error(error);
-                       // client.close();
+                        client.close();
                         return;
                     }
                     
@@ -563,7 +564,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
         var keys = Object.keys(collections);
         var readyFn = function(client, value){
             callBack.success(value);
-            //client.close();
+            client.close();
         };
         
         var esFn = function(client, value){
@@ -589,8 +590,7 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
             }else readyFn(client, value);
         };
         
-        //new this.driver.Db(this.providerConfiguration.databaseName, server, { safe: false }).open(function(error, client){
-        this._getDb(function (error, client) {
+        new this.driver.Db(this.providerConfiguration.databaseName, server, { safe: false }).open(function(error, client){
             if (error){
                 callBack.error(error);
                 return;
@@ -608,19 +608,6 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
             }else esFn(client);
         });
     },
-    
-    _getDb: function (cb) {
-        var self = this;
-        if (_dbCache[this.providerConfiguration.databaseName] != null) {
-            return cb(null, _dbCache[this.providerConfiguration.databaseName]);
-        }
-
-        new this.driver.Db(this.providerConfiguration.databaseName, this._getServer(), { safe: false }).open(function (error, client) {
-            _dbCache[self.providerConfiguration.databaseName] = client;
-            cb(error, _dbCache[self.providerConfiguration.databaseName]);
-        });
-    },
-
     saveChanges: function(callBack, changedItems){
         var self = this;
         if (changedItems.length){

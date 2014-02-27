@@ -85,6 +85,17 @@ module.exports = function(app, options, cb) {
     }));
 
     app.use(function(req, res, next) {
+        var domains = req.headers.host.split('.');
+
+        if (domains.length != 3)
+            return next();
+
+        return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
+            return next();
+        });
+    });
+
+    app.use(function(req, res, next) {
         var isUrlRequirignAuthnetication =
             req.url.indexOf("$metadata") == -1 && 
             (req.method != "POST" || req.url != "/login") &&
@@ -98,6 +109,7 @@ module.exports = function(app, options, cb) {
                     if (!result) {
                         return res.send(401);
                     }
+                    
                     return next();
                 })(req, res, next);
             } else {
@@ -133,16 +145,16 @@ module.exports = function(app, options, cb) {
         res.send("pong");
     });
 
-    app.get("*", function(req, res, next) {
-        var domains = req.headers.host.split('.');
+    //app.get("*", function(req, res, next) {
+    //    var domains = req.headers.host.split('.');
 
-        if (domains.length != 3)
-            return next();
+    //    if (domains.length != 3)
+    //        return next();
 
-        return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
-            return next();
-        });
-    });
+    //    return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
+    //        return next();
+    //    });
+    //});
 
     app.get("/", function(req, res, next) {
         if (req.user != null) {
@@ -162,6 +174,7 @@ module.exports = function(app, options, cb) {
     });
 
     app.post('/login', function(req, res, next) {
+        
         req.session.viewModel = req.session.viewModel || {};
 
         passport.authenticate('local', function(err, user, info) {

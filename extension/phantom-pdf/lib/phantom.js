@@ -118,6 +118,8 @@ Phantom.prototype._addRecipe = function(reporter) {
                             deferred.reject(err);
                         });
                     });
+                }, function(err) {
+                    deferred.reject(err);
                 });
             
             return deferred.promise;
