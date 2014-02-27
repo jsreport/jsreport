@@ -1,4 +1,8 @@
-﻿var util = require("util"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var util = require("util"),
     fs = require("fs"),
     path = require("path"),
     winston = require("winston");

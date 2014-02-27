@@ -1,4 +1,8 @@
-﻿module.exports = function (html, helpers, data) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+module.exports = function (html, helpers, data) {
     var jsrender = require('node-jsrender');
 
     var evalHelpers = {};

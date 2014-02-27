@@ -1,4 +1,8 @@
-﻿var Q = require("q"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var Q = require("q"),
     _ = require("underscore"),
     passwordHash = require('password-hash'),
     extend = require("node.extend"),
@@ -16,7 +20,7 @@ module.exports = function(app, options, cb) {
 
     function activateTenant(tenant, tcb) {
         if (tenant.isActivated) {
-            return tcb(null);
+            return tcb(null, tenant);
         }
         var opts = extend(true, {}, options);
         var main = express();
@@ -28,10 +32,11 @@ module.exports = function(app, options, cb) {
         var rep = new Reporter(opts);
 
         app.use(express.vhost(tenant.name + '.*', main));
-
+        
         rep.init(function() {
             tenant.isActivated = true;
-            tcb(null);
+            tenant.reporter = rep;
+            tcb(null, tenant);
         });
     }
 
@@ -87,7 +92,7 @@ module.exports = function(app, options, cb) {
     app.use(function(req, res, next) {
         var domains = req.headers.host.split('.');
 
-        if (domains.length != 3)
+        if (domains.length != options.subdomainsCount)
             return next();
 
         return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
@@ -121,7 +126,22 @@ module.exports = function(app, options, cb) {
                 return res.redirect("/");
             }
         } else {
-            return next();
+
+            if (!req.isAuthenticated || !req.isAuthenticated())
+                return next();
+            
+            var domains = req.headers.host.split('.');
+            if (domains.length == options.subdomainsCount)
+                return next();
+
+            if (options.useSubDomains) {
+                domains.unshift(req.user.name);
+                return res.redirect("https://" + domains.join("."));
+            }
+
+            activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
+                return tenant.reporter.options.express.app(req, res, next);
+            });
         }
     });
 
@@ -145,32 +165,14 @@ module.exports = function(app, options, cb) {
         res.send("pong");
     });
 
-    //app.get("*", function(req, res, next) {
-    //    var domains = req.headers.host.split('.');
-
-    //    if (domains.length != 3)
-    //        return next();
-
-    //    return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
-    //        return next();
-    //    });
-    //});
-
     app.get("/", function(req, res, next) {
-        if (req.user != null) {
-            var domains = req.headers.host.split('.');
-
-            if (domains.length == 3) {
-                return next();
-            } else {
-                domains.unshift(req.user.name);
-                return res.redirect("https://" + domains.join("."));
-            }
+        if (!req.user) {
+            var viewModel = _.extend({}, req.session.viewModel || {});
+            req.session.viewModel = null;
+            res.render(path.join(__dirname, 'views', 'tenantRegistration.html'), { viewModel: viewModel });
+        } else {
+            next();
         }
-
-        var viewModel = _.extend({}, req.session.viewModel || {});
-        req.session.viewModel = null;
-        res.render(path.join(__dirname, 'views', 'tenantRegistration.html'), { viewModel: viewModel });
     });
 
     app.post('/login', function(req, res, next) {
@@ -305,7 +307,6 @@ Multitenancy.prototype.findTenant = function(email) {
 Multitenancy.prototype.findTenantByName = function(name) {
     return _.findWhere(_.values(this._tenantsCache), { "name": name });
 };
-
 
 Multitenancy.prototype.registerTenant = function(email, name, password) {
     var context = this._createContext();

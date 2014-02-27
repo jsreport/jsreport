@@ -1,4 +1,8 @@
-﻿var childProcess = require('child_process'),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var childProcess = require('child_process'),
     shortid = require("shortid"),
     join = require("path").join,
     winston = require("winston"),

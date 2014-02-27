@@ -698,6 +698,7 @@
   <ItemGroup>
     <Compile Include="blobStorage\gridFS.js" />
     <Compile Include="config.js" />
+    <Compile Include="config\debug.mfr.config.js" />
     <Compile Include="config\debug.playground.config.js" />
     <Compile Include="config\debug.standard.config.js" />
     <Compile Include="config\production.multitenant.config.js" />

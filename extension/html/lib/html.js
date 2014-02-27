@@ -1,4 +1,8 @@
-﻿var render = require('../../../render/render.js'),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var render = require('../../../render/render.js'),
     Q = require("q");
 
 module.exports = Html = function (reporter, definition) {

@@ -1,4 +1,8 @@
-﻿define(["marionette", "jquery"], function(Marionette, $) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["marionette", "jquery"], function(Marionette, $) {
 
     return Backbone.Marionette.ItemView.extend({
         template: "dashboard-templates",

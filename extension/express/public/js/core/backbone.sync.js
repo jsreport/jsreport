@@ -1,4 +1,8 @@
-﻿define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, _) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, _) {
     
     function JayDataSyncProvider() {
     };

@@ -1,4 +1,8 @@
-﻿define(["marionette", "core/dataGrid", "jquery", "toastr"], function (Marionette, DataGrid, $, toastr) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["marionette", "core/dataGrid", "jquery", "toastr"], function (Marionette, DataGrid, $, toastr) {
 
     return Marionette.ItemView.extend({
         template: "template-list",

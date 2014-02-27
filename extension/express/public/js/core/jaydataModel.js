@@ -1,31 +1,17 @@
-﻿define(["backbone", "jquery", "app"], function (Backbone, $, app) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["backbone", "jquery", "app"], function (Backbone, $, app) {
     return Backbone.Model.extend({
         idAttribute: "_id",
         provider: "jaydata",
         
         initialize: function() {
-           // this.listenTo(this, "change", this.copyToEntity);
-            
             if (this._initialize)
                 this._initialize();
             
             this.originalEntity = new this.Entity();
-            
-            //for (var f in this.originalEntity.getType().getFieldNames()) {
-            //    var model = app.modelManager.get(this.originalEntity.getType().getMemberDefinition(f).originalType);
-            //}
-        },
-
-        parse: function (data) {
-            //for (var p in data) {
-            //    var attr = data[p];
-                
-            //    if (attr != null) {
-            //        var e = this.originalEntity;
-            //    }
-            //}
-            
-            return data;
         },
         
         toString: function() {

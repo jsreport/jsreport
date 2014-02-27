@@ -1,4 +1,8 @@
-﻿var Readable = require("stream").Readable,
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var Readable = require("stream").Readable,
     shortid = require("shortid"),
     winston = require("winston"),
     events = require("events"),

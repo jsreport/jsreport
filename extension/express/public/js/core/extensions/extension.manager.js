@@ -1,4 +1,8 @@
-﻿define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
     return (function() {
 
         function Manager() {

@@ -1,4 +1,8 @@
-﻿define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, toastr) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, toastr) {
 
     return Marionette.Layout.extend({
         template: "layout",

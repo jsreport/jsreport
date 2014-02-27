@@ -1,4 +1,8 @@
-﻿var childProcess = require('child_process'),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var childProcess = require('child_process'),
     //phantomjs = require('phantomjs'),
     //binPath = phantomjs.path,
     fork = require('child_process').fork,

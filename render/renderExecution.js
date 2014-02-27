@@ -1,4 +1,6 @@
-﻿
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
 
 process.on('message', function (m) {
     

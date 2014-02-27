@@ -1,4 +1,8 @@
-﻿define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
 
     $.views.helpers({
         dateToString: function(date) {

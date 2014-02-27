@@ -1,4 +1,8 @@
-﻿define(["app", "core/view.base", "underscore", "core/basicModel", "async"], function (app, ViewBase, _, BasicModel, async) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "core/view.base", "underscore", "core/basicModel", "async"], function (app, ViewBase, _, BasicModel, async) {
 
     return ViewBase.extend({
         template: "extension-list",

@@ -1,4 +1,8 @@
-﻿var winston = require("winston"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var winston = require("winston"),
     Q = require("q"),
     asyncReplace = require("async-replace"),
     extend = require("node.extend");

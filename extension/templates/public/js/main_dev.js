@@ -1,4 +1,8 @@
-﻿define(["jquery", "app", "marionette", "backbone",
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery", "app", "marionette", "backbone",
         "./template.list.model", "./template.list.view","./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",

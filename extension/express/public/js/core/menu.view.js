@@ -1,4 +1,8 @@
-﻿define(["app", "marionette", "underscore", "core/view.base", "backbone"], function (app, Marionette, _, ViewBase, Backbone) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "marionette", "underscore", "core/view.base", "backbone"], function (app, Marionette, _, ViewBase, Backbone) {
     return ViewBase.extend({
         template: "menu",
         renderMenuActionPartsContext: null,

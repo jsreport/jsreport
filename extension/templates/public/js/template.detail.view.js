@@ -1,4 +1,8 @@
-﻿define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder"],
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder"],
     function($, app, CodeMirror, Utils, LayoutBase, codeMirrorBinder) {
 
         return LayoutBase.extend({

@@ -1,4 +1,8 @@
-﻿define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
     function(ViewBase, ModelBase, _, $, async) {
 
         var DataGrid = {};

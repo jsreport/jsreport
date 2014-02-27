@@ -1,4 +1,8 @@
-﻿define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore"],
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore"],
     function ($, app, CodeMirror, Utils, LayoutBase, binder, _) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",

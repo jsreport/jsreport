@@ -1,4 +1,8 @@
-﻿var async = require("async"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var async = require("async"),
     _ = require("underscore"),
     Q = require("q");
 

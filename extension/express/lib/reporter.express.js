@@ -1,4 +1,8 @@
-﻿var async = require("async"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var async = require("async"),
     express = require('express'),
     _ = require("underscore"),
     path = require("path"),

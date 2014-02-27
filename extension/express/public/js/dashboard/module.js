@@ -1,4 +1,8 @@
-﻿define(["app", "backbone", "dashboard/dashboard.view"],
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "backbone", "dashboard/dashboard.view"],
     function (app, Backbone, DashboardView) {
         if (app.settings.playgroundMode)
             return;

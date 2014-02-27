@@ -1,4 +1,8 @@
-﻿var winston = require("winston"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var winston = require("winston"),
     sformat = require("stringformat"),
     events = require("events"),
     util = require("util"),

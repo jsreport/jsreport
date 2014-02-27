@@ -1,4 +1,8 @@
-﻿define(["deferred"], function () {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["deferred"], function () {
     
     return function (app, cb) {
         var context = {};

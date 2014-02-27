@@ -1,4 +1,9 @@
-﻿var fs = require("fs");
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+
+var fs = require("fs");
 
 exports.deleteFiles = function (path) {
     var files = [];

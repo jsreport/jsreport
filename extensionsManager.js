@@ -1,4 +1,8 @@
-﻿var events = require("events"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var events = require("events"),
     util = require("util"),
     utils = require("./util.js"),
     fs = require("fs"),

@@ -1,4 +1,8 @@
-﻿define([], function () {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define([], function () {
     
     return function (model, path, editor) {
         var settingChange = false;

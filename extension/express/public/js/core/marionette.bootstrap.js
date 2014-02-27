@@ -1,4 +1,8 @@
-﻿define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"], function($, Marionette, Utils, ModelBinder, Backbone) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"], function($, Marionette, Utils, ModelBinder, Backbone) {
 
     $.support.cors = true;
 

@@ -1,4 +1,8 @@
-﻿(function ($) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+(function ($) {
     $.fn.errorAlert = function (options) {
         if (options == "close") {
             return this.alert('close');

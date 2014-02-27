@@ -1,4 +1,8 @@
-﻿define(["marionette", "app"],
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["marionette", "app"],
     function (Marionette, app) {
     return Marionette.Layout.extend({
         template: "dashboard",

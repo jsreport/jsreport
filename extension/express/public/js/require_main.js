@@ -1,4 +1,8 @@
-﻿requirejs.config({
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+requirejs.config({
     baseUrl: "/js",
     waitSeconds: 60,
     paths: {

@@ -1,4 +1,8 @@
-﻿(function ($) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+(function ($) {
     $.fn.dialog = function (options) {
         var dialogSelector = options.error ? "#errorDialog" : "#standardDialog";
         if (!_.isObject(options)) {

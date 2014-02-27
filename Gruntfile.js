@@ -84,6 +84,7 @@
             playgroundProduction: { files: [{ src: ['./config/production.playground.config.js'], dest: './config.js' }] },
             standardDebug: { files: copyFiles("standard") },
             standardProduction: { files: [{ src: ['./config/production.standard.config.js'], dest: './config.js' }] },
+            mfrDebug: { files: copyFiles("mfr") },
         },
 
         requirejs: {
@@ -154,6 +155,8 @@
     grunt.registerTask('default', ['mochaTest:test']);
 
     grunt.registerTask('deploy', ['requirejs']);
+
+    grunt.registerTask('mfr-debug', ['copy:mfrDebug', 'replace:debugRoot', 'replace:debugApp']);
 
     grunt.registerTask('multitenant-debug', ['copy:multitenantDebug', 'replace:debugRoot', 'replace:debugApp']);
     grunt.registerTask('multitenant-production', ['requirejs', 'copy:multitenantProduction', 'replace:productionRoot', 'replace:productionApp']);

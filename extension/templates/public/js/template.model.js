@@ -1,4 +1,8 @@
-﻿define(["app", "core/jaydataModel"], function (app, ModelBase) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "core/jaydataModel"], function (app, ModelBase) {
     return ModelBase.extend({
         contextSet: function () { return app.dataContext.templates; },
 

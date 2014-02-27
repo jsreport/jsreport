@@ -1,4 +1,8 @@
-﻿define(["jquery"], function($) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["jquery"], function($) {
     var Utils = {};
 
     Utils.decodeBase64 = function(s) {

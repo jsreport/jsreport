@@ -1,4 +1,8 @@
-﻿define(["app", "marionette", "jquery", "underscore", "core/utils"], function (app, Marionette, $, _, Utils) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "marionette", "jquery", "underscore", "core/utils"], function (app, Marionette, $, _, Utils) {
     var protoSlice = Array.prototype.slice;
     function slice(args) {
         return protoSlice.call(args);

@@ -1,4 +1,8 @@
-﻿define(["app", "marionette", "backbone", "core/extensions/extension.manager",
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "marionette", "backbone", "core/extensions/extension.manager",
         "core/extensions/extension.list.view", "core/extensions/extension.list.model"],
     function (app, Marionette, Backbone, ExtensionsManager, ExtensionListView, ExtensionListModel) {
         

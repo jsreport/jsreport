@@ -1,4 +1,8 @@
-﻿var Reporter = require("./reporter.js"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var Reporter = require("./reporter.js"),
     winston = require("winston"),
     expressWinston = require("express-winston"),
     path = require("path"),

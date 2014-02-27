@@ -1,4 +1,8 @@
-﻿var express = require('express'),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+var express = require('' +'express'),
     _ = require("underscore"),
     winston = require("winston"),
     expressWinston = require("express-winston"),
@@ -48,11 +52,7 @@ var logger = winston.loggers.add('jsreport.templates', {
     ]
 });
 
-require("./reporter.install.js")(app, {
-    mode: config.mode,
-    connectionString: config.connectionString,
-    extensions: config.extensions
-}, function() {
+require("./reporter.install.js")(app, config, function() {
     
     if (config.iisnode) {
         app.listen(config.port);

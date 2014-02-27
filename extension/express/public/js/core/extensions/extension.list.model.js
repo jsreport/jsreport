@@ -1,4 +1,8 @@
-﻿define(["app", "core/jaydataModel", "underscore"], function (app, ModelBase, _) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+define(["app", "core/jaydataModel", "underscore"], function (app, ModelBase, _) {
     return ModelBase.extend({
         initialize: function () {
             var self = this;

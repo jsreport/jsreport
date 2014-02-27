@@ -1,4 +1,7 @@
-﻿
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
 define(["async", "underscore"], function(async, _) {
     var ListenerCollection = function () {
         this._listeners = [];
