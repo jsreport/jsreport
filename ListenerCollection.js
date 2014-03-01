@@ -1,5 +1,8 @@
 ﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
+ *
+ * ListenerCollection can hold array of listeners and fire them.
+ * Each listener needs to have a key.
  */ 
 
 var async = require("async"),
@@ -26,14 +29,17 @@ ListenerCollection.prototype.remove = function(key) {
 };
 
 
+/* add hook that will be executed before actual listener */
 ListenerCollection.prototype.pre = function(fn) {
     this._pre.push(fn);
 };
 
+/* add hook that will be executed after actual listener */
 ListenerCollection.prototype.post = function(fn) {
     this._post.push(fn);
 };
 
+/* add hook that will be executed after actual listener when execution will fail */
 ListenerCollection.prototype.postFail = function(fn) {
     this._postFail.push(fn);
 };

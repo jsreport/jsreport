@@ -71,6 +71,9 @@
                 //src: ['test/gridFSTest.js', 'extension/reports' + '/test/*.js']
                //src: ['extension/childTemplates' + '/test/*.js']
             },
+            testExact: {
+                src: ['extension/examples/test/*.js']
+            },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           
                 //src: ['extension/templates/test/*.js']           
@@ -85,6 +88,7 @@
             standardDebug: { files: copyFiles("standard") },
             standardProduction: { files: [{ src: ['./config/production.standard.config.js'], dest: './config.js' }] },
             mfrDebug: { files: copyFiles("mfr") },
+            mfrProduction: { files: [{ src: ['./config/production.mfr.config.js'], dest: './config.js' }] },
         },
 
         requirejs: {
@@ -157,6 +161,7 @@
     grunt.registerTask('deploy', ['requirejs']);
 
     grunt.registerTask('mfr-debug', ['copy:mfrDebug', 'replace:debugRoot', 'replace:debugApp']);
+    grunt.registerTask('mfr-production', ['requirejs', 'copy:mfrProduction', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('multitenant-debug', ['copy:multitenantDebug', 'replace:debugRoot', 'replace:debugApp']);
     grunt.registerTask('multitenant-production', ['requirejs', 'copy:multitenantProduction', 'replace:productionRoot', 'replace:productionApp']);
@@ -168,4 +173,5 @@
     grunt.registerTask('standard-production', ['requirejs', 'copy:standardProduction', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('test-all', ['mochaTest:testAll']);
+    grunt.registerTask('test-exact', ['mochaTest:testExact']);
 };

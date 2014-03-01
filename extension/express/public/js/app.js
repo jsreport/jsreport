@@ -1,3 +1,7 @@
+/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
 define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap", "codemirror"], function ($, Marionette, async, Utils, ListenerCollection) {
     var app = new Backbone.Marionette.Application();
     app.serverUrl = "/";

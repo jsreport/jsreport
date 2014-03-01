@@ -105,7 +105,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     return deferred.promise;
 };
 
-Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
+Reporting.prototype.createEntitySetDefinitions = function (entitySets) {
     
     this.ReportType = $data.Class.define(this.reporter.extendGlobalTypeName("$entity.Report"), $data.Entity, null, {
         _id: { type: "id", key: true, computed: true, nullable: false },
@@ -118,9 +118,7 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets, next) {
         templateShortid: { type: "string" },
     }, null);
     
-    entitySets["reports"] = { type: $data.EntitySet, elementType: this.ReportType };
-
-    next(); 
+    entitySets["reports"] = { type: $data.EntitySet, elementType: this.ReportType }; 
 };
 
 Reporting.prototype.find = function (preficate, params, cb) {

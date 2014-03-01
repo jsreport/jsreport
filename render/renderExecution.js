@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Child process rendering html(xml) from template content, helpers and input data.
  */ 
 
 process.on('message', function (m) {

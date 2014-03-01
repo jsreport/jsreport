@@ -50,8 +50,8 @@ Phantom.prototype._processHeaderFooter = function(request, generationId, filePos
     var req = extend(true, {}, request);
     req.template = { content: content, recipe: "html" };
 
-    this.reporter.render(req, function(err, resp) {
-        var filePath = join(__dirname, "reports-tmpl", generationId + "-" + filePostfix + ".html");
+    this.reporter.render(req).then(function() {
+         var filePath = join(__dirname, "reports-tmpl", generationId + "-" + filePostfix + ".html");
         FS.write(filePath, resp.result).then(function() {
             promise.resolve(filePath);
         });

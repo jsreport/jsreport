@@ -1,35 +1,20 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Settings enablik Key-Value persistent store.
  */ 
 
-var winston = require("winston"),
-    sformat = require("stringformat"),
-    events = require("events"),
-    util = require("util"),
-    _ = require("underscore"),
-    Readable = require("stream").Readable,
-    async = require("async"),
-    fs = require("fs"),
-    path = require('path'),
-    dir = require("node-dir"),
-    S = require("string"),
-    foo = require("odata-server"),
-    ExtensionsManager = require("./extensionsManager.js");
-
-var logger = winston.loggers.get('jsreport');
+var _ = require("underscore");
 
 function Settings() {
     this._collection = [];
-    events.EventEmitter.call(this);
 };
 
-util.inherits(Settings, events.EventEmitter);
-
-Settings.prototype.add = function(key, value, cb) {
+Settings.prototype.add = function(key, value) {
     var settingItem = new $entity.Setting({ key: key, value: value });
     this.dataContext.add(settingItem);
     this._collection.push(settingItem);
-    this.dataContext.saveChanges().then(cb);
+    return this.dataContext.saveChanges();
 };
 
 Settings.prototype.get = function(key) {
@@ -38,22 +23,19 @@ Settings.prototype.get = function(key) {
 
 Settings.prototype.set = function (key, value, cb) {
     var self = this;
-    this.dataContext.settings.single(function(s) { return s.key == this.key; }, { key: key }, function(res) {
+    return this.dataContext.settings.single(function(s) { return s.key == this.key; }, { key: key }).then(function(res) {
         self.dataContext.settings.attach(res);
         res.value = value;
-        self.dataContext.saveChanges().then(function() {
-            cb();
-        });
+        return self.dataContext.saveChanges();
     });
 };
 
-Settings.prototype.init = function (dataContext, cb) {
+Settings.prototype.init = function (dataContext) {
     this.dataContext = dataContext;
     var self = this;
     
-    dataContext.settings.toArray().then(function (res) {
+    return dataContext.settings.toArray().then(function (res) {
         self._collection = res;
-        cb();
     });
 };
 

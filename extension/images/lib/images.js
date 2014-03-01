@@ -161,8 +161,6 @@ Images.prototype._defineEntities = function() {
     }
 };
 
-Images.prototype._createEntitySetDefinitions = function(entitySets, next) {
+Images.prototype._createEntitySetDefinitions = function(entitySets) {
     entitySets["images"] = { type: $data.EntitySet, elementType: this.ImageType };
-
-    next();
 };

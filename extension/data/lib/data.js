@@ -96,11 +96,9 @@ Data.prototype._beforeUpdateHandler = function(args, entity) {
      entity.modificationDate = new Date();
 };
 
-function createEntitySetDefinitions(entitySets, next) {
+function createEntitySetDefinitions(entitySets) {
     if (!this.reporter.playgroundMode) {
         entitySets["data"] = { type: $data.EntitySet, elementType: this.DataItemType };
     }
-
-    next();
 };
 

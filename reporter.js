@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Reporter main class responsible for rendering process.
  */ 
 
 var winston = require("winston"),
@@ -49,7 +51,7 @@ util.inherits(Reporter, events.EventEmitter);
 Reporter.prototype.init = function(cb) {
     var self = this;
     //initialize context for standard entities like settings
-    this._initializeDataContext(false, function() {
+    this._initializeDataContext(false).then(function() {
       
         if (!self.options.blobStorage) {//WARN async init
             require("mongodb").MongoClient.connect('mongodb://' + self.options.connectionString.address + ':' + self.options.connectionString.port + '/' + self.options.connectionString.databaseName, {}, function(err, db) {
@@ -58,9 +60,9 @@ Reporter.prototype.init = function(cb) {
         }
         
         //load all the settings to the memory
-        self.settings.init(self.context, function() {
+        self.settings.init(self.context).then(function() {
             //initialize all the extensions - this will trigger context reinit
-            self.extensionsManager.init(function() {
+            self.extensionsManager.init().then(function() {
                 //let others to do theirs startup work
                 self.initializeListener.fire().then(function() {
                     if (cb != null)
@@ -71,11 +73,12 @@ Reporter.prototype.init = function(cb) {
     });
 };
 
+/* jaydata unfortunately use global variables, we need to use this trick to extend global types with tenant identification
+   to prevent collisions */
 Reporter.prototype.extendGlobalTypeName = function(typeName) {
     var nsType = typeName.split(".");
     return nsType[0] + "." + this.options.tenant.name + "." + nsType[1];
 };
-
 
 Reporter.prototype.resetContext = function() {
     this.context = new this.contextDefinition(this.connectionString);
@@ -85,9 +88,11 @@ Reporter.prototype.startContext = function() {
     return new this.contextDefinition(this.connectionString);
 };
 
-Reporter.prototype._initializeDataContext = function(withExtensions, done) {
+Reporter.prototype._initializeDataContext = function(withExtensions) {
     var self = this;
     var entitySets = {};
+    
+    var defer = Q.defer();
 
     var fn = function() {
         self.settings.createEntitySetDefinitions(entitySets);
@@ -96,6 +101,7 @@ Reporter.prototype._initializeDataContext = function(withExtensions, done) {
         self.context = new self.contextDefinition(this.connectionString);
         self.context.onReady(function() {
 
+            //todo IS this still required?
             self.context.storageProvider.fieldConverter.toDb[self.extendGlobalTypeName("$entity.Script")] = function(e) {
                 return e.initData || e;
             };
@@ -110,20 +116,22 @@ Reporter.prototype._initializeDataContext = function(withExtensions, done) {
             };
 
             self.emit("context-ready");
-            done(self.context);
+            defer.resolve(self.context);
         });
     };
 
     if (withExtensions) {
-        entitySets = this.extensionsManager.collectEntitySets(entitySets, function() {
+        this.extensionsManager.collectEntitySets(entitySets).then(function() {
             fn.call(self);
         });
     } else {
         fn.call(self);
     }
+    
+    return defer.promise;
 };
 
-Reporter.prototype.render = function(request, cb) {
+Reporter.prototype.render = function(request) {
     var self = this;
     
     request.options = this._defaultOptions(request.options);
@@ -135,7 +143,7 @@ Reporter.prototype.render = function(request, cb) {
     };
 
     self.emit("before-render", request, response);
-    self.extensionsManager.beforeRenderListeners.fire(request, response)
+    return self.extensionsManager.beforeRenderListeners.fire(request, response)
         .then(function() {
             self.emit("render", request, response);
             return self._executeRecipe(request, response);
@@ -145,18 +153,15 @@ Reporter.prototype.render = function(request, cb) {
             return self.extensionsManager.afterRenderListeners.fire(request, response);
         })
         .then(function() {
-            return request.context.saveChanges();
-        })
-        .then(function() {
-            cb(null, response);
-        }, function(err) { cb(err); });
+            return request.context.saveChanges().then(function() { return response; });
+        });
 };
 
 Reporter.prototype._defaultOptions = function(options) {
     options = options || {};
 
     if (options.timeout == null || options.timeout == 0)
-        options.timeout = 5000;
+        options.timeout = 30000;
 
     return options;
 };

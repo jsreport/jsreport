@@ -20,11 +20,7 @@ describe('gridFS', function() {
         });
     });
 
-    afterEach(function() {
-        //   util.deleteFiles("test-output");
-    });
-
-    it('should be able to write from string stream', function(done) {
+    it('write and read should result into equal string', function(done) {
         var self = this;
 
         var ms = new Readable();
@@ -47,21 +43,4 @@ describe('gridFS', function() {
             });
         });
     });
-
-    //it('should be able to write from file stream', function (done) {
-    //    var self = this;
-
-    //    var ms = fs.createReadStream("package.json");
-
-    //    self.blobStorage.write(shortid.generate(), ms, function (err, blobName) {
-    //        assert.ifError(err);
-
-    //        fs.readFile(join(self.blobStorage.options.root, blobName), function (er, content) {
-    //            fs.readFile("package.json", function (errr, origContent) {
-    //                assert.equal(origContent + "", content + "");
-    //                done();
-    //            });
-    //        });
-    //    });
-    //});
 });

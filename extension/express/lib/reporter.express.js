@@ -111,12 +111,8 @@ module.exports = function(reporter, definition) {
         req.data = req.body.data;
         req.options = req.body.options;
 
-        reporter.render(req, function(err, response) {
-            if (err) {
-                return next(err);
-            }
-
-            if (response.headers) {
+        reporter.render(req).then(function(response) {
+              if (response.headers) {
                 for (var key in response.headers) {
                     res.setHeader(key, response.headers[key]);
                 }
@@ -127,6 +123,8 @@ module.exports = function(reporter, definition) {
             } else {
                 res.send(response.result);
             }
+        }, function(err) {
+            return next(err);
         });
     });
 
@@ -149,14 +147,14 @@ module.exports = function(reporter, definition) {
     });
 
     app.post("/api/extensions", function(req, res, next) {
-        reporter.extensionsManager.use(req.body.name, function() {
+        reporter.extensionsManager.use(req.body.name).then(function() {
             return res.send("ok");
         });
 
     });
 
     app.delete("/api/extensions", function(req, res, next) {
-        reporter.extensionsManager.unregister(req.body.name, function() {
+        reporter.extensionsManager.unregister(req.body.name).then(function() {
             return res.send("ok");
         });
     });

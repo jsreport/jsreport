@@ -1,5 +1,7 @@
 ﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
+ *
+ * Rendering wrapper that is starting actual rendering safely in child process.
  */ 
 
 var childProcess = require('child_process'),
@@ -20,8 +22,6 @@ var logger = winston.loggers.get('jsreport');
 
 
 module.exports = function (request, response, cb) {
-    logger.info("Rendering html");
-
     async.waterfall([
             function (callback) {
                 _prepareTemplate(request, callback);
@@ -33,8 +33,6 @@ module.exports = function (request, response, cb) {
 };
 
 var _prepareTemplate = function (request, cb) {
-    logger.info("Preparing template");
-
     if (request.template == null)
         return cb("template must be defined");
 
@@ -83,7 +81,7 @@ var _renderHtml = function (request, response, cb) {
         child.kill();
         logger.error("Child process resulted in timeout.");
 
-        cb("Timeout error during rendering");
+       cb("Timeout error during rendering");
     }, request.options.timeout);
 };
 

@@ -8,7 +8,7 @@ describe('ListenersCollection', function () {
         this.listeners =  new ListenerCollection();
     });
      
-    it('should fire listeners and callback', function (done) {
+    it('should fire listeners callback', function (done) {
         var invokeCount = 0;
 
         this.listeners.add("test", function (next) {
@@ -82,6 +82,19 @@ describe('ListenersCollection', function () {
         });
      });
     
+     it('firePromise should fire with arguments', function (done) {
+         var obj = {};
+         
+        this.listeners.add("test", function (o) {
+            o.a = true;
+        });
+
+        this.listeners.fire(obj).then(function () {
+            assert.equal(true, obj.a);
+            done();
+        });     
+     });
+    
      it('firePromise should return a valid promise that can catch errors', function (done) {
         this.listeners.add("test", function () {
             return Q.reject(new Error("foo"));
@@ -92,7 +105,7 @@ describe('ListenersCollection', function () {
         });
     });
     
-      it('firePromise should apploy pre functions', function (done) {
+      it('firePromise should apply pre hooks', function (done) {
         var i = 0;
         this.listeners.pre(function() {
               i++;
@@ -110,7 +123,7 @@ describe('ListenersCollection', function () {
         });
      });
     
-     it('firePromise should apploy post functions', function (done) {
+     it('firePromise should apploy post hooks', function (done) {
         var postResult; 
         this.listeners.post(function() {
             postResult = this.key;
@@ -126,7 +139,7 @@ describe('ListenersCollection', function () {
         });
      });
     
-     it('firePromise should apploy postError functions', function (done) {
+     it('firePromise should apploy postError hooks', function (done) {
         var error;
         this.listeners.postFail(function(err) {
             error = err;

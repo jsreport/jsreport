@@ -69,7 +69,7 @@ Statistics.prototype.handleAfterRender = function (request, response) {
 };
 
 
-Statistics.prototype.createEntitySetDefinitions = function (entitySets, next) {
+Statistics.prototype.createEntitySetDefinitions = function (entitySets) {
     
     this.StatisticType = $data.Class.define(this.reporter.extendGlobalTypeName("$entity.Statistic"), $data.Entity, null, {
         _id: { type: "id", key: true, computed: true, nullable: false },
@@ -79,6 +79,4 @@ Statistics.prototype.createEntitySetDefinitions = function (entitySets, next) {
     }, null);
     
     entitySets["statistics"] = { type: $data.EntitySet, elementType: this.StatisticType };
-
-    next();
 };
