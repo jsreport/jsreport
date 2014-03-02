@@ -17,7 +17,7 @@ var winston = require("winston"),
     dir = require("node-dir"),
     S = require("string"),
     foo = require("odata-server"),
-    fooo = require("./jaydata/mongoDBStorageProvider.js");
+    fooo = require("./jaydata/mongoDBStorageProvider.js"),
     Q = require("q"),
     Settings = require("./settings.js"),
     ExtensionsManager = require("./extensionsManager.js"),
@@ -44,7 +44,9 @@ function Reporter(options) {
     this.initializeListener = utils.attachLogToListener(new ListenerCollection(), "reporter initialize", self.logger);
 
     this.settings = new Settings();
-};
+}
+
+;
 
 util.inherits(Reporter, events.EventEmitter);
 
@@ -52,13 +54,12 @@ Reporter.prototype.init = function() {
     var self = this;
     //initialize context for standard entities like settings
     return this._initializeDataContext(false).then(function() {
-      
-        if (!self.options.blobStorage) {//WARN async init
-            require("mongodb").MongoClient.connect('mongodb://' + self.options.connectionString.address + ':' + self.options.connectionString.port + '/' + self.options.connectionString.databaseName, {}, function(err, db) {
-                self.blobStorage = new(require("./blobStorage/gridFS.js"))(db);
-            });
+
+        if (!self.options.blobStorage) {
+            self.blobStorage = new(require("./blobStorage/gridFS.js"))(self.options.connectionString);
         }
-        
+
+
         //load all the settings to the memory
         return self.settings.init(self.context).then(function() {
             //initialize all the extensions - this will trigger context reinit
@@ -88,7 +89,7 @@ Reporter.prototype.startContext = function() {
 Reporter.prototype._initializeDataContext = function(withExtensions) {
     var self = this;
     var entitySets = {};
-    
+
     var defer = Q.defer();
 
     var fn = function() {
@@ -124,19 +125,19 @@ Reporter.prototype._initializeDataContext = function(withExtensions) {
     } else {
         fn.call(self);
     }
-    
+
     return defer.promise;
 };
 
 Reporter.prototype.render = function(request) {
     var self = this;
-    
+
     request.options = this._defaultOptions(request.options);
     request.context = this.startContext();
     request.reporter = self;
 
     var response = {
-        headers : {}
+        headers: {}
     };
 
     self.emit("before-render", request, response);

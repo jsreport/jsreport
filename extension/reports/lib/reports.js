@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Reports extension allows to store rendering output into storage for later use.
  */ 
 
 var Readable = require("stream").Readable,
@@ -36,8 +38,10 @@ Reporting.prototype.configureExpress = function (app) {
             self.reporter.blobStorage.read(result.blobName, function(err, stream) {
                res.setHeader('Content-Type', result.contentType);
                 res.setHeader('File-Extension', result.fileExtension);
-               stream.pipe(res); 
+                stream.pipe(res);
             });
+        }, function() {
+             res.send(404);
         });
     });
 };
@@ -45,18 +49,18 @@ Reporting.prototype.configureExpress = function (app) {
 Reporting.prototype.handleAfterRender = function (request, response) {
     logger.info("Reporting saveResult options: " + request.options.saveResult);
     var self = this;
+    
     if (!request.options.saveResult)
-        return;
+        return Q();
 
-    function ensureBuffer(cb) {
+    function ensureBuffer() {
         if (response.isStream) {
-            return toArray(response.result, function(err, arr) {
+            return Q.nfcall(toArray, response.result).then(function() {
                 response.result = Buffer.concat(arr);
-                cb();
             });
         }
 
-        cb();
+        return Q();
     }
     
     var report = new this.ReportType({
@@ -68,41 +72,23 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         contentType: response.headers['Content-Type'],
     });
 
-    var deferred = Q.defer();
-    async.waterfall([
-            function(callback) {
-                ensureBuffer(callback);
-            },
-            function (callback) {
-                logger.info("Inserting report to storage.");
-                request.context.reports.add(report);
-                request.context.reports.saveChanges().then(function () {
-                    callback(null, null);
-                }).fail(function (e) {
-                    callback(e, null);
-                });
-            },
-            function (res, callback) {
-                logger.info("Writing report content to blob.");
-                self.reporter.blobStorage.write(report._id + "." + report.fileExtension, response.result, callback);
-            },
-            function (blobName, callback) {
-                logger.info("Updating report blob name " + blobName);
-                request.context.reports.attach(report);
-                report.blobName = blobName;
-                return request.context.reports.saveChanges().then(function () { callback(null, null); });
-            }
-    ], function (err) {
-        if (err)
-            return deferred.reject(err);
 
+    return ensureBuffer().then(function() {
+        logger.info("Inserting report to storage.");
+        request.context.reports.add(report);
+        return request.context.reports.saveChanges();
+    }).then(function() {
+        logger.info("Writing report content to blob." + response.result);
+        return Q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
+    }).then(function(blobName) {
+        logger.info("Updating report blob name " + blobName);
+        request.context.reports.attach(report);
+        report.blobName = blobName;
+        return request.context.reports.saveChanges();
+    }).then(function() {
         response.headers["Permanent-Link"] = "https://" + request.headers.host + "/api/report/" + report._id + "/content";
         response.headers["Report-Id"] = report._id;
-        
-        deferred.resolve();
     });
-
-    return deferred.promise;
 };
 
 Reporting.prototype.createEntitySetDefinitions = function (entitySets) {

@@ -12,12 +12,9 @@
 
 describe('gridFS', function() {
 
-    beforeEach(function(done) {
+    beforeEach(function() {
         var self = this;
-        MongoClient.connect('mongodb://127.0.0.1:27017/test', {}, function(err, db) {
-            self.blobStorage = new GridFS(db);
-            done();
-        });
+        self.blobStorage = new GridFS({ name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 });
     });
 
     it('write and read should result into equal string', function(done) {

@@ -4,7 +4,8 @@
     join = require("path").join,
     Reports = require("../lib/reports.js"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
-    Q = require("q");
+    Q = require("q"),
+    supertest = require('supertest');
 
 describeReporting([], function(reporter) {
 
@@ -28,19 +29,22 @@ describeReporting([], function(reporter) {
             };
 
             reporter.reports.handleAfterRender(request, response).then(function() {
-                reporter.context.reports.find(response.headers["Report-Id"]).then(function(report) {
-                         reporter.blobStorage.read(report.blobName, function(err, stream) {
-                            var htmlContent = "";
-                            stream.on('data', function(chunk) {
-                                htmlContent += chunk;
-                            });
-
-                            stream.on("end", function() {
-                                assert.equal("Hey", htmlContent);
-                                done();
-                            });
-                        });                              
-                });
+                supertest(reporter.options.express.app)
+                    .get('/api/report/' + response.headers["Report-Id"] + '/content')
+                    .expect(200)
+                    .parse(function(res, cb) {
+                        res.data = '';
+                        res.on('data', function(chunk) {
+                            res.data += chunk;
+                        });
+                        res.on('end', function() {
+                            cb(null, res.data);
+                        });
+                    })
+                    .end(function(err, res) {
+                        assert.equal("Hey", res.body);
+                        done();
+                    });
             });
         });
     });
