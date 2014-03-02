@@ -125,5 +125,5 @@ UpgradeLog*.XML
 *.log
 config/*
 extension/phantom-pdf/lib/reports-tmpl/*
-extension/fop/lib/reports-tmpl/*
+extension/fop-pdf/lib/reports-tmpl/*
 
