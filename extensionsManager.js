@@ -12,7 +12,7 @@ var events = require("events"),
     S = require("string"),
     _ = require("underscore"),
     Q = require("q"),
-    ListenerCollection = require("./ListenerCollection.js");
+    ListenerCollection = require("./listenerCollection.js");
 
 module.exports = ExtensionsManager = function(reporter, options) {
     var self = this;
@@ -113,8 +113,12 @@ ExtensionsManager.prototype.unregister = function(extensionName) {
     return this._refresh();
 };
 
+var _availableExtensionsCache;
 ExtensionsManager.prototype._findAvailableExtensions = function() {
     this.reporter.logger.info("Searching for available extensions");
+
+    if (this.options.cacheAvailableExtensions && _availableExtensionsCache != null)
+        return Q(_availableExtensionsCache);
 
     var walk = function(dir, done) {
         var results = [];
@@ -154,6 +158,7 @@ ExtensionsManager.prototype._findAvailableExtensions = function() {
             return 0;
         });
 
+        _availableExtensionsCache = availableExtensions;
         return availableExtensions;
     });
 };

@@ -34,9 +34,7 @@
                 }
             }
         };
-    }
-
-    ;
+    };
 
     var extensions = ["express", "templates", "html", "phantom-pdf", "fop", "scripts", "data", "images", "examples", "statistics", "reports"];
 
@@ -72,7 +70,7 @@
                //src: ['extension/childTemplates' + '/test/*.js']
             },
             testExact: {
-                src: ['extension/examples/test/*.js']
+                src: ['extension/images/test/*.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           

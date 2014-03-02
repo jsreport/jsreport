@@ -9,8 +9,8 @@ describeReporting(["scripts"], function (reporter) {
         
         function prepareTemplate(scriptContent) {
             var script = new reporter.scripts.ScriptType({ content: scriptContent });
-            reporter.scripts.entitySet.add(script);
-            return reporter.scripts.entitySet.saveChanges().then(function () {
+            reporter.context.scripts.add(script);
+            return reporter.context.scripts.saveChanges().then(function () {
                 return reporter.templates.create({
                     content: "foo",
                     scriptId: script.shortid
@@ -21,7 +21,7 @@ describeReporting(["scripts"], function (reporter) {
         function prepareRequest(scriptContent) {
             return prepareTemplate(scriptContent).then(function(template) {
                 return Q({
-                    request: { template: template }, 
+                    request: { template: template, context: reporter.context }, 
                     response: {}
                 });
             });

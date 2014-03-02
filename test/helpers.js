@@ -2,6 +2,9 @@
     jaydata = require("odata-server"),
     _ = require("underscore"),
     async = require("async"),
+    express = require("express"),
+    connect = require("connect"),
+    path = require("path"),
     MongoClient = require('mongodb').MongoClient;
 
 
@@ -17,17 +20,25 @@ exports.describeReporting = function (extensions, isPlayground, nestedSuite) {
 
     describe("reporting", function () {
         
+        var app = express();
+        app.use(connect.bodyParser());
+        app.use(express.methodOverride());
+        app.use(express.static(path.join(__dirname, 'views')));
+        app.engine('html', require('ejs').renderFile);
+        
         var reporter = new Reporter({
             playgroundMode: isPlayground,
             tenant: { name: "test"},
             connectionString: { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 },
-            extensions: _.union(["templates", "html", "phantom-pdf", "fop-pdf", "data", "reports", "statistics"], extensions),
-            loadExtensionsFromPersistedSettings: false
+            extensions: _.union(["templates", "html", "phantom-pdf", "fop-pdf", "data", "reports", "statistics", "express"], extensions),
+            loadExtensionsFromPersistedSettings: false,
+            cacheAvailableExtensions: true,
+            express: { app: app}
         });
        
         beforeEach(function (done) {
             this.timeout(10000);
-            reporter.init(function () {
+            reporter.init().then(function () {
                      done();
             });
         });

@@ -8,7 +8,7 @@
 describeReporting([], function(reporter) {
     describe('phantom pdf', function () {
      
-        it('should be rendered', function(done) {
+        it('should not fail when rendering', function(done) {
             this.timeout(5000);
             
             var request = {

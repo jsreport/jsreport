@@ -89,7 +89,7 @@ Examples = function(reporter, definition) {
 
         function finishTemplate() {
             if (!reporter.playgroundMode) {
-                return reporter.scripts.create(scriptObj).then(function(scriptEntity) {
+                return reporter.scripts.create(reporter.context, scriptObj).then(function(scriptEntity) {
                     templateObj.scriptId = scriptEntity.shortid;
                     return Q(templateObj);
                 });
@@ -121,7 +121,7 @@ Examples = function(reporter, definition) {
 
         function finishTemplate() {
             if (!reporter.playgroundMode) {
-                return reporter.data.create(dataObj).then(function(dataItemEntity) {
+                return reporter.data.create(self.reporter.context, dataObj).then(function(dataItemEntity) {
                     templateObj.dataItemId = dataItemEntity.shortid;
                     return Q(templateObj);
                 });
@@ -154,7 +154,7 @@ Examples = function(reporter, definition) {
 
         function finishTemplate() {
             if (!reporter.playgroundMode) {
-                return reporter.data.create(dataObj).then(function(dataItemEntity) {
+                return reporter.data.create(self.reporter.context, dataObj).then(function(dataItemEntity) {
                     templateObj.dataItemId = dataItemEntity.shortid;
                     return Q(templateObj);
                 });

@@ -11,11 +11,12 @@ describeReporting(["data"], function (reporter) {
                 dataJson: JSON.stringify({ a: 'xx' }) + "",
             };
 
-            reporter.data.create(dataItem).then(function(data) {
+            reporter.data.create(reporter.context, dataItem).then(function(data) {
                 var request = {
                     reporter: reporter,
                     template: { content: "html", dataItemId: data.shortid },
                     options: { recipe: "html" },
+                    context: reporter.context
                 };
 
                 reporter.data.handleBeforeRender(request, {}).then(function() {
@@ -31,10 +32,24 @@ describeReporting(["data"], function (reporter) {
                 reporter: reporter,
                 template: { content: "html", dataItemId: "AAAAAAAAAAAAAAAAAAAAAAAA" },
                 options: { recipe: "html" },
+                context: reporter.context
             };
 
             reporter.data.handleBeforeRender(request, {}).fail(function (err) {
                 assert.notEqual(null, err);
+                done();
+            });
+        });
+        
+        it('should ignore extension when no inline data specified', function(done) {
+            var request = {
+                reporter: reporter,
+                template: { content: "html", dataItemId: null },
+                options: { recipe: "html" },
+                context: reporter.context
+            };
+
+            reporter.data.handleBeforeRender(request, {}).then(function () {
                 done();
             });
         });

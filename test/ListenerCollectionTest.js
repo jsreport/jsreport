@@ -1,5 +1,5 @@
 ﻿var assert = require("assert"),
-    ListenerCollection = require("../ListenerCollection.js"),
+    ListenerCollection = require("../listenerCollection.js"),
     Q = require("q");
 
 describe('ListenersCollection', function () {

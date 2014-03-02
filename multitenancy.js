@@ -33,7 +33,7 @@ module.exports = function(app, options, cb) {
 
         app.use(express.vhost(tenant.name + '.*', main));
         
-        rep.init(function() {
+        rep.init().then(function() {
             tenant.isActivated = true;
             tenant.reporter = rep;
             tcb(null, tenant);

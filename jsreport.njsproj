@@ -177,6 +177,7 @@
     <Content Include="extension\images\test\imagesTest.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\images\test\testImg.png" />
     <Content Include="extension\phantom-pdf\lib\convertToPdf.js">
       <SubType>Content</SubType>
     </Content>
@@ -337,7 +338,7 @@
     <Content Include="Gruntfile.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="ListenerCollection.js">
+    <Content Include="listenerCollection.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\express\public\js\core\backbone.sync.js">
@@ -561,10 +562,10 @@
     <Content Include="server.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Settings.js">
+    <Content Include="settings.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="test\ListenerCollectionTest.js">
+    <Content Include="test\listenerCollectionTest.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="test\fileSystemTest.js">
@@ -766,6 +767,7 @@
     <Compile Include="reporter.install.js" />
     <Compile Include="test\extensionsManagerTest.js" />
     <Compile Include="test\gridFSTest.js" />
+    <Compile Include="test\settingsTest.js" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
   <ProjectExtensions>

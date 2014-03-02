@@ -21,8 +21,10 @@ Settings.prototype.get = function(key) {
     return _.findWhere(this._collection, { key: key });
 };
 
-Settings.prototype.set = function (key, value, cb) {
+Settings.prototype.set = function (key, value) {
     var self = this;
+    this.get(key).value = value;
+    
     return this.dataContext.settings.single(function(s) { return s.key == this.key; }, { key: key }).then(function(res) {
         self.dataContext.settings.attach(res);
         res.value = value;
@@ -49,6 +51,7 @@ Settings.prototype.createEntitySetDefinitions = function(entitySets) {
 
 
     entitySets["settings"] = { type: $data.EntitySet, elementType: $entity.Setting };
+    return entitySets;
 };
 
 module.exports = Settings;

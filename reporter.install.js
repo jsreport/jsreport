@@ -17,7 +17,7 @@ module.exports = function(app, options, cb) {
         options.express = { app: app };
         options.playgroundMode = true;
         options.connectionString.databaseName = "playground";
-        (new Reporter(options)).init(cb);
+        (new Reporter(options)).init().then(cb());
         return;
     }
 
@@ -25,7 +25,7 @@ module.exports = function(app, options, cb) {
         options.express = { app: app };
         options.playgroundMode = false;
         options.connectionString.databaseName = "standard";
-        (new Reporter(options)).init(cb);
+        (new Reporter(options)).init().then(cb);
         return;
     }
 

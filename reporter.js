@@ -19,9 +19,9 @@ var winston = require("winston"),
     foo = require("odata-server"),
     fooo = require("./jaydata/mongoDBStorageProvider.js");
     Q = require("q"),
-    Settings = require("./Settings"),
+    Settings = require("./settings.js"),
     ExtensionsManager = require("./extensionsManager.js"),
-    ListenerCollection = require("./ListenerCollection.js");
+    ListenerCollection = require("./listenerCollection.js");
 
 function Reporter(options) {
     var self = this;
@@ -48,10 +48,10 @@ function Reporter(options) {
 
 util.inherits(Reporter, events.EventEmitter);
 
-Reporter.prototype.init = function(cb) {
+Reporter.prototype.init = function() {
     var self = this;
     //initialize context for standard entities like settings
-    this._initializeDataContext(false).then(function() {
+    return this._initializeDataContext(false).then(function() {
       
         if (!self.options.blobStorage) {//WARN async init
             require("mongodb").MongoClient.connect('mongodb://' + self.options.connectionString.address + ':' + self.options.connectionString.port + '/' + self.options.connectionString.databaseName, {}, function(err, db) {
@@ -60,14 +60,11 @@ Reporter.prototype.init = function(cb) {
         }
         
         //load all the settings to the memory
-        self.settings.init(self.context).then(function() {
+        return self.settings.init(self.context).then(function() {
             //initialize all the extensions - this will trigger context reinit
-            self.extensionsManager.init().then(function() {
+            return self.extensionsManager.init().then(function() {
                 //let others to do theirs startup work
-                self.initializeListener.fire().then(function() {
-                    if (cb != null)
-                        cb();
-                });
+                return self.initializeListener.fire();
             });
         });
     });
@@ -146,7 +143,7 @@ Reporter.prototype.render = function(request) {
     return self.extensionsManager.beforeRenderListeners.fire(request, response)
         .then(function() {
             self.emit("render", request, response);
-            return self._executeRecipe(request, response);
+            return self.executeRecipe(request, response);
         })
         .then(function() {
             self.emit("after-render", request, response);
@@ -166,7 +163,7 @@ Reporter.prototype._defaultOptions = function(options) {
     return options;
 };
 
-Reporter.prototype._executeRecipe = function(request, response) {
+Reporter.prototype.executeRecipe = function(request, response) {
 
     var recipe = _.findWhere(this.extensionsManager.recipes, { name: request.template.recipe });
 

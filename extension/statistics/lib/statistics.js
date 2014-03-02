@@ -1,14 +1,11 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Extension storing 5min based statistics - amount of successfully generated, amount of failures
  */ 
 
-var Readable = require("stream").Readable,
-    shortid = require("shortid"),
+var shortid = require("shortid"),
     winston = require("winston"),
-    events = require("events"),
-    util = require("util"),
-    sformat = require("stringformat"),
-    async = require("async"),
     _ = require("underscore");
 
 
@@ -37,9 +34,7 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
     var self = this;
 
     var fiveMinuteDate = new Date((Math.floor(new Date().getTime() / 1000 / 60 / 5) * 1000 * 60 * 5));
-
-    //totalni problemy s concurency to budu muset cele nejak loknout
-
+    
     return request.context.statistics.filter(function(s) { return s.fiveMinuteDate == this.fiveMinuteDate; }, { fiveMinuteDate: fiveMinuteDate}).toArray()
         .then(function(res) {
             var stat;

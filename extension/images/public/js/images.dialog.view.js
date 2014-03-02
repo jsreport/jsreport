@@ -36,7 +36,7 @@
         },
         
         getUrl: function(imgRef) {
-            return window.location.protocol + "//" + window.location.host + "/image/" + imgRef.shortid;
+            return window.location.protocol + "//" + window.location.host + "/api/image/" + imgRef.shortid;
         },
 
         save: function () {

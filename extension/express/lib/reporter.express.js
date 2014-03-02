@@ -158,15 +158,4 @@ module.exports = function(reporter, definition) {
             return res.send("ok");
         });
     });
-
-
-    app.post("/api/template", function(req, res, next) {
-        reporter.templates.create(req.body, function(err, result) {
-            if (err) {
-                return next(err);
-            }
-
-            return res.json(result);
-        });
-    });
 };

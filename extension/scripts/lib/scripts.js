@@ -1,15 +1,13 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Extension allowing to run custom scripts and modify request before rendering process starts.
  */ 
 
-var Readable = require("stream").Readable,
-    shortid = require("shortid"),
+var shortid = require("shortid"),
     winston = require("winston"),
-    events = require("events"),
-    util = require("util"),
     fork = require('child_process').fork,
     sformat = require("stringformat"),
-    async = require("async"),
     _ = require("underscore"),
     join = require("path").join,
     Q = require("q");
@@ -23,12 +21,6 @@ module.exports = function (reporter, definition) {
 Scripts = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
-
-    Object.defineProperty(this, "entitySet", {
-        get: function () {
-            return reporter.context.scripts;
-        }
-    });
     
     this.ScriptType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Script"), $data.Entity, null, {
         shortid: { type: "string"},
@@ -52,18 +44,16 @@ Scripts = function (reporter, definition) {
     this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
 
-Scripts.prototype.create = function(script) {
+Scripts.prototype.create = function(context, script) {
     var entity = new this.ScriptType(script);
-    this.entitySet.add(entity);
-    return this.entitySet.saveChanges().then(function() { return Q(entity); });
+    context.scripts.add(entity);
+    return context.scripts.saveChanges().then(function() { return Q(entity); });
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
-    var self = this;
-    
     if (!request.template.scriptId && !(request.template.script != null && request.template.script.content)) {
         logger.info("ScriptId not defined for this template.");
-        return;
+        return Q();
     }
 
     function FindScript() {
@@ -72,11 +62,11 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         
         logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
-        return self.entitySet.single(function(s) { return s.shortid == this.id; }, { id: request.template.scriptId });
+        return request.context.scripts.single(function(s) { return s.shortid == this.id; }, { id: request.template.scriptId });
     };
 
     return FindScript().then(function (script) {
-        var deferred = Q.defer();
+        var qdefer = Q.defer();
         script = script.content || script;
 
         var child = fork(join(__dirname, "scriptEvalChild.js"));
@@ -88,7 +78,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             if (m.error) {
                 logger.error("Child process process resulted in error " + JSON.stringify(m.error));
                 logger.error(m);
-                return deferred.reject({ message: m.error, stack: m.errorStack });
+                return qdefer.reject({ message: m.error, stack: m.errorStack });
             }
 
             logger.info("Child process successfully finished.");
@@ -97,7 +87,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             request.template.content = m.request.template.content;
             request.template.helpers = m.request.template.helpers;
         
-            return deferred.resolve();
+            return qdefer.resolve();
         });
         
         child.send({
@@ -120,10 +110,10 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
             child.kill();
             logger.error("Child process resulted in timeout.");
-            return deferred.reject({ message: "Timeout error during script execution" });
+            return qdefer.reject({ message: "Timeout error during script execution" });
         }, 60000);
 
-        return deferred.promise;
+        return qdefer.promise;
     });
 };
 

@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ * 
+ * ChildTemplates extensions hooks before rendering process and expands every child template specification.
  */ 
 
 var winston = require("winston"),
@@ -22,8 +24,7 @@ ChildTemplates = function(reporter, definition) {
 
 ChildTemplates.prototype.handleBeforeRender = function(request, response) {
     var self = this;
-    var promise = Q.defer();
-
+    
     var isRootRequest = false;
     if (request.childs == null) {
         request.childs = {};
@@ -31,12 +32,12 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
     }
 
     request.childs.childsCircleCache = request.childs.childsCircleCache || {};
-    
+
     function convert(str, p1, offset, s, done) {
         if (request.childs.childsCircleCache[p1] != null && !isRootRequest) {
             return done(null, "circle in using child template " + p1);
         }
-        
+
         request.childs.childsCircleCache[p1] = true;
 
         request.context.templates.filter(function(t) { return t.name == this.name; }, { name: p1 }).toArray().then(function(res) {
@@ -54,14 +55,10 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
             });
         });
     }
-    
+
     var test = /{#([^{}]+)+}/g;
 
-    asyncReplace(request.template.content, test, convert, function(er, result) {
+    return Q.nfcall(asyncReplace, request.template.content, test, convert).then(function(result) {
         request.template.content = result;
-        promise.resolve();
     });
-
-
-    return promise.promise;
 };

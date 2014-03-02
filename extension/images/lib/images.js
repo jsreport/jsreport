@@ -1,16 +1,14 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Images extension allows to upload images into mongo and reference them from the templates
  */ 
 
 var Readable = require("stream").Readable,
     shortid = require("shortid"),
     winston = require("winston"),
     fs = require("fs"),
-    events = require("events"),
-    util = require("util"),
-    fork = require('child_process').fork,
     sformat = require("stringformat"),
-    async = require("async"),
     _ = require("underscore"),
     Q = require("q");
 join = require("path").join;
@@ -104,23 +102,28 @@ Images.prototype.upload = function(name, contentType, content, shortidVal) {
 Images.prototype._configureExpress = function(app) {
     var self = this;
 
-    app.get("/api/image/:shortid", function(req, res, next) {
+    console.log("configuring express");
 
-        self.entitySet.single(function(t) { return t.shortid == this.id; }, { id: req.params.shortid }, function(result) {
+    app.get("/api/image/:shortid", function(req, res) {
+
+        self.entitySet.single(function(t) { return t.shortid == this.id; }, { id: req.params.shortid }).then(function(result) {
             res.setHeader('Content-Type', result.contentType);
             res.send(result.content);
+        }, function() {
+            res.send(404);
         });
     });
     
-    app.get("/api/image/name/:name", function(req, res, next) {
-
-        self.entitySet.single(function(t) { return t.name == this.name; }, { name: req.params.name }, function(result) {
+    app.get("/api/image/name/:name", function(req, res) {
+        self.entitySet.single(function(t) { return t.name == this.name; }, { name: req.params.name }).then(function(result) {
             res.setHeader('Content-Type', result.contentType);
             res.send(result.content);
+        }, function() {
+            res.send(404);
         });
     });
 
-    app.post("/api/image/:shortid?", function(req, res, next) {
+    app.post("/api/image/:shortid?", function(req, res) {
         for (var f in req.files) {
             var file = req.files[f];
             fs.readFile(file.path, function(err, content) {
