@@ -2,29 +2,32 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore"],
-    function ($, app, CodeMirror, Utils, LayoutBase, binder, _) {
+define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore", "core/listenerCollection"],
+    function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
-            
-            initialize: function () {
+
+            initialize: function() {
                 var self = this;
-                
+
+                this.beforeRenderListeners = new ListenerCollection();
+
                 this.listenTo(this.model, "sync", function() {
                     self.render();
-                    
+
                     self.listenTo(self.contentView, "preview", function() {
-                         self.preview();
+                        self.preview();
                     });
                 });
-                
-                this.listenTo(this, "render", function () {
+
+                this.listenTo(this, "render", function() {
                     var context = {
                         template: self.model,
-                        extensionsRegion: self.extensionsRegion
+                        extensionsRegion: self.extensionsRegion,
+                        view: self,
                     };
                     app.trigger("template-extensions-render", context);
-                    
+
                     var contextToolbar = {
                         template: self.model,
                         region: self.extensionsToolbarRegion,
@@ -35,15 +38,15 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
                 _.bindAll(this, "preview", "previewNewPanel", "getBody");
             },
-            
-            getRecipes: function () {
+
+            getRecipes: function() {
                 return app.recipes;
             },
 
-            getEngines: function () {
+            getEngines: function() {
                 return app.engines;
             },
-            
+
             regions: {
                 extensionsRegion: {
                     selector: "#extensionsBox",
@@ -54,7 +57,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                     regionType: Marionette.MultiRegion
                 }
             },
-            
+
             events: {
                 "click #saveCommand": "save",
                 "click #previewCommand": "preview",
@@ -62,79 +65,88 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 "click #apiHelpCommnand": "apiHelp"
             },
 
-            
-            save: function () {
+            save: function() {
                 var self = this;
-                
+
                 if (app.settings.playgroundMode) {
                     this.model.originalEntity = new $entity.Template();
                     this.model.set("_id", null);
                 }
-             
+
                 this.model.save({}, {
-                    success: function () {
+                    success: function() {
                         app.trigger("template-saved", self.model);
                     }
                 });
             },
 
-
-            addInput: function (form, name, value) {
+            addInput: function(form, name, value) {
                 var input = document.createElement("input");
                 input.type = "hidden";
                 input.name = name;
                 input.value = value;
                 form.appendChild(input);
             },
-            
+
             previewNewPanel: function() {
                 this._preview("_blank");
                 this.contentView.$el.find(".preview-loader").hide();
             },
-            
+
             preview: function() {
                 this._preview("previewFrame");
             },
-            
-            _preview: function (target) {
+
+            _preview: function(target) {
                 if (!this.validate())
                     return;
-                
+
                 this.contentView.$el.find(".preview-loader").show();
                 //http://connect.microsoft.com/IE/feedback/details/809377/ie-11-load-event-doesnt-fired-for-pdf-in-iframe
                 //this.contentView.$el.find("[name=previewFrame]").hide();
-                
+
                 var mapForm = document.createElement("form");
                 mapForm.target = target;
                 mapForm.method = "POST";
                 mapForm.action = app.serverUrl + "api/report";
 
                 var uiState = this.getUIState();
-             
-                var self = this;
-                
-                function addBody(path, body) {
-                    if (body == null)
-                        return;
 
-                    for (var key in body) {
-                        if (_.isObject(body[key])) {
-                            addBody(path + key + "[", body[key]);
-                        } else {
-                            self.addInput(mapForm, path + key + "]", body[key]);
+                var request = { template: uiState };
+                var self = this;
+                this.beforeRenderListeners.fire(request, function(er) {
+                    if (er) {
+                        self.contentView.$el.find(".preview-loader").hide();
+                        app.trigger("error", { responseText: er });
+                        return;
+                    }
+
+                    function addBody(path, body) {
+                        if (body == null)
+                            return;
+
+                        for (var key in body) {
+                            if (_.isObject(body[key])) {
+                                addBody(path + key + "[", body[key]);
+                            } else {
+                                self.addInput(mapForm, path + key + "]", body[key]);
+                            }
                         }
                     }
-                }
-                
-                addBody("template[", uiState);
 
-                document.body.appendChild(mapForm);
-                mapForm.submit();
+                    addBody("template[", uiState);
+                    if (request.options != null)
+                        addBody("options[", request.options);
 
+                    self.addInput(mapForm, "data", request.data);
+
+                    document.body.appendChild(mapForm);
+                    mapForm.submit();
+                });
             },
 
-            getUIState: function () {
-                
+            getUIState: function() {
+
                 function justNotNull(o) {
                     var clone = {};
                     for (var key in o) {
@@ -144,24 +156,24 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
                     return clone;
                 }
-                
+
                 var state = {};
                 var json = this.model.toJSON();
                 for (var key in json) {
                     if (json[key] != null) {
                         if (json[key].initData != null)
-                        state[key] = justNotNull(json[key].toJSON());
-                     else 
-                        state[key] = json[key];
+                            state[key] = justNotNull(json[key].toJSON());
+                        else
+                            state[key] = json[key];
                     }
-                }                
+                }
 
                 state.content = state.content || " ";
                 state.helpers = state.helpers || "";
                 return state;
             },
 
-            onValidate: function () {
+            onValidate: function() {
                 var res = [];
 
                 if (this.model.get("recipe") == null)
@@ -171,27 +183,26 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
                 return res;
             },
-         
+
             getBody: function() {
                 var properties = [];
                 properties.push({ key: "html", value: "..." });
                 properties.push({ key: "helpers", value: "..." });
-                
+
                 this.model.trigger("api-overrides", function(key, value) {
                     value = value || "...";
                     properties.push({ key: key, value: _.isObject(value) ? JSON.stringify(value) : "..." });
-                    
+
                 });
                 return properties;
             },
-           
+
             apiHelp: function() {
                 $.dialog({
-                     header: "jsreport API",
-                     content: $.render["template-detail-api"](this.model.toJSON(), this),
-                     hideSubmit: true                       
+                    header: "jsreport API",
+                    content: $.render["template-detail-api"](this.model.toJSON(), this),
+                    hideSubmit: true
                 });
             }
         });
     });
-
