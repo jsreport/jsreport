@@ -68,7 +68,9 @@
     "grunt-mocha-phantomjs": "*",
     "grunt-mocha-test": "*",
     "grunt-contrib-requirejs": "*",
-	"supertest": "*"  
+	"sinon": "*"  
+	"should": "*"  
+	"supertest": "*"  	
   },
   "scripts": {
     "test": "grunt"

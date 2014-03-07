@@ -1,87 +1,93 @@
-﻿<section>
-    <nav class="navbar navbar-default navbar-fixed-top not-responsive" role="navigation">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/"></a>
-        </div>
-        <!-- Top Navbar & Menubar -->
-        <div class="collapse navbar-collapse navbar-ex1-collapse" id="menu">
-        </div>
-         
-        <ul class="nav navbar-nav side-nav side-size nav-list" id="extensionsBox"></ul>           
-        <section id="toolbar">
-         
-        </section>
-        <ul class="side-nav-right"></ul>
-      
-    </nav>
-        
-    <!-- Container -->
-    <div id="wrapper">
-        <div id="page-wrapper">
-            <section id="content">
-            </section>
-        </div>
+﻿<section>    
+  <nav class="navbar navbar-default navbar-fixed-top not-responsive" role="navigation">        
+    <div class="navbar-header">            
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">                
+        <span class="sr-only">Toggle navigation
+        </span>                
+        <span class="icon-bar">
+        </span>                
+        <span class="icon-bar">
+        </span>                
+        <span class="icon-bar">
+        </span>            
+      </button>            
+      <a class="navbar-brand" href="/"></a>        
     </div>
-    <!-- Footer 
-        <div id="footer">
-            <div class="container">
-                <p class="muted credit">&copy; <a href="http://jsreport.net">jsReport</a>. All rights reserved.</p>
-            </div>  
-        </div>    --> 
+            
+    <!-- Main Menu -->        
+    <div class="collapse navbar-collapse navbar-ex1-collapse" id="menu">        
+    </div>                  
+    
+    <!-- Left pillar (Menu) --> 
+    <ul class="nav navbar-nav side-nav side-size nav-list" id="extensionsBox">
+    <!-- Future feature <span class="version-info">jsReport v1.0.1</span> -->
+    </ul>                      
+    <section class="not-responsive" id="toolbar">                  
+    </section>           
+    
+    <!-- Right pillar -->        
+    <ul class="side-nav-right">
+    </ul>           
+  </nav> 
+              
+  <!-- Page content -->     
+  <div id="wrapper">        
+    <div id="page-wrapper">            
+      <section id="content">            
+      </section>        
+    </div>    
+  </div>
 </section>
 
-<section>
-    <div class="modal fade" id="customModal" tabindex="-1" role="dialog" aria-hidden="true">
-    </div>
-    <div id="standardDialog">
-        <div class="modal fade" id="modalDialog" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h3 id="dialogHeader"></h3>
-                    </div>
-                    <div class="modal-body">
-                        <p id="dialogContent"></p>
-                    </div>
-                    <div class="modal-footer" id="dialogButtons">
-                        <a id="dialogStorno" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</a>
-                        <a id="dialogSubmit" class="btn btn-sm btn-danger">Yes</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Modals -->  
+<section>    
+  <div class="modal fade" id="customModal" tabindex="-1" role="dialog" aria-hidden="true">    
+  </div>    
+  <div id="standardDialog">        
+    <div class="modal fade" id="modalDialog" role="dialog" aria-hidden="true">            
+      <div class="modal-dialog">                
+        <div class="modal-content">                    
+          <div class="modal-header">                        
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+            </button>                        
+            <h3 id="dialogHeader"></h3>                    
+          </div>                    
+          <div class="modal-body">                        
+            <p id="dialogContent">
+            </p>                    
+          </div>                    
+          <div class="modal-footer" id="dialogButtons">                        
+            <a id="dialogStorno" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</a>                        
+            <a id="dialogSubmit" class="btn btn-sm btn-danger">Yes</a>                    
+          </div>                
+        </div>            
+      </div>        
+    </div>    
+  </div>
 </section>
-
-
-<section>
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
-    </div>
-    <div id="errorDialog">
-        <div class="modal fade" id="modalDialog" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h3 id="dialogHeader"><i class="fa fa-bug"></i> </h3>
-                    </div>
-                    <div class="modal-body">
-                        <div class="alert alert-danger" id="dialogContent"></div>
-                    </div>
-                    <div class="modal-footer" id="dialogButtons">
-                        <a id="dialogStorno" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<section>    
+  <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">    
+  </div>    
+  <div id="errorDialog">        
+    <div class="modal fade" id="modalDialog" role="dialog" aria-hidden="true">            
+      <div class="modal-dialog">                
+        <div class="modal-content">                    
+          <div class="modal-header">                        
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+            </button>                        
+            <h3 id="dialogHeader">
+              <i class="fa fa-bug"></i> </h3>                    
+          </div>                    
+          <div class="modal-body">                        
+            <div class="alert alert-danger" id="dialogContent">
+            </div>                    
+          </div>                    
+          <div class="modal-footer" id="dialogButtons">                        
+            <a id="dialogStorno" class="btn btn-sm btn-primary" data-dismiss="modal">Cancel</a>                    
+          </div>                
+        </div>            
+      </div>        
+    </div>    
+  </div>
 </section>
-
 <img class="loader" id="loader-img" src="img/loader.gif" style="display: none" />

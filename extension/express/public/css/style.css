@@ -2,7 +2,7 @@ html, body {height:100%; overflow: visible;}
 
 /* Side Menu template */
 body {
-  padding-top: 80px;
+  padding-top: 70px;
 }
 
 #wrapper {
@@ -48,8 +48,8 @@ table.tablesorter thead tr th:hover {
 	border-radius: 0;
   top: 75px;
 	border: none;
-	background-color: #e7e7e7;
-  border-right: 1px solid #c4c4c4;
+	background-color: #f7f7f7;
+  border-right: 1px solid #d2d2d2;
 	overflow-y: auto;
   }
   
@@ -63,8 +63,8 @@ table.tablesorter thead tr th:hover {
 	border-radius: 0;
     top: 75px;
 	border: none;
-	background-color: #e7e7e7;
-    border-left: 1px solid #c4c4c4;
+	background-color: #f7f7f7;
+    border-left: 1px solid #d2d2d2;
 	overflow-y: auto;
   }
 
@@ -107,17 +107,21 @@ table.tablesorter thead tr th:hover {
 	
   }
 
-   .sub-header .navbar-nav>li>a,
-   .sub-header .navbar-nav>li>a {
+   .submenu .navbar-nav>li>a,
+   .submenu .navbar-nav>li>a {
 	color: #fff;
 	height: 27px;
   background: #1ba1e2;
 }
 
-   .sub-header .navbar-nav>li>a:hover,
-   .sub-header .navbar-nav>li>a:focus {
+   .submenu .navbar-nav>li>a:hover,
+   .submenu .navbar-nav>li>a:focus {
 	color: #fff;
   background: #0887c5;
+}
+
+ul. subheader {
+  border-bottom: 2px solid #0887c5;
 }
 
 /* Navbar JS Report Logotype */
@@ -130,26 +134,25 @@ table.tablesorter thead tr th:hover {
  } 
 
 /* Navbar Submenu UL, LI, A */
-.sub-header {
+.submenu {
 	clear: both;
-  font-family: sans-serif;
-	width: 100%;
-  min-width: 1000px !important;
-	font-size: 12px;
+  width: 100%;
+  padding-left: 190px;
+	font-size: 13px;
   font-weight: normal;
   height: 30px;
   background-color: #1ba1e2;
-  border-top: 1px solid #6ed0ff;
-   border-bottom: 2px solid #0887c5;
-   text-transform:none !important;
+  border-top: 1px solid #6ed0ff !important;
+  border-bottom: 2px solid #0887c5;
+  text-transform:none !important;
 }
 
-.sub-header > ul > li > a {
+.submenu > ul > li > a {
     padding: 4px 14px 0px 14px;
 }
 
-.sub-header i.fa {
-margin-right: 5px;
+.submenu i.fa {
+margin-right: 6px;
 font-size: 12px;
 }
 
@@ -196,8 +199,8 @@ margin-top: 20px;
 
 
 /* side-nav menu */
-.navbar .navbar-nav.nav-list>li>a{display:block;height: 34px;line-height:34px;padding: 0 16px 0 7px;background-color:#f9f9f9;color:#333333;text-shadow:none!important;font-size:13px;text-decoration:none;border-bottom: 1px solid #dcdcdc;}
-.navbar .navbar-nav.nav-list>li>a:hover{background-color:#fff;}
+.navbar .navbar-nav.nav-list>li>a{display:block;height: 34px;line-height:34px;padding: 0 16px 0 7px;background-color:#f3f3f3;color:#333333;text-shadow:none!important;font-size:13px;text-decoration:none;border-bottom: 1px solid #dcdcdc;}
+.navbar .navbar-nav.nav-list>li>a:hover{background-color: #e9e9e9;}
 
 .nav-list>li>a>[class*="icon-"]:first-child{display:inline-block;vertical-align:middle;min-width: 20px;color:#333333;text-align:center;font-size: 12px;font-weight:normal;margin-right:3px;}
 .nav-list>li>a:hover>:first-child{color:#333333;}
@@ -205,7 +208,7 @@ margin-top: 20px;
 
 /* side-nav menu dropdown items */
 .navbar .navbar-nav.nav-list>li>ul>li>a{display:block;height: 38px;line-height:38px;padding: 0 16px 0 16px;background-color:#ffffff;text-shadow:none!important;font-size:12px;text-decoration:none;border-bottom: 1px dotted #e5e5e5;}
-.navbar .navbar-nav.nav-list>li>ul>li>a:hover {background-color:#ffffff; border-bottom: 1px dotted #d4d4d4; color: #007aa3;}
+.navbar .navbar-nav.nav-list>li>ul>li>a:hover {background-color:#f9f9f9; border-bottom: 1px dotted #d4d4d4; color: #007aa3;}
 .navbar .navbar-nav.nav-list>li>ul>li>a:before{padding-left: 4px; content: "\00BB \0020"; margin-right: 6px;}
 
 /* side-nav menu for special john's features :) */
@@ -223,27 +226,28 @@ text-shadow:none!important;
 border-bottom: 1px solid #e5e5e5;
 }
 
-.navbar-nav:first-child {text-transform:uppercase;}
+.dropdown-menu > li > a {padding: 8px 15px 8px 15px; font-size: 12px !important;}
+#menu > div > ul > li {text-transform:uppercase; font-size: 12px;}
+li.dropdown.open > ul > li > a {text-transform: none; font-size: 13px !important;}
+
+.btn {
+text-align: left;
+}
 
 .navbar .navbar-nav.nav-list>div>li>a>[class*="icon-"]:first-child{display:inline-block;vertical-align:middle;min-width:20px;color:#333333;text-align:center;font-size: 14px;font-weight:normal;margin-right:2px;}
 .navbar .navbar-nav.nav-list>div>li>a:hover>:first-child{color:#007aa3;}
 .navbar .navbar-nav.nav-list>div>li>a:hover{color:#007aa3;}
-/*.navbar .navbar-nav.nav-list>div>li>a:hover:before{display:block;content:"";position:absolute;top: -1px;bottom:0;left:0;width:4px;max-width:4px;max-height: 38px;overflow:hidden;color:#585858;background-color:#007aa3;} */
 
-
-#extensionsBox div {
- /*toto kurvi animace, tak to nejak pores nebo smaz*/
-/*min-height: 38px;*/
-}
 
 /* Components properties */
 .expandable-body {background-color: #fff; cursor: default;}
-.expandable-body .btn {width: 175px; margin-top: 6px}
+.expandable-body .btn {width: 175px; max-width: 175px; margin-top: 6px}
 .expandable-body .dropdown-button {width: 135px;}
 .expandable-body .dropdown-toggle {width: 40px;}
 .properties {padding: 0px 6px 6px 6px; left: 0px;background: #fff;}
 .properties li {font-size: 12px; font-weight: normal;}
 .area-mini {height: 26px; font-size: 12px;}
+textarea .side-textarea {width: 175px; max-width: 175px; }
 .side-setup {background-color: #fff;}
 .side-title {display: inline-block; width: 100%; margin: 6px 0px 2px 0px; border-bottom: 1px dotted #e7e7e7; font-weight: 500;}
 
@@ -283,7 +287,7 @@ blockquote {margin-bottom: 10px;}
 /* Report Detail */
 .report-view {
    width: 100%;
-   height: 100%;
+   height: 90em;
 }
 
 .template-detail {
@@ -480,11 +484,12 @@ h3 small {
 .title-input {
   background: #f9f9f9;
   border: 1px solid #ddd;
+  padding: 6px;
 }
   
 .title-edit, .title-confirm {
 	vertical-align: bottom;
-	height: 33px	
+	height: 33px;	
 }
 
 /* Dashboard - Panels */
@@ -530,6 +535,11 @@ height: 300px;
   position: relative;
   max-height: 18px;
   top: -7px;
+	text-transform:none;
+}
+
+a.user-info-btn {
+margin-right: 15px;
 }
 
 .fa-logged {
@@ -579,7 +589,7 @@ height: 300px;
     margin-bottom:5px;
     margin-right:5px;
     padding-left:190px;
-    margin-top:80px;
+    margin-top: 25px;
 }
 
 
@@ -609,7 +619,16 @@ height: 300px;
     margin-bottom:5px;
     margin-right:5px;
     margin-left:0px;
-margin-top: 70px;
+    margin-top: 70px;
+}
+
+.split-pane-component.codespace {
+min-width: 200px;
+}
+
+#my-divider {
+width: 4px;
+left: 50%;
 }
 
 .nav-dashboard {
@@ -621,7 +640,6 @@ margin-top: 20px;
 }
 
 .nav-tabs {border-bottom: 0px;}
-.split-pane {margin-top: 27px;}
 
 #footer {
   position: fixed;
@@ -636,6 +654,44 @@ margin-top: 20px;
 	font-size: 12px;
 }
 
-.navbar i.fa-home {font-size: 18px;}
+.navbar i.fa-home {font-size: 17px;}
 
 .nav-tabs-cm {float: right; margin-right: 3px;}
+
+.version-info {
+	  position: fixed;
+  		height: 20px;
+  bottom: 0;
+  width: 100%;
+	border-top: 1px solid #ddd;
+	padding-top: 18px;
+	color: #333333;
+	font-size: 12px;}
+  
+.template-detail-title {
+display: block;
+margin-top: -25px;
+}
+
+/* CodeMirror THEME */
+.cm-s-default span.cm-keyword {line-height: 1em; font-weight: bold; color: #5A5CAD; }
+.cm-s-default span.cm-atom {color: #6C8CD5;}
+.cm-s-default span.cm-number {color: #164;}
+.cm-s-default span.cm-def {text-decoration:underline;}
+.cm-s-default span.cm-variable {color: black; }
+.cm-s-default span.cm-variable-2 {color:black;}
+.cm-s-default span.cm-variable-3 {color: black; }
+.cm-s-default span.cm-property {}
+.cm-s-default span.cm-operator {}
+.cm-s-default span.cm-comment {color: #0080FF; font-style: italic;}
+.cm-s-default span.cm-string {color: red;}
+.cm-s-default span.cm-meta {color: yellow;}
+.cm-s-default span.cm-qualifier {color: grey}
+.cm-s-default span.cm-builtin {color: #7EA656;}
+.cm-s-default span.cm-bracket {color: #cc7;}
+.cm-s-default span.cm-tag {color: #3F7F7F;}
+.cm-s-default span.cm-attribute {color: #7F007F;}
+.cm-s-default span.cm-error {color: #f00;}
+
+.cm-s-default .CodeMirror-activeline-background {background: #e8f2ff !important;}
+.cm-s-default .CodeMirror-matchingbracket {outline:1px solid grey;color:black !important;background:yellow;}

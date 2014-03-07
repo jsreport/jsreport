@@ -4,21 +4,21 @@
         <div class="expandable-body properties" style="display: none">
             <span class="side-title">Engine</span>
             <div class="btn-group dropdown" data-binding="engine">
-                <button class="btn btn-primary btn-sm dropdown-button" data-value="{{:engine}}">{{:engine}}</button>
-                <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
+                <button class="btn btn-danger btn-xs dropdown-button" data-value="{{:engine}}">{{:engine}}</button>
+                <button class="btn btn-danger btn-xs dropdown-toggle" data-toggle="dropdown">
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu pull-right">
                     {{for ~getEngines()}}
-                    <li><a data-value="{{:#data}}">{{:#data}}</a></li>
+                    <li><a data-value="{{:#data}}">{{:#data}} </a></li>
                     {{/for}}
                 </ul>
             </div>
    
             <span class="side-title">Recipe</span>
             <div class="btn-group dropdown" data-binding="recipe">
-                <button class="btn btn-success btn-sm dropdown-button" id="recipe" data-value="{{:recipe}}">{{:recipe}}</button>
-                <button class="btn btn-success btn-sm dropdown-toggle" data-toggle="dropdown">
+                <button class="btn btn-success btn-xs dropdown-button" id="recipe" data-value="{{:recipe}}">{{:recipe}}</button>
+                <button class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown">
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu pull-right">
@@ -31,11 +31,10 @@
     </li>
 </ul>
 
-<div class="navbar-header sub-header">
-    <ul class="nav navbar-nav sub-header" id="extensionsToolbarBox">
-        <p class="navbar-text"><i class="fa fa-th-large"></i></p>
+<div class="navbar-header submenu">
+    <ul class="nav navbar-nav sub-header">
         <li><a id="previewCommand"><i class="fa fa-play"></i>Run</a></li>
-        <li><a id="previewNewTabCommand"><i class="fa fa-desktop"></i>Run in new panel</a></li>
+        <li><a id="previewNewTabCommand"><i class="fa fa-desktop"></i>Run in new tab</a></li>
         <li><a id="saveCommand"><i class="fa fa-save"></i>Save</a></li>
         {{if ~getSettings().mode != "playground" }}
             <li class="pull-right"><a id="apiHelpCommnand" class="pull-right"><i class="fa fa-medkit"></i>API</a></li>

@@ -1,13 +1,13 @@
-﻿<a class="expandable-header"><i class="glyphicon glyphicon-book"></i>Phantom<b class="caret caret-right" {{if ~isFilled()}}style="color: green"{{else}}{{/if}}></b></a>
+﻿<a class="expandable-header"><i class="glyphicon glyphicon-sm glyphicon-file"></i>Phantom PDF<b class="caret caret-right" {{if ~isFilled()}}style="color: green"{{else}}{{/if}}></b></a>
 <div class="expandable-body properties" style="display: none">
     <span class="side-title">Margin</span>
-    <input type="text" class="form-control area-mini" placeholder="1cm" name="margin" value="{{:margin}}">
+    <input type="text" class="form-control area-mini" placeholder="1 cm" name="margin" value="{{:margin}}">
     <span class="side-title">Header height</span>
-    <input type="text" class="form-control area-mini" placeholder="1cm" name="headerHeight" value="{{:headerHeight}}">
+    <input type="text" class="form-control area-mini" placeholder="1 cm" name="headerHeight" value="{{:headerHeight}}">
     <span class="side-title">Header</span>
-    <textarea placeholder="header content" name="header">{{:header}}</textarea>
+    <textarea class="form-control side-textarea" placeholder="header content" name="header">{{:header}}</textarea>
     <span class="side-title">Footer height</span>
-    <input type="text" class="form-control area-mini" placeholder="1cm" name="footerHeight" value="{{:footerHeight}}">
+    <input type="text" class="form-control area-mini" placeholder="1 cm" name="footerHeight" value="{{:footerHeight}}">
     <span class="side-title">Footer</span>
-    <textarea placeholder="footer content" name="footer">{{:footer}}</textarea>
+    <textarea class="form-control side-textarea" placeholder="footer content" name="footer">{{:footer}}</textarea>
 </div>
