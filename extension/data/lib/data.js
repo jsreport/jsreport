@@ -38,8 +38,8 @@ Data = function (reporter, definition) {
     this.DataItemType.addEventListener("beforeCreate", Data.prototype._beforeCreateHandler.bind(this));
     this.DataItemType.addEventListener("beforeUpdate", Data.prototype._beforeUpdateHandler.bind(this));
     
-    this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
-    this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, function(entitySets) {
+    this.reporter.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
+    this.reporter.entitySetRegistrationListners.add(definition.name, this, function(entitySets) {
         if (!self.reporter.playgroundMode) 
             entitySets["data"] = { type: $data.EntitySet, elementType: self.DataItemType };
     });

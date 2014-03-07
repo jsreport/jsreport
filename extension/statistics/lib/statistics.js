@@ -25,9 +25,9 @@ Statistics = function (reporter, definition) {
         }
     });
     
-    this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Statistics.prototype.handleBeforeRender);
-    this.reporter.extensionsManager.afterRenderListeners.add(definition.name, this, Statistics.prototype.handleAfterRender);
-    this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Statistics.prototype.createEntitySetDefinitions);
+    this.reporter.beforeRenderListeners.add(definition.name, this, Statistics.prototype.handleBeforeRender);
+    this.reporter.afterRenderListeners.add(definition.name, this, Statistics.prototype.handleAfterRender);
+    this.reporter.entitySetRegistrationListners.add(definition.name, this, Statistics.prototype.createEntitySetDefinitions);
 };
 
 Statistics.prototype.handleBeforeRender = function (request, response) {

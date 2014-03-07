@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ * 
+ * Core extension responsible for storing and using report templates.
  */ 
 
 var Readable = require("stream").Readable,
@@ -34,8 +36,8 @@ Templating = function(reporter, definition) {
     this.TemplateType.addEventListener("beforeUpdate", Templating.prototype._beforeUpdateHandler.bind(this));
     this.TemplateType.addEventListener("beforeDelete", Templating.prototype._beforeDeleteHandler.bind(this));
 
-    this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Templating.prototype.handleBeforeRender);
-    this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Templating.prototype._createEntitySetDefinitions);
+    this.reporter.beforeRenderListeners.add(definition.name, Templating.prototype.handleBeforeRender.bind(this));
+    this.reporter.entitySetRegistrationListners.add(definition.name, Templating.prototype._createEntitySetDefinitions.bind(this));
 
     if (this.reporter.playgroundMode) {
         this.reporter.initializeListener.add(definition.name, this, function() {

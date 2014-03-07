@@ -5,16 +5,12 @@
  */ 
 
 var winston = require("winston"),
-    sformat = require("stringformat"),
     events = require("events"),
     util = require("util"),
     utils = require("./util.js"),
     _ = require("underscore"),
-    Readable = require("stream").Readable,
-    async = require("async"),
     fs = require("fs"),
     path = require('path'),
-    dir = require("node-dir"),
     S = require("string"),
     foo = require("odata-server"),
     fooo = require("./jaydata/mongoDBStorageProvider.js"),
@@ -30,23 +26,27 @@ function Reporter(options) {
     opt.tenant = opt.tenant || { name: "" };
     this.options = opt;
 
-
     this.logger = winston.loggers.get('jsreport') || winston.loggers.add('jsreport');
 
     events.EventEmitter.call(this);
 
-    this.storageFactory = opt.storageFactory;
     this.blobStorage = opt.blobStorage;
     this.connectionString = opt.connectionString;
-    this.extensionsManager = new ExtensionsManager(this, opt);
     this.playgroundMode = opt.playgroundMode || false;
 
     this.initializeListener = utils.attachLogToListener(new ListenerCollection(), "reporter initialize", self.logger);
+    this.beforeRenderListeners = utils.attachLogToListener(new ListenerCollection(), "before render", self.logger);
+    this.afterRenderListeners = utils.attachLogToListener(new ListenerCollection(), "after render", self.logger);
+    this.entitySetRegistrationListners = utils.attachLogToListener(new ListenerCollection(), "entitySet registration", self.logger);
 
     this.settings = new Settings();
+    this.extensionsManager = new ExtensionsManager(this, this.settings, this.logger, opt);
+    this.extensionsManager.extensionUnregisteredListeners.add(function(extensionName) {
+        self.beforeRenderListeners.remove(extensionName);
+        self.afterRenderListeners.remove(extensionName);
+        self.entitySetRegistrationListners.remove(extensionName);
+    });
 }
-
-;
 
 util.inherits(Reporter, events.EventEmitter);
 
@@ -59,13 +59,17 @@ Reporter.prototype.init = function() {
             self.blobStorage = new(require("./blobStorage/gridFS.js"))(self.options.connectionString);
         }
 
-
         //load all the settings to the memory
         return self.settings.init(self.context).then(function() {
-            //initialize all the extensions - this will trigger context reinit
+            //initialize all the extensions
             return self.extensionsManager.init().then(function() {
-                //let others to do theirs startup work
-                return self.initializeListener.fire();
+                //initialize context again with all extensions
+                return self._initializeDataContext(true).then(function() {
+                    //let others to do theirs startup work
+                    return self.initializeListener.fire().then(function() {
+                        self.logger.info("reporter initialized");
+                    });
+                });
             });
         });
     });
@@ -90,13 +94,12 @@ Reporter.prototype._initializeDataContext = function(withExtensions) {
     var self = this;
     var entitySets = {};
 
-    var defer = Q.defer();
-
-    var fn = function() {
+    var fn = function(cb) {
         self.settings.createEntitySetDefinitions(entitySets);
-        self.contextDefinition = $data.Class.defineEx(self.extendGlobalTypeName("$entity.Context"), [$data.EntityContext, $data.ServiceBase], null, entitySets);
+        self.contextDefinition = $data.Class.defineEx(self.extendGlobalTypeName("$entity.Context"),
+            [$data.EntityContext, $data.ServiceBase], null, entitySets);
 
-        self.context = new self.contextDefinition(this.connectionString);
+        self.context = new self.contextDefinition(self.connectionString);
         self.context.onReady(function() {
 
             //todo IS this still required?
@@ -114,25 +117,25 @@ Reporter.prototype._initializeDataContext = function(withExtensions) {
             };
 
             self.emit("context-ready");
-            defer.resolve(self.context);
+            cb(null, self.context);
         });
     };
 
-    if (withExtensions) {
-        this.extensionsManager.collectEntitySets(entitySets).then(function() {
-            fn.call(self);
-        });
-    } else {
-        fn.call(self);
-    }
+    if (!withExtensions)
+        return Q.nfcall(fn);
 
-    return defer.promise;
+    return this.entitySetRegistrationListners.fire(entitySets).then(function() { return Q.nfcall(fn); });
+
 };
 
 Reporter.prototype.render = function(request) {
     var self = this;
+    
+    request.options = request.options || {};
 
-    request.options = this._defaultOptions(request.options);
+    if (request.options.timeout == null || request.options.timeout == 0)
+        request.options.timeout = 30000;
+    
     request.context = this.startContext();
     request.reporter = self;
 
@@ -141,27 +144,18 @@ Reporter.prototype.render = function(request) {
     };
 
     self.emit("before-render", request, response);
-    return self.extensionsManager.beforeRenderListeners.fire(request, response)
+    return self.beforeRenderListeners.fire(request, response)
         .then(function() {
             self.emit("render", request, response);
             return self.executeRecipe(request, response);
         })
         .then(function() {
             self.emit("after-render", request, response);
-            return self.extensionsManager.afterRenderListeners.fire(request, response);
+            return self.afterRenderListeners.fire(request, response);
         })
         .then(function() {
             return request.context.saveChanges().then(function() { return response; });
         });
-};
-
-Reporter.prototype._defaultOptions = function(options) {
-    options = options || {};
-
-    if (options.timeout == null || options.timeout == 0)
-        options.timeout = 30000;
-
-    return options;
 };
 
 Reporter.prototype.executeRecipe = function(request, response) {

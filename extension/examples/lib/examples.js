@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Examples extension is creating some sample report templates on the startup.
  */ 
 
 var winston = require("winston"),

@@ -138,7 +138,8 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                     if (request.options != null)
                         addBody("options[", request.options);
 
-                    self.addInput(mapForm, "data", request.data);
+                    if (request.data != null)
+                        self.addInput(mapForm, "data", request.data);
 
                     document.body.appendChild(mapForm);
                     mapForm.submit();

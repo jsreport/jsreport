@@ -110,7 +110,10 @@ module.exports = function(reporter, definition) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
-
+        
+        if (req.data != null && req.data != "undefined" && (typeof req.data == 'string' || req.data instanceof String))
+	        req.data = JSON.parse(req.data);
+        
         reporter.render(req).then(function(response) {
               if (response.headers) {
                 for (var key in response.headers) {

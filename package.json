@@ -28,6 +28,7 @@
 	"handlebars": "*",   
 	"jade": "*",   
 	"jaydata": "*",   
+	"moment": "*",   
 	"memorystream": "*",   
 	"mongodb": "*", 
 	"node.extend": "*", 	

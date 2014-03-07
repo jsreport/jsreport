@@ -5,11 +5,9 @@
 module.exports = function (html, helpers, data) {
     var handlebars = require("handlebars");
 
-    if (helpers != null && helpers != "") {
-        var evalHelpers = eval("(" + helpers + ")");
-
-        for (var h in evalHelpers) {
-            handlebars.registerHelper(h, evalHelpers[h]);
+    if (helpers != null) {
+        for (var h in helpers) {
+            handlebars.registerHelper(h, helpers[h]);
         }
     }
 

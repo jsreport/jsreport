@@ -10,7 +10,7 @@ describe('render handlebars', function () {
     });
 
     it('should be able to use helpers', function () {
-        var html = handlebars("{{{a}}}", "{ a: function() { return \"Hey\"; } }", null);
+        var html = handlebars("{{{a}}}", { a: function() { return "Hey"; } }, null);
         assert.equal("Hey", html);
     });
 

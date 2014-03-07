@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Recipe allowing to print pdf from apache fop
  */ 
 
 var childProcess = require('child_process'),
@@ -14,55 +16,54 @@ var childProcess = require('child_process'),
 var logger = winston.loggers.get('jsreport');
 
 
-module.exports = Fop = function(reporter, definition) {
-    
+module.exports = Fop = function(reporter) {
+
     reporter.extensionsManager.recipes.push({
         name: "fop-pdf",
-        
+
         execute: function(request, response) {
-            var deferred = Q.defer();
             logger.info("Rendering fop start.");
 
             var foFilePath = join(__dirname, "reports-tmpl", shortid.generate() + ".fo");
             var htmlRecipe = _.findWhere(reporter.extensionsManager.recipes, { name: "html" });
-                
-            htmlRecipe.execute(request, response)
+
+            return htmlRecipe.execute(request, response)
                 .then(function() { return FS.write(foFilePath, response.result); })
                 .then(function() { return FS.write(foFilePath, response.result); })
                 .then(function() {
-                    logger.info("Rastering pdf child process start.");
+                    return Q.nfcall(function(cb) {
+                        logger.info("Rastering pdf child process start.");
 
-                    var childArgs = [
-                        "-fo",
-                        foFilePath,
-                        "-pdf",
-                        foFilePath.replace(".fo", ".pdf")
-                    ];
+                        var childArgs = [
+                            "-fo",
+                            foFilePath,
+                            "-pdf",
+                            foFilePath.replace(".fo", ".pdf")
+                        ];
 
-                    childProcess.execFile("fop.bat", childArgs, function(error, stdout, stderr) {
-                        logger.info("Rastering pdf child process end.");
+                        childProcess.execFile("fop.bat", childArgs, function(error, stdout, stderr) {
+                            logger.info("Rastering pdf child process end.");
 
-                        if (error !== null) {
-                            logger.error('exec error: ' + error);
-                            return deferred.reject(error);
-                        }
+                            if (error !== null) {
+                                logger.error('exec error: ' + error);
+                                return cb(error);
+                            }
 
-                        if (!fs.existsSync(childArgs[3])) {
-                            return deferred.reject(stderr + stdout);
-                        }
+                            if (!fs.existsSync(childArgs[3])) {
+                                return cb(stderr + stdout);
+                            }
 
 
-                        response.result = fs.createReadStream(childArgs[3]);
-                        response.headers["Content-Type"] = "application/pdf";
-                        response.headers["File-Extension"] = "pdf";
-                        response.isStream = true;
+                            response.result = fs.createReadStream(childArgs[3]);
+                            response.headers["Content-Type"] = "application/pdf";
+                            response.headers["File-Extension"] = "pdf";
+                            response.isStream = true;
 
-                        logger.info("Rendering pdf end.");
-                        return deferred.resolve(response);
+                            logger.info("Rendering pdf end.");
+                            return cb(null, response);
+                        });
                     });
                 });
-
-            return deferred.promise;
         }
     });
 };

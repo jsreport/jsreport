@@ -40,8 +40,8 @@ Scripts = function (reporter, definition) {
     this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
     this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
     
-    this.reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
-    this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
+    this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
+    this.reporter.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
 
 Scripts.prototype.create = function(context, script) {
@@ -65,55 +65,54 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         return request.context.scripts.single(function(s) { return s.shortid == this.id; }, { id: request.template.scriptId });
     };
 
-    return FindScript().then(function (script) {
-        var qdefer = Q.defer();
+    return FindScript().then(function(script) {
+
         script = script.content || script;
-
         var child = fork(join(__dirname, "scriptEvalChild.js"));
-
         var isDone = false;
 
-        child.on('message', function(m) {
-            isDone = true;
-            if (m.error) {
-                logger.error("Child process process resulted in error " + JSON.stringify(m.error));
-                logger.error(m);
-                return qdefer.reject({ message: m.error, stack: m.errorStack });
-            }
+        return Q.nfcall(function(cb) {
 
-            logger.info("Child process successfully finished.");
+            child.on('message', function(m) {
+                isDone = true;
+                if (m.error) {
+                    logger.error("Child process process resulted in error " + JSON.stringify(m.error));
+                    logger.error(m);
+                    return cb({ message: m.error, stack: m.errorStack });
+                }
 
-            request.data = m.request.data;
-            request.template.content = m.request.template.content;
-            request.template.helpers = m.request.template.helpers;
-        
-            return qdefer.resolve();
+                logger.info("Child process successfully finished.");
+
+                request.data = m.request.data;
+                request.template.content = m.request.template.content;
+                request.template.helpers = m.request.template.helpers;
+
+                return cb();
+            });
+
+            child.send({
+                script: script,
+                request: {
+                    data: request.data,
+                    template: {
+                        content: request.template.content,
+                        helpers: request.template.helpers,
+                    }
+                },
+                response: response
+            });
+
+            logger.info("Child process started.");
+
+            setTimeout(function() {
+                if (isDone)
+                    return;
+
+                child.kill();
+                logger.error("Child process resulted in timeout.");
+                return cb({ message: "Timeout error during script execution" });
+            }, 60000);
         });
-        
-        child.send({
-            script: script,
-            request: {
-                 data: request.data,
-                 template: {
-                     content: request.template.content,
-                     helpers: request.template.helpers,
-                 }
-            },
-            response: response
-        });
-
-        logger.info("Child process started.");
-
-        setTimeout(function() {
-            if (isDone)
-                return;
-
-            child.kill();
-            logger.error("Child process resulted in timeout.");
-            return qdefer.reject({ message: "Timeout error during script execution" });
-        }, 60000);
-
-        return qdefer.promise;
     });
 };
 

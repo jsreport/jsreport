@@ -22,6 +22,7 @@ module.exports = function(app, options, cb) {
         if (tenant.isActivated) {
             return tcb(null, tenant);
         }
+
         var opts = extend(true, {}, options);
         var main = express();
 
@@ -29,10 +30,10 @@ module.exports = function(app, options, cb) {
         opts.tenant = tenant;
         opts.playgroundMode = false;
         opts.connectionString.databaseName = tenant.name;
+
         var rep = new Reporter(opts);
 
         app.use(express.vhost(tenant.name + '.*', main));
-        
         rep.init().then(function() {
             tenant.isActivated = true;
             tenant.reporter = rep;
@@ -89,61 +90,102 @@ module.exports = function(app, options, cb) {
         });
     }));
 
+    //authenticate basic if request to API
     app.use(function(req, res, next) {
-        var domains = req.headers.host.split('.');
+        if ((!req.isAuthenticated || !req.isAuthenticated()) && (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0)) {
+            passport.authenticate('basic', function(err, result, info) {
+                if (!result) {
+                    return res.send(401);
+                }
 
-        if (domains.length != options.subdomainsCount)
-            return next();
-
-        return activateTenant(multitenancy.findTenantByName(domains[0]), function() {
-            return next();
-        });
+                return next();
+            })(req, res, next);
+        } else {
+            next();
+        }
     });
 
     app.use(function(req, res, next) {
         var isUrlRequirignAuthnetication =
-            req.url.indexOf("$metadata") == -1 && 
-            (req.method != "POST" || req.url != "/login") &&
-            (req.method != "GET" || req.url != "/") &&
-            (req.method != "POST" || req.url != "/register");
+            req.url.indexOf("$metadata") == -1 &&
+                (req.method != "POST" || req.url != "/login") &&
+                (req.method != "GET" || req.url != "/") &&
+                (req.method != "POST" || req.url != "/register");
 
+        //not authenticated but requiring
         if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
-
-            if (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0) {
-                passport.authenticate('basic', function(err, result, info) {
-                    if (!result) {
-                        return res.send(401);
-                    }
-                    
-                    return next();
-                })(req, res, next);
-            } else {
-
-                if (req.session) {
-                    req.session.returnTo = req.originalUrl || req.url;
-                }
-                
-                return res.redirect("/");
-            }
-        } else {
-
-            if (!req.isAuthenticated || !req.isAuthenticated())
-                return next();
-            
-            var domains = req.headers.host.split('.');
-            if (domains.length == options.subdomainsCount)
-                return next();
-
-            if (options.useSubDomains) {
-                domains.unshift(req.user.name);
-                return res.redirect("https://" + domains.join("."));
-            }
-
-            activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
-                return tenant.reporter.options.express.app(req, res, next);
-            });
+            return res.redirect("/");
         }
+        
+        //not authenticated and not requiring
+         if ((!req.isAuthenticated || !req.isAuthenticated()) && !isUrlRequirignAuthnetication) {
+             return next();
+         }
+        
+        //authenticated
+        activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
+            if (!options.useSubDomains) {
+                return tenant.reporter.options.express.app(req, res, next);
+            }
+
+            var domains = req.headers.host.split('.');
+
+            if (options.subdomainsCount == domains.length)
+                return next();
+
+            domains.unshift(req.user.name);
+            return res.redirect("https://" + domains.join("."));
+        });
     });
+
+    //app.use(function(req, res, next) {
+    //    var isUrlRequirignAuthnetication =
+    //        req.url.indexOf("$metadata") == -1 &&
+    //            (req.method != "POST" || req.url != "/login") &&
+    //            (req.method != "GET" || req.url != "/") &&
+    //            (req.method != "POST" || req.url != "/register");
+
+    //    //not 
+
+
+    //    //user not authenticated and we need authentication   
+    //    if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
+
+    //        // basic authentication for api,
+    //        if (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0) {
+    //            passport.authenticate('basic', function(err, result, info) {
+    //                if (!result) {
+    //                    return res.send(401);
+    //                }
+
+    //                return next();
+    //            })(req, res, next);
+    //        } else {
+    //            //not api, not authenticated, go to login page
+    //            if (req.session) {
+    //                req.session.returnTo = req.originalUrl || req.url;
+    //            }
+
+    //            return res.redirect("/");
+    //        }
+    //    } else {
+    //        if (!req.isAuthenticated || !req.isAuthenticated())
+    //            return next();
+
+    //        var domains = req.headers.host.split('.');
+    //        if (domains.length == options.subdomainsCount)
+    //            return next();
+
+    //        if (options.useSubDomains) {
+    //            domains.unshift(req.user.name);
+    //            return res.redirect("https://" + domains.join("."));
+    //        }
+
+    //        activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
+    //            return tenant.reporter.options.express.app(req, res, next);
+    //        });
+    //    }
+    //});
 
     passport.serializeUser(function(user, done) {
         done(null, user.email);
@@ -176,7 +218,7 @@ module.exports = function(app, options, cb) {
     });
 
     app.post('/login', function(req, res, next) {
-        
+
         req.session.viewModel = req.session.viewModel || {};
 
         passport.authenticate('local', function(err, user, info) {
@@ -213,7 +255,7 @@ module.exports = function(app, options, cb) {
             req.session.viewModel.name = "Tenant name is already taken.";
             return res.redirect('/');
         }
-        
+
         if (!validator.isEmail(req.body.username)) {
             req.session.viewModel.username = "Not valid email.";
             return res.redirect('/');
@@ -228,30 +270,26 @@ module.exports = function(app, options, cb) {
             req.session.viewModel.passwordConfirm = "Passwords are not the same.";
             return res.redirect('/');
         }
-
         multitenancy.registerTenant(req.body.username, req.body.name, req.body.password).then(function(tenant) {
-            activateTenant(tenant, function() {
-                passport.authenticate('local', function(err, user, info) {
+            passport.authenticate('local', function(err, user, info) {
+                if (err) {
+                    return next(err);
+                }
+
+                req.logIn(user, function(err) {
                     if (err) {
                         return next(err);
                     }
-
-                    req.logIn(user, function(err) {
-                        if (err) {
-                            return next(err);
-                        }
-                        return res.redirect('/');
-                    });
-                })(req, res);
-            });
+                    return res.redirect('/');
+                });
+            })(req, res);
         }, function() {
-
         });
     });
 
     app.post("/logout", function(req, res) {
         req.logout();
-        
+
         var domains = req.headers.host.split('.');
 
         res.redirect("https://" + domains[domains.length - 2] + "." + domains[domains.length - 1]);
@@ -279,7 +317,6 @@ var Multitenancy = function(options) {
     });
 
     this.options = extend(true, {}, options);
-    this.options.connectionString.databaseName = "root";
 
     this._tenantsCache = [];
 };

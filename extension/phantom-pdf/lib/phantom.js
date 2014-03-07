@@ -5,8 +5,6 @@
  */ 
 
 var childProcess = require('child_process'),
-    //phantomjs = require('phantomjs'),
-    //binPath = phantomjs.path,
     fork = require('child_process').fork,
     shortid = require("shortid"),
     join = require("path").join,
@@ -47,84 +45,69 @@ Phantom = function(reporter, definition) {
     });
 };
 
-Phantom.prototype._processHeaderFooter = function(request, generationId, filePostfix, content) {
-    if (content == null)
-        return Q(null);
-
-    var req = extend(true, {}, request);
-    req.template = { content: content, recipe: "html" };
-
-    return this.reporter.render(req).then(function(resp) {
-        var filePath = join(__dirname, "reports-tmpl", generationId + "-" + filePostfix + ".html");
-        return FS.write(filePath, resp.result).then(function() {
-            return filePath;
-        });
-    });
-};
-
-
 Phantom.prototype.execute = function(request, response) {
     var self = this;
 
     request.template.phantom = request.template.phantom || new self.PhantomType();
-
-    var deferred = Q.defer();
-    logger.info("Rendering pdf start.");
+    
+    var generationId = shortid.generate();
+    var htmlFile = join(__dirname, "reports-tmpl", generationId + ".html");
 
     request.template.recipe = "html";
-    this.reporter.executeRecipe(request, response).then(function() {
-        //i was not able to pipe html into child process. therefore I am storing html into temporary file
+    return this.reporter.executeRecipe(request, response)
+        .then(function() { return FS.write(htmlFile, response.result); })
+        .then(function() { return self._processHeaderFooter(request, generationId, "header"); })
+        .then(function() { return self._processHeaderFooter(request, generationId, "footer"); })
+        .then(function() {
 
-        logger.debug("Rastering pdf child process start.");
-        var generationId = shortid.generate();
+            return Q.nfcall(function(cb) {
+                var childArgs = [
+                    join(__dirname, 'convertToPdf.js'),
+                    "file:///" + htmlFile,
+                    join(__dirname, "reports-tmpl", generationId + ".pdf"),
+                    request.template.phantom.margin || "null",
+                    request.template.phantom.headerFile || "null",
+                    request.template.phantom.footerFile || "null",
+                    request.template.phantom.headerHeight || "null",
+                    request.template.phantom.footerHeight || "null"
+                ];
+           
+                childProcess.execFile("phantomjs.CMD", childArgs, function(error, stdout, stderr) {
+                    logger.info("Rastering pdf child process end.");
 
-        var htmlFile = join(__dirname, "reports-tmpl", generationId + ".html");
-        FS.write(htmlFile, response.result).then(function() {
-            self._processHeaderFooter(request, generationId, "header", request.template.phantom.header).then(function(header) {
-                self._processHeaderFooter(request, generationId, "footer", request.template.phantom.footer).then(function(footer) {
+                    //console.log(stdout);
+                    //console.log(stderr);
+                    //console.log(error);
 
-                    var childArgs = [
-                        join(__dirname, 'convertToPdf.js'),
-                        "file:///" + htmlFile,
-                        join(__dirname, "reports-tmpl", generationId + ".pdf"),
-                        request.template.phantom.margin || "null",
-                        header || "null",
-                        footer || "null",
-                        request.template.phantom.headerHeight || "null",
-                        request.template.phantom.footerHeight || "null"
-                    ];
+                    if (error !== null) {
+                        logger.error('exec error: ' + error);
+                        return cb(error);
+                    }
 
-                    //binPath variable is having path to my local development phantom
-                    //I will asume here that phantom is in the path variable, its anyway inside npm
-                    //and npm is in path. We will si how this will work under unix
-                    childProcess.execFile("phantomjs.CMD", childArgs, function(error, stdout, stderr) {
-                        logger.info("Rastering pdf child process end.");
+                    response.result = fs.createReadStream(childArgs[2]);
+                    response.headers["Content-Type"] = "application/pdf";
+                    response.headers["File-Extension"] = "pdf";
+                    response.isStream = true;
 
-                        //console.log(stdout);
-                        //console.log(stderr);
-                        //console.log(error);
-
-                        if (error !== null) {
-                            logger.error('exec error: ' + error);
-                            return deferred.reject(error);
-                        }
-
-                        response.result = fs.createReadStream(childArgs[2]);
-                        response.headers["Content-Type"] = "application/pdf";
-                        response.headers["File-Extension"] = "pdf";
-                        response.isStream = true;
-
-                        logger.info("Rendering pdf end.");
-                        return deferred.resolve();
-                    });
+                    logger.info("Rendering pdf end.");
+                    return cb();
                 });
-            }, function(err) {
-                deferred.reject(err);
             });
         });
-    }, function(err) {
-        deferred.reject(err);
-    });
+};
 
-    return deferred.promise;
+Phantom.prototype._processHeaderFooter = function(request, generationId, type) {
+    if (request.template.phantom[type] == null)
+        return Q(null);
+
+    var req = extend(true, {}, request);
+    req.template = { content: request.template.phantom[type], recipe: "html" };
+    req.data = extend(true, {}, request.data);
+
+    return this.reporter.render(req).then(function(resp) {
+        var filePath = join(__dirname, "reports-tmpl", generationId + "-" + type + ".html");
+        return FS.write(filePath, resp.result).then(function() {
+            request.template.phantom[type + "File"] = filePath;
+        });
+    });
 };

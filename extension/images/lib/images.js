@@ -46,7 +46,7 @@ Images = function(reporter, definition) {
         entity.modificationDate = new Date();
     });
 
-    this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Images.prototype._createEntitySetDefinitions.bind(this));
+    this.reporter.entitySetRegistrationListners.add(definition.name, this, Images.prototype._createEntitySetDefinitions.bind(this));
     this.reporter.on("express-configure", Images.prototype._configureExpress.bind(this));
 
     this.reporter.initializeListener.add(definition.name, this, function() {

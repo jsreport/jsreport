@@ -19,7 +19,7 @@ ChildTemplates = function(reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
-    reporter.extensionsManager.beforeRenderListeners.add(definition.name, this, ChildTemplates.prototype.handleBeforeRender);
+    reporter.beforeRenderListeners.add(definition.name, this, ChildTemplates.prototype.handleBeforeRender);
 };
 
 ChildTemplates.prototype.handleBeforeRender = function(request, response) {

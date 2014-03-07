@@ -5,27 +5,44 @@
  */ 
 
 process.on('message', function (m) {
-    
     try {
-        var safeExecute = function (func, m) {
-            var content = func(m.template.content, m.template.helpers, m.data);
-            process.send({
-                content: content
-            });
+        
+        var _require = function (moduleName) {
+            var allowedModules = ["handlebars", "moment"];
+
+            if (allowedModules.filter(function (mod) { return mod == moduleName; }).length == 1) {
+
+                return require(moduleName);
+            }
+
+            throw new Error("Unsupported module " + moduleName);
+        };
+        
+        var vm = require('vm');
+        var sandbox = {
+            _: require("underscore"),
+            moment: require("moment"),
+            m : m,
+            require: _require,
+            render: require("./" + m.template.engine + "Engine" + ".js"),
+            respond: function(content) {
+                process.send({
+                    content: content
+                });
+            }
         };
 
-        _ = require("underscore");
-        var render = require("./" + m.template.engine + "Engine" + ".js");
-        safeExecute(render, m);
+        if (m.template.helpers != null && m.template.helpers != "") {
+            vm.runInNewContext("m.template.helpers = eval(\"(\" + m.template.helpers + \")\");", sandbox);
+        } else
+            m.helpers = {};
+        
+        vm.runInNewContext("respond(render(m.template.content, m.template.helpers, m.data))", sandbox);
     } catch (ex) {
-        console.log(ex);
         process.send({
             error: ex.message,
             errorStack: ex.stack
         });
+        process.exit();
     }
-
-    process.exit();
 });
-
-

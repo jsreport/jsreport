@@ -10,8 +10,8 @@
     },
     useSubDomains: true,
     subdomainsCount: 3,
-    connectionString: { name: "mongoDB", address: "localhost", port: 27017 },
-    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples", "statistics", "reports", "jsreport-import-export"],
+    connectionString: { name: "mongoDB", address: "localhost", port: 27017, databaseName: "root" },
+    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples", "statistics", "reports", "jsreport-import-export", "childTemplates"],
     mode: "multitenant",
     port: 3000,
     httpPort: 4000

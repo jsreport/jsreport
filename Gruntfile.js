@@ -70,7 +70,7 @@
                //src: ['extension/childTemplates' + '/test/*.js']
             },
             testExact: {
-                src: ['extension/reports/test/*.js']
+                src: ['test/multitenancyTest.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           

@@ -30,96 +30,97 @@
     <script src="js/github.info.js"></script>
     <title>jsReport - SignUp</title>
 </head>
-<body class="metro">
-<div id="wrap" class="bg-grayLighter">
-<nav class="navigation-bar dark">
-    <nav class="navigation-bar-content container">
-        <a class="element brand"><div class="brand-logo"></div></a>
-    </nav>
-</nav>
-<div class="bg-cyan main-title">
-   <div class="container padding20 fg-white">
-     <h1 class="fg-white"><a href="/"><i class="icon-arrow-left-3 smaller fg-white"></i></a>
-     JsReport Login<small class="on-right">STUDIO</small></h1>
-   </div>
-</div>
+    <body class="metro">
+        <!-- jsreport$login for unit tests... -->
+        <div id="wrap" class="bg-grayLighter">
+            <nav class="navigation-bar dark">
+                <nav class="navigation-bar-content container">
+                    <a class="element brand"><div class="brand-logo"></div></a>
+                </nav>
+            </nav>
+            <div class="bg-cyan main-title">
+                <div class="container padding20 fg-white">
+                    <h1 class="fg-white"><a href="/"><i class="icon-arrow-left-3 smaller fg-white"></i></a>
+                        JsReport Login<small class="on-right">STUDIO</small></h1>
+                </div>
+            </div>
 
-<div class="bg-white padding20">
-<div class="container">  
+            <div class="bg-white padding20">
+                <div class="container">  
 
-			    	<h3>Use your jsReport account</h3>
+                    <h3>Use your jsReport account</h3>
 
-			    	<form class="form-login span4" accept-charset="UTF-8" action="/login" method="POST" role="form">
-                    <fieldset>
-						<div class="input-control text" data-role="input-control">
-			    		    <input class="text" placeholder="username" name="username" type="text">
-			    		</div>
-						<div class="input-control text" data-role="input-control">
-			    			<input class="text" placeholder="password" name="password" type="password" value="">
-			    		</div>
-			    		<div class="input-control checkbox">
-			    	    	 <label>
-			    	    		<input name="remember" type="checkbox" value="Remember Me"><span class="check"></span> Remember Me
-			    	    	</label>
-			    	    </div>
-                        <div>
-                            <% if (viewModel.login) { %>
-                            <span class="input-err"><%= viewModel.login %></span>
-                            <% } %>
-                        </div>
+                    <form class="form-login span4" accept-charset="UTF-8" action="/login" method="POST" role="form">
+                        <fieldset>
+                            <div class="input-control text" data-role="input-control">
+                                <input class="text" placeholder="username" name="username" type="text">
+                            </div>
+                            <div class="input-control text" data-role="input-control">
+                                <input class="text" placeholder="password" name="password" type="password" value="">
+                            </div>
+                            <div class="input-control checkbox">
+                                <label>
+                                    <input name="remember" type="checkbox" value="Remember Me"><span class="check"></span> Remember Me
+                                </label>
+                            </div>
+                            <div>
+                                <% if (viewModel.login) { %>
+                                <span class="input-err"><%= viewModel.login %></span>
+                                <% } %>
+                            </div>
 
-						<br>
-			    		<button class="button btn-login span4 success fg-white" type="submit"><i class="icon-arrow-right-3 fg-white on-left"></i> Log in with jsReport</button>
-			    	</fieldset>
-			      	</form>
+                            <br>
+                            <button class="button btn-login span4 success fg-white" type="submit"><i class="icon-arrow-right-3 fg-white on-left"></i> Log in with jsReport</button>
+                        </fieldset>
+                    </form>
 
 
-		</div>
-	</div>
+                </div>
+            </div>
                 
-<div class="padding20">  
-  <div class="container">                
-			    <h3>Create new account</h3>
-			    <form class="form-login span4" accept-charset="UTF-8" action="/register" method="POST" role="form">
-                    <fieldset>
-						<div class="input-control text" data-role="input-control">
-			    		    <input class="text" placeholder="e-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
-			    		</div>
-						<div class="input-control text" data-role="input-control">
-			    		    <input class="text" placeholder="username" type="text" name="name" value="<%= viewModel.previousName || '' %>">
-			    		        <% if (viewModel.name) { %>
+            <div class="padding20">  
+                <div class="container">                
+                    <h3>Create new account</h3>
+                    <form class="form-login span4" accept-charset="UTF-8" action="/register" method="POST" role="form">
+                        <fieldset>
+                            <div class="input-control text" data-role="input-control">
+                                <input class="text" placeholder="e-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
+                            </div>
+                            <div class="input-control text" data-role="input-control">
+                                <input class="text" placeholder="username" type="text" name="name" value="<%= viewModel.previousName || '' %>">
+                                <% if (viewModel.name) { %>
                                 <span class="input-err"><%= viewModel.name %></span>
                                 <% } %>			    		        
-                        </div>
-						<div class="input-control text" data-role="input-control">
-			    			<input class="text" placeholder="password" name="password" type="password" value="">
-								<% if (viewModel.password) { %>
-								<span class="input-err"><%= viewModel.password %></span>
-								<% } %>            
-			    		</div>
-						<div class="input-control text" data-role="input-control">
-			    			<input class="text" placeholder="confirm password" type="password" name="passwordConfirm" value="">
-			    		</div>
-								<% if (viewModel.passwordConfirm) { %>
-								<span class="input-err"><%= viewModel.passwordConfirm %></span>
-								<% } %>
-			    		<button class="button btn-login span4 info fg-white" type="submit">Create account</button>
-					</fieldset>
-			    </form>
-		</div>
-	</div>
-</div>
+                            </div>
+                            <div class="input-control text" data-role="input-control">
+                                <input class="text" placeholder="password" name="password" type="password" value="">
+                                <% if (viewModel.password) { %>
+                                <span class="input-err"><%= viewModel.password %></span>
+                                <% } %>            
+                            </div>
+                            <div class="input-control text" data-role="input-control">
+                                <input class="text" placeholder="confirm password" type="password" name="passwordConfirm" value="">
+                            </div>
+                            <% if (viewModel.passwordConfirm) { %>
+                            <span class="input-err"><%= viewModel.passwordConfirm %></span>
+                            <% } %>
+                            <button class="button btn-login span4 info fg-white" type="submit">Create account</button>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-<div id="footer" class="bg-dark">
-    <div class="container fg-white">
-	&copy; 2014 <a href="http://jsreport.net" class="fg-blue">jsReport</a> All rights reserved.
-	<a class="button info span3 place-right" href="https://github.com/olton/Metro-UI-CSS"><i class="icon-github"></i> Github</a>
-	</div>        
-</div>
-    <!-- JavaScript -->
-    <script src="js/jquery-1.10.2.js"></script>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/jquery.widget.min.js"></script>
-    <script src="js/metro.min.js"></script>
-</body>
+        <div id="footer" class="bg-dark">
+            <div class="container fg-white">
+                &copy; 2014 <a href="http://jsreport.net" class="fg-blue">jsReport</a> All rights reserved.
+                <a class="button info span3 place-right" href="https://github.com/olton/Metro-UI-CSS"><i class="icon-github"></i> Github</a>
+            </div>        
+        </div>
+        <!-- JavaScript -->
+        <script src="js/jquery-1.10.2.js"></script>
+        <script src="js/jquery.min.js"></script>
+        <script src="js/jquery.widget.min.js"></script>
+        <script src="js/metro.min.js"></script>
+    </body>
 </html>

@@ -26,8 +26,8 @@ Reporting = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
     
-    this.reporter.extensionsManager.afterRenderListeners.add(definition.name, this, Reporting.prototype.handleAfterRender);
-    this.reporter.extensionsManager.entitySetRegistrationListners.add(definition.name, this, Reporting.prototype.createEntitySetDefinitions);
+    this.reporter.afterRenderListeners.add(definition.name, this, Reporting.prototype.handleAfterRender);
+    this.reporter.entitySetRegistrationListners.add(definition.name, this, Reporting.prototype.createEntitySetDefinitions);
     this.reporter.on("express-configure", Reporting.prototype.configureExpress.bind(this));
 };
 

@@ -44,4 +44,19 @@ describe('render', function () {
             done();
         });
     });
+    
+    it('rendering should block require', function (done) {
+        var request = {
+            template: {
+                content: "{{:~fs()}}",
+                helpers: "{ \"fs\" : function() { return require('fs') != null; } }",
+            },
+            options: { timeout: 1000}
+        };
+        
+        render(request, {}, function(err, response) {
+            assert.notEqual(err, null);
+            done();
+        });
+    });
 });

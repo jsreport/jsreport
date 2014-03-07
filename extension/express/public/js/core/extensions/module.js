@@ -16,16 +16,16 @@ define(["app", "marionette", "backbone", "core/extensions/extension.manager",
                 });
             };
             
-            app.on("menu-actions-render", function (context) {
-                context.result += "<li><a id='registerExtensiosLink'>Register Extensions</a></li>";
-                context.on("after-render", function ($el) {
-                    $el.find("#registerExtensiosLink").click(function () {
-                        app.layout.dialog.show(new ExtensionListView({
-                            model: new ExtensionListModel()
-                        }));
-                    });
-                });
-            });
+            //app.on("menu-actions-render", function (context) {
+            //    context.result += "<li><a id='registerExtensiosLink'>Register Extensions</a></li>";
+            //    context.on("after-render", function ($el) {
+            //        $el.find("#registerExtensiosLink").click(function () {
+            //            app.layout.dialog.show(new ExtensionListView({
+            //                model: new ExtensionListModel()
+            //            }));
+            //        });
+            //    });
+            //});
             
         });
     });

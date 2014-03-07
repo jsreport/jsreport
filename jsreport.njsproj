@@ -630,6 +630,7 @@
     <Folder Include="extension\examples\public" />
     <Folder Include="extension\express\" />
     <Folder Include="extension\express\lib" />
+    <Folder Include="extension\express\test\" />
     <Folder Include="extension\express\public\fonts\" />
     <Folder Include="extension\express\public\views\" />
     <Folder Include="extension\fop-pdf\integrationTest\" />
@@ -727,6 +728,7 @@
     <Compile Include="extension\express\public\lib\jquery.flot.canvas.js" />
     <Compile Include="extension\express\public\lib\jquery.flot.symbol.js" />
     <Compile Include="extension\express\public\lib\require.min.js" />
+    <Compile Include="extension\express\test\expressTest.js" />
     <Compile Include="extension\fop-pdf\integrationTest\fopTest.js" />
     <Compile Include="extension\fop-pdf\jsreport.config.js" />
     <Compile Include="extension\html\jsreport.config.js" />
@@ -767,6 +769,7 @@
     <Compile Include="reporter.install.js" />
     <Compile Include="test\extensionsManagerTest.js" />
     <Compile Include="test\gridFSTest.js" />
+    <Compile Include="test\multitenancyTest.js" />
     <Compile Include="test\settingsTest.js" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />

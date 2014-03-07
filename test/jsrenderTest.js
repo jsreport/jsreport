@@ -9,7 +9,7 @@ describe('render jsrender', function () {
     });
 
     it('should be able to use helpers', function () {
-        var html = jsrender("{{>~a()}}", "{ a: function() { return \"Hey\"; } }", null);
+        var html = jsrender("{{>~a()}}", { a: function() { return "Hey"; } }, null);
         assert.equal("Hey", html);
     });
 

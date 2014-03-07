@@ -14,7 +14,7 @@ var events = require("events"),
     Q = require("q"),
     ListenerCollection = require("./listenerCollection.js");
 
-module.exports = ExtensionsManager = function(reporter, options) {
+module.exports = ExtensionsManager = function(reporter, settings, logger, options) {
     var self = this;
     events.EventEmitter.call(this);
 
@@ -23,16 +23,16 @@ module.exports = ExtensionsManager = function(reporter, options) {
     this.recipes = [];
     this.reporter = reporter;
     this.options = options;
-
-    this.beforeRenderListeners = utils.attachLogToListener(new ListenerCollection(), "before render", reporter.logger);
-    this.afterRenderListeners = utils.attachLogToListener(new ListenerCollection(), "after render", reporter.logger);
-    this.entitySetRegistrationListners = utils.attachLogToListener(new ListenerCollection(), "entitySet registration", reporter.logger);
-
+    this.settings = settings;
+    this.logger = logger;
+    
     Object.defineProperty(this, "extensions", {
         get: function() {
             return self.availableExtensions.filter(function(e) { return e.isRegistered; });
         }
     });
+    
+    this.extensionUnregisteredListeners = new ListenerCollection();
 };
 
 util.inherits(ExtensionsManager, events.EventEmitter);
@@ -44,33 +44,34 @@ ExtensionsManager.prototype.init = function() {
         extensions.forEach(function(e) { e.options = self.options[e.name]; });
         self.availableExtensions = extensions;
 
-        self.registrationSetting = self.reporter.settings.get("registeredExtensions");
+        self.registrationSetting = self.settings.get("registeredExtensions");
 
         if (self.registrationSetting == null) {
-            self.reporter.logger.info("Extension registrations settings was not found. Creating new one");
+            self.logger.info("Extension registrations settings was not found. Creating new one");
 
-            return self.reporter.settings.add("registeredExtensions", self.defaultExtensions.toString()).then(function() {
+            return self.settings.add("registeredExtensions", self.defaultExtensions.toString()).then(function() {
                 return self.use(self.defaultExtensions).then(function() {
-                    self.reporter.logger.info("Extensions loaded.");
+                    self.logger.info("Extensions loaded.");
                 });
             });
         } else {
-            self.reporter.logger.info("Extension registrations settings was found. ");
-
-            self.registrationSetting.value = self.reporter.loadExtensionsFromPersistedSetting ?
+            self.logger.info("Extension registrations settings was found. ");
+        
+            self.registrationSetting.value = self.options.loadExtensionsFromPersistedSetting ?
                 self.registrationSetting.value : self.defaultExtensions.toString();
-
+            
             return self.use(self.registrationSetting.value.split(",")).then(function() {
-                self.reporter.logger.info("Extensions loaded");
+                self.logger.info("Extensions loaded");
             });
         }
     });
 };
 
 ExtensionsManager.prototype._useInternal = function(extension) {
-    this.reporter.logger.info("Using extension " + extension);
+    this.logger.info("Using extension " + extension);
 
     var extensionDefinition = _.findWhere(this.availableExtensions, { name: extension });
+    
     require(path.join(extensionDefinition.directory, extensionDefinition.main)).call(this, this.reporter, extensionDefinition);
 
     extensionDefinition.isRegistered = true;
@@ -79,6 +80,10 @@ ExtensionsManager.prototype._useInternal = function(extension) {
 };
 
 ExtensionsManager.prototype.use = function(extension) {
+    if (extension == "") {
+        return Q("");
+    }
+
     var self = this;
     if (!_.isArray(extension))
         extension = [extension];
@@ -88,34 +93,27 @@ ExtensionsManager.prototype.use = function(extension) {
 };
 
 ExtensionsManager.prototype._refresh = function() {
-    var self = this;
-
     var registredExtensionsString = this.extensions.map(function(e) { return e.name; }).toString();
-    return this.reporter.settings.set("registeredExtensions", registredExtensionsString).then(function() {
-        return self.reporter._initializeDataContext(true);
-    });
+    return this.settings.set("registeredExtensions", registredExtensionsString);
 };
 
 ExtensionsManager.prototype.unregister = function(extensionName) {
 
-    if (this.reporter.playgroundMode) {
+    if (this.options.playgroundMode) {
         throw new Error("Cannot unregiester extensions in playground mode.");
     }
 
     var extensionToRemove = _.findWhere(this.availableExtensions, { name: extensionName });
     extensionToRemove.isRegistered = false;
-    this.emit("extension-unregistered", extensionToRemove);
 
-    this.beforeRenderListeners.remove(extensionName);
-    this.afterRenderListeners.remove(extensionName);
-    this.entitySetRegistrationListners.remove(extensionName);
-
-    return this._refresh();
+    return this.extensionUnregisteredListeners.fire(extensionName).then(function() {
+        return this._refresh();
+    });
 };
 
 var _availableExtensionsCache;
 ExtensionsManager.prototype._findAvailableExtensions = function() {
-    this.reporter.logger.info("Searching for available extensions");
+    this.logger.info("Searching for available extensions");
 
     if (this.options.cacheAvailableExtensions && _availableExtensionsCache != null)
         return Q(_availableExtensionsCache);
@@ -161,8 +159,4 @@ ExtensionsManager.prototype._findAvailableExtensions = function() {
         _availableExtensionsCache = availableExtensions;
         return availableExtensions;
     });
-};
-
-ExtensionsManager.prototype.collectEntitySets = function(entitySets) {
-    return this.entitySetRegistrationListners.fire(entitySets);
 };
