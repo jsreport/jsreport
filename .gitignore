@@ -127,3 +127,4 @@ config/*
 extension/phantom-pdf/lib/reports-tmpl/*
 extension/fop-pdf/lib/reports-tmpl/*
 
+/web.config
