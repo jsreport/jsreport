@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".travis.yml" />
+    <Content Include="config\playground.web.config" />
     <Content Include="extensionsManager.js">
       <SubType>Content</SubType>
     </Content>
@@ -703,6 +704,7 @@
     <Compile Include="config\debug.mfr.config.js" />
     <Compile Include="config\debug.playground.config.js" />
     <Compile Include="config\debug.standard.config.js" />
+    <Compile Include="config\multitenant.web.config" />
     <Compile Include="config\production.mfr.config.js" />
     <Compile Include="config\production.multitenant.config.js" />
     <Compile Include="config\production.playground.config.js" />
@@ -762,6 +764,7 @@
     <Compile Include="extension\templates\public\js\template.list.toolbar.view.js" />
     <Compile Include="extension\test\public\js\list.js" />
     <Compile Include="extension\test\public\js\main.js" />
+    <Compile Include="index.js" />
     <Compile Include="jaydata\mongoDBStorageProvider.js" />
     <Compile Include="mongoTmp.js" />
     <Compile Include="multitenancy.js" />
