@@ -8,11 +8,11 @@
     MongoClient = require('mongodb').MongoClient;
 
 
-exports.describeReportingPlayground = function(extensions, nestedSuite) {
-    exports.describeReporting(extensions, true, nestedSuite);
+exports.describeReportingPlayground = function(rootDirectory, extensions, nestedSuite) {
+    exports.describeReporting(rootDirectory, extensions, true, nestedSuite);
 };
 
-exports.describeReporting = function (extensions, isPlayground, nestedSuite) {
+exports.describeReporting = function (rootDirectory, extensions, isPlayground, nestedSuite) {
     if (_.isFunction(isPlayground)) {
         nestedSuite = isPlayground;
         isPlayground = false;
@@ -33,7 +33,8 @@ exports.describeReporting = function (extensions, isPlayground, nestedSuite) {
             extensions: _.union(["templates", "html", "phantom-pdf", "fop-pdf", "data", "reports", "statistics", "express"], extensions),
             loadExtensionsFromPersistedSettings: false,
             cacheAvailableExtensions: true,
-            express: { app: app}
+            express: { app: app},
+            rootDirectory: rootDirectory
         });
        
         beforeEach(function (done) {

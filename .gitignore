@@ -124,7 +124,9 @@ Backup*/
 UpgradeLog*.XML
 *.log
 config/*
-extension/phantom-pdf/lib/reports-tmpl/*
-extension/fop-pdf/lib/reports-tmpl/*
+extension/phantom-pdf/lib/reports-tmpl/*.html
+extension/phantom-pdf/lib/reports-tmpl/*.pdf
+extension/fop-pdf/lib/reports-tmpl/*.fo
+extension/fop-pdf/lib/reports-tmpl/*.pdf
 
 /web.config

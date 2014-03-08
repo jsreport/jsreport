@@ -24,6 +24,7 @@ function Reporter(options) {
     var opt = options || {};
     opt.loadExtensionsFromPersistedSettings = opt.loadExtensionsFromPersistedSettings == null ? true : opt.loadExtensionsFromPersistedSettings;
     opt.tenant = opt.tenant || { name: "" };
+    opt.rootDirectory = opt.rootDirectory || __dirname;
     this.options = opt;
 
     this.logger = winston.loggers.get('jsreport') || winston.loggers.add('jsreport');

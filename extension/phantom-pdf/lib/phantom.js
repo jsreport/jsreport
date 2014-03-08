@@ -19,6 +19,10 @@ var logger = winston.loggers.get('jsreport');
 
 module.exports = Phantom = function(reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
+
+    if (!fs.existsSync(join(__dirname, "reports-tmpl"))) {
+        fs.mkdir(join(__dirname, "reports-tmpl"));
+    }
 };
 
 Phantom = function(reporter, definition) {

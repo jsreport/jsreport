@@ -11,7 +11,7 @@
     should = require("should");
 
 describe('multitenancy with testing account', function() {
-    this.timeout(6000);
+    this.timeout(12000);
 
     var app;
     var options;
@@ -30,7 +30,8 @@ describe('multitenancy with testing account', function() {
             connectionString: { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 },
             extensions: ["templates", "express"],
             useSubDomains: true,
-            subdomainsCount: 3
+            subdomainsCount: 3,
+            rootDirectory: path.join(__dirname, "../")
         };
 
         MongoClient.connect('mongodb://127.0.0.1:27017/test', {}, function(err, db) {

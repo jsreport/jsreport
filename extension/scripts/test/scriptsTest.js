@@ -1,9 +1,10 @@
 ﻿var assert = require("assert"),
+    path = require("path"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     Q = require("q");
 
 
-describeReporting(["scripts"], function (reporter) {
+describeReporting(path.join(__dirname, "../../"), ["scripts"], function (reporter) {
 
     describe('scripts', function () {
         

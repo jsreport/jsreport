@@ -5,7 +5,7 @@
     Html = require("../lib/html.js"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting([], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
     describe('html', function() {
 
         beforeEach(function() {

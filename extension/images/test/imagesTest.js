@@ -6,7 +6,7 @@
 describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(["images"], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["images"], function(reporter) {
 
     describe('images', function() {
 

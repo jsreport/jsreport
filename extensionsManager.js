@@ -25,13 +25,13 @@ module.exports = ExtensionsManager = function(reporter, settings, logger, option
     this.options = options;
     this.settings = settings;
     this.logger = logger;
-    
+
     Object.defineProperty(this, "extensions", {
         get: function() {
             return self.availableExtensions.filter(function(e) { return e.isRegistered; });
         }
     });
-    
+
     this.extensionUnregisteredListeners = new ListenerCollection();
 };
 
@@ -56,10 +56,10 @@ ExtensionsManager.prototype.init = function() {
             });
         } else {
             self.logger.info("Extension registrations settings was found. ");
-        
+
             self.registrationSetting.value = self.options.loadExtensionsFromPersistedSetting ?
                 self.registrationSetting.value : self.defaultExtensions.toString();
-            
+
             return self.use(self.registrationSetting.value.split(",")).then(function() {
                 self.logger.info("Extensions loaded");
             });
@@ -71,7 +71,7 @@ ExtensionsManager.prototype._useInternal = function(extension) {
     this.logger.info("Using extension " + extension);
 
     var extensionDefinition = _.findWhere(this.availableExtensions, { name: extension });
-    
+
     require(path.join(extensionDefinition.directory, extensionDefinition.main)).call(this, this.reporter, extensionDefinition);
 
     extensionDefinition.isRegistered = true;
@@ -113,7 +113,7 @@ ExtensionsManager.prototype.unregister = function(extensionName) {
 
 var _availableExtensionsCache;
 ExtensionsManager.prototype._findAvailableExtensions = function() {
-    this.logger.info("Searching for available extensions");
+    this.logger.info("Searching for available extensions in " + this.options.rootDirectory);
 
     if (this.options.cacheAvailableExtensions && _availableExtensionsCache != null)
         return Q(_availableExtensionsCache);
@@ -128,13 +128,18 @@ ExtensionsManager.prototype._findAvailableExtensions = function() {
                 file = path.join(dir, file);
                 fs.stat(file, function(err, stat) {
                     if (stat && stat.isDirectory()) {
-                        walk(file, function(err, res) {
-                            results = results.concat(res);
-                            if (!--pending) done(null, results);
-                        });
+                        //ignore cycles in ..jsreport\node_modules\jsreport-import-export\node_modules\jsreport
+                        if (S(dir).contains("node_modules") && S(file).endsWith("node_modules")) {
+                            pending--;
+                        } else {
+                            walk(file, function(err, res) {
+                                results = results.concat(res);
+                                if (!--pending) done(null, results);
+                            });
+                        }
                     } else {
                         if (S(file).contains("jsreport.config.js"))
-                        results.push(file);
+                            results.push(file);
                         if (!--pending) done(null, results);
                     }
                 });
@@ -142,8 +147,8 @@ ExtensionsManager.prototype._findAvailableExtensions = function() {
         });
     };
 
-    return Q.nfcall(walk, __dirname).then(function(results) {
-         var availableExtensions = results.map(function(configFile) {
+    return Q.nfcall(walk, this.options.rootDirectory).then(function(results) {
+        var availableExtensions = results.map(function(configFile) {
             return _.extend({ directory: path.dirname(configFile) }, require(configFile));
         }).sort(function(pa, pb) {
             //todo, sort better by dependencies

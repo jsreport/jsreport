@@ -5,7 +5,7 @@
     describeReporting = require("../../../test/helpers.js").describeReporting,
     describeReportingPlayground = require("../../../test/helpers.js").describeReportingPlayground;
 
-describeReporting([], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
     describe('templating', function() {
         
          it('should callback error when missing template', function(done) {
@@ -76,7 +76,7 @@ describeReporting([], function(reporter) {
     });
 });
 
-describeReportingPlayground([], function(reporter) {
+describeReportingPlayground(path.join(__dirname, "../../"), [], function(reporter) {
     describe('templating playground', function() {
 
         it('deleting template should be rejected', function(done) {

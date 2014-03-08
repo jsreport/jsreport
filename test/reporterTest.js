@@ -5,7 +5,7 @@
     util = require("../util.js"),
     describeReporting = require("./helpers.js").describeReporting;
 
-describeReporting([], function (reporter) {
+describeReporting(path.join(__dirname, "../"), [], function (reporter) {
     
     describe('reporter', function () {
         

@@ -5,7 +5,7 @@
     Phantom = require("../lib/phantom.js"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting([], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
     describe('phantom pdf', function () {
      
         it('should not fail when rendering', function(done) {

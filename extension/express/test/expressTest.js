@@ -1,12 +1,13 @@
 ﻿var assert = require("assert"),
     fs = require('fs'),
     async = require("async"),
+    path = require("path"),
     join = require("path").join,
     describeReporting = require("../../../test/helpers.js").describeReporting,
     Q = require("q"),
     supertest = require('supertest');
 
-describeReporting([], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
 
     describe('express', function() {
 

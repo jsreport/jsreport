@@ -2,12 +2,13 @@
     fs = require('fs'),
     async = require("async"),
     join = require("path").join,
+    path = require("path"),
     Reports = require("../lib/reports.js"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     Q = require("q"),
     supertest = require('supertest');
 
-describeReporting([], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
 
     describe('reporting', function() {
 

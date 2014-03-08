@@ -1,9 +1,10 @@
 ﻿var assert = require("assert"),
     Statistics = require("../lib/statistics.js"),
+    path = require("path"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(["statistics"], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["statistics"], function(reporter) {
     describe('statistics', function() {
 
         it('before should group and increase just amount', function (done) {

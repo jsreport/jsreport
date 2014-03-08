@@ -1,10 +1,11 @@
 ﻿var fs = require("fs"),
     assert = require("assert"),
+    path = require("path"),
     Statistics = require("../lib/examples.js"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(["scripts", "examples"], function (reporter) {
+describeReporting(path.join(__dirname, "../../"), ["scripts", "examples"], function (reporter) {
 
     describe('examples', function () {
         it('shoulb prepare examples', function (done) {

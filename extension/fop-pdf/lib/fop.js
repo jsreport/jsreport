@@ -17,6 +17,9 @@ var logger = winston.loggers.get('jsreport');
 
 
 module.exports = Fop = function(reporter) {
+    if (!fs.existsSync(join(__dirname, "reports-tmpl"))) {
+        fs.mkdir(join(__dirname, "reports-tmpl"));
+    }
 
     reporter.extensionsManager.recipes.push({
         name: "fop-pdf",

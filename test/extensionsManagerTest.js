@@ -18,13 +18,13 @@ describe('ExtensionsManager', function () {
         var reporter = {};
         settings = { get: function () { return null; }, add: function () { return Q(); }, set: function () { return Q(); } };
         var logger = { info: function () { } };
-        var options = { extensions: ["templates"], loadExtensionsFromPersistedSetting: true };
+ 
+        var options = { extensions: ["templates"], loadExtensionsFromPersistedSetting: true, rootDirectory: path.join(__dirname, "../") };
 
         this.extensionsManager = new ExtensionsManager(reporter, settings, logger, options);
     });
      
     it('init should initialize default extensions when no settings found', function (done) {
-       
         this.extensionsManager.init().then(function () {
             assert.equal(true, templates.called);
             done();
