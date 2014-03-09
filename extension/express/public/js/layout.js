@@ -36,7 +36,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
 
             app.on("read:error create:error update:error delete:error error", function(e) {
                 self.hideLoader();
-                
+
                 var responseText = (e.responseText || e.message);
                 if (responseText.length > 800)
                     responseText = responseText.substring(0, 800) + "...";
@@ -48,7 +48,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
                     error: true
                 });
             });
-            
+
             app.on("validation", function(message) {
                 self.hideLoader();
 
@@ -77,6 +77,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
                 self.dialog.$el.modal('hide');
             };
 
+
             this.content.show = function(view) {
                 Marionette.Region.prototype.show.call(this, view);
                 self.toolbar.close();
@@ -95,6 +96,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
             this.content.show(contentView);
             toolbarView.contentView = contentView;
             this.toolbar.show(toolbarView);
+            this.lastView = contentView;
         },
 
         regions: {

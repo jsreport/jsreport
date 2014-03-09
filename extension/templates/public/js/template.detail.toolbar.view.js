@@ -125,6 +125,9 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                         if (body == null)
                             return;
 
+                        if (body.initData != null)
+                            body = body.initData;
+
                         for (var key in body) {
                             if (_.isObject(body[key])) {
                                 addBody(path + key + "[", body[key]);
@@ -133,7 +136,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                             }
                         }
                     }
-
+                    
                     addBody("template[", uiState);
                     if (request.options != null)
                         addBody("options[", request.options);

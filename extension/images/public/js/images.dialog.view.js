@@ -16,7 +16,7 @@
             self.Uploader = new $(self.$el.find('#fine-uploader')).fineUploader({
                 element: self.$el.find('#fine-uploader'),
                 request: {
-                    endpoint: function() { return app.serverUrl + 'image'; },
+                    endpoint: function() { return app.serverUrl + 'api/image'; },
                 },
                 text: {
                     uploadButton: '<button type="button" class="btn btn-primary">Upload image</button>'

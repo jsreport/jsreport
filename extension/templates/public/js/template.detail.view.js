@@ -9,7 +9,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             template: "template-detail",
             htmlCodeMirror: null,
             helpersCodeMirror: null,
-            className : 'template-detail-wrap',
+            className: 'template-detail-wrap',
 
             initialize: function() {
                 var self = this;
@@ -17,22 +17,22 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 this.listenTo(this.model, "sync", function() {
                     self.render();
                 });
-                
-                
+
+
                 this.listenTo(this, "close", function() {
                     $(".side-nav-right").show();
                 });
             },
-            
+
             events: {
                 "click #previewPane": "triggerPreview",
             },
 
             onDomRefresh: function() {
                 var self = this;
-                
+
                 $(".side-nav-right").hide();
-                
+
                 this.htmlCodeMirror = CodeMirror.fromTextArea(this.$el.find("#htmlArea")[0], {
                     mode: "application/xml",
                     height: "350px",
@@ -43,9 +43,9 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 });
 
                 codeMirrorBinder(this.model, "content", this.htmlCodeMirror);
-                
+
                 $(this.htmlCodeMirror.getWrapperElement()).addClass(this.$el.find("#htmlArea").attr('class'));
-                
+
                 this.helpersCodeMirror = CodeMirror.fromTextArea(this.$el.find("#helpersArea")[0], {
                     mode: "javascript",
                     lineNumbers: true,
@@ -83,9 +83,13 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 this.htmlCodeMirror.refresh();
                 this.helpersCodeMirror.refresh();
             },
-            
+
             triggerPreview: function() {
-                this.trigger("preview")
-            }
+                this.trigger("preview");
+            },
+
+            validateLeaving: function() {
+                return !this.model.hasChanged();
+            },
         });
     });

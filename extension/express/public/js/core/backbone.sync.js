@@ -121,6 +121,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         provider[method].call(provider, model)
             .then(function (res) {
                 options.success(res);
+                model.changed = {};
                 if (method == "read")
                     app.trigger("read:success", model);
             })

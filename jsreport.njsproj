@@ -116,6 +116,8 @@
     <Content Include="extension\express\lib\reporter.express.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\express\public\css\bootstrap-nonresponsive.css" />
+    <Content Include="extension\express\public\css\bootstrap.min.css" />
     <Content Include="extension\express\public\css\split-pane.css">
       <SubType>Content</SubType>
     </Content>
@@ -534,7 +536,6 @@
     <Content Include="extension\express\public\templates\menu.html">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\express\public\css\bootstrap.css" />
     <Content Include="extension\express\public\css\codemirror.css" />
     <Content Include="extension\express\public\css\toastr.css" />
     <Content Include="extension\express\public\lib\bootstrap.js" />

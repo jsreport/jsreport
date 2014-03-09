@@ -91,16 +91,18 @@ define(["jquery"], function($) {
              $this.hide();
         });
 
-
-        //$(view.el).find(".editable-title").hover(function() {
-        //    var $this = $(this);
-        //    $this.find(".title-input").show().val($this.find(".title-label").html());
-        //    $this.find(".title-label").hide();
-        //}, function() {
-        //    var $this = $(this);
-        //    $this.find(".title-label").show().html($this.find(".title-input").val());
-        //    $this.find(".title-input").focusout().hide();
-        //});
+        if (view.validateLeaving != null) {
+            $('a').off("click").on('click', function() {
+                return view.validateLeaving() || confirm('You have unsaved changes. Are you sure you want to leave?');
+            });
+            
+            $(window).off("beforeunload").on('beforeunload', function() {
+                if (view.validateLeaving())
+                    return;
+                
+                return "You have unsaved changes. Are you sure you want to leave?";
+            });
+        }
     };
 
     String.prototype.decodeBase64 = function() {
