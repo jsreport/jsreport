@@ -18,5 +18,9 @@
         getItemsLength: function () {
             return this.model.items.length;
         },
+        
+        onClose: function() {
+            this.model.templateModel.unbind("api-overrides", this.model.apiOverride, this.model);
+        }
     });
 });

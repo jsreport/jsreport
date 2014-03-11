@@ -115,6 +115,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
     syncProviders["jQuery"] = new JQuerySyncProvider();
 
     Backbone.sync = function (method, model, options) {
+        model.syncing = true;
         app.trigger(method + ":started", model);
         var provider = syncProviders[model.syncProvider || "jaydata"];
         
@@ -122,11 +123,13 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
             .then(function (res) {
                 options.success(res);
                 model.changed = {};
+                model.syncing = false;
                 if (method == "read")
                     app.trigger("read:success", model);
             })
             .fail(function (e) {
                 options.error(e);
+                model.syncing = false;
                 app.trigger(method + ":error", e);
             });
     };

@@ -93,7 +93,8 @@ define(["jquery"], function($) {
 
         if (view.validateLeaving != null) {
             $('a').off("click").on('click', function() {
-                return view.validateLeaving() || confirm('You have unsaved changes. Are you sure you want to leave?');
+                return $(this).attr("href") == null ||  $(this).attr("href") == ""  ||  $(this).attr("href") == "#"  ||
+                    view.validateLeaving() || confirm('You have unsaved changes. Are you sure you want to leave?');
             });
             
             $(window).off("beforeunload").on('beforeunload', function() {

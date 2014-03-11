@@ -10,9 +10,9 @@
         
         setTemplateModel: function (model) {
             this.templateModel = model;
-            
-             if (model.get("script") == null)
-                model.set("script", new $entity.Script());
+
+            if (model.get("script") == null)
+                model.attributes["script"] = new $entity.Script();
         },
         
         events: {

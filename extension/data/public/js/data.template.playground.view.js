@@ -17,9 +17,9 @@
         
         setTemplateModel: function (model) {
             this.templateModel = model;
-            
+
             if (model.get("dataItem") == null)
-                model.set("dataItem", new $entity.DataItem());
+                model.attributes["dataItem"] = new $entity.DataItem();
         },
         
 

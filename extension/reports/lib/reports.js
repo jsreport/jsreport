@@ -37,8 +37,8 @@ Reporting.prototype.configureExpress = function (app) {
         self.reporter.startContext().reports.find(req.params.id).then(function (result) {
             self.reporter.blobStorage.read(result.blobName, function(err, stream) {
                res.setHeader('Content-Type', result.contentType);
-                res.setHeader('File-Extension', result.fileExtension);
-                stream.pipe(res);
+               res.setHeader('File-Extension', result.fileExtension);
+               stream.pipe(res);
             });
         }, function() {
              res.send(404);
@@ -55,7 +55,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
 
     function ensureBuffer() {
         if (response.isStream) {
-            return Q.nfcall(toArray, response.result).then(function() {
+            return Q.nfcall(toArray, response.result).then(function(arr) {
                 response.result = Buffer.concat(arr);
             });
         }
@@ -78,7 +78,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         request.context.reports.add(report);
         return request.context.reports.saveChanges();
     }).then(function() {
-        logger.info("Writing report content to blob." + response.result);
+        logger.info("Writing report content to blob.");
         return Q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
     }).then(function(blobName) {
         logger.info("Updating report blob name " + blobName);

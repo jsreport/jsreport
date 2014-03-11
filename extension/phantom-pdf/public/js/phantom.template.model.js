@@ -12,15 +12,18 @@
             this.set(templateModel.get("phantom").initData);
 
             var self = this;
-            this.listenTo(templateModel, "api-overrides", function(addProperty) {
-                addProperty("phantom", {
-                    maring: self.get("margin") || "...cm",
-                    header: self.get("header") || "...",
-                    footer: self.get("footer") || "...",
-                    headerHeight: self.get("headerHeight") || "...",
-                    footerHeight: self.get("footerHeight") || "..."
+            
+            this.listenTo(templateModel, "api-overrides", this.apiOverride);
+        },
+        
+        apiOverride: function(addProperty) {
+            addProperty("phantom", {
+                    maring: this.get("margin") || "...cm",
+                    header: this.get("header") || "...",
+                    footer: this.get("footer") || "...",
+                    headerHeight: this.get("headerHeight") || "...",
+                    footerHeight: this.get("footerHeight") || "..."
                 });
-            });
         },
 
         initialize: function () {

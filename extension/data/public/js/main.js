@@ -60,7 +60,6 @@
             }
 
             app.on("template-extensions-render", function(context) {
-                
                 if (app.settings.playgroundMode) {
                     var view = new TemplatePlaygroundView();
                     view.setTemplateModel(context.template);
@@ -71,7 +70,7 @@
                     
                     model.fetch({ success: function() {
                         var view = new TemplateStandardView({ model: model});
-                        context.extensionsRegion.show(view, "data");     
+                        context.extensionsRegion.show(view, "data");   
                     }});
                 }
             });

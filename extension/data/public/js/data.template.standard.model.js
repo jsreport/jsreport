@@ -15,19 +15,17 @@
                 else 
                   self.set(empty, { silent: true });
                 
-                    
-                
                 return options.success();
             });
         },
 
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
-
-            var self = this;
-            this.listenTo(templateModel, "api-overrides", function(addProperty) {
-                addProperty("dataItemId", self.get("shortid"));
-            });
+            this.listenTo(templateModel, "api-overrides", this.apiOverride);
+        },
+        
+        apiOverride: function(addProperty) {
+            addProperty("dataItemId", this.get("shortid"));
         },
 
         initialize: function () {

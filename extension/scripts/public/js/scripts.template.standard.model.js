@@ -21,14 +21,13 @@
 
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
-            
-            var self = this;
-            
-            this.listenTo(templateModel, "api-overrides", function(addProperty) {
-                addProperty("scriptId", self.get("shortid"));
-            });
+            this.listenTo(templateModel, "api-overrides", this.apiOverride);
         },
-
+        
+        apiOverride: function(addProperty) {
+             addProperty("scriptId", this.get("shortid"));
+        },
+ 
         initialize: function () {
             var self = this;
             this.listenTo(this, "change:shortid", function() {

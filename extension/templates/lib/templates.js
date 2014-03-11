@@ -61,7 +61,8 @@ Templating.prototype.handleBeforeRender = function(request, response) {
 
     return this._updatePromise = this._updatePromise.then(function() {
         var findPromise = (request.template._id != null) ? request.context.templates.find(request.template._id) :
-            request.context.templates.single(function(t) { return t.shortid == this.shortid; }, { shortid: request.template.shortid });
+            request.context.templates.single(function(t) { return t.shortid == this.shortid && t.version == this.version; }, 
+                { shortid: request.template.shortid, version: request.template.version });
 
         return findPromise.then(function(template) {
             request.context.templates.attach(template);

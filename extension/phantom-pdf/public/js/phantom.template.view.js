@@ -10,5 +10,9 @@
         isFilled: function() {
             return this.model.get("margin") != null || this.model.get("header")  != null || this.model.get("footer") != null;
         },
+        
+         onClose: function() {
+             this.model.templateModel.unbind("api-overrides", this.model.apiOverride, this.model);
+         }
     });
 });
