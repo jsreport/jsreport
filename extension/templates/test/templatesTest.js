@@ -78,6 +78,24 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
 
 describeReportingPlayground(path.join(__dirname, "../../"), [], function(reporter) {
     describe('templating playground', function() {
+        
+          
+         it('handleBefore should find by shortid and version and use template', function(done) {
+            var request = {
+                template: {},
+                context: reporter.context,
+                options: { recipe: "html" },
+            };
+
+            reporter.templates.create({ content: "foo" }).then(function(t) {
+                request.template.shortid = t.shortid;
+                request.template.version = t.version;
+                reporter.templates.handleBeforeRender(request, {}).then(function() {
+                    assert.equal("foo", request.template.content);
+                    done();
+                });
+            });
+        });
 
         it('deleting template should be rejected', function(done) {
             reporter.templates.create({ content: "foo" })
