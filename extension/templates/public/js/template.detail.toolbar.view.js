@@ -2,8 +2,9 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore", "core/listenerCollection"],
-    function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection) {
+define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore", "core/listenerCollection", 
+    "./template.embed.dialog", "core/basicModel"],
+    function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection, EmbedDialog, BasicModel) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
 
@@ -62,7 +63,8 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 "click #saveCommand": "save",
                 "click #previewCommand": "preview",
                 "click #previewNewTabCommand": "previewNewPanel",
-                "click #apiHelpCommnand": "apiHelp"
+                "click #apiHelpCommnand": "apiHelp",
+                "click #embedCommand": "embed"
             },
 
             save: function() {
@@ -207,6 +209,13 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                     content: $.render["template-detail-api"](this.model.toJSON(), this),
                     hideSubmit: true
                 });
+            },
+            
+            embed: function() {
+                var model = new BasicModel(this.model.toJSON());
+                model.set({ fileInput: true, dataArea: true });
+                var dialog = new EmbedDialog({ model: model });
+                app.layout.dialog.show(dialog);
             }
         });
     });

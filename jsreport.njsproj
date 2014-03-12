@@ -325,6 +325,7 @@
     <Content Include="extension\templates\public\templates\template-detail.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\templates\public\templates\template-embed.html" />
     <Content Include="extension\templates\public\templates\template-list-header.html">
       <SubType>Content</SubType>
     </Content>
@@ -710,6 +711,7 @@
     <Compile Include="config\production.multitenant.config.js" />
     <Compile Include="config\production.playground.config.js" />
     <Compile Include="config\production.standard.config.js" />
+    <Compile Include="dataParser.js" />
     <Compile Include="extension\childTemplates\jsreport.config.js" />
     <Compile Include="extension\childTemplates\lib\childTemplates.js" />
     <Compile Include="extension\childTemplates\test\childTemplatesTest.js" />
@@ -762,6 +764,7 @@
     <Compile Include="extension\scripts\public\js\scripts.toolbar.view.js" />
     <Compile Include="extension\statistics\jsreport.config.js" />
     <Compile Include="extension\templates\jsreport.config.js" />
+    <Compile Include="extension\templates\public\js\template.embed.dialog.js" />
     <Compile Include="extension\templates\public\js\template.list.toolbar.view.js" />
     <Compile Include="extension\test\public\js\list.js" />
     <Compile Include="extension\test\public\js\main.js" />

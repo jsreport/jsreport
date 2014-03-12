@@ -1,0 +1,64 @@
+﻿<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Embed jsreport into your website</h4>
+        </div>
+        <div class="modal-body">
+       
+            <div>
+                <label>Allow to upload file</label>
+                <input id="fileInput" name="fileInput" type="checkbox"/>
+            </div>
+            <div>
+                <label>Allow to type data</label>
+                <input id="dataArea"  name="dataArea" type="checkbox"/>
+            </div>
+            
+            <br/>
+            <code>
+                &lt;div id=&quot;jsr-root&quot; data-shortid=&quot;{{:shortid}}&quot; data-version=&quot;{{:version}}&quot;
+                <br/>
+                {{if fileInput}}data-fileInput=&quot;true&quot; {{else}}{{/if}}{{if dataArea}}data-dataArea=&quot;true&quot;{{else}}{{/if}}
+                &gt;&lt;/div&gt;
+
+                <br/>
+                <br/>
+                &lt;script&gt;(function (d, s, id) {
+                <br/>
+                var js, fjs = d.getElementsByTagName(s)[0];
+                <br/>
+                if (d.getElementById(id)) return;
+                <br/>
+                js = d.createElement(s); js.id = id;
+                <br/>
+                js.src = &quot;//jsreport.net/js/embed.js&quot;;
+                <br/>
+                fjs.parentNode.insertBefore(js, fjs);
+                <br/>
+                }(document, 'script', 'jsr-embeded'));
+                <br/>
+                &lt;/script&gt;
+            </code>
+         
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">Ok</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!--
+    <div id="jsr-root" data-shortid="{{:shortid}}" data-version="{{:version}}" {{if fileInput}}data-fileInput="true" {{else}}{{/if}}
+    {{if dataArea}}data-dataArea="true"{{else}}{{/if}} />
+    <script>(function (d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//jsreport.net/js/embed.js";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'jsr-embeded'));</script>
+    -->

@@ -15,6 +15,7 @@ var winston = require("winston"),
     foo = require("odata-server"),
     fooo = require("./jaydata/mongoDBStorageProvider.js"),
     Q = require("q"),
+    dataParser = require("./dataParser.js"),
     Settings = require("./settings.js"),
     ExtensionsManager = require("./extensionsManager.js"),
     ListenerCollection = require("./listenerCollection.js");
@@ -131,12 +132,12 @@ Reporter.prototype._initializeDataContext = function(withExtensions) {
 
 Reporter.prototype.render = function(request) {
     var self = this;
-    
+
     request.options = request.options || {};
 
     if (request.options.timeout == null || request.options.timeout == 0)
         request.options.timeout = 30000;
-    
+
     request.context = this.startContext();
     request.reporter = self;
 
@@ -145,7 +146,9 @@ Reporter.prototype.render = function(request) {
     };
 
     self.emit("before-render", request, response);
-    return self.beforeRenderListeners.fire(request, response)
+    return dataParser(request).then(function() {
+            return self.beforeRenderListeners.fire(request, response);
+        })
         .then(function() {
             self.emit("render", request, response);
             return self.executeRecipe(request, response);

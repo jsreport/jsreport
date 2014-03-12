@@ -1,8 +1,308 @@
-﻿define(["app", "marionette", "backbone",
-        "./scripts.list.model", "./scripts.list.view", "./scripts.list.toolbar.view",
-        "./scripts.model", "./scripts.detail.view",
-        "./scripts.template.playground.view", "./scripts.template.standard.view", 
-        "./scripts.template.standard.model", "./scripts.toolbar.view"],
+
+define('scripts.model',["app", "core/jaydataModel", "jquery"], function (app, ModelBase, $) {
+    return ModelBase.extend({
+        contextSet: function () { return app.dataContext.scripts; },
+
+       fetchQuery: function (cb) {
+            return this.contextSet().single(function(r) { return r.shortid == this.id; }, { id: this.get("shortid") });
+        },    
+        
+        defaults: {
+            name: "script name"    
+        },
+        
+        setTemplateModel: function(templateModel) {
+            this.templateModel = templateModel;
+        },
+        
+        _initialize: function () {
+            this.Entity = $entity.Script;
+        },
+    });
+});
+
+
+define('scripts.list.model',["app", "backbone", "core/dataGrid", "scripts.model"], function (app, Backbone, DataGrid, ScriptModel) {
+    return Backbone.Collection.extend({
+
+        initialize: function () {
+            var self = this;
+            this.filter = new DataGrid.Filter.Base();
+            this.filter.bind("apply", function () {
+                self.fetch();
+            });
+        },
+        
+        parse: function (data) {
+            if (data.totalCount != null)
+                this.filter.set("totalCount", data.totalCount);
+
+            return data;
+        },
+        
+        fetchQuery: function () {
+            return app.dataContext.scripts.applyFilter(this.filter).toArray();
+        },
+
+        model: ScriptModel,
+    });
+});
+
+
+
+
+define('scripts.list.view',["marionette", "core/dataGrid", "core/view.base"], function (Marionette, DataGrid, ViewBase) {
+    return ViewBase.extend({
+        template: "scripts-list",
+
+        initialize: function () {
+            this.listenTo(this.collection, "sync", this.render);
+            this.listenTo(this.collection, "remove", this.render);
+        },
+
+        onDomRefresh: function () {
+            this.dataGrid = DataGrid.show({
+                collection: this.collection,
+                filter: this.collection.filter,
+                idKey: "shortid",
+                onShowDetail: function (id) {
+                    window.location.hash = "extension/scripts/detail/" + id;
+                },
+                el: $("#scriptsGridBox"),
+                headerTemplate: "scripts-list-header",
+                rowsTemplate: "scripts-list-rows"
+            });
+        },
+    });
+}); 
+define('scripts.list.toolbar.view',["jquery", "app", "codemirror", "core/utils", "core/view.base", "underscore"],
+    function($, app, CodeMirror, Utils, LayoutBase) {
+        return LayoutBase.extend({
+            template: "scripts-list-toolbar",
+
+            initialize: function() {
+            },         
+            
+            events: {
+                "click #deleteCommand": "deleteCommand",
+            },
+
+            deleteCommand: function() {
+                this.contentView.dataGrid.deleteItems();
+            },
+        });
+    });
+define('scripts.detail.view',["marionette", "codemirror", "core/view.base", "core/codeMirrorBinder"], function(Marionette, CodeMirror, ViewBase, codeMirrorBinder) {
+    return ViewBase.extend({
+        template: "scripts-detail",
+
+        initialize: function() {
+            this.listenTo(this.model, "sync", this.render);
+        },
+
+        onDomRefresh: function() {
+
+            var top = $("#contentWrap").position().top;
+
+            this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
+                mode: "javascript",
+                height: "350px",
+                lineNumbers: true,
+                lineWrapping: true,
+                viewportMargin: Infinity,
+                iframeClass: 'CodeMirror'
+            });            
+            
+            
+            codeMirrorBinder(this.model, "content", this.contentCodeMirror);
+
+            $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
+            $(this.contentCodeMirror.getWrapperElement()).css("margin-top", top);
+
+            this.contentCodeMirror.refresh();
+        },
+
+        validateLeaving: function() {
+            return !this.model.hasChanged();
+        },
+    });
+});
+define('scripts.template.playground.dialog',["marionette", "app", "codemirror", "core/codeMirrorBinder", "core/view.base"], function (Marionette, app, Codemirror, codeMirrorBinder, ViewBase) {
+    return ViewBase.extend({
+        template: "scripts-dialog",
+        
+        events: {
+            "click #saveCommand": "save",
+        },
+        
+        onDomRefresh: function () {
+            this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
+                mode: "javascript",
+                height: "350px",
+                lineNumbers: true,
+            });
+            codeMirrorBinder(this.model, "content", this.contentCodeMirror);
+        },
+        
+        save: function () {
+            var self = this;
+            this.model.save({
+                success: function () {
+                    self.trigger("dialog-close");
+                }
+            });
+        }
+    });
+});
+define('scripts.template.playground.model',["app", "core/basicModel", "underscore"], function (app, ModelBase, _) {
+    return ModelBase.extend({
+       
+        setTemplateModel: function (templateModel) {
+            this.templateModel = templateModel;
+            this.set("content", templateModel.get("script").content);
+        },
+        
+        save: function (options) {
+            this.templateModel.get("script").dataJson = this.get("content");
+            return options.success();
+        },
+    });
+});
+
+
+define('scripts.template.playground.view',["marionette", "app", "scripts.template.playground.dialog", "scripts.template.playground.model", "core/view.base"], function (Marionette, app, DialogView, Model, ViewBase) {
+    return ViewBase.extend({
+        tagName: "li",
+        template: "scripts-template-playground",
+        
+        initialize: function () {
+            var self = this;
+            _.bindAll(this, "isFilled");
+        },
+        
+        setTemplateModel: function (model) {
+            this.templateModel = model;
+
+            if (model.get("script") == null)
+                model.attributes["script"] = new $entity.Script();
+        },
+        
+        events: {
+            "click #scriptCommand": "openDialog",
+        },
+        
+        isFilled: function () {
+             return (this.templateModel.get("script") != null) && (this.templateModel.get("script").content != null);
+        },
+        
+        openDialog: function () {
+            var self = this;
+            var model = new Model();
+            model.setTemplateModel(this.templateModel);
+            var dialog = new DialogView({
+                model: model
+            });
+            self.listenTo(dialog, "dialog-close", function () {
+                self.render();
+                self.templateModel.save();
+            });
+            app.layout.dialog.show(dialog);
+        }
+    });
+});
+define('scripts.template.standard.view',["app", "marionette", "core/view.base", "core/utils",], function(app, Marionette, ViewBase, Utils) {
+    return ViewBase.extend({
+        tagName: "li",
+        template: "scripts-template-standard",
+         
+        initialize: function() {
+            _.bindAll(this, "isFilled", "getItems", "getItemsLength");
+        },
+
+        isFilled: function() {
+            return this.model.templateModel.get("scriptId");
+        },
+        
+        getItems: function () {
+            return this.model.items;
+        },
+        
+        getItemsLength: function () {
+            return this.model.items.length;
+        },
+        
+        onClose: function() {
+            this.model.templateModel.unbind("api-overrides", this.model.apiOverride, this.model);
+        }
+    });
+});
+define('scripts.template.standard.model',["app", "core/basicModel", "underscore"], function (app, ModelBase, _) {
+   
+    return ModelBase.extend({
+        
+        fetch: function (options) {
+            var self = this;
+            
+            app.dataContext.scripts.toArray().then(function (items) {
+                self.items = items.map(function(i) { return i.initData; });
+                var empty = { name: "- not selected -", shortid: null, _id: null };
+                self.items.unshift(empty);
+
+                if (self.templateModel.get("scriptId"))
+                  self.set(_.findWhere(items, { shortid: self.templateModel.get("scriptId") }).toJSON(), { silent: true });
+                else 
+                  self.set(empty, { silent: true });
+                
+                 return options.success();
+            });
+        },
+
+        setTemplate: function (templateModel) {
+            this.templateModel = templateModel;
+            this.listenTo(templateModel, "api-overrides", this.apiOverride);
+        },
+        
+        apiOverride: function(addProperty) {
+             addProperty("scriptId", this.get("shortid"));
+        },
+ 
+        initialize: function () {
+            var self = this;
+            this.listenTo(this, "change:shortid", function() {
+                self.templateModel.set("scriptId", self.get("shortid"));
+                self.set(_.findWhere(self.items, { shortid: self.get("shortid")}));
+            });
+        },
+    });
+});
+define('scripts.toolbar.view',["jquery", "app", "core/utils", "core/view.base"],
+    function($, app, Utils, LayoutBase) {
+        return LayoutBase.extend({
+            template: "scripts-toolbar",
+
+            events: {
+                "click #saveCommand": "save",
+            },
+
+            save: function() {
+                var self = this;
+                this.model.save({}, {
+                    success: function() {
+                        app.trigger("script-saved", self.model);
+                    }
+                });
+            },
+
+            onDomRefresh: function() {
+                var self = this;
+            },
+        });
+    });
+define(["app", "marionette", "backbone",
+        "scripts.list.model", "scripts.list.view", "scripts.list.toolbar.view",
+        "scripts.model", "scripts.detail.view",
+        "scripts.template.playground.view", "scripts.template.standard.view", 
+        "scripts.template.standard.model", "scripts.toolbar.view"],
     function(app, Marionette, Backbone, ScriptsListModel, ScriptsListView, ScriptsListToolbarView, ScriptsModel, ScriptsDetailView, PlaygroundTemplateView, 
         StandardTemplateView, StandardTemplateModel, ToolbarView) {
 
