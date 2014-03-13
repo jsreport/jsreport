@@ -10,6 +10,7 @@ var express = require('' +'express'),
     connect = require("connect"),
     http = require('http'),
     https = require('https'),
+    join = require("path").join,
     fs = require("fs"),
     Q = require("q"),
     config = require("./config.js");
@@ -34,6 +35,10 @@ var transportSettings = {
     colorize: true,
     level: "debug"
 };
+
+ if (!fs.existsSync(join(__dirname, "logs"))) {
+        fs.mkdir(join(__dirname, "logs"));
+ }
 
 var consoleTransport = new (winston.transports.Console)(transportSettings);
 var fileTransport = new (winston.transports.File)({ name: "main", filename: 'logs/reporter.log', maxsize: 10485760, json: false, level: "debug" });

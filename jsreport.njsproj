@@ -143,6 +143,7 @@
     <Content Include="extension\fop-pdf\lib\fop.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\gists\public\templates\gists-template.html" />
     <Content Include="extension\html\lib\html.js">
       <SubType>Content</SubType>
     </Content>
@@ -638,6 +639,11 @@
     <Folder Include="extension\express\public\views\" />
     <Folder Include="extension\fop-pdf\integrationTest\" />
     <Folder Include="extension\fop-pdf\lib\" />
+    <Folder Include="extension\gists\lib\" />
+    <Folder Include="extension\gists\public\" />
+    <Folder Include="extension\gists\public\js\" />
+    <Folder Include="extension\gists\public\templates\" />
+    <Folder Include="extension\gists\test\" />
     <Folder Include="extension\html" />
     <Folder Include="extension\html\lib\" />
     <Folder Include="extension\html\test" />
@@ -650,6 +656,7 @@
     <Folder Include="extension\images\test" />
     <Folder Include="extension\images\public" />
     <Folder Include="extension\childTemplates\" />
+    <Folder Include="extension\gists\" />
     <Folder Include="extension\phantom-pdf\integrationTest\" />
     <Folder Include="extension\phantom-pdf\public\" />
     <Folder Include="extension\phantom-pdf\public\js\" />
@@ -736,6 +743,11 @@
     <Compile Include="extension\express\test\expressTest.js" />
     <Compile Include="extension\fop-pdf\integrationTest\fopTest.js" />
     <Compile Include="extension\fop-pdf\jsreport.config.js" />
+    <Compile Include="extension\gists\jsreport.config.js" />
+    <Compile Include="extension\gists\lib\gists.js" />
+    <Compile Include="extension\gists\public\js\main.js" />
+    <Compile Include="extension\gists\public\js\gists.template.view.js" />
+    <Compile Include="extension\gists\test\gistsTests.js" />
     <Compile Include="extension\html\jsreport.config.js" />
     <Compile Include="extension\images\jsreport.config.js" />
     <Compile Include="extension\images\public\js\images.detail.view.js" />

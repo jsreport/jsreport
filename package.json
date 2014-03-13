@@ -1,6 +1,6 @@
 ﻿{
   "name": "jsreport",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -35,6 +35,8 @@
 	"node-jsrender": "*",   
 	"node-dir": "*",   	
 	"node-phantom": "*",   
+	"octonode": "*",   
+	"querystring": "*",   
 	"odata-server": "*",   
 	"passport": "*",   
 	"async": "*",   
@@ -51,6 +53,7 @@
 	"string": "*",   
 	"stringformat": "*",
 	"underscore": "*",   
+	"url": "*",   
 	"uuid": "*",   
 	"validator": "*",   
 	"winston": "*"	

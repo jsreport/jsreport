@@ -13,6 +13,7 @@ define(["jquery", "app", "marionette", "backbone",
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
             module.TemplateListTooolbarView = TemplateListTooolbarView;
+            module.TemplateDetailTooolbarView = ToolbarView;
             
             var Router = Backbone.Router.extend({                
                 initialize: function() {

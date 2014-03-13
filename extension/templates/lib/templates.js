@@ -50,6 +50,8 @@ Templating = function(reporter, definition) {
     }
 };
 
+util.inherits(Templating, events.EventEmitter);
+
 Templating.prototype.handleBeforeRender = function(request, response) {
     if (request.template._id == null && request.template.shortid == null) {
         logger.info("Its a inline template");
@@ -96,7 +98,10 @@ Templating.prototype.find = function(preficate, params) {
 };
 
 Templating.prototype._beforeUpdateHandler = function(args, entity) {
-    if (!this.reporter.context.templates.updateEnabled && this.reporter.playgroundMode)
+    var validationContext= { template: entity };
+    this.emit("validate-update", validationContext);
+    
+    if (!validationContext.result && !this.reporter.context.templates.updateEnabled && this.reporter.playgroundMode)
         return false;
 
     entity.modificationDate = new Date();

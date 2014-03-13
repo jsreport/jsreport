@@ -75,8 +75,9 @@ Phantom.prototype.execute = function(request, response) {
                     request.template.phantom.headerHeight || "null",
                     request.template.phantom.footerHeight || "null"
                 ];
-           
-                childProcess.execFile("phantomjs.CMD", childArgs, function(error, stdout, stderr) {
+
+                var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
+                childProcess.execFile(phantomPath, childArgs, function(error, stdout, stderr) {
                     logger.info("Rastering pdf child process end.");
 
                     //console.log(stdout);

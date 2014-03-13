@@ -137,56 +137,7 @@ module.exports = function(app, options, cb) {
             return res.redirect("https://" + domains.join("."));
         });
     });
-
-    //app.use(function(req, res, next) {
-    //    var isUrlRequirignAuthnetication =
-    //        req.url.indexOf("$metadata") == -1 &&
-    //            (req.method != "POST" || req.url != "/login") &&
-    //            (req.method != "GET" || req.url != "/") &&
-    //            (req.method != "POST" || req.url != "/register");
-
-    //    //not 
-
-
-    //    //user not authenticated and we need authentication   
-    //    if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
-
-    //        // basic authentication for api,
-    //        if (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0) {
-    //            passport.authenticate('basic', function(err, result, info) {
-    //                if (!result) {
-    //                    return res.send(401);
-    //                }
-
-    //                return next();
-    //            })(req, res, next);
-    //        } else {
-    //            //not api, not authenticated, go to login page
-    //            if (req.session) {
-    //                req.session.returnTo = req.originalUrl || req.url;
-    //            }
-
-    //            return res.redirect("/");
-    //        }
-    //    } else {
-    //        if (!req.isAuthenticated || !req.isAuthenticated())
-    //            return next();
-
-    //        var domains = req.headers.host.split('.');
-    //        if (domains.length == options.subdomainsCount)
-    //            return next();
-
-    //        if (options.useSubDomains) {
-    //            domains.unshift(req.user.name);
-    //            return res.redirect("https://" + domains.join("."));
-    //        }
-
-    //        activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
-    //            return tenant.reporter.options.express.app(req, res, next);
-    //        });
-    //    }
-    //});
-
+  
     passport.serializeUser(function(user, done) {
         done(null, user.email);
     });

@@ -2,17 +2,14 @@
     cookieSession: {
         key: 'jsreport.sid',
         secret: 'dasd321as56d1sd5s61vdv32',
-        cookie: { domain: 'jsreportonline.net' }
+        cookie: { domain: 'local.net' }
     },
     certificate: {
-        key: 'config/jsreport.net.key',    
-        cert: 'config/jsreport.net.cert'
+        key: 'certificates/jsreport.net.key',    
+        cert: 'certificates/jsreport.net.cert'
     },
-    iisnode: true,
-    useSubDomains: true,
-    subdomainsCount: 3,
-    connectionString: { name: "mongoDB", address: "localhost", port: 27017, databaseName: "root" },
-    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples", "statistics", "reports", "jsreport-import-export", "childTemplates"],
-    mode: "multitenant",
-    port: process.env.PORT,
+    connectionString: { name: "mongoDB", address: "localhost", port: 27017 },
+    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples"],
+    mode: "playground",
+    port: 3000,
 }

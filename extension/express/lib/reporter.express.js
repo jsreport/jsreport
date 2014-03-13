@@ -24,6 +24,15 @@ module.exports = function(reporter, definition) {
         res.render(path.join(__dirname, '../public/views', 'root.html'));
     });
 
+    app.use(function(req, res, next) {
+        var reqd = require('domain').create();
+        reqd.add(req);
+        reqd.add(res);
+        reqd._req = req;
+        process.domain = reqd;
+        next();
+    });
+
     app.use(function(err, req, res, next) {
         res.status(500);
 
@@ -51,6 +60,8 @@ module.exports = function(reporter, definition) {
         app.stack = _.reject(app.stack, function(s) {
             return s.route == "/odata";
         });
+
+        reporter.emit("express-before-odata", app);
 
         app.use("/odata", function(req, res, next) {
             req.reporterContext = reporter.startContext();
