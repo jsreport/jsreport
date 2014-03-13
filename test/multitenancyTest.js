@@ -11,7 +11,7 @@
     should = require("should");
 
 describe('multitenancy with testing account', function() {
-    this.timeout(12000);
+    this.timeout(60000);
 
     var app;
     var options;

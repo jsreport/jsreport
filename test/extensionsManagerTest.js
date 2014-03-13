@@ -10,6 +10,7 @@ describe('ExtensionsManager', function () {
     var settings;
     
     beforeEach(function () {
+        this.timeout(10000);
         var stub = {};
         templates = sinon.spy();
         stub[path.join(__dirname, "../extension/templates/lib/templates.js")] = templates;

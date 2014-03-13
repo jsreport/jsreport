@@ -115,24 +115,29 @@ var _availableExtensionsCache;
 ExtensionsManager.prototype._findAvailableExtensions = function() {
     this.logger.info("Searching for available extensions in " + this.options.rootDirectory);
 
-    if (this.options.cacheAvailableExtensions && _availableExtensionsCache != null)
+    if (this.options.cacheAvailableExtensions && _availableExtensionsCache != null) {
+        this.logger.info("Loading extensions from cache " + _availableExtensionsCache.length);
         return Q(_availableExtensionsCache);
-
+    }
+    
     var walk = function(dir, done) {
         var results = [];
         fs.readdir(dir, function(err, list) {
+            if (err)self.logger.error(err);
             if (err) return done(err);
             var pending = list.length;
             if (!pending) return done(null, results);
             list.forEach(function(file) {
                 file = path.join(dir, file);
                 fs.stat(file, function(err, stat) {
+                   if (err)self.logger.error(err);
                     if (stat && stat.isDirectory()) {
                         //ignore cycles in ..jsreport\node_modules\jsreport-import-export\node_modules\jsreport
                         if (S(dir).contains("node_modules") && S(file).endsWith("node_modules")) {
-                            pending--;
+                             if (!--pending) done(null, results);
                         } else {
                             walk(file, function(err, res) {
+                             if (err)self.logger.error(err);
                                 results = results.concat(res);
                                 if (!--pending) done(null, results);
                             });
@@ -146,8 +151,9 @@ ExtensionsManager.prototype._findAvailableExtensions = function() {
             });
         });
     };
-
+    var self = this;
     return Q.nfcall(walk, this.options.rootDirectory).then(function(results) {
+        self.logger.info("Found " + results.length + " extensions");
         var availableExtensions = results.map(function(configFile) {
             return _.extend({ directory: path.dirname(configFile) }, require(configFile));
         }).sort(function(pa, pb) {
