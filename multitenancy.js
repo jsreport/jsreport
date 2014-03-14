@@ -73,20 +73,22 @@ module.exports = function(app, options, cb) {
     });
 
     passport.use(new LocalStrategy(function(username, password, done) {
-        var tenant = multitenancy.authenticate(username, password);
-        if (tenant == null)
-            return done(null, false, { message: "Invalid password or user does not exists." });
+        multitenancy.authenticate(username, password).then(function(tenant) {
+            if (tenant == null)
+                return done(null, false, { message: "Invalid password or user does not exists." });
 
-        return done(null, tenant);
+            return done(null, tenant);
+        });
     }));
 
     passport.use(new BasicStrategy(function(username, password, done) {
-        var tenant = multitenancy.authenticate(username, password);
-        if (tenant == null)
-            return done(null, false);
+        multitenancy.authenticate(username, password).then(function(tenant) {
+            if (tenant == null)
+                return done(null, false);
 
-        activateTenant(multitenancy.findTenant(username), function() {
-            return done(null, true);
+            activateTenant(multitenancy.findTenant(username), function() {
+                return done(null, true);
+            });
         });
     }));
 
@@ -116,12 +118,12 @@ module.exports = function(app, options, cb) {
         if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
             return res.redirect("/");
         }
-        
+
         //not authenticated and not requiring
-         if ((!req.isAuthenticated || !req.isAuthenticated()) && !isUrlRequirignAuthnetication) {
-             return next();
-         }
-        
+        if ((!req.isAuthenticated || !req.isAuthenticated()) && !isUrlRequirignAuthnetication) {
+            return next();
+        }
+
         //authenticated
         activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
             if (!options.useSubDomains) {
@@ -137,7 +139,7 @@ module.exports = function(app, options, cb) {
             return res.redirect("https://" + domains.join("."));
         });
     });
-  
+
     passport.serializeUser(function(user, done) {
         done(null, user.email);
     });
@@ -275,12 +277,14 @@ var Multitenancy = function(options) {
 Multitenancy.prototype.initialize = function() {
     var self = this;
 
-    return this._createContext().tenants.toArray().then(function(tenants) {
-        tenants.forEach(function(t) {
-            self._tenantsCache[t.email] = t;
-        });
+    return this._createContext().then(function(context) {
+        return context.tenants.toArray().then(function(tenants) {
+            tenants.forEach(function(t) {
+                self._tenantsCache[t.email] = t;
+            });
 
-        return Q(tenants);
+            return Q(tenants);
+        });
     });
 };
 
@@ -297,36 +301,42 @@ Multitenancy.prototype.findTenantByName = function(name) {
 };
 
 Multitenancy.prototype.registerTenant = function(email, name, password) {
-    var context = this._createContext();
-    var tenant = new $entity.Tenant({
-        email: email,
-        password: passwordHash.generate(password),
-        createdOn: new Date(),
-        name: name
+    var self = this;
+    return this._createContext().then(function(context) {
+        var tenant = new $entity.Tenant({
+            email: email,
+            password: passwordHash.generate(password),
+            createdOn: new Date(),
+            name: name
+        });
+
+        self._tenantsCache[email] = tenant;
+        context.tenants.add(tenant);
+
+        return context.saveChanges().then(function() {
+            return Q(tenant);
+        });
     });
 
-    this._tenantsCache[email] = tenant;
-    context.tenants.add(tenant);
 
-    return context.saveChanges().then(function() {
-        return Q(tenant);
-    });
 };
 
 Multitenancy.prototype.authenticate = function(username, password) {
     var tenant = this._tenantsCache[username];
 
     if (tenant == null)
-        return null;
+        return Q(null);
 
-    var context = this._createContext();
-    context.attach(tenant);
-    tenant.lastLogin = new Date();
-    context.saveChanges();
-
-    return (passwordHash.verify(password, tenant.password)) ? tenant : null;
+    return this._createContext().then(function(context) {
+        context.attach(tenant);
+        tenant.lastLogin = new Date();
+        return context.saveChanges().then(function() {
+            return (passwordHash.verify(password, tenant.password)) ? tenant : null;
+        });
+    });
 };
 
 Multitenancy.prototype._createContext = function() {
-    return new $entity.TenantContext(this.options.connectionString);
+    var context = new $entity.TenantContext(this.options.connectionString);
+    return context.onReady();
 };

@@ -102,7 +102,7 @@ Reporter.prototype._initializeDataContext = function(withExtensions) {
             [$data.EntityContext, $data.ServiceBase], null, entitySets);
 
         self.context = new self.contextDefinition(self.connectionString);
-        self.context.onReady(function() {
+        self.context.onReady().then(function() {
 
             //todo IS this still required?
             self.context.storageProvider.fieldConverter.toDb[self.extendGlobalTypeName("$entity.Script")] = function(e) {
