@@ -53,8 +53,7 @@
 
         return result;
     }
-
-    // Project configuration.
+    
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         mocha_phantomjs: {
@@ -66,15 +65,12 @@
         mochaTest: {
             test: {
                 src: ['extension/*/test/*.js', 'test/*.js']
-                //src: ['test/gridFSTest.js', 'extension/reports' + '/test/*.js']
-               //src: ['extension/childTemplates' + '/test/*.js']
             },
             testExact: {
                 src: ['test/multitenancyTest.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           
-                //src: ['extension/templates/test/*.js']           
             }
         },
 
@@ -138,8 +134,8 @@
                 overwrite:true,
                 replacements: [ 
                     //temporary avoid template caching for designer
-                    { from: '{{templateBust}}',  to: "" }, 
-                    //{ from: '{{templateBust}}',  to: new Date().getTime() + "" }, 
+                    //{ from: '{{templateBust}}',  to: "" }, 
+                    { from: '{{templateBust}}',  to: new Date().getTime() + "" }, 
                 ]
             }
         }

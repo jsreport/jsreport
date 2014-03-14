@@ -53,7 +53,7 @@
                     <form class="form-login span4" accept-charset="UTF-8" action="/login" method="POST" role="form">
                         <fieldset>
                             <div class="input-control text" data-role="input-control">
-                                <input class="text" placeholder="username" name="username" type="text">
+                                <input class="text" placeholder="email" name="username" type="text">
                             </div>
                             <div class="input-control text" data-role="input-control">
                                 <input class="text" placeholder="password" name="password" type="password" value="">
@@ -87,7 +87,7 @@
                                 <input class="text" placeholder="e-mail" type="text" name="username" value="<%= viewModel.previousUsername || '' %>">
                             </div>
                             <div class="input-control text" data-role="input-control">
-                                <input class="text" placeholder="username" type="text" name="name" value="<%= viewModel.previousName || '' %>">
+                                <input class="text" placeholder="subdomain name" type="text" name="name" value="<%= viewModel.previousName || '' %>">
                                 <% if (viewModel.name) { %>
                                 <span class="input-err"><%= viewModel.name %></span>
                                 <% } %>			    		        

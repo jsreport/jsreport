@@ -103,9 +103,6 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             },
 
             _preview: function(target) {
-                if (!this.validate())
-                    return;
-
                 this.contentView.$el.find(".preview-loader").show();
                 //http://connect.microsoft.com/IE/feedback/details/809377/ie-11-load-event-doesnt-fired-for-pdf-in-iframe
                 //this.contentView.$el.find("[name=previewFrame]").hide();

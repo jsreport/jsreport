@@ -63,17 +63,21 @@ Phantom.prototype.execute = function(request, response) {
         .then(function() { return self._processHeaderFooter(request, generationId, "header"); })
         .then(function() { return self._processHeaderFooter(request, generationId, "footer"); })
         .then(function() {
-
+            
             return Q.nfcall(function(cb) {
-                var childArgs = [
+                var childArgs = [	
+		    '--ignore-ssl-errors=yes',	    
                     join(__dirname, 'convertToPdf.js'),
                     "file:///" + htmlFile,
-                    join(__dirname, "reports-tmpl", generationId + ".pdf"),
+                    join(__dirname, "reports-tmpl", generationId + ".pdf"),		   
                     request.template.phantom.margin || "null",
                     request.template.phantom.headerFile || "null",
                     request.template.phantom.footerFile || "null",
                     request.template.phantom.headerHeight || "null",
-                    request.template.phantom.footerHeight || "null"
+                    request.template.phantom.footerHeight || "null",
+                    'jsreport.sid',
+                    encodeURIComponent(request.cookies["jsreport.sid"]),
+                    self.reporter.options.cookieSession.cookie.domain
                 ];
 
                 var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
@@ -89,7 +93,7 @@ Phantom.prototype.execute = function(request, response) {
                         return cb(error);
                     }
 
-                    response.result = fs.createReadStream(childArgs[2]);
+                    response.result = fs.createReadStream(childArgs[3]);
                     response.headers["Content-Type"] = "application/pdf";
                     response.headers["File-Extension"] = "pdf";
                     response.isStream = true;
