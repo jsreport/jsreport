@@ -37,15 +37,14 @@
             app.on("menu-actions-render", function(context) {
                 context.result += "<li><a id='uploadImage'>Upload Image</a><span style='display:none' id='actionImageUploader' /></li>";
                 context.on("after-render", function($el) {
-
                     var uploader = $($el).find('#actionImageUploader').imageUploader({
                         complete: function(response) {
                             app.images.router.detail(response._id);
                         },
                     });
 
-                    $el.find("#uploadImage").click(function() {
-                        uploader.open();
+                    $($el).find("#uploadImage").click(function() {
+                         uploader.open();
                     });
                 });
             });

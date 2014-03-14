@@ -60,7 +60,7 @@
                 });
 
                 app.on("menu-actions-render", function(context) {
-                    context.result += "<li><a id='createScriptLink' href='/#/extension/scripts/detail'>Create Script</a></li>";
+                    context.result += "<li><a href='/#/extension/scripts/detail'>Create Script</a></li>";
                 });
             }
 

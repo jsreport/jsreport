@@ -89,7 +89,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             },
 
             validateLeaving: function() {
-                return !this.model.hasChanged();
+                return !this.model.hasChangesSyncLastSync();
             },
         });
     });

@@ -5,14 +5,18 @@
             
             initialize: function () {
             },
-         
             
             events: {
                 "click #deleteCommand": "deleteCommand",
+                "click #uploadCommand": "uploadCommand",
             },
             
             deleteCommand: function() {
                 this.contentView.dataGrid.deleteItems();
+            },
+            
+            uploadCommand: function() {
+                $("#uploadImage").click();
             }
         });
     });

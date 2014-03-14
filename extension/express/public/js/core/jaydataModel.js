@@ -12,10 +12,22 @@ define(["backbone", "jquery", "app"], function (Backbone, $, app) {
                 this._initialize();
             
             this.originalEntity = new this.Entity();
+
+            var self = this;
+            this.listenTo(this, "sync", function() {
+                self.lastSyncDate = new Date();
+            });
+            this.listenTo(this, "change", function() {
+                self.lastChangedDate = new Date();
+            });
         },
         
         toString: function() {
             return "";
+        },
+        
+        hasChangesSyncLastSync: function() {
+            return this.lastChangedDate > this.lastSyncDate;
         },
         
         copyToEntity: function () {

@@ -2,8 +2,8 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore", "core/listenerCollection", 
-    "./template.embed.dialog", "core/basicModel"],
+define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore", "core/listenerCollection",
+        "./template.embed.dialog", "core/basicModel"],
     function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection, EmbedDialog, BasicModel) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
@@ -69,6 +69,9 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
             save: function() {
                 var self = this;
+                
+                 if (!this.validate())
+                    return;
 
                 if (app.settings.playgroundMode) {
                     this.model.originalEntity = new $entity.Template();
@@ -138,7 +141,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                             }
                         }
                     }
-                    
+
                     addBody("template[", uiState);
                     if (request.options != null)
                         addBody("options[", request.options);
@@ -182,6 +185,11 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             onValidate: function() {
                 var res = [];
 
+                if (this.model.get("name") == null || this.model.get("name") == "")
+                    res.push({
+                        message: "Name cannot be empty"
+                    });
+
                 if (this.model.get("recipe") == null)
                     res.push({
                         message: "Recipe must be selected"
@@ -210,7 +218,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                     hideSubmit: true
                 });
             },
-            
+
             embed: function() {
                 var model = new BasicModel(this.model.toJSON());
                 model.set({ fileInput: true, dataArea: true });

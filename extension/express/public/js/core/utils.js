@@ -92,9 +92,13 @@ define(["jquery"], function($) {
         });
 
         if (view.validateLeaving != null) {
-            $('a').off("click").on('click', function() {
+            $('a:not(.not-validate-leaving)').off("click.validateLeaving").on('click.validateLeaving', function() {
                 return $(this).attr("href") == null ||  $(this).attr("href") == ""  ||  $(this).attr("href") == "#"  ||
                     view.validateLeaving() || confirm('You have unsaved changes. Are you sure you want to leave?');
+            });
+
+            view.on("close", function() {
+                $("a").off("click.validateLeaving");
             });
             
             $(window).off("beforeunload").on('beforeunload', function() {

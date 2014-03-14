@@ -27,7 +27,7 @@
         },
 
         validateLeaving: function() {
-            return !this.model.hasChanged();
+            return !this.model.hasChangesSyncLastSync();
         },
     });
 });

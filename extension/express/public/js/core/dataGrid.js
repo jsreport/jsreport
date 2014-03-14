@@ -103,6 +103,9 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
             },
 
             deleteAction: function() {
+                if (!confirm('Do you really want to delete it?'))
+                    return;
+
                 var self = this;
                 var selectedRows = this.$el.find("table tr.ui-selected");
                 async.each(selectedRows, function(row, cb) {
