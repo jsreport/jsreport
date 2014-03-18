@@ -20,7 +20,6 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                 template: {
                     name: "name",
                     recipe: "html",
-                    generatedReportsCounter: 2
                 },
                 headers: {}
             };

@@ -22,7 +22,6 @@ define(["app", "core/jaydataModel"], function (app, ModelBase) {
 
         defaults: {
             engine: "jsrender",
-            generatedReportsCounter: 0,
             recipe: "html"
         },
     });

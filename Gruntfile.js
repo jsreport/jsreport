@@ -20,7 +20,7 @@
         "core/listenerCollection": "empty:",
     };
 
-    function extensionOptimization(name) {
+    function extensionOptimalization(name) {
         return {
             options: {
                 paths: commonPath,
@@ -67,7 +67,7 @@
                 src: ['extension/*/test/*.js', 'test/*.js']
             },
             testExact: {
-                src: ['test/multitenancyTest.js']
+                src: ['extension/templates/test/*.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           
@@ -83,6 +83,7 @@
             standardProduction: { files: [{ src: ['./config/production.standard.config.js'], dest: './config.js' }] },
             mfrDebug: { files: copyFiles("mfr") },
             mfrProduction: { files: [{ src: ['./config/production.mfr.config.js'], dest: './config.js' }] },
+            copyAppDev: { src: ['./extension/express/public/js/app_dev.js'], dest: './extension/express/public/js/app.js' }
         },
 
         requirejs: {
@@ -93,18 +94,19 @@
                     out: "extension/express/public/js/app.js",
                     name: 'app_dev',
                     removeCombined: true,
+                    findNestedDependencies: true,
                     onBuildWrite: function(moduleName, path, contents) {
                         return contents.replace("define('app_dev',", "define(");
                     }
                 }
             },
 
-            compileTemplates: extensionOptimization("templates"),
-            compileImages: extensionOptimization("images"),
-            compileScripts: extensionOptimization("scripts"),
-            compileData: extensionOptimization("data"),
-            compileReports: extensionOptimization("reports"),
-            compileStatistics: extensionOptimization("statistics"),
+            compileTemplates: extensionOptimalization("templates"),
+            compileImages: extensionOptimalization("images"),
+            compileScripts: extensionOptimalization("scripts"),
+            compileData: extensionOptimalization("data"),
+            compileReports: extensionOptimalization("reports"),
+            compileStatistics: extensionOptimalization("statistics"),
           //  compilePhantom: extensionOptimization("phantom-pdf"),
         },
         
@@ -138,7 +140,7 @@
                     { from: '{{templateBust}}',  to: new Date().getTime() + "" }, 
                 ]
             }
-        }
+        },
     });
 
 
@@ -155,16 +157,18 @@
     grunt.registerTask('deploy', ['requirejs']);
 
     grunt.registerTask('mfr-debug', ['copy:mfrDebug', 'replace:debugRoot', 'replace:debugApp']);
-    grunt.registerTask('mfr-production', ['requirejs', 'copy:mfrProduction', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('mfr-production', ['copy:copyAppDev', 'requirejs', 'copy:mfrProduction', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('multitenant-debug', ['copy:multitenantDebug', 'replace:debugRoot', 'replace:debugApp']);
-    grunt.registerTask('multitenant-production', ['requirejs', 'copy:multitenantProduction', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('multitenant-production', ['copy:copyAppDev', 'requirejs', 'copy:multitenantProduction', 'replace:productionRoot', 'replace:productionApp']);
+    
+    grunt.registerTask('multitenant-test', ['copy:copyAppDev', 'requirejs', 'replace:productionApp']);
 
     grunt.registerTask('playground-debug', ['copy:playgroundDebug', 'replace:debugRoot', 'replace:debugApp']);
-    grunt.registerTask('playground-production', ['requirejs', 'copy:playgroundProduction', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('playground-production', ['copy:copyAppDev', 'requirejs', 'copy:playgroundProduction', 'replace:productionRoot', 'replace:productionApp']);
     
     grunt.registerTask('standard-debug', ['copy:standardDebug', 'replace:debugRoot', 'replace:debugApp']);
-    grunt.registerTask('standard-production', ['requirejs', 'copy:standardProduction', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('standard-production', ['copy:copyAppDev', 'requirejs', 'copy:standardProduction', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('test-all', ['mochaTest:testAll']);
     grunt.registerTask('test-exact', ['mochaTest:testExact']);

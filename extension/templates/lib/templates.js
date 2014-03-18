@@ -28,7 +28,6 @@ Templating = function(reporter, definition) {
     this.definition = definition;
     this._versionCache = [];
     this.updateEnabled = false;
-    this._updatePromise = Q();
 
     this._defineEntities();
 
@@ -54,30 +53,21 @@ util.inherits(Templating, events.EventEmitter);
 
 Templating.prototype.handleBeforeRender = function(request, response) {
     if (request.template._id == null && request.template.shortid == null) {
-        logger.info("Its a inline template");
         request.template.content = request.template.content == null || request.template.content == "" ? " " : request.template.content;
         return;
     }
 
-    logger.info("Searching for template in db");
     var self = this;
+    var findPromise = (request.template._id != null) ? request.context.templates.find(request.template._id) :
+        (self.reporter.playgroundMode ?
+            request.context.templates.single(function(t) { return t.shortid == this.shortid && t.version == this.version; }, { shortid: request.template.shortid, version: request.template.version }) :
+            request.context.templates.single(function(t) { return t.shortid == this.shortid }, { shortid: request.template.shortid }));
 
-    return this._updatePromise = this._updatePromise.then(function() {
-        var findPromise = (request.template._id != null) ? request.context.templates.find(request.template._id) :
-            (self.reporter.playgroundMode ?
-                request.context.templates.single(function(t) { return t.shortid == this.shortid && t.version == this.version; }, { shortid: request.template.shortid, version: request.template.version }) :
-                request.context.templates.single(function(t) { return t.shortid == this.shortid }, { shortid: request.template.shortid }));
-
-        return findPromise.then(function(template) {
-            request.context.templates.attach(template);
-            template.generatedReportsCounter = template.generatedReportsCounter + 1;
-
-            return request.context.saveChanges().then(function() {
-                delete request.template.generatedReportsCounter;
-                extend(true, template, request.template);
-                request.template = template;
-            });
-        });
+    return findPromise.then(function(template) {
+        extend(true, template, request.template);
+        request.template = template;
+    }, function() {
+        throw new Error("Unable to find specified template: " + (request.template._id != null ? request.template._id : request.template.shortid));
     });
 };
 
@@ -98,9 +88,9 @@ Templating.prototype.find = function(preficate, params) {
 };
 
 Templating.prototype._beforeUpdateHandler = function(args, entity) {
-    var validationContext= { template: entity };
+    var validationContext = { template: entity };
     this.emit("validate-update", validationContext);
-    
+
     if (!validationContext.result && !this.reporter.context.templates.updateEnabled && this.reporter.playgroundMode)
         return false;
 
@@ -135,7 +125,6 @@ Templating.prototype._defineEntities = function() {
         _id: { type: "id", key: true, computed: true, nullable: false },
         shortid: { type: "string" },
         name: { type: "string" },
-        generatedReportsCounter: { type: "int" },
         content: { type: "string" },
         recipe: { type: "string" },
         helpers: { type: "string" },
@@ -201,18 +190,18 @@ Templating.prototype._createEntitySetDefinitions = function(entitySets) {
                     return callback(false);
 
                 var shouldBeHistorized = false;
-                
+
                 for (var i = 0; i < items[0].changedProperties.length; i++) {
                     var propName = items[0].changedProperties[i].name;
-                    if (propName != "ValidationErrors" && propName != "generatedReportsCounter" && propName != "modificationDate")
+                    if (propName != "ValidationErrors" && propName != "modificationDate")
                         shouldBeHistorized = true;
                 }
-                
+
 
                 if (!shouldBeHistorized)
-                     return callback(true);
-                
-                 self._copyHistory(items[0]).then(function() { callback(true); }, function(err) { callback(false); });
+                    return callback(true);
+
+                self._copyHistory(items[0]).then(function() { callback(true); }, function(err) { callback(false); });
             };
         };
     }

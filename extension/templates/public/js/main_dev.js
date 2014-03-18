@@ -115,7 +115,6 @@ define(["jquery", "app", "marionette", "backbone",
                     'content': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
                     'helpers': { 'type': 'Edm.String' },
-                    'generatedReportsCounter': { 'type': 'Edm.Int32' },
                 };
 
                 if (app.settings.playgroundMode) {

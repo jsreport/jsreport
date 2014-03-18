@@ -65,7 +65,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     
     var report = new this.ReportType({
         recipe: request.options.recipe,
-        name: request.template.name + " - " + request.template.generatedReportsCounter,
+        name: request.template.name,
         fileExtension: response.headers["File-Extension"],
         templateShortid: request.template.shortid,
         creationDate: new Date(),

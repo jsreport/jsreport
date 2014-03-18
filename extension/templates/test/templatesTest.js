@@ -1,14 +1,15 @@
 ﻿var assert = require("assert"),
     fs = require('fs'),
     path = require("path"),
+    Q = require("q"),
     jaydata = require("odata-server"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     describeReportingPlayground = require("../../../test/helpers.js").describeReportingPlayground;
 
 describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
     describe('templating', function() {
-        
-         it('should callback error when missing template', function(done) {
+
+        it('should callback error when missing template', function(done) {
             var request = {
                 template: { _id: "AAAAAAAAAAAAAAAAAAAAAAAA" },
                 context: reporter.context,
@@ -22,7 +23,7 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                 done();
             });
         });
-      
+
 
         it('handleBefore should find by _id and use template', function(done) {
             var request = {
@@ -35,14 +36,13 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                 request.template._id = t._id;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
                     assert.equal("foo", request.template.content);
-                    assert.equal(1, request.template.generatedReportsCounter);
 
                     done();
                 });
             });
         });
-        
-         it('handleBefore should find by shortid and use template', function(done) {
+
+        it('handleBefore should find by shortid and use template', function(done) {
             var request = {
                 template: {},
                 context: reporter.context,
@@ -53,23 +53,35 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                 request.template.shortid = t.shortid;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
                     assert.equal("foo", request.template.content);
-                    assert.equal(1, request.template.generatedReportsCounter);
 
                     done();
                 });
             });
         });
 
-        it('should copy template to history', function(done) {
-            reporter.templates.create({ name: "original" }).then(function(t) {
-                reporter.context.templates.attach(t);
-                t.name = "modified";
-                reporter.context.templates.saveChanges().then(function() {
-                    reporter.context.templatesHistory.toArray()
-                        .then(function(fromDb) {
-                            assert.equal("original", fromDb[0].name);
-                            done();
-                        });
+        it('handleBefore with not existing template should fail requesting handleBefore second time with existing template should succeed', function(done) {
+            var request = {
+                template: {},
+                context: reporter.context,
+                options: { recipe: "html" },
+            };
+
+            reporter.templates.create({ content: "foo" }).then(function(t) {
+                request.template.shortid = "not existing";
+
+                reporter.templates.handleBeforeRender(request, {}).fail(function() {
+                    request = {
+                        template: { shortid: t.shortid },
+                        context: reporter.context,
+                        options: { recipe: "html" },
+                    };
+
+                    reporter.templates.handleBeforeRender(request, {}).then(function() {
+                        console.log(request.template.content);
+                        assert.equal("foo", request.template.content);
+
+                        done();
+                    });
                 });
             });
         });
@@ -78,9 +90,9 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
 
 describeReportingPlayground(path.join(__dirname, "../../"), [], function(reporter) {
     describe('templating playground', function() {
-        
-          
-         it('handleBefore should find by shortid and version and use template', function(done) {
+
+
+        it('handleBefore should find by shortid and version and use template', function(done) {
             var request = {
                 template: {},
                 context: reporter.context,
