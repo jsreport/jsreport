@@ -71,20 +71,25 @@ Templating.prototype.handleBeforeRender = function(request, response) {
     });
 };
 
-Templating.prototype.create = function(tmpl) {
+Templating.prototype.create = function(context, tmpl) {
+    if (tmpl == null) {
+        tmpl = context;
+        context = this.reporter.context;
+    }
+        
+
     logger.info(sformat("Creating template {0}.", tmpl.name));
     var template = new this.TemplateType(tmpl);
     template.isLatest = true;
-    this.reporter.resetContext();
-    this.entitySet.add(template);
+    context.templates.add(template);
 
-    return this.entitySet.saveChanges().then(function() {
+    return context.templates.saveChanges().then(function() {
         return Q(template);
     });
 };
 
 Templating.prototype.find = function(preficate, params) {
-    return this.entitySet.filter(preficate, params).toArray();
+    return this.reporter.context.templates.filter(preficate, params).toArray();
 };
 
 Templating.prototype._beforeUpdateHandler = function(args, entity) {

@@ -84,12 +84,9 @@ Reporter.prototype.extendGlobalTypeName = function(typeName) {
     return nsType[0] + "." + this.options.tenant.name + "." + nsType[1];
 };
 
-Reporter.prototype.resetContext = function() {
-    this.context = new this.contextDefinition(this.connectionString);
-};
-
 Reporter.prototype.startContext = function() {
-    return new this.contextDefinition(this.connectionString);
+    var context = new this.contextDefinition(this.connectionString);
+    return context;
 };
 
 Reporter.prototype._initializeDataContext = function(withExtensions) {
@@ -97,11 +94,22 @@ Reporter.prototype._initializeDataContext = function(withExtensions) {
     var entitySets = {};
 
     var fn = function(cb) {
+
         self.settings.createEntitySetDefinitions(entitySets);
+        
+        for (var property in entitySets) {
+            if (entitySets.hasOwnProperty(property)) {
+                entitySets[property].tableName = self.options.tenant.name == "" ?  property : 
+                    (self.options.tenant.name + '-' + property);
+            }
+        }
+
         self.contextDefinition = $data.Class.defineEx(self.extendGlobalTypeName("$entity.Context"),
             [$data.EntityContext, $data.ServiceBase], null, entitySets);
 
-        self.context = new self.contextDefinition(self.connectionString);
+        self.originalEntitySets = entitySets;
+
+        self.context = self.startContext();
         self.context.onReady().then(function() {
 
             //todo IS this still required?
@@ -147,8 +155,8 @@ Reporter.prototype.render = function(request) {
 
     self.emit("before-render", request, response);
     return dataParser(request).then(function() {
-            return self.beforeRenderListeners.fire(request, response);
-        })
+        return self.beforeRenderListeners.fire(request, response);
+    })
         .then(function() {
             self.emit("render", request, response);
             return self.executeRecipe(request, response);

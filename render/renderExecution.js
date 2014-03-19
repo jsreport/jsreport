@@ -43,6 +43,7 @@ process.on('message', function (m) {
             error: ex.message,
             errorStack: ex.stack
         });
-        process.exit();
     }
+    
+    process.exit();
 });

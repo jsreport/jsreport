@@ -623,10 +623,10 @@ $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, 
                 for (var i = 0; i < block.length; i++) {
                     convertedItems.push(block[i].data);
                     
-                    var es = collections[block[i].entitySet.name];
+                    var es = collections[block[i].entitySet.tableName];
                     if (!es){
                         es = {};
-                        collections[block[i].entitySet.name] = es;
+                        collections[block[i].entitySet.tableName] = es;
                     }
                     
                     var initData = { entity: block[i].data, data: self.save_getInitData(block[i], convertedItems), physicalData: block[i].physicalData, type: Container.resolveName(block[i].data.getType()) };

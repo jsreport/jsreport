@@ -29,7 +29,7 @@ module.exports = function(app, options, cb) {
         opts.express = { app: main };
         opts.tenant = tenant;
         opts.playgroundMode = false;
-        opts.connectionString.databaseName = tenant.name;
+        opts.connectionString.databaseName = "multitenant";//tenant.name;
 
         var rep = new Reporter(opts);
 
@@ -87,7 +87,7 @@ module.exports = function(app, options, cb) {
                 return done(null, false);
 
             activateTenant(multitenancy.findTenant(username), function() {
-                return done(null, true);
+                return done(null, tenant);
             });
         });
     }));
@@ -95,12 +95,14 @@ module.exports = function(app, options, cb) {
     //authenticate basic if request to API
     app.use(function(req, res, next) {
         if ((!req.isAuthenticated || !req.isAuthenticated()) && (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0)) {
-            passport.authenticate('basic', function(err, result, info) {
-                if (!result) {
+            passport.authenticate('basic', function(err, user, info) {
+                if (!user) {
                     return res.send(401);
                 }
 
-                return next();
+                req.logIn(user, function() {
+                    next();
+                });
             })(req, res, next);
         } else {
             next();
