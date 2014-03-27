@@ -18,6 +18,10 @@
                 lineNumbers: true,
             });
             codeMirrorBinder(this.model, "dataJson", this.contentCodeMirror);
+            
+            $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
+            
+            this.contentCodeMirror.refresh();
         },
         
         save: function () {

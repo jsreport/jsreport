@@ -1,20 +1,12 @@
-﻿You can either reference image absolutely: <br/> <br/>
+﻿Embedding image using base64: <br/><br/>
 
-<div  style="overflow-x:scroll;">
-<code>
-    &lt;img src='{{>~getCurrentLocation()}}api/image/name/{{:name}}'/&gt;
+<code style='border: 1px'>
+    &lt;img src='{#image {{:name}}}'/&gt;
 </code>
-</div>
-
 <br/> <br/>
 
-Or you can use base tag in your html head once and reference all images relatively afterwards: <br/> <br/>
+Inserting image via url link: <br/> <br/>
 
-
-<code>
-&lt;head&gt; <br/>
-    &lt;base href="{{>~getCurrentLocation()}}" target="_blank"&gt; <br/>
-&lt;/head&gt; <br/>
-
-    &lt;img src='api/image/name/{{:name}}'/&gt;
+<code style='border: 1px'>
+    &lt;img src='{{>~getCurrentLocation()}}api/image/name/{{:name}}'/&gt;
 </code>

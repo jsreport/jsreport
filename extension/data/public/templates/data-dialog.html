@@ -4,9 +4,9 @@
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h4 class="modal-title">Inline data source</h4>
         </div>
-        <div class="modal-body">
+        <div class="modal-body fs">
             {{if ~getMode()}}
-               <textarea id="contentArea">{{:dataJson}}</textarea>
+               <textarea id="contentArea" class="full-content-without-menu">{{:dataJson}}</textarea>
             {{else}}
             {{/if}}
          

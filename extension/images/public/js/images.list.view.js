@@ -11,6 +11,7 @@
             this.dataGrid = DataGrid.show({
                 collection: this.collection,
                 filter: this.collection.filter,
+                idKey: "shortid",
                 onShowDetail: function (id) {
                     window.location.hash = "extension/images/" + id;
                 },

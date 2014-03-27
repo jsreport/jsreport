@@ -267,9 +267,11 @@ i.glyphicon {margin-right: 4px;}
   border-color: #fff;
 }
 
-/* Modal fixing width 90% */
 .modal-dialog {width: 40%; height: 40%; padding: 0; padding-top: 10%;}
-.modal-dialog.fs {width: 90%; height: 90%; padding: 0; padding-top: 1%;}
+.modal-dialog.fs {width: 60%; height: 60%; padding: 0; padding-top: 1%;}
+
+.modal-body.fs { min-height: 300px}
+
 
 /* Example Report Title */
 blockquote {margin-bottom: 10px;}

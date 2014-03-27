@@ -24,7 +24,7 @@
                 detail: function(id) {
                     this.navigate("/extension/images/" + id);
                     var model = new ImageModel();
-                    model.set("_id", id);
+                    model.set("shortid", id);
 
                     app.layout.showToolbarViewComposition(new ImageDetailView({ model: model }), new ImageToolbarView({ model: model }));
 
@@ -39,7 +39,7 @@
                 context.on("after-render", function($el) {
                     var uploader = $($el).find('#actionImageUploader').imageUploader({
                         complete: function(response) {
-                            app.images.router.detail(response._id);
+                            app.images.router.detail(response.shortid);
                         },
                     });
 

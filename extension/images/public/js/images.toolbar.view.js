@@ -15,8 +15,15 @@
                 this.uploader = $(this.$el).find('#fine-uploader').imageUploader({
                     complete: function(response) {
                         self.model.set("name", response._id);
+                    },
+                    getId: function() {
+                        return self.model.get("shortid");
                     }
                 });
+            },
+
+            save: function() {
+                this.model.save();
             },
 
             upload: function() {

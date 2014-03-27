@@ -10,9 +10,9 @@ var Readable = require("stream").Readable,
     fs = require("fs"),
     sformat = require("stringformat"),
     _ = require("underscore"),
-    Q = require("q");
-join = require("path").join;
-
+    Q = require("q"),
+    asyncReplace = require("async-replace"),
+    join = require("path").join;
 
 
 var logger = winston.loggers.get('jsreport');
@@ -36,18 +36,19 @@ Images = function(reporter, definition) {
     reporter.templates.TemplateType.addEventListener("beforeCreate", function(args, template) {
         template.images = template.images || [];
     });
-    
+
     this.ImageType.addEventListener("beforeCreate", function(args, entity) {
         entity.creationDate = new Date();
         entity.modificationDate = new Date();
     });
-    
+
     this.ImageType.addEventListener("beforeUpdate", function(args, entity) {
         entity.modificationDate = new Date();
     });
 
     this.reporter.entitySetRegistrationListners.add(definition.name, this, Images.prototype._createEntitySetDefinitions.bind(this));
     this.reporter.on("express-configure", Images.prototype._configureExpress.bind(this));
+    this.reporter.beforeRenderListeners.add(definition.name, this, Images.prototype.handleBeforeRender.bind(this));
 
     this.reporter.initializeListener.add(definition.name, this, function() {
         //when activated we need to initialze images field with default values, otherwise jaydata has problems with null aray
@@ -71,6 +72,7 @@ Images = function(reporter, definition) {
 Images.prototype.upload = function(name, contentType, content, shortidVal) {
     var self = this;
     logger.info("uploading image " + name);
+
     function findOrCreate() {
         if (shortidVal == null) {
             var image = new self.ImageType({
@@ -90,7 +92,9 @@ Images.prototype.upload = function(name, contentType, content, shortidVal) {
                 return Q(img);
             });
         }
-    };
+    }
+
+    ;
 
     return findOrCreate().then(function(img) {
         return self.entitySet.saveChanges().then(function() {
@@ -99,11 +103,30 @@ Images.prototype.upload = function(name, contentType, content, shortidVal) {
     });
 };
 
+Images.prototype.handleBeforeRender = function(request, response) {
+
+
+    function convert(str, p1, offset, s, done) {
+
+        request.context.images.filter(function(t) { return t.name == this.name; }, { name: p1 }).toArray().then(function(res) {
+            if (res.length < 1)
+                return done(null);
+
+            var imageData = "data:" + res[0].contentType + ";base64," + res[0].content.toString('base64');
+            done(null, imageData);
+        });
+    }
+
+    var test = /{#image ([^{}]+)+}/g;
+    
+    return Q.nfcall(asyncReplace, request.template.content, test, convert).then(function(result) {
+        request.template.content = result;
+    });
+};
+
 Images.prototype._configureExpress = function(app) {
     var self = this;
-
-    console.log("configuring express");
-
+  
     app.get("/api/image/:shortid", function(req, res) {
 
         self.entitySet.single(function(t) { return t.shortid == this.id; }, { id: req.params.shortid }).then(function(result) {
@@ -113,7 +136,7 @@ Images.prototype._configureExpress = function(app) {
             res.send(404);
         });
     });
-    
+
     app.get("/api/image/name/:name", function(req, res) {
         self.entitySet.single(function(t) { return t.name == this.name; }, { name: req.params.name }).then(function(result) {
             res.setHeader('Content-Type', result.contentType);

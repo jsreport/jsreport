@@ -56,7 +56,7 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
         });
     }
 
-    var test = /{#([^{}]+)+}/g;
+    var test = /{#child ([^{}]+)+}/g;
 
     return Q.nfcall(asyncReplace, request.template.content, test, convert).then(function(result) {
         request.template.content = result;

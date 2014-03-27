@@ -67,6 +67,7 @@ Phantom.prototype.execute = function(request, response) {
             return Q.nfcall(function(cb) {
                 var childArgs = [	
 		    '--ignore-ssl-errors=yes',	    
+                    '--web-security=false',
                     join(__dirname, 'convertToPdf.js'),
                     "file:///" + htmlFile,
                     join(__dirname, "reports-tmpl", generationId + ".pdf"),		   
@@ -93,7 +94,7 @@ Phantom.prototype.execute = function(request, response) {
                         return cb(error);
                     }
 
-                    response.result = fs.createReadStream(childArgs[3]);
+                    response.result = fs.createReadStream(childArgs[4]);
                     response.headers["Content-Type"] = "application/pdf";
                     response.headers["File-Extension"] = "pdf";
                     response.isStream = true;

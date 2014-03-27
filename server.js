@@ -57,6 +57,10 @@ var logger = winston.loggers.add('jsreport.templates', {
     ]
 });
 
+app.use(expressWinston.logger( {
+    transports: [ consoleTransport, fileTransport, errorFileTransport ]
+}));
+
 require("./reporter.install.js")(app, config, function() {
     
     if (config.iisnode) {

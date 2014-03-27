@@ -7,16 +7,16 @@ describeReporting(path.join(__dirname, "../../"), ["childTemplates"], function(r
 
     describe('childTemplates', function() {
 
-        it('should replace', function(done) {
+        it('should replace child template mark with its content', function(done) {
 
             reporter.templates.create({
                 content: "{{>~a()}}",
                 helpers: "{ a: function() { return \"foo\"; } }",
                 recipe: "html",
-                name: "child test" }).then(function(t) {
+                name: "t1" }).then(function(t) {
 
                 var request = {
-                    template: { content: "a{#child test}ba{#child test}" },
+                    template: { content: "a{#child t1}ba{#child t1}" },
                     context: reporter.context,
                 };
 

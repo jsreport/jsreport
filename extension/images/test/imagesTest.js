@@ -42,5 +42,20 @@ describeReporting(path.join(__dirname, "../../"), ["images"], function(reporter)
                         .expect(200, done);
                 });
         });
+
+        it('should replace image tag with base64 content', function(done) {
+            reporter.images.upload("test withSpace", "image/jpeg", new Buffer([1, 2, 3]))
+                .then(function() {
+                    var request = {
+                        template: { content: "a{#image test withSpace}", recipe:"html" },
+                        context: reporter.context,
+                    };
+
+                    reporter.images.handleBeforeRender(request, {}).then(function() {
+                        assert.equal("adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'), request.template.content);
+                        done();
+                    });
+                });
+        });
     });
 });
