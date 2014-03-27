@@ -12,6 +12,11 @@
     #fine-uploader>div>div>div {
         display: inline
     }
+    
+    a.img-link {
+    font-size: 11px;
+       
+    }
 </style>
 <div class="modal-dialog">
     <div class="modal-content">
@@ -20,19 +25,21 @@
             <h4 class="modal-title">Upload image</h4>
         </div>
         <div class="modal-body">
-           
+   
             <div style="margin-top: 16px">
             {{for items}}
             <div>
-                <span>{{:name}}</span>
-                <a href="{{:~getUrl(#data)}}">{{:~getUrl(#data)}}</a>
+            <ul>
+                <li>{{:name}} <a class="img-link" href="{{:~getUrl(#data)}}">{{:~getUrl(#data)}}</a></li>
+                
+            </ul>
             </div>
             {{/for}}
             </div>
         </div>
         <div class="modal-footer">
             <span id="fine-uploader"></span>            
-            <button type="button" id="saveCommand" class="btn btn-primary" data-dismiss="modal">Save</button>
+            <button type="button" id="saveCommand" class="btn btn-xs btn-primary" data-dismiss="modal">Save</button>
         </div>
     </div>
 </div>
