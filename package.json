@@ -1,6 +1,6 @@
 ﻿{
   "name": "jsreport",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -31,6 +31,7 @@
 	"moment": "*",   
 	"memorystream": "*",   
 	"mongodb": "*", 
+	"nedb": "*", 	
 	"node.extend": "*", 	
 	"node-jsrender": "*",   
 	"node-dir": "*",   	
