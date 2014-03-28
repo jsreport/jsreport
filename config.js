@@ -8,8 +8,10 @@
         key: 'certificates/jsreport.net.key',    
         cert: 'certificates/jsreport.net.cert'
     },
-    connectionString: { name: "mongoDB", address: "localhost", port: 27017 },
-    extensions: ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "examples"],
-    mode: "playground",
-    port: 3000,
+    connectionString: { name: "neDB" },
+    extensions: ["express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates"],
+    mode: "standard",
+    port: 443,
+    httpPort: 80,
+    useCluster: true
 }

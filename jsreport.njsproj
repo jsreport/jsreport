@@ -782,6 +782,7 @@
     <Compile Include="extension\test\public\js\main.js" />
     <Compile Include="index.js" />
     <Compile Include="jaydata\mongoDBStorageProvider.js" />
+    <Compile Include="jaydata\nedbStorageProvider.js" />
     <Compile Include="mongoTmp.js" />
     <Compile Include="multitenancy.js" />
     <Compile Include="config\debug.multitenant.config.js" />

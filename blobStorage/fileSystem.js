@@ -12,36 +12,27 @@ var logger = winston.loggers.get('jsreport');
 function FileSystem(options) {
     this.options = options || {};
 
-    this.options.root = this.options.root || "reports";
+    this.options.root = this.options.root || "storage";
 };
 
-FileSystem.prototype.write = function (blobName, inputStream, cb) {
+FileSystem.prototype.write = function (blobName, buffer, cb) {
     blobName = blobName + "";
-    
-    var cbCalled = false;
+   
+   
     var blobPath = path.join(this.options.root, blobName);
     
-    var wr = fs.createWriteStream(blobPath);
+    fs.writeFile(blobPath, buffer, function(err) {
+        if (err)
+            return cb(err);
 
-    wr.on("error", function (err) {
-        if (!cbCalled) {
-            logger.error("Error when writing file " + err);
-            cb(err);
-            cbCalled = true;
-        }
-    });
-
-    wr.on("close", function (ex) {
         cb(null, blobName);
     });
-    
-    inputStream.pipe(wr);
 };
 
-FileSystem.prototype.read  = function (blobName) {
+FileSystem.prototype.read  = function (blobName, cb) {
     blobName = blobName + "";
     
-    return fs.createReadStream(path.join(this.options.root, blobName));
+    cb(null, fs.createReadStream(path.join(this.options.root, blobName)));
 };
 
 

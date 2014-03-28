@@ -45,6 +45,9 @@ module.exports = function(reporter, definition) {
         err = err || {};
         err.message = err.message || "Unrecognized error";
 
+        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+        reporter.logger.error("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
+
         if (req.get('Content-Type') != "application/json") {
             res.write("Error occured - " + err.message + "\n");
             if (err.stack != null)
@@ -52,7 +55,7 @@ module.exports = function(reporter, definition) {
             res.end();
             return;
         }
-
+        
         res.json(err);
     });
 

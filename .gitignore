@@ -129,3 +129,4 @@ extension/fop-pdf/lib/reports-tmpl/*.fo
 extension/fop-pdf/lib/reports-tmpl/*.pdf
 
 /web.config
+/result.txt
