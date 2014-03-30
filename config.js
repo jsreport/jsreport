@@ -11,8 +11,8 @@
     connectionString: { name: "neDB" },
     extensions: ["express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates"],
     mode: "standard",
-    port: 3000,
-    httpPort: 4000,
+    port: 443,
+    httpPort: 80,
     blobStorage: new (require("./blobStorage/fileSystem.js"))(),
-    useCluster: false
+    useCluster: true
 }
