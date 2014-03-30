@@ -1,4 +1,6 @@
-﻿var DataStore = require('nedb');
+﻿var DataStore = require('./nedb/datastore.js');
+var Persistence = require("./persistence.js");
+
 var db = {};
 var path = require("path");
 
@@ -26,9 +28,12 @@ $C('$data.storageProviders.neDB.neDBProvider', $data.StorageProviderBase, null,
             sets.forEach(function(i) {
                 if (self.context._entitySetReferences.hasOwnProperty(i)) {
                     var tableName = self.context._entitySetReferences[i].tableName;
-                    
-                    if (db[tableName] == null)
-                        db[tableName] = new DataStore({ filename: path.join("data", tableName), autoload: true });
+
+                    if (db[tableName] == null) {
+                        db[tableName] = new DataStore({ filename: path.join("data", tableName), autoload: false });
+                        db[tableName].persistence = new Persistence({ db: db[tableName] });
+                        db[tableName].loadDatabase();
+                    }
                 }
             });
 
@@ -439,7 +444,7 @@ $C('$data.storageProviders.neDB.neDBProvider', $data.StorageProviderBase, null,
                         }
                     }
 
-                    collection.remove(r.data, { safe: true }, function(error, result) {
+                    collection.remove(r.data, { multi: true }, function(error, result) {
                         if (error) {
                             callBack.error(error);
                             return;

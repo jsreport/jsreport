@@ -13,6 +13,10 @@ function FileSystem(options) {
     this.options = options || {};
 
     this.options.root = this.options.root || "storage";
+    
+    if (!fs.existsSync(path.join(__dirname, this.options.root))) {
+        fs.mkdir(path.join(__dirname, this.options.root));
+    }
 };
 
 FileSystem.prototype.write = function (blobName, buffer, cb) {
