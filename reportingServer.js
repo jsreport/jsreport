@@ -92,6 +92,7 @@ ReportingServer.prototype._startServer = function() {
     app.use(express.json());
     app.use(express.urlencoded());
     app.use(express.methodOverride());
+    app.use(express.multipart());
     app.use(express.cookieParser());
     app.use(express.cookieSession(this.config.cookieSession));
 

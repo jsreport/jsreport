@@ -25,6 +25,7 @@ function Persistence (options) {
   this.db = options.db;
   this.inMemoryOnly = this.db.inMemoryOnly;
   this.directoryName = this.db.filename;
+  this.keys = options.keys || ["_id"];
    
 
   // For NW apps, store data in the same directory where NW stores application data
@@ -54,7 +55,16 @@ Persistence.ensureDirectoryExists = function (dir, cb) {
 };
 
 Persistence.prototype.fileName = function (doc) {
-    return path.join(this.directoryName, doc._id);
+    var fileName = "";
+
+    this.keys.forEach(function(k) {
+        if (fileName != "")
+            fileName += " - ";
+        
+        fileName += doc[k];
+    });
+
+    return path.join(this.directoryName, fileName);
 };
 
 
@@ -101,7 +111,6 @@ Persistence.getNWAppDirectoryName = function (appName, relativeFilename) {
 Persistence.prototype.persistNewState = function (newDocs, cb) {
    
   var self = this
-    , toPersist = ''
     , callback = cb || function () {}
     ;    
 
@@ -112,7 +121,7 @@ Persistence.prototype.persistNewState = function (newDocs, cb) {
       if (doc.$$deleted) 
           return fs.unlink(self.fileName(doc), cb);
 
-      fs.writeFile(self.fileName(doc), model.serialize(doc), cb);
+      fs.writeFile(self.fileName(doc), Persistence.serialize(doc), cb);
   }, callback); 
 };
 
@@ -121,9 +130,8 @@ Persistence.prototype.persistNewState = function (newDocs, cb) {
  * From a database's raw data, return the corresponding
  * machine understandable collection
  */
-Persistence.treatRawData = function (rawData) {
-  var data = rawData.split('\n')
-    , dataById = {}
+Persistence.treatRawData = function (data) {
+  var dataById = {}
     , tdata = []
     , i
     , indexes = {}
@@ -134,12 +142,8 @@ Persistence.treatRawData = function (rawData) {
 
     try {
       doc = model.deserialize(data[i]);
-      if (doc._id) {
-        if (doc.$$deleted === true) {
-          delete dataById[doc._id];
-        } else {
-          dataById[doc._id] = doc;
-        }
+      if (doc._id) {dataById[doc._id] = doc;
+        
       } else if (doc.$$indexCreated && doc.$$indexCreated.fieldName != undefined) {
         indexes[doc.$$indexCreated.fieldName] = doc.$$indexCreated;
       } else if (typeof doc.$$indexRemoved === "string") {
@@ -184,12 +188,12 @@ Persistence.prototype.loadDatabase = function (cb) {
              fs.readdir(self.directoryName, function (err, files) {
                     if (err) { return cb(err); }
 
-                    var filesContent = "";
+                    var filesContent = [];
                     async.each(files, function (filename, cb) {
                         fs.readFile(path.join(self.directoryName, filename), 'utf8', function (err, rawData) {
                             if (err) { return cb(err); }
 
-                            filesContent += rawData + "\n";
+                            filesContent.push(rawData);
                             cb(null);
                         });
                     }, function (err) {
@@ -220,6 +224,55 @@ Persistence.prototype.loadDatabase = function (cb) {
        return callback(null);
      });
 };
+
+/**
+ * Serialize an object to be persisted to a one-line string
+ * For serialization/deserialization, we use the native JSON parser and not eval or Function
+ * That gives us less freedom but data entered in the database may come from users
+ * so eval and the like are not safe
+ * Accepted primitive types: Number, String, Boolean, Date, null
+ * Accepted secondary types: Objects, Arrays
+ */
+Persistence.serialize = function (obj) {
+  var res;
+
+   var originalDateToJSON = Date.prototype.toJSON;
+  // Keep track of the fact that this is a Date object
+  Date.prototype.toJSON = function () { return { $$date: this.getTime() }; };
+
+  res = JSON.stringify(obj, function (k, v) {
+    checkKey(k, v);
+
+    if (typeof v === undefined) { return null; }
+    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v === null) { return v; }
+
+    return v;
+  }, 4);
+
+  // Return Date to its original state
+  Date.prototype.toJSON = originalDateToJSON;
+
+  return res;
+}
+
+/**
+ * Check a key, throw an error if the key is non valid
+ * @param {String} k key
+ * @param {Model} v value, needed to treat the Date edge case
+ * Non-treatable edge cases here: if part of the object if of the form { $$date: number } or { $$deleted: true }
+ * Its serialized-then-deserialized version it will transformed into a Date object
+ * But you really need to want it to trigger such behaviour, even when warned not to use '$' at the beginning of the field names...
+ */
+function checkKey (k, v) {
+  if (k[0] === '$' && !(k === '$$date' && typeof v === 'number') && !(k === '$$deleted' && v === true) && !(k === '$$indexCreated') && !(k === '$$indexRemoved')) {
+    throw 'Field names cannot begin with the $ character';
+  }
+
+  if (k.indexOf('.') !== -1) {
+    throw 'Field names cannot contain a .';
+  }
+}
+
 
 
 // Interface

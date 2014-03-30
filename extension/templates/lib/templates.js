@@ -182,7 +182,7 @@ Templating.prototype._copyHistory = function(entity) {
 
 Templating.prototype._createEntitySetDefinitions = function(entitySets) {
     var self = this;
-    entitySets["templates"] = { type: $data.EntitySet, elementType: self.TemplateType };
+    entitySets["templates"] = { type: $data.EntitySet, elementType: self.TemplateType, tableOptions: { humanReadableKeys: ["name", "shortid"] } };
 
     if (this.reporter.playgroundMode) {
         entitySets["templateVersions"] = { type: $data.EntitySet, elementType: self.TemplateVersionType };

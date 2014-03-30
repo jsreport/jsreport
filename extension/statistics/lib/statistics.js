@@ -73,5 +73,5 @@ Statistics.prototype.createEntitySetDefinitions = function (entitySets) {
         success: { type: "int", increment: true },
     }, null);
     
-    entitySets["statistics"] = { type: $data.EntitySet, elementType: this.StatisticType };
+    entitySets["statistics"] = { type: $data.EntitySet, elementType: this.StatisticType, tableOptions: { nedbPersistance: "singleFile" }  };
 };

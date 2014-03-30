@@ -104,7 +104,7 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets) {
         templateShortid: { type: "string" },
     }, null);
     
-    entitySets["reports"] = { type: $data.EntitySet, elementType: this.ReportType }; 
+    entitySets["reports"] = { type: $data.EntitySet, elementType: this.ReportType, tableOptions: { nedbPersistance: "singleFile" }  }; 
 };
 
 Reporting.prototype.find = function (preficate, params, cb) {

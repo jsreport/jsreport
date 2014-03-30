@@ -1,4 +1,4 @@
-﻿var DataStore = require('./nedb/datastore.js');
+﻿var DataStore = require('nedb');
 var Persistence = require("./persistence.js");
 
 var db = {};
@@ -27,11 +27,14 @@ $C('$data.storageProviders.neDB.neDBProvider', $data.StorageProviderBase, null,
 
             sets.forEach(function(i) {
                 if (self.context._entitySetReferences.hasOwnProperty(i)) {
-                    var tableName = self.context._entitySetReferences[i].tableName;
+                    var es = self.context._entitySetReferences[i];
+                    var tableName = es.tableName;
 
                     if (db[tableName] == null) {
                         db[tableName] = new DataStore({ filename: path.join("data", tableName), autoload: false });
-                        db[tableName].persistence = new Persistence({ db: db[tableName] });
+                        
+                        if (es.tableOptions && es.tableOptions.nedbPersistance != "singleFile")
+                            db[tableName].persistence = new Persistence({ db: db[tableName], keys: es.tableOptions ? es.tableOptions.humanReadableKeys : null });
                         db[tableName].loadDatabase();
                     }
                 }
