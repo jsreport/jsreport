@@ -130,6 +130,6 @@ Scripts.prototype._beforeUpdateHandler = function(args, entity) {
 
 function createEntitySetDefinitions(entitySets) {
     if (!this.reporter.playgroundMode) {
-        entitySets["scripts"] = { type: $data.EntitySet, elementType: this.ScriptType, tableOptions: { humanReadableKeys: ["name", "shortid"] }  };
+        entitySets["scripts"] = { type: $data.EntitySet, elementType: this.ScriptType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
     }
 };

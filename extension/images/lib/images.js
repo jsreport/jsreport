@@ -188,5 +188,5 @@ Images.prototype._defineEntities = function() {
 };
 
 Images.prototype._createEntitySetDefinitions = function(entitySets) {
-    entitySets["images"] = { type: $data.EntitySet, elementType: this.ImageType, tableOptions: { humanReadableKeys: ["name", "shortid"] }  };
+    entitySets["images"] = { type: $data.EntitySet, elementType: this.ImageType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
 };

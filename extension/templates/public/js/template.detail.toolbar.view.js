@@ -11,6 +11,8 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             initialize: function() {
                 var self = this;
 
+                $(document).on('keydown', this.hotkey.bind(this));
+
                 this.beforeRenderListeners = new ListenerCollection();
 
                 this.listenTo(this.model, "sync", function() {
@@ -67,10 +69,10 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 "click #embedCommand": "embed"
             },
 
-            save: function() {
+            save: function(e) {
                 var self = this;
-                
-                 if (!this.validate())
+
+                if (!this.validate())
                     return;
 
                 if (app.settings.playgroundMode) {
@@ -221,6 +223,24 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 model.set({ fileInput: true, dataArea: true });
                 var dialog = new EmbedDialog({ model: model });
                 app.layout.dialog.show(dialog);
+            },
+
+            hotkey: function(e) {
+                if (e.ctrlKey && e.which === 83) {
+                    this.save();
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (e.which === 119) {
+                    this.preview();
+                    e.preventDefault();
+                    return false;
+                }
+            },
+
+            onClose: function() {
+                $(document).off("keydown", this.hotkey);
             }
         });
     });

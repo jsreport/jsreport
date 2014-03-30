@@ -41,7 +41,7 @@ Data = function (reporter, definition) {
     this.reporter.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
     this.reporter.entitySetRegistrationListners.add(definition.name, this, function(entitySets) {
         if (!self.reporter.playgroundMode) 
-            entitySets["data"] = { type: $data.EntitySet, elementType: self.DataItemType, tableOptions: { humanReadableKeys: ["name", "shortid"] }  };
+            entitySets["data"] = { type: $data.EntitySet, elementType: self.DataItemType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
     });
 };
 
