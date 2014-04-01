@@ -128,5 +128,7 @@ extension/phantom-pdf/lib/reports-tmpl/*.pdf
 extension/fop-pdf/lib/reports-tmpl/*.fo
 extension/fop-pdf/lib/reports-tmpl/*.pdf
 
+reports-tmpl/*.*
+
 /web.config
 /result.txt

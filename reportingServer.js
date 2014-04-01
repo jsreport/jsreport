@@ -18,11 +18,13 @@ var path = require("path"),
     installer = require("./reporter.install.js");
 
 function ReportingServer(config) {
-    this.config = config || require("./config.js");
+    this.config = config;
 
     if (this.config == null)
-        throw new Error("Configuration for ReportingServer must be specified as a parameter or in config.js file in the root folder");
-};
+        throw new Error("Configuration for ReportingServer must be specified as a parameter");
+}
+
+;
 
 ReportingServer.prototype.start = function() {
     if (this.config.useCluster) {
@@ -79,7 +81,9 @@ function domainClusterMiddleware(req, res, next) {
     d.run(function() {
         next();
     });
-};
+}
+
+;
 
 ReportingServer.prototype._startServer = function() {
 
@@ -103,8 +107,8 @@ ReportingServer.prototype._startServer = function() {
         level: "debug"
     };
 
-    if (!fs.existsSync(join(__dirname, "logs"))) {
-        fs.mkdir(join(__dirname, "logs"));
+    if (!fs.existsSync("logs")) {
+        fs.mkdir("logs");
     }
 
     var consoleTransport = new (winston.transports.Console)(transportSettings);
@@ -122,7 +126,8 @@ ReportingServer.prototype._startServer = function() {
             new (winston.transports.File)({ name: "templates", filename: 'logs/templates.log', maxsize: 10485760, json: false }),
             errorFileTransport
         ]
-    });
+    });    
+    
 
     //app.use(expressWinston.logger({
     //    transports: [consoleTransport, fileTransport, errorFileTransport]
@@ -134,6 +139,11 @@ ReportingServer.prototype._startServer = function() {
         if (self.config.iisnode) {
             app.listen(self.config.port);
             return;
+        }
+
+        if (!fs.existsSync(self.config.certificate.key)) {
+            self.config.certificate.key = path.join(__dirname, "certificates", "jsreport.net.key");
+            self.config.certificate.cert = path.join(__dirname, "certificates", "jsreport.net.cert");
         }
 
         var credentials = {

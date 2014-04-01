@@ -58,7 +58,9 @@ Reporter.prototype.init = function() {
     //initialize context for standard entities like settings
     return this._initializeDataContext(false).then(function() {
 
-        if (!self.options.blobStorage) {
+        if (self.options.blobStorage === "fileSystem") {
+            self.blobStorage = new (require("./blobStorage/fileSystem.js"))();
+        } else {
             self.blobStorage = new(require("./blobStorage/gridFS.js"))(self.options.connectionString);
         }
 

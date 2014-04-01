@@ -2,7 +2,7 @@
     cookieSession: {
         key: 'jsreport.sid',
         secret: 'dasd321as56d1sd5s61vdv32',
-        cookie: { domain: 'local.net' }
+        cookie: { domain: 'jsreport.net' }
     },
     certificate: {
         key: 'certificates/jsreport.net.key',    
@@ -13,6 +13,6 @@
     mode: "standard",
     port: 443,
     httpPort: 80,
-    blobStorage: new (require("./blobStorage/fileSystem.js"))(),
+    blobStorage: "fileSystem",
     useCluster: true
 }

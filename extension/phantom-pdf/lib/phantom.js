@@ -7,7 +7,8 @@
 var childProcess = require('child_process'),
     fork = require('child_process').fork,
     shortid = require("shortid"),
-    join = require("path").join,
+    path = require("path"),
+    join = path.join,
     winston = require("winston"),
     fs = require("fs"),
     _ = require("underscore"),
@@ -20,8 +21,8 @@ var logger = winston.loggers.get('jsreport');
 module.exports = Phantom = function(reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
 
-    if (!fs.existsSync(join(__dirname, "reports-tmpl"))) {
-        fs.mkdir(join(__dirname, "reports-tmpl"));
+    if (!fs.existsSync("reports-tmpl")) {
+        fs.mkdir("reports-tmpl");
     }
 };
 
@@ -55,7 +56,7 @@ Phantom.prototype.execute = function(request, response) {
     request.template.phantom = request.template.phantom || new self.PhantomType();
     
     var generationId = shortid.generate();
-    var htmlFile = join(__dirname, "reports-tmpl", generationId + ".html");
+    var htmlFile = join("reports-tmpl", generationId + ".html");
 
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
@@ -69,8 +70,8 @@ Phantom.prototype.execute = function(request, response) {
 		    '--ignore-ssl-errors=yes',	    
                     '--web-security=false',
                     join(__dirname, 'convertToPdf.js'),
-                    "file:///" + htmlFile,
-                    join(__dirname, "reports-tmpl", generationId + ".pdf"),		   
+                    "file:///" + path.resolve(htmlFile),
+                    join("reports-tmpl", generationId + ".pdf"),		   
                     request.template.phantom.margin || "null",
                     request.template.phantom.headerFile || "null",
                     request.template.phantom.footerFile || "null",
@@ -115,7 +116,7 @@ Phantom.prototype._processHeaderFooter = function(request, generationId, type) {
     req.data = extend(true, {}, request.data);
 
     return this.reporter.render(req).then(function(resp) {
-        var filePath = join(__dirname, "reports-tmpl", generationId + "-" + type + ".html");
+        var filePath = join("reports-tmpl", generationId + "-" + type + ".html");
         return FS.write(filePath, resp.result).then(function() {
             request.template.phantom[type + "File"] = filePath;
         });
