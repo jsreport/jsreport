@@ -19,10 +19,13 @@ var path = require("path"),
     commander = require("./reportingCommander.js");
 
 function ReportingServer(config) {
-    this.config = commander(config);
-
-    if (this.config == null)
+    if (config == null)
         throw new Error("Configuration for ReportingServer must be specified as a parameter");
+    
+    if (!commander(config))
+        return;
+
+    this.config = config;
 };
 
 ReportingServer.prototype.start = function() {

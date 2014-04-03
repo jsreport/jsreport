@@ -40,7 +40,7 @@
 
     function copyFiles(mode) {
         var result = [];
-        result.push({ src: ['./config/debug.' + mode + '.config.js'], dest: './config.js' });
+        result.push({ src: ['./config/debug.' + mode + '.config.json'], dest: './config.json' });
 
         result.push({ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app.js' });
 
@@ -76,13 +76,13 @@
 
         copy: {
             multitenantDebug: { files: copyFiles("multitenant") },
-            multitenantProduction: { files: [{ src: ['./config/production.multitenant.config.js'], dest: './config.js' }, { src: ['./config/multitenant.web.config'], dest: './web.config' }] },
+            multitenantProduction: { files: [{ src: ['./config/production.multitenant.config.json'], dest: './config.json' }, { src: ['./config/multitenant.web.config'], dest: './web.config' }] },
             playgroundDebug: { files: copyFiles("playground") },
-            playgroundProduction: { files: [{ src: ['./config/production.playground.config.js'], dest: './config.js' }, { src: ['./config/playground.web.config'], dest: './web.config' }] },
+            playgroundProduction: { files: [{ src: ['./config/production.playground.config.json'], dest: './config.json' }, { src: ['./config/playground.web.config'], dest: './web.config' }] },
             standardDebug: { files: copyFiles("standard") },
-            standardProduction: { files: [{ src: ['./config/production.standard.config.js'], dest: './config.js' }] },
+            standardProduction: { files: [{ src: ['./config/production.standard.config.json'], dest: './config.json' }] },
             mfrDebug: { files: copyFiles("mfr") },
-            mfrProduction: { files: [{ src: ['./config/production.mfr.config.js'], dest: './config.js' }] },
+            mfrProduction: { files: [{ src: ['./config/production.mfr.config.json'], dest: './config.json' }] },
             copyAppDev: { src: ['./extension/express/public/js/app_dev.js'], dest: './extension/express/public/js/app.js' }
         },
 

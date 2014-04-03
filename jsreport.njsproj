@@ -713,15 +713,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="blobStorage\gridFS.js" />
-    <Compile Include="config.js" />
-    <Compile Include="config\debug.mfr.config.js" />
-    <Compile Include="config\debug.playground.config.js" />
-    <Compile Include="config\debug.standard.config.js" />
+    <Compile Include="config.json" />
+    <Compile Include="config\debug.mfr.config.json" />
+    <Compile Include="config\debug.playground.config.json" />
+    <Compile Include="config\debug.standard.config.json" />
     <Compile Include="config\multitenant.web.config" />
-    <Compile Include="config\production.mfr.config.js" />
-    <Compile Include="config\production.multitenant.config.js" />
-    <Compile Include="config\production.playground.config.js" />
-    <Compile Include="config\production.standard.config.js" />
+    <Compile Include="config\production.mfr.config.json" />
+    <Compile Include="config\production.multitenant.config.json" />
+    <Compile Include="config\production.playground.config.json" />
+    <Compile Include="config\production.standard.config.json" />
     <Compile Include="dataParser.js" />
     <Compile Include="extension\childTemplates\jsreport.config.js" />
     <Compile Include="extension\childTemplates\lib\childTemplates.js" />
@@ -789,9 +789,10 @@
     <Compile Include="jaydata\nedbStorageProvider.js" />
     <Compile Include="jaydata\persistence.js" />
     <Compile Include="multitenancy.js" />
-    <Compile Include="config\debug.multitenant.config.js" />
+    <Compile Include="config\debug.multitenant.config.json" />
     <Compile Include="node_modules\nedb\lib\persistence.js" />
     <Compile Include="reporter.install.js" />
+    <Compile Include="reportingCommander.js" />
     <Compile Include="reportingServer.js" />
     <Compile Include="test\extensionsManagerTest.js" />
     <Compile Include="test\gridFSTest.js" />

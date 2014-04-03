@@ -17,6 +17,7 @@ module.exports = function(config) {
     }
     
     function windowsInstall() {
+        shouldContinueInitializing = false;
         console.log("installing windows service jsreport-server.");
 
         var pathToWinSer = path.resolve("node_modules\\jsreport\\node_modules\\.bin\\winser.cmd");
@@ -42,10 +43,11 @@ module.exports = function(config) {
     }
 
     function windowsUninstall() {
+        shouldContinueInitializing = false;
         console.log("uninstalling windows service jsreport-server.");
 
         var pathToWinSer = path.resolve("node_modules\\jsreport\\node_modules\\.bin\\winser.cmd");
-        childProcess.exec(pathToWinSer + " -x", function(error, stdout, stderr) {
+        childProcess.exec(pathToWinSer + " -x -r", function(error, stdout, stderr) {
             if (error) {
                 console.log(error);
                 process.exit(1);
@@ -68,6 +70,7 @@ module.exports = function(config) {
 
     var shouldRefreshConfig = false;
     var shouldInstall = false;
+    var shouldContinueInitializing = true;
 
     require('commander')
         .version(require("./package.json").version)
@@ -78,9 +81,11 @@ module.exports = function(config) {
         .option('-d, --daemon', 'NON WINDOWS ONLY - Start process as daemon', daemon)
         .parse(process.argv);
     
+    
+        
     if (shouldRefreshConfig) {
         try {
-            fs.writeFileSync("config.js", JSON.stringify(config));
+            fs.writeFileSync("config.json", JSON.stringify(config));
         }
         catch (e) {}
     }
@@ -88,5 +93,5 @@ module.exports = function(config) {
     if (shouldInstall)
         install();
 
-    return config;
+    return shouldContinueInitializing;
 }
