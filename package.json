@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "jsreport",
-  "version": "0.0.13",
+  "version": "0.0.27",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -20,11 +20,13 @@
   "dependencies": {
     "async": "*",   
 	"async-replace": "*",   
-	"connect": "*",   
+	"connect": "*",  
+	"commander": "*",
+	"daemon": "*",
 	"express": "*",   	
 	"ejs": "*",   
 	"express-winston": "*",   
-	"feedparser": "*",  	
+	"feedparser": "*",
 	"handlebars": "*",   
 	"jade": "*",   
 	"jaydata": "*",   
@@ -58,7 +60,8 @@
 	"url": "*",   
 	"uuid": "*",   
 	"validator": "*",   
-	"winston": "*"	
+	"winston": "*",
+	"winser": "*"		
   },
   "devDependencies": {
     "chai": "*",

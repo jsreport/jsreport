@@ -12,7 +12,6 @@
     extensions: ["express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates"],
     mode: "standard",
     port: 443,
-    httpPort: 80,
     blobStorage: "fileSystem",
     useCluster: true
 }

@@ -18,6 +18,10 @@ require("odata-server");
 
 module.exports = function(app, options, cb) {
 
+    process.on('uncaughtException', function (err) {
+  console.log('Caught exception: ' + err);
+});
+    
     function activateTenant(tenant, tcb) {
         if (tenant.isActivated) {
             return tcb(null, tenant);
@@ -43,6 +47,8 @@ module.exports = function(app, options, cb) {
 
     app.use(passport.initialize());
     app.use(passport.session());
+    app.use(express.static(path.join(__dirname, 'views')));
+    app.engine('html', require('ejs').renderFile);
 
     app.use(function(err, req, res, next) {
         res.status(500);
@@ -200,9 +206,9 @@ module.exports = function(app, options, cb) {
         req.session.viewModel.previousName = req.body.name;
         req.session.viewModel.previousUsername = req.body.username;
 
-        var regex = /^[a-zA-Z0-9]+$/;
+        var regex = /^[a-zA-Z0-9\-]+$/;
         if (!regex.test(req.body.name)) {
-            req.session.viewModel.name = "Name must contain only numbers and letters.";
+            req.session.viewModel.name = "Name must contain only numbers and letters and '-'.";
             return res.redirect('/');
         }
 

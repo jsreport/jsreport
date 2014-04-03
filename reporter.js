@@ -84,7 +84,7 @@ Reporter.prototype.init = function() {
    to prevent collisions */
 Reporter.prototype.extendGlobalTypeName = function(typeName) {
     var nsType = typeName.split(".");
-    return nsType[0] + "." + this.options.tenant.name + "." + nsType[1];
+    return nsType[0] + "." + this.options.tenant.name.replace(/-/g, '') + "." + nsType[1];
 };
 
 Reporter.prototype.startContext = function() {

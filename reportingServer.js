@@ -15,16 +15,15 @@ var path = require("path"),
     join = require("path").join,
     fs = require("fs"),
     Q = require("q"),
-    installer = require("./reporter.install.js");
+    installer = require("./reporter.install.js"),
+    commander = require("./reportingCommander.js");
 
 function ReportingServer(config) {
-    this.config = config;
+    this.config = commander(config);
 
     if (this.config == null)
         throw new Error("Configuration for ReportingServer must be specified as a parameter");
-}
-
-;
+};
 
 ReportingServer.prototype.start = function() {
     if (this.config.useCluster) {
@@ -36,6 +35,10 @@ ReportingServer.prototype.start = function() {
                 console.error('disconnect!');
                 cluster.fork();
             });
+           
+            if (this.config.daemon) {
+                require('daemon')();
+            }
         } else {
             this._startServer();
         }
@@ -152,12 +155,15 @@ ReportingServer.prototype._startServer = function() {
             rejectUnauthorized: false
         };
 
-        http.createServer(function(req, res) {
-            res.writeHead(302, {
-                'Location': "https://" + req.headers.host + req.url
-            });
-            res.end();
-        }).listen(self.config.httpPort);
+        if (self.config.httpPort != null) {
+            //initialzie http -> https redirect
+            http.createServer(function(req, res) {
+                res.writeHead(302, {
+                    'Location': "https://" + req.headers.host + req.url
+                });
+                res.end();
+            }).listen(self.config.httpPort);
+        }
 
         var httpsServer = https.createServer(credentials, app);
         httpsServer.listen(self.config.port);

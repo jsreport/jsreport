@@ -7,6 +7,8 @@
 var childProcess = require('child_process'),
     fork = require('child_process').fork,
     shortid = require("shortid"),
+    phantomjs = require('phantomjs'),
+    binPath = phantomjs.path,
     path = require("path"),
     join = path.join,
     winston = require("winston"),
@@ -82,8 +84,8 @@ Phantom.prototype.execute = function(request, response) {
                     self.reporter.options.cookieSession.cookie.domain
                 ];
 
-                var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
-                childProcess.execFile(phantomPath, childArgs, function(error, stdout, stderr) {
+                //var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
+                childProcess.execFile(binPath, childArgs, function(error, stdout, stderr) {
                     logger.info("Rastering pdf child process end.");
 
                     //console.log(stdout);

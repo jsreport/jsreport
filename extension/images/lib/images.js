@@ -52,21 +52,22 @@ Images = function(reporter, definition) {
 
     this.reporter.initializeListener.add(definition.name, this, function() {
         //when activated we need to initialze images field with default values, otherwise jaydata has problems with null aray
-        return reporter.context.templates.toArray().then(function(res) {
-            res.forEach(function(t) {
-                if (t.images == null) {
-                    reporter.context.templates.attach(t);
-                    t.images = [];
-                }
-            });
+       
+            return reporter.context.templates.toArray().then(function(res) {
+                res.forEach(function(t) {
+                    if (t.images == null) {
+                        reporter.context.templates.attach(t);
+                        t.images = [];
+                    }
+                });
 
-            reporter.context.templates.updateEnabled = true;
-            return reporter.context.templates.saveChanges().then(function() {
-                reporter.context.templates.updateEnabled = false;
-                return Q();
+                reporter.context.templates.updateEnabled = true;
+                return reporter.context.templates.saveChanges().then(function() {
+                    reporter.context.templates.updateEnabled = false;
+                    return Q();
+                });
             });
         });
-    });
 };
 
 Images.prototype.upload = function(name, contentType, content, shortidVal) {
