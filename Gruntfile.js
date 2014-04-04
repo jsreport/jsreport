@@ -77,7 +77,9 @@
         copy: {
             multitenantDebug: { files: copyFiles("multitenant") },
             multitenantProduction: { files: [{ src: ['./config/production.multitenant.config.json'], dest: './config.json' }, { src: ['./config/multitenant.web.config'], dest: './web.config' }] },
+            multitenantTest: { files: [{ src: ['./config/test.multitenant.config.json'], dest: './config.json' }, { src: ['./config/multitenant.web.config'], dest: './web.config' }] },
             playgroundDebug: { files: copyFiles("playground") },
+            playgroundTest: { files: [{ src: ['./config/test.playground.json'], dest: './config.json' }, { src: ['./config/playground.web.config'], dest: './web.config' }] },
             playgroundProduction: { files: [{ src: ['./config/production.playground.config.json'], dest: './config.json' }, { src: ['./config/playground.web.config'], dest: './web.config' }] },
             standardDebug: { files: copyFiles("standard") },
             standardProduction: { files: [{ src: ['./config/production.standard.config.json'], dest: './config.json' }] },
@@ -161,11 +163,11 @@
 
     grunt.registerTask('multitenant-debug', ['copy:multitenantDebug', 'replace:debugRoot', 'replace:debugApp']);
     grunt.registerTask('multitenant-production', ['copy:copyAppDev', 'requirejs', 'copy:multitenantProduction', 'replace:productionRoot', 'replace:productionApp']);
-    
-    grunt.registerTask('multitenant-test', ['copy:copyAppDev', 'requirejs', 'replace:productionApp']);
+    grunt.registerTask('multitenant-test', ['copy:copyAppDev', 'requirejs', 'copy:multitenantTest', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('playground-debug', ['copy:playgroundDebug', 'replace:debugRoot', 'replace:debugApp']);
     grunt.registerTask('playground-production', ['copy:copyAppDev', 'requirejs', 'copy:playgroundProduction', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('playground-test', ['copy:copyAppDev', 'requirejs', 'copy:playgroundTest', 'replace:productionRoot', 'replace:productionApp']);
     
     grunt.registerTask('standard-debug', ['copy:standardDebug', 'replace:debugRoot', 'replace:debugApp']);
     grunt.registerTask('standard-production', ['copy:copyAppDev', 'requirejs', 'copy:standardProduction', 'replace:productionRoot', 'replace:productionApp']);

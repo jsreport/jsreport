@@ -18,6 +18,7 @@ module.exports = function(config) {
     
     function windowsInstall() {
         shouldContinueInitializing = false;
+        
         console.log("installing windows service jsreport-server.");
 
         var pathToWinSer = path.resolve("node_modules\\jsreport\\node_modules\\.bin\\winser.cmd");
@@ -38,6 +39,7 @@ module.exports = function(config) {
                 }
 
                 console.log("service jsreport-server is running. go to https://localhost:" + config.port);
+                process.exit(0);
             });
         });
     }
@@ -55,6 +57,7 @@ module.exports = function(config) {
             }
 
             console.log("windows service jsreport-server uninstalled");
+            process.exit(0);
         });
     }
 

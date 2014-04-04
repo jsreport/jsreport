@@ -37,6 +37,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".travis.yml" />
+    <Content Include="config\test.multitenant.config.json" />
+    <Content Include="config\test.playground.json" />
     <Content Include="config\playground.web.config" />
     <Content Include="extensionsManager.js">
       <SubType>Content</SubType>

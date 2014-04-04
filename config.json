@@ -2,13 +2,16 @@
     "cookieSession": {
         "key": "jsreport.sid",
         "secret": "dasd321as56d1sd5s61vdv32",
-        "cookie": { "domain": "jsreportonline.net" }
+        "cookie": { "domain": "jsreport.net" }
     },
-    "iisnode": true,
-    "useSubDomains": true,
-    "subdomainsCount": 3,
-    "connectionString": { "name": "mongoDB", "address": "localhost", "port": 27017, "databaseName": "multitenant-root" },
-    "extensions": ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "statistics", "reports", "jsreport-import-export", "childTemplates"],
-    "mode": "multitenant",
-    "port": process.env.PORT,
+    "certificate": {
+        "key": "certificates/jsreport.net.key",    
+        "cert": "certificates/jsreport.net.cert"
+    },
+    "connectionString": { "name": "neDB" },
+    "extensions": ["express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates"],
+    "mode": "standard",
+    "port": 443,
+    "blobStorage": "fileSystem",
+    "useCluster": true
 }

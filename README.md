@@ -4,19 +4,19 @@
 
 **Open source platform for designing and rendering various reports.**
 
-It uses different approach than the most of the other commercial platforms. It's intention is not to provide an ultimate fancy UI with report designer like other does. Idea is that any fancy WYSIWYG editor will never be good enough to the developers. jsreport lets developers to define reports using  javascript templating engines (like jsrender or handlebars). For more informations about the platform please visit http://jsreport.net
+jsreport lets developers to define reports using  javascript templating engines (like jsrender or handlebars) and print them into pdf using [phantomjs](http://phantomjs.org) or [fop](http://xmlgraphics.apache.org/fop/). For more informations about the platform please visit http://jsreport.net
 
 ## Development
 To be able to install and start jsreport on your development machine you need to do following.
 
 1. Install nodejs
-2. Install and start mongodb
-3. Clone this repository
-4. npm install
+2. Clone this repository
+3. npm install
+4. grunt standard-debug
 
 jsreport has two test suits:
 **grunt test** - start unit tests, only running mongodb is required
-**grunt test-all** - start all tests, needs to hava java and apache in the executable path
+**grunt test-all** - start all tests, needs to have java and apache in the executable path
 
 ## Extensions and Contributions
 The easisest way how to contribute to jsreport open source community is to implement jsreport extension.

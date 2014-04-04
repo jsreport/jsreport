@@ -21,14 +21,17 @@ var path = require("path"),
 function ReportingServer(config) {
     if (config == null)
         throw new Error("Configuration for ReportingServer must be specified as a parameter");
-    
-    if (!commander(config))
-        return;
 
     this.config = config;
 };
 
 ReportingServer.prototype.start = function() {
+    if (!commander(this.config)) {
+        return;
+    }
+
+    this.config.port = this.config.port || process.env.PORT;
+
     if (this.config.useCluster) {
         var cluster = require('cluster');
         if (cluster.isMaster) {
