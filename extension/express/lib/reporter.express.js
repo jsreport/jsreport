@@ -10,14 +10,15 @@ var async = require("async"),
     Reporter = require("../../../reporter.js"),
     odata_server = require('odata-server'),
     FS = require("q-io/fs"),
-    Q = require("q");
+    Q = require("q"),
+    serveStatic = require('serve-static');
 
 
 module.exports = function(reporter, definition) {
     var app = definition.options.app;
 
     app.set('views', path.join(__dirname, '../public/views'));
-    app.use(express.static(path.join(__dirname, '../public')));
+    app.use(serveStatic(path.join(__dirname, '../public')));
     app.engine('html', require('ejs').renderFile);
 
     app.get("/", function(req, res, next) {

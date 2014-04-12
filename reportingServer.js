@@ -5,7 +5,7 @@
  */
 
 var path = require("path"),
-    express = require('' + 'express'),
+    express = require('express'),
     _ = require("underscore"),
     winston = require("winston"),
     expressWinston = require("express-winston"),
@@ -23,7 +23,9 @@ function ReportingServer(config) {
         throw new Error("Configuration for ReportingServer must be specified as a parameter");
 
     this.config = config;
-};
+}
+
+;
 
 ReportingServer.prototype.start = function() {
     if (!commander(this.config)) {
@@ -41,7 +43,7 @@ ReportingServer.prototype.start = function() {
                 console.error('disconnect!');
                 cluster.fork();
             });
-           
+
             if (this.config.daemon) {
                 require('daemon')();
             }
@@ -102,12 +104,11 @@ ReportingServer.prototype._startServer = function() {
         app.use(domainClusterMiddleware);
     }
 
-    app.use(express.json());
-    app.use(express.urlencoded());
-    app.use(express.methodOverride());
-    app.use(express.multipart());
-    app.use(express.cookieParser());
-    app.use(express.cookieSession(this.config.cookieSession));
+    app.use(require("body-parser")());
+    app.use(require("method-override")());
+    app.use(require("connect-multiparty")());
+    app.use(require("cookie-parser")(this.config.cookieSession.secret));
+    app.use(require("express-session")(this.config.cookieSession));
 
 /* LOGGING */
     var transportSettings = {
@@ -135,8 +136,8 @@ ReportingServer.prototype._startServer = function() {
             new (winston.transports.File)({ name: "templates", filename: 'logs/templates.log', maxsize: 10485760, json: false }),
             errorFileTransport
         ]
-    });    
-    
+    });
+
 
     //app.use(expressWinston.logger({
     //    transports: [consoleTransport, fileTransport, errorFileTransport]
@@ -170,7 +171,7 @@ ReportingServer.prototype._startServer = function() {
                 res.end();
             }).listen(self.config.httpPort);
         }
-
+        
         var httpsServer = https.createServer(credentials, app);
         httpsServer.listen(self.config.port);
     });

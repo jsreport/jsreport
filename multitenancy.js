@@ -13,13 +13,13 @@ var Q = require("q"),
     express = require("express"),
     Reporter = require("./reporter.js"),
     path = require("path"),
-    validator = require('validator');
+    validator = require('validator'),
+    serveStatic = require('serve-static');
 require("odata-server");
 
 module.exports = function(app, options, cb) {
-
     process.on('uncaughtException', function (err) {
-  console.log('Caught exception: ' + err);
+    console.log('Caught exception: ' + err);
 });
     
     function activateTenant(tenant, tcb) {
@@ -37,7 +37,7 @@ module.exports = function(app, options, cb) {
 
         var rep = new Reporter(opts);
 
-        app.use(express.vhost(tenant.name + '.*', main));
+        app.use(require('vhost')(tenant.name + '.*', main));
         rep.init().then(function() {
             tenant.isActivated = true;
             tenant.reporter = rep;
@@ -47,7 +47,7 @@ module.exports = function(app, options, cb) {
 
     app.use(passport.initialize());
     app.use(passport.session());
-    app.use(express.static(path.join(__dirname, 'views')));
+    app.use(serveStatic(path.join(__dirname, 'views')));
     app.engine('html', require('ejs').renderFile);
 
     app.use(function(err, req, res, next) {

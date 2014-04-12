@@ -8,7 +8,8 @@
     MongoClient = require('mongodb').MongoClient,
     path = require("path"),
     extend = require("node.extend"),
-    should = require("should");
+    should = require("should"),
+    serveStatic = require('serve-static');
 
 describe('multitenancy with testing account', function() {
     this.timeout(60000);
@@ -19,12 +20,12 @@ describe('multitenancy with testing account', function() {
 
     beforeEach(function(done) {
         app = express();
-        app.use(connect.bodyParser());
-        app.use(express.methodOverride());
-        app.use(express.static(path.join(__dirname, 'views')));
+        app.use(require("body-parser")());
+        app.use(require("method-override")());
+        app.use(serveStatic(path.join(__dirname, 'views')));
         app.engine('html', require('ejs').renderFile);
-        app.use(express.cookieParser());
-        app.use(express.cookieSession({ key: 'jsreport.sid', secret: 'dasd321as56d1sd5s61vdv32', cookie: { domain: 'local.net' } }));
+        app.use(require("cookie-parser")());
+        app.use(require("express-session")({ key: 'jsreport.sid', secret: 'dasd321as56d1sd5s61vdv32', cookie: { domain: 'local.net' } }));
 
         options = {
             connectionString: { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 },
