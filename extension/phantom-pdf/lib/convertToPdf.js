@@ -93,6 +93,12 @@ phantom.addCookie({
 //    system.stderr.writeLine(msgStack.join('\n'));
 //};
 page.open(system.args[1], function() {
+//    page.evaluate(function() {
+//    jQuery("link").each(function(i, v) {
+//        jQuery(v).attr("media", "all");
+//    });
+//});
+
     page.render(output);
     phantom.exit();
 });

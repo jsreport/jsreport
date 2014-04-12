@@ -33,6 +33,8 @@
         if (options.hideSubmit == true) {
             $(dialogSelector + " #dialogSubmit").hide();
         }
+
+        return $(dialogSelector + " #modalDialog");
     };
 
     $.extend({

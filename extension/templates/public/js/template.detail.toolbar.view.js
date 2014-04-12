@@ -7,6 +7,8 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
     function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection, EmbedDialog, BasicModel) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
+            introTemplate: "template-detail-intro",
+            introId: "template-detail-intro",
 
             initialize: function() {
                 var self = this;

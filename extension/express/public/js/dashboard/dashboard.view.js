@@ -3,24 +3,24 @@
  */ 
 
 define(["marionette", "app"],
-    function (Marionette, app) {
-    return Marionette.Layout.extend({
-        template: "dashboard",
-        
-        initialize: function () {
-            var self = this;
+    function(Marionette, app) {
+        return Marionette.Layout.extend({
+            template: "dashboard",
 
-            self.extensionsRegion.close();
-            this.listenTo(this, "render", function () {
-                app.trigger("dashboard-extensions-render", self.extensionsRegion);
-            });
-        },
+            initialize: function() {
+                var self = this;
 
-        regions: {
-            extensionsRegion: {
-                selector: "#dashboardBox",
-                regionType: Marionette.MultiRegion
-            }
-        },
+                self.extensionsRegion.close();
+                this.listenTo(this, "render", function() {
+                    app.trigger("dashboard-extensions-render", self.extensionsRegion);
+                });
+            },
+
+            regions: {
+                extensionsRegion: {
+                    selector: "#dashboardBox",
+                    regionType: Marionette.MultiRegion
+                }
+            },
+        });
     });
-});

@@ -59,7 +59,8 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                      });
                  },
         ], function () {
-            require(["core/menu.view", "layout", "core/extensions/module", "core/backbone.sync", "core/dataContext", "core/basicModel"],
+            require(["core/menu.view", "layout", "core/extensions/module", "core/backbone.sync", "core/dataContext", 
+                    "core/basicModel", "core/settingsCollection", "core/introduction"],
                 function (MenuView, Layout, extensions, sync, odata, BasicModel) {
                     app.extensions.init(function() {
                         require(["dashboard/module"], function () {

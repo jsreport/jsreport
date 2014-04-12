@@ -120,7 +120,38 @@
     </Content>
     <Content Include="extension\express\public\css\bootstrap-nonresponsive.css" />
     <Content Include="extension\express\public\css\bootstrap.min.css" />
-    <Content Include="extension\express\public\css\font-awesome.css" />
+    <Content Include="extension\express\public\css\font-awesome\css\font-awesome.min.css" />
+    <Content Include="extension\express\public\css\font-awesome\fonts\fontawesome-webfont.eot" />
+    <Content Include="extension\express\public\css\font-awesome\fonts\fontawesome-webfont.svg" />
+    <Content Include="extension\express\public\css\font-awesome\fonts\fontawesome-webfont.ttf" />
+    <Content Include="extension\express\public\css\font-awesome\fonts\fontawesome-webfont.woff" />
+    <Content Include="extension\express\public\css\font-awesome\fonts\FontAwesome.otf" />
+    <Content Include="extension\express\public\css\font-awesome\less\bordered-pulled.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\core.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\fixed-width.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\font-awesome.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\icons.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\larger.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\list.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\mixins.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\path.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\rotated-flipped.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\spinning.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\stacked.less" />
+    <Content Include="extension\express\public\css\font-awesome\less\variables.less" />
+    <Content Include="extension\express\public\css\font-awesome\scss\font-awesome.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_bordered-pulled.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_core.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_fixed-width.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_icons.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_larger.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_list.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_mixins.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_path.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_rotated-flipped.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_spinning.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_stacked.scss" />
+    <Content Include="extension\express\public\css\font-awesome\scss\_variables.scss" />
     <Content Include="extension\express\public\css\split-pane.css">
       <SubType>Content</SubType>
     </Content>
@@ -323,6 +354,7 @@
     <Content Include="extension\templates\public\templates\template-detail-api.html">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\templates\public\templates\template-detail-intro.html" />
     <Content Include="extension\templates\public\templates\template-detail-toolbar.html">
       <SubType>Content</SubType>
     </Content>
@@ -404,9 +436,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\express\public\js\core\dataContext.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\express\public\js\hello.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\express\public\js\layout.js">
@@ -637,6 +666,11 @@
     <Folder Include="extension\examples\public" />
     <Folder Include="extension\express\" />
     <Folder Include="extension\express\lib" />
+    <Folder Include="extension\express\public\css\font-awesome\" />
+    <Folder Include="extension\express\public\css\font-awesome\css\" />
+    <Folder Include="extension\express\public\css\font-awesome\fonts\" />
+    <Folder Include="extension\express\public\css\font-awesome\less\" />
+    <Folder Include="extension\express\public\css\font-awesome\scss\" />
     <Folder Include="extension\express\test\" />
     <Folder Include="extension\express\public\fonts\" />
     <Folder Include="extension\express\public\views\" />
@@ -738,9 +772,12 @@
     <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
     <Compile Include="extension\express\jsreport.config.js" />
     <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
+    <Compile Include="extension\express\public\js\core\introduction.js" />
+    <Compile Include="extension\express\public\js\core\settingsCollection.js" />
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />
     <Compile Include="extension\express\public\lib\codemirror.js" />
+    <Compile Include="extension\express\public\lib\intro.js" />
     <Compile Include="extension\express\public\lib\jaydata.min.js" />
     <Compile Include="extension\express\public\lib\jquery.flot.axislabels.js" />
     <Compile Include="extension\express\public\lib\jquery.flot.canvas.js" />

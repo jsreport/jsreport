@@ -22,6 +22,11 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 this.listenTo(this, "close", function() {
                     $(".side-nav-right").show();
                 });
+
+                this.listenTo(app, "introduction-dialog-closed", function() {
+                    setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
+                    setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
+                });
             },
 
             events: {
@@ -55,8 +60,8 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 $(this.helpersCodeMirror.getWrapperElement()).addClass(this.$el.find("#helpersArea").attr('class'));
 
                 this.$el.find('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-                    self.helpersCodeMirror.refresh();
-                    self.htmlCodeMirror.refresh();
+                    setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
+                    setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
                 });
 
 
@@ -80,10 +85,10 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
 
                 this.$el.find(".split-pane").splitPane();
-                this.htmlCodeMirror.refresh();
-                this.helpersCodeMirror.refresh();
-            },
 
+                setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
+                setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
+            },
             triggerPreview: function() {
                 this.trigger("preview");
             },

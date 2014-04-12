@@ -13,6 +13,11 @@ define(["app", "backbone", "dashboard/dashboard.view"],
                     "": "dashboard",
                 },
                 dashboard: function () {
+                    
+                    if (app.settings.firstRun) {
+                       window.location.hash = "/playground";
+                    }
+
                     app.layout.content.show(new DashboardView());
                 },
             });

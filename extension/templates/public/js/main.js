@@ -3,31 +3,45 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define('template.model',["app", "core/jaydataModel"], function (app, ModelBase) {
+define('template.model',["app", "core/jaydataModel"], function(app, ModelBase) {
     return ModelBase.extend({
-        contextSet: function () { return app.dataContext.templates; },
+        contextSet: function() { return app.dataContext.templates; },
 
-        fetchQuery: function (cb) {
+        fetchQuery: function(cb) {
 
             var predicate = app.settings.playgroundMode ?
                 function(t) { return t.shortid == this.id && t.version == this.version; } :
                 function(t) { return t.shortid == this.id; };
-                
+
             return app.dataContext.templates.single(predicate,
                 { id: this.get("shortid"), version: this.get("version") == null ? 1 : this.get("version") });
         },
 
-        _initialize: function () {
+        _initialize: function() {
             this.Entity = $entity.Template;
+
+            if (!app.settings.playgroundMode && app.settings.firstRun) {
+                this.set({
+                    name: "hello world",
+                    content: "<h1> Hello World </h1>\n\n"
+                        + "<p>Lets render some content using jsrender templating engine\n"
+                        + "</p>\n\n"
+                        + "{{for ~testData()}}\n<h{{:#data}}>Header {{:#data}}</h{{:#data}}>\n{{/for}}",
+                    helpers: "{\n"
+                        + "  testData: function() {\n"
+                        + "  return [1,2,3,4,5,6];\n"
+                        + "}\n"
+                        + "}"
+                }, { silent: true });
+            }
         },
 
         defaults: {
             engine: "jsrender",
-            recipe: "html"
+            recipe: "phantom-pdf",
         },
     });
 });
-
 /*! 
  * Copyright(c) 2014 Jan Blaha 
  */ 
@@ -152,6 +166,11 @@ define('template.detail.view',["jquery", "app", "codemirror", "core/utils", "cor
                 this.listenTo(this, "close", function() {
                     $(".side-nav-right").show();
                 });
+
+                this.listenTo(app, "introduction-dialog-closed", function() {
+                    setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
+                    setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
+                });
             },
 
             events: {
@@ -185,8 +204,8 @@ define('template.detail.view',["jquery", "app", "codemirror", "core/utils", "cor
                 $(this.helpersCodeMirror.getWrapperElement()).addClass(this.$el.find("#helpersArea").attr('class'));
 
                 this.$el.find('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-                    self.helpersCodeMirror.refresh();
-                    self.htmlCodeMirror.refresh();
+                    setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
+                    setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
                 });
 
 
@@ -210,10 +229,10 @@ define('template.detail.view',["jquery", "app", "codemirror", "core/utils", "cor
 
 
                 this.$el.find(".split-pane").splitPane();
-                this.htmlCodeMirror.refresh();
-                this.helpersCodeMirror.refresh();
-            },
 
+                setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
+                setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
+            },
             triggerPreview: function() {
                 this.trigger("preview");
             },
@@ -289,6 +308,8 @@ define('template.detail.toolbar.view',["jquery", "app", "codemirror", "core/util
     function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection, EmbedDialog, BasicModel) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
+            introTemplate: "template-detail-intro",
+            introId: "template-detail-intro",
 
             initialize: function() {
                 var self = this;
@@ -537,12 +558,13 @@ define(["jquery", "app", "marionette", "backbone",
         "template.detail.toolbar.view"],
     function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel,
         TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
+            
         return app.module("template", function(module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
             module.TemplateListTooolbarView = TemplateListTooolbarView;
             module.TemplateDetailTooolbarView = ToolbarView;
-            
+
             var Router = Backbone.Router.extend({                
                 initialize: function() {
                     var self = this;
@@ -630,8 +652,7 @@ define(["jquery", "app", "marionette", "backbone",
                     model.fetch();
                 });
             }
-
-
+            
             app.on("entity-registration", function(context) {
 
                 var templateAttributes = {

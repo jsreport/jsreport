@@ -93,6 +93,11 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
         },
 
         showToolbarViewComposition: function(contentView, toolbarView) {
+
+            this.listenTo(toolbarView, "render", function() {
+                app.trigger("view-render", toolbarView);
+            });
+
             this.content.show(contentView);
             toolbarView.contentView = contentView;
             this.toolbar.show(toolbarView);

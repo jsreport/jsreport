@@ -31,7 +31,7 @@ requirejs.config({
         "jquery.ui.selectable": "../lib/jquery.ui.selectable",
         "jquery.fineuploader": "../lib/jquery.fineuploader-3.0",
         "split-pane": "../lib/split-pane",
-        
+        "introJs": "../lib/intro",
         json2: "../lib/json2",
         async: "../lib/async",
         deferred: "../lib/deferred",
@@ -110,3 +110,5 @@ requirejs.config({
 require(["app"], function (app) {
     app.start();
 });
+
+define( "jQuery", ["$"], function ($) { return jQuery; } );

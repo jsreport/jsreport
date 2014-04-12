@@ -25,26 +25,55 @@ $C('$data.storageProviders.neDB.neDBProvider', $data.StorageProviderBase, null,
 
             if (!sets.length) return callBack.success(self.context);
 
-            sets.forEach(function(i) {
-                if (self.context._entitySetReferences.hasOwnProperty(i)) {
+            function load(loadCb) {
+                var toProcess = sets.length;
+
+                function done(err) {
+                    if (err)
+                        return callback.error(err);
+
+                    toProcess--;
+
+                    if (toProcess == 0) {
+                        loadCb();
+                    }
+                };
+
+
+                sets.forEach(function(i) {
+                    if (!self.context._entitySetReferences.hasOwnProperty(i)) {
+                        return done();
+                    }
+
                     var es = self.context._entitySetReferences[i];
                     var tableName = es.tableName;
 
-                    if (db[tableName] == null) {
-                        db[tableName] = new DataStore({ filename: path.join("data", tableName), autoload: false });
-                        
-                        if (es.tableOptions && es.tableOptions.nedbPersistance != "singleFile")
-                            db[tableName].persistence = new Persistence({ db: db[tableName], keys: es.tableOptions ? es.tableOptions.humanReadableKeys : null });
-                        db[tableName].loadDatabase();
+                    if (db[tableName] != null) {
+                        return done();
                     }
-                }
-            });
 
-            this.fieldConverter.toDb['$data.ObjectID'] = function(id) {
-                return new Buffer(id, 'base64').toString('ascii');
+                    db[tableName] = new DataStore({ filename: path.join("data", tableName), autoload: false });
+
+                    if (es.tableOptions && es.tableOptions.nedbPersistance != "singleFile")
+                        db[tableName].persistence = new Persistence({
+                            db: db[tableName],
+                            keys: es.tableOptions ?
+                                es.tableOptions.humanReadableKeys : null
+                        });
+
+                    db[tableName].loadDatabase(done);
+                });
             };
 
-            callBack.success(self.context);
+            load(function() {
+
+                self.fieldConverter.toDb['$data.ObjectID'] = function(id) {
+                    return new Buffer(id,
+                        'base64').toString('ascii');
+                };
+
+                callBack.success(self.context);
+            });
         },
 
         _connected: function(oid, prop, prop2, it, association) {
@@ -129,10 +158,10 @@ $C('$data.storageProviders.neDB.neDBProvider', $data.StorageProviderBase, null,
 
                         if (find.options.sort)
                             cursor = cursor.sort(find.options.sort);
-                        
+
                         if (find.options.skip)
                             cursor = cursor.skip(find.options.skip);
-                        
+
                         if (find.options.limit)
                             cursor = cursor.limit(find.options.limit);
 

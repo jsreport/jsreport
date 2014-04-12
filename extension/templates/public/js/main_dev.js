@@ -9,12 +9,13 @@ define(["jquery", "app", "marionette", "backbone",
         "./template.detail.toolbar.view"],
     function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel,
         TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
+            
         return app.module("template", function(module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
             module.TemplateListTooolbarView = TemplateListTooolbarView;
             module.TemplateDetailTooolbarView = ToolbarView;
-            
+
             var Router = Backbone.Router.extend({                
                 initialize: function() {
                     var self = this;
@@ -102,8 +103,7 @@ define(["jquery", "app", "marionette", "backbone",
                     model.fetch();
                 });
             }
-
-
+            
             app.on("entity-registration", function(context) {
 
                 var templateAttributes = {

@@ -59,6 +59,7 @@ Phantom.prototype.execute = function(request, response) {
     
     var generationId = shortid.generate();
     var htmlFile = join("reports-tmpl", generationId + ".html");
+    console.log(request.template.phantom.url);
 
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
@@ -72,7 +73,7 @@ Phantom.prototype.execute = function(request, response) {
 		    '--ignore-ssl-errors=yes',	    
                     '--web-security=false',
                     join(__dirname, 'convertToPdf.js'),
-                    "file:///" + path.resolve(htmlFile),
+                    request.template.phantom.url || ("file:///" + path.resolve(htmlFile)),
                     join("reports-tmpl", generationId + ".pdf"),		   
                     request.template.phantom.margin || "null",
                     request.template.phantom.headerFile || "null",
@@ -88,9 +89,9 @@ Phantom.prototype.execute = function(request, response) {
                 childProcess.execFile(binPath, childArgs, function(error, stdout, stderr) {
                     logger.info("Rastering pdf child process end.");
 
-                    //console.log(stdout);
-                    //console.log(stderr);
-                    //console.log(error);
+                    console.log(stdout);
+                    console.log(stderr);
+                    console.log(error);
 
                     if (error !== null) {
                         logger.error('exec error: ' + error);

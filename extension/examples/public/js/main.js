@@ -4,7 +4,7 @@
         var module = app.module("examples", function() {
 
             app.on("menu-render", function(context) {
-                var result = "<li class='dropdown'><a href='#' class='dropdown-toggle' data-toggle='dropdown'>Examples <b class='caret'></b></a><ul class='dropdown-menu'><li class='dropdown-header'>examples</li>";
+                var result = "<li class='dropdown' data-step='6' data-intro='Or check out examples for various reporting options.'><a href='#' class='dropdown-toggle' data-toggle='dropdown'>Examples <b class='caret'></b></a><ul class='dropdown-menu'><li class='dropdown-header'>examples</li>";
                 module.examples.forEach(function(t) {
                     result += "<li><a href='#/playground/" + t.shortid + "'>" + t.name + "</a></li>";
                 });
