@@ -43,14 +43,20 @@ table.tablesorter thead tr th:hover {
 	left: 190px;
 	width: 190px;
 	position: fixed;
-  clear: both;
+    clear: both;
 	height: 100%;
 	border-radius: 0;
-  top: 75px;
+    top: 75px;
 	border: none;
 	background-color: #f7f7f7;
-  border-right: 1px solid #d2d2d2;
+    border-right: 1px solid #d2d2d2;
 	overflow-y: auto;
+    max-height: 90%; 
+    overflow-x: hidden;
+    -moz-user-select: none; 
+    -khtml-user-select: none; 
+    -webkit-user-select: none; 
+    -o-user-select: none; 
   }
   
 .side-nav-right {
@@ -701,3 +707,5 @@ margin-top: -25px;
 .navbar-nav > li > a {
 	padding: 12px;
 }
+
+

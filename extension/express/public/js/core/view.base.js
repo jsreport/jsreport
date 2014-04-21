@@ -39,7 +39,7 @@ define(["app", "marionette", "jquery", "underscore", "core/utils"], function(app
 
             var messages = "";
             _.each(this.onValidate(), function(e) {
-                messages += e.message + "\n";
+                messages += e.message + "<br/>";
                 res = false;
             });
 

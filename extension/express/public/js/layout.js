@@ -54,7 +54,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
 
                 $.dialog({
                     header: "Validations",
-                    content: $('<div/>').text(message).html(),
+                    content: $('<div/>').html(message).html(),
                     hideSubmit: true,
                     error: true
                 });

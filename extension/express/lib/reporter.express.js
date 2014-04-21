@@ -134,6 +134,8 @@ module.exports = function(reporter, definition) {
                 }
             }
 
+            res.setHeader("X-XSS-Protection", 0);
+
             if (_.isFunction(response.result.pipe)) {
                 response.result.pipe(res);
             } else {

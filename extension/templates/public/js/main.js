@@ -502,12 +502,13 @@ define('template.detail.toolbar.view',["jquery", "app", "codemirror", "core/util
 
             getBody: function() {
                 var properties = [];
-                properties.push({ key: "html", value: "..." });
+                properties.push({ key: "content", value: "..." });
                 properties.push({ key: "helpers", value: "..." });
+                properties.push({ key: "recipe", value: "..." });
 
                 this.model.trigger("api-overrides", function(key, value) {
                     value = value || "...";
-                    properties.push({ key: key, value: _.isObject(value) ? JSON.stringify(value) : "..." });
+                    properties.push({ key: key, value: _.isObject(value) ? JSON.stringify(value, null, 2) : "..." });
 
                 });
                 return properties;

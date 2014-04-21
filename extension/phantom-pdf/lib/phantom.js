@@ -42,6 +42,10 @@ Phantom = function(reporter, definition) {
         headerHeight: { type: "string" },
         footer: { type: "string" },
         footerHeight: { type: "string" },
+        orientation: { type: "string" },
+        format: { type: "string" },
+        width: { type: "string" },
+        height: { type: "string" },
     }, null);
 
     reporter.templates.TemplateType.addMember("phantom", { type: this.PhantomType });
@@ -82,16 +86,20 @@ Phantom.prototype.execute = function(request, response) {
                     request.template.phantom.footerHeight || "null",
                     'jsreport.sid',
                     encodeURIComponent(request.cookies["jsreport.sid"]),
-                    self.reporter.options.cookieSession.cookie.domain
+                    self.reporter.options.cookieSession.cookie.domain,
+                    request.template.phantom.orientation || "portrait",
+                    request.template.phantom.width || "null",
+                    request.template.phantom.height || "null",
+                    request.template.phantom.format || "null"
                 ];
 
                 //var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
                 childProcess.execFile(binPath, childArgs, function(error, stdout, stderr) {
                     logger.info("Rastering pdf child process end.");
 
-                    console.log(stdout);
+                    //console.log(stdout);
                     console.log(stderr);
-                    console.log(error);
+                    //console.log(error);
 
                     if (error !== null) {
                         logger.error('exec error: ' + error);

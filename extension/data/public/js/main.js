@@ -9,7 +9,8 @@ define('data.model',["app", "core/jaydataModel"], function(app, ModelBase) {
         },   
         
         defaults: {
-            name: "data item name"
+            dataJson: app.settings.firstRun ? "{\n  \"_comment\": \"this is must be valid JSON\",\n  \"people\" : [ { \"name\": \"Jan Blaha\" } ]\n}"
+                                               : ""
         },
 
         _initialize: function() {
@@ -161,10 +162,11 @@ define('data.template.playground.dialog',["marionette", "app", "codemirror", "co
 define('data.template.playground.model',["app", "core/basicModel", "underscore"], function (app, ModelBase, _) {
    
     return ModelBase.extend({
-
         setTemplateModel: function (templateModel) {
             this.templateModel = templateModel;
-            this.set("dataJson", templateModel.get("dataItem").dataJson);
+
+            var defaultJson = "{\n  \"_comment\": \"this is must be valid JSON\",\n  \"people\" : [ { \"name\": \"Jan Blaha\" } ]\n}";
+            this.set("dataJson", templateModel.get("dataItem").dataJson || defaultJson);
         },
         
         save: function (options) {
@@ -254,6 +256,9 @@ define('data.toolbar.view',["jquery", "app", "core/utils", "core/view.base"],
             },
 
             save: function() {
+                if (!this.validate())
+                    return;
+
                 var self = this;
                 this.model.save({}, {
                     success: function() {
@@ -268,6 +273,25 @@ define('data.toolbar.view',["jquery", "app", "core/utils", "core/view.base"],
                     e.preventDefault();
                     return false;
                 }
+            },
+
+            onValidate: function() {
+                var res = [];
+
+                if (this.model.get("name") == null || this.model.get("name") == "")
+                    res.push({
+                        message: "Name cannot be empty"
+                    });
+
+                try {
+                    var json = JSON.parse(this.model.get("dataJson"));
+                } catch(e) {
+                    res.push({
+                        message: "Data must be valid JSON. " + e.toString()
+                    });
+                }
+
+                return res;
             },
 
             onClose: function() {

@@ -9,6 +9,7 @@
                     var model = new Model();
                     model.setTemplate(context.template);
                     view = new TemplateView({ model: model});
+                    
                     context.extensionsRegion.show(view, "phantom");
                 } else {
                     if (view != null)
@@ -30,6 +31,10 @@
                 'footer': { 'type': 'Edm.String' },
                 'headerHeight': { 'type': 'Edm.String' },
                 'footerHeight': { 'type': 'Edm.String' },
+                'orientation': { 'type': 'Edm.String' },
+                'format': { 'type': "string" },
+                'width': { 'type': "string" },
+                'height': { 'type': "string" },
             }, null);
             
             $entity.Template.addMember("phantom", { 'type': "$entity.Phantom" });

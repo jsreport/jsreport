@@ -8,7 +8,8 @@
         },   
         
         defaults: {
-            name: "data item name"
+            dataJson: app.settings.firstRun ? "{\n  \"_comment\": \"this is must be valid JSON\",\n  \"people\" : [ { \"name\": \"Jan Blaha\" } ]\n}"
+                                               : ""
         },
 
         _initialize: function() {

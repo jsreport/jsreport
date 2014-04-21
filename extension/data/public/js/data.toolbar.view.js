@@ -12,6 +12,9 @@
             },
 
             save: function() {
+                if (!this.validate())
+                    return;
+
                 var self = this;
                 this.model.save({}, {
                     success: function() {
@@ -26,6 +29,25 @@
                     e.preventDefault();
                     return false;
                 }
+            },
+
+            onValidate: function() {
+                var res = [];
+
+                if (this.model.get("name") == null || this.model.get("name") == "")
+                    res.push({
+                        message: "Name cannot be empty"
+                    });
+
+                try {
+                    var json = JSON.parse(this.model.get("dataJson"));
+                } catch(e) {
+                    res.push({
+                        message: "Data must be valid JSON. " + e.toString()
+                    });
+                }
+
+                return res;
             },
 
             onClose: function() {

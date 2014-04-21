@@ -6,10 +6,6 @@
             return this.contextSet().single(function(r) { return r.shortid == this.id; }, { id: this.get("shortid") });
         },    
         
-        defaults: {
-            name: "script name"    
-        },
-        
         setTemplateModel: function(templateModel) {
             this.templateModel = templateModel;
         },

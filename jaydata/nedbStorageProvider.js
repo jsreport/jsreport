@@ -292,7 +292,12 @@ $C('$data.storageProviders.neDB.neDBProvider', $data.StorageProviderBase, null,
             if ((value && value.$ref && value.$id) || value == null || value == undefined) return value;
             var type = Container.resolveName(type);
             var converterFn = converter ? converter[type] : undefined;
-            return converter && converter[type] ? converter[type](value) : new (Container.resolveType(type))(value);
+            var result = converter && converter[type] ? converter[type](value) : new (Container.resolveType(type))(value);
+
+            if (result != null && result.initData)
+                return result.initData;
+
+            return result;
         },
 
         _saveCollections: function(callBack, collections) {

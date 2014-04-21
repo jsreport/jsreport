@@ -7,10 +7,18 @@ output = system.args[2];
 page.viewportSize = { width: 600, height: 600 };
 
 var paperSize = {
-    format: "",
-    orientation: 'portrait',
+    format: system.args[14] != "null" ? system.args[14] : "",
+    orientation: system.args[11],
     margin: system.args[3] != "null" ? system.args[3] :  "1cm",
 };
+
+if (system.args[12] != "null") {
+    paperSize.width = system.args[12];
+}
+
+if (system.args[13] != "null") {
+    paperSize.height = system.args[13];
+}
 
 if (system.args[4] != "null") {
     paperSize.header = {
@@ -44,61 +52,61 @@ phantom.addCookie({
   'expires'  : (new Date()).getTime() + (1000 * 60 * 60)   /* <-- expires in 1 hour */
 });
 
-//page.onResourceRequested = function (request) {
-//    system.stderr.writeLine('= onResourceRequested()');
-//    system.stderr.writeLine('  request: ' + JSON.stringify(request, undefined, 4));
-//};
- 
-//page.onResourceReceived = function(response) {
-//    system.stderr.writeLine('= onResourceReceived()' );
-//    system.stderr.writeLine('  id: ' + response.id + ', stage: "' + response.stage + '", response: ' + JSON.stringify(response));
-//};
- 
-//page.onLoadStarted = function() {
-//    system.stderr.writeLine('= onLoadStarted()');
-//    var currentUrl = page.evaluate(function() {
-//        return window.location.href;
-//    });
-//    system.stderr.writeLine('  leaving url: ' + currentUrl);
-//};
- 
-//page.onLoadFinished = function(status) {
-//    system.stderr.writeLine('= onLoadFinished()');
-//    system.stderr.writeLine('  status: ' + status);
-//};
- 
-//page.onNavigationRequested = function(url, type, willNavigate, main) {
-//    system.stderr.writeLine('= onNavigationRequested');
-//    system.stderr.writeLine('  destination_url: ' + url);
-//    system.stderr.writeLine('  type (cause): ' + type);
-//    system.stderr.writeLine('  will navigate: ' + willNavigate);
-//    system.stderr.writeLine('  from page\'s main frame: ' + main);
-//};
- 
-//page.onResourceError = function(resourceError) {
-//    system.stderr.writeLine('= onResourceError()');
-//    system.stderr.writeLine('  - unable to load url: "' + resourceError.url + '"');
-//    system.stderr.writeLine('  - error code: ' + resourceError.errorCode + ', description: ' + resourceError.errorString );
-//};
- 
-//page.onError = function(msg, trace) {
-//    system.stderr.writeLine('= onError()');
-//    var msgStack = ['  ERROR: ' + msg];
-//    if (trace) {
-//        msgStack.push('  TRACE:');
-//        trace.forEach(function(t) {
-//            msgStack.push('    -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function + '")' : ''));
-//        });
-//    }
-//    system.stderr.writeLine(msgStack.join('\n'));
-//};
-page.open(system.args[1], function() {
-//    page.evaluate(function() {
-//    jQuery("link").each(function(i, v) {
-//        jQuery(v).attr("media", "all");
-//    });
-//});
+page.onResourceRequested = function (request, networkRequest ) {
+    
+    if (request.url.lastIndexOf("file://", 0) === 0 && request.url.lastIndexOf("file:///", 0) !== 0) {
+        networkRequest.changeUrl(request.url.replace("file://", "http://"));
+    }
 
+    system.stdout.writeLine('= onResourceRequested()');
+    system.stdout.writeLine('  request: ' + JSON.stringify(request, undefined, 4));
+};
+ 
+page.onResourceReceived = function(response) {
+    system.stdout.writeLine('= onResourceReceived()' );
+    system.stdout.writeLine('  id: ' + response.id + ', stage: "' + response.stage + '", response: ' + JSON.stringify(response));
+};
+ 
+page.onLoadStarted = function() {
+    system.stdout.writeLine('= onLoadStarted()');
+    var currentUrl = page.evaluate(function() {
+        return window.location.href;
+    });
+    system.stdout.writeLine('  leaving url: ' + currentUrl);
+};
+ 
+page.onLoadFinished = function(status) {
+    system.stdout.writeLine('= onLoadFinished()');
+    system.stdout.writeLine('  status: ' + status);
+};
+ 
+page.onNavigationRequested = function(url, type, willNavigate, main) {
+    system.stdout.writeLine('= onNavigationRequested');
+    system.stdout.writeLine('  destination_url: ' + url);
+    system.stdout.writeLine('  type (cause): ' + type);
+    system.stdout.writeLine('  will navigate: ' + willNavigate);
+    system.stdout.writeLine('  from page\'s main frame: ' + main);
+};
+ 
+page.onResourceError = function(resourceError) {
+    system.stderr.writeLine('= onResourceError()');
+    system.stderr.writeLine('  - unable to load url: "' + resourceError.url + '"');
+    system.stderr.writeLine('  - error code: ' + resourceError.errorCode + ', description: ' + resourceError.errorString );
+};
+ 
+page.onError = function(msg, trace) {
+    system.stderr.writeLine('= onError()');
+    var msgStack = ['  ERROR: ' + msg];
+    if (trace) {
+        msgStack.push('  TRACE:');
+        trace.forEach(function(t) {
+            msgStack.push('    -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function + '")' : ''));
+        });
+    }
+    system.stderr.writeLine(msgStack.join('\n'));
+};
+
+page.open(system.args[1], function() {
     page.render(output);
     phantom.exit();
 });

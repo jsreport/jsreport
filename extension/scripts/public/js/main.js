@@ -7,10 +7,6 @@ define('scripts.model',["app", "core/jaydataModel", "jquery"], function (app, Mo
             return this.contextSet().single(function(r) { return r.shortid == this.id; }, { id: this.get("shortid") });
         },    
         
-        defaults: {
-            name: "script name"    
-        },
-        
         setTemplateModel: function(templateModel) {
             this.templateModel = templateModel;
         },
@@ -293,6 +289,9 @@ define('scripts.toolbar.view',["jquery", "app", "core/utils", "core/view.base"],
             },
 
             save: function() {
+                if (!this.validate())
+                    return;
+                
                 var self = this;
                 this.model.save({}, {
                     success: function() {
@@ -311,6 +310,18 @@ define('scripts.toolbar.view',["jquery", "app", "core/utils", "core/view.base"],
                     e.preventDefault();
                     return false;
                 }
+            },
+            
+            onValidate: function() {
+                var res = [];
+                
+                if (this.model.get("name") == null || this.model.get("name") == "")
+                    res.push({
+                        message: "Name cannot be empty"
+                    });
+                 
+
+                return res;
             },
 
             onClose: function() {
