@@ -3,20 +3,20 @@
  */ 
 
 define(["jquery", "app", "marionette", "backbone",
-        "./template.list.model", "./template.list.view","./template.list.toolbar.view",
+        "./template.list.model", "./template.list.view", "./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",
         "./template.detail.toolbar.view"],
     function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel,
         TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
-            
+
         return app.module("template", function(module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
             module.TemplateListTooolbarView = TemplateListTooolbarView;
             module.TemplateDetailTooolbarView = ToolbarView;
 
-            var Router = Backbone.Router.extend({                
+            var Router = Backbone.Router.extend({
                 initialize: function() {
                     var self = this;
                     app.listenTo(app, "template-saved", function(templateModel) {
@@ -39,20 +39,21 @@ define(["jquery", "app", "marionette", "backbone",
                 templates: function() {
                     this.navigate("/extension/templates");
                     var model = new TemplateListModel();
-                    
+
                     app.layout.showToolbarViewComposition(new TemplateListView({ collection: model }), new TemplateListTooolbarView({ collection: model }));
-                    
+
                     model.fetch();
                 },
-                
 
                 showTemplateView: function(id, version) {
                     var model = new TemplateModel({ version: version });
 
                     function show() {
                         app.layout.showToolbarViewComposition(new TemplateDetailView({ model: model }), new ToolbarView({ model: model }));
-                    };
-                    
+                    }
+
+                    ;
+
                     if (id != null) {
                         model.set("shortid", id);
                         model.fetch({
@@ -61,6 +62,21 @@ define(["jquery", "app", "marionette", "backbone",
                             }
                         });
                     } else {
+                        if (!app.settings.playgroundMode && app.settings.firstRun) {
+                            model.set({
+                                name: "hello world",
+                                content: "<h1> Hello World </h1>\n\n"
+                                    + "<p>Lets render some content using jsrender templating engine\n"
+                                    + "</p>\n\n"
+                                    + "{{for ~testData()}}\n<h{{:#data}}>Header {{:#data}}</h{{:#data}}>\n{{/for}}",
+                                helpers: "{\n"
+                                    + "  testData: function() {\n"
+                                    + "  return [1,2,3,4,5,6];\n"
+                                    + "}\n"
+                                    + "}"
+                            }, { silent: true });
+                        }
+
                         show();
                     }
                 },
@@ -103,7 +119,7 @@ define(["jquery", "app", "marionette", "backbone",
                     model.fetch();
                 });
             }
-            
+
             app.on("entity-registration", function(context) {
 
                 var templateAttributes = {

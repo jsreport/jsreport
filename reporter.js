@@ -76,6 +76,9 @@ Reporter.prototype.init = function() {
                     });
                 });
             });
+        }).fail(function(e) {
+            self.logger.error("Error occured during reporter init " + e.toString());
+            return e;
         });
     });
 };
@@ -170,6 +173,9 @@ Reporter.prototype.render = function(request) {
         })
         .then(function() {
             return request.context.saveChanges().then(function() { return response; });
+        }).fail(function(e) {
+            self.logger.error("Error when processing render request " + e.message + " " + e.stack);
+            return Q.reject(e);
         });
 };
 

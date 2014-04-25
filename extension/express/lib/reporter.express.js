@@ -119,6 +119,7 @@ module.exports = function(reporter, definition) {
             playgroundMode: reporter.playgroundMode,
             mode: reporter.options.mode,
             tenant: reporter.options.tenant
+            
         });
     });
 
@@ -141,7 +142,7 @@ module.exports = function(reporter, definition) {
             } else {
                 res.send(response.result);
             }
-        }, function(err) {
+        }).fail(function(err) {
             return next(err);
         });
     });

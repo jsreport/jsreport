@@ -107,8 +107,13 @@ ReportingServer.prototype._startServer = function() {
     app.use(require("body-parser")());
     app.use(require("method-override")());
     app.use(require("connect-multiparty")());
-    app.use(require("cookie-parser")(this.config.cookieSession.secret));
-    app.use(require("express-session")(this.config.cookieSession));
+    var sessions = require("client-sessions");
+    app.use(sessions({
+        cookieName: 'session',
+        cookie: this.config.cookieSession.cookie,
+        secret: this.config.cookieSession.secret,
+        duration: 1000 * 60 * 60 * 24 * 365 * 10, // forever
+    }));
 
 /* LOGGING */
     var transportSettings = {
@@ -171,7 +176,7 @@ ReportingServer.prototype._startServer = function() {
                 res.end();
             }).listen(self.config.httpPort);
         }
-        
+
         var httpsServer = https.createServer(credentials, app);
         httpsServer.listen(self.config.port);
     });

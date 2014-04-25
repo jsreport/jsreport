@@ -62,13 +62,12 @@
     "winston": "*",
     "winser": "*",
     "method-override": "^1.0.0",
-    "cookie-parser": "^1.0.1",
-    "cookie-session": "^1.0.1",
+    "cookie-parser": "^1.0.1",    
     "connect-multiparty": "^1.0.3",
     "body-parser": "^1.0.1",
     "serve-static": "^1.0.4",
-    "vhost": "^1.0.0",
-    "express-session": "^1.0.2"
+    "vhost": "^1.0.0",    
+    "client-sessions": "^0.6.0"
   },
   "devDependencies": {
     "chai": "*",

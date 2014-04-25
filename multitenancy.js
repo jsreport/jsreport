@@ -18,10 +18,10 @@ var Q = require("q"),
 require("odata-server");
 
 module.exports = function(app, options, cb) {
-    process.on('uncaughtException', function (err) {
-    console.log('Caught exception: ' + err);
-});
-    
+    process.on('uncaughtException', function(err) {
+        console.log('Caught exception: ' + err);
+    });
+
     function activateTenant(tenant, tcb) {
         if (tenant.isActivated) {
             return tcb(null, tenant);
@@ -33,7 +33,7 @@ module.exports = function(app, options, cb) {
         opts.express = { app: main };
         opts.tenant = tenant;
         opts.playgroundMode = false;
-        opts.connectionString.databaseName = "multitenant";//tenant.name;
+        opts.connectionString.databaseName = "multitenant"; //tenant.name;
 
         var rep = new Reporter(opts);
 
@@ -98,73 +98,16 @@ module.exports = function(app, options, cb) {
         });
     }));
 
-    //authenticate basic if request to API
     app.use(function(req, res, next) {
-        if ((!req.isAuthenticated || !req.isAuthenticated()) && (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0)) {
-            passport.authenticate('basic', function(err, user, info) {
-                if (!user) {
-                    return res.send(401);
-                }
+        if (req.session.text == null)
+            req.session.text = 1;
+        else 
+            req.session.text++;
 
-                req.logIn(user, function() {
-                    next();
-                });
-            })(req, res, next);
-        } else {
-            next();
-        }
+        next();
     });
-
-    app.use(function(req, res, next) {
-        var isUrlRequirignAuthnetication =
-            req.url.indexOf("$metadata") == -1 &&
-                (req.method != "POST" || req.url != "/login") &&
-                (req.method != "GET" || req.url != "/") &&
-                (req.method != "POST" || req.url != "/register");
-
-        //not authenticated but requiring
-        if ((!req.isAuthenticated || !req.isAuthenticated()) && isUrlRequirignAuthnetication) {
-            return res.redirect("/");
-        }
-
-        //not authenticated and not requiring
-        if ((!req.isAuthenticated || !req.isAuthenticated()) && !isUrlRequirignAuthnetication) {
-            return next();
-        }
-
-        //authenticated
-        activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
-            if (!options.useSubDomains) {
-                return tenant.reporter.options.express.app(req, res, next);
-            }
-
-            var domains = req.headers.host.split('.');
-
-            if (options.subdomainsCount == domains.length)
-                return next();
-
-            domains.unshift(req.user.name);
-            return res.redirect("https://" + domains.join("."));
-        });
-    });
-
-    passport.serializeUser(function(user, done) {
-        done(null, user.email);
-    });
-
-    passport.deserializeUser(function(id, done) {
-        var tenant = multitenancy.findTenant(id);
-
-        if (tenant == null)
-            return done({
-                message: "Tenant not found.",
-                code: "TENANT_NOT_FOUND"
-            });
-
-        return done(null, tenant);
-    });
-
-    app.get("/ping", function(req, res, next) {
+    
+     app.get("/ping", function(req, res, next) {
         res.send("pong");
     });
 
@@ -254,6 +197,64 @@ module.exports = function(app, options, cb) {
         var domains = req.headers.host.split('.');
 
         res.redirect("https://" + domains[domains.length - 2] + "." + domains[domains.length - 1]);
+    });
+
+    //authenticate basic if request to API
+    app.use(function(req, res, next) {
+        if ((!req.isAuthenticated || !req.isAuthenticated()) &&
+            (req.url.lastIndexOf("/api", 0) === 0 || req.url.lastIndexOf("/odata", 0) === 0)) {
+            passport.authenticate('basic', function(err, user, info) {
+                if (!user) {
+                    res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
+                    return res.send(401);
+                }
+
+                req.logIn(user, function() {
+                    next();
+                });
+            })(req, res, next);
+        } else {
+            next();
+        }
+    });
+
+    app.use(function(req, res, next) {
+        var domains = req.headers.host.split('.');
+        
+        if (!req.user) {
+            if (!options.useSubDomains || options.subdomainsCount == domains.length + 1)
+                return res.redirect("/");
+            else {
+               domains.shift();
+               return res.redirect("https://" + domains.join("."));  
+            }
+        }
+
+        //authenticated
+        activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
+            if (!options.useSubDomains || options.subdomainsCount == domains.length) {
+                return tenant.reporter.options.express.app(req, res, next);
+            }
+
+            domains.unshift(req.user.name);
+            return res.redirect("https://" + domains.join("."));
+        });
+    });
+
+    passport.serializeUser(function(user, done) {
+        done(null, user.email);
+    });
+
+    passport.deserializeUser(function(id, done) {
+        var tenant = multitenancy.findTenant(id);
+
+        if (tenant == null)
+            return done({
+                message: "Tenant not found.",
+                code: "TENANT_NOT_FOUND"
+            });
+
+        return done(null, tenant);
     });
 
     var multitenancy = new Multitenancy(options);
