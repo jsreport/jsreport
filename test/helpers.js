@@ -25,8 +25,6 @@ exports.describeReporting = function(rootDirectory, extensions, isPlayground, ne
         app.use(require("body-parser")());
         app.use(require("method-override")());
         app.use(require("connect-multiparty")());
-        app.use(require("cookie-parser")("foo"));
-        app.use(require("express-session")());
         app.use(serveStatic(path.join(__dirname, 'views')));
         app.engine('html', require('ejs').renderFile);
 
