@@ -22,10 +22,15 @@ describe('multitenancy with testing account', function() {
         app = express();
         app.use(require("body-parser")());
         app.use(require("method-override")());
+        var sessions = require("client-sessions");
+        app.use(sessions({
+            cookieName: 'session',
+            cookie: { domain: "local.net"},
+            secret: "foo",
+            duration: 1000 * 60 * 60 * 24 * 365 * 10, // forever
+        }));
         app.use(serveStatic(path.join(__dirname, 'views')));
         app.engine('html', require('ejs').renderFile);
-        app.use(require("cookie-parser")());
-        app.use(require("express-session")({ key: 'jsreport.sid', secret: 'dasd321as56d1sd5s61vdv32', cookie: { domain: 'local.net' } }));
 
         options = {
             connectionString: { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 },
