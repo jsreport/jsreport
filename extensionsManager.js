@@ -1,7 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
- * ExtensionsManager responsible for loading, registering and unregistering of server extensions.
+ * ExtensionsManager responsible for loading, registering and unregistering server extensions.
  */ 
 
 var events = require("events"),

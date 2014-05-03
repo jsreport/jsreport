@@ -1,4 +1,11 @@
 ﻿/**
+ * Fork of nedb persistence
+ * 
+ * Enables storing data in multile files, where every model represents one file
+ */
+
+
+/**
  * Handle every persistence-related task
  * The interface Datastore expects to be implemented is
  * * Persistence.loadDatabase(callback) and callback has signature err

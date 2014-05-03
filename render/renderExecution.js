@@ -7,6 +7,7 @@
 process.on('message', function (m) {
     try {
         
+        //resolve references in json specified by $ref and $id attribute, this is handy when user send cycles in json
          var resolveReferences = function(json) {
             if (typeof json === 'string')
                 json = JSON.parse(json);

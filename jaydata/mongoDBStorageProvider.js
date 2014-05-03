@@ -1,3 +1,9 @@
+/**
+ * Fork of jaydata mongodb provider.
+ * 
+ * Changes: better support for changing collection names, support for $inc
+ */
+
 $C('$data.storageProviders.mongoDB.mongoDBProvider', $data.StorageProviderBase, null,
 {
     constructor: function(cfg, ctx){

@@ -1,4 +1,9 @@
-﻿if (require.main === module) {
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ */ 
+
+if (require.main === module) {
+    //jsreport commandline support can precreate app...
     var fs = require("fs"),
         path = require("path");
 

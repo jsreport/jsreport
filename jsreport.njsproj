@@ -830,7 +830,6 @@
     <Compile Include="multitenancy.js" />
     <Compile Include="config\debug.multitenant.config.json" />
     <Compile Include="node_modules\nedb\lib\persistence.js" />
-    <Compile Include="reporter.install.js" />
     <Compile Include="reportingCommander.js" />
     <Compile Include="reportingServer.js" />
     <Compile Include="test\extensionsManagerTest.js" />

@@ -116,6 +116,11 @@ describe('multitenancy with testing account', function() {
                     .expect(200, done);
             });
         });
+        
+        it('GET /odata should response 401 for invalid credentials', function(done) {
+            request(app).get("/odata/templates")
+                .expect(401, done);
+        });
     });
 
 

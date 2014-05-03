@@ -15,7 +15,7 @@ var Readable = require("stream").Readable,
     extend = require("node.extend");
 
 
-var logger = winston.loggers.has('jsreport.templates') ? winston.loggers.get('jsreport.templates') : winston.loggers.get('jsreport');
+var logger = winston.loggers.get('jsreport');
 
 module.exports = function(reporter, definition) {
     reporter[definition.name] = new Templating(reporter, definition);

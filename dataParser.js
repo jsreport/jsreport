@@ -1,4 +1,12 @@
-﻿var Q = require("q"),
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ *
+ * Parsing render process input data.
+ * Can parse input xls files, input string streams, input text files
+ * Output is javascript object
+ */
+
+var Q = require("q"),
     FS = require("q-io/fs"),
     path = require("path");
 

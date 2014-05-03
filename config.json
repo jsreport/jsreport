@@ -7,11 +7,12 @@
     "certificate": {
         "key": "certificates/jsreport.net.key",    
         "cert": "certificates/jsreport.net.cert"
-    },    
-    "connectionString": { "name": "neDB" },
-    "extensions": ["express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates"],
-    "mode": "standard",
-    "port": 3000, 
-	"blobStorage": "fileSystem",
-	"useCluster": false
+    },
+    "useSubDomains": true,
+    "subdomainsCount": 3,
+    "connectionString": { "name": "mongoDB", "address": "localhost", "port": 27017, "databaseName": "root" },
+    "extensions": ["express", "templates", "html", "phantom-pdf", "fop-pdf", "scripts", "data", "images", "statistics", "reports", "jsreport-import-export", "childTemplates"],
+    "mode": "multitenant",
+    "port": 3000,
+    "httpPort": 4000
 }

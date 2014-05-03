@@ -1,4 +1,9 @@
-﻿var DataStore = require('nedb');
+﻿/**
+ * jaydata storage provider using nedb
+ * 
+ */
+
+var DataStore = require('nedb');
 var Persistence = require("./persistence.js");
 
 var db = {};

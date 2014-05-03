@@ -1,5 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ *
+ * Big binary file storage in mongo
  */ 
 
 var util = require("util"),

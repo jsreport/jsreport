@@ -1,4 +1,9 @@
-﻿
+﻿/*! 
+ * Copyright(c) 2014 Jan Blaha 
+ * 
+ * Evaluates commands from commandline and update accordinly initial config
+ */ 
+
 module.exports = function(config) {
 
     var fs = require("fs"),

@@ -1,5 +1,8 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ * 
+ * Installing express server for multi-user support.
+ * Responsible for authorizing requests and forwarding them to particular tenants vhosts.
  */ 
 
 var Q = require("q"),
@@ -14,14 +17,16 @@ var Q = require("q"),
     Reporter = require("./reporter.js"),
     path = require("path"),
     validator = require('validator'),
-    serveStatic = require('serve-static');
-require("odata-server");
+    serveStatic = require('serve-static'),
+    odataServer = require("odata-server");
 
 module.exports = function(app, options, cb) {
-    process.on('uncaughtException', function(err) {
-        console.log('Caught exception: ' + err);
-    });
-
+   
+    /**
+     * Create child vhost for tenant and initialize dedicated {Reporter}
+     * @param {$entity.Tenant} tenant
+     * @param {function} tcb
+     */
     function activateTenant(tenant, tcb) {
         if (tenant.isActivated) {
             return tcb(null, tenant);
@@ -33,11 +38,11 @@ module.exports = function(app, options, cb) {
         opts.express = { app: main };
         opts.tenant = tenant;
         opts.playgroundMode = false;
-        opts.connectionString.databaseName = "multitenant"; //tenant.name;
+        //single databased for all tenants
+        opts.connectionString.databaseName = "multitenant"; 
 
         var rep = new Reporter(opts);
 
-        app.use(require('vhost')(tenant.name + '.*', main));
         rep.init().then(function() {
             tenant.isActivated = true;
             tenant.reporter = rep;
@@ -97,18 +102,21 @@ module.exports = function(app, options, cb) {
             });
         });
     }));
-
-    app.use(function(req, res, next) {
-        if (req.session.text == null)
-            req.session.text = 1;
-        else 
-            req.session.text++;
-
-        next();
-    });
     
-     app.get("/ping", function(req, res, next) {
-        res.send("pong");
+    passport.serializeUser(function(user, done) {
+        done(null, user.email);
+    });
+
+    passport.deserializeUser(function(id, done) {
+        var tenant = multitenancy.findTenant(id);
+
+        if (tenant == null)
+            return done({
+                message: "Tenant not found.",
+                code: "TENANT_NOT_FOUND"
+            });
+
+        return done(null, tenant);
     });
 
     app.get("/", function(req, res, next) {
@@ -174,6 +182,7 @@ module.exports = function(app, options, cb) {
             req.session.viewModel.passwordConfirm = "Passwords are not the same.";
             return res.redirect('/');
         }
+        
         multitenancy.registerTenant(req.body.username, req.body.name, req.body.password).then(function(tenant) {
             passport.authenticate('local', function(err, user, info) {
                 if (err) {
@@ -217,46 +226,38 @@ module.exports = function(app, options, cb) {
             next();
         }
     });
-
+    
     app.use(function(req, res, next) {
         var domains = req.headers.host.split('.');
         
         if (!req.user) {
             if (!options.useSubDomains || options.subdomainsCount == domains.length + 1)
+                //user not authenticated, redirect to login page
                 return res.redirect("/");
             else {
+                //user sending not authenticated request to subdomain, redirect to root login page
                domains.shift();
                return res.redirect("https://" + domains.join("."));  
             }
         }
 
-        //authenticated
+        //user authenticated, activate tenant
         activateTenant(multitenancy.findTenant(req.user.email), function(err, tenant) {
             if (!options.useSubDomains || options.subdomainsCount == domains.length) {
+                //route request to tenant
                 return tenant.reporter.options.express.app(req, res, next);
             }
 
+            //add tenant subdomain and route to root page
             domains.unshift(req.user.name);
             return res.redirect("https://" + domains.join("."));
         });
     });
-
-    passport.serializeUser(function(user, done) {
-        done(null, user.email);
+    
+     app.get("/ping", function(req, res, next) {
+        res.send("pong");
     });
-
-    passport.deserializeUser(function(id, done) {
-        var tenant = multitenancy.findTenant(id);
-
-        if (tenant == null)
-            return done({
-                message: "Tenant not found.",
-                code: "TENANT_NOT_FOUND"
-            });
-
-        return done(null, tenant);
-    });
-
+    
     var multitenancy = new Multitenancy(options);
     multitenancy.initialize().then(function(s) {
         cb();
@@ -264,6 +265,10 @@ module.exports = function(app, options, cb) {
 
 };
 
+
+/**
+ * Repository over tenants.
+ */
 var Multitenancy = function(options) {
     $data.Entity.extend("$entity.Tenant", {
         _id: { type: "id", key: true, computed: true, nullable: false },

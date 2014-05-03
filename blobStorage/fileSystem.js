@@ -1,5 +1,6 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
+ * FileSystem - big binary file storage in file system
  */ 
 
 var util = require("util"),
