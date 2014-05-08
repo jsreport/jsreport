@@ -11,16 +11,17 @@
                    data-intro='Optionaly fill here javascript templating engine helper functions.' 
                 >Helpers</a></li>  
         </ul>
+        
 
         <div class="tab-content">
             <div class="tab-pane active" id="html">
                 <div id="htmlWrap">
-                    <textarea id="htmlArea" class="full-content-without-menu">{{:content}}</textarea>
+                    <div id="htmlArea" class="full-content-without-menu">{{>content}}</div>
                 </div>
             </div>
             <div class="tab-pane" id="helpers">
                 <div id="helpersWrap">
-                    <textarea id="helpersArea" class="full-content-without-menu">{{:helpers}}</textarea>
+                    <div id="helpersArea" class="full-content-without-menu">{{>helpers}}</div>
                 </div>
             </div>
         </div>

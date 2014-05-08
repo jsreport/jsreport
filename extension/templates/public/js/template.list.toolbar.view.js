@@ -2,8 +2,8 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "underscore"],
-    function($, app, CodeMirror, Utils, LayoutBase) {
+define(["jquery", "app", "core/utils", "core/view.base", "underscore"],
+    function($, app, Utils, LayoutBase) {
         return LayoutBase.extend({
             template: "template-list-toolbar",
 

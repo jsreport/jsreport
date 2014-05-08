@@ -29,6 +29,7 @@ function ReportingServer(config) {
         throw new Error("Configuration for ReportingServer must be specified as a parameter");
 
     this.config = config;
+    Q.longStackSupport = true;
 };
 
 

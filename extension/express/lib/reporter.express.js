@@ -34,32 +34,6 @@ module.exports = function(reporter, definition) {
         next();
     });
 
-    app.use(function(err, req, res, next) {
-        res.status(500);
-
-        if (_.isString(err)) {
-            err = {
-                message: err
-            };
-        }
-
-        err = err || {};
-        err.message = err.message || "Unrecognized error";
-
-        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-        reporter.logger.error("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
-
-        if (req.get('Content-Type') != "application/json") {
-            res.write("Error occured - " + err.message + "\n");
-            if (err.stack != null)
-                res.write("Stack - " + err.stack);
-            res.end();
-            return;
-        }
-        
-        res.json(err);
-    });
-
     reporter.initializeListener.add(definition.name, this, function() {
         app.stack = _.reject(app.stack, function(s) {
             return s.route == "/odata";
@@ -176,5 +150,34 @@ module.exports = function(reporter, definition) {
         reporter.extensionsManager.unregister(req.body.name).then(function() {
             return res.send("ok");
         });
+    });
+    
+    app.use(function(err, req, res, next) {
+        res.status(500);
+
+        if (_.isString(err)) {
+            err = {
+                message: err
+            };
+        }
+
+        err = err || {};
+        err.message = err.message || "Unrecognized error";
+
+        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+        var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
+        
+        logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
+
+        if (req.get('Content-Type') != "application/json") {
+            res.write("Error occured - " + err.message + "\n");
+            if (err.stack != null)
+                res.write("Stack - " + err.stack);
+            res.end();
+            return;
+        }
+        
+        res.json(err);
     });
 };

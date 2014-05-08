@@ -65,7 +65,14 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
     return FindDataItem().then(function(di) {
         di = di.dataJson || di;
-        request.data = JSON.parse(di);
+
+        try {
+            request.data = JSON.parse(di);
+        } catch(e) {
+            self.reporter.logger.warn("Invalid json in data item: " + e.message);
+            e.weak = true;
+            return Q.reject(e);
+        }
     });
 };
 

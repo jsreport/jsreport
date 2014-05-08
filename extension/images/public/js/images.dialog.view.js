@@ -19,7 +19,7 @@
                     endpoint: function() { return app.serverUrl + 'api/image'; },
                 },
                 text: {
-                    uploadButton: '<button type="button" class="btn btn-primary">Upload image</button>'
+                    uploadButton: '<button type="button" class="btn btn-xs btn-primary">Upload image</button>'
                 },
                 multiple: false,
                 forceMultipart: true,

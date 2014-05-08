@@ -7,7 +7,7 @@
         },
         
         save: function (options) {
-            this.templateModel.get("script").dataJson = this.get("content");
+            this.templateModel.get("script").content = this.get("content");
             return options.success();
         },
     });

@@ -36,10 +36,7 @@ requirejs.config({
         async: "../lib/async",
         deferred: "../lib/deferred",
         text: "../lib/text",
-        
-        codemirror: "../lib/codemirror/xml",
-        codemirrorJavascript: "../lib/codemirror/javascript",
-        originalcodemirror: "../lib/codemirror/codemirror",
+        ace: "../lib/ace",
     },
 
     shim: {
@@ -97,13 +94,6 @@ requirejs.config({
                 "errorAlert", "toastr", "split-pane", "jquery.fineuploader"],
             exports: "$"
         },
-        
-        originalcodemirror: {
-            deps: [],
-            exports: "CodeMirror"
-        },
-        codemirrorJavascript: { deps: ["originalcodemirror"], exports: "CodeMirror" },
-        codemirror: { deps: ["originalcodemirror", "codemirrorJavascript"], exports: "CodeMirror" },
     }
 });
 

@@ -174,7 +174,8 @@ Reporter.prototype.render = function(request) {
         .then(function() {
             return request.context.saveChanges().then(function() { return response; });
         }).fail(function(e) {
-            self.logger.error("Error when processing render request " + e.message + " " + e.stack);
+            var logFn = e.weak ? self.logger.warn : self.logger.error;
+            logFn("Error when processing render request " + e.message + " " + e.stack);
             return Q.reject(e);
         });
 };

@@ -1,34 +1,35 @@
-﻿define(["marionette", "app", "codemirror", "core/view.base", "core/codeMirrorBinder"], function (Marionette, app, Codemirror, ViewBase, codeMirrorBinder) {
+﻿define(["marionette", "app", "core/view.base", "core/aceBinder"], function(Marionette, app, ViewBase, aceBinder) {
     return ViewBase.extend({
         template: "data-dialog",
-        
+
         events: {
             "click #saveCommand": "save",
         },
-        
+
         initialize: function() {
             _.bindAll(this, "save");
         },
-        
-        onDomRefresh: function () {
-            
-            this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
-                mode: "javascript",
-                height: "350px",
-                lineNumbers: true,
+
+        onDomRefresh: function() {
+
+            this.contentEditor = ace.edit("contentArea");
+            this.contentEditor.setTheme("ace/theme/chrome");
+            this.contentEditor.getSession().setMode("ace/mode/json");
+            this.contentEditor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true
             });
-            codeMirrorBinder(this.model, "dataJson", this.contentCodeMirror);
             
-            $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
-            
-            this.contentCodeMirror.refresh();
+            aceBinder(this.model, "dataJson", this.contentEditor);
         },
-        
-        save: function () {
+
+        save: function() {
             var self = this;
-            this.model.save({ success: function() {
-                self.trigger("dialog-close");
-            }});
+            this.model.save({
+                success: function() {
+                    self.trigger("dialog-close");
+                }
+            });
         }
     });
 });

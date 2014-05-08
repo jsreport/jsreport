@@ -1,28 +1,31 @@
-﻿define(["marionette", "app", "codemirror", "core/codeMirrorBinder", "core/view.base"], function (Marionette, app, Codemirror, codeMirrorBinder, ViewBase) {
+﻿define(["marionette", "app", "core/aceBinder", "core/view.base"], function(Marionette, app, aceBinder, ViewBase) {
     return ViewBase.extend({
         template: "scripts-dialog",
-        
+
         events: {
             "click #saveCommand": "save",
         },
         
-        onDomRefresh: function () {
-            this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
-                mode: "javascript",
-                height: "350px",
-                lineNumbers: true,
-            });
-            codeMirrorBinder(this.model, "content", this.contentCodeMirror);
-            
-            $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
-            
-            this.contentCodeMirror.refresh();
+        initialize: function() {
+            _.bindAll(this, "save");
         },
-        
-        save: function () {
+
+        onDomRefresh: function() {
+            this.contentEditor = ace.edit("contentArea");
+            this.contentEditor.setTheme("ace/theme/chrome");
+            this.contentEditor.getSession().setMode("ace/mode/javascript");
+            this.contentEditor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true
+            });
+
+            aceBinder(this.model, "content", this.contentEditor);
+        },
+
+        save: function() {
             var self = this;
             this.model.save({
-                success: function () {
+                success: function() {
                     self.trigger("dialog-close");
                 }
             });

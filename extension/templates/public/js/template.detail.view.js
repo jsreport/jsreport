@@ -2,13 +2,13 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder"],
-    function($, app, CodeMirror, Utils, LayoutBase, codeMirrorBinder) {
-
+define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/ext/language_tools"],
+    function($, app, Utils, LayoutBase, aceBinder) {
+        
         return LayoutBase.extend({
             template: "template-detail",
-            htmlCodeMirror: null,
-            helpersCodeMirror: null,
+            contentEditor: null,
+            helpersEditor: null,
             className: 'template-detail-wrap',
 
             initialize: function() {
@@ -22,11 +22,6 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                 this.listenTo(this, "close", function() {
                     $(".side-nav-right").show();
                 });
-
-                this.listenTo(app, "introduction-dialog-closed", function() {
-                    setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
-                    setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
-                });
             },
 
             events: {
@@ -38,32 +33,43 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
                 $(".side-nav-right").hide();
 
-                this.htmlCodeMirror = CodeMirror.fromTextArea(this.$el.find("#htmlArea")[0], {
-                    mode: "application/xml",
-                    height: "350px",
-                    lineNumbers: true,
-                    lineWrapping: true,
-                    viewportMargin: Infinity,
-                    iframeClass: 'CodeMirror'
+                var langTools = ace.require("ace/ext/language_tools");
+
+                //var dataCompleter = {
+                //    getCompletions: function(editor, session, pos, prefix, callback) {
+                //        if (prefix.length === 0) {
+                //            return callback(null, []);
+                //        }
+                //        // wordList like [{"word":"flow","freq":24,"score":300,"flags":"bc","syllables":"1"}]
+                //        return callback(null, [
+                //            { name: "jsreport", value: "jsreport", score: 300, meta: "jsreport" }]
+                //        );
+                //    }
+                //};
+                
+                //langTools.addCompleter(dataCompleter);
+                
+                
+                this.contentEditor = ace.edit("htmlArea");
+                this.contentEditor.setTheme("ace/theme/chrome");
+                this.contentEditor.getSession().setMode("ace/mode/handlebars");
+                this.contentEditor.setOptions({
+                     enableBasicAutocompletion: true,
+                     enableSnippets: true
                 });
 
-                codeMirrorBinder(this.model, "content", this.htmlCodeMirror);
+                aceBinder(this.model, "content", this.contentEditor);
+             
 
-                $(this.htmlCodeMirror.getWrapperElement()).addClass(this.$el.find("#htmlArea").attr('class'));
-
-                this.helpersCodeMirror = CodeMirror.fromTextArea(this.$el.find("#helpersArea")[0], {
-                    mode: "javascript",
-                    lineNumbers: true,
+                this.helpersEditor = ace.edit("helpersArea");
+                this.helpersEditor.setTheme("ace/theme/chrome");
+                this.helpersEditor.getSession().setMode("ace/mode/javascript");
+                this.helpersEditor.setOptions({
+                     enableBasicAutocompletion: true,
+                     enableSnippets: true
                 });
-                codeMirrorBinder(this.model, "helpers", this.helpersCodeMirror);
-
-                $(this.helpersCodeMirror.getWrapperElement()).addClass(this.$el.find("#helpersArea").attr('class'));
-
-                this.$el.find('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-                    setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
-                    setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
-                });
-
+                
+                aceBinder(this.model, "helpers", this.helpersEditor);
 
                 self.$el.find("#previewFrameWrap").contents().find('html').html(
                     "<iframe name='previewFrame' frameborder='0' allowtransparency='true' allowfullscreen='true' style='width: 100%; height: 100%;'></iframe>");
@@ -85,9 +91,6 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
 
 
                 this.$el.find(".split-pane").splitPane();
-
-                setTimeout(function() { self.htmlCodeMirror.refresh(); }, 100);
-                setTimeout(function() { self.helpersCodeMirror.refresh(); }, 100);
             },
             triggerPreview: function() {
                 this.trigger("preview");

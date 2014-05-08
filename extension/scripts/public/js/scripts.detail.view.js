@@ -1,4 +1,4 @@
-﻿define(["marionette", "codemirror", "core/view.base", "core/codeMirrorBinder"], function(Marionette, CodeMirror, ViewBase, codeMirrorBinder) {
+﻿define(["marionette", "core/view.base", "core/aceBinder"], function(Marionette, ViewBase, aceBinder) {
     return ViewBase.extend({
         template: "scripts-detail",
 
@@ -9,23 +9,18 @@
         onDomRefresh: function() {
 
             var top = $("#contentWrap").position().top;
-
-            this.contentCodeMirror = CodeMirror.fromTextArea(this.$el.find("#contentArea")[0], {
-                mode: "javascript",
-                height: "350px",
-                lineNumbers: true,
-                lineWrapping: true,
-                viewportMargin: Infinity,
-                iframeClass: 'CodeMirror'
-            });            
             
+            this.contentEditor = ace.edit("contentArea");
+            this.contentEditor.setTheme("ace/theme/chrome");
+            this.contentEditor.getSession().setMode("ace/mode/javascript");
+            this.contentEditor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true
+            });
+                
+            aceBinder(this.model, "content", this.contentEditor);
             
-            codeMirrorBinder(this.model, "content", this.contentCodeMirror);
-
-            $(this.contentCodeMirror.getWrapperElement()).addClass(this.$el.find("#contentArea").attr('class'));
-            $(this.contentCodeMirror.getWrapperElement()).css("margin-top", top);
-
-            this.contentCodeMirror.refresh();
+            $("#contentArea").css("margin-top", top);
         },
 
         validateLeaving: function() {

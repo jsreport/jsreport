@@ -4,11 +4,11 @@
  * Child process rendering html(xml) from template content, helpers and input data.
  */ 
 
-process.on('message', function (m) {
+process.on('message', function(m) {
     try {
-        
+
         //resolve references in json specified by $ref and $id attribute, this is handy when user send cycles in json
-         var resolveReferences = function(json) {
+        var resolveReferences = function(json) {
             if (typeof json === 'string')
                 json = JSON.parse(json);
 
@@ -54,24 +54,24 @@ process.on('message', function (m) {
         };
 
         m.data = resolveReferences(m.data);
-        
-        
-        var _require = function (moduleName) {
+
+
+        var _require = function(moduleName) {
             var allowedModules = ["handlebars", "moment"];
 
-            if (allowedModules.filter(function (mod) { return mod == moduleName; }).length == 1) {
+            if (allowedModules.filter(function(mod) { return mod == moduleName; }).length == 1) {
 
                 return require(moduleName);
             }
 
             throw new Error("Unsupported module " + moduleName);
         };
-        
+
         var vm = require('vm');
         var sandbox = {
             _: require("underscore"),
             moment: require("moment"),
-            m : m,
+            m: m,
             handlebars: require("handlebars"),
             require: _require,
             render: require("./" + m.template.engine + "Engine" + ".js"),
@@ -83,17 +83,28 @@ process.on('message', function (m) {
         };
 
         if (m.template.helpers != null && m.template.helpers != "") {
-            vm.runInNewContext("m.template.helpers = eval(\"(\" + m.template.helpers + \")\");", sandbox);
+            //vm.runInNewContext(m.template.helpers, sandbox);
+
+            //m.template.helpers = {};
+            //for (var fn in sandbox) {
+            //    if (typeof sandbox[fn] == "function") {
+            //        m.template.helpers[fn] = sandbox[fn];
+            //    }
+            //}
+            
+            //vm.runInNewContext("function run() { " + m.template.helpers + "}; m.template.helpers = run();", sandbox);
+            
+              vm.runInNewContext("m.template.helpers = eval(\"(\" + m.template.helpers + \")\");", sandbox);
         } else
             m.helpers = {};
-        
+
         vm.runInNewContext("respond(render(m.template.content, m.template.helpers, m.data))", sandbox);
-    } catch (ex) {
+    } catch(ex) {
         process.send({
             error: ex.message,
             errorStack: ex.stack
         });
     }
-    
+
     process.exit();
 });

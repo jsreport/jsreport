@@ -2,9 +2,9 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/codeMirrorBinder", "underscore", "core/listenerCollection",
+define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/listenerCollection",
         "./template.embed.dialog", "core/basicModel"],
-    function($, app, CodeMirror, Utils, LayoutBase, binder, _, ListenerCollection, EmbedDialog, BasicModel) {
+    function($, app, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
             introTemplate: "template-detail-intro",
@@ -13,7 +13,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             initialize: function() {
                 var self = this;
 
-                $(document).on('keydown', this.hotkey.bind(this));
+                $(document).on('keydown.template-detail', this.hotkey.bind(this));
 
                 this.beforeRenderListeners = new ListenerCollection();
 
@@ -41,7 +41,7 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
                     app.trigger("template-extensions-toolbar-render", contextToolbar);
                 });
 
-                _.bindAll(this, "preview", "previewNewPanel", "getBody");
+                _.bindAll(this, "preview", "previewNewPanel", "getBody", "onClose");
             },
 
             getRecipes: function() {
@@ -243,7 +243,8 @@ define(["jquery", "app", "codemirror", "core/utils", "core/view.base", "core/cod
             },
 
             onClose: function() {
-                $(document).off("keydown", this.hotkey);
+                alert("on close");
+                $(document).off(".template-detail");
             }
         });
     });

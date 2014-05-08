@@ -465,9 +465,6 @@
     <Content Include="extension\express\public\lib\backbone.modelBinder.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\express\public\lib\codemirror\codemirror.bootstrap.js">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="extension\express\public\lib\jquery.parseJSON.js">
       <SubType>Content</SubType>
     </Content>
@@ -490,15 +487,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\express\public\lib\async.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\express\public\lib\codemirror\codemirror.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\express\public\lib\codemirror\xml.js">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="extension\express\public\lib\codemirror\javascript.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="extension\express\public\lib\jaydata.js">
@@ -570,7 +558,6 @@
     <Content Include="extension\express\public\templates\menu.html">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="extension\express\public\css\codemirror.css" />
     <Content Include="extension\express\public\css\toastr.css" />
     <Content Include="extension\express\public\lib\bootstrap.js" />
     <Content Include="blobStorage\fileSystem.js">
@@ -733,7 +720,6 @@
     <Folder Include="extension\express\public\js\core" />
     <Folder Include="extension\express\public\lib" />
     <Folder Include="extension\express\public\js" />
-    <Folder Include="extension\express\public\lib\codemirror" />
     <Folder Include="extension\express\public\templates" />
     <Folder Include="extension\test\public\" />
     <Folder Include="extension\test\public\js\" />
@@ -771,12 +757,11 @@
     <Compile Include="extension\examples\jsreport.config.js" />
     <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
     <Compile Include="extension\express\jsreport.config.js" />
-    <Compile Include="extension\express\public\js\core\codeMirrorBinder.js" />
+    <Compile Include="extension\express\public\js\core\aceBinder.js" />
     <Compile Include="extension\express\public\js\core\introduction.js" />
     <Compile Include="extension\express\public\js\core\settingsCollection.js" />
     <Compile Include="extension\express\public\lib\backbone.augment.js" />
     <Compile Include="extension\express\public\lib\bootstrap.min.js" />
-    <Compile Include="extension\express\public\lib\codemirror.js" />
     <Compile Include="extension\express\public\lib\intro.js" />
     <Compile Include="extension\express\public\lib\jaydata.min.js" />
     <Compile Include="extension\express\public\lib\jquery.flot.axislabels.js" />

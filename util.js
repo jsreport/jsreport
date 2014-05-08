@@ -31,9 +31,11 @@ exports.attachLogToListener = function (listener, listenerName, logger) {
             logger.debug("End of " + listenerName + " - " + this.key);
     });
   listener.postFail(function(err) {
-        if (logger != null)
-           logger.error("Error in " + listenerName + " - " + this.key + "/ Error - " + err);
-    });
+      if (logger != null) {
+          var logFn = err.weak ? logger.warn : logger.error;
+          logFn("Error in " + listenerName + " - " + this.key + "/ Error - " + err);
+      }
+  });
 
    return listener;
 };
