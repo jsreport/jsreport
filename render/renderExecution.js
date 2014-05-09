@@ -83,18 +83,14 @@ process.on('message', function(m) {
         };
 
         if (m.template.helpers != null && m.template.helpers != "") {
-            //vm.runInNewContext(m.template.helpers, sandbox);
+            vm.runInNewContext(m.template.helpers, sandbox);
 
-            //m.template.helpers = {};
-            //for (var fn in sandbox) {
-            //    if (typeof sandbox[fn] == "function") {
-            //        m.template.helpers[fn] = sandbox[fn];
-            //    }
-            //}
-            
-            //vm.runInNewContext("function run() { " + m.template.helpers + "}; m.template.helpers = run();", sandbox);
-            
-              vm.runInNewContext("m.template.helpers = eval(\"(\" + m.template.helpers + \")\");", sandbox);
+            m.template.helpers = {};
+            for (var fn in sandbox) {
+                if (typeof sandbox[fn] == "function") {
+                    m.template.helpers[fn] = sandbox[fn];
+                }
+            }
         } else
             m.helpers = {};
 

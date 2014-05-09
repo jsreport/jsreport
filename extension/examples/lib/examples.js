@@ -76,75 +76,36 @@ Examples = function(reporter, definition) {
     }
 
     function script() {
-        var scriptObj = {
-             name: "Load BBC Animals",
-             content: fs.readFileSync(join(__dirname, 'examples/complexScript.js')).toString("utf8")
-        };
-
         var templateObj = {
             name: "4. Scripts extension",
             content: fs.readFileSync(join(__dirname, 'examples/complexScript.html')).toString("utf8"),
             engine: "jsrender",
             recipe: "phantom-pdf",
             isExample: true,
+            script: {            
+                content: fs.readFileSync(join(__dirname, 'examples/complexScript.js')).toString("utf8")
+            }
         };
 
-        function finishTemplate() {
-            if (!reporter.playgroundMode) {
-                return reporter.scripts.create(reporter.context, scriptObj).then(function(scriptEntity) {
-                    templateObj.scriptId = scriptEntity.shortid;
-                    return Q(templateObj);
-                });
-            } else {
-                templateObj.script = scriptObj;
-                return Q(templateObj);
-            }
-        }
-
-
-        return finishTemplate().then(function() {
-            return self.reporter.templates.create(templateObj);
-        });
+        return self.reporter.templates.create(templateObj);
     }
 
     function data() {
-        var dataObj = {
-             name: "BBC Animals",
-             dataJson: fs.readFileSync(join(__dirname, 'examples/inlineData.js')).toString("utf8")
-        };
-
         var templateObj = {
             name: "5. Inline Data extension",
             content: fs.readFileSync(join(__dirname, 'examples/inlineData.html')).toString("utf8"),
             engine: "jsrender",
             recipe: "html",
             isExample: true,
-        };
-
-        function finishTemplate() {
-            if (!reporter.playgroundMode) {
-                return reporter.data.create(self.reporter.context, dataObj).then(function(dataItemEntity) {
-                    templateObj.dataItemId = dataItemEntity.shortid;
-                    return Q(templateObj);
-                });
-            } else {
-                templateObj.dataItem = dataObj;
-                return Q(dataObj);
+            dataItem: {               
+                dataJson: fs.readFileSync(join(__dirname, 'examples/inlineData.js')).toString("utf8")
             }
-        }
-
-
-        return finishTemplate().then(function() {
-            return self.reporter.templates.create(templateObj);
-        });
-    }
-    
-    function invoice() {
-        var dataObj = {
-             name: "Invoice",
-             dataJson: fs.readFileSync(join(__dirname, 'examples/invoice.js')).toString("utf8")
         };
 
+        return self.reporter.templates.create(templateObj);
+    }
+
+    function invoice() {
         var templateObj = {
             name: "6. Invoice",
             content: fs.readFileSync(join(__dirname, 'examples/invoice.html')).toString("utf8"),
@@ -152,23 +113,42 @@ Examples = function(reporter, definition) {
             engine: "jsrender",
             recipe: "html",
             isExample: true,
+            dataItem: {              
+                dataJson: fs.readFileSync(join(__dirname, 'examples/invoice.js')).toString("utf8")
+            }
         };
 
-        function finishTemplate() {
-            if (!reporter.playgroundMode) {
-                return reporter.data.create(self.reporter.context, dataObj).then(function(dataItemEntity) {
-                    templateObj.dataItemId = dataItemEntity.shortid;
-                    return Q(templateObj);
-                });
-            } else {
-                templateObj.dataItem = dataObj;
-                return Q(dataObj);
+        return self.reporter.templates.create(templateObj);
+    }
+
+    function library() {
+        var templateObj = {
+            name: "7. Library",
+            content: fs.readFileSync(join(__dirname, 'examples/library.html')).toString("utf8"),
+            helpers: fs.readFileSync(join(__dirname, 'examples/libraryHelpers.js')).toString("utf8"),
+            engine: "handlebars",
+            recipe: "phantom-pdf",
+            isExample: true,
+            dataItem: {                
+                dataJson: fs.readFileSync(join(__dirname, 'examples/library.js')).toString("utf8")
             }
-        }
+        };
 
+        return self.reporter.templates.create(templateObj);
+    }
 
-        return finishTemplate().then(function() {
-            return self.reporter.templates.create(templateObj);
-        });
+    function complexReport() {
+        var templateObj = {
+            name: "8. Complex report",
+            content: fs.readFileSync(join(__dirname, 'examples/complexReport.html')).toString("utf8"),            
+            engine: "handlebars",
+            recipe: "phantom-pdf",
+            isExample: true,
+            dataItem: {                
+                dataJson: fs.readFileSync(join(__dirname, 'examples/complexReport.js')).toString("utf8")
+            }
+        };
+
+        return self.reporter.templates.create(templateObj);
     }
 };

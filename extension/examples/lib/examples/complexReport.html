@@ -1,0 +1,166 @@
+﻿<html>
+  <head>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/jquery.flot.pie.min.js"></script>
+    <style>
+      body {
+        border-style: solid;    
+      	border-width: 2px;    
+        border-color: darkBlue;   
+        font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+      }
+      
+      .header {
+        width: 100%;
+        background-color: 3333FF;
+        margin-bottom:10px;
+        color:white; 
+      }
+      
+      .header h1 {
+       	padding-left: 10px;
+      }
+      
+      .charts {
+      	width:100%;
+        height: 390px;
+        padding:20px;
+        border-bottom: 2px solid;
+        box-sizing: border-box;
+      }
+      
+      .chart-left {   
+        width:50%;
+        height:350px;
+        float: left;   
+      }
+      
+      .chart-right {   
+        width:45%;
+        height:350px;
+        float: left;  
+      }
+      
+      th {
+    	padding: 8px 2px;
+    	font-weight: normal;
+    	font-size: 14px;
+    	border-bottom: 2px solid #6678b1;
+    	border-right: 30px solid #fff;
+    	border-left: 30px solid #fff;
+    	color: #039;
+      }
+      
+      td {
+    	padding: 12px 2px 0px 2px;
+    	border-right: 30px solid #fff;
+    	border-left: 30px solid #fff;
+    	color: #669;
+      }
+      
+      .table {
+        padding:20px;
+        width:100%;
+      }
+      
+      .contacts {
+        width: 100%;
+        height: 250px;
+        border-bottom: 2px solid;
+        box-sizing: border-box;
+        padding:20px;
+      }
+      
+      .contact-left {
+        width:40%;   
+        float: left;  
+      }
+      
+      .contact-right {
+        width:40%;   
+        float: right;  
+      }
+      
+      .contact {
+      	background-color: lightGray;    
+        border-style: solid;    
+      	border-width: 2px;    
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='main-box'>
+    <div class='header'><h1>Business Report</h1></div>
+    <div class='contacts'>
+        <div class='contact-left'>
+            <h2>Listing details</h2>
+            <div class='contact'>
+                {{:from.name}} <br/>
+                {{:from.street}}<br/>
+                {{:from.city}} <br/>        
+            </div>      
+        </div>
+        <div class='contact-right'>
+            <h2>Listing details</h2>
+            <div class='contact'>
+                {{:to.name}} <br/>
+                {{:to.street}}<br/>
+                {{:to.city}} <br/>        
+            </div>      
+        </div>
+    </div>
+        <div class='charts'>
+            <div id="placeholder" class="chart-left" ></div>
+            <div id="placeholder2" class="chart-right" ></div>
+        </div>
+        <div class='table'>
+            <h2>Processors</h2>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Speed</th>
+                    <th>Year</th>
+                </tr>
+                {{for processors}}
+                    <tr>
+                        <td>{{:name}}</td>
+                        <td>{{:speed}}</td>
+                        <td>{{:year}}</td>
+                    </tr>
+                {{/for}}
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        $(function () {
+            var d1 = [];
+            for (var i = 0; i < 14; i += 0.5) {
+                d1.push([i, Math.sin(i)]);
+            }
+
+            $.plot("#placeholder", [d1]);
+
+            var data = [],
+			series = Math.floor(Math.random() * 6) + 3;
+            for (var i = 0; i < series; i++) {
+                data[i] = {
+                    label: "Series" + (i + 1),
+                    data: Math.floor(Math.random() * 100) + 1
+                }
+            }
+
+            $.plot('#placeholder2', data, {
+                series: {
+                    pie: {
+                        show: true
+                    }
+                }
+            });
+        });
+    </script>
+    
+  </body>
+</html>

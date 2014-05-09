@@ -1,0 +1,43 @@
+<h2>Book sales</h2>
+<table style='border-style:solid'>
+  <tr>
+    <th>Name</th>
+    <th>Author</th>
+    <th>Sales</th>
+  </tr>
+  {{#each books}}
+  <tr>
+    <td>{{name}}</td>
+    <td>{{author}}</td>
+    <td>{{sales}}</td>
+  </tr>  
+  {{/each}}    
+</table>
+
+<h2>The book of the month</h2>
+<span>{{mostSelling books "name"}}:</span>
+<span>{{mostSelling books "sales"}}</span>
+
+<h2>Book sales chart</h2> 
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.1/jquery.flot.categories.min.js"></script>
+<div id="placeholder" style="width:700px;height:350px"></div>
+
+<script>
+    $(function () {   
+  
+        var data = [];
+        {{#each books}}
+        data.push(["{{this.name}}", {{this.sales}}]);
+        {{/each}}  
+  
+            $.plot("#placeholder", [ data ], 
+            {
+                series: { 
+                    bars: { show: true, barWidth: 0.6, align: "center" }
+                },
+                xaxis: {   mode: "categories", tickLength: 0 }
+            }); 
+    });
+</script>

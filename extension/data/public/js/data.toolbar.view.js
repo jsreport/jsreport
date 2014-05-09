@@ -4,7 +4,7 @@
             template: "data-toolbar",
 
             initialize: function() {
-                $(document).on('keydown', this.hotkey.bind(this));
+                $(document).on('keydown.data-detail', this.hotkey.bind(this));
             },
 
             events: {
@@ -43,7 +43,7 @@
                     var json = JSON.parse(this.model.get("dataJson"));
                 } catch(e) {
                     res.push({
-                        message: "Data must be valid JSON. " + e.toString()
+                        message: "Data must be valid JSON. e.g. { \"propertName\": \"propertyValue\"} <br/>" + e.toString()
                     });
                 }
 
@@ -51,7 +51,7 @@
             },
 
             onClose: function() {
-                $(document).off("keydown", this.hotkey);
+                $(document).off(".data-detail");
             }
         });
     });

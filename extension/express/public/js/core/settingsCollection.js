@@ -21,7 +21,7 @@ define(["app", "jquery"], function(app, $) {
 
 
     app.onStartListeners.add(function(cb) {
-        app.dataContext.settings.toArray().then(function(res) {
+       app.dataContext.settings.toArray().then(function(res) {
             app.settings.raw = res;
 
             app.settings.data = {};

@@ -13,20 +13,15 @@ define(["app", "backbone", "dashboard/dashboard.view"],
                     "": "dashboard",
                 },
                 dashboard: function () {
-                    
-                    function show() {
-                        app.layout.content.show(new DashboardView());
-                    };
-
                     if (app.settings.firstRun) {
                         app.dataContext.templates.take(1).toArray().then(function(templates) {
                             if (templates.length == 0)
                                 window.location.hash = "/playground";
                             else
-                                show();
+                                window.location.hash = "#/extension/templates/" + templates[0].shortid;
                         });
                     } else
-                        show();
+                        app.layout.content.show(new DashboardView());
                 },
             });
 

@@ -79,6 +79,7 @@
     <Content Include="extension\examples\lib\examples.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\examples\lib\examples\complexReport.html" />
     <Content Include="extension\examples\lib\examples\complexScript.html">
       <SubType>Content</SubType>
     </Content>
@@ -103,6 +104,7 @@
     </Content>
     <Content Include="extension\examples\lib\examples\invoice.html" />
     <Content Include="extension\examples\lib\examples\invoice.js" />
+    <Content Include="extension\examples\lib\examples\library.html" />
     <Content Include="extension\examples\lib\examples\script.js">
       <SubType>Content</SubType>
     </Content>
@@ -269,6 +271,8 @@
     <Content Include="extension\reports\test\reportsTest.js">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="extension\sample-template\lib\sample\sample.html" />
+    <Content Include="extension\sample-template\package.json" />
     <Content Include="extension\scripts\lib\scriptEvalChild.js">
       <SubType>Content</SubType>
     </Content>
@@ -681,10 +685,13 @@
     <Folder Include="extension\images\public" />
     <Folder Include="extension\childTemplates\" />
     <Folder Include="extension\gists\" />
+    <Folder Include="extension\sample-template\" />
     <Folder Include="extension\phantom-pdf\integrationTest\" />
     <Folder Include="extension\phantom-pdf\public\" />
     <Folder Include="extension\phantom-pdf\public\js\" />
     <Folder Include="extension\phantom-pdf\public\templates\" />
+    <Folder Include="extension\sample-template\lib\" />
+    <Folder Include="extension\sample-template\lib\sample\" />
     <Folder Include="extension\test\" />
     <Folder Include="extension\scripts" />
     <Folder Include="extension\phantom-pdf\" />
@@ -755,7 +762,10 @@
     <Compile Include="extension\data\public\js\data.template.standard.view.js" />
     <Compile Include="extension\data\public\js\data.toolbar.view.js" />
     <Compile Include="extension\examples\jsreport.config.js" />
+    <Compile Include="extension\examples\lib\examples\complexReport.js" />
     <Compile Include="extension\examples\lib\examples\invoiceHelpers.js" />
+    <Compile Include="extension\examples\lib\examples\library.js" />
+    <Compile Include="extension\examples\lib\examples\libraryHelpers.js" />
     <Compile Include="extension\express\jsreport.config.js" />
     <Compile Include="extension\express\public\js\core\aceBinder.js" />
     <Compile Include="extension\express\public\js\core\introduction.js" />
@@ -793,6 +803,10 @@
     <Compile Include="extension\reports\jsreport.config.js" />
     <Compile Include="extension\reports\public\js\report.list.toolbar.view.js" />
     <Compile Include="extension\reports\public\js\report.toolbar.view.js" />
+    <Compile Include="extension\sample-template\jsreport.config.js" />
+    <Compile Include="extension\sample-template\lib\sample\helpers.js" />
+    <Compile Include="extension\sample-template\lib\sample.js" />
+    <Compile Include="extension\sample-template\lib\sample\data.js" />
     <Compile Include="extension\scripts\jsreport.config.js" />
     <Compile Include="extension\scripts\public\js\scripts.detail.view.js" />
     <Compile Include="extension\scripts\public\js\scripts.template.playground.model.js" />

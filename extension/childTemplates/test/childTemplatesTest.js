@@ -11,7 +11,7 @@ describeReporting(path.join(__dirname, "../../"), ["childTemplates"], function(r
 
             reporter.templates.create({
                 content: "{{>~a()}}",
-                helpers: "{ a: function() { return \"foo\"; } }",
+                helpers: "function a() { return \"foo\"; }",
                 recipe: "html",
                 name: "t1" }).then(function(t) {
 

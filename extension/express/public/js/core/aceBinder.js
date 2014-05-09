@@ -2,15 +2,19 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define([], function () {
+define(["underscore"], function (_) {
     return function (model, path, editor) {
         var settingChange = false;
-        editor.on("change", function () {
-            settingChange = true;
+        
+        function updateModel() {
+             settingChange = true;
             
             model.set(path, editor.getValue());
             settingChange = false;
-        });
+        }
+        
+        var lazyUpdateModel = _.debounce(updateModel, 300);
+        editor.on("change", lazyUpdateModel);
 
         model.listenTo(model, "change:" + path, function () {
             if (settingChange) return;

@@ -4,7 +4,7 @@
             template: "scripts-toolbar",
 
             initialize: function() {
-                $(document).on('keydown', this.hotkey.bind(this));
+                $(document).on('keydown.script-detail', this.hotkey.bind(this));
             },
 
             events: {
@@ -48,7 +48,7 @@
             },
 
             onClose: function() {
-                $(document).off("keydown", this.hotkey);
+                $(document).off(".script-detail");
             }
         });
     });

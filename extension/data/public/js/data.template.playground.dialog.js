@@ -19,12 +19,23 @@
                 enableBasicAutocompletion: true,
                 enableSnippets: true
             });
-            
+
             aceBinder(this.model, "dataJson", this.contentEditor);
         },
 
-        save: function() {
+        save: function(s, e) {
+
+            if (this.model.get("dataJson") != null && this.model.get("dataJson") !== "") {
+                try {
+                    var json = JSON.parse(this.model.get("dataJson"));
+                } catch(e) {
+                    alert("You must enter a valid JSON. e.g. { \"propertName\": \"propertyValue\"} ");
+                    return;
+                }
+            }
+
             var self = this;
+          
             this.model.save({
                 success: function() {
                     self.trigger("dialog-close");

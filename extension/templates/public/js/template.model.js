@@ -21,7 +21,7 @@ define(["app", "core/jaydataModel"], function(app, ModelBase) {
         },
 
         defaults: {
-            engine: "jsrender",
+            engine: "handlebars",
             recipe: "phantom-pdf",
         },
     });

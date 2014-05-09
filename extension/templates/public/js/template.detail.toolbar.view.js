@@ -23,6 +23,11 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                     self.listenTo(self.contentView, "preview", function() {
                         self.preview();
                     });
+                    
+                    if (app.settings.firstRun && !app.settings.templateFirstRender) {
+                        app.settings.templateFirstRender = true;
+                        this.preview();
+                    }
                 });
 
                 this.listenTo(this, "render", function() {
@@ -243,7 +248,6 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
             },
 
             onClose: function() {
-                alert("on close");
                 $(document).off(".template-detail");
             }
         });

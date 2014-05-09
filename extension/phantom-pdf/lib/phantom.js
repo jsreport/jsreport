@@ -58,12 +58,12 @@ Phantom = function(reporter, definition) {
 
 Phantom.prototype.execute = function(request, response) {
     var self = this;
+    logger.info("Pdf recipe start.");
 
     request.template.phantom = request.template.phantom || new self.PhantomType();
     
     var generationId = shortid.generate();
     var htmlFile = join("reports-tmpl", generationId + ".html");
-    console.log(request.template.phantom.url);
 
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
@@ -93,10 +93,6 @@ Phantom.prototype.execute = function(request, response) {
                 //var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
                 childProcess.execFile(binPath, childArgs, function(error, stdout, stderr) {
                     logger.info("Rastering pdf child process end.");
-
-                    //console.log(stdout);
-                    console.log(stderr);
-                    //console.log(error);
 
                     if (error !== null) {
                         logger.error('exec error: ' + error);

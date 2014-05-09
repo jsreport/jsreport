@@ -69,7 +69,7 @@
                 src: ['extension/*/test/*.js', 'test/*.js']
             },
             testExact: {
-                src: ['test/multitenancyTest.js']
+                src: ['test/extensionsManagerTest.js']
             },
             testAll: {
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']           

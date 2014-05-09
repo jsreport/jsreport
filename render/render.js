@@ -62,8 +62,10 @@ var _renderHtml = function (request, response, cb) {
         isDone = true;
 
         if (m.error) {
-            logger.debug("Child process process resulted in error " + JSON.stringify(m.error));
-            return cb({ message: m.error, stack: m.errorStack });
+            var e = new Error();
+            e.message = m.error;
+            e.stack = m.errorStack;
+            return cb(e);
         }
 
         logger.info("Child process successfully finished.");
@@ -82,7 +84,7 @@ var _renderHtml = function (request, response, cb) {
             return;
 
         child.kill();
-        logger.error("Child process resulted in timeout.");
+        logger.warn("Child process resulted in timeout.");
 
        cb("Timeout error during rendering");
     }, request.options.timeout);

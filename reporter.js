@@ -19,17 +19,33 @@ var winston = require("winston"),
     dataParser = require("./dataParser.js"),
     Settings = require("./settings.js"),
     ExtensionsManager = require("./extensionsManager.js"),
+    renderContent = require("./render/render.js"),
     ListenerCollection = require("./listenerCollection.js");
 
 function Reporter(options) {
     var self = this;
     var opt = options || {};
+    
+    this.logger = winston.loggers.get('jsreport') || winston.loggers.add('jsreport');
+    
+    if (opt.tenant != null && !this.logger._enhanced) {
+        this.logger._enhanced = true;
+        
+        var methods = ["info", "warn", "error", "debug"];
+        methods.forEach(function(m) {
+            var originalMethod = self.logger[m];
+            self.logger[m] = function(message) {
+                originalMethod(opt.tenant.name + " " + message);
+            };
+        });
+    }
+    
     opt.loadExtensionsFromPersistedSettings = opt.loadExtensionsFromPersistedSettings == null ? true : opt.loadExtensionsFromPersistedSettings;
     opt.tenant = opt.tenant || { name: "" };
     opt.rootDirectory = opt.rootDirectory || __dirname;
     this.options = opt;
 
-    this.logger = winston.loggers.get('jsreport') || winston.loggers.add('jsreport');
+   
 
     events.EventEmitter.call(this);
 
@@ -203,6 +219,13 @@ Reporter.prototype.getEngines = function(cb) {
         cb(null, _.map(engines, function(e) {
             return e.substring(0, e.length - "Engine.js".length);
         }));
+    });
+};
+
+Reporter.prototype.renderContent = function(request, response) {
+    return Q.nfcall(renderContent, request, response).fail(function(e) {
+          e.weak = true;
+          return Q.reject(e);
     });
 };
 

@@ -139,7 +139,9 @@ ReportingServer.prototype._startServer = function() {
         app.use(domainClusterMiddleware);
     }
 
-    app.use(require("body-parser")());
+    app.use(require("body-parser")({
+        limit: 2 * 1024 * 1024 * 1,//2MB
+    }));
     app.use(require("method-override")());
     app.use(require("connect-multiparty")());
     var sessions = require("client-sessions");

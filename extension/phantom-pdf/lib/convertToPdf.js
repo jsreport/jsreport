@@ -43,15 +43,15 @@ if (system.args[5] != "null") {
 page.paperSize = paperSize;
 
 
-//page.onResourceRequested = function (request, networkRequest ) {
+page.onResourceRequested = function (request, networkRequest ) {
     
-//    if (request.url.lastIndexOf("file://", 0) === 0 && request.url.lastIndexOf("file:///", 0) !== 0) {
-//        networkRequest.changeUrl(request.url.replace("file://", "http://"));
-//    }
+    if (request.url.lastIndexOf("file://", 0) === 0 && request.url.lastIndexOf("file:///", 0) !== 0) {
+        networkRequest.changeUrl(request.url.replace("file://", "http://"));
+    }
 
-//    system.stdout.writeLine('= onResourceRequested()');
-//    system.stdout.writeLine('  request: ' + JSON.stringify(request, undefined, 4));
-//};
+    //system.stdout.writeLine('= onResourceRequested()');
+    //system.stdout.writeLine('  request: ' + JSON.stringify(request, undefined, 4));
+};
  
 //page.onResourceReceived = function(response) {
 //    system.stdout.writeLine('= onResourceReceived()' );
