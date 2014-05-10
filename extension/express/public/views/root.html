@@ -8,29 +8,29 @@
     <meta name="author" content="Jan Blaha">
     <meta name="description" content="jsreport - javascript business reports">
     <!-- CSS links -->
-    <link href="css/font-awesome/css/font-awesome.min.css?v=1399724808235" rel="stylesheet">
-    <link href="css/bootstrap.min.css?v=1399724808235" rel="stylesheet">
-    <link href="css/bootstrap-nonresponsive.css?v=1399724808235" rel="stylesheet">
-    <link href="css/toastr.css?v=1399724808235" rel="stylesheet">
-    <link href="css/split-pane.css?v=1399724808235" rel="stylesheet">
-    <link href="css/style.css?v=1399724808235" rel="stylesheet">    
-    <link href="css/introjs.css?v=1399724808235" rel="stylesheet">    
+    <link href="css/font-awesome/css/font-awesome.min.css?v=" rel="stylesheet">
+    <link href="css/bootstrap.min.css?v=" rel="stylesheet">
+    <link href="css/bootstrap-nonresponsive.css?v=" rel="stylesheet">
+    <link href="css/toastr.css?v=" rel="stylesheet">
+    <link href="css/split-pane.css?v=" rel="stylesheet">
+    <link href="css/style.css?v=" rel="stylesheet">    
+    <link href="css/introjs.css?v=" rel="stylesheet">    
 </head>
     <body>
         <!-- jsreport$studio - check for unit tests-->
         <script type="text/javascript">
             var require = {
-                urlArgs: "bust=" + "1399724808235"
+                urlArgs: "bust=" + new Date().getTime()
             };
         </script>
 
         <script src="lib/datajs-1.1.1.min.js" type="text/javascript"></script>
-        <script src="lib/jaydata.min.js?v=1399724808235" type="text/javascript"></script>
-        <script src="lib/oDataProvider.js?v=1399724808235" type="text/javascript"></script>
+        <script src="lib/jaydata.min.js?v=" type="text/javascript"></script>
+        <script src="lib/oDataProvider.js?v=" type="text/javascript"></script>
         <script data-main="js/require_main.js" src="lib/require.min.js" type="text/javascript"></script>
         <script src="lib/ace/ace.js" charset="utf-8"></script>
         <script src="lib/ace/ext-language_tools.js" charset="utf-8"></script>
-        <% if(this.ga != null) { %>
+        <% if(typeof ga != "undefined") { %>
         <script>
             (function(i, s, o, g, r, a, m) {
                 i['GoogleAnalyticsObject'] = r;
@@ -44,7 +44,7 @@
                 m.parentNode.insertBefore(a, m)
             })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
-            ga('create', <% ga.id %>, <% ga.name %>);
+            ga('create', '<%= ga.id %>', '<%= ga.name %>');
             ga('send', 'pageview');
         </script>
         <% } else { %>

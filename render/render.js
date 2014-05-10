@@ -18,9 +18,6 @@ var childProcess = require('child_process'),
     Readable = require("stream").Readable,
     async = require("async");
 
-var logger = winston.loggers.get('jsreport');
-
-
 module.exports = function (request, response, cb) {
     async.waterfall([
             function (callback) {
@@ -49,7 +46,7 @@ var _renderHtml = function (request, response, cb) {
     //response.result = "foo";
     //return cb(null, response);
     
-    logger.info("Executing child process for rendering html");
+    request.reporter.logger.info("Executing child process for rendering html");
 
     var isDone = false;
 
@@ -68,7 +65,7 @@ var _renderHtml = function (request, response, cb) {
             return cb(e);
         }
 
-        logger.info("Child process successfully finished.");
+        request.reporter.logger.info("Child process successfully finished.");
         response.result = m.content;
         
         return cb(null, response);
@@ -84,7 +81,7 @@ var _renderHtml = function (request, response, cb) {
             return;
 
         child.kill();
-        logger.warn("Child process resulted in timeout.");
+        request.reporter.logger.warn("Child process resulted in timeout.");
 
        cb("Timeout error during rendering");
     }, request.options.timeout);

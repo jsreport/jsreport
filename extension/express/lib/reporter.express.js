@@ -22,7 +22,7 @@ module.exports = function(reporter, definition) {
     app.engine('html', require('ejs').renderFile);
 
     app.get("/", function(req, res, next) {
-        res.render(path.join(__dirname, '../public/views', 'root.html'), reporter.options);
+        res.render(path.join(__dirname, '../public/views', 'root.html'),reporter.options);
     });
 
     app.use(function(req, res, next) {
