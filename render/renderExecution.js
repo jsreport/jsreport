@@ -83,16 +83,27 @@ process.on('message', function(m) {
         };
 
         if (m.template.helpers != null && m.template.helpers != "") {
-            vm.runInNewContext(m.template.helpers, sandbox);
+            
+            //first grab helpers as it would be an object { "foo" : function... } for back compatibility reasons
+            //when its not an object eval again and let helpers register into globals
+            
+            vm.runInNewContext("jsrHelpers = " + m.template.helpers, sandbox);
 
-            m.template.helpers = {};
-            for (var fn in sandbox) {
-                if (typeof sandbox[fn] == "function") {
-                    m.template.helpers[fn] = sandbox[fn];
+            if (sandbox["jsrHelpers"] != null && typeof sandbox["jsrHelpers"] === 'object') {
+                m.template.helpers = sandbox["jsrHelpers"];
+            } else {
+                
+                vm.runInNewContext(m.template.helpers, sandbox);
+
+                m.template.helpers = {};
+                for (var fn in sandbox) {
+                    if (typeof sandbox[fn] == "function") {
+                        m.template.helpers[fn] = sandbox[fn];
+                    }
                 }
             }
         } else
-            m.helpers = {};
+            m.template.helpers = {};
 
         vm.runInNewContext("respond(render(m.template.content, m.template.helpers, m.data))", sandbox);
     } catch(ex) {

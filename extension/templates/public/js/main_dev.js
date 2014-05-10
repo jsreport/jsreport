@@ -24,8 +24,8 @@ define(["jquery", "app", "marionette", "backbone",
                             self.navigatingForFirstSave = true;
                         }
 
-                        window.location.hash = "/playground/" + templateModel.get("shortid") +
-                            (app.settings.playgroundMode ? ("/" + templateModel.get("version")) : "");
+                        self.navigate("/playground/" + templateModel.get("shortid") +
+                            (app.settings.playgroundMode ? ("/" + templateModel.get("version")) : ""));
                     });
                 },
 

@@ -59,4 +59,34 @@ describe('render', function () {
             done();
         });
     });
+    
+    it('rendering should be able to evaluate global function helpers', function (done) {
+        var request = {
+            template: {
+                content: "{{:~foo()}}",
+                helpers: "function foo() { return 'test'; }",
+            },
+            options: { timeout: 1000}
+        };
+        
+        render(request, {}, function(err, response) {
+            assert.equal('test', response.result);
+            done();
+        });
+    });
+    
+    it('rendering should be able to evaluate object based helpers', function (done) {
+        var request = {
+            template: {
+                content: "{{:~foo()}}",
+                helpers: "{ \"foo\" : function() { return 'test'; } }",
+            },
+            options: { timeout: 1000}
+        };
+        
+        render(request, {}, function(err, response) {
+            assert.equal('test', response.result);
+            done();
+        });
+    });
 });

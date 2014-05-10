@@ -16,14 +16,17 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                 $(document).on('keydown.template-detail', this.hotkey.bind(this));
 
                 this.beforeRenderListeners = new ListenerCollection();
-
                 this.listenTo(this.model, "sync", function() {
+                    if (self.viewRendered)
+                        return;
+
                     self.render();
+                    self.viewRendered = true;
 
                     self.listenTo(self.contentView, "preview", function() {
                         self.preview();
                     });
-                    
+
                     if (app.settings.firstRun && !app.settings.templateFirstRender) {
                         app.settings.templateFirstRender = true;
                         this.preview();

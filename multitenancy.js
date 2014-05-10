@@ -68,7 +68,7 @@ module.exports = function(app, options, cb) {
         err.message = err.message || "Unrecognized error";
 
         if (err.code == "TENANT_NOT_FOUND") {
-            req.session = null;
+            req.session = {};
             return res.redirect("/");
         }
 

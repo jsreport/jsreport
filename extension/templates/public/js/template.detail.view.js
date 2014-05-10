@@ -15,10 +15,13 @@ define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/
                 var self = this;
 
                 this.listenTo(this.model, "sync", function() {
+                    if (self.viewRendered)
+                        return;
+                    
                     self.render();
+                    self.viewRendered = true;
                 });
-
-
+                
                 this.listenTo(this, "close", function() {
                     $(".side-nav-right").show();
                 });
@@ -30,7 +33,6 @@ define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/
 
             onDomRefresh: function() {
                 var self = this;
-
                 $(".side-nav-right").hide();
 
                 var langTools = ace.require("ace/ext/language_tools");
