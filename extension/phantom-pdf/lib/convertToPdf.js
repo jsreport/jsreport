@@ -26,7 +26,9 @@ if (system.args[4] != "null") {
         contents: phantom.callback(function(pageNum, numPages) {
             //http://stackoverflow.com/questions/10865849/phantomjs-javascript-read-a-local-file-line-by-line
             //closing file???
-            return fs.open(system.args[4], "r").read();
+            return fs.open(system.args[4], "r").read()
+		.replace(/{#pageNum}/g, pageNum)
+                .replace(/{#numPages}/g, numPages);
         })
     };
 }
@@ -35,7 +37,9 @@ if (system.args[5] != "null") {
     paperSize.footer = {
         height: system.args[7] != "null" ? system.args[7] :  "1cm",
         contents: phantom.callback(function(pageNum, numPages) {
-            return fs.open(system.args[5], "r").read();
+            return fs.open(system.args[5], "r").read()
+		.replace(/{#pageNum}/g, pageNum)
+                .replace(/{#numPages}/g, numPages);
         })
     };
 }
