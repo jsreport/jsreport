@@ -118,6 +118,7 @@ Phantom.prototype._processHeaderFooter = function(request, generationId, type) {
     var req = extend(true, {}, request);
     req.template = { content: request.template.phantom[type], recipe: "html" };
     req.data = extend(true, {}, request.data);
+    req.options.saveResult = false;
 
     return this.reporter.render(req).then(function(resp) {
         var filePath = join("reports-tmpl", generationId + "-" + type + ".html");
