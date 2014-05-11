@@ -45,8 +45,6 @@ var _prepareTemplate = function (request, cb) {
 var _renderHtml = function (request, response, cb) {
     //response.result = "foo";
     //return cb(null, response);
-    
-    request.reporter.logger.info("Executing child process for rendering html");
 
     var isDone = false;
 
@@ -64,8 +62,7 @@ var _renderHtml = function (request, response, cb) {
             e.stack = m.errorStack;
             return cb(e);
         }
-
-        request.reporter.logger.info("Child process successfully finished.");
+        
         response.result = m.content;
         
         return cb(null, response);
@@ -80,8 +77,7 @@ var _renderHtml = function (request, response, cb) {
         if (isDone)
             return;
 
-        child.kill();
-        request.reporter.logger.warn("Child process resulted in timeout.");
+       child.kill();
 
        cb("Timeout error during rendering");
     }, request.options.timeout);
