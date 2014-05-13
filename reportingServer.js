@@ -1,4 +1,4 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
  * expressjs server wrapping Reporter.
@@ -24,8 +24,8 @@ var path = require("path"),
  * @param {object} config see config.json
  */
 
-function ReportingServer(config) {
-    if (config == null)
+var ReportingServer = function(config) {
+    if (!config)
         throw new Error("Configuration for ReportingServer must be specified as a parameter");
 
     this.config = config;
@@ -42,7 +42,7 @@ ReportingServer.prototype.start = function() {
         return;
     }
 
-    this.config.port = this.config.port || process.env.PORT;
+    this.config.port = this.config.port || process.env.PORT || 3000;
 
     if (this.config.useCluster) {
         var cluster = require('cluster');
@@ -133,7 +133,7 @@ ReportingServer.prototype._initReporter = function(app, config, cb) {
 
 ReportingServer.prototype._startServer = function() {
 
-    var app = module.exports = express();
+    var app = express();
 
     if (this.config.useCluster) {
         app.use(domainClusterMiddleware);
@@ -191,7 +191,7 @@ ReportingServer.prototype._startServer = function() {
             rejectUnauthorized: false //support invalid certificates
         };
 
-        if (self.config.httpPort != null) {
+        if (!!self.config.httpPort) {
             //http -> https redirect
             http.createServer(function(req, res) {
                 res.writeHead(302, {
@@ -205,6 +205,5 @@ ReportingServer.prototype._startServer = function() {
         httpsServer.listen(self.config.port);
     });
 };
-
 
 module.exports = ReportingServer;
