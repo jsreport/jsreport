@@ -20,12 +20,19 @@ module.exports = function(callback) {
     }
 
     var shouldRefreshConfig = false;
+	var shouldContinueInitializing = true;
     
     require('commander')
         .version(require("./package.json").version)
         .usage('[options]')
-        .option('-i, --install', 'WINDOWS ONLY - install app as windows service, For other platforms see http://jsreport.net/on-prem/downloads', services.install)
-        .option('-r, --uninstall', 'WINDOWS ONLY - Stop and uninstall service', services.uninstall)
+        .option('-i, --install', 'WINDOWS ONLY - install app as windows service, For other platforms see http://jsreport.net/on-prem/downloads', function(){
+			shouldContinueInitializing=false;
+			services.install();
+		})
+        .option('-r, --uninstall', 'WINDOWS ONLY - Stop and uninstall service', function(){
+			shouldContinueInitializing=false;
+			services.uninstall();
+		})
         .option('-p, --port <n>', 'Https Port', port)
         .option('-d, --daemon', 'NON WINDOWS ONLY - Start process as daemon', daemon)
         .parse(process.argv);
@@ -35,9 +42,5 @@ module.exports = function(callback) {
         nconf.save();
     }
 
-    callback(null,true);
+    callback(null,shouldContinueInitializing);
 };
-
-process.on('uncaughtException',function(){
-    console.log(arguments);
-});

@@ -4,65 +4,42 @@ var fs = require("fs"),
     nconf = require('nconf'),
     childProcess = require('child_process');
 
+var Service;
 
-var shouldContinueInitializing = true;
-
-function windowsInstall() {
-    shouldContinueInitializing = false;
-
-    console.log("installing windows service jsreport-server.");
-
-    var pathToWinSer = path.resolve("node_modules\\jsreport\\node_modules\\.bin\\winser.cmd");
-    childProcess.exec(pathToWinSer + " -i", function(error, stdout, stderr) {
-        if (error) {
-            console.log(error);
-            process.exit(1);
-            return;
-        }
-
-        console.log("starting windows service jsreport-server.");
-
-        childProcess.exec("net start jsreport-server", function(error, stdout, stder) {
-            if (error) {
-                console.log(error);
-                process.exit(1);
-                return;
-            }
-
-            console.log("service jsreport-server is running. go to https://localhost:" + nconf.get('port'));
-            process.exit(0);
-        });
-    });
+switch (platform) {
+	case 'win32':
+	case 'win64':
+		Service = require('node-windows').Service;
+		break;
+	default:
+		Service = function(){
+			throw ("Installing jsreport as startup service for your platform should be described at http://jsreport.net/downloads");
+		}
 }
-
-function windowsUninstall() {
-    shouldContinueInitializing = false;
-    console.log("uninstalling windows service jsreport-server.");
-
-    var pathToWinSer = path.resolve("node_modules\\jsreport\\node_modules\\.bin\\winser.cmd");
-    childProcess.exec(pathToWinSer + " -x -r", function(error, stdout, stderr) {
-        if (error) {
-            console.log(error);
-            process.exit(1);
-            return;
-        }
-
-        console.log("windows service jsreport-server uninstalled");
-        process.exit(0);
-    });
-}
+var svc = new Service({
+	name: 'jsreport-server',
+	description: 'Reporting platform\nJust code, Just javascript\nOpen sourced\nUnlimited posibilities\nhttp://jsreport.net/',
+	script: 'server.js'
+});
 
 module.exports = {
     install: function() {
         console.log("Platform is " + platform);
-
-        if (platform == "win32" || platform == "win64") {
-            return windowsInstall();
-        }
-    
-        console.log("Installing jsreport as startup service for your platform should be described at http://jsreport.net/downloads");
+		svc.on('start',function(){
+			console.log('service started');
+			process.exit(0);
+		});
+		svc.on('install',function(){
+			console.log('service installed');
+			svc.start();
+		});
+		svc.install();
     },
     uninstall: function() {
-        windowsUninstall();
+        svc.on('uninstall',function(){
+			console.log('Uninstall complete.');
+			process.exit(0);
+		});
+		svc.uninstall();
     }
 };
