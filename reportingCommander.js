@@ -1,15 +1,16 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  * 
  * Evaluates commands from commandline and update accordinly initial config
- */ 
+ */
 
-module.exports = function(config) {
+var nconf = require('nconf'),
+    fs = require("fs"),
+    path = require("path"),
+    platform = require('os').platform(),
+    childProcess = require('child_process');
 
-    var fs = require("fs"),
-        path = require("path"),
-        platform = require('os').platform(),
-        childProcess = require('child_process');
+module.exports = function(callback) {
 
     function install() {
         console.log("Platform is " + platform);
@@ -18,7 +19,7 @@ module.exports = function(config) {
             return windowsInstall();
         }
 
-        console.log("Installing jsreport as startup service for your platform should be described at http://jsreport.net/on-prem/donwloads");
+        console.log("Installing jsreport as startup service for your platform should be described at http://jsreport.net/downloads");
     }
     
     function windowsInstall() {
@@ -43,7 +44,7 @@ module.exports = function(config) {
                     return;
                 }
 
-                console.log("service jsreport-server is running. go to https://localhost:" + config.port);
+                console.log("service jsreport-server is running. go to https://localhost:" + nconf.get('port'));
                 process.exit(0);
             });
         });
@@ -67,39 +68,31 @@ module.exports = function(config) {
     }
 
     function port(p) {
-        config.port = p;
+        nconf.set('port',p);
         shouldRefreshConfig = true;
     }
 
     function daemon() {
-        config.daemon = true;
+        nconf.set('daemon',true);
         shouldRefreshConfig = true;
     }
 
     var shouldRefreshConfig = false;
-    var shouldInstall = false;
     var shouldContinueInitializing = true;
 
     require('commander')
         .version(require("./package.json").version)
         .usage('[options]')
-        .option('-i, --install', 'WINDOWS ONLY - install app as windows service, For other platforms see http://jsreport.net/on-prem/downloads', function() { shouldInstall = true; })
+        .option('-i, --install', 'WINDOWS ONLY - install app as windows service, For other platforms see http://jsreport.net/on-prem/downloads', install)
         .option('-r, --uninstall', 'WINDOWS ONLY - Stop and uninstall service', windowsUninstall)
         .option('-p, --port <n>', 'Https Port', port)
         .option('-d, --daemon', 'NON WINDOWS ONLY - Start process as daemon', daemon)
         .parse(process.argv);
-    
-    
         
     if (shouldRefreshConfig) {
-        try {
-            fs.writeFileSync("config.json", JSON.stringify(config));
-        }
-        catch (e) {}
+        //  async write config file
+        nconf.save();
     }
 
-    if (shouldInstall)
-        install();
-
-    return shouldContinueInitializing;
-}
+    callback(null,true);
+};

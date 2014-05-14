@@ -16,7 +16,8 @@ var path = require("path"),
     fs = require("fs"),
     Q = require("q"),
     Reporter = require("./reporter.js"),
-    commander = require("./reportingCommander.js");
+    commander = require("./reportingCommander.js"),
+    nconf = require('nconf');
 
 
 /**
@@ -24,45 +25,59 @@ var path = require("path"),
  * @param {object} config see config.json
  */
 
-var ReportingServer = function(config) {
-    if (!config)
-        throw new Error("Configuration for ReportingServer must be specified as a parameter");
-
-    this.config = config;
-    Q.longStackSupport = true;
+var ReportingServer = function(configFile) {
+    //  checking if file exists
+    if (fs.existsSync(configFile)){
+        //  load configuration
+        nconf
+        .argv()                     //  argv is fourth
+        .env()                      //  env is third
+        .file({ file: configFile }) //  file is second
+        .defaults({                 //  defaults are first
+            port: 3000,
+            httpPort: 3080,
+            httpsOnly: true
+        });
+        //  compatibility 
+        this.config = require(configFile);
+        Q.longStackSupport = true;
+    }else{
+        throw new Error("Configuration file not exists");
+    }
 };
 
 
 /**
  * Start server and listen on the port specifiied in config
  */
-ReportingServer.prototype.start = function() {
+ReportingServer.prototype.start = function(callback) {
+    var me = this;
     //apply command line arguments and update config
-    if (!commander(this.config)) {
-        return;
-    }
-
-    this.config.port = this.config.port || process.env.PORT || 3000;
-
-    if (this.config.useCluster) {
-        var cluster = require('cluster');
-        if (cluster.isMaster) {
-            cluster.fork();
-
-            cluster.on('disconnect', function(worker) {
-                console.error('disconnect!');
-                cluster.fork();
-            });
-
-            if (this.config.daemon) {
-                require('daemon')();
+    commander(function(err,success){
+        if (success){
+            if (nconf.get('useCluster')) {
+                var cluster = require('cluster');
+                if (cluster.isMaster) {
+                    cluster.fork();
+                    
+                    cluster.on('disconnect', function(worker) {
+                        console.error('disconnect!');
+                        cluster.fork();
+                    });
+                    
+                    if (nconf.get('daemon')) {
+                        require('daemon')();
+                    }
+                } else {
+                    me._startServer();
+                }
+            } else {
+                me._startServer();
             }
-        } else {
-            this._startServer();
+        }else{
+            callback(err);
         }
-    } else {
-        this._startServer();
-    }
+    });
 };
 
 /**
@@ -106,36 +121,36 @@ function domainClusterMiddleware(req, res, next) {
     d.run(function() {
         next();
     });
-};
+}
 
-ReportingServer.prototype._initReporter = function(app, config, cb) {
-    if (config.mode == "playground") {
-        config.express = { app: app };
-        config.playgroundMode = true;
-        config.connectionString.databaseName = "playground";
-        (new Reporter(config)).init().then(cb);
-        return;
+ReportingServer.prototype._initReporter = function(app, cb) {
+    var config = this.config;
+    switch(nconf.get('mode')){
+        case 'playground':
+            config.express = { app: app };
+            config.playgroundMode = true;
+            config.connectionString.databaseName = "playground";
+            (new Reporter(config)).init().then(cb);
+            break;
+        case 'standard':
+            config.express = { app: app };
+            config.playgroundMode = false;
+            config.connectionString.databaseName = "standard";
+            (new Reporter(config)).init().then(cb);
+            break;
+        case 'multitenant':
+            require("./multitenancy.js")(app, config, cb);
+            break;
+        default:
+            throw new Error("Unsuported mode");
     }
-
-    if (config.mode == "standard") {
-        config.express = { app: app };
-        config.playgroundMode = false;
-        config.connectionString.databaseName = "standard";
-        (new Reporter(config)).init().then(cb);
-        return;
-    }
-
-    if (config.mode != "multitenant")
-        throw new Error("Unsuported mode");
-
-    require("./multitenancy.js")(app, config, cb);
 };
 
 ReportingServer.prototype._startServer = function() {
 
     var app = express();
 
-    if (this.config.useCluster) {
+    if (nconf.get('useCluster')) {
         app.use(domainClusterMiddleware);
     }
 
@@ -147,8 +162,8 @@ ReportingServer.prototype._startServer = function() {
     var sessions = require("client-sessions");
     app.use(sessions({
         cookieName: 'session',
-        cookie: this.config.cookieSession.cookie,
-        secret: this.config.cookieSession.secret,
+        cookie: nconf.get('cookieSession:cookie'),
+        secret: nconf.get('cookieSession:secret'),
         duration: 1000 * 60 * 60 * 24 * 365 * 10, // forever
     }));
 
@@ -173,36 +188,36 @@ ReportingServer.prototype._startServer = function() {
     }
 
     var self = this;
-    this._initReporter(app, this.config, function() {
+    this._initReporter(app, function() {
 
-        if (self.config.iisnode) {
-            app.listen(self.config.port);
+        if (nconf.get('iisnode')) {
+            app.listen(nconf.get('port'));
             return;
         }
 
-        if (!fs.existsSync(self.config.certificate.key)) {
-            self.config.certificate.key = path.join(__dirname, "certificates", "jsreport.net.key");
-            self.config.certificate.cert = path.join(__dirname, "certificates", "jsreport.net.cert");
+        if (!fs.existsSync(nconf.get('certificate:key'))) {
+            nconf.set('certificate:key',path.join(__dirname, "certificates", "jsreport.net.key"));
+            nconf.set('certificate:cert', path.join(__dirname, "certificates", "jsreport.net.cert"));
         }
 
         var credentials = {
-            key: fs.readFileSync(self.config.certificate.key, 'utf8'),
-            cert: fs.readFileSync(self.config.certificate.cert, 'utf8'),
+            key: fs.readFileSync(nconf.get('certificate:key'), 'utf8'),
+            cert: fs.readFileSync(nconf.get('certificate:cert'), 'utf8'),
             rejectUnauthorized: false //support invalid certificates
         };
-
-        if (!!self.config.httpPort) {
-            //http -> https redirect
-            http.createServer(function(req, res) {
+        
+        if (nconf.get('httpsOnly')){    //  create redirector
+            http.createServer(function(req,res){
                 res.writeHead(302, {
-                    'Location': "https://" + req.headers.host + req.url
+                    'Location': "https://" + req.headers.host.split(':')[0] + ':' + nconf.get('port') + req.url     //  TODO: Recheck
                 });
                 res.end();
-            }).listen(self.config.httpPort);
+            }).listen(nconf.get('httpPort'));
+        }else{                          //  create http server
+            http.createServer(app).listen(nconf.get('httpPort'));
         }
 
-        var httpsServer = https.createServer(credentials, app);
-        httpsServer.listen(self.config.port);
+        https.createServer(credentials, app).listen(nconf.get('port'));
     });
 };
 
