@@ -222,7 +222,3 @@ ReportingServer.prototype._startServer = function() {
 };
 
 module.exports = ReportingServer;
-
-process.on('uncaughtException',function(){
-    console.log(arguments);
-});
