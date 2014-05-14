@@ -1,4 +1,4 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha
  *
  * ListenerCollection can hold array of listeners and fire them.
@@ -10,7 +10,7 @@ var async = require("async"),
     Q = require("q");
 
 
-module.exports = ListenerCollection = function() {
+var ListenerCollection = module.exports = function() {
     this._listeners = [];
     this._pre = [];
     this._post = [];

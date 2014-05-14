@@ -1,4 +1,4 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
  * ExtensionsManager responsible for loading, registering and unregistering server extensions.
@@ -14,7 +14,7 @@ var events = require("events"),
     Q = require("q"),
     ListenerCollection = require("./listenerCollection.js");
 
-module.exports = ExtensionsManager = function(reporter, settings, logger, options) {
+var ExtensionsManager = module.exports = function(reporter, settings, logger, options) {
     var self = this;
     events.EventEmitter.call(this);
 

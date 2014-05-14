@@ -1,4 +1,4 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
  * Settings enablik Key-Value persistent store.
