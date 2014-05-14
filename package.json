@@ -17,6 +17,9 @@
     "type": "git",
     "url": "git@github.com:jsreport/jsreport.git"
   },
+  "optionalDependencies":{
+    "node-windows": "*"
+  },
   "dependencies": {
     "async": "*",
     "async-replace": "*",
@@ -40,7 +43,7 @@
     "node-jsrender": "*",
     "node-dir": "*",
     "node-phantom": "*",
-	"node-windows": "*",
+
     "octonode": "*",
     "querystring": "*",
     "odata-server": "*",
