@@ -6,7 +6,6 @@
 
 var shortid = require("shortid"),
     util = require("util"),
-    sformat = require("stringformat"),
     _ = require("underscore"),
     Q = require("q");
 
@@ -25,7 +24,7 @@ Data = function (reporter, definition) {
         name: { type: "string" },
         creationDate: { type: "date" },
         shortid: { type: "string"},
-        modificationDate: { type: "date" },
+        modificationDate: { type: "date" }
     }, null);
     
     if (this.reporter.playgroundMode) {
@@ -46,9 +45,14 @@ Data = function (reporter, definition) {
 };
 
 Data.prototype.handleBeforeRender = function (request, response) {
-    
-    if (request.data || (!request.template.dataItemId && !(request.template.dataItem != null && request.template.dataItem.dataJson))) {
-        this.reporter.logger.info("DateItem not defined for this template.");
+
+    if (request.data) {
+        this.reporter.logger.debug("Inline data specified.");
+        return Q();
+    }
+
+    if (!request.data && !request.template.dataItemId && !request.template.dataItem) {
+        this.reporter.logger.debug("No data specified.");
         return Q();
     }
 
@@ -61,7 +65,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
         self.reporter.logger.info("Searching for before dataItem to apply");
 
         return request.context.data.single(function(d) { return d.shortid == this.id; }, { id: request.template.dataItemId } );
-    };
+    }
 
     return FindDataItem().then(function(di) {
         di = di.dataJson || di;

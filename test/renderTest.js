@@ -7,7 +7,7 @@ describe('render', function () {
     it('rendering should fill response.result', function (done) {
         var request = {
             template: {
-                content: "foo",
+                content: "foo"
             },
             options: { timeout: 1000}
         };
@@ -22,7 +22,7 @@ describe('render', function () {
     it('rendering should fill error when engine fails', function (done) {
         var request = {
             template: {
-                content: "foo{{if}}",
+                content: "foo{{if}}"
             },
             options: { timeout: 1000}
         };
@@ -35,7 +35,7 @@ describe('render', function () {
      it('reporting should timeout for long child execution', function (done) {
         var request = {
             template: {
-                content: "foo",
+                content: "foo"
             },
             options: { timeout: 0}
         };
@@ -49,7 +49,7 @@ describe('render', function () {
         var request = {
             template: {
                 content: "{{:~fs()}}",
-                helpers: "{ \"fs\" : function() { return require('fs') != null; } }",
+                helpers: "{ \"fs\" : function() { return require('fs') != null; } }"
             },
             options: { timeout: 1000}
         };
@@ -64,7 +64,7 @@ describe('render', function () {
         var request = {
             template: {
                 content: "{{:~foo()}}",
-                helpers: "function foo() { return 'test'; }",
+                helpers: "function foo() { return 'test'; }"
             },
             options: { timeout: 1000}
         };
@@ -79,7 +79,7 @@ describe('render', function () {
         var request = {
             template: {
                 content: "{{:~foo()}}",
-                helpers: "{ \"foo\" : function() { return 'test'; } }",
+                helpers: "{ \"foo\" : function() { return 'test'; } }"
             },
             options: { timeout: 1000}
         };

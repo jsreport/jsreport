@@ -7,13 +7,14 @@
     describeReportingPlayground = require("../../../test/helpers.js").describeReportingPlayground;
 
 describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
+
     describe('templating', function() {
 
         it('should callback error when missing template', function(done) {
             var request = {
                 template: { _id: "AAAAAAAAAAAAAAAAAAAAAAAA" },
                 context: reporter.context,
-                options: { recipe: "html" },
+                options: { recipe: "html" }
             };
 
             var response = {};
@@ -29,7 +30,7 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
             var request = {
                 template: {},
                 context: reporter.context,
-                options: { recipe: "html" },
+                options: { recipe: "html" }
             };
 
             reporter.templates.create({ content: "foo" }).then(function(t) {
@@ -46,7 +47,7 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
             var request = {
                 template: {},
                 context: reporter.context,
-                options: { recipe: "html" },
+                options: { recipe: "html" }
             };
 
             reporter.templates.create({ content: "foo" }).then(function(t) {
@@ -63,7 +64,7 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
             var request = {
                 template: {},
                 context: reporter.context,
-                options: { recipe: "html" },
+                options: { recipe: "html" }
             };
 
             reporter.templates.create({ content: "foo" }).then(function(t) {
@@ -73,7 +74,7 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                     request = {
                         template: { shortid: t.shortid },
                         context: reporter.context,
-                        options: { recipe: "html" },
+                        options: { recipe: "html" }
                     };
 
                     reporter.templates.handleBeforeRender(request, {}).then(function() {
@@ -85,18 +86,42 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                 });
             });
         });
+
+        it('handleBefore should throw when no content and id specified', function() {
+            var request = {
+                template: {},
+                context: reporter.context,
+                options: { recipe: "html" }
+            };
+
+            assert.throws(function() { reporter.templates.handleBeforeRender(request, {}); });
+        });
+
+        it('deleting should work', function(done) {
+            reporter.templates.create({ content: "foo" })
+                .then(function(t) {
+                    reporter.context.templates.remove(t);
+
+                    reporter.context.templates.saveChanges().then(function() {
+                        reporter.context.templates.toArray().then(function(list) {
+                            assert.equal(list.length, 0);
+                            done();
+                        });
+                    });
+                });
+        });
     });
 });
 
 describeReportingPlayground(path.join(__dirname, "../../"), [], function(reporter) {
-    describe('templating playground', function() {
 
+    describe('templating playground', function() {
 
         it('handleBefore should find by shortid and version and use template', function(done) {
             var request = {
                 template: {},
                 context: reporter.context,
-                options: { recipe: "html" },
+                options: { recipe: "html" }
             };
 
             reporter.templates.create({ content: "foo" }).then(function(t) {
@@ -112,9 +137,9 @@ describeReportingPlayground(path.join(__dirname, "../../"), [], function(reporte
         it('deleting template should be rejected', function(done) {
             reporter.templates.create({ content: "foo" })
                 .then(function(t) {
-                    reporter.templates.entitySet.remove(t);
-                    reporter.templates.entitySet.saveChanges().then(function() {
-                        reporter.templates.entitySet.find(t._id).then(function(templ) {
+                    reporter.context.templates.remove(t);
+                    reporter.context.templates.saveChanges().then(function() {
+                        reporter.context.templates.find(t._id).then(function(templ) {
                             assert.equal("foo", templ.content);
                             done();
                         });
@@ -122,13 +147,13 @@ describeReportingPlayground(path.join(__dirname, "../../"), [], function(reporte
                 });
         });
 
-        it('updating template is rejected', function(done) {
+        it('updating template should be rejected', function(done) {
             reporter.templates.create({ content: "foo" })
                 .then(function(t) {
-                    reporter.templates.entitySet.attach(t);
+                    reporter.context.templates.attach(t);
                     t.content = "modified";
-                    reporter.templates.entitySet.saveChanges().then(function() {
-                        reporter.templates.entitySet.find(t._id).then(function(templ) {
+                    reporter.context.templates.saveChanges().then(function() {
+                        reporter.context.templates.find(t._id).then(function(templ) {
                             assert.equal("foo", templ.content);
                             done();
                         });

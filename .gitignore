@@ -22,6 +22,7 @@ node_modules
 [Oo]bj/
 
 # mstest test results
+
 TestResults
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -132,3 +133,5 @@ reports-tmpl/*.*
 
 /web.config
 /result.txt
+
+.idea

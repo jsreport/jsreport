@@ -1,8 +1,9 @@
-﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
- * 
- * ChildTemplates extensions hooks before rendering process and expands every child template specification.
- */ 
+﻿/*!
+ * Copyright(c) 2014 Jan Blaha
+ *
+ * Extension allowing to assemble and render template using other child templates.
+ * Syntax is {#child [template name]}
+ */
 
 var winston = require("winston"),
     Q = require("q"),
@@ -15,7 +16,7 @@ module.exports = function(reporter, definition) {
     reporter[definition.name] = new ChildTemplates(reporter, definition);
 };
 
-ChildTemplates = function(reporter, definition) {
+var ChildTemplates = function(reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 

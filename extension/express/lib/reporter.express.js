@@ -9,7 +9,6 @@ var async = require("async"),
     dir = require("node-dir"),
     Reporter = require("../../../reporter.js"),
     odata_server = require('odata-server'),
-    FS = require("q-io/fs"),
     Q = require("q"),
     serveStatic = require('serve-static');
 
@@ -101,6 +100,9 @@ module.exports = function(reporter, definition) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
+
+        if (!req.template)
+            return next("Could not parse report template, aren't you missing content type?");
 
         reporter.render(req).then(function(response) {
             if (response.headers) {

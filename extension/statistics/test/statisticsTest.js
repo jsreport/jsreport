@@ -5,6 +5,7 @@
 
 
 describeReporting(path.join(__dirname, "../../"), ["statistics"], function(reporter) {
+
     describe('statistics', function() {
 
         it('before should group and increase just amount', function (done) {
@@ -13,7 +14,7 @@ describeReporting(path.join(__dirname, "../../"), ["statistics"], function(repor
                 reporter: reporter,
                 context: reporter.context,
                 template: { },
-                options: { async: true }
+                options: { async: true}
             };
             
             reporter.templates.create({ content: "foo" }).then(function (t) {
@@ -25,7 +26,7 @@ describeReporting(path.join(__dirname, "../../"), ["statistics"], function(repor
                     
                     reporter.statistics.handleBeforeRender(request, response).then(function () {
                         
-                        reporter.statistics.entitySet.toArray().then(function (stats) {
+                        reporter.context.statistics.toArray().then(function (stats) {
                             assert.equal(1, stats.length);
                             assert.equal(2, stats[0].amount);
                             assert.equal(0, stats[0].success);
@@ -54,7 +55,7 @@ describeReporting(path.join(__dirname, "../../"), ["statistics"], function(repor
                     
                     reporter.statistics.handleAfterRender(request, response).then(function () {
                         
-                        reporter.statistics.entitySet.toArray().then(function (stats) {
+                        reporter.context.statistics.toArray().then(function (stats) {
                             assert.equal(1, stats.length);
                             assert.equal(1, stats[0].amount);
                             assert.equal(1, stats[0].success);

@@ -93,9 +93,7 @@ Images.prototype.upload = function(name, contentType, content, shortidVal) {
                 return Q(img);
             });
         }
-    }
-
-    ;
+    };
 
     return findOrCreate().then(function(img) {
         return self.entitySet.saveChanges().then(function() {
@@ -172,7 +170,7 @@ Images.prototype._defineEntities = function() {
         "creationDate": { type: "date" },
         "modificationDate": { type: "date" },
         "content": { type: "blob" },
-        "contentType": { type: "string" },
+        "contentType": { type: "string" }
     }, null);
 
     this.ImageRefType = $data.Class.define(this.reporter.extendGlobalTypeName("$entity.ImageRef"), $data.Entity, null, {

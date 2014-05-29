@@ -41,37 +41,18 @@ exports.describeReporting = function(rootDirectory, extensions, isPlayground, ne
 
         beforeEach(function(done) {
             this.timeout(10000);
-            reporter.init().then(function() {
-                done();
+
+            MongoClient.connect('mongodb://127.0.0.1:27017/test', {}, function (err, db) {
+                db.dropDatabase(function () {
+                    reporter.init().then(function () {
+                        done();
+                    });
+                });
             });
         });
 
+        afterEach(function() {
 
-        afterEach(function(done) {
-            this.timeout(10000);
-
-            MongoClient.connect('mongodb://127.0.0.1:27017/test', {}, function(err, db) {
-                db.dropDatabase(function() {
-                    done();
-                });
-            });
-
-
-            //async.eachSeries(reporter.context.getType().memberDefinitions.asArray(), function (memDef, cb) {
-            //            if (memDef.dataType == $data.EntitySet) {
-            //                reporter.context[memDef.name].deleteEnabled = true;
-            //                reporter.context[memDef.name].toArray().then(function (ents) {
-            //                    _.each(ents, function (ent) { ent.remove(); });
-            //                    cb();
-            //                });
-            //            } else {
-            //                cb();
-            //            }
-            //        }, function () {
-            //            reporter.context.saveChanges().then(function() {
-            //                 done();
-            //            });
-            //        });
         });
 
         nestedSuite(reporter);

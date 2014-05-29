@@ -9,10 +9,10 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
     describe('phantom pdf', function () {
      
         it('should not fail when rendering', function(done) {
-            this.timeout(5000);
+            this.timeout(10000);
             
             var request = {
-                options: { recipe: "phantom", timeout: 5000 },
+                options: { recipe: "phantom", timeout: 10000 },
                 reporter: reporter,
                 template: { content: "Heyx" },
                 data: null

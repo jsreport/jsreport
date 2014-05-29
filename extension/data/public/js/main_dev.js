@@ -17,7 +17,7 @@
                 routes: {
                     "extension/data/list": "data",
                     "extension/data/detail/:id": "dataDetail",
-                    "extension/data/detail": "dataDetail",
+                    "extension/data/detail": "dataDetail"
                 },
 
                 data: function() {
@@ -39,7 +39,7 @@
                         model.set("shortid", id);
                         model.fetch();
                     }
-                },
+                }
             });
 
             app.data.on("created", function() {
@@ -82,7 +82,7 @@
                     'name': { 'type': 'Edm.String' },
                     "creationDate": { type: "date" },
                     "modificationDate": { type: "date" },
-                    'dataJson': { 'type': 'Edm.String' },
+                    'dataJson': { 'type': 'Edm.String' }
                 }, null);
 
                 $entity.DataItem.prototype.toString = function() {

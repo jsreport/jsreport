@@ -37,14 +37,14 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                     var context = {
                         template: self.model,
                         extensionsRegion: self.extensionsRegion,
-                        view: self,
+                        view: self
                     };
                     app.trigger("template-extensions-render", context);
 
                     var contextToolbar = {
                         template: self.model,
                         region: self.extensionsToolbarRegion,
-                        view: self,
+                        view: self
                     };
                     app.trigger("template-extensions-toolbar-render", contextToolbar);
                 });

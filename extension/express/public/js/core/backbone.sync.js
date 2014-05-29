@@ -84,7 +84,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             url: app.serverUrl + "api/" + model.url(),
             type: 'PUT',
-            data: JSON.stringify(model.toJSON()),
+            data: JSON.stringify(model.toJSON())
         }).then(function() {
             app.trigger("update:success", model);
         });
@@ -94,7 +94,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             url: app.serverUrl + "api/" + model.url(),
             type: 'POST',
-            data: JSON.stringify(model.toJSON()),
+            data: JSON.stringify(model.toJSON())
         }).then(function() {
             app.trigger("create:success", model);
         });
@@ -104,7 +104,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             url: app.serverUrl + "api/" + model.url(),
             type: 'DELETE',
-            data: JSON.stringify(model.toJSON()),
+            data: JSON.stringify(model.toJSON())
         }).then(function() {
             app.trigger("delete:success", model);
         });

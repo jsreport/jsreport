@@ -1,19 +1,18 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  * 
- * Core extension responsible for storing and using report templates.
+ * Core extension responsible for storing, versioning and loading report templates for render request..
  */ 
 
-var Readable = require("stream").Readable,
+var stream = require("stream"),
+    Readable = stream.Readable,
     shortid = require("shortid"),
     winston = require("winston"),
     events = require("events"),
     util = require("util"),
-    sformat = require("stringformat"),
     _ = require("underscore"),
     Q = require("q"),
     extend = require("node.extend");
-
 
 var logger = winston.loggers.get('jsreport');
 
@@ -21,7 +20,7 @@ module.exports = function(reporter, definition) {
     reporter[definition.name] = new Templating(reporter, definition);
 };
 
-Templating = function(reporter, definition) {
+var Templating = function(reporter, definition) {
     var self = this;
     this.name = "templates";
     this.reporter = reporter;
@@ -52,12 +51,17 @@ Templating = function(reporter, definition) {
 util.inherits(Templating, events.EventEmitter);
 
 Templating.prototype.handleBeforeRender = function(request, response) {
+
     if (request.template._id == null && request.template.shortid == null) {
-        request.template.content = request.template.content == null || request.template.content == "" ? " " : request.template.content;
+        if (!request.template.content)
+            throw new Error("Template must contains _id, shortid or content attribute.");
+
         return;
     }
 
     var self = this;
+
+    //playground searches for template by shortid and version where others search just by id
     var findPromise = (request.template._id != null) ? request.context.templates.find(request.template._id) :
         (self.reporter.playgroundMode ?
             request.context.templates.single(function(t) { return t.shortid == this.shortid && t.version == this.version; }, { shortid: request.template.shortid, version: request.template.version }) :
@@ -76,9 +80,7 @@ Templating.prototype.create = function(context, tmpl) {
         tmpl = context;
         context = this.reporter.context;
     }
-        
 
-    logger.info(sformat("Creating template {0}.", tmpl.name));
     var template = new this.TemplateType(tmpl);
     template.isLatest = true;
     context.templates.add(template);
@@ -88,15 +90,8 @@ Templating.prototype.create = function(context, tmpl) {
     });
 };
 
-Templating.prototype.find = function(preficate, params) {
-    return this.reporter.context.templates.filter(preficate, params).toArray();
-};
-
 Templating.prototype._beforeUpdateHandler = function(args, entity) {
-    var validationContext = { template: entity };
-    this.emit("validate-update", validationContext);
-
-    if (!validationContext.result && !this.reporter.context.templates.updateEnabled && this.reporter.playgroundMode)
+    if (!this.reporter.context.templates.updateEnabled && this.reporter.playgroundMode)
         return false;
 
     entity.modificationDate = new Date();
@@ -113,18 +108,11 @@ Templating.prototype._beforeCreateHandler = function(args, entity) {
 };
 
 Templating.prototype._beforeDeleteHandler = function(args, entity) {
-    return !this.reporter.playgroundMode || (this.reporter.context.templates.deleteEnabled == true);
+    return !this.reporter.playgroundMode && !this.reporter.context.templates.deleteEnabled;
 };
 
 Templating.prototype._defineEntities = function() {
     var self = this;
-
-    Object.defineProperty(this, "entitySet", {
-        get: function() {
-            return self.reporter.context.templates;
-        }
-    });
-
 
     var templateAttributes = {
         _id: { type: "id", key: true, computed: true, nullable: false },
@@ -134,7 +122,7 @@ Templating.prototype._defineEntities = function() {
         recipe: { type: "string" },
         helpers: { type: "string" },
         engine: { type: "string" },
-        modificationDate: { type: "date" },
+        modificationDate: { type: "date" }
     };
 
     if (this.reporter.playgroundMode) {

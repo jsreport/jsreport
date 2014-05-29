@@ -7,7 +7,6 @@
 var shortid = require("shortid"),
     winston = require("winston"),
     fork = require('child_process').fork,
-    sformat = require("stringformat"),
     _ = require("underscore"),
     join = require("path").join,
     Q = require("q");
@@ -27,7 +26,7 @@ Scripts = function (reporter, definition) {
         creationDate: { type: "date" },
         modificationDate: { type: "date" },
         content: { type: "string" },
-        name: { type: "string" },
+        name: { type: "string" }
     }, null);
 
     if (this.reporter.playgroundMode) {
@@ -63,7 +62,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
         return request.context.scripts.single(function(s) { return s.shortid == this.id; }, { id: request.template.scriptId });
-    };
+    }
 
     return FindScript().then(function(script) {
 
@@ -96,7 +95,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                     data: request.data,
                     template: {
                         content: request.template.content,
-                        helpers: request.template.helpers,
+                        helpers: request.template.helpers
                     }
                 },
                 response: response
@@ -132,4 +131,4 @@ function createEntitySetDefinitions(entitySets) {
     if (!this.reporter.playgroundMode) {
         entitySets["scripts"] = { type: $data.EntitySet, elementType: this.ScriptType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
     }
-};
+}

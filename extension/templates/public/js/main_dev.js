@@ -33,7 +33,7 @@ define(["jquery", "app", "marionette", "backbone",
                     "extension/templates": "templates",
                     "extension/templates/:id(/)(:version)": "templateDetail",
                     "playground": "playground",
-                    "playground/:id(/:version)": "playground",
+                    "playground/:id(/:version)": "playground"
                 },
 
                 templates: function() {
@@ -51,8 +51,6 @@ define(["jquery", "app", "marionette", "backbone",
                     function show() {
                         app.layout.showToolbarViewComposition(new TemplateDetailView({ model: model }), new ToolbarView({ model: model }));
                     }
-
-                    ;
 
                     if (id != null) {
                         model.set("shortid", id);
@@ -77,7 +75,7 @@ define(["jquery", "app", "marionette", "backbone",
                     }
 
                     this.showTemplateView(id, version);
-                },
+                }
             });
 
             module.on("created", function() {
@@ -115,7 +113,7 @@ define(["jquery", "app", "marionette", "backbone",
                     'recipe': { 'type': 'Edm.String' },
                     'content': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
-                    'helpers': { 'type': 'Edm.String' },
+                    'helpers': { 'type': 'Edm.String' }
                 };
 
                 if (app.settings.playgroundMode) {

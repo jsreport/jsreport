@@ -19,12 +19,6 @@ Statistics = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
-    Object.defineProperty(this, "entitySet", {
-        get: function () {
-            return reporter.context.statistics;
-        }
-    });
-    
     this.reporter.beforeRenderListeners.add(definition.name, this, Statistics.prototype.handleBeforeRender);
     this.reporter.afterRenderListeners.add(definition.name, this, Statistics.prototype.handleAfterRender);
     this.reporter.entitySetRegistrationListners.add(definition.name, this, Statistics.prototype.createEntitySetDefinitions);
@@ -42,7 +36,7 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
                 stat = new self.StatisticType({
                     amount: 1,
                     success: 0,
-                    fiveMinuteDate: fiveMinuteDate,
+                    fiveMinuteDate: fiveMinuteDate
                 });
                 request.context.statistics.add(stat);
             } else {
@@ -70,7 +64,7 @@ Statistics.prototype.createEntitySetDefinitions = function (entitySets) {
         _id: { type: "id", key: true, computed: true, nullable: false },
         fiveMinuteDate: { type: "date" },
         amount: { type: "int", increment: true },
-        success: { type: "int", increment: true },
+        success: { type: "int", increment: true }
     }, null);
     
     entitySets["statistics"] = { type: $data.EntitySet, elementType: this.StatisticType, tableOptions: { nedbPersistance: "singleFile" }  };

@@ -4,18 +4,13 @@
  * Rendering wrapper that is starting actual rendering safely in child process.
  */ 
 
-var childProcess = require('child_process'),
-    phantomjs = require('phantomjs'),
-    binPath = phantomjs.path,
-    fork = require('child_process').fork,
+var fork = require('child_process').fork,
     shortid = require("shortid"),
     join = require("path").join,
     winston = require("winston"),
-    sformat = require("stringformat"),
     fs = require("fs"),
     util = require("../util.js"),
     _ = require("underscore"),
-    Readable = require("stream").Readable,
     async = require("async");
 
 module.exports = function (request, response, cb) {

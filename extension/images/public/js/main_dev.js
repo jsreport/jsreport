@@ -8,7 +8,7 @@
             var Router = Backbone.Router.extend({
                 routes: {
                     "extension/images": "images",
-                    "extension/images/:id": "detail",
+                    "extension/images/:id": "detail"
                 },
 
                 images: function() {
@@ -29,7 +29,7 @@
                     app.layout.showToolbarViewComposition(new ImageDetailView({ model: model }), new ImageToolbarView({ model: model }));
 
                     model.fetch();
-                },
+                }
             });
 
             app.images.router = new Router();
@@ -40,7 +40,7 @@
                     var uploader = $($el).find('#actionImageUploader').imageUploader({
                         complete: function(response) {
                             app.images.router.detail(response.shortid);
-                        },
+                        }
                     });
 
                     $($el).find("#uploadImage").click(function() {
@@ -78,7 +78,7 @@
                     "shortid": { 'type': 'Edm.String' },
                     "name": { 'type': 'Edm.String' },
                     "creationDate": { type: "date" },
-                    "modificationDate": { type: "date" },
+                    "modificationDate": { type: "date" }
                 }, null);
 
                 $entity.Image.prototype.toString = function() {

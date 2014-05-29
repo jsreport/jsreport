@@ -9,7 +9,7 @@ describeReporting(path.join(__dirname, "../../"), ["data"], function (reporter) 
         it('should find and use data', function (done) {
             var dataItem = {
                 name: "test",
-                dataJson: JSON.stringify({ a: 'xx' }) + "",
+                dataJson: JSON.stringify({ a: 'xx' }) + ""
             };
 
             reporter.data.create(reporter.context, dataItem).then(function(data) {
@@ -42,7 +42,7 @@ describeReporting(path.join(__dirname, "../../"), ["data"], function (reporter) 
             });
         });
         
-        it('should ignore extension when no inline data specified', function(done) {
+        it('should ignore extension when no data specified', function(done) {
             var request = {
                 reporter: reporter,
                 template: { content: "html", dataItemId: null },
