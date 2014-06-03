@@ -24,6 +24,32 @@ Please see [contrib repository](https://github.com/jsreport/jsreport-contrib) fo
 
 Pull requests to this core repository are also welcome.
 
+##Roadmap
+
+###current
+jsreport is currently in beta state. We are focusing mostly on the following areas:
+
+1. Fixing incoming bugs from users
+2. Improve codebase to make easier open source contributions, splitting main jsreport github repository into separated jsreport, playground, online
+3. Provide playground and online hosted solutions high availability in azure
+4. Java sdk
+5. Collect new features for jsreport vNext
+
+###vNext
+
+Following features are currently on the list, but it's subject to be changed.
+
+####Scheduled reports generation
+
+####End user custom reporting extension 
+Developers can export from jsreport lightweight embeddable html page allowing end user to simply modify report colors or reorganize report by drag and drop.
+
+####Visual studio integration
+
+####Chrome javascript helpers debugging
+
+####Other features???
+
 ## License 
 
 Copyright (c) 2014 Jan Blaha &lt;jan.blaha at hotmail.com&gt;
