@@ -45,7 +45,7 @@ Phantom = function(reporter, definition) {
         orientation: { type: "string" },
         format: { type: "string" },
         width: { type: "string" },
-        height: { type: "string" },
+        height: { type: "string" }
     }, null);
 
     reporter.templates.TemplateType.addMember("phantom", { type: this.PhantomType });

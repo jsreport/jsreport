@@ -27,7 +27,7 @@ describe('multitenancy with testing account', function() {
             cookieName: 'session',
             cookie: { domain: "local.net"},
             secret: "foo",
-            duration: 1000 * 60 * 60 * 24 * 365 * 10, // forever
+            duration: 1000 * 60 * 60 * 24 * 365 * 10 // forever
         }));
         app.use(serveStatic(path.join(__dirname, 'views')));
         app.engine('html', require('ejs').renderFile);

@@ -93,7 +93,7 @@ Reporter.prototype.init = function() {
                 });
             });
         }).fail(function(e) {
-            self.logger.error("Error occured during reporter init " + e.toString());
+            self.logger.error("Error occured during reporter init " + e.stack);
             return e;
         });
     });
