@@ -34,6 +34,7 @@
     "moment": "*",
     "memorystream": "*",
     "mongodb": "*",
+    "nconf": "*",
     "nedb": "*",
     "node.extend": "*",
     "node-jsrender": "*",

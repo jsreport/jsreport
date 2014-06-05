@@ -67,7 +67,7 @@ describe('multitenancy with testing account', function() {
             request(app).get(registrationResponse.header.location)
                 .set("cookie", registrationResponse.headers['set-cookie'])
                 .end(function(err, res) {
-                    res.text.should.include("joj.");
+                    res.text.should.containEql("joj.");
                     done();
                 });
         });
@@ -85,7 +85,7 @@ describe('multitenancy with testing account', function() {
                     request(app).get(res.header.location)
                         .set("cookie", res.headers['set-cookie'])
                         .end(function(err, res) {
-                            res.text.should.include("jsreport$login");
+                            res.text.should.containEql("jsreport$login");
                             done();
                         });
                 });
@@ -101,7 +101,7 @@ describe('multitenancy with testing account', function() {
                     request(app).get(res.header.location)
                         .set("cookie", res.headers['set-cookie'])
                         .end(function(err, res) {
-                            res.text.should.include("joj.");
+                            res.text.should.containEql("joj.");
                             done();
                         });
                 });
@@ -133,7 +133,7 @@ describe('multitenancy with testing account', function() {
             request(app).get(registrationResponse.header.location)
                 .set("cookie", registrationResponse.headers['set-cookie'])
                 .end(function(err, res) {
-                    res.text.should.include("jsreport$studio");
+                    res.text.should.containEql("jsreport$studio");
                     done();
                 });
         });
@@ -150,7 +150,7 @@ describe('multitenancy with testing account', function() {
                     request(app).get(res.header.location)
                         .set("cookie", res.headers['set-cookie'])
                         .end(function(err, res) {
-                            res.text.should.include("jsreport$login");
+                            res.text.should.containEql("jsreport$login");
                             done();
                         });
                 });
@@ -166,7 +166,7 @@ describe('multitenancy with testing account', function() {
                     request(app).get(res.header.location)
                         .set("cookie", res.headers['set-cookie'])
                         .end(function(err, res) {
-                            res.text.should.include("jsreport$studio");
+                            res.text.should.containEql("jsreport$studio");
                             done();
                         });
                 });
