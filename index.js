@@ -1,4 +1,4 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
@@ -18,7 +18,7 @@ if (require.main === module) {
         console.log("Creating server.js, config.js and package.json ");
 
         if (!fs.existsSync("server.js") || force) {
-            fs.writeFileSync("server.js", "ReportingServer = require('jsreport').ReportingServer;\r\nnew ReportingServer(require(\"./config.json\")).start();");
+            fs.writeFileSync("server.js", fs.readFileSync(path.join(__dirname, "server.js")));
         }
 
         if (!fs.existsSync("config.json") || force) {

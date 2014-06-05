@@ -1,4 +1,4 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
  * Reporter main class responsible for rendering process.
@@ -165,7 +165,7 @@ Reporter.prototype.render = function(request) {
 
     request.options = request.options || {};
 
-    if (request.options.timeout == null || request.options.timeout == 0)
+    if (!request.options.timeout)
         request.options.timeout = 30000;
 
     request.context = this.startContext();
