@@ -17,8 +17,8 @@ var logger = winston.loggers.get('jsreport');
 
 
 module.exports = Fop = function(reporter) {
-    if (!fs.existsSync(join("reports-tmpl"))) {
-        fs.mkdir(join("reports-tmpl"));
+    if (!fs.existsSync(join("data/temp"))) {
+        fs.mkdir(join("data/temp"));
     }
 
     reporter.extensionsManager.recipes.push({
@@ -27,7 +27,7 @@ module.exports = Fop = function(reporter) {
         execute: function(request, response) {
             logger.info("Rendering fop start.");
 
-            var foFilePath = join("reports-tmpl", shortid.generate() + ".fo");
+            var foFilePath = join("data/temp", shortid.generate() + ".fo");
             var htmlRecipe = _.findWhere(reporter.extensionsManager.recipes, { name: "html" });
 
             return htmlRecipe.execute(request, response)

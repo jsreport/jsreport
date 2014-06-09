@@ -11,13 +11,14 @@ describeReporting(path.join(__dirname, "../../"), ["childTemplates"], function(r
 
             reporter.templates.create({
                 content: "{{>~a()}}",
+                engine: "jsrender",
                 helpers: "function a() { return \"foo\"; }",
                 recipe: "html",
                 name: "t1" }).then(function(t) {
 
                 var request = {
                     template: { content: "a{#child t1}ba{#child t1}" },
-                    context: reporter.context,
+                    context: reporter.context
                 };
 
                 reporter.childTemplates.handleBeforeRender(request, {}).then(function() {

@@ -85,11 +85,6 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                 if (!this.validate())
                     return;
 
-                if (app.settings.playgroundMode) {
-                    this.model.originalEntity = new $entity.Template();
-                    this.model.set("_id", null);
-                }
-
                 this.model.save({}, {
                     success: function() {
                         app.trigger("template-saved", self.model);

@@ -50,8 +50,8 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                     packages: [
                         {
                             name: extension.name,
-                            location: '../extension/' + extension.name + '/public/js',
-                            main: "main"
+                            location: '/extension/' + extension.name + '/public/js',
+                            main: jsreport_mode == "production" ? "main_built" : "main"
                         }
                     ]
                 });

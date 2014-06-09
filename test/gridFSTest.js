@@ -1,10 +1,10 @@
 ﻿var assert = require("assert"),
-    Reporter = require("../reporter.js"),
+    Reporter = require("../lib/reporter.js"),
     fs = require('fs'),
     join = require("path").join,
-    util = require("../util.js"),
+    util = require("../lib/util/util.js"),
     shortid = require("shortid"),
-    GridFS = require("../blobStorage/gridFS.js"),
+    GridFS = require("../lib/blobStorage/gridFS.js"),
     MemoryStream = require('memorystream'),
     Readable = require("stream").Readable,
     MongoClient = require("mongodb").MongoClient;

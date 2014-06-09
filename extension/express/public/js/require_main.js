@@ -6,6 +6,7 @@ requirejs.config({
     baseUrl: "/js",
     waitSeconds: 60,
     paths: {
+        app: (typeof jsreport_mode !== 'undefined' && jsreport_mode === "production") ? "app_built" : "app_dev",
         underscore: "../lib/underscore",
         backbone: "../lib/backbone",
         originalmarionette: "../lib/backbone.marionette",
@@ -36,7 +37,7 @@ requirejs.config({
         async: "../lib/async",
         deferred: "../lib/deferred",
         text: "../lib/text",
-        ace: "../lib/ace",
+        ace: "../lib/ace"
     },
 
     shim: {
@@ -93,7 +94,7 @@ requirejs.config({
                 "jquery.flot.time", "dialog", "jquery.ui.selectable", 
                 "errorAlert", "toastr", "split-pane", "jquery.fineuploader"],
             exports: "$"
-        },
+        }
     }
 });
 

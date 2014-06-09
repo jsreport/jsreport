@@ -1,6 +1,6 @@
 ﻿var expect = require('expect.js'),
     assert = require("assert"),
-    handlebars = require("../render/handlebarsEngine.js");
+    handlebars = require("../lib/render/handlebarsEngine.js");
 
 describe('render handlebars', function () {
 

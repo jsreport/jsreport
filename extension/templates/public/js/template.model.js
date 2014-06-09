@@ -8,9 +8,7 @@ define(["app", "core/jaydataModel"], function(app, ModelBase) {
 
         fetchQuery: function() {
 
-            var predicate = app.settings.playgroundMode ?
-                function(t) { return t.shortid == this.id && t.version == this.version; } :
-                function(t) { return t.shortid == this.id; };
+            var predicate = function(t) { return t.shortid == this.id; };
 
             return app.dataContext.templates.single(predicate,
                 { id: this.get("shortid"), version: this.get("version") == null ? 1 : this.get("version") });
@@ -22,7 +20,7 @@ define(["app", "core/jaydataModel"], function(app, ModelBase) {
 
         defaults: {
             engine: "handlebars",
-            recipe: "phantom-pdf",
-        },
+            recipe: "phantom-pdf"
+        }
     });
 });

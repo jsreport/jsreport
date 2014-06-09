@@ -2,7 +2,7 @@
  * Copyright(c) 2014 Jan Blaha 
  *
  * Extension allowing to run custom scripts and modify request before rendering process starts.
- */ 
+ */
 
 var shortid = require("shortid"),
     winston = require("winston"),
@@ -20,7 +20,7 @@ module.exports = function (reporter, definition) {
 Scripts = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
-    
+
     this.ScriptType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Script"), $data.Entity, null, {
         shortid: { type: "string"},
         creationDate: { type: "date" },
@@ -29,24 +29,22 @@ Scripts = function (reporter, definition) {
         name: { type: "string" }
     }, null);
 
-    if (this.reporter.playgroundMode) {
-        reporter.templates.TemplateType.addMember("script", { type: this.ScriptType });
-    } else {
-        this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
-        reporter.templates.TemplateType.addMember("scriptId", { type: "string" });
-    }
-    
+    this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
+    reporter.templates.TemplateType.addMember("scriptId", { type: "string" });
+
     this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
     this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
-    
+
     this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
 
-Scripts.prototype.create = function(context, script) {
+Scripts.prototype.create = function (context, script) {
     var entity = new this.ScriptType(script);
     context.scripts.add(entity);
-    return context.scripts.saveChanges().then(function() { return Q(entity); });
+    return context.scripts.saveChanges().then(function () {
+        return Q(entity);
+    });
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
@@ -58,21 +56,23 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     function FindScript() {
         if (request.template.script != null && request.template.script != "")
             return Q(request.template.script);
-        
+
         logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
-        return request.context.scripts.single(function(s) { return s.shortid == this.id; }, { id: request.template.scriptId });
+        return request.context.scripts.single(function (s) {
+            return s.shortid == this.id;
+        }, { id: request.template.scriptId });
     }
 
-    return FindScript().then(function(script) {
+    return FindScript().then(function (script) {
 
         script = script.content || script;
         var child = fork(join(__dirname, "scriptEvalChild.js"));
         var isDone = false;
 
-        return Q.nfcall(function(cb) {
+        return Q.nfcall(function (cb) {
 
-            child.on('message', function(m) {
+            child.on('message', function (m) {
                 isDone = true;
                 if (m.error) {
                     logger.error("Child process process resulted in error " + JSON.stringify(m.error));
@@ -103,7 +103,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
             logger.info("Child process started.");
 
-            setTimeout(function() {
+            setTimeout(function () {
                 if (isDone)
                     return;
 
@@ -115,20 +115,18 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     });
 };
 
-Scripts.prototype._beforeCreateHandler = function(args, entity) {
-     if (entity.shortid == null)
+Scripts.prototype._beforeCreateHandler = function (args, entity) {
+    if (entity.shortid == null)
         entity.shortid = shortid.generate();
-    
+
     entity.creationDate = new Date();
     entity.modificationDate = new Date();
 };
 
-Scripts.prototype._beforeUpdateHandler = function(args, entity) {
+Scripts.prototype._beforeUpdateHandler = function (args, entity) {
     entity.modificationDate = new Date();
 };
 
 function createEntitySetDefinitions(entitySets) {
-    if (!this.reporter.playgroundMode) {
-        entitySets["scripts"] = { type: $data.EntitySet, elementType: this.ScriptType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
-    }
+    entitySets["scripts"] = { type: $data.EntitySet, elementType: this.ScriptType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
 }

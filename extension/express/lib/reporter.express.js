@@ -7,7 +7,6 @@ var async = require("async"),
     _ = require("underscore"),
     path = require("path"),
     dir = require("node-dir"),
-    Reporter = require("../../../reporter.js"),
     odata_server = require('odata-server'),
     Q = require("q"),
     serveStatic = require('serve-static');
@@ -21,7 +20,10 @@ module.exports = function(reporter, definition) {
     app.engine('html', require('ejs').renderFile);
 
     app.get("/", function(req, res, next) {
-        res.render(path.join(__dirname, '../public/views', 'root.html'),reporter.options);
+        if (reporter.options.NODE_ENV === "production")
+            res.render(path.join(__dirname, '../public/views', 'root_built.html'),reporter.options);
+        else
+            res.render(path.join(__dirname, '../public/views', 'root_dev.html'),reporter.options);
     });
 
     app.use(function(req, res, next) {
@@ -89,10 +91,7 @@ module.exports = function(reporter, definition) {
 
     app.get("/api/settings", function(req, res, next) {
         res.send({
-            playgroundMode: reporter.playgroundMode,
-            mode: reporter.options.mode,
             tenant: reporter.options.tenant
-            
         });
     });
 

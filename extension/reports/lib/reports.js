@@ -4,11 +4,9 @@
  * Reports extension allows to store rendering output into storage for later use.
  */ 
 
-var Readable = require("stream").Readable,
-    winston = require("winston"),
+var winston = require("winston"),
     events = require("events"),
     util = require("util"),
-    sformat = require("stringformat"),
     async = require("async"),
     _ = require("underscore"),
     Q = require("q"),
@@ -69,7 +67,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         fileExtension: response.headers["File-Extension"],
         templateShortid: request.template.shortid,
         creationDate: new Date(),
-        contentType: response.headers['Content-Type'],
+        contentType: response.headers['Content-Type']
     });
 
 
@@ -101,7 +99,7 @@ Reporting.prototype.createEntitySetDefinitions = function (entitySets) {
         contentType: { type: "string" },
         name: { type: "string" },
         fileExtension: { type: "string" },
-        templateShortid: { type: "string" },
+        templateShortid: { type: "string" }
     }, null);
     
     entitySets["reports"] = { type: $data.EntitySet, elementType: this.ReportType, tableOptions: { nedbPersistance: "singleFile" }  }; 

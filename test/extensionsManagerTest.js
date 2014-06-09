@@ -1,5 +1,4 @@
 ﻿var assert = require("assert"),
-    //Reporter = require("reporter");
     path = require("path"),
     Q = require("q"),
     sinon = require("sinon"),
@@ -14,7 +13,7 @@ describe('ExtensionsManager', function () {
         var stub = {};
         templates = sinon.spy();
         stub[path.join(__dirname, "../extension/templates/lib/templates.js")] = templates;
-        var ExtensionsManager = proxyquire('../extensionsManager.js', stub);
+        var ExtensionsManager = proxyquire('../lib/extensionsManager.js', stub);
 
         var reporter = {};
         settings = { get: function () { return null; }, add: function () { return Q(); }, set: function () { return Q(); } };
@@ -30,7 +29,7 @@ describe('ExtensionsManager', function () {
         this.extensionsManager.init().then(function () {
             assert.equal(true, templates.called);
             done();
-        });
+        }, done);
     });
     
     it('init should use settings for default extensions if exist', function (done) {
@@ -41,6 +40,6 @@ describe('ExtensionsManager', function () {
         this.extensionsManager.init().then(function () {
             assert.equal(false, templates.called);
             done();
-        });
+        }, done);
     });
 });

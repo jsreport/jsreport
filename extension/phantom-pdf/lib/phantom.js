@@ -23,8 +23,8 @@ var logger = winston.loggers.get('jsreport');
 module.exports = Phantom = function(reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
 
-    if (!fs.existsSync("reports-tmpl")) {
-        fs.mkdir("reports-tmpl");
+    if (!fs.existsSync("data/temp")) {
+        fs.mkdir("data/temp");
     }
 };
 
@@ -63,7 +63,7 @@ Phantom.prototype.execute = function(request, response) {
     request.template.phantom = request.template.phantom || new self.PhantomType();
     
     var generationId = shortid.generate();
-    var htmlFile = join("reports-tmpl", generationId + ".html");
+    var htmlFile = join("data/temp", generationId + ".html");
 
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
@@ -74,11 +74,11 @@ Phantom.prototype.execute = function(request, response) {
             
             return Q.nfcall(function(cb) {
                 var childArgs = [	
-		    '--ignore-ssl-errors=yes',	    
+		            '--ignore-ssl-errors=yes',
                     '--web-security=false',
                     join(__dirname, 'convertToPdf.js'),
                     request.template.phantom.url || ("file:///" + path.resolve(htmlFile)),
-                    join("reports-tmpl", generationId + ".pdf"),		   
+                    join("data/temp", generationId + ".pdf"),
                     request.template.phantom.margin || "null",
                     request.template.phantom.headerFile || "null",
                     request.template.phantom.footerFile || "null",
@@ -90,7 +90,6 @@ Phantom.prototype.execute = function(request, response) {
                     request.template.phantom.format || "null"
                 ];
 
-                //var phantomPath = join(__dirname, "../../../", "node_modules", ".bin", "phantomjs.CMD");
                 childProcess.execFile(binPath, childArgs, function(error, stdout, stderr) {
                     logger.info("Rastering pdf child process end.");
 
@@ -121,7 +120,7 @@ Phantom.prototype._processHeaderFooter = function(request, generationId, type) {
     req.options.saveResult = false;
 
     return this.reporter.render(req).then(function(resp) {
-        var filePath = join("reports-tmpl", generationId + "-" + type + ".html");
+        var filePath = join("data/temp", generationId + "-" + type + ".html");
         return FS.write(filePath, resp.result).then(function() {
             request.template.phantom[type + "File"] = filePath;
         });

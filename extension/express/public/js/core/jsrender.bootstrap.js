@@ -19,10 +19,6 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
             return require("app").settings;
         },
 
-        getMode: function() {
-            return require("app").settings.playgroundMode;
-        },
-
         getTenant: function() {
             return require("app").settings.tenant;
         },

@@ -1,5 +1,5 @@
 ﻿var assert = require("assert"),
-    jsrender = require("../render/jsrenderEngine.js");
+    jsrender = require("../lib/render/jsrenderEngine.js");
 
 describe('render jsrender', function () {
 

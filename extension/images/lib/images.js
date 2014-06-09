@@ -61,11 +61,7 @@ Images = function(reporter, definition) {
                     }
                 });
 
-                reporter.context.templates.updateEnabled = true;
-                return reporter.context.templates.saveChanges().then(function() {
-                    reporter.context.templates.updateEnabled = false;
-                    return Q();
-                });
+                return reporter.context.templates.saveChanges();
             });
         });
 };
@@ -181,9 +177,7 @@ Images.prototype._defineEntities = function() {
 
     this.reporter.templates.TemplateType.addMember("images", { type: "Array", elementType: this.ImageRefType });
 
-    if (!this.reporter.playgroundMode) {
-        this.reporter.templates.TemplateHistoryType.addMember("images", { type: "Array", elementType: this.ImageRefType });
-    }
+    this.reporter.templates.TemplateHistoryType.addMember("images", { type: "Array", elementType: this.ImageRefType });
 };
 
 Images.prototype._createEntitySetDefinitions = function(entitySets) {

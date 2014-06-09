@@ -1,31 +1,25 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
- */ 
+ */
 
 define(["jquery", "app", "marionette", "backbone",
         "./template.list.model", "./template.list.view", "./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",
         "./template.detail.toolbar.view"],
-    function($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel,
-        TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
+    function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
 
-        return app.module("template", function(module) {
+        return app.module("template", function (module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
             module.TemplateListTooolbarView = TemplateListTooolbarView;
             module.TemplateDetailTooolbarView = ToolbarView;
 
             var Router = Backbone.Router.extend({
-                initialize: function() {
+                initialize: function () {
                     var self = this;
-                    app.listenTo(app, "template-saved", function(templateModel) {
-                        if (app.settings.playgroundMode) {
-                            self.navigatingForFirstSave = true;
-                        }
-
-                        self.navigate("/playground/" + templateModel.get("shortid") +
-                            (app.settings.playgroundMode ? ("/" + templateModel.get("version")) : ""));
+                    app.listenTo(app, "template-saved", function (templateModel) {
+                        self.navigate("/playground/" + templateModel.get("shortid"));
                     });
                 },
 
@@ -36,7 +30,7 @@ define(["jquery", "app", "marionette", "backbone",
                     "playground/:id(/:version)": "playground"
                 },
 
-                templates: function() {
+                templates: function () {
                     this.navigate("/extension/templates");
                     var model = new TemplateListModel();
 
@@ -45,7 +39,7 @@ define(["jquery", "app", "marionette", "backbone",
                     model.fetch();
                 },
 
-                showTemplateView: function(id, version) {
+                showTemplateView: function (id, version) {
                     var model = new TemplateModel({ version: version });
 
                     function show() {
@@ -55,7 +49,7 @@ define(["jquery", "app", "marionette", "backbone",
                     if (id != null) {
                         model.set("shortid", id);
                         model.fetch({
-                            success: function() {
+                            success: function () {
                                 show();
                             }
                         });
@@ -64,11 +58,11 @@ define(["jquery", "app", "marionette", "backbone",
                     }
                 },
 
-                templateDetail: function(id, version) {
+                templateDetail: function (id, version) {
                     this.showTemplateView(id, version);
                 },
 
-                playground: function(id, version) {
+                playground: function (id, version) {
                     if (this.navigatingForFirstSave) {
                         this.navigatingForFirstSave = false;
                         return;
@@ -78,32 +72,30 @@ define(["jquery", "app", "marionette", "backbone",
                 }
             });
 
-            module.on("created", function() {
+            module.on("created", function () {
                 module.router.templates();
             });
 
             module.router = new Router();
 
-            if (!app.settings.playgroundMode) {
 
-                app.on("menu-render", function(context) {
-                    context.result += "<li><a href='#/extension/templates'>Templates</a></li>";
-                });
+            app.on("menu-render", function (context) {
+                context.result += "<li><a href='#/extension/templates'>Templates</a></li>";
+            });
 
-                app.on("menu-actions-render", function(context) {
-                    context.result += "<li><a href='#/playground'>Create Template</a></li>";
-                });
+            app.on("menu-actions-render", function (context) {
+                context.result += "<li><a href='#/playground'>Create Template</a></li>";
+            });
 
-                app.on("dashboard-extensions-render", function(region) {
-                    var model = new DashboardModel();
-                    region.show(new DashboardView({
-                        collection: model
-                    }), "templates");
-                    model.fetch();
-                });
-            }
+            app.on("dashboard-extensions-render", function (region) {
+                var model = new DashboardModel();
+                region.show(new DashboardView({
+                    collection: model
+                }), "templates");
+                model.fetch();
+            });
 
-            app.on("entity-registration", function(context) {
+            app.on("entity-registration", function (context) {
 
                 var templateAttributes = {
                     '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
@@ -116,12 +108,8 @@ define(["jquery", "app", "marionette", "backbone",
                     'helpers': { 'type': 'Edm.String' }
                 };
 
-                if (app.settings.playgroundMode) {
-                    templateAttributes.version = { 'type': 'Edm.Int32' };
-                }
-
                 $data.Entity.extend('$entity.Template', templateAttributes);
-                $entity.Template.prototype.toString = function() {
+                $entity.Template.prototype.toString = function () {
                     return "Template " + (this.name || "");
                 };
 

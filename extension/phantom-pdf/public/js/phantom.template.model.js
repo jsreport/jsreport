@@ -48,6 +48,6 @@
             this.listenTo(this, "change", function() {
                 self.copyAttributesToEntity(self.templateModel.get("phantom"));
             });
-        },
+        }
     });
 });

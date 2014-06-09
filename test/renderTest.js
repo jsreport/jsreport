@@ -1,5 +1,5 @@
 ﻿var assert = require("assert"),
-    render = require("../render/render.js"),
+    render = require("../lib/render/render.js"),
     assert = require("assert");
 
 describe('render', function () {
@@ -63,6 +63,7 @@ describe('render', function () {
     it('rendering should be able to evaluate global function helpers', function (done) {
         var request = {
             template: {
+                engine: "jsrender",
                 content: "{{:~foo()}}",
                 helpers: "function foo() { return 'test'; }"
             },
@@ -78,6 +79,7 @@ describe('render', function () {
     it('rendering should be able to evaluate object based helpers', function (done) {
         var request = {
             template: {
+                engine: "jsrender",
                 content: "{{:~foo()}}",
                 helpers: "{ \"foo\" : function() { return 'test'; } }"
             },

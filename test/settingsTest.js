@@ -1,5 +1,5 @@
 ﻿var assert = require("assert"),
-    Settings = require("../settings.js"),
+    Settings = require("../lib/util/settings.js"),
     foo = require("odata-server"),
     Q = require("q"),
     MongoClient = require('mongodb').MongoClient;

@@ -1,7 +1,7 @@
 ﻿define(["jquery", "app", "marionette", "backbone",
-        "./images.template.view", "./images.list.view",  "./images.list.toolbar.view", "./images.list.model",
+        "./images.list.view",  "./images.list.toolbar.view", "./images.list.model",
         "./images.toolbar.view", "./images.detail.view", "./images.model", "./images.uploader"],
-    function($, app, Marionette, Backbone, TemplateView, ImagesListView, ImagesListToolbarView, ImagesListModel,
+    function($, app, Marionette, Backbone, ImagesListView, ImagesListToolbarView, ImagesListModel,
         ImageToolbarView, ImageDetailView, ImageModel) {
 
         app.module("images", function(module) {
@@ -49,19 +49,9 @@
                 });
             });
 
-            if (app.settings.mode == "playground") {
-                app.on("template-extensions-render", function(context) {
-                    var view = new TemplateView();
-                    view.setTemplateModel(context.template);
-                    context.extensionsRegion.show(view);
-                });
-            }
-
-            if (!app.settings.playgroundMode) {
-                app.on("menu-render", function(context) {
+            app.on("menu-render", function(context) {
                     context.result += "<li><a href='#/extension/images'>Images</a></li>";
-                });
-            }
+            });
 
             app.on("entity-registration", function(context) {
 

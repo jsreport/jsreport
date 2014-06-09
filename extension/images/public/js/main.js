@@ -1,14 +1,14 @@
 ﻿define(["jquery", "app", "marionette", "backbone",
-        "./images.template.view", "./images.list.view",  "./images.list.toolbar.view", "./images.list.model",
+        "./images.list.view",  "./images.list.toolbar.view", "./images.list.model",
         "./images.toolbar.view", "./images.detail.view", "./images.model", "./images.uploader"],
-    function($, app, Marionette, Backbone, TemplateView, ImagesListView, ImagesListToolbarView, ImagesListModel,
+    function($, app, Marionette, Backbone, ImagesListView, ImagesListToolbarView, ImagesListModel,
         ImageToolbarView, ImageDetailView, ImageModel) {
 
         app.module("images", function(module) {
             var Router = Backbone.Router.extend({
                 routes: {
                     "extension/images": "images",
-                    "extension/images/:id": "detail",
+                    "extension/images/:id": "detail"
                 },
 
                 images: function() {
@@ -29,7 +29,7 @@
                     app.layout.showToolbarViewComposition(new ImageDetailView({ model: model }), new ImageToolbarView({ model: model }));
 
                     model.fetch();
-                },
+                }
             });
 
             app.images.router = new Router();
@@ -40,7 +40,7 @@
                     var uploader = $($el).find('#actionImageUploader').imageUploader({
                         complete: function(response) {
                             app.images.router.detail(response.shortid);
-                        },
+                        }
                     });
 
                     $($el).find("#uploadImage").click(function() {
@@ -49,19 +49,9 @@
                 });
             });
 
-            if (app.settings.mode == "playground") {
-                app.on("template-extensions-render", function(context) {
-                    var view = new TemplateView();
-                    view.setTemplateModel(context.template);
-                    context.extensionsRegion.show(view);
-                });
-            }
-
-            if (!app.settings.playgroundMode) {
-                app.on("menu-render", function(context) {
+            app.on("menu-render", function(context) {
                     context.result += "<li><a href='#/extension/images'>Images</a></li>";
-                });
-            }
+            });
 
             app.on("entity-registration", function(context) {
 
@@ -78,7 +68,7 @@
                     "shortid": { 'type': 'Edm.String' },
                     "name": { 'type': 'Edm.String' },
                     "creationDate": { type: "date" },
-                    "modificationDate": { type: "date" },
+                    "modificationDate": { type: "date" }
                 }, null);
 
                 $entity.Image.prototype.toString = function() {

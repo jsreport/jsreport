@@ -1,8 +1,8 @@
 ﻿var assert = require("assert"),
-    Reporter = require("../reporter.js"),
+    Reporter = require("../lib/reporter.js"),
     fs = require('fs'),
     path = require("path"),
-    util = require("../util.js"),
+    util = require("../lib/util/util.js"),
     describeReporting = require("./helpers.js").describeReporting;
 
 describeReporting(path.join(__dirname, "../"), [], function (reporter) {

@@ -3,7 +3,6 @@
     async = require("async"),
     join = require("path").join,
     path = require("path"),
-    Reports = require("../lib/reports.js"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     Q = require("q"),
     supertest = require('supertest');
@@ -19,7 +18,7 @@ describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
                 context: reporter.context,
                 template: {
                     name: "name",
-                    recipe: "html",
+                    recipe: "html"
                 },
                 headers: {}
             };

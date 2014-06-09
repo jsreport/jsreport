@@ -1,9 +1,10 @@
-/*! 
+﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
 if (require.main === module) {
     //jsreport commandline support can precreate app...
+
     var fs = require("fs"),
         path = require("path");
 
@@ -41,7 +42,7 @@ if (require.main === module) {
         initializeApp(true);
     }
 } else {
-    module.exports.Reporter = require("./reporter.js");
-    module.exports.ReportingServer = require("./reportingServer");
+    module.exports.Reporter = require("./lib/reporter.js");
+    module.exports.ReportingServer = require("./lib/reportingServer");
     module.exports.describeReporting = require("./test/helpers.js").describeReporting;
 }

@@ -1,4 +1,4 @@
-﻿var Reporter = require("../reporter.js"),
+﻿var Reporter = require("../lib/reporter.js"),
     jaydata = require("odata-server"),
     _ = require("underscore"),
     async = require("async"),
@@ -8,19 +8,8 @@
     MongoClient = require('mongodb').MongoClient,
     serveStatic = require('serve-static');
 
-
-exports.describeReportingPlayground = function(rootDirectory, extensions, nestedSuite) {
-    exports.describeReporting(rootDirectory, extensions, true, nestedSuite);
-};
-
-exports.describeReporting = function(rootDirectory, extensions, isPlayground, nestedSuite) {
-    if (_.isFunction(isPlayground)) {
-        nestedSuite = isPlayground;
-        isPlayground = false;
-    }
-
+exports.describeReporting = function(rootDirectory, extensions, nestedSuite) {
     describe("reporting", function() {
-
         var app = express();
         app.use(require("body-parser")());
         app.use(require("method-override")());
@@ -29,7 +18,6 @@ exports.describeReporting = function(rootDirectory, extensions, isPlayground, ne
         app.engine('html', require('ejs').renderFile);
 
         var reporter = new Reporter({
-            playgroundMode: isPlayground,
             tenant: { name: "test" },
             connectionString: { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 },
             extensions: _.union(["templates", "html", "phantom-pdf", "fop-pdf", "data", "reports", "statistics", "express"], extensions),
