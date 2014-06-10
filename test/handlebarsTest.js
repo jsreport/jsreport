@@ -1,5 +1,6 @@
-﻿var expect = require('expect.js'),
-    assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     handlebars = require("../lib/render/handlebarsEngine.js");
 
 describe('render handlebars', function () {

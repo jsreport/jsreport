@@ -7,63 +7,62 @@
 var shortid = require("shortid"),
     util = require("util"),
     _ = require("underscore"),
-    Q = require("q");
+    q = require("q");
 
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Data(reporter, definition);
 };
 
-Data = function (reporter, definition) {
+var Data = function (reporter, definition) {
     var self = this;
     this.reporter = reporter;
     this.definition = definition;
 
-    this.DataItemType = $data.Class.define(reporter.extendGlobalTypeName("$entity.DataItem"), $data.Entity, null, {
+    this.DataItemType = this.reporter.dataProvider.createEntityType("DataItemType", {
+        _id : { type: "id", key: true, computed: true, nullable: false },
         dataJson: { type: "string" },
         name: { type: "string" },
         creationDate: { type: "date" },
         shortid: { type: "string"},
         modificationDate: { type: "date" }
-    }, null);
+    });
 
-    this.DataItemType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
+    this.reporter.dataProvider.registerEntitySet("data", this.DataItemType, { tableOptions: { humanReadableKeys: [ "shortid"] }});
+
     reporter.templates.TemplateType.addMember("dataItemId", { type: "string" });
 
     this.DataItemType.addEventListener("beforeCreate", Data.prototype._beforeCreateHandler.bind(this));
     this.DataItemType.addEventListener("beforeUpdate", Data.prototype._beforeUpdateHandler.bind(this));
 
     this.reporter.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
-    this.reporter.entitySetRegistrationListners.add(definition.name, this, function (entitySets) {
-            entitySets["data"] = { type: $data.EntitySet, elementType: self.DataItemType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
-    });
 };
 
 Data.prototype.handleBeforeRender = function (request, response) {
     if (request.data) {
         this.reporter.logger.debug("Inline data specified.");
-        return Q();
+        return q();
     }
 
     if (!request.data && !request.template.dataItemId && !request.template.dataItem) {
         this.reporter.logger.debug("No data specified.");
-        return Q();
+        return q();
     }
 
     var self = this;
 
-    function FindDataItem() {
-        if (request.template.dataItem != null && request.template.dataItem != "")
-            return Q(request.template.dataItem);
+    function findDataItem() {
+        if (request.template.dataItem)
+            return q(request.template.dataItem);
 
         self.reporter.logger.info("Searching for before dataItem to apply");
 
         return request.context.data.single(function (d) {
-            return d.shortid == this.id;
+            return d.shortid === this.id;
         }, { id: request.template.dataItemId });
     }
 
-    return FindDataItem().then(function (di) {
+    return findDataItem().then(function (di) {
         di = di.dataJson || di;
 
         try {
@@ -71,7 +70,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
         } catch (e) {
             self.reporter.logger.warn("Invalid json in data item: " + e.message);
             e.weak = true;
-            return Q.reject(e);
+            return q.reject(e);
         }
     });
 };
@@ -81,12 +80,12 @@ Data.prototype.create = function (context, dataItem) {
     context.data.add(ent);
 
     return context.saveChanges().then(function () {
-        return Q(ent);
+        return q(ent);
     });
 };
 
 Data.prototype._beforeCreateHandler = function (args, entity) {
-    if (entity.shortid == null)
+    if (!entity.shortid)
         entity.shortid = shortid.generate();
 
     entity.creationDate = new Date();

@@ -9,7 +9,7 @@ var shortid = require("shortid"),
     fork = require('child_process').fork,
     _ = require("underscore"),
     join = require("path").join,
-    Q = require("q");
+    q = require("q");
 
 var logger = winston.loggers.get('jsreport');
 
@@ -17,60 +17,47 @@ module.exports = function (reporter, definition) {
     reporter[definition.name] = new Scripts(reporter, definition);
 };
 
-Scripts = function (reporter, definition) {
+var Scripts = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
-    this.ScriptType = $data.Class.define(reporter.extendGlobalTypeName("$entity.Script"), $data.Entity, null, {
-        shortid: { type: "string"},
-        creationDate: { type: "date" },
-        modificationDate: { type: "date" },
-        content: { type: "string" },
-        name: { type: "string" }
-    }, null);
-
-    this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
-    reporter.templates.TemplateType.addMember("scriptId", { type: "string" });
-
-    this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
-    this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
+    this._defineEntities();
 
     this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
-    this.reporter.entitySetRegistrationListners.add(definition.name, this, createEntitySetDefinitions);
 };
 
 Scripts.prototype.create = function (context, script) {
     var entity = new this.ScriptType(script);
     context.scripts.add(entity);
     return context.scripts.saveChanges().then(function () {
-        return Q(entity);
+        return q(entity);
     });
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
-    if (!request.template.scriptId && !(request.template.script != null && request.template.script.content)) {
+    if (!request.template.scriptId && !request.template.script) {
         logger.info("ScriptId not defined for this template.");
-        return Q();
+        return q();
     }
 
-    function FindScript() {
-        if (request.template.script != null && request.template.script != "")
-            return Q(request.template.script);
+    function findScript() {
+        if (request.template.script && request.template.script !== "")
+            return q(request.template.script);
 
         logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
         return request.context.scripts.single(function (s) {
-            return s.shortid == this.id;
+            return s.shortid === this.id;
         }, { id: request.template.scriptId });
     }
 
-    return FindScript().then(function (script) {
+    return findScript().then(function (script) {
 
         script = script.content || script;
         var child = fork(join(__dirname, "scriptEvalChild.js"));
         var isDone = false;
 
-        return Q.nfcall(function (cb) {
+        return q.nfcall(function (cb) {
 
             child.on('message', function (m) {
                 isDone = true;
@@ -116,7 +103,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 };
 
 Scripts.prototype._beforeCreateHandler = function (args, entity) {
-    if (entity.shortid == null)
+    if (!entity.shortid)
         entity.shortid = shortid.generate();
 
     entity.creationDate = new Date();
@@ -127,6 +114,21 @@ Scripts.prototype._beforeUpdateHandler = function (args, entity) {
     entity.modificationDate = new Date();
 };
 
-function createEntitySetDefinitions(entitySets) {
-    entitySets["scripts"] = { type: $data.EntitySet, elementType: this.ScriptType, tableOptions: { humanReadableKeys: [ "shortid"] }  };
+Scripts.prototype._defineEntities = function() {
+
+    this.ScriptType = this.reporter.dataProvider.createEntityType("ScriptType", {
+        shortid: { type: "string"},
+        creationDate: { type: "date" },
+        modificationDate: { type: "date" },
+        content: { type: "string" },
+        name: { type: "string" }
+    });
+
+    this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
+    this.reporter.templates.TemplateType.addMember("scriptId", { type: "string" });
+
+    this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
+    this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
+
+    this.reporter.dataProvider.registerEntitySet("scripts", this.ScriptType, { tableOptions: { humanReadableKeys: [ "shortid"] }  });
 }

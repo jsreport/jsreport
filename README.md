@@ -9,10 +9,12 @@ jsreport lets developers to define reports using  javascript templating engines 
 ## Development
 To be able to install and start jsreport on your development machine you need to do following.
 
-1. Install nodejs
-2. Clone this repository
+1. install nodejs
+2. clone this repository
 3. npm install
-4. grunt standard-debug
+4. grunt init
+5. set NODE_ENV=development
+6. node lib/server.js
 
 jsreport has two test suits:
 **grunt test** - start unit tests, only running mongodb is required

@@ -27,7 +27,7 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
     var self = this;
     
     var isRootRequest = false;
-    if (request.childs == null) {
+    if (!request.childs) {
         request.childs = {};
         isRootRequest = true;
     }
@@ -35,13 +35,13 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
     request.childs.childsCircleCache = request.childs.childsCircleCache || {};
 
     function convert(str, p1, offset, s, done) {
-        if (request.childs.childsCircleCache[p1] != null && !isRootRequest) {
+        if (request.childs.childsCircleCache[p1] && !isRootRequest) {
             return done(null, "circle in using child template " + p1);
         }
 
         request.childs.childsCircleCache[p1] = true;
 
-        request.context.templates.filter(function(t) { return t.name == this.name; }, { name: p1 }).toArray().then(function(res) {
+        request.context.templates.filter(function(t) { return t.name === this.name; }, { name: p1 }).toArray().then(function(res) {
             if (res.length < 1)
                 return done(null);
 

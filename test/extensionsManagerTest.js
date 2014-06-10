@@ -1,6 +1,8 @@
-﻿var assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     path = require("path"),
-    Q = require("q"),
+    q = require("q"),
     sinon = require("sinon"),
     proxyquire = require('proxyquire');
 
@@ -16,7 +18,7 @@ describe('ExtensionsManager', function () {
         var ExtensionsManager = proxyquire('../lib/extensionsManager.js', stub);
 
         var reporter = {};
-        settings = { get: function () { return null; }, add: function () { return Q(); }, set: function () { return Q(); } };
+        settings = { get: function () { return null; }, add: function () { return q(); }, set: function () { return q(); } };
         var logger = { info: function () { } };
  
         var options = { extensions: ["templates"], loadExtensionsFromPersistedSetting: true, rootDirectory: path.join(__dirname, "../") };

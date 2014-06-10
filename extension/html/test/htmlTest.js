@@ -1,4 +1,6 @@
-﻿var assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     fs = require('fs'),
     _ = require('underscore'),
     path = require("path"),

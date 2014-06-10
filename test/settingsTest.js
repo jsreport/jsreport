@@ -1,7 +1,9 @@
-﻿var assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     Settings = require("../lib/util/settings.js"),
     foo = require("odata-server"),
-    Q = require("q"),
+    DataProvider = require("../lib/dataProvider.js"),
     MongoClient = require('mongodb').MongoClient;
 
 
@@ -10,12 +12,14 @@ describe('Settings', function() {
     beforeEach(function(done) {
         var self = this;
         this.settings = new Settings();
-        var entitySets = {};
-        this.contextDefinition = $data.Class.defineEx("$entity.Context", [$data.EntityContext, $data.ServiceBase], null, this.settings.createEntitySetDefinitions(entitySets));
-        this.context = new this.contextDefinition({ name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 });
-        this.context.onReady(function() {
-            self.settings.init(self.context).then(function() {
-               done();     
+
+        this.dataProvider = new DataProvider({ name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 }, { name: "trest"});
+        this.settings.registerEntity(this.dataProvider);
+        this.dataProvider.buildContext();
+
+        this.dataProvider.startContext().then(function(context) {
+            self.settings.init(context).then(function() {
+                done();
             });
         });
     });

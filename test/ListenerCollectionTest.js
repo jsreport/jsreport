@@ -1,6 +1,8 @@
-﻿var assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     ListenerCollection = require("../lib/util/listenerCollection.js"),
-    Q = require("q");
+    q = require("q");
 
 describe('ListenersCollection', function () {
 
@@ -69,10 +71,10 @@ describe('ListenersCollection', function () {
      it('firePromise should return a valid awaitable promise', function (done) {
          
         this.listeners.add("test", function () {
-            return Q(1);
+            return q(1);
         });
         this.listeners.add("test", function () {
-            return Q(2);
+            return q(2);
         });
 
         this.listeners.fire().then(function(res) {
@@ -97,7 +99,7 @@ describe('ListenersCollection', function () {
     
      it('firePromise should return a valid promise that can catch errors', function (done) {
         this.listeners.add("test", function () {
-            return Q.reject(new Error("foo"));
+            return q.reject(new Error("foo"));
         });
 
         this.listeners.fire().fail(function() {
@@ -114,7 +116,7 @@ describe('ListenersCollection', function () {
               i++;
         });
         this.listeners.add("test", function () {
-            return Q(1);
+            return q(1);
         });
 
         this.listeners.fire().then(function(res) {
@@ -130,7 +132,7 @@ describe('ListenersCollection', function () {
         });
        
         this.listeners.add("test", function () {
-            return Q(1);
+            return q(1);
         });
 
         this.listeners.fire().then(function(res) {
@@ -146,7 +148,7 @@ describe('ListenersCollection', function () {
         });
        
         this.listeners.add("test", function () {
-            return Q.reject(new Error("foo"));
+            return q.reject(new Error("foo"));
         });
 
         this.listeners.fire().fail(function(err) {

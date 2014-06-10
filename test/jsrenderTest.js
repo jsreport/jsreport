@@ -1,4 +1,6 @@
-﻿var assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     jsrender = require("../lib/render/jsrenderEngine.js");
 
 describe('render jsrender', function () {

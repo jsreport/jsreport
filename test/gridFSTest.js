@@ -1,6 +1,6 @@
-﻿var assert = require("assert"),
-    Reporter = require("../lib/reporter.js"),
-    fs = require('fs'),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     join = require("path").join,
     util = require("../lib/util/util.js"),
     shortid = require("shortid"),

@@ -4,7 +4,7 @@
 
 var Q = require("q");
 
-module.exports = Html = function (reporter, definition) {
+var Html = module.exports  = function (reporter, definition) {
     reporter.extensionsManager.recipes.push({
         name: "html",
         execute: function(request, response) {

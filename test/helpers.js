@@ -1,5 +1,6 @@
-﻿var Reporter = require("../lib/reporter.js"),
-    jaydata = require("odata-server"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var Reporter = require("../lib/reporter.js"),
     _ = require("underscore"),
     async = require("async"),
     express = require("express"),
@@ -33,7 +34,10 @@ exports.describeReporting = function(rootDirectory, extensions, nestedSuite) {
             MongoClient.connect('mongodb://127.0.0.1:27017/test', {}, function (err, db) {
                 db.dropDatabase(function () {
                     reporter.init().then(function () {
-                        done();
+                        reporter.dataProvider.startContext().then(function(context) {
+                            reporter.context = context;
+                            done();
+                        });
                     });
                 });
             });

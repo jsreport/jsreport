@@ -1,4 +1,6 @@
-﻿var assert = require("assert"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     render = require("../lib/render/render.js"),
     assert = require("assert");
 

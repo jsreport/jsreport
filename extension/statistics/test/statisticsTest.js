@@ -1,5 +1,6 @@
-﻿var assert = require("assert"),
-    Statistics = require("../lib/statistics.js"),
+﻿/*globals describe, it, beforeEach, afterEach */
+
+var assert = require("assert"),
     path = require("path"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 

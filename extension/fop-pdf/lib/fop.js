@@ -16,7 +16,7 @@ var childProcess = require('child_process'),
 var logger = winston.loggers.get('jsreport');
 
 
-module.exports = Fop = function(reporter) {
+var Fop = module.exports = function(reporter) {
     if (!fs.existsSync(join("data/temp"))) {
         fs.mkdir(join("data/temp"));
     }
