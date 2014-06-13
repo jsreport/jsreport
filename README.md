@@ -30,9 +30,13 @@ jsreport loads `dev.config.json` or `prod.config.json` configuration file on sta
 See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documentation for details.
 
 ###Tests
+
  **grunt test** - start tests with file system based db (neDb), no mongo needed
+
  **grunt test-mongo** - start tests with mongo db, mongodb must be running on localhost
+
  **grunt test-all** - start tests with nedb and then once again with mongo (used with travis CI)
+
  **grunt test-integration** - start all tests with nedb including integration tests,  needs java, fop and phantomjs running
 
 ## Extensions and Contributions
