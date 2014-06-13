@@ -86,10 +86,11 @@
     "sinon": "*",
     "should": "*",
     "supertest": "*",
-    "grunt-contrib-watch": "^0.6.1"
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-env": "^0.4.1"
   },
   "scripts": {
-    "test": "grunt"
+    "test": "grunt test-all"
   },
   "main": "index.js",
   "licence": "AGPL",

@@ -7,7 +7,7 @@ var assert = require("assert"),
     jaydata = require("odata-server"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), [], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["templates"], function(reporter) {
 
     describe('templating', function() {
 

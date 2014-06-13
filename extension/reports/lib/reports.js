@@ -89,6 +89,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     }).then(function () {
         response.headers["Permanent-Link"] = "https://" + request.headers.host + "/api/report/" + report._id + "/content";
         response.headers["Report-Id"] = report._id;
+        response.headers["Report-BlobName"] = report.blobName;
     });
 };
 

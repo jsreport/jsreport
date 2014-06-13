@@ -1,4 +1,18 @@
-﻿module.exports = function(grunt) {
+﻿/*!
+ * Task automation for jsreport
+ *
+ * grunt init # build, combine and minify files
+ *
+ * grunt test # start tests with file system based db (neDb), no mongo needed
+ * grunt test-mongo # start tests with mongo db
+ * grunt test-all # start tests with nedb and then once again with mongo (used with travis CI)
+ * grunt test-integration # start all tests with nedb including integration tests including java fop and phantomjs
+ * grunt development # do a development build
+ * grunt production # do a production build with minification, combination...
+ */
+
+
+module.exports = function(grunt) {
 
     var commonPath = {
         jquery: "empty:",
@@ -35,7 +49,7 @@
                 }
             }
         };
-    };
+    }
 
     var extensions = ["express", "templates", "html", "phantom-pdf", "fop", "scripts", "data", "images", "examples", "statistics", "reports"];
 
@@ -63,14 +77,31 @@
                 run: true
             }
         },
+        env: {
+            dbNedb: {
+                DB: 'neDB'
+            },
+            dbMongo: {
+                DB: 'mongo'
+            }
+        },
         mochaTest: {
             test: {
+                options: {
+                    clearRequireCache: true
+                },
                 src: ['extension/*/test/*.js', 'test/*.js']
             },
             testExact: {
-                src: ['test/renderTest.js']
+                options: {
+                    clearRequireCache: true
+                },
+                src: [/*'test/gridFSTest.js',*/ 'extension/reports/test/*.js']
             },
-            testAll: {
+            integration: {
+                options: {
+                    clearRequireCache: true
+                },
                 src: ['extension/*/test/*.js', 'test/*.js', 'extension/*/integrationTest/*.js']
             }
         },
@@ -154,15 +185,24 @@
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-text-replace');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-env');
 
-    //'mochaTest'
-    grunt.registerTask('default', ['mochaTest:test']);
+    grunt.registerTask('default', ['init']);
 
     grunt.registerTask('init', ['development', 'production', 'watch']);
 
     grunt.registerTask('development', ['copy:dev', 'replace:devRoot', 'replace:devApp']);
     grunt.registerTask('production', [ 'requirejs', 'replace:productionRoot', 'replace:productionApp']);
 
-    grunt.registerTask('test-all', ['mochaTest:testAll']);
-    grunt.registerTask('test-exact', ['mochaTest:testExact']);
+    grunt.registerTask('test-nedb', ['env:dbNedb', 'mochaTest:test']);
+    grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);
+    grunt.registerTask('test', ['test-nedb']);
+
+    grunt.registerTask('foo', ['env:dbMongo', 'mochaTest:testExact', 'env:dbMongo', 'mochaTest:testExact']);
+
+    grunt.registerTask('test-all', ['test-mongo', 'test-nedb']);
+
+    grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
+
+    grunt.registerTask('test-exact', ['test-nedb', 'mochaTest:testExact']);
 };

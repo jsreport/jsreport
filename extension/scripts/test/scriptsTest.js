@@ -6,7 +6,7 @@ var assert = require("assert"),
     q = require("q");
 
 
-describeReporting(path.join(__dirname, "../../"), ["scripts"], function (reporter) {
+describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts"], function (reporter) {
 
     describe('scripts', function () {
         

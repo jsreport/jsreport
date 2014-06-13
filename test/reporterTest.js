@@ -4,7 +4,7 @@ var assert = require("assert"),
     path = require("path"),
     describeReporting = require("./helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../"), [], function (reporter) {
+describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (reporter) {
     
     describe('reporter', function () {
         
@@ -32,5 +32,16 @@ describeReporting(path.join(__dirname, "../"), [], function (reporter) {
                 done();
             });
         });
+
+        it('should parse string request.data into json', function (done) {
+            reporter.render({
+                template: { content: "{{{a}}}", engine: "handlebars", recipe: "html" },
+                data: "{ \"a\":\"1\" }"
+            }).then(function(resp) {
+                assert.equal("1", resp.result);
+                done();
+            });
+        });
+
     });
 });

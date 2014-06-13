@@ -6,6 +6,9 @@
 
 jsreport lets developers to define reports using  javascript templating engines (like jsrender or handlebars) and print them into pdf using [phantomjs](http://phantomjs.org) or [fop](http://xmlgraphics.apache.org/fop/). For more informations about the platform please visit http://jsreport.net
 
+## Production installation
+see [http://jsreport.net/downloads](http://jsreport.net/downloads)
+
 ## Development
 To be able to install and start jsreport on your development machine you need to do following.
 
@@ -16,9 +19,21 @@ To be able to install and start jsreport on your development machine you need to
 5. set NODE_ENV=development
 6. node lib/server.js
 
-jsreport has two test suits:
-**grunt test** - start unit tests, only running mongodb is required
-**grunt test-all** - start all tests, needs to have java and apache in the executable path
+###Environemnts
+jsreport adapts to `production` and `development` nodejs environments. Difference is that in `production` environment you get javascript files combined and minified for fast web application startup opposite to `development` environment where you get all js files individually what makes debugging easier. Second difference is that in `production` environment jsreport use `prod.config.json` as configuration file opposite to `dev.config.json` in `development.
+
+To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes production as default.
+
+###Configurations
+jsreport loads `dev.config.json` or `prod.config.json` configuration file on start up based on nodejs environment. If configuration file is not found, jsreport creates default configuration file from `example.config.json`.
+
+See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documentation for details.
+
+###Tests
+ **grunt test** - start tests with file system based db (neDb), no mongo needed
+ **grunt test-mongo** - start tests with mongo db, mongodb must be running on localhost
+ **grunt test-all** - start tests with nedb and then once again with mongo (used with travis CI)
+ **grunt test-integration** - start all tests with nedb including integration tests,  needs java, fop and phantomjs running
 
 ## Extensions and Contributions
 The easisest way how to contribute to jsreport open source community is to implement jsreport extension.

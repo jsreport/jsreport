@@ -8,7 +8,7 @@ var fs = require("fs"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(path.join(__dirname, "../../"), ["images"], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["express", "templates", "images"], function(reporter) {
 
     describe('images', function() {
 
