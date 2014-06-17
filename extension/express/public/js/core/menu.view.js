@@ -11,9 +11,16 @@ define(["app", "marionette", "underscore", "core/view.base", "backbone"], functi
             var self = this;
             _.bindAll(this, "renderMenuActionParts");
             this.listenTo(this, "render", function () {
-                if (self.renderMenuActionPartsContext != null)
+                if (self.renderMenuActionPartsContext !== null)
                     self.renderMenuActionPartsContext.trigger("after-render", self.$el);
             });
+        },
+
+        onDomRefresh: function() {
+            var $actionsDdl = this.$el.find("#actionsDropDown");
+
+            if ($actionsDdl.find("li").length === 1)
+                $actionsDdl.hide();
         },
         
         renderMenuParts: function () {
@@ -29,6 +36,6 @@ define(["app", "marionette", "underscore", "core/view.base", "backbone"], functi
             app.trigger("menu-actions-render", this.renderMenuActionPartsContext);
 
             return this.renderMenuActionPartsContext.result;
-        },
+        }
     });
 });

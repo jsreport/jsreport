@@ -2,7 +2,7 @@
     <li><a href="/"><i class="fa fa-home"></i></a></li>
     {{:~renderMenuParts()}}
 
-    <li class="dropdown">
+    <li class="dropdown" id="actionsDropDown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Actions <b class="caret"></b></a>
         <ul class="dropdown-menu">
             <li class="dropdown-header">actions</li>
@@ -11,7 +11,9 @@
     </li>
 </ul>
 
+
 <ul class="nav navbar-nav navbar-right">
+    {{if ~getTenant().name != ""}}
     <li class="dropdown">
         <a href="#" class="dropdown-toggle user-info-btn" data-toggle="dropdown"><i class="fa fa-user fa-logged"></i><span class="user-info"><small> Welcome,<br><b>{{:~getTenant().name}}</b> ({{:~getTenant().email}})</small></span> <b class="caret"></b></a>
         <ul class="dropdown-menu">
@@ -23,4 +25,6 @@
             </li>
         </ul>
     </li>
+    {{else}}{{/if}}
 </ul>
+

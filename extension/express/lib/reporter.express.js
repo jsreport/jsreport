@@ -21,7 +21,7 @@ module.exports = function(reporter, definition) {
     app.engine('html', require('ejs').renderFile);
 
     app.get("/", function(req, res, next) {
-        if (reporter.options.NODE_ENV === "production")
+        if (reporter.options.NODE_ENV !== "development")
             res.render(path.join(__dirname, '../public/views', 'root_built.html'),reporter.options);
         else
             res.render(path.join(__dirname, '../public/views', 'root_dev.html'),reporter.options);

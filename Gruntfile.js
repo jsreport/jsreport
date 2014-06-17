@@ -198,8 +198,6 @@ module.exports = function(grunt) {
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);
     grunt.registerTask('test', ['test-nedb']);
 
-    grunt.registerTask('foo', ['env:dbMongo', 'mochaTest:testExact', 'env:dbMongo', 'mochaTest:testExact']);
-
     grunt.registerTask('test-all', ['test-mongo', 'test-nedb']);
 
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);

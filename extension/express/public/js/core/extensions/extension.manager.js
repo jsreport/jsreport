@@ -43,7 +43,7 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
 
         Manager.prototype.loadExtensions = function(cb) {
             async.eachSeries(this.registredExtensions, function(extension, innercb) {
-                if (extension.hasPublicPart === false || extension.name == "express")
+                if (extension.hasPublicPart === false || extension.name === "express")
                    return innercb(null);
 
                 require.config({
@@ -51,7 +51,7 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                         {
                             name: extension.name,
                             location: '/extension/' + extension.name + '/public/js',
-                            main: jsreport_mode == "production" ? "main_built" : "main"
+                            main: jsreport_mode === "development" ? "main" : "main_built"
                         }
                     ]
                 });

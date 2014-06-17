@@ -31,6 +31,8 @@ describe('fileSystem', function () {
             assert.ifError(err);
 
             self.blobStorage.read(blobName, function(er, stream) {
+                assert.ifError(er);
+
                 var content = '';
                 stream.resume();
                 stream.on('data', function(buf) { content += buf.toString(); });
