@@ -83,6 +83,7 @@
     "grunt-mocha": "*",
     "grunt-mocha-phantomjs": "*",
     "grunt-mocha-test": "*",
+    "grunt-text-replace": "*",
     "proxyquire": "*",
     "sinon": "*",
     "should": "*",
