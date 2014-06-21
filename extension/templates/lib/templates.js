@@ -6,14 +6,11 @@
 
 var stream = require("stream"),
     shortid = require("shortid"),
-    winston = require("winston"),
     events = require("events"),
     util = require("util"),
     _ = require("underscore"),
     q = require("q"),
     extend = require("node.extend");
-
-var logger = winston.loggers.get('jsreport');
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Templating(reporter, definition);

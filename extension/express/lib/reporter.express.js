@@ -125,9 +125,7 @@ module.exports = function(reporter, definition) {
             } else {
                 res.send(response.result);
             }
-        }).fail(function(err) {
-            return next(err);
-        });
+        }).catch(next);
     });
 
     app.get("/api/recipe", function(req, res, next) {
@@ -135,13 +133,9 @@ module.exports = function(reporter, definition) {
     });
 
     app.get("/api/engine", function(req, res, next) {
-        reporter.getEngines(function(err, engines) {
-            if (err) {
-                return next(err);
-            }
-
+        reporter.getEngines().then(function(engines) {
             return res.json(engines);
-        });
+        }).catch(next);
     });
 
     app.get("/api/extensions", function(req, res, next) {

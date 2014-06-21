@@ -4,20 +4,16 @@
  * Sample report used in standard and multitenant version
  */
 
-var winston = require("winston"),
-    util = require("util"),
+var util = require("util"),
     async = require("async"),
     _ = require("underscore"),
     join = require("path").join,
     fs = require("fs"),
     Q = require("q");
 
-
-var logger = winston.loggers.get('jsreport');
-
 module.exports = function (reporter, definition) {
 
-    this.reporter.initializeListener.add(definition.name, this, function () {
+    reporter.initializeListener.add(definition.name, this, function () {
 
         if (!reporter.settings.get("sample-created")) {
             var dataObj = {

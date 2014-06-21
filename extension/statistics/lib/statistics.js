@@ -5,11 +5,7 @@
  */
 
 var shortid = require("shortid"),
-    winston = require("winston"),
     _ = require("underscore");
-
-
-var logger = winston.loggers.get('jsreport');
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Statistics(reporter, definition);

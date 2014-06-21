@@ -12,7 +12,7 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (
             reporter.render({ template: { content: "Hey", engine: "handlebars", recipe: "html" } }).then(function(resp) {
                 assert.equal("Hey", resp.result);
                 done();
-            });
+            }).catch(done);
         });
         
         it('should call before render and after render listeners', function (done) {
@@ -30,7 +30,7 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (
                 assert.equal(listenersCall[0], "before");
                 assert.equal(listenersCall[1], "after");
                 done();
-            });
+            }).catch(done);
         });
 
         it('should parse string request.data into json', function (done) {
@@ -41,6 +41,13 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (
                 assert.equal("1", resp.result);
                 done();
             });
+        });
+
+        it('getEngines should return some engines', function (done) {
+            reporter.getEngines().then(function(res) {
+                assert.equal(true, res.length > 0);
+                done();
+            }).catch(done);
         });
 
     });

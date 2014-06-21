@@ -5,12 +5,10 @@
  * Syntax is {#child [template name]}
  */
 
-var winston = require("winston"),
-    Q = require("q"),
+var Q = require("q"),
     asyncReplace = require("async-replace"),
     extend = require("node.extend");
 
-var logger = winston.loggers.get('jsreport');
 
 module.exports = function(reporter, definition) {
     reporter[definition.name] = new ChildTemplates(reporter, definition);

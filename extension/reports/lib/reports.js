@@ -4,16 +4,12 @@
  * Reports extension allows to store rendering output into storage for later use.
  */
 
-var winston = require("winston"),
-    events = require("events"),
+var events = require("events"),
     util = require("util"),
     async = require("async"),
     _ = require("underscore"),
     q = require("q"),
     toArray = require('stream-to-array');
-
-
-var logger = winston.loggers.get('jsreport');
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Reporting(reporter, definition);
@@ -48,7 +44,7 @@ Reporting.prototype.configureExpress = function (app) {
 };
 
 Reporting.prototype.handleAfterRender = function (request, response) {
-    logger.info("Reporting saveResult options: " + request.options.saveResult);
+    this.reporter.logger.info("Reporting saveResult options: " + request.options.saveResult);
     var self = this;
 
     if (!request.options.saveResult)
@@ -75,14 +71,14 @@ Reporting.prototype.handleAfterRender = function (request, response) {
 
 
     return ensureBuffer().then(function () {
-        logger.info("Inserting report to storage.");
+        self.reporter.logger.info("Inserting report to storage.");
         request.context.reports.add(report);
         return request.context.reports.saveChanges();
     }).then(function () {
-        logger.info("Writing report content to blob.");
+        self.reporter.logger.info("Writing report content to blob.");
         return q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
     }).then(function (blobName) {
-        logger.info("Updating report blob name " + blobName);
+        self.reporter.logger.info("Updating report blob name " + blobName);
         request.context.reports.attach(report);
         report.blobName = blobName;
         return request.context.reports.saveChanges();

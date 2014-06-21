@@ -5,13 +5,10 @@
  */
 
 var shortid = require("shortid"),
-    winston = require("winston"),
     fork = require('child_process').fork,
     _ = require("underscore"),
     join = require("path").join,
     q = require("q");
-
-var logger = winston.loggers.get('jsreport');
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Scripts(reporter, definition);
@@ -35,8 +32,10 @@ Scripts.prototype.create = function (context, script) {
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
+    var self = this;
+
     if (!request.template.scriptId && !request.template.script) {
-        logger.info("ScriptId not defined for this template.");
+        self.reporter.logger.info("ScriptId not defined for this template.");
         return q();
     }
 
@@ -44,7 +43,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         if (request.template.script && request.template.script !== "")
             return q(request.template.script);
 
-        logger.debug("Searching for before script to apply - " + request.template.scriptId);
+        self.reporter.logger.debug("Searching for before script to apply - " + request.template.scriptId);
 
         return request.context.scripts.single(function (s) {
             return s.shortid === this.id;
@@ -62,12 +61,12 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             child.on('message', function (m) {
                 isDone = true;
                 if (m.error) {
-                    logger.error("Child process process resulted in error " + JSON.stringify(m.error));
-                    logger.error(m);
+                    self.reporter.logger.error("Child process process resulted in error " + JSON.stringify(m.error));
+                    self.reporter.logger.error(m);
                     return cb({ message: m.error, stack: m.errorStack });
                 }
 
-                logger.info("Child process successfully finished.");
+                self.reporter.logger.info("Child process successfully finished.");
 
                 request.data = m.request.data;
                 request.template.content = m.request.template.content;
@@ -88,14 +87,14 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                 response: response
             });
 
-            logger.info("Child process started.");
+            self.reporter.logger.info("Child process started.");
 
             setTimeout(function () {
                 if (isDone)
                     return;
 
                 child.kill();
-                logger.error("Child process resulted in timeout.");
+                self.reporter.logger.error("Child process resulted in timeout.");
                 return cb({ message: "Timeout error during script execution" });
             }, 60000);
         });

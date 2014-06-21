@@ -5,15 +5,12 @@
  */
 
 var shortid = require("shortid"),
-    winston = require("winston"),
     fs = require("fs"),
     _ = require("underscore"),
     q = require("q"),
     asyncReplace = require("async-replace"),
     join = require("path").join;
 
-
-var logger = winston.loggers.get('jsreport');
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Images(reporter, definition);
@@ -61,7 +58,7 @@ var Images = function (reporter, definition) {
 
 Images.prototype.upload = function (context, name, contentType, content, shortidVal) {
     var self = this;
-    logger.info("uploading image " + name);
+    this.reporter.logger.info("uploading image " + name);
 
     function findOrCreate(context) {
         if (!shortidVal) {
@@ -166,7 +163,7 @@ Images.prototype._configureExpress = function (app) {
             self.upload(req.reporterContext, name, file.type, content, req.params.shortid).then(function (image) {
                 res.setHeader('Content-Type', "text/plain");
                 var result = JSON.stringify({ _id: image._id, shortid: image.shortid, name: name, "success": true });
-                logger.info("Uploading done. " + result);
+                self.reporter.logger.info("Uploading done. " + result);
                 res.send(result);
             });
         });
