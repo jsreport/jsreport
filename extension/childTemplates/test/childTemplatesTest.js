@@ -5,29 +5,29 @@ var assert = require("assert"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTemplates"], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTemplates"], function (reporter) {
 
-    describe('childTemplates', function() {
+    describe('childTemplates', function () {
 
-        it('should replace child template mark with its content', function(done) {
+        it('should replace child template mark with its content', function (done) {
 
             reporter.templates.create({
                 content: "{{>~a()}}",
                 engine: "jsrender",
                 helpers: "function a() { return \"foo\"; }",
                 recipe: "html",
-                name: "t1" }).then(function(t) {
+                name: "t1" }).then(function (t) {
 
                 var request = {
                     template: { content: "a{#child t1}ba{#child t1}" },
                     context: reporter.context
                 };
 
-                reporter.childTemplates.handleBeforeRender(request, {}).then(function() {
+                return reporter.childTemplates.handleBeforeRender(request, {}).then(function () {
                     assert.equal("afoobafoo", request.template.content);
                     done();
                 });
-            });
+            }).catch(done);
         });
     });
 });

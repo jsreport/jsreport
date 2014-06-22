@@ -21,6 +21,8 @@ var Scripts = function (reporter, definition) {
     this._defineEntities();
 
     this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
+
+    this.allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore"];
 };
 
 Scripts.prototype.create = function (context, script) {
@@ -77,6 +79,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
             child.send({
                 script: script,
+                allowedModules: self.allowedModules,
                 request: {
                     data: request.data,
                     template: {

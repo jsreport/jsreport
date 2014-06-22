@@ -26,21 +26,10 @@ describe('ExtensionsManager', function () {
         this.extensionsManager = new ExtensionsManager(reporter, settings, logger, options);
     });
      
-    it('init should initialize default extensions when no settings found', function (done) {
+    it('init should initialize default extensions', function (done) {
         this.timeout(10000);
         this.extensionsManager.init().then(function () {
             assert.equal(true, templates.called);
-            done();
-        }, done);
-    });
-    
-    it('init should use settings for default extensions if exist', function (done) {
-        this.timeout(10000);
-        
-        settings.get = function () { return { key: "", value: "" }; };
-        
-        this.extensionsManager.init().then(function () {
-            assert.equal(false, templates.called);
             done();
         }, done);
     });

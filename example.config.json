@@ -8,8 +8,8 @@
         "cert": "certificates/jsreport.net.cert"
     },    
     "connectionString": { "name": "neDB" },
-    "extensions": ["excel-parser", "express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates", "sample-template"],
-    "port": 3000, 
+    "httpPort": 3000,
+    "httpsPort": 4000,
 	"blobStorage": "fileSystem",
 	"useCluster": false
 }

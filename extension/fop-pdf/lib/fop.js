@@ -45,6 +45,7 @@ var Fop = module.exports = function(reporter) {
 
                             if (error !== null) {
                                 reporter.logger.error('exec error: ' + error);
+                                error.weak = true;
                                 return cb(error);
                             }
 
