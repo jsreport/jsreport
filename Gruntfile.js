@@ -12,63 +12,97 @@
  */
 
 
-module.exports = function(grunt) {
+module.exports = function (grunt) {
+    var utils = require("./lib/util/util.js"),
+        fs = require("fs"),
+        path = require("path"),
+        _ = require("underscore");
 
-    var commonPath = {
-        jquery: "empty:",
-        marionette: "empty:",
-        async: "empty:",
-        underscore: "empty:",
-        toastr: "empty:",
-        deferred: "empty:",
-        app: "empty:",
-        backbone: "empty:",
-        ace: "empty:",
-        "ace/ace": "empty:",
-        "core/basicModel": "empty:",
-        "core/jaydataModel": "empty:",
-        "core/aceBinder": "empty:",
-        "core/view.base": "empty:",
-        "core/dataGrid": "empty:",
-        "jsrender.bootstrap": "empty:",
-        "core/utils": "empty:",
-        "core/listenerCollection": "empty:"
-    };
 
-    function extensionOptimalization(name) {
-        return {
-            options: {
-                paths: commonPath,
-                baseUrl: "./extension/" + name + "/public/js",
-                out: "extension/" + name + "/public/js/main_built.js",
-                optimize: "none",
-                name: "main",
-                onBuildWrite: function(moduleName, path, contents) {
-                    var regExp = new RegExp("\"[.]/", "g");
-                    return contents.replace("define('main',", "define(").replace(regExp, "\"");
+    var extensions = utils.walkSync(grunt.option('root') || __dirname, "jsreport.config.js", []).map(function (e) {
+        return _.extend({ directory: path.dirname(e) }, require(e));
+    });
+
+    function createRequireJs() {
+
+        var commonPath = {
+            jquery: "empty:",
+            marionette: "empty:",
+            async: "empty:",
+            underscore: "empty:",
+            toastr: "empty:",
+            deferred: "empty:",
+            app: "empty:",
+            backbone: "empty:",
+            ace: "empty:",
+            "ace/ace": "empty:",
+            "core/basicModel": "empty:",
+            "core/jaydataModel": "empty:",
+            "core/aceBinder": "empty:",
+            "core/view.base": "empty:",
+            "core/dataGrid": "empty:",
+            "jsrender.bootstrap": "empty:",
+            "core/utils": "empty:",
+            "core/listenerCollection": "empty:"
+        };
+
+        var result = {
+            compileApp: {
+                options: {
+                    baseUrl: "./extension/express/public/js",
+                    mainConfigFile: './extension/express/public/js/require_main.js',
+                    out: "extension/express/public/js/app_built.js",
+                    name: 'app',
+                    removeCombined: true,
+                    findNestedDependencies: true,
+                    onBuildWrite: function (moduleName, path, contents) {
+                        return contents.replace("define('app',", "define(");
+                    }
                 }
             }
-        };
+        }
+
+        extensions.forEach(function (e) {
+
+            if (!fs.existsSync(path.join(e.directory, "public/js/main.js"))) {
+                return;
+            }
+
+            result[e.name] = {
+                options: {
+                    paths: commonPath,
+                    baseUrl: path.join(e.directory, "public/js"),
+                    out: path.join(e.directory, "/public/js/main_built.js"),
+                    optimize: "none",
+                    name: "main",
+                    onBuildWrite: function (moduleName, path, contents) {
+                        var regExp = new RegExp("\"[.]/", "g");
+                        return contents.replace("define('main',", "define(").replace(regExp, "\"");
+                    }
+                }
+            };
+        });
+
+        return result;
     }
 
-    var extensions = ["express", "templates", "html", "phantom-pdf", "fop", "scripts", "data", "images", "examples", "statistics", "reports"];
 
     function copyFiles() {
         var result = [];
 
         result.push({ src: ['extension/express/public/js/app.js'], dest: 'extension/express/public/js/app_dev.js' });
 
-        extensions.forEach(function(e) {
+        extensions.forEach(function (e) {
             result.push({
-                src: "extension/" + e + "/public/js/main.js",
-                dest: "extension/" + e + "/public/js/main_dev.js"
+                src: path.join(e.directory,"public/js/main.js"),
+                dest: path.join(e.directory,"public/js/main_dev.js")
             });
         });
 
 
         return result;
     }
-    
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         mocha_phantomjs: {
@@ -96,7 +130,7 @@ module.exports = function(grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: [/*'test/gridFSTest.js',*/ 'extension/reports/test/*.js']
+                src: ['extension/reports/test/*.js']
             },
             integration: {
                 options: {
@@ -110,56 +144,37 @@ module.exports = function(grunt) {
             dev: { files: copyFiles() }
         },
 
-        requirejs: {
-            compileApp: {
-                options: {
-                    baseUrl: "./extension/express/public/js",
-                    mainConfigFile: './extension/express/public/js/require_main.js',
-                    out: "extension/express/public/js/app_built.js",
-                    name: 'app',
-                    removeCombined: true,
-                    findNestedDependencies: true,
-                    onBuildWrite: function(moduleName, path, contents) {
-                        return contents.replace("define('app',", "define(");
-                    }
-                }
-            },
+        requirejs: createRequireJs(),
 
-            compileTemplates: extensionOptimalization("templates"),
-            compileImages: extensionOptimalization("images"),
-            compileScripts: extensionOptimalization("scripts"),
-            compileData: extensionOptimalization("data"),
-            compileReports: extensionOptimalization("reports"),
-            compileStatistics: extensionOptimalization("statistics"),
-            compilePhantom: extensionOptimalization("phantom-pdf")
-        },
-        
         replace: {
             devRoot: {
                 src: ['./extension/express/public/views/root.html'],
                 dest: ['./extension/express/public/views/root_dev.html'],
-                replacements: [ { from: '{{dynamicBust}}', to: "new Date().getTime()" },  { from: '{{staticBust}}', to: "" } ]
+                replacements: [
+                    { from: '{{dynamicBust}}', to: "new Date().getTime()" },
+                    { from: '{{staticBust}}', to: "" }
+                ]
             },
             devApp: {
                 src: ['./extension/express/public/js/app.js'],
                 dest: ['./extension/express/public/js/app_dev.js'],
-                replacements: [ 
-                    { from: '{{templateBust}}',  to: "" }
+                replacements: [
+                    { from: '{{templateBust}}', to: "" }
                 ]
             },
             productionRoot: {
                 src: ['./extension/express/public/views/root.html'],
                 dest: ['./extension/express/public/views/root_built.html'],
-                replacements: [ 
-                    { from: '{{dynamicBust}}',  to: "\"" + new Date().getTime() + "\"" }, 
-                    { from: '{{staticBust}}', to: new Date().getTime() + "" } 
+                replacements: [
+                    { from: '{{dynamicBust}}', to: "\"" + new Date().getTime() + "\"" },
+                    { from: '{{staticBust}}', to: new Date().getTime() + "" }
                 ]
             },
             productionApp: {
                 src: ['./lib/extension/express/public/js/app.js'],
-                overwrite:true,
+                overwrite: true,
                 replacements: [
-                    { from: '{{templateBust}}',  to: new Date().getTime() + "" }
+                    { from: '{{templateBust}}', to: new Date().getTime() + "" }
                 ]
             }
         },
