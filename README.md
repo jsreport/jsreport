@@ -15,9 +15,11 @@ To be able to install and start jsreport on your development machine you need to
 1. install nodejs
 2. clone this repository
 3. npm install
-4. grunt init
-5. set NODE_ENV=development
-6. node lib/server.js
+4. npm start
+
+You may find installation troubleshooting guide specific for your platform [here](https://github.com/jsreport/docs/tree/master/installation).
+
+See [Gruntfile.js](https://github.com/jsreport/jsreport/blob/master/Gruntfile.js) for build automation options.
 
 ###Environemnts
 jsreport adapts to `production` and `development` nodejs environments. Difference is that in `production` environment you get javascript files combined and minified for fast web application startup opposite to `development` environment where you get all js files individually what makes debugging easier. Second difference is that in `production` environment jsreport use `prod.config.json` as configuration file opposite to `dev.config.json` in `development.

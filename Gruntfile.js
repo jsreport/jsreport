@@ -1,14 +1,15 @@
 ﻿/*!
  * Task automation for jsreport
  *
- * grunt init # build, combine and minify files
+ * grunt build # build, combine and minify files (production and development environment)
+ * grunt build-dev # build just for development environment, this is important for changes in main.js files
+ * grunt build-prod # build, combine and minify files
+ * grunt watch-build # do the build-dev automatically when changes occure in main.js
  *
  * grunt test # start tests with file system based db (neDb), no mongo needed
  * grunt test-mongo # start tests with mongo db
  * grunt test-all # start tests with nedb and then once again with mongo (used with travis CI)
  * grunt test-integration # start all tests with nedb including integration tests including java fop and phantomjs
- * grunt development # do a development build
- * grunt production # do a production build with minification, combination...
  */
 
 
@@ -202,20 +203,20 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-env');
 
-    grunt.registerTask('default', ['init']);
+    grunt.registerTask('default', ['build']);
 
-    grunt.registerTask('init', ['development', 'production', 'watch']);
+    grunt.registerTask('build', ['build-dev', 'build-prod']);
 
-    grunt.registerTask('development', ['copy:dev', 'replace:devRoot', 'replace:devApp']);
-    grunt.registerTask('production', [ 'requirejs', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp']);
+    grunt.registerTask('build-prod', [ 'requirejs', 'replace:productionRoot', 'replace:productionApp']);
+
+    grunt.registerTask('watch-build', ['watch']);
 
     grunt.registerTask('test-nedb', ['env:dbNedb', 'mochaTest:test']);
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);
     grunt.registerTask('test', ['test-nedb']);
 
     grunt.registerTask('test-all', ['test-mongo', 'test-nedb']);
-
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
-
     grunt.registerTask('test-exact', ['test-nedb', 'mochaTest:testExact']);
 };

@@ -85,7 +85,9 @@
     "grunt-env": "^0.4.1"
   },
   "scripts": {
-    "test": "grunt test-all"
+    "test": "grunt test-all",
+    "start": "node lib/server.js",
+    "prepublish": "grunt build"
   },
   "main": "index.js",
   "licence": "AGPL",
