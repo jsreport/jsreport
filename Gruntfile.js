@@ -36,6 +36,7 @@ module.exports = function (grunt) {
             app: "empty:",
             backbone: "empty:",
             ace: "empty:",
+            introJs: "empty:",
             "ace/ace": "empty:",
             "core/basicModel": "empty:",
             "core/jaydataModel": "empty:",
