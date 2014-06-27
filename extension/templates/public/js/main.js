@@ -15,6 +15,20 @@ define(["jquery", "app", "marionette", "backbone",
             module.TemplateListTooolbarView = TemplateListTooolbarView;
             module.TemplateDetailTooolbarView = ToolbarView;
 
+
+            this.listenTo(app, "after-start", function() {
+                //jump to template designer on the first start
+                if (!app.settings.firstRun)
+                    return;
+
+                app.dataContext.templates.take(1).toArray().then(function(templates) {
+                    if (templates.length === 0)
+                        window.location.hash = "/playground";
+                    else
+                        window.location.hash = "#/extension/templates/" + templates[0].shortid;
+                });
+            });
+
             var Router = Backbone.Router.extend({
                 initialize: function () {
                     var self = this;

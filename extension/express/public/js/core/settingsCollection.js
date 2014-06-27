@@ -9,7 +9,7 @@ define(["app", "jquery"], function(app, $) {
         $data.Entity.extend('$entity.Settings', {
             '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
             'key': { 'type': 'Edm.String' },
-            'value': { 'type': 'Edm.String' },
+            'value': { 'type': 'Edm.String' }
         });
 
         $entity.Settings.prototype.toString = function() {
@@ -31,7 +31,9 @@ define(["app", "jquery"], function(app, $) {
 
             if (app.settings.data.firstRun == null) {
                 app.settings.firstRun = true;
-                app.settings.saveOrUpdate("firstRun", "false").then(cb);
+                app.settings.saveOrUpdate("firstRun", "false").then(function() {
+                    cb();
+                });
             } else {
                 app.settings.firstRun = false;
                 cb();

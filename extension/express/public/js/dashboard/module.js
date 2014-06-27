@@ -11,15 +11,7 @@ define(["app", "backbone", "dashboard/dashboard.view"],
                     "": "dashboard"
                 },
                 dashboard: function () {
-
-                    if (app.settings.firstRun) {
-                        app.dataContext.templates.take(1).toArray().then(function(templates) {
-                            if (templates.length == 0)
-                                window.location.hash = "/playground";
-                            else
-                                window.location.hash = "#/extension/templates/" + templates[0].shortid;
-                        });
-                    } else {
+                    if (!app.settings.firstRun) {
                         app.layout.content.show(new DashboardView());
                     }
                 }

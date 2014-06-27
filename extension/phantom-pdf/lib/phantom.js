@@ -20,8 +20,8 @@ var childProcess = require('child_process'),
 module.exports = function(reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
 
-    if (!fs.existsSync("data/temp")) {
-        fs.mkdir("data/temp");
+    if (!fs.existsSync(join(reporter.options.rootDirectory, "data", "temp"))) {
+        fs.mkdir(join(reporter.options.rootDirectory, "data", "temp"));
     }
 };
 

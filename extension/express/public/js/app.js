@@ -69,7 +69,6 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
 
                             odata(app, function(cx) {
                                 app.dataContext = cx;
-
                                 app.onStartListeners.fire(function() {
                                     app.layout.render();
                                     app.layout.menu.show(new MenuView({ model: new BasicModel(app.settings) }));

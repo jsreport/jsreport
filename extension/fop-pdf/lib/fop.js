@@ -13,8 +13,8 @@ var childProcess = require('child_process'),
     FS = require("q-io/fs");
 
 var Fop = module.exports = function(reporter) {
-    if (!fs.existsSync(join("data/temp"))) {
-        fs.mkdir(join("data/temp"));
+    if (!fs.existsSync(join(reporter.options.rootDirectory, "data", "temp"))) {
+        fs.mkdir(join(reporter.options.rootDirectory, "data", "temp"));
     }
 
     reporter.extensionsManager.recipes.push({

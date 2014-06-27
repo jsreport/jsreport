@@ -24,15 +24,8 @@ define(["app", "introJs", "jquery"], function(app, introJs, $) {
             return;
 
         setTimeout(function() {
-            
-            if (app.settings.playgroundMode && localStorage.getItem(view.introId) == null) {
-                localStorage.setItem(view.introId, "true");
-                introDialog(function() {
-                    introJs().start();
-                });
-            }
-            
-            if (!app.settings.playgroundMode && app.settings.data[view.introId] == null) {
+
+            if (app.settings.data[view.introId] == null) {
                 app.settings.saveOrUpdate(view.introId, "true");
                 
                 introDialog(function() {
