@@ -5,14 +5,10 @@ var Reporter = require("../lib/reporter.js"),
     express = require("express"),
     path = require("path"),
     serveStatic = require('serve-static'),
-    bodyParser = require("body-parser"),
-    TaskManager = require("../lib/tasks/taskManager.js");
+    bodyParser = require("body-parser");
 
 var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
     : { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 };
-
-var taskManager = new TaskManager();
-taskManager.start();
 
 exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
 
@@ -35,8 +31,7 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
             loadExtensionsFromPersistedSettings: false,
             cacheAvailableExtensions: true,
             express: { app: app },
-            rootDirectory: rootDirectory,
-            taskManager: taskManager
+            rootDirectory: rootDirectory
         });
 
 
