@@ -6,10 +6,18 @@
     "certificate": {
         "key": "certificates/jsreport.net.key",    
         "cert": "certificates/jsreport.net.cert"
-    },    
+    },
     "connectionString": { "name": "neDB" },
     "httpPort": 3000,
     "httpsPort": 4000,
 	"blobStorage": "fileSystem",
-	"useCluster": false
+	"useCluster": false,
+    "phantom": {
+        "numberOfWorkers" : 2,
+        "timeout": 180000
+    },
+    "tasks": {
+        "numberOfWorkers" : 2,
+        "timeout": 10000
+    }
 }

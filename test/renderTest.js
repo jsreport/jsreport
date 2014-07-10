@@ -2,25 +2,40 @@
 
 var assert = require("assert"),
     render = require("../lib/render/render.js"),
-    assert = require("assert");
+    assert = require("assert"),
+    TaskManager = require("../lib/tasks/taskManager.js");
+
 
 describe('render', function () {
+
+    var taskManager = new TaskManager({});
+
+    beforeEach(function (done) {
+        this.timeout(5000);
+        taskManager.start().then(function () {
+            done();
+        });
+    });
+
+    afterEach(function (done) {
+        taskManager.kill();
+        done();
+    });
 
     it('rendering should fill response.result', function (done) {
         var request = {
             template: {
                 content: "foo"
             },
+            taskManager: taskManager,
             options: { timeout: 1000}
         };
-        render(request, {}, function(err, response) {
-            assert.ifError(err);
-            
+        render(request, {}).then(function(response) {
             assert.equal("foo", response.result);
             done();
-        });
+        }).fail(done);
     });
-    
+
     it('rendering should fill error when engine fails', function (done) {
         var request = {
             template: {
@@ -28,8 +43,7 @@ describe('render', function () {
             },
             options: { timeout: 1000}
         };
-        render(request, {}, function(err, response) {
-            assert.notEqual(null, err);
+        render(request, {}).fail(function() {
             done();
         });
     });
@@ -39,10 +53,10 @@ describe('render', function () {
             template: {
                 content: "foo"
             },
-            options: { timeout: 0}
+            taskManager: taskManager,
+            options: { timeout: 1}
         };
-        render(request, {}, function(err, response) {
-            assert.notEqual(null, err);
+        render(request, {}).fail(function() {
             done();
         });
     });
@@ -53,15 +67,15 @@ describe('render', function () {
                 content: "{{:~fs()}}",
                 helpers: "{ \"fs\" : function() { return require('fs') != null; } }"
             },
+            taskManager: taskManager,
             options: { timeout: 1000}
         };
-        
-        render(request, {}, function(err, response) {
-            assert.notEqual(err, null);
+
+        render(request, {}).fail(function(err, response) {
             done();
         });
     });
-    
+
     it('rendering should be able to evaluate global function helpers', function (done) {
         var request = {
             template: {
@@ -69,15 +83,16 @@ describe('render', function () {
                 content: "{{:~foo()}}",
                 helpers: "function foo() { return 'test'; }"
             },
+            taskManager: taskManager,
             options: { timeout: 1000}
         };
-        
-        render(request, {}, function(err, response) {
+
+        render(request, {}).then(function(response) {
             assert.equal('test', response.result);
             done();
-        });
+        }).fail(done);
     });
-    
+
     it('rendering should be able to evaluate object based helpers', function (done) {
         var request = {
             template: {
@@ -85,12 +100,13 @@ describe('render', function () {
                 content: "{{:~foo()}}",
                 helpers: "{ \"foo\" : function() { return 'test'; } }"
             },
+            taskManager: taskManager,
             options: { timeout: 1000}
         };
-        
-        render(request, {}, function(err, response) {
+
+        render(request, {}).then(function(response) {
             assert.equal('test', response.result);
             done();
-        });
+        }).fail(done);
     });
 });

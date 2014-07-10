@@ -24,7 +24,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
         function prepareRequest(scriptContent) {
             return prepareTemplate(scriptContent).then(function(template) {
                 return q({
-                    request: { template: template, context: reporter.context }, 
+                    request: { template: template, context: reporter.context, taskManager : reporter.taskManager },
                     response: {}
                 });
             });

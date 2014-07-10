@@ -17,11 +17,11 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (
         
         it('should call before render and after render listeners', function (done) {
 
-            var listenersCall = [];  
+            var listenersCall = [];
             reporter.beforeRenderListeners.add("test", this, function() {
                 listenersCall.push("before");
             });
-              
+
             reporter.afterRenderListeners.add("test", this, function() {
                 listenersCall.push("after");
             });

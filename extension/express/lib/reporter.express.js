@@ -15,7 +15,6 @@ var async = require("async"),
 
 module.exports = function(reporter, definition) {
     var app = definition.options.app;
-
     app.set('views', path.join(__dirname, '../public/views'));
     app.use(serveStatic(path.join(__dirname, '../public')));
     app.engine('html', require('ejs').renderFile);
@@ -78,8 +77,9 @@ module.exports = function(reporter, definition) {
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");
 
-        reporter.render(req).then(function(response) {
+        res.connection.setTimeout(0);
 
+        reporter.render(req).then(function(response) {
             //copy headers to the final response
             if (response.headers) {
                 for (var key in response.headers) {
@@ -128,6 +128,12 @@ module.exports = function(reporter, definition) {
 
     app.get("/api/version", function(req, res, next) {
         res.send(require('../../../package.json').version);
+    });
+
+    app.get("/slow", function(req, res, next) {
+        setTimeout(function() {
+            res.send("foo");
+        }, 160000)
     });
 
     app.get("/api/settings", function(req, res, next) {

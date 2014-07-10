@@ -43,9 +43,12 @@ Templating.prototype.handleBeforeRender = function (request, response) {
         return;
     }
 
-    var findPromise = request.template._id ? request.context.templates.find(request.template._id) :request.context.templates.single(function (t) {
-            return t.shortid === this.shortid;
-        }, { shortid: request.template.shortid });
+    var findPromise = request.template._id ? request.context.templates.find(request.template._id) :
+                      request.template.shortid ?
+                          request.context.templates.single(function (t) {  return t.shortid === this.shortid;
+                          }, { shortid: request.template.shortid })
+                          : q(request.template);
+
 
     return findPromise.then(function (template) {
         extend(true, template, request.template);

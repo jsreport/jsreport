@@ -183,6 +183,9 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
 
                 state.content = state.content || " ";
                 state.helpers = state.helpers || "";
+
+                delete state._id;
+                delete state.shortid;
                 return state;
             },
 

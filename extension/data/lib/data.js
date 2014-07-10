@@ -55,7 +55,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
         if (request.template.dataItem)
             return q(request.template.dataItem);
 
-        self.reporter.logger.info("Searching for before dataItem to apply");
+        self.reporter.logger.debug("Searching for dataItem to apply");
 
         return request.context.data.single(function (d) {
             return d.shortid === this.id;
