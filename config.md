@@ -17,7 +17,10 @@ jsreport loads `dev.config.json` or `prod.config.json` on startup depending on y
     "extensions": ["excel-parser", "express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates", "sample-template"],
     "httpPort": 3000,
 	"blobStorage": "fileSystem",
-	"useCluster": false,
+	"cluster": {
+        "numberOfWorkers": 2,
+        "enabled":  true
+    },
 	"phantom": {
         "numberOfWorkers" : 2,
         "timeout": 180000
@@ -47,7 +50,7 @@ from http to https, if any of `httpPort` and `httpsPort` is specified default pr
 **ga** `object`: google analytics settings, example
 `"ga": { "name" : "jsreport.net", "id" : "UA-xxxxx-2" }`
 
-**useCluster** `(true/false)` - default to `false`, by default when jsreport crashed it crashes. It's up to container to restart it. `useCluster` option allows to start jsreport in [cluster](http://nodejs.org/api/cluster.html) container that will take care of keeping jsreport alive.
+**cluster** `(object)` - defines if jsreport should be forked into cluster to increase throughtput of incoming requests. `cluster.numberOfWorkers` defines number of forked jsreport instances. jsreport will use number of cpus as default. Using `cluster.enabled` you can disable jsreport clustering and use just one single instance. Removing whole `cluster` node will have same effect.
 
 **daemon** (`true/false`) - default `false`, non windows only, jsreport will run as [daemon](https://www.npmjs.org/package/daemon) and will not block command line
 
