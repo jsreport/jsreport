@@ -40,6 +40,7 @@
     "mongodb": "*",
     "nconf": "*",
     "nedb": "*",
+    "net-cluster": "0.0.2",
     "node-dir": "*",
     "node-jsrender": "*",
     "node-phantom-simple": "^1.2.0",

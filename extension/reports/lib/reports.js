@@ -44,7 +44,7 @@ Reporting.prototype.configureExpress = function (app) {
 };
 
 Reporting.prototype.handleAfterRender = function (request, response) {
-    this.reporter.logger.info("Reporting saveResult options: " + request.options.saveResult);
+    this.reporter.logger.debug("Reporting saveResult options: " + request.options.saveResult);
     var self = this;
 
     if (!request.options.saveResult)
@@ -71,14 +71,14 @@ Reporting.prototype.handleAfterRender = function (request, response) {
 
 
     return ensureBuffer().then(function () {
-        self.reporter.logger.info("Inserting report to storage.");
+        self.reporter.logger.debug("Inserting report to storage.");
         request.context.reports.add(report);
         return request.context.reports.saveChanges();
     }).then(function () {
-        self.reporter.logger.info("Writing report content to blob.");
+        self.reporter.logger.debug("Writing report content to blob.");
         return q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
     }).then(function (blobName) {
-        self.reporter.logger.info("Updating report blob name " + blobName);
+        self.reporter.logger.debug("Updating report blob name " + blobName);
         request.context.reports.attach(report);
         report.blobName = blobName;
         return request.context.reports.saveChanges();

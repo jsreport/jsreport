@@ -161,7 +161,7 @@ PhantomWorker.prototype.execute = function (options) {
 
 var findFreePort = function () {
     return q.nfcall(function (cb) {
-        var server = net.createServer();
+        var server = require("net-cluster").createServer();
         var port = 0;
         server.on('listening', function () {
             port = server.address().port;

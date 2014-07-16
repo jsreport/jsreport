@@ -36,7 +36,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     var self = this;
 
     if (!request.template.scriptId && !request.template.script) {
-        self.reporter.logger.info("ScriptId not defined for this template.");
+        self.reporter.logger.debug("ScriptId not defined for this template.");
         return q();
     }
 

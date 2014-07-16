@@ -17,7 +17,15 @@ jsreport loads `dev.config.json` or `prod.config.json` on startup depending on y
     "extensions": ["excel-parser", "express", "templates", "html", "phantom-pdf", "scripts", "data", "images", "statistics", "reports", "childTemplates", "sample-template"],
     "httpPort": 3000,
 	"blobStorage": "fileSystem",
-	"useCluster": false
+	"useCluster": false,
+	"phantom": {
+        "numberOfWorkers" : 2,
+        "timeout": 180000
+    },
+    "tasks": {
+        "numberOfWorkers" : 2,
+        "timeout": 10000
+    }
 }
 ```
 
@@ -43,3 +51,6 @@ from http to https, if any of `httpPort` and `httpsPort` is specified default pr
 
 **daemon** (`true/false`) - default `false`, non windows only, jsreport will run as [daemon](https://www.npmjs.org/package/daemon) and will not block command line
 
+**phantom** (`object`) - this attribute is `optional` and is used to configure phantom-pdf recipe. You can set here `numberOfWorkers` attribute to specify how many phantomjs instances will phantom-pdf recipe use. If the value is not filled, jsreport will use number of cpus by default. You can also set `timeout` attribute to specify default timeout for pdf rendering using phantomjs.
+
+**tasks** (`object`) - this attribute is `optional` and is used to configure component executing custom scripts. This component is use to excute javascript templating engines during rendering or in scripts extension. You can set here `numberOfWorkers` attribute to specify how many child nodejs instances will be used for task execution. If the value is not filled, jsreport will use number of cpus by default. You can also set `timeout` attribute to specify default timeout for one task execution.

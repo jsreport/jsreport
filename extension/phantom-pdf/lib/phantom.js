@@ -31,7 +31,7 @@ module.exports = function (reporter, definition) {
         phantomManager = new PhantomManager(reporter.options.phantom);
         phantomManager.start();
     }
-};
+ };
 
 var Phantom = function (reporter, definition) {
     this.reporter = reporter;

@@ -9,6 +9,7 @@ var shortid = require("shortid"),
     _ = require("underscore"),
     q = require("q"),
     asyncReplace = require("async-replace"),
+    multipartMiddleware = require("connect-multiparty")();
     join = require("path").join;
 
 
@@ -145,7 +146,7 @@ Images.prototype._configureExpress = function (app) {
         });
     });
 
-    app.post("/api/image/:shortid?", function (req, res) {
+    app.post("/api/image/:shortid?", multipartMiddleware, function (req, res) {
 
         function findFirstFile() {
             for (var f in req.files) {

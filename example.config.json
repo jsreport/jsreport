@@ -11,7 +11,10 @@
     "httpPort": 3000,
     "httpsPort": 4000,
 	"blobStorage": "fileSystem",
-	"useCluster": false,
+	"cluster": {
+        "numberOfWorkers": 2,
+        "enabled":  false
+    },
     "phantom": {
         "numberOfWorkers" : 2,
         "timeout": 180000
