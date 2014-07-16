@@ -130,12 +130,6 @@ module.exports = function(reporter, definition) {
         res.send(require('../../../package.json').version);
     });
 
-    app.get("/slow", function(req, res, next) {
-        setTimeout(function() {
-            res.send("foo");
-        }, 160000)
-    });
-
     app.get("/api/settings", function(req, res, next) {
         res.send({
             tenant: reporter.options.tenant
