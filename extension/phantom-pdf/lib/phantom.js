@@ -91,6 +91,7 @@ Phantom.prototype.execute = function (request, response) {
             }).then(function () {
                 response.result = fs.createReadStream(pdfFile);
                 response.headers["Content-Type"] = "application/pdf";
+                response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
                 response.headers["File-Extension"] = "pdf";
                 response.isStream = true;
                 self.reporter.logger.debug("Rendering pdf end.");

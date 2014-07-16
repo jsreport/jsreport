@@ -57,6 +57,7 @@ var Fop = module.exports = function(reporter) {
                             response.result = fs.createReadStream(childArgs[3]);
                             response.headers["Content-Type"] = "application/pdf";
                             response.headers["File-Extension"] = "pdf";
+                            response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
                             response.isStream = true;
 
                             reporter.logger.info("Rendering pdf end.");
