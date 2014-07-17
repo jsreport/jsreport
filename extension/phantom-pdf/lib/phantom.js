@@ -85,7 +85,7 @@ Phantom.prototype.execute = function (request, response) {
         })
         .then(function () {
             return phantomManager.execute({
-                url: "file:///" + path.resolve(htmlFile),
+                url: request.template.phantom.url || "file:///" + path.resolve(htmlFile),
                 output: path.resolve(pdfFile),
                 options: phantomOptions
             }).then(function () {
