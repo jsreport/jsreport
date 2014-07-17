@@ -77,8 +77,6 @@ module.exports = function(reporter, definition) {
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");
 
-        res.connection.setTimeout(0);
-
         reporter.render(req).then(function(response) {
             //copy headers to the final response
             if (response.headers) {
