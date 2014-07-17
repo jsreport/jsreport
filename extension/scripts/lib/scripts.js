@@ -54,7 +54,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     return findScript().then(function (script) {
         script = script.content || script;
 
-        return request.taskManager.execute({
+        return request.reporter.taskManager.execute({
             body: {
                 script: script,
                 allowedModules: self.allowedModules,
