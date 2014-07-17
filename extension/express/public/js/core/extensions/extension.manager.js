@@ -51,7 +51,7 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                         {
                             name: extension.name,
                             location: '/extension/' + extension.name + '/public/js',
-                            main: jsreport_mode === "development" ? "main" : "main_built"
+                            main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
                         }
                     ]
                 });
