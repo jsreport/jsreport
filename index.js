@@ -14,6 +14,10 @@ function initializeApp(force) {
         fs.writeFileSync("package.json", "{\r\n \"name\": \"jsreport-server\",\r\n  \"main\": \"server.js\" }");
     }
 
+    if (!fs.existsSync("prod.config.json") || force) {
+        fs.writeFileSync("prod.config.json", fs.readFileSync(path.join(__dirname, "example.config.json")));
+    }
+
     console.log("Done");
 }
 
