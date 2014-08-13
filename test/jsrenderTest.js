@@ -32,10 +32,17 @@ describe('render jsrender', function () {
         });
     });
 
-    it('should be able to parse and use child tempates', function () {
+    it('should be able to parse and use sub tempates', function () {
         var childTemplate = "<script id=\"inner\" type=\"text/x-jsrender\">{{:#data}}</script>";
         var template = "{{for items tmpl=\"inner\"}}{{/for}}";
         var html = jsrender(childTemplate + template, null, { items : [1,2,3]});
         assert.equal(html, "123");
+    });
+
+    it('should be able to parse and use multiple sub tempates', function () {
+        var childTemplate = "<script id=\"inner\" type=\"text/x-jsrender\">{{:#data}}</script>\n<script id=\"inner2\" type=\"text/x-jsrender\">a{{:#data}}</script>";
+        var template = "{{for items tmpl=\"inner\"}}{{/for}}{{for items tmpl=\"inner2\"}}{{/for}}";
+        var html = jsrender(childTemplate + template, null, { items : [1,2,3]});
+        assert.equal(html, "\n123a1a2a3");
     });
 });
