@@ -54,7 +54,7 @@ Templating.prototype.handleBeforeRender = function (request, response) {
         extend(true, template, request.template);
         request.template = template;
     }, function () {
-        throw new Error("Unable to find specified template: " + (!request.template._id ? request.template._id : request.template.shortid));
+        throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
     });
 };
 
@@ -131,7 +131,6 @@ Templating.prototype._defineEntitySets = function () {
                     shouldBeHistorized = true;
             }
 
-
             if (!shouldBeHistorized)
                 return callback(true);
 
@@ -147,5 +146,4 @@ Templating.prototype._defineEntitySets = function () {
     templatesSet.beforeUpdate = beforeUpdate;
 
     this.reporter.dataProvider.registerEntitySet("templatesHistory", this.TemplateHistoryType );
-
 };

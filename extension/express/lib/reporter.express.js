@@ -60,6 +60,36 @@ module.exports = function(reporter, definition) {
         reporter.extensionsManager.extensions.map(function(e) {
             app.use('/extension/' + e.name, express.static(e.directory));
         });
+
+        app.use(function(err, req, res, next) {
+            res.status(500);
+
+            if (_.isString(err)) {
+                err = {
+                    message: err
+                };
+            }
+
+            err = err || {};
+            err.message = err.message || "Unrecognized error";
+
+            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+            var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
+
+            logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
+
+            if (req.get('Content-Type').indexOf("application/json") === -1) {
+                res.write("Error occured - " + err.message + "\n");
+                if (err.stack)
+                    res.write("Stack - " + err.stack);
+                res.end();
+                return;
+            }
+
+            //its somehow not able to serialize original err
+            res.send({ message: err.message, stack: err.stack});
+        });
     });
 
     reporter.extensionsManager.on("extension-registered", function(extension) {
@@ -146,34 +176,5 @@ module.exports = function(reporter, definition) {
 
     app.get("/api/extensions", function(req, res, next) {
         res.json(reporter.extensionsManager.availableExtensions);
-    });
-    
-    app.use(function(err, req, res, next) {
-        res.status(500);
-
-        if (_.isString(err)) {
-            err = {
-                message: err
-            };
-        }
-
-        err = err || {};
-        err.message = err.message || "Unrecognized error";
-
-        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-
-        var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
-        
-        logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
-
-        if (req.get('Content-Type') !== "application/json") {
-            res.write("Error occured - " + err.message + "\n");
-            if (err.stack)
-                res.write("Stack - " + err.stack);
-            res.end();
-            return;
-        }
-        
-        res.json(err);
     });
 };

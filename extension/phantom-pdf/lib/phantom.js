@@ -63,14 +63,17 @@ var Phantom = function (reporter, definition) {
 
 Phantom.prototype.execute = function (request, response) {
     var self = this;
+    request.template.phantom = request.template.phantom || {};
     this.reporter.logger.debug("Pdf recipe start.");
 
     var phantomOptions = request.template.phantom || new self.PhantomType();
     phantomOptions = phantomOptions.initData || phantomOptions;
 
     var generationId = uuid();
-    var htmlFile = join("data", "temp", generationId + ".html");
-    var pdfFile = join("data", "temp", generationId + ".pdf");
+    var htmlFile = join(request.reporter.options.rootDirectory, "data", "temp", generationId + ".html");
+    var pdfFile = join(request.reporter.options.rootDirectory, "data", "temp", generationId + ".pdf");
+
+    console.log(pdfFile);
 
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
@@ -85,7 +88,7 @@ Phantom.prototype.execute = function (request, response) {
         })
         .then(function () {
             return phantomManager.execute({
-                url: request.template.phantom.url || "file:///" + path.resolve(htmlFile),
+                url: phantomOptions.url || "file:///" + path.resolve(htmlFile),
                 output: path.resolve(pdfFile),
                 options: phantomOptions
             }).then(function () {
@@ -109,7 +112,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
     req.options.saveResult = false;
 
     return this.reporter.render(req).then(function (resp) {
-        var filePath = join("data/temp", generationId + "-" + type + ".html");
+        var filePath = join(request.reporter.options.rootDirectory, "data", "temp", generationId + "-" + type + ".html");
         return FS.write(filePath, resp.result).then(function () {
             phantomOptions[type + "File"] = path.resolve(filePath);
         });
