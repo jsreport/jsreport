@@ -8,12 +8,11 @@
         "cert": "certificates/jsreport.net.cert"
     },
     "connectionString": { "name": "neDB" },
-    "httpPort": 3000,
-    "httpsPort": 4000,
-	"blobStorage": "fileSystem",
-	"cluster": {
-        "numberOfWorkers": 2,
-        "enabled":  false
+    "httpsPort": 443,
+    "blobStorage": "fileSystem",
+    "cluster": {
+      "numberOfWorkers": 2,
+      "enabled":  false
     },
     "phantom": {
         "numberOfWorkers" : 2,
