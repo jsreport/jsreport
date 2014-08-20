@@ -52,12 +52,11 @@ Pull requests to this core repository are also welcome.
 ###current
 jsreport is currently in beta state. We are focusing mostly on the following areas:
 
-1. Fixing incoming bugs from users
-2. Improve codebase to make easier open source contributions, splitting main jsreport github repository into separated jsreport, playground, online
-3. Provide playground and online hosted solutions high availability in azure
-4. java sdk
-5. node.js sdk
-6. Collect new features for jsreport vNext
+1. Fix incoming bugs from users
+2. Improve codebase to make easier open source contributions
+3. java sdk
+4. node.js sdk
+5. Collect new features for jsreport vNext
 
 ###vNext
 
