@@ -49,7 +49,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                     app.trigger("template-extensions-toolbar-render", contextToolbar);
                 });
 
-                _.bindAll(this, "preview", "previewNewPanel", "getBody", "onClose");
+                _.bindAll(this, "preview", "previewNewPanel", "onClose");
             },
 
             getRecipes: function() {
@@ -205,26 +205,32 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                 return res;
             },
 
-            getBody: function() {
-                var properties = [];
-                properties.push({ key: "content", value: "..." });
-                properties.push({ key: "helpers", value: "..." });
-                properties.push({ key: "recipe", value: "..." });
-
-                this.model.trigger("api-overrides", function(key, value) {
-                    value = value || "...";
-                    properties.push({ key: key, value: _.isObject(value) ? JSON.stringify(value, null, 2) : "..." });
-
-                });
-                return properties;
-            },
-
             apiHelp: function() {
                 $.dialog({
                     header: "jsreport API",
                     content: $.render["template-detail-api"](this.model.toJSON(), this),
                     hideSubmit: true
                 });
+
+                var properties = {};
+                properties.content = "...";
+                properties.helpers = "...";
+                properties.recipe = "..." ;
+
+                this.model.trigger("api-overrides", function(key, value) {
+                    value = value || "...";
+                    properties[key] = _.isObject(value) ? value : "...";
+                });
+
+                var apiBox = ace.edit("apiBox");
+                apiBox.setTheme("ace/theme/chrome");
+                apiBox.getSession().setMode("ace/mode/json");
+                apiBox.setOptions({
+                    readOnly: true,
+                    highlightActiveLine: false,
+                    highlightGutterLine: false
+                });
+                apiBox.setValue(JSON.stringify({ template: properties }, null, 2));
             },
 
             embed: function() {

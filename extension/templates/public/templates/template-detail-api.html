@@ -2,13 +2,7 @@
     <a href='http://jsreport.net/learn/api' class='fa fa-lightbulb-o' target="_blank"><span style="margin-left:5px">go to documentation</span></a>
     <h5>Render and stream back report </h5>
     <span class="label label-info">POST: </span><a>{{>~getCurrentLocation()}}api/report</a>
-    <br /><span class="label label-default">BODY:</span><code>{ "template": { "shortid" : "{{:shortid}}" }, 
-                                                            <br/> ["options": { "saveResult" : "true" }] }</code>
+    <br /><span class="label label-default">BODY:</span><code>{ "template": { "shortid" : "{{:shortid}}" } }</code>
     <h5>Possible extensions' overrides</h5>
-    <code style="word-wrap: break-word;display: inline-block;max-width: 100%;white-space: normal">
-        {{for ~getBody()}}
-        "{{:#data.key}}": {{>#data.value}}
-        <br/>
-        {{/for}}
-    </code>
+    <div id="apiBox" class="dialog-editor"></div>
 </div>

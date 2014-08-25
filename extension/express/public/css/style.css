@@ -798,3 +798,8 @@ a.user-info-btn { margin-right: 15px; }
 .ace_print-margin {
     display: none;
 }
+
+.dialog-editor {
+    width: 100%;
+    height: 175px;
+}
