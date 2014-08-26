@@ -73,8 +73,6 @@ Phantom.prototype.execute = function (request, response) {
     var htmlFile = join(request.reporter.options.rootDirectory, "data", "temp", generationId + ".html");
     var pdfFile = join(request.reporter.options.rootDirectory, "data", "temp", generationId + ".pdf");
 
-    console.log(pdfFile);
-
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
         .then(function () {

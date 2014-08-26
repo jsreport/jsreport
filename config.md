@@ -52,6 +52,8 @@ from http to https, if any of `httpPort` and `httpsPort` is specified default pr
 
 **cluster** `(object)` - defines if jsreport should be forked into cluster to increase throughtput of incoming requests. `cluster.numberOfWorkers` defines number of forked jsreport instances. jsreport will use number of cpus as default. Using `cluster.enabled` you can disable jsreport clustering and use just one single instance. Removing whole `cluster` node will have same effect.
 
+Cluster will not work with `nedb` as data store. You need to set up a mongodb instance to be able cluster jsreport instances at the top level. But don't worry this is required only for really highest level of throughput. In the most cases it's enough just to increases number of workers executing phantomjs and javascript templating engines. See later `phantom` and `tasks` configuration.
+
 **daemon** (`true/false`) - default `false`, non windows only, jsreport will run as [daemon](https://www.npmjs.org/package/daemon) and will not block command line
 
 **phantom** (`object`) - this attribute is `optional` and is used to configure phantom-pdf recipe. You can set here `numberOfWorkers` attribute to specify how many phantomjs instances will phantom-pdf recipe use. If the value is not filled, jsreport will use number of cpus by default. You can also set `timeout` attribute to specify default timeout for pdf rendering using phantomjs.

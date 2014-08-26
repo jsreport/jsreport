@@ -28,6 +28,14 @@ PhantomManager.prototype.start = function () {
         this._phantomInstances.push(new PhantomWorker());
         this._phantomInstances[i].start();
     }
+
+    var self = this;
+
+    process.once("exit", function () {
+        self._phantomInstances.forEach(function(i) {
+            i.kill();
+        });
+    });
 };
 
 PhantomManager.prototype.execute = function (options) {
@@ -113,10 +121,6 @@ PhantomWorker.prototype.start = function () {
         self._childProcess = childProcess.execFile(phantomjs.path, childArgs, function (error, stdout, stderr) {
         });
 
-        process.on("exit", function () {
-            self._childProcess.kill();
-        });
-
         self._childProcess.stdout.pipe(process.stdout);
         self._childProcess.stderr.pipe(process.stderr);
         self._childProcess.stdin.write(port + "\n");
@@ -127,6 +131,10 @@ PhantomWorker.prototype.recycle = function () {
     var self = this;
     self._childProcess.kill();
     return self.start();
+};
+
+PhantomWorker.prototype.kill = function () {
+    this._childProcess.kill("SIGTERM");
 };
 
 PhantomWorker.prototype.execute = function (options) {
