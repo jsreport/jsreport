@@ -22,14 +22,9 @@ var phantomManager;
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
 
-    if (!fs.existsSync(join(reporter.options.rootDirectory, "data", "temp"))) {
-        fs.mkdir(join(reporter.options.rootDirectory, "data", "temp"));
-    }
-
-    //TODO extension initialization should rather return a function returning promise, now I cannot wait until script manager is started
     if (!phantomManager) {
         phantomManager = new PhantomManager(reporter.options.phantom);
-        phantomManager.start();
+        return phantomManager.start();
     }
  };
 
@@ -70,8 +65,8 @@ Phantom.prototype.execute = function (request, response) {
     phantomOptions = phantomOptions.initData || phantomOptions;
 
     var generationId = uuid();
-    var htmlFile = join(request.reporter.options.rootDirectory, "data", "temp", generationId + ".html");
-    var pdfFile = join(request.reporter.options.rootDirectory, "data", "temp", generationId + ".pdf");
+    var htmlFile = join(request.reporter.options.tempDirectory, generationId + ".html");
+    var pdfFile = join(request.reporter.options.tempDirectory, generationId + ".pdf");
 
     request.template.recipe = "html";
     return this.reporter.executeRecipe(request, response)
@@ -110,7 +105,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
     req.options.saveResult = false;
 
     return this.reporter.render(req).then(function (resp) {
-        var filePath = join(request.reporter.options.rootDirectory, "data", "temp", generationId + "-" + type + ".html");
+        var filePath = join(request.reporter.options.tempDirectory, generationId + "-" + type + ".html");
         return FS.write(filePath, resp.result).then(function () {
             phantomOptions[type + "File"] = path.resolve(filePath);
         });

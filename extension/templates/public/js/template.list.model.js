@@ -27,7 +27,7 @@ define(["app", "./template.model", "core/dataGrid"], function (app, TemplateMode
                 .applyFilter(this.filter).toArray();
         },
 
-        model: TemplateModel,
+        model: TemplateModel
     });
 });
 

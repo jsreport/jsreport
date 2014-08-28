@@ -49,15 +49,18 @@ describeReporting(path.join(__dirname, "../../"), ["express", "templates", "imag
             reporter.images.upload(reporter.context, "test withSpace", "image/jpeg", new Buffer([1, 2, 3]))
                 .then(function() {
                     var request = {
-                        template: { content: "a{#image test withSpace}", recipe:"html" },
                         context: reporter.context
                     };
 
-                    reporter.images.handleBeforeRender(request, {}).then(function() {
-                        assert.equal("adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'), request.template.content);
+                    var response = {
+                        result: "a{#image test withSpace}"
+                    };
+
+                    reporter.images.handleAfterTemplatingEnginesExecuted(request, response).then(function() {
+                        assert.equal("adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'), response.result);
                         done();
-                    });
-                });
+                    }).catch(done);
+                }).catch(done);
         });
     });
 });

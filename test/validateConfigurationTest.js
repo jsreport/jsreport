@@ -60,14 +60,14 @@ describe('validating configuration', function () {
         })
     });
 
-    it('should fail with unsupported connection string name', function () {
+    it('should fail without connection string name', function () {
         var configuration = {
             cluster: {
                 numberOfWorkers : 2,
                 enabled: true
             },
             rootDirectory: path.join(__dirname, "../"),
-            connectionString: { name: "unsupported" }
+            connectionString: {  }
         };
 
         assert.throws(function() {

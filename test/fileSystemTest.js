@@ -11,8 +11,8 @@ var assert = require("assert"),
 describe('fileSystem', function () {
     
     beforeEach(function () {
-        this.blobStorage = new FileSystem({ root: path.join(tmpDir, "test-output") });
-        util.deleteFiles(this.blobStorage.options.root);
+        this.blobStorage = new FileSystem({ dataDirectory: path.join(tmpDir, "test-output") });
+        util.deleteFiles(this.blobStorage.storageDirectory);
     });
 
     afterEach(function () {

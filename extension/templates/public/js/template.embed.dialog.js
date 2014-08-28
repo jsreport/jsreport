@@ -1,4 +1,4 @@
-﻿define(["marionette", "app", "core/view.base",], function (Marionette, app, ViewBase) {
+﻿define(["marionette", "app", "core/view.base"], function (Marionette, app, ViewBase) {
     return ViewBase.extend({
         template: "template-embed",
         
@@ -8,6 +8,6 @@
             this.listenTo(this.model, "change", function() {
                 self.render();
             });
-        },
+        }
     });
 });

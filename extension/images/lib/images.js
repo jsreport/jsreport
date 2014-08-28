@@ -36,7 +36,7 @@ var Images = function (reporter, definition) {
     });
 
     this.reporter.on("express-configure", Images.prototype._configureExpress.bind(this));
-    this.reporter.beforeRenderListeners.add(definition.name, this, Images.prototype.handleBeforeRender.bind(this));
+    this.reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, Images.prototype.handleAfterTemplatingEnginesExecuted.bind(this));
 
     this.reporter.initializeListener.add(definition.name, this, function () {
         //when activated we need to initialze images field with default values, otherwise jaydata has problems with null aray
@@ -90,7 +90,7 @@ Images.prototype.upload = function (context, name, contentType, content, shortid
     });
 };
 
-Images.prototype.handleBeforeRender = function (request, response) {
+Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, response) {
 
     function convert(str, p1, offset, s, done) {
 
@@ -107,8 +107,8 @@ Images.prototype.handleBeforeRender = function (request, response) {
 
     var test = /{#image ([^{}]+)+}/g;
 
-    return q.nfcall(asyncReplace, request.template.content, test, convert).then(function (result) {
-        request.template.content = result;
+    return q.nfcall(asyncReplace, response.result, test, convert).then(function (result) {
+        response.result = result;
     });
 };
 
@@ -116,7 +116,7 @@ Images.prototype._configureExpress = function (app) {
     var self = this;
 
     app.use("/api/image", function (req, res, next) {
-        self.reporter.dataProvider.startContext().then(function(context) {
+        self.reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
             next();
         });

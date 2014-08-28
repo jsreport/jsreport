@@ -26,6 +26,7 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
             tenant: { name: "test" },
             connectionString: connectionString,
             extensions: extensions,
+            dataDirectory: "data",
             blobStorage: process.env.DB === "neDB" ? "fileSystem" : "gridFS",
             loadExtensionsFromPersistedSettings: false,
             cacheAvailableExtensions: true,
