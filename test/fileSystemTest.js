@@ -2,6 +2,7 @@
 
 var assert = require("assert"),
     path = require("path"),
+    fs = require("fs"),
     util = require("../lib/util/util.js"),
     shortid = require("shortid"),
     FileSystem = require("../lib/blobStorage/fileSystem.js"),
@@ -11,6 +12,10 @@ var assert = require("assert"),
 describe('fileSystem', function () {
     
     beforeEach(function () {
+        if (!fs.existsSync(path.join(tmpDir, "test-output"))) {
+            fs.mkdir(path.join(tmpDir, "test-output"));
+        }
+
         this.blobStorage = new FileSystem({ dataDirectory: path.join(tmpDir, "test-output") });
         util.deleteFiles(this.blobStorage.storageDirectory);
     });
