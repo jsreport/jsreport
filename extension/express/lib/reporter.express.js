@@ -12,6 +12,7 @@ var async = require("async"),
     bodyParser = require("body-parser"),
     fs = require("fs"),
     http = require("http"),
+    https = require("https"),
     cluster = require("cluster"),
     routes = require("./routes.js");
 
@@ -55,39 +56,39 @@ var startExpressApp = function(reporter, app, config) {
 
     //http and https port specified
     //fist start http => https redirector
-    if (nconf.get('httpPort')) {
+    if (config.httpPort) {
 
         http.createServer(function (req, res) {
             res.writeHead(302, {
-                'Location': "https://" + req.headers.host.split(':')[0] + ':' + nconf.get('httpsPort') + req.url
+                'Location': "https://" + req.headers.host.split(':')[0] + ':' + config.httpsPort + req.url
             });
             res.end();
-        }).listen(nconf.get('httpPort')).on('error', function (e) {
-            console.error("Error when starting http server on port " + nconf.get('httpPort') + " " + e.stack);
+        }).listen(config.httpPort).on('error', function (e) {
+            console.error("Error when starting http server on port " + config.httpPort + " " + e.stack);
         });
     }
 
     //second start https server
-    if (!fs.existsSync(nconf.get('certificate:key'))) {
-        nconf.set('certificate:key', path.join(__dirname ,"../", "certificates", "jsreport.net.key"));
-        nconf.set('certificate:cert', path.join(__dirname, "../", "certificates", "jsreport.net.cert"));
+    if (!fs.existsSync(config.certificate.key)) {
+        config.certificate.key = path.join(__dirname, "../../../", "certificates", "jsreport.net.key");
+        config.certificate.cert = path.join(__dirname, "../../../", "certificates", "jsreport.net.cert");
     }
 
     var credentials = {
-        key: fs.readFileSync(nconf.get('certificate:key'), 'utf8'),
-        cert: fs.readFileSync(nconf.get('certificate:cert'), 'utf8'),
+        key: fs.readFileSync(config.certificate.key, 'utf8'),
+        cert: fs.readFileSync(config.certificate.cert, 'utf8'),
         rejectUnauthorized: false //support invalid certificates
     };
 
-    var server = https.createServer(credentials, this._app).on('error', function (e) {
-        console.error("Error when starting https server on port " + nconf.get('httpsPort') + " " + e.stack);
+    var server = https.createServer(credentials, app).on('error', function (e) {
+        console.error("Error when starting https server on port " + config.httpsPort + " " + e.stack);
     });
 
-    if (nconf.get('useCluster')) {
+    if (config.useCluster) {
         app.use(require("./clusterDomainMiddleware.js")(cluster, server));
     }
 
-    return q.ninvoke(server, 'listen', nconf.get('httpsPort'));
+    return q.ninvoke(server, 'listen', config.httpsPort);
 };
 
 var configureExpressApp = function(app, reporter, definition){
