@@ -1,8 +1,7 @@
 #Configuration documentatoin
 
-jsreport loads `dev.config.json` or `prod.config.json` on startup depending on your nodejs environment. If the config file is not found, jsreport creats default one.
+jsreport loads `dev.config.json` or `prod.config.json` on startup depending on your nodejs environment.  Configuration can be also specified directly in code, see [adapting jsreport](http://jsreport.net/learn/adapting-jsreport) for details. This article lists all the possible options for jsreport which can be used in config file ordirectly in code.
 
-`jsreport configuration file`
 ```javascript
 {
     "cookieSession": {
@@ -28,7 +27,8 @@ jsreport loads `dev.config.json` or `prod.config.json` on startup depending on y
     "tasks": {
         "numberOfWorkers" : 2,
         "timeout": 10000
-    }
+    },
+	"logger": { "providerName": "winston" }
 }
 ```
 
@@ -38,10 +38,10 @@ jsreport loads `dev.config.json` or `prod.config.json` on startup depending on y
 **certificate** `object` - path to key and cert file used by https 
 
 **connectionString** `object` - jsreport by default uses simple [nedb](https://github.com/louischatriot/nedb) to store data. This embeded db is enought for most of the cases. Only if you have high traffic and many templates you should consider connecting jsreport to mongo db. To start using mongodb use following connection string format:
- `{ "name": "mongoDB", "address": "localhost", "port": 27017, "databaseName" : "jsreport" }`
+ `{ "name": "mongoDB", "address": "localhost", "port": 27017, "databaseName" : "jsreport" }`. Third option is to use `inMemory` provider what is default when integrating jsreport into existing node.js application. 
 
  **extensions** `string array` - this attribute is `optional`. jsreport will load all
-all extensions located under root directory if it's not present. If the attribute is defined, jsreport will only load specified extensions. All specified extensions must be present somewhere in the jsreport directory. Order is not relevant because extensions are reordered by it's dependencies.
+all extensions located under root directory if it's undefined or null. If the attribute is defined, jsreport will only load specified extensions. All specified extensions must be present somewhere in the jsreport directory. Order is not relevant because extensions are reordered by it's dependencies.
 
 **httpPort** `(number)` - http port on which is jsreport running, if both `httpPort` and `httpsPort` are specified, jsreport will automaticaly create http redirects
 from http to https, if any of `httpPort` and `httpsPort` is specified default process.env.PORT will be used
@@ -66,4 +66,7 @@ Cluster will not work with `nedb` as data store. You need to set up a mongodb in
 
 **tempDirectory** (`string`) - optionally specifies absolute path to directory where the application stores temporary files. Currently `phantom-pdf` recipe stores there every report.
 
-**logDirectory** (`string`) - optionally specifies absolute path to directory where the application stores logs
+**logger** (`object`) - optional, object should contain `providerName` property with values `console`, `dummy` or `winston` to specify particular logger. It can also optionally contain `logDirectory` specifying directory where should `winston` store logs. Default is `winston`.
+
+**blobStorage** (`string`) - optional, specifies type of storage used for storing reports. It can be `fileSystem`, `inMemory` or `gridFS`. Defaults to `fileSystem` in full jsreport or to `inMemory` when integrating jsreport into existing node.js application. 
+
