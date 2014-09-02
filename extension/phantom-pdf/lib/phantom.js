@@ -4,9 +4,7 @@
  * Recipe rendering pdf files using phantomjs.  
  */
 
-var childProcess = require('child_process'),
-    uuid = require("uuid").v1,
-    binPath = require('phantomjs').path,
+var uuid = require("uuid").v1,
     path = require("path"),
     join = path.join,
     fs = require("fs"),
@@ -14,13 +12,17 @@ var childProcess = require('child_process'),
     q = require("q"),
     FS = require("q-io/fs"),
     extend = require("node.extend"),
+    mkdirp = require('mkdirp'),
     PhantomManager = require("./phantomManager.js");
-
 
 var phantomManager;
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
+
+    if (!fs.existsSync(reporter.options.tempDirectory)) {
+        mkdirp.sync(reporter.options.tempDirectory);
+    }
 
     if (!phantomManager) {
         phantomManager = new PhantomManager(reporter.options.phantom);

@@ -112,7 +112,7 @@ define(["jquery", "app", "marionette", "backbone",
             app.on("entity-registration", function (context) {
 
                 var templateAttributes = {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
+                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String'},
                     'name': { 'type': 'Edm.String' },
                     'modificationDate': { 'type': 'Edm.DateTime' },
                     'engine': { 'type': 'Edm.String' },

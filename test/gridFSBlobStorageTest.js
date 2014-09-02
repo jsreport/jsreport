@@ -6,12 +6,12 @@ if (process.env.DB === "neDB")
 
 var assert = require("assert"),
     shortid = require("shortid"),
-    GridFS = require("../lib/blobStorage/gridFS.js"),
+    GridFS = require("../lib/blobStorage/gridFSBlobStorage.js"),
     Readable = require("stream").Readable,
     DataProvider = require("../lib/dataProvider.js"),
     connectionString = require("./helpers.js").connectionString;
 
-describe('gridFS', function() {
+describe('gridFSBlobStorage', function() {
 
     beforeEach(function(done) {
         var self = this;

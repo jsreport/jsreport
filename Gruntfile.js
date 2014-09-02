@@ -132,7 +132,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/validateConfigurationTest.js']
+                src: ['test/inMemoryBlobStorageTest.js']
             },
             integration: {
                 options: {
@@ -219,5 +219,5 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test-all', ['test-mongo', 'test-nedb']);
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
-    grunt.registerTask('test-exact', ['env:dbNedb', 'mochaTest:testExact']);
+    grunt.registerTask('test-exact', ['env:dbMongo', 'mochaTest:testExact']);
 };

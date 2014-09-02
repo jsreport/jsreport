@@ -5,11 +5,11 @@ var assert = require("assert"),
     fs = require("fs"),
     util = require("../lib/util/util.js"),
     shortid = require("shortid"),
-    FileSystem = require("../lib/blobStorage/fileSystem.js"),
+    FileSystem = require("../lib/blobStorage/fileSystemBlobStorage.js"),
     tmpDir = require("os").tmpDir(),
     Readable = require("stream").Readable;
 
-describe('fileSystem', function () {
+describe('fileSystemBlobStorage', function () {
     
     beforeEach(function () {
         if (!fs.existsSync(path.join(tmpDir, "test-output"))) {

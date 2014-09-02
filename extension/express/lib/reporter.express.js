@@ -36,7 +36,8 @@ module.exports = function(reporter, definition) {
 var startExpressApp = function(reporter, app, config) {
     //no port, use process.env.PORT, this is used when hosted in iisnode
     if (!config.httpPort && !config.httpsPort) {
-        return q.ninvoke(app, "listen", process.env.PORT);
+        reporter.express.server = http.createServer(app);
+        return q.ninvoke(reporter.express.server, "listen", process.env.PORT);
     }
 
     //just http port is specified, lets start server on http
@@ -49,9 +50,7 @@ var startExpressApp = function(reporter, app, config) {
             addDomainCluster(app, reporter.express.server, config._cluster);
         }
 
-        return q.ninvoke(reporter.express.server, 'listen', config.httpPort).then(function() {
-            reporter.express.server.setTimeout(5 * 60 * 1000);
-        });
+        return q.ninvoke(reporter.express.server, 'listen', config.httpPort);
     }
 
     //http and https port specified
@@ -80,15 +79,15 @@ var startExpressApp = function(reporter, app, config) {
         rejectUnauthorized: false //support invalid certificates
     };
 
-    var server = https.createServer(credentials, app).on('error', function (e) {
+    reporter.express.server = https.createServer(credentials, app).on('error', function (e) {
         console.error("Error when starting https server on port " + config.httpsPort + " " + e.stack);
     });
 
     if (config.useCluster) {
-        app.use(require("./clusterDomainMiddleware.js")(cluster, server));
+        app.use(require("./clusterDomainMiddleware.js")(cluster, reporter.express.server));
     }
 
-    return q.ninvoke(server, 'listen', config.httpsPort);
+    return q.ninvoke(reporter.express.server, 'listen', config.httpsPort);
 };
 
 var configureExpressApp = function(app, reporter, definition){
@@ -109,4 +108,13 @@ var configureExpressApp = function(app, reporter, definition){
     reporter.extensionsManager.on("extension-registered", function(extension) {
         reporter.emit("express-configure", app);
     });
+
+    if (reporter.options.httpsPort)
+        reporter.logger.info("jsreport server successfully started on https port: " + reporter.options.httpsPort);
+
+    if (reporter.options.httpPort)
+        reporter.logger.info("jsreport server successfully started on http port: " + reporter.options.httpPort);
+
+    if (!reporter.options.httpPort && !reporter.options.httpsPort)
+        reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
 }

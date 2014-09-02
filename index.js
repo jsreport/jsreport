@@ -1,7 +1,9 @@
 ﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
  */
 
+var path = require("path"),
+    extend = require("node.extend");
 
 function initializeApp(force) {
     console.log("Creating server.js, config.js and package.json ");
@@ -30,6 +32,39 @@ function repair() {
     initializeApp(true);
 }
 
+var renderDefaults = {
+    connectionString: { name: "InMemory"},
+    dataDirectory: path.join(__dirname, "data"),
+    blobStorage: "inMemory",
+    cacheAvailableExtensions: true,
+    logger: { providerName: "dummy"},
+    rootDirectory: __dirname,
+    tempDirectory: require("os").tmpdir(),
+    extensions: ["html", "templates", "data", "phantom-pdf"]
+};
+
+var reporter = null;
+function render(req) {
+    if (!reporter) {
+        return start().then(function () {
+            return reporter.render(req);
+        });
+    }
+
+    return reporter.render(req);
+}
+
+function start() {
+    return require("./lib/bootstrapper.js")(renderDefaults).start().then(function (b) {
+        reporter = b.reporter;
+        return reporter;
+    });
+}
+
+function extendDefaults(config) {
+    return extend(true, renderDefaults, config)
+}
+
 if (require.main === module) {
     //jsreport commandline support can precreate app...
 
@@ -47,5 +82,10 @@ if (require.main === module) {
 } else {
     module.exports.Reporter = require("./lib/reporter.js");
     module.exports.bootstrapper = require("./lib/bootstrapper.js");
+    module.exports.renderDefaults = renderDefaults;
+    module.exports.render = render;
+    module.exports.start = start;
+    module.exports.extendDefaults = extendDefaults;
+    module.exports.reporter = reporter;
     module.exports.describeReporting = require("./test/helpers.js").describeReporting;
 }

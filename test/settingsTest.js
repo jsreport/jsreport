@@ -13,7 +13,7 @@ describe('Settings', function () {
 
         self.settings = new Settings();
 
-        self.dataProvider = new DataProvider(connectionString);
+        self.dataProvider = new DataProvider(connectionString, { dataDirectory: "data"});
         self.settings.registerEntity(self.dataProvider);
         self.dataProvider.buildContext();
 
