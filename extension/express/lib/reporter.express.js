@@ -115,6 +115,6 @@ var configureExpressApp = function(app, reporter, definition){
     if (reporter.options.httpPort)
         reporter.logger.info("jsreport server successfully started on http port: " + reporter.options.httpPort);
 
-    if (!reporter.options.httpPort && !reporter.options.httpsPort)
+    if (!reporter.options.httpPort && !reporter.options.httpsPort && reporter.express.server)
         reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
 }

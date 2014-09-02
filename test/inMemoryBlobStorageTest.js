@@ -24,7 +24,7 @@ describe('inMemoryBlobStorage', function () {
                 stream.resume();
                 stream.on('data', function(buf) { content += buf.toString(); });
                 stream.on('end', function() {
-                    assert.equal("Hula", content);
+                    assert.equal(content, "Hula");
                     done();
                 });
             });
