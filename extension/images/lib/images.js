@@ -119,10 +119,12 @@ Images.prototype._configureExpress = function (app) {
         self.reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
             next();
+        }).fail(function(e) {
+            next(e);
         });
     });
 
-    app.get("/api/image/:shortid", function (req, res) {
+    app.get("/api/image/:shortid", function (req, res, next) {
 
         req.reporterContext.images.single(function (t) {
             return t.shortid === this.id;
@@ -130,7 +132,7 @@ Images.prototype._configureExpress = function (app) {
             res.setHeader('Content-Type', result.contentType);
             res.send(result.content);
         }, function () {
-            res.send(404);
+            res.status(404).end();
         });
     });
 
@@ -141,7 +143,7 @@ Images.prototype._configureExpress = function (app) {
             res.setHeader('Content-Type', result.contentType);
             res.send(result.content);
         }, function () {
-            res.send(404);
+            res.status(404).end();
         });
     });
 

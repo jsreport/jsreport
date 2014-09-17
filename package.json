@@ -20,7 +20,7 @@
   "dependencies": {
     "async": "*",
     "async-replace": "*",
-    "body-parser": "^1.0.1",
+    "body-parser": "~1.0.1",
     "client-sessions": "^0.6.0",
     "commander": "*",
     "connect": "^2.14.4",

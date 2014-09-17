@@ -76,10 +76,10 @@ PhantomManager.prototype._executeInWorker = function (worker, options) {
         });
     }, this.options.timeout);
 
-    worker.execute(options).then(function () {
+    worker.execute(options).then(function (numberOfPages) {
         isDone = true;
         self.tryFlushQueue();
-        deferred.resolve();
+        deferred.resolve(numberOfPages);
     });
 
     return deferred.promise;
@@ -98,8 +98,8 @@ PhantomManager.prototype.tryFlushQueue = function () {
 
     var task = this.tasksQueue.shift();
 
-    this._executeInWorker(freePhantomInstance, task.options).then(function () {
-        task.deferred.resolve();
+    this._executeInWorker(freePhantomInstance, task.options).then(function (numberOfPages) {
+        task.deferred.resolve(numberOfPages);
     });
 };
 
@@ -150,19 +150,26 @@ PhantomWorker.prototype.execute = function (options) {
     };
 
     var req = require('http').request(http_opts, function (res) {
-        self.isBusy = false;
-        deferred.resolve();
+        var numberOfPages = "";
+        res.on("data", function(chunk) {
+            numberOfPages += chunk;
+        });
+        res.on("end", function() {
+            self.isBusy = false;
+            deferred.resolve(numberOfPages);
+        });
     });
 
     req.setHeader('Content-Type', 'application/json');
     var json = JSON.stringify(options);
     req.setHeader('Content-Length', Buffer.byteLength(json));
     req.write(json);
-    req.end();
 
     req.on("error", function (e) {
         self.isBusy = false;
     });
+
+    req.end();
 
     return deferred.promise;
 };

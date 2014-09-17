@@ -132,7 +132,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/inMemoryBlobStorageTest.js']
+                src: ['extension/reports/test/*.js']
             },
             integration: {
                 options: {

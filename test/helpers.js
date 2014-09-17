@@ -31,7 +31,7 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
             loadExtensionsFromPersistedSettings: false,
             cacheAvailableExtensions: true,
             express: { app: app },
-            rootDirectory: rootDirectory
+            rootDirectory: rootDirectory,
         });
 
 

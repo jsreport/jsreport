@@ -13,7 +13,7 @@ describe('Settings', function () {
 
         self.settings = new Settings();
 
-        self.dataProvider = new DataProvider(connectionString, { dataDirectory: "data"});
+        self.dataProvider = new DataProvider(connectionString, { dataDirectory: "data", logger : new (require("../lib/util/consoleLogger.js"))()});
         self.settings.registerEntity(self.dataProvider);
         self.dataProvider.buildContext();
 

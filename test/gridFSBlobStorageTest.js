@@ -15,7 +15,7 @@ describe('gridFSBlobStorage', function() {
 
     beforeEach(function(done) {
         var self = this;
-        self.dataProvider = new DataProvider(connectionString);
+        self.dataProvider = new DataProvider(connectionString, { logger: new(require("../lib/util/consoleLogger"))()});
         self.dataProvider.buildContext();
 
         self.dataProvider.dropStore().then(function() {

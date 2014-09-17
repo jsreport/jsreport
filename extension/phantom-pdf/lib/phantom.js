@@ -86,11 +86,12 @@ Phantom.prototype.execute = function (request, response) {
                 url: phantomOptions.url || "file:///" + encodeURIComponent(path.resolve(htmlFile)),
                 output: path.resolve(pdfFile),
                 options: phantomOptions
-            }).then(function () {
+            }).then(function (numberOfPages) {
                 response.result = fs.createReadStream(pdfFile);
                 response.headers["Content-Type"] = "application/pdf";
                 response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
                 response.headers["File-Extension"] = "pdf";
+                response.headers["Number-Of-Pages"] = numberOfPages;
                 response.isStream = true;
                 self.reporter.logger.debug("Rendering pdf end.");
             });

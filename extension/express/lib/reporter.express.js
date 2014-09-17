@@ -17,19 +17,27 @@ var async = require("async"),
     routes = require("./routes.js");
 
 module.exports = function(reporter, definition) {
+
     reporter.express = {};
     var app = definition.options.app;
 
-    if (app) {
-        reporter.logger.info("Configuring routes for existing express app.")
-        return configureExpressApp(app, reporter, definition)
+    if (!app) {
+        app = express();
     }
 
-    reporter.logger.info("Creating default express app.")
-    app = express();
+    reporter.extensionsManager.on("extension-registered", function(extension) {
+        reporter.emit("express-configure", app);
+    });
 
-    return startExpressApp(reporter, app, reporter.options).then(function(server) {
-        return configureExpressApp(app, reporter, definition);
+    reporter.initializeListener.add(definition.name, this, function() {
+        if (definition.options.app) {
+            reporter.logger.info("Configuring routes for existing express app.")
+            return configureExpressApp(app, reporter)
+        }
+
+        reporter.logger.info("Creating default express app.");
+        configureExpressApp(app, reporter, definition);
+        return startExpressApp(reporter, app, reporter.options);
     });
 };
 
@@ -90,7 +98,7 @@ var startExpressApp = function(reporter, app, config) {
     return q.ninvoke(reporter.express.server, 'listen', config.httpsPort);
 };
 
-var configureExpressApp = function(app, reporter, definition){
+var configureExpressApp = function(app, reporter){
     reporter.express.app = app;
     app.use(bodyParser.urlencoded({ extended: true,  limit: "2mb"}));
     app.use(bodyParser.json({
@@ -101,13 +109,7 @@ var configureExpressApp = function(app, reporter, definition){
     app.set('views', path.join(__dirname, '../public/views'));
     app.engine('html', require('ejs').renderFile);
 
-    reporter.initializeListener.add(definition.name, this, function() {
-        routes(app, reporter);
-    });
-
-    reporter.extensionsManager.on("extension-registered", function(extension) {
-        reporter.emit("express-configure", app);
-    });
+    routes(app, reporter);
 
     if (reporter.options.httpsPort)
         reporter.logger.info("jsreport server successfully started on https port: " + reporter.options.httpsPort);

@@ -9,6 +9,7 @@ module.exports = function(app, reporter) {
 
     app.use(serveStatic(path.join(__dirname, '../public')));
     app.get("/", function (req, res, next) {
+        reporter.options.hostname = require("os").hostname();
         if (reporter.options.NODE_ENV !== "development")
             res.render(path.join(__dirname, '../public/views', 'root_built.html'), reporter.options);
         else
@@ -35,6 +36,8 @@ module.exports = function(app, reporter) {
         reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
             next();
+        }).fail(function(e) {
+            next(e);
         });
     });
     app.use("/odata", $data.JayService.OData.Utils.simpleBodyReader());
@@ -132,6 +135,10 @@ module.exports = function(app, reporter) {
         res.json(reporter.extensionsManager.availableExtensions);
     });
 
+    app.get("/api/ping", function(req, res, next) {
+        res.send("pong");
+    });
+
     app.use(function (err, req, res, next) {
         res.status(500);
 
@@ -150,7 +157,7 @@ module.exports = function(app, reporter) {
 
         logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
 
-        if (req.get('Content-Type').indexOf("application/json") === -1) {
+        if (!req.get('Content-Type') || req.get('Content-Type').indexOf("application/json") === -1) {
             res.write("Error occured - " + err.message + "\n");
             if (err.stack)
                 res.write("Stack - " + err.stack);
