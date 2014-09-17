@@ -11,10 +11,10 @@ describe('render', function () {
     var taskManager = new TaskManager({});
 
     beforeEach(function (done) {
-        this.timeout(5000);
+        this.timeout(10000);
         taskManager.start().then(function () {
             done();
-        });
+        }).catch(done);
     });
 
     afterEach(function (done) {

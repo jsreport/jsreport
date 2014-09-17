@@ -10,6 +10,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
     describe('childTemplates', function () {
 
         it('should replace child template mark with its content', function (done) {
+            this.timeout(10000);
 
             reporter.templates.create({
                 content: "{{>~a()}}",
