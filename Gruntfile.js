@@ -124,7 +124,8 @@ module.exports = function (grunt) {
         mochaTest: {
             test: {
                 options: {
-                    clearRequireCache: true
+                    clearRequireCache: true,
+                    timeout: 5000
                 },
                 src: ['extension/*/test/*.js', 'test/*.js']
             },
