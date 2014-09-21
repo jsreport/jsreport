@@ -17,7 +17,7 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
         app.use(bodyParser.json({
             limit: 2 * 1024 * 1024 * 1//2MB
         }));
-        app.use(require("connect-multiparty")());
+        
         app.use(serveStatic(path.join(__dirname, 'views')));
         app.engine('html', require('ejs').renderFile);
 
