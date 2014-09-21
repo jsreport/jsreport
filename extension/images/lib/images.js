@@ -158,6 +158,7 @@ Images.prototype._configureExpress = function (app) {
         }
 
         var file = findFirstFile();
+        console.log("file " + file.name);
 
         fs.readFile(file.path, function (err, content) {
             var name = file.name.replace(/\.[^/.]+$/, "");

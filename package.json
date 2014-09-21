@@ -56,6 +56,7 @@
     "stream-to-array": "*",
     "string": "*",
     "stringformat": "*",
+    "supertest": "^0.13.0",
     "underscore": "*",
     "url": "*",
     "uuid": "*",

@@ -5,7 +5,8 @@ var Reporter = require("../lib/reporter.js"),
     express = require("express"),
     path = require("path"),
     serveStatic = require('serve-static'),
-    bodyParser = require("body-parser");
+    bodyParser = require("body-parser"),
+    multer  = require('multer');
 
 var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
     : { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 };
@@ -17,10 +18,9 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
         app.use(bodyParser.json({
             limit: 2 * 1024 * 1024 * 1//2MB
         }));
-        
-        app.use(serveStatic(path.join(__dirname, 'views')));
-        app.engine('html', require('ejs').renderFile);
 
+        app.use(serveStatic(path.join(__dirname, 'views')));3
+        app.engine('html', require('ejs').renderFile);
 
         var reporter = new Reporter({
             tenant: { name: "test" },
