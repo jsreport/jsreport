@@ -72,7 +72,7 @@
 
 
             var plot = [{
-                    label: "Success",
+                    label: "Attempts",
                     data: successData,
                     color: "#0062E3",
                     points: { fillColor: "#0062E3", show: true },

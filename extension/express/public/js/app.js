@@ -18,6 +18,13 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
         contentType: "application/json"
     });
 
+    app.reloadSettings = function(cb) {
+        $.getJSON(app.serverUrl + "api/settings", function(settings) {
+            app.settings = settings;
+            cb(null, settings);
+        });
+    }
+
     app.addInitializer(function() {
         async.parallel([
             function(cb) {
@@ -54,10 +61,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                 });
             },
             function(cb) {
-                $.getJSON(app.serverUrl + "api/settings", function(settings) {
-                    app.settings = settings;
-                    cb(null, null);
-                });
+                app.reloadSettings(cb);
             }
         ], function() {
             require(["core/menu.view", "layout", "core/extensions/module", "core/backbone.sync", "core/dataContext",

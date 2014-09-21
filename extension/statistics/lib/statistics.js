@@ -41,7 +41,7 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
             } else {
                 stat = res[0];
                 request.context.statistics.attach(stat);
-                stat.amount++;
+                stat.amount = 1;
             }
 
             return request.context.statistics.saveChanges().then(function () {
@@ -51,9 +51,11 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
 };
 
 Statistics.prototype.handleAfterRender = function (request, response) {
-    request.context.statistics.attach(response.currentStatistic);
-    response.currentStatistic.success++;
-    return request.context.statistics.saveChanges();
+    return request.reporter.dataProvider.startContext().then(function(context) {
+        context.statistics.attach(response.currentStatistic);
+        response.currentStatistic.success = 1;
+        return context.statistics.saveChanges();
+    });
 };
 
 

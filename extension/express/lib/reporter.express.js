@@ -14,7 +14,9 @@ var async = require("async"),
     http = require("http"),
     https = require("https"),
     cluster = require("cluster"),
-    routes = require("./routes.js");
+    routes = require("./routes.js"),
+    multer  = require('multer');
+
 
 module.exports = function(reporter, definition) {
 
@@ -24,10 +26,6 @@ module.exports = function(reporter, definition) {
     if (!app) {
         app = express();
     }
-
-    reporter.extensionsManager.on("extension-registered", function(extension) {
-        reporter.emit("express-configure", app);
-    });
 
     reporter.initializeListener.add(definition.name, this, function() {
         if (definition.options.app) {
@@ -104,12 +102,15 @@ var configureExpressApp = function(app, reporter){
     app.use(bodyParser.json({
         limit: "2mb"
     }));
-    app.use(require("connect-multiparty")());
 
     app.set('views', path.join(__dirname, '../public/views'));
     app.engine('html', require('ejs').renderFile);
 
+    app.use(multer({ dest: reporter.options.tempDirectory}));
+
     routes(app, reporter);
+
+    reporter.emit("express-configure", app);
 
     if (reporter.options.httpsPort)
         reporter.logger.info("jsreport server successfully started on https port: " + reporter.options.httpsPort);

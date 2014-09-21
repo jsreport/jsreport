@@ -6,13 +6,18 @@ define(["app", "marionette", "underscore", "core/view.base", "backbone"], functi
     return ViewBase.extend({
         template: "menu",
         renderMenuActionPartsContext: null,
+        renderAdditionalUserInfoContext: null,
         
         initialize: function() {
             var self = this;
-            _.bindAll(this, "renderMenuActionParts");
+            _.bindAll(this, "renderMenuActionParts", "renderAdditionalUserInfo");
+
             this.listenTo(this, "render", function () {
                 if (self.renderMenuActionPartsContext !== null)
                     self.renderMenuActionPartsContext.trigger("after-render", self.$el);
+
+                if (self.renderAdditionalUserInfoContext !== null)
+                    self.renderAdditionalUserInfoContext.trigger("after-render", self.$el);
             });
         },
 
@@ -28,6 +33,14 @@ define(["app", "marionette", "underscore", "core/view.base", "backbone"], functi
             app.trigger("menu-render", context);
 
             return context.result;
+        },
+
+        renderAdditionalUserInfo: function () {
+            this.renderAdditionalUserInfoContext = { result: "" };
+            _.extend(this.renderAdditionalUserInfoContext, Backbone.Events);
+            app.trigger("user-info-render", this.renderAdditionalUserInfoContext);
+
+            return this.renderAdditionalUserInfoContext.result;
         },
         
         renderMenuActionParts: function () {

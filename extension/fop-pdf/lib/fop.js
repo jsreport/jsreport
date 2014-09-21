@@ -10,11 +10,12 @@ var childProcess = require('child_process'),
     fs = require("fs"),
     _ = require("underscore"),
     Q = require("q"),
+    mkdirp = require('mkdirp'),
     FS = require("q-io/fs");
 
 var Fop = module.exports = function(reporter) {
-    if (!fs.existsSync(join(reporter.options.rootDirectory, "data", "temp"))) {
-        fs.mkdir(join(reporter.options.rootDirectory, "data", "temp"));
+    if (!fs.existsSync(reporter.options.tempDirectory)) {
+        mkdirp.sync(reporter.options.tempDirectory);
     }
 
     reporter.extensionsManager.recipes.push({
@@ -23,7 +24,7 @@ var Fop = module.exports = function(reporter) {
         execute: function(request, response) {
             reporter.logger.info("Rendering fop start.");
 
-            var foFilePath = join("data/temp", shortid.generate() + ".fo");
+            var foFilePath = join(reporter.options.tempDirectory, shortid.generate() + ".fo");
             var htmlRecipe = _.findWhere(reporter.extensionsManager.recipes, { name: "html" });
 
             return htmlRecipe.execute(request, response)

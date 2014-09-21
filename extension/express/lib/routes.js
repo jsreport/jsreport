@@ -117,7 +117,7 @@ module.exports = function(app, reporter) {
 
     app.get("/api/settings", function(req, res, next) {
         res.send({
-            tenant: reporter.options.tenant
+            tenant: req.user
         });
     });
 

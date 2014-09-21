@@ -155,6 +155,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
 
                     document.body.appendChild(mapForm);
                     mapForm.submit();
+                    app.trigger("after-template-render");
                 });
             },
 

@@ -12,7 +12,7 @@
                 request: {
                     endpoint: function() {
                         return app.serverUrl + 'api/image/' + (options.getId != null ? options.getId() : "");
-                    },
+                    }
                 },
                 multiple: false,
                 forceMultipart: true,
@@ -20,8 +20,8 @@
                 validation: {
                     allowedExtensions: ['jpg', 'jpeg', 'JPG', 'JPEG', 'png', 'gif'],
                     acceptFiles: 'image/*',
-                    sizeLimit: 2097152,
-                },
+                    sizeLimit: 2097152
+                }
             }).on("complete", function(event, id, filename, response) {
                 options.complete(response);
             });
@@ -34,6 +34,6 @@
         };
 
         $.extend({
-            imageUploader: $.fn.imageUploader,
+            imageUploader: $.fn.imageUploader
         });
     });
