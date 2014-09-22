@@ -20,7 +20,7 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
         },
 
         getTenant: function() {
-            return require("app").settings.tenant;
+            return require("app").settings.tenant || { name: ""};
         },
 
         getServerUrl: function() {
@@ -33,8 +33,7 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
         
         getCurrentLocation: function() {
             return window.location.protocol + "//" + window.location.host + "/";
-        },
-            
+        }
     });
 
     $.views.tags({ 
