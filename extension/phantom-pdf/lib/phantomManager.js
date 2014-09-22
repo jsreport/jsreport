@@ -24,9 +24,10 @@ var PhantomManager = module.exports = function (options) {
 };
 
 PhantomManager.prototype.start = function () {
+    var startPromises = [];
     for (var i = 0; i < this.options.numberOfWorkers; i++) {
         this._phantomInstances.push(new PhantomWorker());
-        this._phantomInstances[i].start();
+        startPromises.push(this._phantomInstances[i].start());
     }
 
     var self = this;
@@ -36,6 +37,8 @@ PhantomManager.prototype.start = function () {
             i.kill();
         });
     });
+
+    return q.all(startPromises);
 };
 
 PhantomManager.prototype.execute = function (options) {
@@ -118,12 +121,21 @@ PhantomWorker.prototype.start = function () {
             path.join(__dirname, 'bridge.js')
         ];
 
+        var defer = q.defer();
+
         self._childProcess = childProcess.execFile(phantomjs.path, childArgs, function (error, stdout, stderr) {
         });
+
+        //we need to wait a little bit until phantomjs server is started
+        setTimeout(function() {
+            defer.resolve();
+        }, 100)
 
         self._childProcess.stdout.pipe(process.stdout);
         self._childProcess.stderr.pipe(process.stderr);
         self._childProcess.stdin.write(port + "\n");
+
+        return defer.promise;
     });
 };
 
@@ -148,6 +160,8 @@ PhantomWorker.prototype.execute = function (options) {
         path: '/',
         method: 'POST'
     };
+
+    console.log("sending request");
 
     var req = require('http').request(http_opts, function (res) {
         var numberOfPages = "";
