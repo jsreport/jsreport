@@ -161,8 +161,6 @@ PhantomWorker.prototype.execute = function (options) {
         method: 'POST'
     };
 
-    console.log("sending request");
-
     var req = require('http').request(http_opts, function (res) {
         var numberOfPages = "";
         res.on("data", function(chunk) {

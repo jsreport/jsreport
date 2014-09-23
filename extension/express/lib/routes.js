@@ -16,16 +16,6 @@ module.exports = function(app, reporter) {
             res.render(path.join(__dirname, '../public/views', 'root_dev.html'), reporter.options);
     });
 
-    app.use(function (req, res, next) {
-        var reqd = require('domain').create();
-        reqd.add(req);
-        reqd.add(res);
-        reqd._req = req;
-        process.domain = reqd;
-        next();
-    });
-
-
     app.stack = _.reject(app.stack, function (s) {
         return s.route === "/odata";
     });

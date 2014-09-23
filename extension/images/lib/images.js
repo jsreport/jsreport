@@ -158,10 +158,9 @@ Images.prototype._configureExpress = function (app) {
         }
 
         var file = findFirstFile();
-        console.log("file " + file.name);
 
         fs.readFile(file.path, function (err, content) {
-            var name = file.name.replace(/\.[^/.]+$/, "");
+            var name = file.originalname.replace(/\.[^/.]+$/, "");
             name = name.replace(/[^a-zA-Z0-9-_]/g, '');
             self.upload(req.reporterContext, name, file.type, content, req.params.shortid).then(function (image) {
                 res.setHeader('Content-Type', "text/plain");
