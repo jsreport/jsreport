@@ -195,9 +195,22 @@ module.exports = function (grunt) {
                 files: ['**/app.js'],
                 tasks: ['replace:devApp']
             }
+        },
+
+        cssmin: {
+            combine: {
+                files: {
+                    'extension/express/public/css/built.css': [
+                        'extension/express/public/css/bootstrap.min.css', 'extension/express/public/css/bootstrap-nonresponsive.css',
+                        'extension/express/public/css/toastr.css', 'extension/express/public/css/split-pane.css',
+                        'extension/express/public/css/style.css', 'extension/express/public/css/introjs.css'
+                    ]
+                }
+            }
         }
     });
 
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-contrib-copy');
@@ -210,7 +223,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
     grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp']);
-    grunt.registerTask('build-prod', [ 'requirejs', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp']);
 
     grunt.registerTask('watch-build', ['watch']);
 

@@ -5,9 +5,12 @@ var serveStatic = require("serve-static"),
     async = require("async"),
     dir = require("node-dir");
 
+var oneMonth = 31*86400000;
+
 module.exports = function(app, reporter) {
 
-    app.use(serveStatic(path.join(__dirname, '../public')));
+    app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
+
     app.get("/", function (req, res, next) {
         reporter.options.hostname = require("os").hostname();
         if (reporter.options.NODE_ENV !== "development")
@@ -40,7 +43,7 @@ module.exports = function(app, reporter) {
     });
 
     reporter.extensionsManager.extensions.map(function (e) {
-        app.use('/extension/' + e.name, express.static(e.directory));
+        app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth }));
     });
 
     /**

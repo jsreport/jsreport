@@ -139,16 +139,16 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
 
                         for (var key in body) {
                             if (_.isObject(body[key])) {
-                                addBody(path + key + "[", body[key]);
+                                addBody(path + "[" + key + "]", body[key]);
                             } else {
-                                self.addInput(mapForm, path + key + "]", body[key]);
+                                self.addInput(mapForm, path + "[" + key + "]", body[key]);
                             }
                         }
                     }
 
-                    addBody("template[", uiState);
+                    addBody("template", uiState);
                     if (request.options != null)
-                        addBody("options[", request.options);
+                        addBody("options", request.options);
 
                     if (request.data != null)
                         self.addInput(mapForm, "data", request.data);
