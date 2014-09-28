@@ -48,13 +48,9 @@ var startExpressApp = function(reporter, app, config) {
 
     //just http port is specified, lets start server on http
     if (!config.httpsPort) {
-        reporter.express.server = http.createServer(app).on('error', function (e) {
+        reporter.express.server = http.createServer(function(req, res) { useCluster(reporter, req, res); }).on('error', function (e) {
             console.error("Error when starting http server on port " + config.httpPort + " " + e.stack);
         });
-
-        if (config.useCluster) {
-            addDomainCluster(app, reporter.express.server, config._cluster);
-        }
 
         return q.ninvoke(reporter.express.server, 'listen', config.httpPort);
     }
@@ -85,13 +81,9 @@ var startExpressApp = function(reporter, app, config) {
         rejectUnauthorized: false //support invalid certificates
     };
 
-    reporter.express.server = https.createServer(credentials, app).on('error', function (e) {
+    reporter.express.server = https.createServer(credentials, function(req, res) { useCluster(reporter, req, res); }).on('error', function (e) {
         console.error("Error when starting https server on port " + config.httpsPort + " " + e.stack);
     });
-
-    if (config.useCluster) {
-        app.use(require("./clusterDomainMiddleware.js")(cluster, reporter.express.server));
-    }
 
     return q.ninvoke(reporter.express.server, 'listen', config.httpsPort);
 };
@@ -120,4 +112,12 @@ var configureExpressApp = function(app, reporter){
 
     if (!reporter.options.httpPort && !reporter.options.httpsPort && reporter.express.server)
         reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
+}
+
+var useCluster = function(reporter, req, res) {
+    if (reporter.options.cluster && reporter.options.cluster.enabled) {
+        return require("./clusterDomainMiddleware.js")(reporter.options.cluster.instance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
+    }
+
+    reporter.express.app(req, res);
 }
