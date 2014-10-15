@@ -6,7 +6,7 @@ requirejs.config({
     baseUrl: "/js",
     waitSeconds: 60,
     paths: {
-        app: (typeof jsreport_mode !== 'undefined' && jsreport_mode !== "development") ? "app_built" : "app_dev",
+        app: (typeof jsreport_mode == 'undefined' ? "app_built" : (jsreport_mode == "development") ? "app_dev" : (jsreport_mode == "production" ? "app_built" : "app_embed")),
         underscore: "../lib/underscore",
         backbone: "../lib/backbone",
         originalmarionette: "../lib/backbone.marionette",

@@ -5,18 +5,26 @@ var serveStatic = require("serve-static"),
     async = require("async"),
     dir = require("node-dir");
 
-var oneMonth = 31*86400000;
+var oneMonth = 31 * 86400000;
 
-module.exports = function(app, reporter) {
+module.exports = function (app, reporter) {
+    var originalMode = reporter.options.mode;
 
     app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
 
     app.get("/", function (req, res, next) {
+        reporter.options.mode = req.query.mode || originalMode;
+
         reporter.options.hostname = require("os").hostname();
-        if (reporter.options.NODE_ENV !== "development")
-            res.render(path.join(__dirname, '../public/views', 'root_built.html'), reporter.options);
-        else
+
+        if (reporter.options.mode === "development")
             res.render(path.join(__dirname, '../public/views', 'root_dev.html'), reporter.options);
+
+        if (reporter.options.mode === "production")
+            res.render(path.join(__dirname, '../public/views', 'root_built.html'), reporter.options);
+
+        if (reporter.options.mode === "embedded")
+            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), reporter.options);
     });
 
     app.stack = _.reject(app.stack, function (s) {
@@ -29,7 +37,7 @@ module.exports = function(app, reporter) {
         reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
             next();
-        }).fail(function(e) {
+        }).fail(function (e) {
             next(e);
         });
     });
@@ -49,7 +57,7 @@ module.exports = function(app, reporter) {
     /**
      * Main entry point for invoking report rendering
      */
-    app.post("/api/report", function(req, res, next) {
+    app.post("/api/report", function (req, res, next) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
@@ -57,7 +65,7 @@ module.exports = function(app, reporter) {
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");
 
-        reporter.render(req).then(function(response) {
+        reporter.render(req).then(function (response) {
             //copy headers to the final response
             if (response.headers) {
                 for (var key in response.headers) {
@@ -79,15 +87,15 @@ module.exports = function(app, reporter) {
     /**
      * Get all jsrender html templates used to render jsreport studio in one chunk
      */
-    app.get("/html-templates", function(req, res, next) {
-        var paths = reporter.extensionsManager.extensions.map(function(e) {
+    app.get("/html-templates", function (req, res, next) {
+        var paths = reporter.extensionsManager.extensions.map(function (e) {
             return path.join(e.directory, 'public', 'templates');
         });
 
         var templates = [];
 
-        async.eachSeries(paths, function(p, icb) {
-            dir.readFiles(p, function(err, content, filename, nextFile) {
+        async.eachSeries(paths, function (p, icb) {
+            dir.readFiles(p, function (err, content, filename, nextFile) {
                 if (content.charAt(0) === '\uFEFF')
                     content = content.substr(1);
 
@@ -96,39 +104,41 @@ module.exports = function(app, reporter) {
                     content: content
                 });
                 nextFile();
-            }, function() {
+            }, function () {
                 icb();
             });
-        }, function() {
+        }, function () {
             res.send(templates);
         });
     });
 
-    app.get("/api/version", function(req, res, next) {
+    app.get("/api/version", function (req, res, next) {
         res.send(require('../../../package.json').version);
     });
 
-    app.get("/api/settings", function(req, res, next) {
+    app.get("/api/settings", function (req, res, next) {
         res.send({
             tenant: req.user
         });
     });
 
-    app.get("/api/recipe", function(req, res, next) {
-        res.json(_.map(reporter.extensionsManager.recipes, function(r) { return r.name; }));
+    app.get("/api/recipe", function (req, res, next) {
+        res.json(_.map(reporter.extensionsManager.recipes, function (r) {
+            return r.name;
+        }));
     });
 
-    app.get("/api/engine", function(req, res, next) {
-        reporter.getEngines().then(function(engines) {
+    app.get("/api/engine", function (req, res, next) {
+        reporter.getEngines().then(function (engines) {
             return res.json(engines);
         }).catch(next);
     });
 
-    app.get("/api/extensions", function(req, res, next) {
+    app.get("/api/extensions", function (req, res, next) {
         res.json(reporter.extensionsManager.availableExtensions);
     });
 
-    app.get("/api/ping", function(req, res, next) {
+    app.get("/api/ping", function (req, res, next) {
         res.send("pong");
     });
 

@@ -35,20 +35,21 @@ Scripts.prototype.create = function (context, script) {
 Scripts.prototype.handleBeforeRender = function (request, response) {
     var self = this;
 
-    if (!request.template.scriptId && !request.template.script) {
-        self.reporter.logger.debug("ScriptId not defined for this template.");
+    console.log(request.template.script);
+    if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
+        self.reporter.logger.debug("Script not defined for this template.");
         return q();
     }
 
     function findScript() {
-        if (request.template.script && request.template.script !== "")
+        if (request.template.script.content)
             return q(request.template.script);
 
-        self.reporter.logger.debug("Searching for before script to apply - " + request.template.scriptId);
+        self.reporter.logger.debug("Searching for before script to apply - " + request.template.script.shortid);
 
         return request.context.scripts.single(function (s) {
             return s.shortid === this.id;
-        }, { id: request.template.scriptId });
+        }, { id: request.template.script.shortid });
     }
 
     return findScript().then(function (script) {
@@ -101,8 +102,14 @@ Scripts.prototype._defineEntities = function() {
         name: { type: "string" }
     });
 
+    this.ScriptRefType = this.reporter.dataProvider.createEntityType("ScriptRefType", {
+        content: { type: "string" },
+        shortid: { type: "string" }
+    });
+
+    this.reporter.templates.TemplateType.addMember("script", { type: this.ScriptRefType });
+
     this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
-    this.reporter.templates.TemplateType.addMember("scriptId", { type: "string" });
 
     this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
     this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));

@@ -1,0 +1,29 @@
+<span class="side-title">Engine</span>
+
+<div class="btn-group dropdown" data-binding="engine">
+    <button class="btn btn-danger btn-xs dropdown-button" data-value="{{:engine}}">{{:engine}}</button>
+    <button class="btn btn-danger btn-xs dropdown-toggle" data-toggle="dropdown">
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu pull-right">
+        {{for ~getEngines()}}
+        <li><a data-value="{{:#data}}">{{:#data}} </a></li>
+        {{/for}}
+    </ul>
+</div>
+
+<span class="side-title">Recipe</span>
+
+<div class="btn-group dropdown" data-binding="recipe">
+    <button class="btn btn-success btn-xs dropdown-button" id="recipe" data-value="{{:recipe}}"
+            >{{:recipe}}
+    </button>
+    <button class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown">
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu pull-right">
+        {{for ~getRecipes()}}
+        <li><a data-value="{{:#data}}">{{:#data}}</a></li>
+        {{/for}}
+    </ul>
+</div>

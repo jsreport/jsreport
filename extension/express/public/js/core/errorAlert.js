@@ -13,6 +13,6 @@
     };
 
     $.extend({
-        errorAlert: $.fn.errorAlert,
+        errorAlert: $.fn.errorAlert
     });
 })(jQuery);

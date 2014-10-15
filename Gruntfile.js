@@ -74,33 +74,16 @@ module.exports = function (grunt) {
                 options: {
                     paths: commonPath,
                     baseUrl: path.join(e.directory, "public/js"),
-                    out: path.join(e.directory, "/public/js/main_built.js"),
+                    out: path.join(e.directory, "/public/js/main.js"),
                     optimize: "none",
-                    name: "main",
+                    name: "main_dev",
                     onBuildWrite: function (moduleName, path, contents) {
                         var regExp = new RegExp("\"[.]/", "g");
-                        return contents.replace("define('main',", "define(").replace(regExp, "\"");
+                        return contents.replace("define('main_dev',", "define(").replace(regExp, "\"");
                     }
                 }
             };
         });
-
-        return result;
-    }
-
-
-    function copyFiles() {
-        var result = [];
-
-        result.push({ src: ['extension/express/public/js/app.js'], dest: 'extension/express/public/js/app_dev.js' });
-
-        extensions.forEach(function (e) {
-            result.push({
-                src: path.join(e.directory,"public/js/main.js"),
-                dest: path.join(e.directory,"public/js/main_dev.js")
-            });
-        });
-
 
         return result;
     }
@@ -144,7 +127,7 @@ module.exports = function (grunt) {
         },
 
         copy: {
-            dev: { files: copyFiles() }
+            dev: { files: [{ src: ['extension/express/public/js/app.js'], dest: 'extension/express/public/js/app_dev.js' }] }
         },
 
         requirejs: createRequireJs(),
@@ -207,6 +190,17 @@ module.exports = function (grunt) {
                     ]
                 }
             }
+        },
+
+        concat: {
+            options: {
+                separator: ';'
+            },
+            dist: {
+                src: ['extension/client-html/public/js/handlebars.min.js', 'extension/client-html/public/js/jsrender.min.js',
+                    'extension/client-html/public/js/client.render.js', 'extension/embedding/public/embed.js'],
+                dest: 'extension/embedding/public/embed.min.js'
+            }
         }
     });
 
@@ -215,6 +209,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-text-replace');
+    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-env');
 
@@ -222,8 +217,8 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
-    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp']);
-    grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
+    grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);
 
     grunt.registerTask('watch-build', ['watch']);
 

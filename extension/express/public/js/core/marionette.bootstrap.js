@@ -138,7 +138,7 @@ define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"]
             this.views[id] = view;
 
             return this;
-        },
+        }
     });
 
     return Marionette;

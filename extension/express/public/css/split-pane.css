@@ -40,7 +40,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
 	position: absolute;
 	width: 100%;
 	left: 0;
-    cursor: col-resize; 
+    cursor: ns-resize;
 	z-index: 2;
 }
 
@@ -92,5 +92,5 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
 .split-pane.fixed-top > .split-pane-resize-shim,
 .split-pane.fixed-bottom > .split-pane-resize-shim,
 .split-pane.horizontal-percent > .split-pane-resize-shim {
-	cursor: col-resize;
+	cursor: ns-resize;
 }

@@ -1,5 +1,6 @@
 ﻿module.exports = {
   "name": "phantom-pdf",
   "main": "lib/phantom.js",
-  "dependencies": [ "templates" ]
+  "dependencies": [ "templates" ],
+   "embeddedSupport":true
 }

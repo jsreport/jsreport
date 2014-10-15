@@ -46,18 +46,39 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                 if (extension.hasPublicPart === false || extension.name === "express")
                    return innercb(null);
 
-                require.config({
-                    packages: [
-                        {
-                            name: extension.name,
-                            location: '/extension/' + extension.name + '/public/js',
-                            main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
-                        }
-                    ]
-                });
-                require([extension.name], function() {
-                    innercb();
-                }, function() { innercb(); });
+                var main = "main";
+                if (jsreport_mode === "development") {
+                    main = "main_dev";
+                }
+
+                if (jsreport_mode === "embedded") {
+                    if (!extension.embeddedSupport)
+                        return innercb(null);
+                    main = "main_embed";
+                }
+
+                function loadExtension(main) {
+                    require.config({
+                        packages: [
+                            {
+                                name: extension.name,
+                                location: '/extension/' + extension.name + '/public/js',
+                                main: main
+                                //main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
+                            }
+                        ]
+                    });
+                    require([extension.name], function() {
+                        innercb();
+                    }, function(e) {
+                        console.log(e);
+                        if (main !== "main")
+                            return loadExtension("main");
+                        innercb();
+                    });
+                }
+
+                loadExtension(main);
             }, cb);
         };
 

@@ -1,4 +1,5 @@
 ﻿module.exports = {
   "name": "templates",
-  "main": "lib/templates.js"
+  "main": "lib/templates.js",
+  "embeddedSupport":true
 }

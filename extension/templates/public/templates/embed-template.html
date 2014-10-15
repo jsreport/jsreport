@@ -1,0 +1,60 @@
+<nav class="navbar navbar-fixed-top not-responsive" role="navigation">
+    <div class="navbar-header submenu">
+        <ul class="nav navbar-nav sub-header" id="extensionsToolbarBox">
+            <li><a id="saveCommand"><i class="fa fa-save"></i>Save</a></li>
+            <li><a id="previewCommand"><i
+                    class="fa fa-play"></i>Run</a></li>
+        </ul>
+
+        <ul class="pull-right nav navbar-nav sub-header">
+            <li><a id="closeCommand"><i
+                    class="fa fa-times"></i></a></li>
+        </ul>
+    </div>
+</nav>
+
+<nav class="navbar">
+    <ul class="nav navbar-nav side-nav" id="extensionsBox">
+        <li>
+            <a id="basicSettingsCommand">
+                <i class="fa fa-cog"></i>
+            </a>
+        </li>
+        {{:~renderExtensionsMenu()}}
+    </ul>
+</nav>
+
+
+<!--<div class="template-detail-wrap split-pane fixed-left">-->
+<div id="template-detail-wrap">
+    <div class="split-pane fixed-left">
+        <div class="split-pane-component" id="side-nav-extended-pane">
+        </div>
+        <div class="split-pane-divider" id="side-nav-divider"></div>
+        <div class="split-pane-component" id="main-pane">
+            <div class="split-pane fixed-right">
+                <div class="split-pane-component" id="ace-editor-pane">
+                    <div class="split-pane horizontal-percent">
+                        <div class="split-pane-component" id="content-pane">
+                            <div id="htmlWrap">
+                                <div id="htmlArea" class="full-content">{{>content}}</div>
+                            </div>
+                        </div>
+                        <div class="split-pane-divider" id="content-divider"></div>
+                        <div class="split-pane-component" id="helpers-pane">
+                            <div id="helpersWrap">
+                                <div id="helpersArea" class="full-content">{{>helpers}}</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="split-pane-divider" id="main-pane-divider"></div>
+                <div class="split-pane-component" id="preview-pane">
+                    <iframe name="previewFrame" id="preview" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

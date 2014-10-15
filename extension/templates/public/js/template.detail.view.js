@@ -28,7 +28,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/
             },
 
             events: {
-                "click #previewPane": "triggerPreview",
+                "click #previewPane": "triggerPreview"
             },
 
             onDomRefresh: function() {
@@ -100,6 +100,6 @@ define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/
 
             validateLeaving: function() {
                 return !this.model.hasChangesSyncLastSync();
-            },
+            }
         });
     });
