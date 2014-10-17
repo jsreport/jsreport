@@ -29,9 +29,6 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
 
         model.contextSet().attach(model.originalEntity);
         model.copyToEntity();
-        //model.originalEntity.script = _.extend({}, model.originalEntity.script);
-
-        alert(JSON.stringify(model.originalEntity.initData));
 
         app.dataContext.saveChanges()
             .then(function () {

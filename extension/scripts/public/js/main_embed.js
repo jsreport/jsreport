@@ -65,8 +65,6 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
                     'shortid': { 'type': 'Edm.String' },
                     "creationDate": { type: "date" },
                     "modificationDate": { type: "date" },
-                    "scriptId": { type: "Edm.String"}
-
                 }, null);
 
                 $data.Class.define("$entity.ScriptRefType", $data.Entity, null, {

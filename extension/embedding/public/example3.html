@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <link href="/css/bootstrap.min.css?v=" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>Customization with loading data via script</h1>
+
+    <div class="well">
+
+
+        <p>
+            This use case covers scenario when you have application generating pdf based on the data loaded from
+            external service or database. For this purpose you can use custom script loading data. The script loading
+            data can be chosen from the list or customized by end user.
+        </p>
+
+        <p>
+            This example also shows how you can render report to the html placeholder. jsreport will automatically
+            add edit button user can use to customize particular report. Just hover pdf and edit button should fade in.
+        </p>
+    </div>
+
+    <div class="grid">
+        <div class="row">
+            <div class="col-md-4">
+                <div data-jsreport-widget="b1I_ThWlS" style="height: 500px"></div>
+
+            </div>
+            <div class="col-md-8">
+                <div data-jsreport-widget="WJXsC2-er" style="height: 500px"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="jsreport-rolette"
+         style="display:none;background-color: #a3a3a3; opacity: 0.5; position: absolute; left: 0; top: 0; width:10000px; height: 10000px; z-index: 100;"></div>
+</div>
+
+
+<script>
+    var issues = [
+        {title: "Invalid html", priority: "important"},
+        {title: "Failure on startup", priority: "minor"},
+        {title: "Missing validation for email", priority: "medium"},
+        {title: "Performance issues", priority: "medium"},
+        {title: "Blue screen", priority: "medium"},
+        {title: "Double click prevention", priority: "medium"},
+        {title: "Reset password", priority: "minor"},
+        {title: "Deleting account", priority: "medium"}
+    ];
+
+    window.jsreportInit = function (jsreport) {
+        jsreport.setClientContext({
+            loadData: function(filter, cb) {
+                if (!cb)
+                    return filter({ issues: issues});
+
+                var filteredIssues = issues.filter(function(i) {
+                   return i.title.lastIndexOf(filter, 0) === 0;
+                });
+                cb({ issues: filteredIssues});
+            }
+        });
+
+        jsreport.renderAll();
+    };
+
+</script>
+
+<script>
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "http://localhost:2000/extension/embedding/public/embed.min.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'jsreport-embedding'));
+</script>
+</body>
+</html>

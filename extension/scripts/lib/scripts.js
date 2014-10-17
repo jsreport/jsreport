@@ -35,7 +35,11 @@ Scripts.prototype.create = function (context, script) {
 Scripts.prototype.handleBeforeRender = function (request, response) {
     var self = this;
 
-    console.log(request.template.script);
+    //back compatibility
+    if (!request.template.script && request.template.scriptId) {
+        request.template.script = { shortid: request.template.scriptId}
+    }
+
     if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
         self.reporter.logger.debug("Script not defined for this template.");
         return q();

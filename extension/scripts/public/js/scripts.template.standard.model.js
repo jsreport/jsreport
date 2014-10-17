@@ -9,10 +9,18 @@
                 self.items = items.map(function(i) { return i.initData; });
 
                 var script = self.templateModel.get("script");
+
                 if (!script) {
                     script = new $entity.ScriptRefType();
+
+                    //back compatibility
+                    if (self.templateModel.get("scriptId")) {
+                        script.shortid = self.templateModel.get("scriptId");
+                    }
+
                     self.templateModel.set("script", script);
                 }
+
 
                 var custom = { name: "- custom -", shortid: "custom", content:   script.content};
                 self.items.unshift(custom);
@@ -35,7 +43,6 @@
 
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
-            alert(JSON.stringify(this.templateModel.get("script")));
             this.listenTo(templateModel, "api-overrides", this.apiOverride);
         },
         

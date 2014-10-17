@@ -180,4 +180,14 @@ li.dropdown.open > ul > li > a {
     width: 120px;
 }
 
+img#loader-img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -100px; /* -1 * image width / 2 */
+    margin-top: -100px; /* -1 * image height / 2 */
+    display: block;
+}
+
+
 

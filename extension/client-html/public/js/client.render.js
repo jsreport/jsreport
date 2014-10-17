@@ -1,6 +1,6 @@
 function renderJsRender(content, helpers, data) {
     var tmpl = $.templates(content);
-    data = data || { } ;
+    data = data || { };
     return tmpl.render(data, helpers);
 }
 
@@ -41,7 +41,8 @@ function renderHtml(request) {
 
         var afterScript = "";
         while (matches = regex.exec(request.template.helpers)) {
-            afterScript += "try {this." + matches[1] + "=" + matches[1] + ";}catch(e){}";
+            if (matches[1])
+                afterScript += "try {this." + matches[1] + "=" + matches[1] + ";}catch(e){}";
         }
 
         eval(request.template.helpers + afterScript);
@@ -56,11 +57,12 @@ function renderHtml(request) {
 
         if (request.template.engine === "jsrender")
             return renderJsRender(request.template.content, sandbox, request.data);
+
+        throw new Error("Unsupported engine " + request.template.engine);
+
     } catch (e) {
         return escapeHtml(e.toString());
     }
-
-    throw new Error("Unsupported engine " + request.template.engine);
 }
 
 var lastRequest;
@@ -72,16 +74,31 @@ function clientRender(request, target, selector) {
     var $iframe = $("iframe[name='" + target + "']");
 
 
-    var output = renderHtml(request);
+    window.jsreport = window.jsreport || {};
+    if (parent.jsreport) {
+        window.jsreport = parent.jsreport;
+    }
+    window.jsreport.reload = function (selector, data) {
+        if (!data) {
+            data = selector;
+            selector = "body";
+        }
 
+        lastRequest.data = data;
+        lastRequest.isReload = true;
+        clientRender(lastRequest, lastTarget, selector)
+    };
+    window.jsreport.request = request;
+
+    var output = renderHtml(request);
     if (selector) {
-        var htmlCut = $(output).filter(selector);
-        $iframe.contents().find(selector).html(htmlCut.html());
+        var htmlCut = selector === "body" ? output : $(output).filter(selector).html();
+        $iframe.contents().find(selector).html(htmlCut);
         return;
     }
 
     $iframe.attr("src", "");
-    
+
     var doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
     if (doc.document) {
         doc = doc.document;
@@ -92,16 +109,4 @@ function clientRender(request, target, selector) {
     doc.open();
     doc.write(output);
     doc.close();
-}
-
-window.context = function() {
-    return {
-        test: function() {
-            return "foo";
-        },
-        reload: function(selector, data) {
-            lastRequest.data = data;
-            clientRender(lastRequest, lastTarget, selector)
-        }
-    }
 }

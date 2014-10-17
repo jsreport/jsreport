@@ -215,7 +215,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default', ['build']);
 
-    grunt.registerTask('build', ['build-dev', 'build-prod']);
+    grunt.registerTask('build', ['build-dev'/*, 'build-prod'*/]);
 
     grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
     grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);

@@ -28,7 +28,14 @@ var Data = function (reporter, definition) {
         modificationDate: { type: "date" }
     });
 
+    this.DataItemRefType = this.reporter.dataProvider.createEntityType("DataItemRefType", {
+        dataJson: { type: "string" },
+        shortid: { type: "string" }
+    });
+
     this.reporter.dataProvider.registerEntitySet("data", this.DataItemType, { tableOptions: { humanReadableKeys: [ "shortid"] }});
+
+    this.reporter.templates.TemplateType.addMember("data", { type: this.DataItemRefType });
 
     reporter.templates.TemplateType.addMember("dataItemId", { type: "string" });
 
@@ -44,22 +51,27 @@ Data.prototype.handleBeforeRender = function (request, response) {
         return q();
     }
 
-    if (!request.data && !request.template.dataItemId && !request.template.dataItem) {
-        this.reporter.logger.debug("No data specified.");
+    //back compatibility
+    if (!request.template.data && request.template.dataItemId) {
+        request.template.data = { shortid: request.template.dataItemId}
+    }
+
+    if (!request.template.data || (!request.template.data.shortid && !request.template.data.dataJson)) {
+        this.reporter.logger.debug("Data item not defined for this template.");
         return q();
     }
 
     var self = this;
 
     function findDataItem() {
-        if (request.template.dataItem)
-            return q(request.template.dataItem);
+        if (request.template.data.dataJson)
+            return q(request.template.data);
 
         self.reporter.logger.debug("Searching for dataItem to apply");
 
         return request.context.data.single(function (d) {
             return d.shortid === this.id;
-        }, { id: request.template.dataItemId });
+        }, { id: request.template.data.shortid });
     }
 
     return findDataItem().then(function (di) {

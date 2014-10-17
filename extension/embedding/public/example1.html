@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <link href="/css/bootstrap.min.css?v=" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>Customization with input data</h1>
+
+    <div class="well">
+
+
+        <p>
+            This use case covers scenario when you have application generating pdf at user request from some kind of a
+            input data. It can be for example an application generating pdf invoice from specified information like receiver
+            name, billing address and so on.
+        </p>
+
+        <p>
+            This example shows how you can trigger opening jsreport embedded to edit report template and how you
+            can trigger report generation with input data taken from the form.
+        </p>
+    </div>
+
+    <div>
+
+        <form role="form">
+            <div class="well">
+                <div class="form-group">
+                    <label for="receiverAddress">Receiver address</label>
+                    <input type="text" class="form-control" id="receiverAddress" placeholder="address">
+                </div>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="text" class="form-control" id="price" placeholder="10eur">
+                </div>
+            </div>
+            <button id="renderReport" class="btn btn-lg btn-success" type="button">Generate</button>
+            <button id="editReport" class="btn btn-lg btn-primary" type="button">Edit</button>
+        </form>
+    </div>
+
+    <div class="jsreport-rolette"
+         style="display:none;background-color: #a3a3a3; opacity: 0.5; position: absolute; left: 0; top: 0; width:10000px; height: 10000px; z-index: 100;"></div>
+</div>
+
+
+<script>
+
+    function getTemplate() {
+        return {
+            shortid: "-1uZ8s4IE",
+            data: {
+                receiverAddress: $("#receiverAddress").val(),
+                price: $("#price").val()
+            }
+        };
+    }
+
+    $("#editReport").click(function () {
+        jsreport.openEditor(getTemplate());
+    });
+
+    $("#renderReport").click(function () {
+        jsreport.render(getTemplate());
+    });
+
+</script>
+
+<script>
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "http://localhost:2000/extension/embedding/public/embed.min.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'jsreport-embedding'));
+</script>
+</body>
+</html>

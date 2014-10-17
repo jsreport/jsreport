@@ -95,15 +95,23 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "core/liste
                 }
             });
 
-            this.listenTo(app, "after-start", function () {
-                var view = new View({ model: new TemplateModel()});
-                view.model.set("shortid", window.location.hash.substring(1));
-                view.model.fetch({
-                    success: function () {
-                        app.layout.content.show(view);
-                    }
-                });
+            var Router = Backbone.Router.extend({
+                routes: {
+                    ":id": "refresh"
+                },
+
+                refresh: function () {
+                    var view = new View({ model: new TemplateModel()});
+                    view.model.set("shortid", window.location.hash.substring(1));
+                    view.model.fetch({
+                        success: function () {
+                            app.layout.content.show(view);
+                        }
+                    });
+                }
             });
+
+            module.router = new Router();
 
             app.on("entity-registration", function (context) {
 
