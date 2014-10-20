@@ -2,111 +2,29 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title></title>
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <link href="/css/bootstrap.min.css?v=" rel="stylesheet">
 </head>
 <body>
 
-<h1>Embedding jsreport</h1>
+<div class="container">
+    <h1>Embedding jsreport</h1>
 
-<ol>
-    <li><a href="/extension/embedding/public/example1.html">Customization with input data</a></li>
-    <li><a href="/extension/embedding/public/example2.html">Customization with loading data via script</a></li>
-    <li><a href="/extension/embedding/public/example3.html">Client side html widgets</a></li>
-</ol>
+    <p>
+       This is the prototype for jsreport end user customization feature. You can go through three scenarios that came to my mind
+       jsreport could support.
+    </p>
+    <p>
+        Source code - <a href="https://github.com/pofider/jsreport/tree/embedding">https://github.com/pofider/jsreport/tree/embedding</a>
+        <br/>
+        Issue and discussion - <a href="https://github.com/jsreport/jsreport/issues/20">https://github.com/jsreport/jsreport/issues/20</a>
+    </p>
 
-<div id="placeholder" style="width:800px;height:800px">
-
+    <ol>
+        <li><a href="/extension/embedding/public/example1.html">Customization with input data</a></li>
+        <li><a href="/extension/embedding/public/example2.html">Customization with loading data via script</a></li>
+        <li><a href="/extension/embedding/public/example3.html">Client side html widgets</a></li>
+    </ol>
 </div>
 
-<!--<div id="placeholder2" style="width:800px;height:800px">-->
-    <!--<form method='POST' target='xxxFrame' action='http://localhost:2000/api/report' id='jsrForm'>-->
-        <!--<input hidden='true' type='text'name='template[shortid]' value="b1lALWZ74"/>-->
-    <!--</form>-->
-    <!--<iframe name="xxxFrame" frameborder="0"  style="position: relative; height: 100%; width: 100%;"></iframe>-->
-<!--</div>-->
-
-<!--<div id="placeholder3" style="width:800px;height:800px">-->
-    <!--<div id="editButton" style="position: absolute; left: 780px; background-color: blue; z-index: 1000">-->
-        <!--kuk-->
-    <!--</div>-->
-    <!--<object id="objectPdf" type="application/pdf" style="width:100%;height:80%"></object>-->
-    <!--<!--<div id="htmlContent" style="width:auto;height: auto"></div>-->-->
-
-    <!--<iframe id="myFrame" frameborder="0"  style="position: absolute; left: 300px; top:100px; width:800px; height: 600px; display: none; z-index:101"></iframe>-->
-<!--</div>-->
-
-<!--<div id="rolette" style="display:none;background-color: #d3d3d3; opacity: 0.5; position: absolute; left: 0; top: 0; width:10000px; height: 10000px; z-index: 100;"></div>-->
-
-
-
-<script>
-
-
-    window.jsreportInit = function (jsreport) {
-        jsreport.render($("#placeholder"), "-1uZ8s4IE");
-        /*jsreport.openEditor("b1lALWZ74", {
-            data: {
-                "foo": "Hello World"
-            }
-        });*/
-        //document.getElementById("jsrForm").submit();
-    };
-
-//    var editing = false;
-//    $("#editButton").click(function() {
-//        $("#myFrame").attr("src", "http://localhost:2000/?mode=embedded#b1lALWZ74");
-//        $("#myFrame").toggle();
-//        $("#rolette").toggle();
-//        $("#objectPdf").toggle();
-//        if (editing)
-//            reload();
-//        editing = !editing;
-//    });
-
-//    function reload() {
-//        var xhr = new XMLHttpRequest();
-//        var data = JSON.stringify({ "template": { "shortid": "b1lALWZ74" }});
-//        xhr.open('POST', '/api/report', true);
-//        xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-//        xhr.setRequestHeader("Content-length", data.length);
-//        xhr.responseType = 'arraybuffer';
-//
-//        xhr.onload = function (e) {
-//            var contentType = this.getResponseHeader('Content-Type')
-//            if (contentType.lastIndexOf("application/pdf", 0) === 0) {
-//                var uInt8Array = new Uint8Array(this.response); // this.response == uInt8Array.buffer
-//                // var byte3 = uInt8Array[4]; // byte at offset 4
-//                $("#objectPdf").attr("data", "data:application/pdf;base64," + arrayBufferToBase64(uInt8Array));
-//            }
-//
-//            if (contentType.lastIndexOf("text/html", 0) === 0) {
-//                $("#htmlContent").html(ab2str(this.response));
-//            }
-//        };
-//
-//        xhr.send(data);
-//    }
-//
-//    reload();
-
-//    $.post("/api/report", { "template": { "shortid": "b1lALWZ74" }}).then(function(data) {
-//        $("#objectPdf").attr("data", "data:application/pdf;base64," + alert(typeof data));
-//        //alert(data);
-//    });
-</script>
-
-<script>
-    (function (d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {
-            return;
-        }
-        js = d.createElement(s);
-        js.id = id;
-        js.src = "http://localhost:2000/extension/embedding/public/embed.min.js";
-        fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'jsreport-embedding'));
-</script>
 </body>
 </html>

@@ -29,7 +29,7 @@ function clientSideRender($placeholder, template) {
     clientRender({ template: template }, template.shortid);
 }
 
-function serverSideRender($placeholder, template) {
+function serverSideRender(url, $placeholder, template) {
     if (template) {
         var iframe = $("<iframe frameborder='0' name='" + template.shortid + "' style='width:100%;height:100%;z-index: 50'></iframe>");
         $placeholder.append(iframe);
@@ -43,7 +43,7 @@ function serverSideRender($placeholder, template) {
     mapForm.target = $placeholder ? template.shortid : "_blank";
     mapForm.id = template.shortid;
     mapForm.method = "POST";
-    mapForm.action = "http://localhost:2000/api/report";
+    mapForm.action = url + "/api/report";
 
     function addInput(form, name, value) {
         var input = document.createElement("input");
@@ -96,7 +96,7 @@ function serverSideRender($placeholder, template) {
 //    xhr.send(data);
 }
 
-function addEditButton($placeholder, template, reload) {
+function addEditButton(url, $placeholder, template, reload) {
     var $edit = $("<div style='position: absolute; display:none; z-index: 100;background-color: #d3d3d3; padding:7px; cursor: pointer'><strong>edit</strong></div>");
     var $editShim = $("<div style='position: absolute; display:none; z-index: 20'><iframe visible='true' height='35' width='43' frameborder='0'></iframe></div>");
 
@@ -111,7 +111,7 @@ function addEditButton($placeholder, template, reload) {
     $edit.click(function () {
         $placeholder.hide();
 
-        openEditor({ shortid: template.shortid }, function () {
+        openEditor(url, { shortid: template.shortid }, function () {
             $placeholder.show();
             reload();
         });
@@ -134,15 +134,14 @@ function addEditButton($placeholder, template, reload) {
     });
 }
 
-function openEditor(template, onClose) {
+function openEditor(url, template, onClose) {
     $(".jsreport-rolette").show();
 
     jsreportIFrame.css("width", ($(window).width() - 200) + "px");
     jsreportIFrame.css("height", ($(window).height() - 200) + "px");
 
     jsreport.template = template;
-
-    jsreportIFrame.attr("src", "http://localhost:2000/?mode=embedded#" + template.shortid);
+    jsreportIFrame.attr("src", url + "/?mode=embedded#" + template.shortid);
     jsreportIFrame.show();
 
     var timer = setInterval(function () {
@@ -160,7 +159,7 @@ function openEditor(template, onClose) {
 }
 
 var JsReport = function () {
-
+    this.url = document.getElementById("jsreport-embedding").src.replace("/extension/embedding/public/embed.min.js", "");
 };
 
 JsReport.prototype.renderAll = function () {
@@ -196,13 +195,13 @@ JsReport.prototype.render = function ($placeholder, template) {
             clientSideRender($placeholder, loadedTemplate);
         } else {
             if ($placeholder)
-                serverSideRender($placeholder, template);
+                serverSideRender(self.url, $placeholder, template);
             else
-                serverSideRender(template);
+                serverSideRender(self.url, template);
         }
 
         if ($placeholder) {
-            addEditButton($placeholder, loadedTemplate, function () {
+            addEditButton(self.url, $placeholder, loadedTemplate, function () {
                 self.render($placeholder, template);
             });
         }
@@ -215,7 +214,8 @@ JsReport.prototype.openEditor = function (template) {
             shortid: template
         }
     }
-    openEditor(template, function () {
+
+    openEditor(this.url, template, function () {
     });
 };
 

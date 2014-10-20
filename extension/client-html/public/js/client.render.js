@@ -65,37 +65,47 @@ function renderHtml(request) {
     }
 }
 
-var lastRequest;
-var lastTarget;
+var requestList = {};
+
+function reload(id, selector, data) {
+    if (!data) {
+        data = selector;
+        selector = "body";
+    }
+
+    var request = requestList[id];
+    request.data = data;
+    request.isReload = true;
+    clientRender(request, request.target, selector)
+};
 
 function clientRender(request, target, selector) {
-    lastRequest = request;
-    lastTarget = target;
-    var $iframe = $("iframe[name='" + target + "']");
+    request.target = target;
+    request.selector = selector;
+    requestList[request.template.shortid] = request;
 
+    var $iframe = $("iframe[name='" + target + "']");
 
     window.jsreport = window.jsreport || {};
     if (parent.jsreport) {
         window.jsreport = parent.jsreport;
     }
-    window.jsreport.reload = function (selector, data) {
-        if (!data) {
-            data = selector;
-            selector = "body";
-        }
 
-        lastRequest.data = data;
-        lastRequest.isReload = true;
-        clientRender(lastRequest, lastTarget, selector)
-    };
     window.jsreport.request = request;
+    window.jsreport.reloadForId = reload;
 
     var output = renderHtml(request);
+
     if (selector) {
         var htmlCut = selector === "body" ? output : $(output).filter(selector).html();
         $iframe.contents().find(selector).html(htmlCut);
         return;
     }
+
+    output = "<script>" +
+                "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + request.template.shortid + "', selector, data); };" +
+                "window.jsreport.context = parent.jsreport.context;" +
+              "</script>" + output;
 
     $iframe.attr("src", "");
 
