@@ -52,7 +52,7 @@ module.exports = function (grunt) {
             compileApp: {
                 options: {
                     baseUrl: "./extension/express/public/js",
-                    mainConfigFile: './extension/express/public/js/require_main.js',
+                    mainConfigFile: './extension/express/public/js/require_main_fixed.js',
                     out: "extension/express/public/js/app_built.js",
                     name: 'app',
                     removeCombined: true,
@@ -162,6 +162,13 @@ module.exports = function (grunt) {
                 replacements: [
                     { from: '{{templateBust}}', to: new Date().getTime() + "" }
                 ]
+            },
+            requirejsMain: {
+                src: ['./extension/express/public/js/require_main.js'],
+                dest: ['./extension/express/public/js/require_main_fixed.js'],
+                replacements: [
+                    { from: 'jsreport_server_url + "js"', to: '"/js"' }
+                ]
             }
         },
 
@@ -218,7 +225,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
     grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
-    grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);
+    grunt.registerTask('build-prod', [ 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);
 
     grunt.registerTask('watch-build', ['watch']);
 

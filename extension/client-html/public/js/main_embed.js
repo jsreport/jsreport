@@ -2,20 +2,18 @@
  * Copyright(c) 2014 Jan Blaha
  */
 
-require.config({
-    shim: {
-        'extension/client-html/public/js/client.render.js': { exports: 'clientRender' },
-        'extension/client-html/public/js/handlebars.min.js': { exports: 'Handlebars' }
-    }
-});
 
+define(["jquery", "underscore", "app"], function ($, underscore, app, Handlebars) {
 
+    var shim = {};
+    shim[app.serverUrl + 'extension/client-html/public/js/client.render.js'] = { exports: 'clientRender'};
+    shim[app.serverUrl + 'extension/client-html/public/js/handlebars.min.js'] = { exports: 'Handlebars'};
+    require.config({ shim: shim });
 
-define(["jquery", "underscore", "app", "extension" + "/client-html/public/js/client.render.js", "extension" + "/client-html/public/js/handlebars.min.js"],
-    function ($, underscore, app, clientRender, Handlebars) {
-
+    require([app.serverUrl + "extension" + "/client-html/public/js/client.render.js", app.serverUrl + "extension" + "/client-html/public/js/handlebars.min.js"], function (clientRender, Handlebars) {
         window.Handlebars = Handlebars;
         return app.module("clientHtml", function (module) {
             app.clientHtml = clientRender;
         });
     });
+});

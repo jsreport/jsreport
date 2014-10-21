@@ -4,7 +4,7 @@
 
 define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"], function ($, Marionette, async, Utils, ListenerCollection) {
     var app = new Backbone.Marionette.Application();
-    app.serverUrl = "/";
+    app.serverUrl = jsreport_server_url;
 
     app.onStartListeners = new ListenerCollection();
 
@@ -76,10 +76,10 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                                 app.layout.render();
                                 Backbone.history.start();
                                 app.trigger("after-start");
+                                window.parent.jsreportLoaded();
                             });
                         });
                     });
-
                 });
         });
     });

@@ -62,7 +62,7 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                         packages: [
                             {
                                 name: extension.name,
-                                location: '/extension/' + extension.name + '/public/js',
+                                location: app.serverUrl + 'extension/' + extension.name + '/public/js',
                                 main: main
                                 //main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
                             }

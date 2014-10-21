@@ -91,6 +91,14 @@ var startExpressApp = function(reporter, app, config) {
 
 var configureExpressApp = function(app, reporter){
     reporter.express.app = app;
+
+    app.options('*', function(req, res) {
+        require("cors")({
+            methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "MERGE"],
+            origin: true
+        })(req, res);
+    });
+
     app.use(bodyParser.urlencoded({ extended: true,  limit: "2mb"}));
     app.use(bodyParser.json({
         limit: "2mb"

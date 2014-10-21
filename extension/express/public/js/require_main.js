@@ -3,7 +3,7 @@
  */ 
 
 requirejs.config({
-    baseUrl: "/js",
+    baseUrl: jsreport_server_url + "js",
     waitSeconds: 60,
     paths: {
         app: (typeof jsreport_mode == 'undefined' ? "app_built" : (jsreport_mode == "development") ? "app_dev" : (jsreport_mode == "production" ? "app_built" : "app_embed")),

@@ -141,21 +141,25 @@ function openEditor(url, template, onClose) {
     jsreportIFrame.css("height", ($(window).height() - 200) + "px");
 
     jsreport.template = template;
-    jsreportIFrame.attr("src", url + "/?mode=embedded#" + template.shortid);
-    jsreportIFrame.show();
 
-    var timer = setInterval(function () {
-        var closeButton = jsreportIFrame.contents().find("#closeCommand");
-        if (closeButton.length) {
-            closeButton.on("click", function () {
-                closeButton.off("click");
-                jsreportIFrame.hide();
-                $(".jsreport-backdrop").hide();
-                onClose();
-            });
-            clearInterval(timer);
-        }
-    }, 200);
+    jsreportIFrame.show();
+    ensureIframeLoaded(function () {
+        jsreportIFrame[0].contentWindow.openTemplate(template.shortid);
+
+        var timer = setInterval(function () {
+            var closeButton = jsreportIFrame.contents().find("#closeCommand");
+
+            if (closeButton.length) {
+                closeButton.on("click", function () {
+                    closeButton.off("click");
+                    jsreportIFrame.hide();
+                    $(".jsreport-backdrop").hide();
+                    onClose();
+                });
+                clearInterval(timer);
+            }
+        }, 200);
+    });
 }
 
 var JsReport = function () {
@@ -165,7 +169,7 @@ var JsReport = function () {
 JsReport.prototype.renderAll = function () {
     var self = this;
 
-    $("[data-jsreport-widget]").each(function() {
+    $("[data-jsreport-widget]").each(function () {
         self.render($(this), $(this).attr("data-jsreport-widget"));
     });
 }
@@ -230,3 +234,37 @@ jsreport = new JsReport();
 
 if (window.jsreportInit !== undefined)
     jsreportInit(jsreport);
+
+
+var loaded = false;
+var waitingCb;
+
+function jsreportLoaded() {
+    waitingCb();
+    loaded = true;
+}
+
+function ensureIframeLoaded(cb) {
+    if (loaded) {
+        return cb();
+    }
+
+    waitingCb = cb;
+
+    $.ajax({
+        dataType: "html",
+        url: "http://local.net:2000/?mode=embedded&serverUrl=http%3A%2F%2Flocal.net%3A2000%2F",
+        success: function (data) {
+            var doc = jsreportIFrame[0].contentWindow || jsreportIFrame[0].contentDocument;
+            if (doc.document) {
+                doc = doc.document;
+            }
+
+            doc.documentElement.innerHTML = "";
+
+            doc.open();
+            doc.write(data);
+            doc.close();
+        }
+    });
+}

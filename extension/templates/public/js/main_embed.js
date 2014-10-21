@@ -95,24 +95,6 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "core/liste
                 }
             });
 
-            var Router = Backbone.Router.extend({
-                routes: {
-                    ":id": "refresh"
-                },
-
-                refresh: function () {
-                    var view = new View({ model: new TemplateModel()});
-                    view.model.set("shortid", window.location.hash.substring(1));
-                    view.model.fetch({
-                        success: function () {
-                            app.layout.content.show(view);
-                        }
-                    });
-                }
-            });
-
-            module.router = new Router();
-
             app.on("entity-registration", function (context) {
 
                 var templateAttributes = {
@@ -132,6 +114,16 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "core/liste
                 };
 
                 context["templates"] = { type: $data.EntitySet, elementType: $entity.Template };
+            });
+
+            app.on("open-template", function(shortid) {
+                var view = new View({ model: new TemplateModel()});
+                view.model.set("shortid", shortid);
+                view.model.fetch({
+                    success: function () {
+                        app.layout.content.show(view);
+                    }
+                });
             });
         });
     });

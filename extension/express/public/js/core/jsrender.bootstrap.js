@@ -19,6 +19,10 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
             return require("app").settings;
         },
 
+        getApp: function() {
+            return require("app");
+        },
+
         getTenant: function() {
             return require("app").settings.tenant || { name: ""};
         },

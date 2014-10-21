@@ -13,7 +13,7 @@ module.exports = function (app, reporter) {
     app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
 
     app.get("/", function (req, res, next) {
-        reporter.options.mode = req.query.mode || originalMode;
+        _.extend(reporter.options, req.query);
 
         reporter.options.hostname = require("os").hostname();
 
@@ -44,6 +44,7 @@ module.exports = function (app, reporter) {
     app.use("/odata", $data.JayService.OData.Utils.simpleBodyReader());
     app.use("/odata", function (req, res, next) {
         req.fullRoute = req.protocol + '://' + req.get('host') + "/odata";
+
 
         $data.JayService.createAdapter(req.reporterContext.getType(), function (req, res) {
             return req.reporterContext;
