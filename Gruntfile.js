@@ -66,7 +66,7 @@ module.exports = function (grunt) {
 
         extensions.forEach(function (e) {
 
-            if (!fs.existsSync(path.join(e.directory, "public/js/main.js"))) {
+            if (!fs.existsSync(path.join(e.directory, "public/js/main_dev.js"))) {
                 return;
             }
 
@@ -215,7 +215,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default', ['build']);
 
-    grunt.registerTask('build', ['build-dev'/*, 'build-prod'*/]);
+    grunt.registerTask('build', ['build-dev', 'build-prod']);
 
     grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
     grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);

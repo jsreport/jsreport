@@ -135,7 +135,7 @@ function addEditButton(url, $placeholder, template, reload) {
 }
 
 function openEditor(url, template, onClose) {
-    $(".jsreport-rolette").show();
+    $(".jsreport-backdrop").show();
 
     jsreportIFrame.css("width", ($(window).width() - 200) + "px");
     jsreportIFrame.css("height", ($(window).height() - 200) + "px");
@@ -150,7 +150,7 @@ function openEditor(url, template, onClose) {
             closeButton.on("click", function () {
                 closeButton.off("click");
                 jsreportIFrame.hide();
-                $(".jsreport-rolette").hide();
+                $(".jsreport-backdrop").hide();
                 onClose();
             });
             clearInterval(timer);

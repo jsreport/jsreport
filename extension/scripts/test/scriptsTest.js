@@ -16,7 +16,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
             return reporter.context.scripts.saveChanges().then(function () {
                 return reporter.templates.create({
                     content: "foo",
-                    scriptId: script.shortid
+                    script: { shortid: script.shortid }
                 });
             });
         }

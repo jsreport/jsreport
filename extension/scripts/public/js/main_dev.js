@@ -79,16 +79,19 @@
                     'name': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
                     "creationDate": { type: "date" },
-                    "modificationDate": { type: "date" },
-                    "scriptId": { type: "Edm.String"}
-
+                    "modificationDate": { type: "date" }
                 }, null);
+
+                $data.Class.define("$entity.ScriptRefType", $data.Entity, null, {
+                    content: { type: 'Edm.String' },
+                    shortid: { type: 'Edm.String' }
+                });
 
                 $entity.Script.prototype.toString = function () {
                     return "Script " + (this.name || "");
                 };
 
-                $entity.Template.addMember("scriptId", { 'type': "Edm.String" });
+                $entity.Template.addMember("script", { 'type': "$entity.ScriptRefType" });
                 context["scripts"] = { type: $data.EntitySet, elementType: $entity.Script };
             });
         });

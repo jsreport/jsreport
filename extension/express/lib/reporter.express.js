@@ -14,6 +14,7 @@ var async = require("async"),
     http = require("http"),
     https = require("https"),
     cluster = require("cluster"),
+    cors = require('cors'),
     routes = require("./routes.js"),
     multer  = require('multer');
 
@@ -99,6 +100,7 @@ var configureExpressApp = function(app, reporter){
     app.engine('html', require('ejs').renderFile);
 
     app.use(multer({ dest: reporter.options.tempDirectory}));
+    app.use(cors());
 
     routes(app, reporter);
 

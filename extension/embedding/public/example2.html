@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title></title>
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-    <link href="/css/bootstrap.min.css?v=" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body style="height: 100%">
 
@@ -30,8 +30,7 @@
 
     </div>
 
-    <div class="jsreport-rolette"
-         style="display:none;background-color: #a3a3a3; opacity: 0.5; position: absolute; left: 0; top: 0; width:10000px; height: 10000px; z-index: 100;"></div>
+    <div class="jsreport-backdrop" style="display:none;background-color: #a3a3a3; opacity: 0.5; position: fixed; left: 0; top: 0; right:0; bottom:0; z-index: 100;"></div>
 </div>
 
 
@@ -51,7 +50,7 @@
         }
         js = d.createElement(s);
         js.id = id;
-        js.src = "/extension/embedding/public/embed.min.js";
+        js.src = "http://local.net:2000/extension/embedding/public/embed.min.js";
         fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'jsreport-embedding'));
 </script>

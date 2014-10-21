@@ -13,6 +13,13 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "./phantom.
             context.result += "<li><a id='phantomMenuCommand' style='display:none'><i class='fa fa-file-pdf-o'></i></a></li>";
 
             context.on("after-render", function ($el) {
+                if (context.template.get("recipe") === "phantom-pdf") {
+                    $("#phantomMenuCommand").show();
+                }
+                else {
+                    $("#phantomMenuCommand").hide();
+                }
+
                 $("#phantomMenuCommand").click(function () {
                     var model = new Model();
                     model.setTemplate(context.template);

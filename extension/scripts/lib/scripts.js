@@ -68,7 +68,8 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                     template: {
                         content: request.template.content,
                         helpers: request.template.helpers
-                    }
+                    },
+                    headers: request.headers
                 },
                 response: response
             },

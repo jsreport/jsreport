@@ -87,7 +87,7 @@ define('scripts.list.toolbar.view',["jquery", "app", "core/utils", "core/view.ba
             },
         });
     });
-define('scripts.template.standard.view',["app", "marionette", "core/view.base", "core/utils",], function(app, Marionette, ViewBase, Utils) {
+define('scripts.template.standard.view',["app", "marionette", "core/view.base", "core/utils"], function(app, Marionette, ViewBase, Utils) {
     return ViewBase.extend({
         tagName: "li",
         template: "scripts-template-standard",
@@ -97,7 +97,7 @@ define('scripts.template.standard.view',["app", "marionette", "core/view.base", 
         },
 
         isFilled: function() {
-            return this.model.templateModel.get("scriptId");
+            return this.model.get("shortid") || this.model.get("content");
         },
         
         getItems: function () {
@@ -351,16 +351,19 @@ define(["app", "marionette", "backbone",
                     'name': { 'type': 'Edm.String' },
                     'shortid': { 'type': 'Edm.String' },
                     "creationDate": { type: "date" },
-                    "modificationDate": { type: "date" },
-                    "scriptId": { type: "Edm.String"}
-
+                    "modificationDate": { type: "date" }
                 }, null);
+
+                $data.Class.define("$entity.ScriptRefType", $data.Entity, null, {
+                    content: { type: 'Edm.String' },
+                    shortid: { type: 'Edm.String' }
+                });
 
                 $entity.Script.prototype.toString = function () {
                     return "Script " + (this.name || "");
                 };
 
-                $entity.Template.addMember("scriptId", { 'type': "Edm.String" });
+                $entity.Template.addMember("script", { 'type': "$entity.ScriptRefType" });
                 context["scripts"] = { type: $data.EntitySet, elementType: $entity.Script };
             });
         });

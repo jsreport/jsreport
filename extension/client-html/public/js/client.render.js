@@ -103,9 +103,9 @@ function clientRender(request, target, selector) {
     }
 
     output = "<script>" +
-                "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + request.template.shortid + "', selector, data); };" +
-                "window.jsreport.context = parent.jsreport.context;" +
-              "</script>" + output;
+        "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + request.template.shortid + "', selector, data); };" +
+        "window.jsreport.context = parent.jsreport.context;" +
+        "</script>" + output;
 
     $iframe.attr("src", "");
 

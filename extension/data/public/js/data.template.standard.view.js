@@ -8,7 +8,7 @@
         },
 
         isFilled: function() {
-            return this.model.templateModel.get("dataItemId");
+            return this.model.get("shortid") || this.model.get("dataJson");
         },
         
         getItems: function () {

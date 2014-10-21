@@ -127,7 +127,7 @@ define('data.template.standard.view',["app", "marionette", "core/view.base", "co
         },
 
         isFilled: function() {
-            return this.model.templateModel.get("dataItemId");
+            return this.model.get("shortid") || this.model.get("dataJson");
         },
         
         getItems: function () {
@@ -341,7 +341,6 @@ define(["app", "marionette", "backbone",
             });
 
             app.on("entity-registration", function (context) {
-
                 $data.Class.define("$entity.DataItem", $data.Entity, null, {
                     'shortid': { 'type': 'Edm.String' },
                     'name': { 'type': 'Edm.String' },
@@ -354,7 +353,14 @@ define(["app", "marionette", "backbone",
                     return "DataItem " + (this.name || "");
                 };
 
-                $entity.Template.addMember("dataItemId", { 'type': "Edm.String" });
+                $data.Class.define("$entity.DataItemRefType", $data.Entity, null, {
+                    dataJson: { type: 'Edm.String' },
+                    shortid: { type: 'Edm.String' }
+                });
+
+
+                $entity.Template.addMember("data", { 'type': "$entity.DataItemRefType" });
+
                 $entity.DataItem.addMember('_id', { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' });
                 context["data"] = { type: $data.EntitySet, elementType: $entity.DataItem };
             });
