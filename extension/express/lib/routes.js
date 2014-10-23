@@ -3,7 +3,8 @@ var serveStatic = require("serve-static"),
     _ = require("underscore"),
     express = require("express"),
     async = require("async"),
-    dir = require("node-dir");
+    dir = require("node-dir"),
+    extend = require("node.extend");
 
 var oneMonth = 31 * 86400000;
 
@@ -13,18 +14,19 @@ module.exports = function (app, reporter) {
     app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
 
     app.get("/", function (req, res, next) {
-        _.extend(reporter.options, req.query);
+        var optionsClone = extend(true, {}, reporter.options);
+        optionsClone = extend(true, optionsClone, req.query)
 
         reporter.options.hostname = require("os").hostname();
 
-        if (reporter.options.mode === "development")
-            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), reporter.options);
+        if (optionsClone.mode === "development")
+            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), optionsClone);
 
-        if (reporter.options.mode === "production")
-            res.render(path.join(__dirname, '../public/views', 'root_built.html'), reporter.options);
+        if (optionsClone.mode === "production")
+            res.render(path.join(__dirname, '../public/views', 'root_built.html'), optionsClone);
 
-        if (reporter.options.mode === "embedded")
-            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), reporter.options);
+        if (optionsClone.mode === "embedded")
+            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), optionsClone);
     });
 
     app.stack = _.reject(app.stack, function (s) {
@@ -36,6 +38,7 @@ module.exports = function (app, reporter) {
     app.use("/odata", function (req, res, next) {
         reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
+            context.request = req;
             next();
         }).fail(function (e) {
             next(e);
@@ -62,6 +65,7 @@ module.exports = function (app, reporter) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
+        req.headers["host-cookie"] = req.body["header-host-cookie"];
 
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");

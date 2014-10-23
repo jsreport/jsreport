@@ -37,23 +37,6 @@ var Images = function (reporter, definition) {
 
     this.reporter.on("express-configure", Images.prototype._configureExpress.bind(this));
     this.reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, Images.prototype.handleAfterTemplatingEnginesExecuted.bind(this));
-
-    this.reporter.initializeListener.add(definition.name, this, function () {
-        //when activated we need to initialze images field with default values, otherwise jaydata has problems with null aray
-
-        return reporter.dataProvider.startContext(function (context) {
-            return context.templates.toArray().then(function (res) {
-                res.forEach(function (t) {
-                    if (!t.images) {
-                        reporter.context.templates.attach(t);
-                        t.images = [];
-                    }
-                });
-
-                return reporter.context.templates.saveChanges();
-            });
-        });
-    });
 };
 
 Images.prototype.upload = function (context, name, contentType, content, shortidVal) {

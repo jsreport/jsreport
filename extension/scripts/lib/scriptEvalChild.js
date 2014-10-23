@@ -21,10 +21,14 @@
         response: req.body.response,
         require: _require,
         Buffer: Buffer,
-        done: function () {
+        done: function (err) {
             res.send({
                 request: req.body.request,
-                response: req.body.response
+                response: req.body.response,
+                error: err ? {
+                    message: err.message,
+                    stack: err.stack
+                } : undefined
             });
 
         }

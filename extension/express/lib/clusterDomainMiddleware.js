@@ -21,7 +21,9 @@ module.exports = function (cluster, server, logger, req, res, next) {
             // Let the master know we're dead.  This will trigger a
             // 'disconnect' in the cluster master, and then it will fork
             // a new worker.
-            cluster.worker.disconnect();
+            if (cluster) {
+                cluster.worker.disconnect();
+            }
 
             // try to send an error to the request that triggered the problem
             res.statusCode = 500;
@@ -35,6 +37,7 @@ module.exports = function (cluster, server, logger, req, res, next) {
 
     d.add(req);
     d.add(res);
+    d.req = req;
 
     d.run(function () {
         next(req, res);

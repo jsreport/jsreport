@@ -15,8 +15,13 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                 return $.parseJSON(loadedData, true);
             }
         },
-        contentType: "application/json"
+        contentType: "application/json",
+        beforeSend: function( xhr, settings ) {
+            xhr.setRequestHeader('host-cookie', document.cookie);
+            settings.url += "&mode=embedded";
+        }
     });
+
 
     app.reloadSettings = function (cb) {
         $.getJSON(app.serverUrl + "api/settings", function (settings) {

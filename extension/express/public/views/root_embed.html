@@ -19,7 +19,7 @@
 <!-- jsreport$studio - check for unit tests-->
 <script type="text/javascript">
     var require = {
-        urlArgs: "bust=" + new Date().getTime()
+        urlArgs: "bust=" + new Date().getTime() + "&mode=embedded"
     };
 
     var jsreport_mode = '<%= mode %>';
@@ -32,13 +32,13 @@
     }
 
 </script>
-<script src="<%= serverUrl %>lib/datajs-1.1.1.min.js" type="text/javascript"></script>
-<script src="<%= serverUrl %>lib/jaydata.js?v=" type="text/javascript"></script>
-<script src="<%= serverUrl %>lib/oDataProvider.js?v=" type="text/javascript"></script>
-<script data-main="<%= serverUrl %>js/require_main.js" src="<%= serverUrl %>lib/require.min.js" type="text/javascript"></script>
+<script src="<%= serverUrl %>lib/datajs-1.1.1.min.js?mode=embedded" type="text/javascript"></script>
+<script src="<%= serverUrl %>lib/jaydata.js?mode=embedded" type="text/javascript"></script>
+<script src="<%= serverUrl %>lib/oDataProvider.js?mode=embedded" type="text/javascript"></script>
+<script data-main="<%= serverUrl %>js/require_main.js" src="<%= serverUrl %>lib/require.min.js?mode=embedded" type="text/javascript"></script>
 <script src="<%= serverUrl %>lib/ace/ace.js" charset="utf-8"></script>
-<script src="<%= serverUrl %>lib/ace/ext-language_tools.js" charset="utf-8"></script>
-<img class="loader" id="loader-img" src="<%= serverUrl %>img/loader.gif"/>
+<script src="<%= serverUrl %>lib/ace/ext-language_tools.js?mode=embedded" charset="utf-8"></script>
+<img class="loader" id="loader-img" src="<%= serverUrl %>img/loader.gif?mode=embedded"/>
 
 </body>
 </html>
