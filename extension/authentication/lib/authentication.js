@@ -19,12 +19,13 @@ module.exports = function (reporter, definition) {
 
     definition.options.admin.name = definition.options.admin.username;
 
-    reporter.on("before-express-configure", function(app) {
+    reporter.on("after-express-static-configure", function(app) {
         configureRoutes(reporter, app, definition.options.admin);
     });
 };
 
 function configureRoutes(reporter, app, admin) {
+
     app.use(sessions({
         cookieName: 'session',
         cookie: reporter.options.cookieSession.cookie,
@@ -97,7 +98,7 @@ function configureRoutes(reporter, app, admin) {
 
     app.use(function (req, res, next) {
         if (req.query.mode === "embedded" || req.user || S(req.url).startsWith("/css") || S(req.url).startsWith("/img") ||
-            S(req.url).startsWith("/extension/embedding/public/embed.min.js") || S(req.url).startsWith("/api") || S(req.url).startsWith("/odata")) {
+            S(req.url).startsWith("/extension/embedding/public/embed.min.js")) {
             return next();
         }
 

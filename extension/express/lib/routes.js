@@ -13,6 +13,8 @@ module.exports = function (app, reporter) {
 
     app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
 
+    reporter.emit("after-express-static-configure", app);
+
     app.get("/", function (req, res, next) {
         var optionsClone = extend(true, {}, reporter.options);
         optionsClone = extend(true, optionsClone, req.query)

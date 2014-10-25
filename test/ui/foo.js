@@ -1,6 +1,6 @@
 ﻿describe('foo', function () {
     it('should not fail', function (done) {
-        require(["marionette", "../../test/ui/squire"], function(Marionette, Squire) {
+        require(["marionette", "../../../../test/ui/squire"], function(Marionette, Squire) {
             var injector = new Squire();
             var appMock = new Marionette.Application();
             appMock.serverUrl = "testChange";

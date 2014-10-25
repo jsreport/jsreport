@@ -219,6 +219,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-env');
+    grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
     grunt.registerTask('default', ['build']);
 

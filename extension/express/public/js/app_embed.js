@@ -77,6 +77,16 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                         app.layout.template = "embed-layout";
                         odata(app, function (cx) {
                             app.dataContext = cx;
+
+                            app.dataContext.prepareRequest = function (r) {
+                                if (r[0].requestUri.indexOf("?") === -1)
+                                    r[0].requestUri += "?";
+                                else
+                                    r[0].requestUri += "&";
+
+                                r[0].requestUri += "mode=embedded";
+                            };
+
                             app.onStartListeners.fire(function () {
                                 app.layout.render();
                                 Backbone.history.start();
