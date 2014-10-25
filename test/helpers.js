@@ -6,12 +6,17 @@ var Reporter = require("../lib/reporter.js"),
     path = require("path"),
     serveStatic = require('serve-static'),
     bodyParser = require("body-parser"),
-    multer  = require('multer');
+    multer  = require('multer'),
+    extend = require("node.extend");
 
 var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
     : { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 };
 
-exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
+exports.describeReporting = function (rootDirectory, extensions, customOptions, nestedSuite ) {
+    if (!nestedSuite) {
+        nestedSuite = customOptions;
+        customOptions = null;
+    }
 
     describe("reporting", function () {
         var app = express();
@@ -22,7 +27,7 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
         app.use(serveStatic(path.join(__dirname, 'views')));3
         app.engine('html', require('ejs').renderFile);
 
-        var reporter = new Reporter({
+        var options = {
             tenant: { name: "test" },
             connectionString: connectionString,
             extensions: extensions,
@@ -32,7 +37,11 @@ exports.describeReporting = function (rootDirectory, extensions, nestedSuite) {
             cacheAvailableExtensions: true,
             express: { app: app },
             rootDirectory: rootDirectory
-        });
+        };
+
+        options = extend(true, options, customOptions || {});
+
+        var reporter = new Reporter(options);
 
 
         beforeEach(function (done) {

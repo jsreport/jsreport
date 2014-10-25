@@ -10,7 +10,7 @@ var q = require("q"),
 
 module.exports = function (reporter, definition) {
 
-    if (!definition.options.externalService.url) {
+    if (!definition.options.externalService || !definition.options.externalService.url) {
         return;
     }
 
@@ -24,8 +24,10 @@ module.exports = function (reporter, definition) {
         var headers = definition.options.externalService.headers || {};
         headers.cookie = process.domain.req.headers["host-cookie"]
 
+        var url = definition.options.externalService.url + "/jsreport/authorization/" + operation.toLowerCase() + "/" + itemType + "/" + shortid;
+        reporter.logger.debug("Requesting authorization at GET:" + url);
         request({
-            url: definition.options.externalService.url + "/jsreport/authorization/" + operation.toLowerCase() + "/" + itemType + "/" + shortid,
+            url: url,
             headers: headers,
             json: true
         }, function(error, response, body) {
@@ -33,6 +35,8 @@ module.exports = function (reporter, definition) {
                 reporter.logger.error("Authorization failed with error: " + error);
                 return deferred.reject(error);
             }
+
+            reporter.logger.debug("Authorization response " + response.statusCode);
 
             deferred.resolve(response.statusCode === 200);
         });

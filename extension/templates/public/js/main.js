@@ -375,7 +375,7 @@ define('preview',["underscore", "jquery", "app"], function (_, $, app) {
             if (request.data != null)
                 addInput(mapForm, "data", request.data);
 
-            addInput(mapForm, "header-host-cookie", "foo");
+            addInput(mapForm, "header-host-cookie", document.cookie);
 
             document.body.appendChild(mapForm);
             mapForm.submit();

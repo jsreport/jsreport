@@ -7,6 +7,7 @@ var q = require("q"),
     path = require("path"),
     passport = require('passport'),
     LocalStrategy = require('passport-local').Strategy,
+    BasicStrategy = require('passport-http').BasicStrategy,
     sessions = require("client-sessions"),
     S = require("string"),
     _ = require("underscore"),
@@ -37,6 +38,15 @@ function configureRoutes(reporter, app, admin) {
     app.use(passport.session());
 
     passport.use(new LocalStrategy(function (username, password, done) {
+        if (admin.username === username && admin.password === password) {
+            done(null, admin);
+        }
+        else {
+            done(null, false, { message: "Invalid password or user does not exists." });
+        }
+    }));
+
+    passport.use(new BasicStrategy(function (username, password, done) {
         if (admin.username === username && admin.password === password) {
             done(null, admin);
         }
@@ -94,6 +104,25 @@ function configureRoutes(reporter, app, admin) {
     app.post("/logout", function (req, res) {
         req.logout();
         res.redirect("/login");
+    });
+
+    app.use(function (req, res, next) {
+        if ((!req.isAuthenticated || !req.isAuthenticated()) &&
+            (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1)) {
+
+            passport.authenticate('basic', function (err, user, info) {
+                if (!user) {
+                    res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
+                    return res.status(401).end();
+                }
+
+                req.logIn(user, function () {
+                    next();
+                });
+            })(req, res, next);
+        } else {
+            next();
+        }
     });
 
     app.use(function (req, res, next) {
