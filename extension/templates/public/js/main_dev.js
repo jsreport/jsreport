@@ -8,7 +8,6 @@ define(["jquery", "app", "marionette", "backbone",
         "./dashboard.templates.model", "./dashboard.templates.view",
         "./template.detail.toolbar.view"],
     function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
-
         return app.module("template", function (module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
@@ -98,7 +97,7 @@ define(["jquery", "app", "marionette", "backbone",
             });
 
             app.on("menu-actions-render", function (context) {
-                context.result += "<li><a href='#/playground'>Create Template</a></li>";
+                context.result += "<li><a id='createTemplateCommand' href='#/playground'>Create Template</a></li>";
             });
 
             app.on("dashboard-extensions-render", function (region) {

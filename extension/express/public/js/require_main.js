@@ -1,6 +1,6 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
- */ 
+ */
 
 requirejs.config({
     baseUrl: jsreport_server_url + "js",

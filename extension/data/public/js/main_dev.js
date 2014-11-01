@@ -53,7 +53,7 @@
             });
 
             app.on("menu-actions-render", function (context) {
-                context.result += "<li><a href='/#/extension/data/detail' class='validate-leaving'>Create Data</a></li>";
+                context.result += "<li><a id='createDataCommand' href='#/extension/data/detail' class='validate-leaving'>Create Data</a></li>";
             });
 
 

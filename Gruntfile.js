@@ -234,7 +234,8 @@ module.exports = function (grunt) {
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);
     grunt.registerTask('test', ['test-nedb']);
 
-    grunt.registerTask('test-all', ['test-mongo', 'test-nedb']);
+    grunt.registerTask('test-all', ['test-mongo', 'test-nedb', 'mocha_phantomjs']);
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
     grunt.registerTask('test-exact', ['env:dbMongo', 'mochaTest:testExact']);
+    grunt.registerTask('test-ui', ['mocha_phantomjs']);
 };

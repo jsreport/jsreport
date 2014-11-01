@@ -100,11 +100,11 @@ define(["jquery"], function($) {
             view.on("close", function() {
                 $("a").off("click.validateLeaving");
             });
-            
+
             $(window).off("beforeunload").on('beforeunload', function() {
                 if (view.validateLeaving())
                     return;
-                
+
                 return "You have unsaved changes. Are you sure you want to leave?";
             });
         }

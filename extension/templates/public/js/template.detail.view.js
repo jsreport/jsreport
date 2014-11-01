@@ -2,7 +2,7 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/ext/language_tools"],
+define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder"],
     function($, app, Utils, LayoutBase, aceBinder) {
         
         return LayoutBase.extend({
@@ -35,7 +35,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/
                 var self = this;
                 $(".side-nav-right").hide();
 
-                var langTools = ace.require("ace/ext/language_tools");
+                //var langTools = ace.require("ace/ext/language_tools");
 
                 //var dataCompleter = {
                 //    getCompletions: function(editor, session, pos, prefix, callback) {
