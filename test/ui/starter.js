@@ -3,20 +3,28 @@ var server;
 server = sinon.fakeServer.create();
 started = false;
 
-expect.Assertion.prototype.shown = function (cb, attemp) {
+expect.Assertion.prototype.shown = function (cb) {
+    var self = this;
+
+    this.evaluate(function() {
+        return $(self.obj).length;
+    }, cb, 0);
+};
+
+expect.Assertion.prototype.evaluate = function (fn, cb, attemp) {
     attemp = attemp || 1;
 
-    if (attemp > 10) {
+    if (attemp > 50) {
         throw new Error("Element " + this.obj + " did not pop up");
     }
 
-    if ($(this.obj).length) {
+    if (fn()) {
         return cb();
     }
 
     var self = this;
     setTimeout(function() {
-        self.shown(cb, attemp + 1)
+        self.evaluate(fn, cb, attemp + 1)
     }, 50);
 };
 

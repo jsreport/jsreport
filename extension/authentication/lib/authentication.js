@@ -108,7 +108,8 @@ function configureRoutes(reporter, app, admin) {
 
     app.use(function (req, res, next) {
         if ((!req.isAuthenticated || !req.isAuthenticated()) &&
-            (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1)) {
+            (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1) &&
+            req.query.mode !== "embedded") {
 
             passport.authenticate('basic', function (err, user, info) {
                 if (!user) {
@@ -126,6 +127,7 @@ function configureRoutes(reporter, app, admin) {
     });
 
     app.use(function (req, res, next) {
+        console.log("mode is " + req.query.mode + " for " + req.url);
         if (req.query.mode === "embedded" || req.user || S(req.url).startsWith("/css") || S(req.url).startsWith("/img") ||
             S(req.url).startsWith("/extension/embedding/public/embed.min.js")) {
             return next();
