@@ -1,54 +1,68 @@
 describe('templates', function () {
     this.timeout(5000);
 
+    var originalDataContext;
+
     beforeEach(function (done) {
         window.location.hash = "";
-        ensureStarted(done);
+        ensureStarted(function() {
+            require(["app"], function(app) {
+                originalDataContext = app.dataContext;
+                done();
+            });
+        });
     });
 
-//    it('template module should be ok', function (done) {
-//        require(["app"], function (app) {
-//            expect(app.template).to.be.ok();
-//            done();
-//        });
-//    });
-//
-//    it('navigating to playground should open page', function (done) {
-//        window.location.hash = "/playground";
-//
-//        expect("#previewCommand").to.be.shown(done);
-//    });
-//
-//    it('saving should validate empty name', function (done) {
-//        window.location.hash = "/playground";
-//        $("#saveCommand").click();
-//
-//        expect().to.evaluate(function() {
-//            return $("#errorDialog").find("#dialogHeader").html() === "Validations";
-//        }, done);
-//    });
+    afterEach(function(done) {
+        require(["app"], function(app) {
+            app.dataContext = originalDataContext;
+            done();
+        });
+    });
+
+    it('template module should be ok', function (done) {
+        require(["app"], function (app) {
+            expect(app.template).to.be.ok();
+            done();
+        });
+    });
+
+    it('navigating to playground should open page', function (done) {
+        window.location.hash = "/playground";
+
+        expect("#previewCommand").to.be.shown(done);
+    });
+
+    it('saving should validate empty name', function (done) {
+        window.location.hash = "/playground";
+        $("#saveCommand").click();
+
+        expect().to.evaluate(function() {
+            return $("#errorDialog").find("#dialogHeader").html() === "Validations";
+        }, done);
+    });
 
     it('saving should trigger jaydata', function (done) {
         require(["app"], function(app) {
 
-            sinon.stub(app.dataContext, "data", {});
-
-//            app.dataContext = sinon.mock({
-//                saveChanges: function() {
-//                    console.log("in mock");
-//                    return $.Deferred();
-//                }
-//            });
+            app.dataContext = {
+                data: { toArray: sinon.stub().returns($.Deferred().resolve([])) },
+                scripts: { toArray: sinon.stub().returns($.Deferred().resolve([])) },
+                templates: { add: sinon.stub()},
+                saveChanges : function() {
+                    done();
+                    return $.Deferred().resolve();
+                }
+            }
 
             window.location.hash = "/playground";
 
             expect(".title-edit").to.be.shown(function() {
                 $(".title-edit").click();
-                $(".title-input").val("test");
+                $(".title-input").val("test").change();
                 $(".title-confirm").val("test");
                 $("#saveCommand").click();
             });
-
         });
     });
 
