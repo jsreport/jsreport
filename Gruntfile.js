@@ -54,7 +54,7 @@ module.exports = function (grunt) {
                 options: {
                     baseUrl: "./extension/express/public/js",
                     mainConfigFile: './extension/express/public/js/require_main_fixed.js',
-                    out: "/extension/express/public/js/app_built.js",
+                    out: "./extension/express/public/js/app_built.js",
                     name: 'app',
                     removeCombined: true,
                     findNestedDependencies: true,
