@@ -1,3 +1,4 @@
 public/views/root_dev.html
 public/views/root_built.html
+public/js/app_built.js
 require_main_fixed.js

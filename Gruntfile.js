@@ -128,7 +128,7 @@ module.exports = function (grunt) {
         },
 
         copy: {
-            dev: { files: [{ src: ['extension/express/public/js/app.js'], dest: 'extension/express/public/js/app_dev.js' }] }
+            dev: { files: [{ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app_built.js' }] }
         },
 
         requirejs: createRequireJs(),

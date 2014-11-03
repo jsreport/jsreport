@@ -62,7 +62,7 @@ function start() {
 }
 
 function extendDefaults(config) {
-    return extend(true, renderDefaults, config)
+    return extend(true, renderDefaults, config);
 }
 
 if (require.main === module) {
