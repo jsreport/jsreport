@@ -6,7 +6,7 @@ define(["jquery", "app", "marionette", "backbone",
         "./template.list.model", "./template.list.view", "./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",
-        "./template.detail.toolbar.view", "./entityRegistration"],
+        "./template.detail.toolbar.view", "./template.entityRegistration"],
     function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView, entityRegistration) {
         return app.module("template", function (module) {
             module.TemplateListView = TemplateListView;

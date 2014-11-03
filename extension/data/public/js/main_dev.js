@@ -2,7 +2,7 @@
         "./data.list.model", "./data.list.view", "./data.list.toolbar.view",
         "./data.model", "./data.detail.view",
         "./data.template.standard.view",
-        "./data.toolbar.view", "./data.template.standard.model", "./entityRegistration"],
+        "./data.toolbar.view", "./data.template.standard.model", "./data.entityRegistration"],
     function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView,
               TemplateStandardView, ToolbarView, TemplateStandardModel, entityRegistration) {
 

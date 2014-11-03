@@ -2,7 +2,7 @@
         "./scripts.list.model", "./scripts.list.view", "./scripts.list.toolbar.view",
         "./scripts.model", "./scripts.template.standard.view",
         "./scripts.template.standard.model", "./scripts.detail.view", "./scripts.toolbar.view",
-        "./entityRegistration"],
+        "./scripts.entityRegistration"],
     function (app, Marionette, Backbone, ScriptsListModel, ScriptsListView, ScriptsListToolbarView,
               ScriptsModel, StandardTemplateView, StandardTemplateModel, ScriptsDetailView, ToolbarView,
               entityRegistration) {

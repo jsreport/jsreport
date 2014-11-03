@@ -3,7 +3,7 @@
  */
 
 define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./scripts.template.standard.model", "./scripts.template.standard.view",
-        "core/aceBinder", "./entityRegistration"],
+        "core/aceBinder", "./scripts.entityRegistration"],
     function ($, underscore, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel, TemplateStandardView,
               aceBinder, entityRegistration) {
 
