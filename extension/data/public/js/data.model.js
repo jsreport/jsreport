@@ -10,6 +10,6 @@
         _initialize: function() {
             var self = this;
             this.Entity = $entity.DataItem;
-        },
+        }
     });
 });

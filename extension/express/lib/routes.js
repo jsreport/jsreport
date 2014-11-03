@@ -3,20 +3,32 @@ var serveStatic = require("serve-static"),
     _ = require("underscore"),
     express = require("express"),
     async = require("async"),
-    dir = require("node-dir");
+    dir = require("node-dir"),
+    extend = require("node.extend");
 
-var oneMonth = 31*86400000;
+var oneMonth = 31 * 86400000;
 
-module.exports = function(app, reporter) {
+module.exports = function (app, reporter) {
+    var originalMode = reporter.options.mode;
 
     app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
 
+    reporter.emit("after-express-static-configure", app);
+
     app.get("/", function (req, res, next) {
+        var optionsClone = extend(true, {}, reporter.options);
+        optionsClone = extend(true, optionsClone, req.query)
+
         reporter.options.hostname = require("os").hostname();
-        if (reporter.options.NODE_ENV !== "development")
-            res.render(path.join(__dirname, '../public/views', 'root_built.html'), reporter.options);
-        else
-            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), reporter.options);
+
+        if (optionsClone.mode === "development")
+            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), optionsClone);
+
+        if (optionsClone.mode === "production")
+            res.render(path.join(__dirname, '../public/views', 'root_built.html'), optionsClone);
+
+        if (optionsClone.mode === "embedded")
+            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), optionsClone);
     });
 
     app.stack = _.reject(app.stack, function (s) {
@@ -28,14 +40,16 @@ module.exports = function(app, reporter) {
     app.use("/odata", function (req, res, next) {
         reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
+            context.request = req;
             next();
-        }).fail(function(e) {
+        }).fail(function (e) {
             next(e);
         });
     });
     app.use("/odata", $data.JayService.OData.Utils.simpleBodyReader());
     app.use("/odata", function (req, res, next) {
         req.fullRoute = req.protocol + '://' + req.get('host') + "/odata";
+
 
         $data.JayService.createAdapter(req.reporterContext.getType(), function (req, res) {
             return req.reporterContext;
@@ -49,15 +63,16 @@ module.exports = function(app, reporter) {
     /**
      * Main entry point for invoking report rendering
      */
-    app.post("/api/report", function(req, res, next) {
+    app.post("/api/report", function (req, res, next) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
+        req.headers["host-cookie"] = req.body["header-host-cookie"];
 
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");
 
-        reporter.render(req).then(function(response) {
+        reporter.render(req).then(function (response) {
             //copy headers to the final response
             if (response.headers) {
                 for (var key in response.headers) {
@@ -79,15 +94,15 @@ module.exports = function(app, reporter) {
     /**
      * Get all jsrender html templates used to render jsreport studio in one chunk
      */
-    app.get("/html-templates", function(req, res, next) {
-        var paths = reporter.extensionsManager.extensions.map(function(e) {
+    app.get("/html-templates", function (req, res, next) {
+        var paths = reporter.extensionsManager.extensions.map(function (e) {
             return path.join(e.directory, 'public', 'templates');
         });
 
         var templates = [];
 
-        async.eachSeries(paths, function(p, icb) {
-            dir.readFiles(p, function(err, content, filename, nextFile) {
+        async.eachSeries(paths, function (p, icb) {
+            dir.readFiles(p, function (err, content, filename, nextFile) {
                 if (content.charAt(0) === '\uFEFF')
                     content = content.substr(1);
 
@@ -96,39 +111,41 @@ module.exports = function(app, reporter) {
                     content: content
                 });
                 nextFile();
-            }, function() {
+            }, function () {
                 icb();
             });
-        }, function() {
+        }, function () {
             res.send(templates);
         });
     });
 
-    app.get("/api/version", function(req, res, next) {
+    app.get("/api/version", function (req, res, next) {
         res.send(require('../../../package.json').version);
     });
 
-    app.get("/api/settings", function(req, res, next) {
+    app.get("/api/settings", function (req, res, next) {
         res.send({
             tenant: req.user
         });
     });
 
-    app.get("/api/recipe", function(req, res, next) {
-        res.json(_.map(reporter.extensionsManager.recipes, function(r) { return r.name; }));
+    app.get("/api/recipe", function (req, res, next) {
+        res.json(_.map(reporter.extensionsManager.recipes, function (r) {
+            return r.name;
+        }));
     });
 
-    app.get("/api/engine", function(req, res, next) {
-        reporter.getEngines().then(function(engines) {
+    app.get("/api/engine", function (req, res, next) {
+        reporter.getEngines().then(function (engines) {
             return res.json(engines);
         }).catch(next);
     });
 
-    app.get("/api/extensions", function(req, res, next) {
+    app.get("/api/extensions", function (req, res, next) {
         res.json(reporter.extensionsManager.availableExtensions);
     });
 
-    app.get("/api/ping", function(req, res, next) {
+    app.get("/api/ping", function (req, res, next) {
         res.send("pong");
     });
 

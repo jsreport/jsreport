@@ -14,6 +14,7 @@ var async = require("async"),
     http = require("http"),
     https = require("https"),
     cluster = require("cluster"),
+    cors = require('cors'),
     routes = require("./routes.js"),
     multer  = require('multer');
 
@@ -48,7 +49,7 @@ var startExpressApp = function(reporter, app, config) {
 
     //just http port is specified, lets start server on http
     if (!config.httpsPort) {
-        reporter.express.server = http.createServer(function(req, res) { useCluster(reporter, req, res); }).on('error', function (e) {
+        reporter.express.server = http.createServer(function(req, res) { useDomainMiddleware(reporter, req, res); }).on('error', function (e) {
             console.error("Error when starting http server on port " + config.httpPort + " " + e.stack);
         });
 
@@ -81,7 +82,7 @@ var startExpressApp = function(reporter, app, config) {
         rejectUnauthorized: false //support invalid certificates
     };
 
-    reporter.express.server = https.createServer(credentials, function(req, res) { useCluster(reporter, req, res); }).on('error', function (e) {
+    reporter.express.server = https.createServer(credentials, function(req, res) { useDomainMiddleware(reporter, req, res); }).on('error', function (e) {
         console.error("Error when starting https server on port " + config.httpsPort + " " + e.stack);
     });
 
@@ -90,6 +91,14 @@ var startExpressApp = function(reporter, app, config) {
 
 var configureExpressApp = function(app, reporter){
     reporter.express.app = app;
+
+    app.options('*', function(req, res) {
+        require("cors")({
+            methods : ["GET", "POST", "PUT", "DELETE", "PATCH", "MERGE"],
+            origin: true
+        })(req, res);
+    });
+
     app.use(bodyParser.urlencoded({ extended: true,  limit: "2mb"}));
     app.use(bodyParser.json({
         limit: "2mb"
@@ -99,6 +108,9 @@ var configureExpressApp = function(app, reporter){
     app.engine('html', require('ejs').renderFile);
 
     app.use(multer({ dest: reporter.options.tempDirectory}));
+    app.use(cors());
+
+    reporter.emit("before-express-configure", app);
 
     routes(app, reporter);
 
@@ -114,10 +126,10 @@ var configureExpressApp = function(app, reporter){
         reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
 }
 
-var useCluster = function(reporter, req, res) {
-    if (reporter.options.cluster && reporter.options.cluster.enabled) {
-        return require("./clusterDomainMiddleware.js")(reporter.options.cluster.instance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
-    }
+var useDomainMiddleware = function(reporter, req, res) {
+    var clusterInstance = (reporter.options.cluster && reporter.options.cluster.enabled) ? reporter.options.cluster.instance : null;
+
+    return require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
 
     reporter.express.app(req, res);
 }

@@ -8,8 +8,9 @@
  *
  * grunt test # start tests with file system based db (neDb), no mongo needed
  * grunt test-mongo # start tests with mongo db
- * grunt test-all # start tests with nedb and then once again with mongo (used with travis CI)
+ * grunt test-all # start tests with nedb and then once again with mongo (used with travis CI) ant then ui tests
  * grunt test-integration # start all tests with nedb including integration tests including java fop and phantomjs
+ * grunt test-ui # start ui tests
  */
 
 
@@ -52,8 +53,8 @@ module.exports = function (grunt) {
             compileApp: {
                 options: {
                     baseUrl: "./extension/express/public/js",
-                    mainConfigFile: './extension/express/public/js/require_main.js',
-                    out: "extension/express/public/js/app_built.js",
+                    mainConfigFile: './extension/express/public/js/require_main_fixed.js',
+                    out: "./extension/express/public/js/app_built.js",
                     name: 'app',
                     removeCombined: true,
                     findNestedDependencies: true,
@@ -66,7 +67,7 @@ module.exports = function (grunt) {
 
         extensions.forEach(function (e) {
 
-            if (!fs.existsSync(path.join(e.directory, "public/js/main.js"))) {
+            if (!fs.existsSync(path.join(e.directory, "public/js/main_dev.js"))) {
                 return;
             }
 
@@ -74,33 +75,16 @@ module.exports = function (grunt) {
                 options: {
                     paths: commonPath,
                     baseUrl: path.join(e.directory, "public/js"),
-                    out: path.join(e.directory, "/public/js/main_built.js"),
+                    out: path.join(e.directory, "/public/js/main.js"),
                     optimize: "none",
-                    name: "main",
+                    name: "main_dev",
                     onBuildWrite: function (moduleName, path, contents) {
                         var regExp = new RegExp("\"[.]/", "g");
-                        return contents.replace("define('main',", "define(").replace(regExp, "\"");
+                        return contents.replace("define('main_dev',", "define(").replace(regExp, "\"");
                     }
                 }
             };
         });
-
-        return result;
-    }
-
-
-    function copyFiles() {
-        var result = [];
-
-        result.push({ src: ['extension/express/public/js/app.js'], dest: 'extension/express/public/js/app_dev.js' });
-
-        extensions.forEach(function (e) {
-            result.push({
-                src: path.join(e.directory,"public/js/main.js"),
-                dest: path.join(e.directory,"public/js/main_dev.js")
-            });
-        });
-
 
         return result;
     }
@@ -133,7 +117,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['extension/images/test/*.js']
+                src: ['extension/authentication/test/*.js']
             },
             integration: {
                 options: {
@@ -144,7 +128,7 @@ module.exports = function (grunt) {
         },
 
         copy: {
-            dev: { files: copyFiles() }
+            dev: { files: [{ src: ['extension/express/public/js/app.js'], dest: 'extension/express/public/js/app_dev.js' }] }
         },
 
         requirejs: createRequireJs(),
@@ -179,6 +163,13 @@ module.exports = function (grunt) {
                 replacements: [
                     { from: '{{templateBust}}', to: new Date().getTime() + "" }
                 ]
+            },
+            requirejsMain: {
+                src: ['./extension/express/public/js/require_main.js'],
+                dest: ['./extension/express/public/js/require_main_fixed.js'],
+                replacements: [
+                    { from: 'jsreport_server_url + "js"', to: '"/js"' }
+                ]
             }
         },
 
@@ -207,6 +198,17 @@ module.exports = function (grunt) {
                     ]
                 }
             }
+        },
+
+        concat: {
+            options: {
+                separator: ';'
+            },
+            dist: {
+                src: ['extension/client-html/public/js/handlebars.min.js', 'extension/client-html/public/js/jsrender.min.js',
+                    'extension/client-html/public/js/client.render.js', 'extension/embedding/public/embed.js'],
+                dest: 'extension/embedding/public/embed.min.js'
+            }
         }
     });
 
@@ -215,15 +217,17 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-text-replace');
+    grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-env');
+    grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
     grunt.registerTask('default', ['build']);
 
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
-    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp']);
-    grunt.registerTask('build-prod', [ 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp']);
+    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
+    grunt.registerTask('build-prod', [ 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);
 
     grunt.registerTask('watch-build', ['watch']);
 
@@ -231,7 +235,8 @@ module.exports = function (grunt) {
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);
     grunt.registerTask('test', ['test-nedb']);
 
-    grunt.registerTask('test-all', ['test-mongo', 'test-nedb']);
+    grunt.registerTask('test-all', ['test-mongo', 'test-nedb', 'test-ui']);
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
     grunt.registerTask('test-exact', ['env:dbMongo', 'mochaTest:testExact']);
+    grunt.registerTask('test-ui', ['mocha_phantomjs']);
 };

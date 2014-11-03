@@ -20,5 +20,9 @@ define(["underscore"], function (_) {
             if (settingChange) return;
             editor.setValue(model.get(path) || "", -1);
         });
+
+        $(window).on('split-pane-resized', _.debounce(function (e) {
+            editor.resize();
+        }, 200));
     };
 });

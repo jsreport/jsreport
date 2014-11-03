@@ -6,7 +6,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
 
     return Marionette.Layout.extend({
         template: "layout",
-        el: "body",
+        el: "#jsreport-root",
 
         initialize: function() {
             var self = this;

@@ -1,17 +1,29 @@
 ﻿describe('foo', function () {
-    it('should not fail', function (done) {
-        require(["marionette", "../../test/ui/squire"], function(Marionette, Squire) {
-            var injector = new Squire();
-            var appMock = new Marionette.Application();
-            appMock.serverUrl = "testChange";
+    this.timeout(10000);
 
-            injector.mock('app', appMock)
-                .require(['app', "layout"], function(app, Layout) {
-                    //expect.eql(app.serverUrl, "testChange5");
-                    expect(app.serverUrl).to.be.eql('testChange');
-                    done();
-                });
+
+    it('should not fail', function (done) {
+        startApplication(function(app, server) {
+            require(["jquery"], function ($) {
+                expect(app.template).to.be.ok();
+                expect($("#createTemplateCommand").length).to.be(1);
+                $("#createTemplateCommand")[0].click();
+                done();
+            });
         });
+
+//        require(["marionette", "../" + "../../../test/ui/squire"], function(Marionette, Squire) {
+//            var injector = new Squire();
+//            var appMock = new Marionette.Application();
+//            appMock.serverUrl = "testChange";
+//
+//            injector.mock('app', appMock)
+//                .require(['app', "layout"], function(app, Layout) {
+//                    //expect.eql(app.serverUrl, "testChange5");
+//                    expect(app.serverUrl).to.be.eql('testChange');
+//                    done();
+//                });
+//        });
             
             
         //    //var injector = new Squire();

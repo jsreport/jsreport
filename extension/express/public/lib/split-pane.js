@@ -210,6 +210,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
         $divider.css('top', top);
         $lastComponent.css('top', top);
         $splitPane.resize();
+        $(window).trigger("split-pane-resized");
     }
 
     function setBottom($splitPane, $firstComponent, $divider, $lastComponent, bottom) {
@@ -217,6 +218,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
         $divider.css('bottom', bottom);
         $lastComponent.css('height', bottom);
         $splitPane.resize();
+        $(window).trigger("split-pane-resized");
     }
 
     function setLeft($splitPane, $firstComponent, $divider, $lastComponent, left) {
@@ -224,6 +226,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
         $divider.css('left', left);
         $lastComponent.css('left', left);
         $splitPane.resize();
+        $(window).trigger("split-pane-resized");
     }
 
     function setRight($splitPane, $firstComponent, $divider, $lastComponent, right) {
@@ -231,6 +234,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
         $divider.css('right', right);
         $lastComponent.css('width', right);
         $splitPane.resize();
+        $(window).trigger("split-pane-resized");
     }
 
 })(jQuery);

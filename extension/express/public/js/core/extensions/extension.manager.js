@@ -42,22 +42,48 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
         };
 
         Manager.prototype.loadExtensions = function(cb) {
+
             async.eachSeries(this.registredExtensions, function(extension, innercb) {
                 if (extension.hasPublicPart === false || extension.name === "express")
                    return innercb(null);
 
-                require.config({
-                    packages: [
-                        {
-                            name: extension.name,
-                            location: '/extension/' + extension.name + '/public/js',
-                            main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
-                        }
-                    ]
-                });
-                require([extension.name], function() {
-                    innercb();
-                }, function() { innercb(); });
+                var main = "main";
+                if (jsreport_mode === "development") {
+                    main = "main_dev";
+                }
+
+                if (jsreport_mode === "embedded") {
+                    if (!extension.embeddedSupport)
+                        return innercb(null);
+                    main = "main_embed";
+                }
+
+                function loadExtension(main) {
+                    require.config({
+                        packages: [
+                            {
+                                name: extension.name,
+                                //location: app.serverUrl + 'extension/' + extension.name + '/public/js',
+                                location: app.serverUrl +
+                                    (app.serverUrl.lastIndexOf("file:///", 0) === 0 ? '../../' :  'extension/') +
+                                     extension.name + '/public/js',
+                                main: main
+                                //main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
+                            }
+                        ]
+                    });
+
+                    require([extension.name], function() {
+                        innercb();
+                    }, function(e) {
+                        console.log(e.message);
+                        if (main !== "main")
+                            return loadExtension("main");
+                        innercb();
+                    });
+                }
+
+                loadExtension(main);
             }, cb);
         };
 

@@ -1,6 +1,6 @@
 {
   "name": "jsreport",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -25,6 +25,7 @@
     "commander": "*",
     "connect": "^2.14.4",
     "cookie-parser": "^1.0.1",
+    "cors": "^2.4.2",
     "daemon": "*",
     "ejs": "*",
     "express": "*",
@@ -44,6 +45,9 @@
     "node-jsrender": "*",
     "node.extend": "*",
     "odata-server": "*",
+    "passport": "^0.2.1",
+    "passport-http": "^0.2.2",
+    "passport-local": "^1.0.0",
     "phantomjs": "*",
     "q": "*",
     "q-io": "*",
@@ -70,6 +74,7 @@
     "expect.js": "*",
     "grunt": "*",
     "grunt-cli": "*",
+    "grunt-contrib-concat": "^0.5.0",
     "grunt-contrib-copy": "*",
     "grunt-contrib-cssmin": "^0.10.0",
     "grunt-contrib-requirejs": "*",
@@ -82,7 +87,7 @@
     "mocha": "*",
     "proxyquire": "*",
     "should": "*",
-    "sinon": "*",
+    "sinon": "~1.10.3",
     "supertest": "*"
   },
   "scripts": {

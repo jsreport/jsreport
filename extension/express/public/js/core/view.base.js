@@ -51,6 +51,6 @@ define(["app", "marionette", "jquery", "underscore", "core/utils"], function(app
 
         onValidate: function() {
             return [];
-        },
+        }
     });
 });

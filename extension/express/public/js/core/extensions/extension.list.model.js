@@ -11,6 +11,6 @@ define(["app", "core/jaydataModel", "underscore"], function (app, ModelBase, _) 
             _.each(app.extensions.manager.extensions, function (e) {
                 self.set(e.name, e.isRegistered);
             });
-        },
+        }
     });
 });

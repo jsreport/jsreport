@@ -1,0 +1,48 @@
+<div>
+    <span class="side-title">Margin</span>
+    <input type="text" class="form-control area-mini" placeholder="1 cm" name="margin" value="{{:margin}}">
+    <span class="side-title">Header height</span>
+    <input type="text" class="form-control area-mini" placeholder="1 cm" name="headerHeight" value="{{:headerHeight}}">
+    <span class="side-title">Header</span>
+    <textarea class="form-control side-textarea" placeholder="header content" name="header">{{:header}}</textarea>
+    <span class="side-title">Footer height</span>
+    <input type="text" class="form-control area-mini" placeholder="1 cm" name="footerHeight" value="{{:footerHeight}}">
+    <span class="side-title">Footer</span>
+    <textarea class="form-control side-textarea" placeholder="footer content" name="footer">{{:footer}}</textarea>
+
+    <span class="side-title">Paper Format</span>
+
+    <div class="btn-group dropdown" data-binding="format">
+        <button class="btn btn-xs dropdown-button" data-value="{{:format}}">{{:format}}</button>
+        <button class="btn btn-xs dropdown-toggle" data-toggle="dropdown">
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu pull-right">
+            <li><a data-value="A4">A4</a></li>
+            <li><a data-value="A3">A3</a></li>
+            <li><a data-value="A5">A5</a></li>
+            <li><a data-value="Legal">Legal</a></li>
+            <li><a data-value="Letter">Letter</a></li>
+            <li><a data-value="Tabloid">Tabloid</a></li>
+        </ul>
+    </div>
+
+    <span class="side-title">Paper width</span>
+    <input type="text" class="form-control area-mini" placeholder="600px" name="width" value="{{:width}}">
+
+    <span class="side-title">Paper height</span>
+    <input type="text" class="form-control area-mini" placeholder="600px" name="height" value="{{:height}}">
+
+    <span class="side-title">Orientation</span>
+
+    <div class="btn-group dropdown" data-binding="orientation">
+        <button class="btn btn-xs dropdown-button" data-value="{{:orientation}}">{{:orientation}}</button>
+        <button class="btn btn-xs dropdown-toggle" data-toggle="dropdown">
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu pull-right">
+            <li><a data-value="portrait">portrait</a></li>
+            <li><a data-value="landscape">landscape</a></li>
+        </ul>
+    </div>
+</div>

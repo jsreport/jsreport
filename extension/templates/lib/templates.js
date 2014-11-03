@@ -44,10 +44,11 @@ Templating.prototype.handleBeforeRender = function (request, response) {
     }
 
     var findPromise = request.template._id ? request.context.templates.find(request.template._id) :
-                      request.template.shortid ?
-                          request.context.templates.single(function (t) {  return t.shortid === this.shortid;
-                          }, { shortid: request.template.shortid })
-                          : q(request.template);
+        request.template.shortid ?
+            request.context.templates.single(function (t) {
+                return t.shortid === this.shortid;
+            }, { shortid: request.template.shortid })
+            : q(request.template);
 
 
     return findPromise.then(function (template) {
@@ -103,7 +104,7 @@ Templating.prototype._defineEntities = function () {
 Templating.prototype._copyHistory = function (entity) {
     var self = this;
 
-    return this.reporter.dataProvider.startContext().then(function(context) {
+    return this.reporter.dataProvider.startContext().then(function (context) {
         return context.templates.find(entity._id).then(function (originalEntity) {
             var copy = _.extend({}, originalEntity.initData);
             delete copy._id;
@@ -118,32 +119,29 @@ Templating.prototype._copyHistory = function (entity) {
 Templating.prototype._defineEntitySets = function () {
     var self = this;
 
-    function beforeUpdate (i) {
-        return function (callback, items) {
-            if (!items[0]._id)
-                return callback(false);
+    var templatesSet = this.reporter.dataProvider.registerEntitySet("templates", this.TemplateType, { tableOptions: { humanReadableKeys: [ "shortid"] } });
 
-            var shouldBeHistorized = false;
+    templatesSet.beforeUpdateListeners.add("templates-before-update", function (key, items) {
+        if (!items[0]._id)
+            return q(false);
 
-            for (var i = 0; i < items[0].changedProperties.length; i++) {
-                var propName = items[0].changedProperties[i].name;
-                if (propName !== "ValidationErrors" && propName !== "modificationDate")
-                    shouldBeHistorized = true;
-            }
+        var shouldBeHistorized = false;
 
-            if (!shouldBeHistorized)
-                return callback(true);
+        for (var i = 0; i < items[0].changedProperties.length; i++) {
+            var propName = items[0].changedProperties[i].name;
+            if (propName !== "ValidationErrors" && propName !== "modificationDate")
+                shouldBeHistorized = true;
+        }
 
-            self._copyHistory(items[0]).then(function () {
-                callback(true);
-            }, function (err) {
-                callback(false);
-            });
-        };
-    }
+        if (!shouldBeHistorized)
+            return q(true);
 
-    var templatesSet = this.reporter.dataProvider.registerEntitySet("templates", this.TemplateType, { tableOptions: { humanReadableKeys: [ "shortid"] } } );
-    templatesSet.beforeUpdate = beforeUpdate;
+        return self._copyHistory(items[0]).then(function () {
+            return true;
+        }, function (err) {
+            return false;
+        });
+    });
 
-    this.reporter.dataProvider.registerEntitySet("templatesHistory", this.TemplateHistoryType );
+    this.reporter.dataProvider.registerEntitySet("templatesHistory", this.TemplateHistoryType);
 };

@@ -1,4 +1,4 @@
-﻿define(["app", "marionette", "core/view.base", "core/utils",], function(app, Marionette, ViewBase, Utils) {
+﻿define(["app", "marionette", "core/view.base", "core/utils"], function(app, Marionette, ViewBase, Utils) {
     return ViewBase.extend({
         tagName: "li",
         template: "data-template-extension-standard",
@@ -8,7 +8,7 @@
         },
 
         isFilled: function() {
-            return this.model.templateModel.get("dataItemId");
+            return this.model.get("shortid") || this.model.get("dataJson");
         },
         
         getItems: function () {

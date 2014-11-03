@@ -3,8 +3,8 @@
  */ 
 
 define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/listenerCollection",
-        "./template.embed.dialog", "core/basicModel"],
-    function($, app, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel) {
+        "./template.embed.dialog", "core/basicModel", "./preview"],
+    function($, app, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel, preview) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
             introTemplate: "template-detail-intro",
@@ -92,14 +92,6 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
                 });
             },
 
-            addInput: function(form, name, value) {
-                var input = document.createElement("input");
-                input.type = "hidden";
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
-            },
-
             previewNewPanel: function() {
                 this._preview("_blank");
                 this.contentView.$el.find(".preview-loader").hide();
@@ -110,84 +102,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
             },
 
             _preview: function(target) {
-                this.contentView.$el.find(".preview-loader").show();
-                //http://connect.microsoft.com/IE/feedback/details/809377/ie-11-load-event-doesnt-fired-for-pdf-in-iframe
-                //this.contentView.$el.find("[name=previewFrame]").hide();
-
-                var mapForm = document.createElement("form");
-                mapForm.target = target;
-                mapForm.method = "POST";
-                mapForm.action = app.serverUrl + "api/report";
-
-                var uiState = this.getUIState();
-
-                var request = { template: uiState };
-                var self = this;
-                this.beforeRenderListeners.fire(request, function(er) {
-                    if (er) {
-                        self.contentView.$el.find(".preview-loader").hide();
-                        app.trigger("error", { responseText: er });
-                        return;
-                    }
-
-                    function addBody(path, body) {
-                        if (body == null)
-                            return;
-
-                        if (body.initData != null)
-                            body = body.initData;
-
-                        for (var key in body) {
-                            if (_.isObject(body[key])) {
-                                addBody(path + "[" + key + "]", body[key]);
-                            } else {
-                                self.addInput(mapForm, path + "[" + key + "]", body[key]);
-                            }
-                        }
-                    }
-
-                    addBody("template", uiState);
-                    if (request.options != null)
-                        addBody("options", request.options);
-
-                    if (request.data != null)
-                        self.addInput(mapForm, "data", request.data);
-
-                    document.body.appendChild(mapForm);
-                    mapForm.submit();
-                    app.trigger("after-template-render");
-                });
-            },
-
-            getUIState: function() {
-
-                function justNotNull(o) {
-                    var clone = {};
-                    for (var key in o) {
-                        if (o[key] != null)
-                            clone[key] = o[key];
-                    }
-
-                    return clone;
-                }
-
-                var state = {};
-                var json = this.model.toJSON();
-                for (var key in json) {
-                    if (json[key] != null) {
-                        if (json[key].initData != null)
-                            state[key] = justNotNull(json[key].toJSON());
-                        else
-                            state[key] = json[key];
-                    }
-                }
-
-                state.content = state.content || " ";
-                state.helpers = state.helpers || "";
-
-                delete state._id;
-                delete state.shortid;
-                return state;
+                preview(this.model, this.beforeRenderListeners, target);
             },
 
             onValidate: function() {
