@@ -13,7 +13,9 @@ define(["jquery", "underscore", "app"], function ($, underscore, app, Handlebars
     require([app.serverUrl + "extension" + "/client-html/public/js/client.render.js", app.serverUrl + "extension" + "/client-html/public/js/handlebars.min.js"], function (clientRender, Handlebars) {
         window.Handlebars = Handlebars;
         return app.module("clientHtml", function (module) {
-            app.clientHtml = clientRender;
+            app.recipes["client-html"] = {
+                render: clientRender
+            }
         });
     });
 });

@@ -128,7 +128,7 @@ define('template.list.toolbar.view',["jquery", "app", "core/utils", "core/view.b
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define('template.detail.view',["jquery", "app", "core/utils", "core/view.base", "core/aceBinder", "ace/ext/language_tools"],
+define('template.detail.view',["jquery", "app", "core/utils", "core/view.base", "core/aceBinder"],
     function($, app, Utils, LayoutBase, aceBinder) {
         
         return LayoutBase.extend({
@@ -161,7 +161,7 @@ define('template.detail.view',["jquery", "app", "core/utils", "core/view.base", 
                 var self = this;
                 $(".side-nav-right").hide();
 
-                var langTools = ace.require("ace/ext/language_tools");
+                //var langTools = ace.require("ace/ext/language_tools");
 
                 //var dataCompleter = {
                 //    getCompletions: function(editor, session, pos, prefix, callback) {
@@ -328,9 +328,6 @@ define('preview',["underscore", "jquery", "app"], function (_, $, app) {
     }
 
     var fn = function (model, beforeRenderListeners, target) {
-        //this.contentView.$el.find(".preview-loader").show();
-        //http://connect.microsoft.com/IE/feedback/details/809377/ie-11-load-event-doesnt-fired-for-pdf-in-iframe
-        //this.contentView.$el.find("[name=previewFrame]").hide();
 
         var uiState = getUIState(model);
 
@@ -338,13 +335,12 @@ define('preview',["underscore", "jquery", "app"], function (_, $, app) {
 
         beforeRenderListeners.fire(request, function (er) {
             if (er) {
-                //self.contentView.$el.find(".preview-loader").hide();
                 app.trigger("error", { responseText: er });
                 return;
             }
 
-            if (uiState.recipe === "client-html") {
-                return app.clientHtml(request, target);
+            if (app.recipes[uiState.recipe] && app.recipes[uiState.recipe].render) {
+                return app.recipes[uiState.recipe].render(request, target);
             }
 
             var mapForm = document.createElement("form");
@@ -573,7 +569,6 @@ define(["jquery", "app", "marionette", "backbone",
         "dashboard.templates.model", "dashboard.templates.view",
         "template.detail.toolbar.view"],
     function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
-
         return app.module("template", function (module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
@@ -663,7 +658,7 @@ define(["jquery", "app", "marionette", "backbone",
             });
 
             app.on("menu-actions-render", function (context) {
-                context.result += "<li><a href='#/playground'>Create Template</a></li>";
+                context.result += "<li><a id='createTemplateCommand' href='#/playground'>Create Template</a></li>";
             });
 
             app.on("dashboard-extensions-render", function (region) {

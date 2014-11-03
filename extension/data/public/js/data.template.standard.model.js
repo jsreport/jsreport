@@ -13,6 +13,7 @@
                 if (!data) {
                     data = new $entity.DataItemRefType();
 
+                    console.log(self.templateModel.get("dataItemId"));
                     //back compatibility
                     if (self.templateModel.get("dataItemId")) {
                         data.shortid = self.templateModel.get("dataItemId");

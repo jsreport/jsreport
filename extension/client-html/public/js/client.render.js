@@ -110,13 +110,18 @@ function clientRender(request, target, selector) {
     $iframe.attr("src", "");
 
     var doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
-    if (doc.document) {
-        doc = doc.document;
-    }
 
-    doc.documentElement.innerHTML = "";
+    //wait a little bit until potential pdf iframe is really gone
+    setTimeout(function() {
+        if (doc.document) {
+            doc = doc.document;
+        }
 
-    doc.open();
-    doc.write(output);
-    doc.close();
+        doc.documentElement.innerHTML = "";
+
+        doc.open();
+        doc.write(output);
+        doc.close();
+    }, 10);
+
 }

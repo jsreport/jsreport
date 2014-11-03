@@ -8,8 +8,9 @@
  *
  * grunt test # start tests with file system based db (neDb), no mongo needed
  * grunt test-mongo # start tests with mongo db
- * grunt test-all # start tests with nedb and then once again with mongo (used with travis CI)
+ * grunt test-all # start tests with nedb and then once again with mongo (used with travis CI) ant then ui tests
  * grunt test-integration # start all tests with nedb including integration tests including java fop and phantomjs
+ * grunt test-ui # start ui tests
  */
 
 
@@ -53,7 +54,7 @@ module.exports = function (grunt) {
                 options: {
                     baseUrl: "./extension/express/public/js",
                     mainConfigFile: './extension/express/public/js/require_main_fixed.js',
-                    out: "extension/express/public/js/app_built.js",
+                    out: "/extension/express/public/js/app_built.js",
                     name: 'app',
                     removeCombined: true,
                     findNestedDependencies: true,
@@ -234,7 +235,7 @@ module.exports = function (grunt) {
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);
     grunt.registerTask('test', ['test-nedb']);
 
-    grunt.registerTask('test-all', ['test-mongo', 'test-nedb', 'mocha_phantomjs']);
+    grunt.registerTask('test-all', ['test-mongo', 'test-nedb', 'test-ui']);
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
     grunt.registerTask('test-exact', ['env:dbMongo', 'mochaTest:testExact']);
     grunt.registerTask('test-ui', ['mocha_phantomjs']);

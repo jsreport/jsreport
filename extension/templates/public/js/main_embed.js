@@ -2,8 +2,8 @@
  * Copyright(c) 2014 Jan Blaha 
  */
 
-define(["jquery", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./template.model", "./preview", "core/aceBinder"],
-    function ($, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateModel, preview, aceBinder) {
+define(["jquery", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./template.model", "./preview", "core/aceBinder", "./entityRegistration"],
+    function ($, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateModel, preview, aceBinder, entityRegistration) {
 
         return app.module("template", function (module) {
 
@@ -95,26 +95,7 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "core/liste
                 }
             });
 
-            app.on("entity-registration", function (context) {
-
-                var templateAttributes = {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String'},
-                    'name': { 'type': 'Edm.String' },
-                    'modificationDate': { 'type': 'Edm.DateTime' },
-                    'engine': { 'type': 'Edm.String' },
-                    'recipe': { 'type': 'Edm.String' },
-                    'content': { 'type': 'Edm.String' },
-                    'shortid': { 'type': 'Edm.String' },
-                    'helpers': { 'type': 'Edm.String' }
-                };
-
-                $data.Entity.extend('$entity.Template', templateAttributes);
-                $entity.Template.prototype.toString = function () {
-                    return "Template " + (this.name || "");
-                };
-
-                context["templates"] = { type: $data.EntitySet, elementType: $entity.Template };
-            });
+            app.on("entity-registration", entityRegistration);
 
             app.on("open-template", function(shortid) {
                 var view = new View({ model: new TemplateModel()});

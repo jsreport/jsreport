@@ -34,12 +34,15 @@ describe('templates', function () {
     });
 
     it('saving should validate empty name', function (done) {
-        window.location.hash = "/playground";
-        $("#saveCommand").click();
+        window.location.hash = "/playground"
 
-        expect().to.evaluate(function() {
-            return $("#errorDialog").find("#dialogHeader").html() === "Validations";
-        }, done);
+        expect("#saveCommand").to.be.shown(function() {
+            $("#saveCommand").click();
+
+            expect().to.evaluate(function() {
+                return $("#errorDialog").find("#dialogHeader").html() === "Validations";
+            }, done);
+        });
     });
 
     it('saving should trigger jaydata', function (done) {

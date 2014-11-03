@@ -6,8 +6,8 @@ define(["jquery", "app", "marionette", "backbone",
         "./template.list.model", "./template.list.view", "./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",
-        "./template.detail.toolbar.view"],
-    function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView) {
+        "./template.detail.toolbar.view", "./entityRegistration"],
+    function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView, entityRegistration) {
         return app.module("template", function (module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
@@ -108,26 +108,6 @@ define(["jquery", "app", "marionette", "backbone",
                 model.fetch();
             });
 
-            app.on("entity-registration", function (context) {
-
-                var templateAttributes = {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String'},
-                    'name': { 'type': 'Edm.String' },
-                    'modificationDate': { 'type': 'Edm.DateTime' },
-                    'engine': { 'type': 'Edm.String' },
-                    'recipe': { 'type': 'Edm.String' },
-                    'content': { 'type': 'Edm.String' },
-                    'shortid': { 'type': 'Edm.String' },
-                    'helpers': { 'type': 'Edm.String' }
-                };
-
-                $data.Entity.extend('$entity.Template', templateAttributes);
-                $entity.Template.prototype.toString = function () {
-                    return "Template " + (this.name || "");
-                };
-
-                context["templates"] = { type: $data.EntitySet, elementType: $entity.Template };
-            });
-
+            app.on("entity-registration", entityRegistration);
         });
     });

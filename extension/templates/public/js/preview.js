@@ -40,9 +40,6 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
     }
 
     var fn = function (model, beforeRenderListeners, target) {
-        //this.contentView.$el.find(".preview-loader").show();
-        //http://connect.microsoft.com/IE/feedback/details/809377/ie-11-load-event-doesnt-fired-for-pdf-in-iframe
-        //this.contentView.$el.find("[name=previewFrame]").hide();
 
         var uiState = getUIState(model);
 
@@ -50,13 +47,12 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
 
         beforeRenderListeners.fire(request, function (er) {
             if (er) {
-                //self.contentView.$el.find(".preview-loader").hide();
                 app.trigger("error", { responseText: er });
                 return;
             }
 
-            if (uiState.recipe === "client-html") {
-                return app.clientHtml(request, target);
+            if (app.recipes[uiState.recipe] && app.recipes[uiState.recipe].render) {
+                return app.recipes[uiState.recipe].render(request, target);
             }
 
             var mapForm = document.createElement("form");

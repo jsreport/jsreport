@@ -2,8 +2,9 @@
         "./data.list.model", "./data.list.view", "./data.list.toolbar.view",
         "./data.model", "./data.detail.view",
         "./data.template.standard.view",
-        "./data.toolbar.view", "./data.template.standard.model"],
-    function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView, TemplateStandardView, ToolbarView, TemplateStandardModel) {
+        "./data.toolbar.view", "./data.template.standard.model", "./entityRegistration"],
+    function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView,
+              TemplateStandardView, ToolbarView, TemplateStandardModel, entityRegistration) {
 
         app.module("data", function (module) {
             var Router = Backbone.Router.extend({
@@ -68,29 +69,6 @@
                 }});
             });
 
-            app.on("entity-registration", function (context) {
-                $data.Class.define("$entity.DataItem", $data.Entity, null, {
-                    'shortid': { 'type': 'Edm.String' },
-                    'name': { 'type': 'Edm.String' },
-                    "creationDate": { type: "date" },
-                    "modificationDate": { type: "date" },
-                    'dataJson': { 'type': 'Edm.String' }
-                }, null);
-
-                $entity.DataItem.prototype.toString = function () {
-                    return "DataItem " + (this.name || "");
-                };
-
-                $data.Class.define("$entity.DataItemRefType", $data.Entity, null, {
-                    dataJson: { type: 'Edm.String' },
-                    shortid: { type: 'Edm.String' }
-                });
-
-
-                $entity.Template.addMember("data", { 'type': "$entity.DataItemRefType" });
-
-                $entity.DataItem.addMember('_id', { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' });
-                context["data"] = { type: $data.EntitySet, elementType: $entity.DataItem };
-            });
+            app.on("entity-registration", entityRegistration);
         });
     });

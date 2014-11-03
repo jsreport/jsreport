@@ -215,6 +215,7 @@ define('data.template.standard.model',["app", "core/basicModel", "underscore"], 
                 if (!data) {
                     data = new $entity.DataItemRefType();
 
+                    console.log(self.templateModel.get("dataItemId"));
                     //back compatibility
                     if (self.templateModel.get("dataItemId")) {
                         data.shortid = self.templateModel.get("dataItemId");
@@ -325,7 +326,7 @@ define(["app", "marionette", "backbone",
             });
 
             app.on("menu-actions-render", function (context) {
-                context.result += "<li><a href='/#/extension/data/detail' class='validate-leaving'>Create Data</a></li>";
+                context.result += "<li><a id='createDataCommand' href='#/extension/data/detail' class='validate-leaving'>Create Data</a></li>";
             });
 
 
@@ -360,6 +361,8 @@ define(["app", "marionette", "backbone",
 
 
                 $entity.Template.addMember("data", { 'type': "$entity.DataItemRefType" });
+                //back compatibility
+                $entity.Template.addMember("dataItemId", { 'type': "Edm.String" });
 
                 $entity.DataItem.addMember('_id', { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' });
                 context["data"] = { type: $data.EntitySet, elementType: $entity.DataItem };

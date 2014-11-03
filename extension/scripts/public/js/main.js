@@ -364,6 +364,9 @@ define(["app", "marionette", "backbone",
                 };
 
                 $entity.Template.addMember("script", { 'type': "$entity.ScriptRefType" });
+                //back compatibility
+                $entity.Template.addMember("scriptId", { 'type': "Edm.String" });
+
                 context["scripts"] = { type: $data.EntitySet, elementType: $entity.Script };
             });
         });

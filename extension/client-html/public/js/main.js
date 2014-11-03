@@ -9,13 +9,13 @@ require.config({
     }
 });
 
-
-
 define(["jquery", "underscore", "app", "extension" + "/client-html/public/js/client.render.js", "extension" + "/client-html/public/js/handlebars.min.js"],
     function ($, underscore, app, clientRender, Handlebars) {
 
         window.Handlebars = Handlebars;
         return app.module("clientHtml", function (module) {
-            app.clientHtml = clientRender;
+            app.recipes["client-html"] = {
+                render: clientRender
+            }
         });
     });
