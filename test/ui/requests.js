@@ -1,0 +1,22 @@
+var requests = {};
+
+requests.extensions = [
+    {"name":"express","main":"lib/reporter.express.js","dependencies":[],"options":{},"isRegistered":true},
+    {"name":"templates","main":"lib/templates.js","embeddedSupport":true,"dependencies":[],"options":{},"isRegistered":true},
+    {"name":"excel-parser","main":"lib/excelParser.js","dependencies":[],"hasPublicPart":false,"options":{}},
+    {"name":"html","main":"lib/html.js","hasPublicPart":false,"dependencies":[],"options":{},"isRegistered":true},
+    {"name":"fop-pdf","main":"lib/fop.js","hasPublicPart":false,"dependencies":[],"options":{}},
+    {"name":"authentication","main":"lib/authentication.js","hasPublicPart":false,"dependencies":[],"isRegistered":true},
+    {"name":"client-html","main":"lib/main.js","embeddedSupport":true,"dependencies":[],"options":{},"isRegistered":true},
+    {"name":"data","main":"lib/data.js","dependencies":["templates"],"embeddedSupport":true,"options":{},"isRegistered":true},
+    {"name":"childTemplates","main":"lib/childTemplates.js","dependencies":["templates"],"hasPublicPart":false,"options":{},"isRegistered":true},
+    {"name":"images","main":"lib/images.js","dependencies":["templates"],"options":{},"isRegistered":true},
+    {"name":"phantom-pdf","main":"lib/phantom.js","dependencies":["templates"],"embeddedSupport":true,"options":{},"isRegistered":true},
+    {"name":"reports","main":"lib/reports.js","dependencies":["templates"],"options":{},"isRegistered":true},
+    {"name":"scripts","main":"lib/scripts.js","dependencies":["templates","data"],"embeddedSupport":true,"options":{},"isRegistered":true},
+    {"name":"statistics","main":"lib/statistics.js","dependencies":["templates","reports"],"options":{}},
+    {"name":"sample-template","main":"lib/sample.js","dependencies":["templates","data","phantom-pdf"],"hasPublicPart":false,"options":{}},
+    {"name":"embedding","main":"lib/embedding.js","hasPublicPart":false,"dependencies":["templates","scripts","data","phantom-pdf","html"],"options":{},"isRegistered":true},
+    {"name":"authorization","main":"lib/authorization.js","hasPublicPart":false,"dependencies":["templates","scripts","data","phantom-pdf","html"],"isRegistered":true}];
+
+requests.settings = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?><feed xmlns:d=\"http:\/\/schemas.microsoft.com\/ado\/2007\/08\/dataservices\" xmlns:m=\"http:\/\/schemas.microsoft.com\/ado\/2007\/08\/dataservices\/metadata\" xml:base=\"http:\/\/localhost:2000\/odata\/settings\" xmlns=\"http:\/\/www.w3.org\/2005\/Atom\"><id>http:\/\/localhost:2000\/odata\/settings<\/id><title type=\"text\">settings<\/title><updated>2014-10-25T16:37:09.923Z<\/updated><link href=\"settings\" rel=\"self\" title=\"settings\"><\/link><entry><id>http:\/\/localhost:2000\/odata\/settings(\'VnlkcVlYRDZQdkkwc2Q2Qw==\')<\/id><category scheme=\"http:\/\/schemas.microsoft.com\/ado\/2007\/08\/dataservices\/scheme\" term=\"SettingType\"><\/category><link href=\"settings(\'VnlkcVlYRDZQdkkwc2Q2Qw==\')\" rel=\"edit\" title=\"SettingType\"><\/link><title><\/title><updated>2014-10-25T16:37:09.924Z<\/updated><author><name><\/name><\/author><content type=\"application\/xml\"><m:properties><d:_id>VnlkcVlYRDZQdkkwc2Q2Qw==<\/d:_id><d:key>firstRun<\/d:key><d:value>false<\/d:value><\/m:properties><\/content><\/entry><entry><id>http:\/\/localhost:2000\/odata\/settings(\'V3BrQ3U2dDlveVBtV1I1RA==\')<\/id><category scheme=\"http:\/\/schemas.microsoft.com\/ado\/2007\/08\/dataservices\/scheme\" term=\"SettingType\"><\/category><link href=\"settings(\'V3BrQ3U2dDlveVBtV1I1RA==\')\" rel=\"edit\" title=\"SettingType\"><\/link><title><\/title><updated>2014-10-25T16:37:09.925Z<\/updated><author><name><\/name><\/author><content type=\"application\/xml\"><m:properties><d:_id>V3BrQ3U2dDlveVBtV1I1RA==<\/d:_id><d:key>template-detail-intro<\/d:key><d:value>true<\/d:value><\/m:properties><\/content><\/entry><entry><id>http:\/\/localhost:2000\/odata\/settings(\'Z3hpYUtINEFpdGx0Q1Q1Sg==\')<\/id><category scheme=\"http:\/\/schemas.microsoft.com\/ado\/2007\/08\/dataservices\/scheme\" term=\"SettingType\"><\/category><link href=\"settings(\'Z3hpYUtINEFpdGx0Q1Q1Sg==\')\" rel=\"edit\" title=\"SettingType\"><\/link><title><\/title><updated>2014-10-25T16:37:09.926Z<\/updated><author><name><\/name><\/author><content type=\"application\/xml\"><m:properties><d:_id>Z3hpYUtINEFpdGx0Q1Q1Sg==<\/d:_id><d:key>test<\/d:key><d:value>val<\/d:value><\/m:properties><\/content><\/entry><\/feed>";

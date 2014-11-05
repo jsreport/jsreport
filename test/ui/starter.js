@@ -54,7 +54,7 @@ function startApplication(cb) {
             server.requests[1].respond(
                 200,
                 { "Content-Type": "application/json" },
-                JSON.stringify(templates));
+                JSON.stringify(requests.templates));
 
             server.requests[2].respond(
                 200,
@@ -77,7 +77,7 @@ function startApplication(cb) {
                 server.requests[5].respond(
                     200,
                     { "Content-Type": "application/json" },
-                    JSON.stringify(extensions));
+                    JSON.stringify(requests.extensions));
 
                 waitUntil(function () {
                     return server.requests.length === 7;
@@ -85,7 +85,7 @@ function startApplication(cb) {
                     server.requests[6].respond(
                         200,
                         { "Content-Type": "application/xml" },
-                        settings);
+                        requests.settings);
                 });
             });
         });

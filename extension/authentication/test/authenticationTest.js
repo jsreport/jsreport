@@ -7,11 +7,12 @@ var assert = require("assert"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 describeReporting(path.join(__dirname, "../../"), ["express", "authentication"], {
-    authentication: { admin : { username: "admin", password: "password"}},
-    "cookieSession": {
-        "secret": "foo",
-        "cookie": { "domain": "local.net" }
-    }
+    authentication: {
+        "cookieSession": {
+            "secret": "foo",
+            "cookie": { "domain": "local.net" }
+        },
+        admin : { username: "admin", password: "password"}}
 }, function(reporter) {
 
     describe('authentication', function () {

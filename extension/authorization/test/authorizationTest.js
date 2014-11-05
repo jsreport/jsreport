@@ -5,7 +5,7 @@ var assert = require("assert"),
     authApp = require("express")();
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["templates", "authorization"], { "authorization" : { "externalService" : { "url": "http://localhost:1234" } }}, function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["templates", "authorization"], { "authorization" : { "externalService" : { "url": "http://localhost:1234/jsreport/authorization/" } }}, function(reporter) {
 
     describe('authorization', function () {
 

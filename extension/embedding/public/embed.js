@@ -158,7 +158,9 @@ var jsreport = (function (global, jQuery, undefined) {
     }
 
     var JsReport = function () {
-        this.url = document.getElementById("jsreport-embedding").src.replace("/extension/embedding/public/embed.min.js", "");
+        this.url = document.getElementById("jsreport-embedding") ?
+                document.getElementById("jsreport-embedding").src.replace("/extension/embedding/public/embed.min.js", "") :
+                window.location;
     };
 
     JsReport.prototype.renderAll = function () {
@@ -225,6 +227,11 @@ var jsreport = (function (global, jQuery, undefined) {
         this.context = context;
     };
 
+    JsReport.prototype.onLoaded = function() {
+        waitingCb();
+        loaded = true;
+    }
+
     var jsreportIFrame = $("<iframe frameborder='0' style='position: absolute; display: none; left:100px;top: 100px; z-index:1000'></iframe>");
     $("body").append(jsreportIFrame);
 
@@ -235,11 +242,6 @@ var jsreport = (function (global, jQuery, undefined) {
 
     var loaded = false;
     var waitingCb;
-
-    function jsreportLoaded() {
-        waitingCb();
-        loaded = true;
-    }
 
     function ensureIframeLoaded(url, cb) {
         if (loaded) {

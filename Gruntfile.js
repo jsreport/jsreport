@@ -18,12 +18,39 @@ module.exports = function (grunt) {
     var utils = require("./lib/util/util.js"),
         fs = require("fs"),
         path = require("path"),
-        _ = require("underscore");
+        _ = require("underscore"),
+        S = require("string");
 
 
     var extensions = utils.walkSync(grunt.option('root') || __dirname, "jsreport.config.js", []).map(function (e) {
         return _.extend({ directory: path.dirname(e) }, require(e));
     });
+
+    function writeHtmlTemplatesForUiTests() {
+        var templatesContent = [];
+
+        function collect(rootPath) {
+            if (!fs.lstatSync(rootPath).isDirectory())
+                return;
+
+            var paths = fs.readdirSync(rootPath);
+
+            paths.forEach(function(p) {
+                if (p === "node_modules")
+                    return;
+
+                if (S(p).endsWith(".html") && path.basename(rootPath) === "templates") {
+                    templatesContent.push({ name: p.replace(".html", ""), content: fs.readFileSync(path.join(rootPath, p), 'utf8')});
+                } else {
+                    collect(path.join(rootPath, p));
+                }
+            });
+        }
+
+        collect(__dirname);
+
+        fs.writeFileSync(path.join(__dirname, "test", "ui", "html-templates.js"), "requests.templates = " + JSON.stringify(templatesContent, null, 2) + ";");
+    }
 
     function createRequireJs() {
 
@@ -224,6 +251,8 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default', ['build']);
 
+    grunt.registerTask('writeHtmlTemplatesForUiTests', writeHtmlTemplatesForUiTests);
+
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
     grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
@@ -238,5 +267,5 @@ module.exports = function (grunt) {
     grunt.registerTask('test-all', ['test-mongo', 'test-nedb', 'test-ui']);
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
     grunt.registerTask('test-exact', ['env:dbMongo', 'mochaTest:testExact']);
-    grunt.registerTask('test-ui', ['mocha_phantomjs']);
+    grunt.registerTask('test-ui', ['writeHtmlTemplatesForUiTests', 'mocha_phantomjs']);
 };

@@ -21,16 +21,16 @@ module.exports = function (reporter, definition) {
     definition.options.admin.name = definition.options.admin.username;
 
     reporter.on("after-express-static-configure", function(app) {
-        configureRoutes(reporter, app, definition.options.admin);
+        configureRoutes(reporter, app, definition.options.admin, definition);
     });
 };
 
-function configureRoutes(reporter, app, admin) {
+function configureRoutes(reporter, app, admin, definition) {
 
     app.use(sessions({
         cookieName: 'session',
-        cookie: reporter.options.cookieSession.cookie,
-        secret: reporter.options.cookieSession.secret,
+        cookie: definition.options.cookieSession.cookie,
+        secret: definition.options.cookieSession.secret,
         duration: 1000 * 60 * 60 * 24 * 365 * 10 // forever
     }));
 
@@ -103,7 +103,7 @@ function configureRoutes(reporter, app, admin) {
 
     app.post("/logout", function (req, res) {
         req.logout();
-        res.redirect("/login");
+        res.redirect("/");
     });
 
     app.use(function (req, res, next) {

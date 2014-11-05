@@ -4,10 +4,6 @@ jsreport loads `dev.config.json` or `prod.config.json` on startup depending on y
 
 ```javascript
 {
-    "cookieSession": {
-        "secret": "dasd321as56d1sd5s61vdv32",
-        "cookie": { "domain": "local.net" }
-    },
     "certificate": {
         "key": "certificates/jsreport.net.key",
         "cert": "certificates/jsreport.net.cert"
@@ -32,10 +28,7 @@ jsreport loads `dev.config.json` or `prod.config.json` on startup depending on y
 }
 ```
 
-
-**configSession** `object` - informations used in express http session, this configuration is present because of future user authentication support
-
-**certificate** `object` - path to key and cert file used by https 
+**certificate** `object` - path to key and cert file used by https
 
 **connectionString** `object` - jsreport by default uses simple [nedb](https://github.com/louischatriot/nedb) to store data. This embeded db is enought for most of the cases. Only if you have high traffic and many templates you should consider connecting jsreport to mongo db. To start using mongodb use following connection string format:
  `{ "name": "mongoDB", "address": "localhost", "port": 27017, "databaseName" : "jsreport" }`. Third option is to use `inMemory` provider what is default when integrating jsreport into existing node.js application. 

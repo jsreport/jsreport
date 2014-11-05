@@ -91,7 +91,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                                 app.layout.render();
                                 Backbone.history.start();
                                 app.trigger("after-start");
-                                window.parent.jsreportLoaded();
+                                window.parent.jsreport.onLoaded();
                             });
                         });
                     });

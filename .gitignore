@@ -129,3 +129,4 @@ data/*
 prod.config.json
 dev.config.json
 .idea
+html-templates.js

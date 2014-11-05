@@ -6,7 +6,8 @@
 var q = require("q"),
     path = require("path"),
     request = require("request"),
-    extend = require("node.extend");
+    extend = require("node.extend"),
+    urljoin = require('url-join');
 
 module.exports = function (reporter, definition) {
 
@@ -23,11 +24,12 @@ module.exports = function (reporter, definition) {
 
         var headers = definition.options.externalService.headers || {};
         headers.cookie = process.domain.req.headers["host-cookie"]
+        headers.Authorization = process.domain.req.headers["Authorization"];
 
-        var url = definition.options.externalService.url + "/jsreport/authorization/" + operation.toLowerCase() + "/" + itemType + "/" + shortid;
-        reporter.logger.debug("Requesting authorization at GET:" + url);
+        var authUrl =  urljoin(definition.options.externalService.url, operation.toLowerCase(), itemType,shortid);
+        reporter.logger.debug("Requesting authorization at GET:" + authUrl);
         request({
-            url: url,
+            url: authUrl,
             headers: headers,
             json: true
         }, function(error, response, body) {
