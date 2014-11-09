@@ -1,6 +1,6 @@
 {
   "name": "jsreport",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -52,6 +52,7 @@
     "q": "*",
     "q-io": "*",
     "querystring": "*",
+    "reap": "^0.1.0",
     "request": "*",
     "request-json": "*",
     "serve-static": "^1.0.4",
