@@ -1,8 +1,4 @@
 ﻿{
-    "cookieSession": {
-        "secret": "dasd321as56d1sd5s61vdv32",
-        "cookie": { "domain": "local.net" }
-    },
     "certificate": {
         "key": "certificates/jsreport.net.key",    
         "cert": "certificates/jsreport.net.cert"

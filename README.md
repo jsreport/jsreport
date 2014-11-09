@@ -41,35 +41,23 @@ See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documen
 
  **grunt test-integration** - start all tests with nedb including integration tests,  needs java, fop and phantomjs running
 
-## Extensions and Contributions
-The easisest way how to contribute to jsreport open source community is to implement jsreport extension.
-Please see [contrib repository](https://github.com/jsreport/jsreport-contrib) for examples.
-
-Pull requests to this core repository are also welcome.
+## Contributions
+The easiest way how to contribute to jsreport open source community is to implement jsreport extension. Pull requests to this core repository are also welcome.
 
 ##Roadmap
 
-###current
-jsreport is currently in beta state. We are focusing mostly on the following areas:
+We recently released jsreport embedding feature allowing end user report customizations in browser. http://jsreport.net/learn/embedding
 
-1. Fix incoming bugs from users
-2. Improve codebase to make easier open source contributions
-3. java sdk
-4. node.js sdk
-5. Collect new features for jsreport vNext
+Next steps are:
 
-###vNext
+- improve source code quality
+- java sdk
+- excel exports
+- prepare azure, google and amazon virtual machine images
+- try to integrate jsreport into sharepoint or salesforce
 
-Following features are currently on the list, but it's subject to be changed.
+Missing a feature? Submit a feature request.
 
-####Scheduled reports generation
-
-####End user custom reporting extension 
-Developers can export from jsreport lightweight embeddable html page allowing end user to simply modify report colors or reorganize report by drag and drop.
-
-####Chrome javascript helpers debugging
-
-####Other features???
 
 ## License 
 
