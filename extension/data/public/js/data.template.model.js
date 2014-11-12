@@ -5,7 +5,7 @@
         fetch: function (options) {
             var self = this;
             
-            app.dataContext.data.toArray().then(function (items) {
+            return app.dataContext.data.toArray().then(function (items) {
                 self.items = items.map(function(i) { return i.initData; });
 
                 var data = self.templateModel.get("data");
@@ -36,8 +36,6 @@
 
                 if (data.dataJson)
                     self.set(custom, { silent: true });
-
-                return options.success();
             });
         },
 

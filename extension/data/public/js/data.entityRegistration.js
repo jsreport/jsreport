@@ -24,5 +24,5 @@ define([], function() {
 
         $entity.DataItem.addMember('_id', { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' });
         context["data"] = { type: $data.EntitySet, elementType: $entity.DataItem };
-    }
+    };
 });

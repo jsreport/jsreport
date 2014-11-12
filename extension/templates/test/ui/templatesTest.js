@@ -20,21 +20,24 @@ describe('templates', function () {
         });
     });
 
-    it('template module should be ok', function (done) {
+    it('module should be ok', function (done) {
         require(["app"], function (app) {
             expect(app.template).to.be.ok();
             done();
         });
     });
 
-    it('navigating to playground should open page', function (done) {
-        window.location.hash = "/playground";
+    describe("navigation", function() {
+        it('navigating to playground should open page', function (done) {
+            window.location.hash = "/playground";
 
-        expect("#previewCommand").to.be.shown(done);
+            expect("#previewCommand").to.be.shown(done);
+        });
     });
 
+
     it('saving should validate empty name', function (done) {
-        window.location.hash = "/playground"
+        window.location.hash = "/playground";
 
         expect("#saveCommand").to.be.shown(function() {
             $("#saveCommand").click();
@@ -56,7 +59,7 @@ describe('templates', function () {
                     done();
                     return $.Deferred().resolve();
                 }
-            }
+            };
 
             window.location.hash = "/playground";
 

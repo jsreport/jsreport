@@ -1,8 +1,8 @@
 ﻿define(["app", "marionette", "backbone",
         "./data.list.model", "./data.list.view", "./data.list.toolbar.view",
         "./data.model", "./data.detail.view",
-        "./data.template.standard.view",
-        "./data.toolbar.view", "./data.template.standard.model", "./data.entityRegistration"],
+        "./data.template.view",
+        "./data.toolbar.view", "./data.template.model", "./data.entityRegistration"],
     function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView,
               TemplateStandardView, ToolbarView, TemplateStandardModel, entityRegistration) {
 
@@ -24,10 +24,7 @@
                     this.navigate("/extension/data/list");
 
                     var model = new DataListModel();
-
                     app.layout.showToolbarViewComposition(new DataListView({ collection: model }), new DataListToolbarView({ collection: model }));
-
-
                     model.fetch();
                 },
 

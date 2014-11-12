@@ -20,7 +20,7 @@
             return app.dataContext.data.applyFilter(this.filter).toArray();
         },
 
-        model: DataModel,
+        model: DataModel
     });
 });
 

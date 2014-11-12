@@ -2,9 +2,9 @@
  * Copyright(c) 2014 Jan Blaha 
  */
 
-define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./data.template.standard.model", "./data.template.standard.view",
+define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./data.template.model", "./data.template.view",
         "core/aceBinder", "./data.entityRegistration"],
-    function ($, underscore, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel,
+    function ($, _, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel,
               TemplateStandardView, aceBinder, entityRegistration) {
 
         return app.module("data", function (module) {

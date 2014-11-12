@@ -8,7 +8,7 @@
             },
 
             events: {
-                "click #saveCommand": "save",
+                "click #saveCommand": "save"
             },
 
             save: function() {
@@ -34,7 +34,7 @@
             onValidate: function() {
                 var res = [];
 
-                if (this.model.get("name") == null || this.model.get("name") == "")
+                if (this.model.get("name") == null || this.model.get("name") === "")
                     res.push({
                         message: "Name cannot be empty"
                     });
