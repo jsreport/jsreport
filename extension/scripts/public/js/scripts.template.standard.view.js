@@ -1,4 +1,4 @@
-﻿define(["app", "marionette", "core/view.base", "core/utils"], function(app, Marionette, ViewBase, Utils) {
+﻿define(["app", "underscore", "marionette", "core/view.base", "core/utils"], function(app, _, Marionette, ViewBase, Utils) {
     return ViewBase.extend({
         tagName: "li",
         template: "scripts-template-standard",

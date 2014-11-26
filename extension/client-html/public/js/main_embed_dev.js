@@ -15,7 +15,7 @@ define(["jquery", "underscore", "app"], function ($, underscore, app, Handlebars
         return app.module("clientHtml", function (module) {
             app.recipes["client-html"] = {
                 render: clientRender
-            }
+            };
         });
     });
 });

@@ -10,7 +10,7 @@
         onDomRefresh: function() {
             var data = this.model.items.toJSON();
 
-            if (data.length == 0)
+            if (data.length === 0)
                 return;
 
             var now = new Date();
@@ -136,7 +136,7 @@
             $.fn.UseTooltip = function() {
                 $(this).bind("plothover", function(event, pos, item) {
                     if (item) {
-                        if ((previousLabel != item.series.label) || (previousPoint != item.dataIndex)) {
+                        if ((previousLabel !== item.series.label) || (previousPoint !== item.dataIndex)) {
                             previousPoint = item.dataIndex;
                             previousLabel = item.series.label;
                             $("#tooltip").remove();

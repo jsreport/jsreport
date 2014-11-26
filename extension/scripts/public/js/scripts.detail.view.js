@@ -25,6 +25,6 @@
 
         validateLeaving: function() {
             return !this.model.hasChangesSyncLastSync();
-        },
+        }
     });
 });

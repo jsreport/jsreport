@@ -1,4 +1,4 @@
-﻿define(["core/view.base"], function(ViewBase) {
+﻿define(["core/view.base", "underscore"], function(ViewBase, _) {
     return ViewBase.extend({
         template: "report-detail",
 

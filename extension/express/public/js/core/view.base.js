@@ -2,7 +2,7 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["app", "marionette", "jquery", "underscore", "core/utils"], function(app, Marionette, $, _, Utils) {
+define(["app", "backbone", "marionette", "jquery", "underscore", "core/utils"], function(app, Backbone, Marionette, $, _, Utils) {
     var protoSlice = Array.prototype.slice;
 
     function slice(args) {

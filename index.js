@@ -3,7 +3,9 @@
  */
 
 var path = require("path"),
-    extend = require("node.extend");
+    extend = require("node.extend"),
+    fs = require("fs"),
+    path = require("path");
 
 function initializeApp(force) {
     console.log("Creating server.js, config.js and package.json ");
@@ -44,6 +46,14 @@ var renderDefaults = {
 };
 
 var reporter = null;
+
+function start() {
+    return require("./lib/bootstrapper.js")(renderDefaults).start().then(function (b) {
+        reporter = b.reporter;
+        return reporter;
+    });
+}
+
 function render(req) {
     if (!reporter) {
         return start().then(function () {
@@ -54,22 +64,12 @@ function render(req) {
     return reporter.render(req);
 }
 
-function start() {
-    return require("./lib/bootstrapper.js")(renderDefaults).start().then(function (b) {
-        reporter = b.reporter;
-        return reporter;
-    });
-}
-
 function extendDefaults(config) {
     return extend(true, renderDefaults, config);
 }
 
 if (require.main === module) {
     //jsreport commandline support can precreate app...
-
-    var fs = require("fs"),
-        path = require("path");
 
     require('commander')
         .version(require("./package.json").version)

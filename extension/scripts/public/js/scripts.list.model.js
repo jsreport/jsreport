@@ -20,7 +20,7 @@
             return app.dataContext.scripts.applyFilter(this.filter).toArray();
         },
 
-        model: ScriptModel,
+        model: ScriptModel
     });
 });
 

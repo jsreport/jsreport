@@ -26,13 +26,13 @@ module.exports = function (reporter, definition) {
         headers.cookie = process.domain.req.headers["host-cookie"];
         headers.Authorization = process.domain.req.headers["Authorization"];
 
-        var authUrl =  urljoin(definition.options.externalService.url, operation.toLowerCase(), itemType,shortid);
+        var authUrl = urljoin(definition.options.externalService.url, operation.toLowerCase(), itemType, shortid);
         reporter.logger.debug("Requesting authorization at GET:" + authUrl);
         request({
             url: authUrl,
             headers: headers,
             json: true
-        }, function(error, response, body) {
+        }, function (error, response, body) {
             if (error) {
                 reporter.logger.error("Authorization failed with error: " + error);
                 return deferred.reject(error);
@@ -46,37 +46,43 @@ module.exports = function (reporter, definition) {
         return deferred.promise;
     }
 
-    reporter.initializeListener.add("authorization", function() {
+    reporter.initializeListener.add("authorization", function () {
         var entitySets = reporter.dataProvider._entitySets;
 
-        for (var key in entitySets) {
+        function afterReadListener(key, successResult, sets, query) {
+            successResult = Array.isArray(successResult) ? successResult : [successResult];
 
-            entitySets[key].afterReadListeners.add("authorization " + key, function (key, successResult, sets, query) {
-                successResult = Array.isArray(successResult) ? successResult : [successResult];
+            return q.all(successResult.map(function (i) {
+                if (!i.shortid)
+                    return;
 
-                return q.all(successResult.map(function(i) {
+                return authorize("Read", key, i.shortid).then(function (result) {
+                    if (!result)
+                        successResult.splice(successResult.indexOf(i), 1);
+                });
+            }));
+        }
+
+
+
+        function registerOperationListener(operation) {
+            entitySets[key]["before" + operation + "Listeners"].add("authorization",  function (key, items) {
+                return q.all(items.map(function (i) {
                     if (!i.shortid)
-                        return;
+                        return q(true);
 
-                    return authorize("Read", key, i.shortid).then(function(result) {
-                        if (!result)
-                            successResult.splice(successResult.indexOf(i), 1);
-                    });
-                }));
-            });
-
-            ["Create", "Update", "Delete"].forEach(function(m) {
-                entitySets[key]["before" + m + "Listeners"].add("authorization", function (key, items) {
-                    return q.all(items.map(function(i) {
-                        if (!i.shortid)
-                            return q(true);
-
-                        return authorize(m, key, i.shortid);
-                    })).then(function(res) {
-                        return res.filter(function(r) { return r; }).length === res.length;
-                    });
+                    return authorize(operation, key, i.shortid);
+                })).then(function (res) {
+                    return res.filter(function (r) {
+                            return r;
+                        }).length === res.length;
                 });
             });
+        }
+
+        for (var key in entitySets) {
+            entitySets[key].afterReadListeners.add("authorization " + key, afterReadListener);
+            ["Create", "Update", "Delete"].forEach(registerOperationListener);
         }
     });
 };

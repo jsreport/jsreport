@@ -12,10 +12,6 @@ var stream = require("stream"),
     q = require("q"),
     extend = require("node.extend");
 
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Templating(reporter, definition);
-};
-
 var Templating = function (reporter, definition) {
     var self = this;
     this.name = "templates";
@@ -144,4 +140,8 @@ Templating.prototype._defineEntitySets = function () {
     });
 
     this.reporter.dataProvider.registerEntitySet("templatesHistory", this.TemplateHistoryType);
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Templating(reporter, definition);
 };

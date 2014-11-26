@@ -5,7 +5,7 @@
 define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, _) {
     
     function JayDataSyncProvider() {
-    };
+    }
         
     JayDataSyncProvider.prototype.read = function (model) {
         var result = $.Deferred();
@@ -72,7 +72,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
     };
     
     function JQuerySyncProvider() {
-    };
+    }
 
     JQuerySyncProvider.prototype.read = function (model) {
         return $.getJSON(model.url(), model.toJSON());
@@ -122,7 +122,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
                 options.success(res);
                 model.changed = {};
                 model.syncing = false;
-                if (method == "read")
+                if (method === "read")
                     app.trigger("read:success", model);
             })
             .fail(function (e) {

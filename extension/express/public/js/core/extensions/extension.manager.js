@@ -48,15 +48,15 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                    return innercb(null);
 
                 var main = "main";
-                if (jsreport_mode === "development") {
+                if (app.options.mode === "development") {
                     main = "main_dev";
                 }
 
-                if (jsreport_studio === "embed") {
+                if (app.options.studio === "embed") {
                     if (!extension.embeddedSupport)
                         return innercb(null);
 
-                    main = jsreport_mode === "development" ? "main_embed_dev" : "main_embed";
+                    main = app.options.mode === "development" ? "main_embed_dev" : "main_embed";
                 }
 
                 function loadExtension(main) {
@@ -64,12 +64,10 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                         packages: [
                             {
                                 name: extension.name,
-                                //location: app.serverUrl + 'extension/' + extension.name + '/public/js',
                                 location: app.serverUrl +
                                     (app.serverUrl.lastIndexOf("file:///", 0) === 0 ? '../../' :  'extension/') +
                                      extension.name + '/public/js',
                                 main: main
-                                //main: extension.publicMain || (jsreport_mode === "development" ? "main" : "main_built")
                             }
                         ]
                     });

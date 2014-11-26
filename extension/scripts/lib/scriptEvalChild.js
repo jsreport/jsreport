@@ -8,7 +8,7 @@
         var modules = req.body.allowedModules.filter(function (mod) {
             return (mod.id || mod) === moduleName;
         });
-        if (modules.length == 1) {
+        if (modules.length === 1) {
             return require(modules[0].path || modules[0]);
         }
 

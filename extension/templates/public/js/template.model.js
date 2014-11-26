@@ -8,7 +8,7 @@ define(["app", "core/jaydataModel"], function(app, ModelBase) {
 
         fetchQuery: function() {
 
-            var predicate = function(t) { return t.shortid == this.id; };
+            var predicate = function(t) { return t.shortid === this.id; };
 
             return app.dataContext.templates.single(predicate,
                 { id: this.get("shortid"), version: this.get("version") == null ? 1 : this.get("version") });

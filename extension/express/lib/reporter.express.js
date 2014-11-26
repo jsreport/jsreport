@@ -18,26 +18,10 @@ var async = require("async"),
     routes = require("./routes.js"),
     multer  = require('multer');
 
+var useDomainMiddleware = function(reporter, req, res) {
+    var clusterInstance = (reporter.options.cluster && reporter.options.cluster.enabled) ? reporter.options.cluster.instance : null;
 
-module.exports = function(reporter, definition) {
-
-    reporter.express = {};
-    var app = definition.options.app;
-
-    if (!app) {
-        app = express();
-    }
-
-    reporter.initializeListener.add(definition.name, this, function() {
-        if (definition.options.app) {
-            reporter.logger.info("Configuring routes for existing express app.")
-            return configureExpressApp(app, reporter)
-        }
-
-        reporter.logger.info("Creating default express app.");
-        configureExpressApp(app, reporter, definition);
-        return startExpressApp(reporter, app, reporter.options);
-    });
+    return require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
 };
 
 var startExpressApp = function(reporter, app, config) {
@@ -124,12 +108,25 @@ var configureExpressApp = function(app, reporter){
 
     if (!reporter.options.httpPort && !reporter.options.httpsPort && reporter.express.server)
         reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
-}
+};
 
-var useDomainMiddleware = function(reporter, req, res) {
-    var clusterInstance = (reporter.options.cluster && reporter.options.cluster.enabled) ? reporter.options.cluster.instance : null;
+module.exports = function(reporter, definition) {
 
-    return require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
+    reporter.express = {};
+    var app = definition.options.app;
 
-    reporter.express.app(req, res);
-}
+    if (!app) {
+        app = express();
+    }
+
+    reporter.initializeListener.add(definition.name, this, function() {
+        if (definition.options.app) {
+            reporter.logger.info("Configuring routes for existing express app.");
+            return configureExpressApp(app, reporter);
+        }
+
+        reporter.logger.info("Creating default express app.");
+        configureExpressApp(app, reporter, definition);
+        return startExpressApp(reporter, app, reporter.options);
+    });
+};

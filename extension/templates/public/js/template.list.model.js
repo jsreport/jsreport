@@ -2,7 +2,7 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["app", "./template.model", "core/dataGrid"], function (app, TemplateModel, DataGrid) {
+define(["app", "backbone", "./template.model", "core/dataGrid"], function (app, Backbone, TemplateModel, DataGrid) {
     return Backbone.Collection.extend({
         initialize: function () {
             var self = this;

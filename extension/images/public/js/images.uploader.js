@@ -4,7 +4,7 @@
         $.fn.imageUploader = function(options) {
             var self = this;
 
-            if (this.length == 0)
+            if (this.length === 0)
                 return this;
 
             var uploader = new $(this).fineUploader({

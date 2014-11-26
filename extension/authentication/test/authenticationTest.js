@@ -36,7 +36,7 @@ describeReporting(path.join(__dirname, "../../"), ["express", "authentication"],
 
                     request(reporter.options.express.app).get("/api/version")
                         .set("cookie", res.headers['set-cookie'])
-                        .expect(200, done)
+                        .expect(200, done);
                 });
         });
 

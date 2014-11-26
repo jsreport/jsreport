@@ -13,18 +13,6 @@ var q = require("q"),
     _ = require("underscore"),
     bodyParser = require("body-parser");
 
-module.exports = function (reporter, definition) {
-
-    if (!definition.options.admin)
-        return;
-
-    definition.options.admin.name = definition.options.admin.username;
-
-    reporter.on("after-express-static-configure", function(app) {
-        configureRoutes(reporter, app, definition.options.admin, definition);
-    });
-};
-
 function configureRoutes(reporter, app, admin, definition) {
 
     app.use(sessions({
@@ -135,3 +123,15 @@ function configureRoutes(reporter, app, admin, definition) {
         return res.redirect("/login");
     });
 }
+
+module.exports = function (reporter, definition) {
+
+    if (!definition.options.admin)
+        return;
+
+    definition.options.admin.name = definition.options.admin.username;
+
+    reporter.on("after-express-static-configure", function(app) {
+        configureRoutes(reporter, app, definition.options.admin, definition);
+    });
+};

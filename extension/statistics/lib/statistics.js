@@ -7,10 +7,6 @@
 var shortid = require("shortid"),
     _ = require("underscore");
 
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Statistics(reporter, definition);
-};
-
 var Statistics = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -69,4 +65,8 @@ Statistics.prototype._defineEntities = function () {
     });
 
     this.reporter.dataProvider.registerEntitySet("statistics", this.StatisticType, { tableOptions: { nedbPersistance: "singleFile" } });
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Statistics(reporter, definition);
 };

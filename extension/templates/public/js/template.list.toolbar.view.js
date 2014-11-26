@@ -2,8 +2,8 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "core/utils", "core/view.base", "underscore"],
-    function($, app, Utils, LayoutBase) {
+define(["jquery", "app", "marionette", "core/utils", "core/view.base", "underscore"],
+    function($, app, Marionette, Utils, LayoutBase) {
         return LayoutBase.extend({
             template: "template-list-toolbar",
 
@@ -13,7 +13,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore"],
                     var contextToolbar = {
                         collection: self.collection,
                         region: self.extensionsToolbarRegion,
-                        view: self,
+                        view: self
                     };
                     app.trigger("template-list-extensions-toolbar-render", contextToolbar);
                 });
@@ -27,7 +27,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore"],
             },
 
             events: {
-                "click #deleteCommand": "deleteCommand",
+                "click #deleteCommand": "deleteCommand"
             },
 
             deleteCommand: function() {

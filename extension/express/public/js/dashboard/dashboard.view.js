@@ -21,6 +21,6 @@ define(["marionette", "app"],
                     selector: "#dashboardBox",
                     regionType: Marionette.MultiRegion
                 }
-            },
+            }
         });
     });

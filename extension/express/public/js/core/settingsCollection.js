@@ -49,9 +49,9 @@ define(["app", "jquery"], function(app, $) {
             return app.dataContext.settings.saveChanges();
         }
 
-        s = app.settings.data[key];
-        app.dataContext.settings.attach(s);
-        s.value = value;
+        var setting = app.settings.data[key];
+        app.dataContext.settings.attach(setting);
+        setting.value = value;
         return app.dataContext.settings.saveChanges();
     };
 });

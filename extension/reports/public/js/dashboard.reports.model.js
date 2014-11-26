@@ -6,6 +6,6 @@
                 .take(4).toArray();
         },
 
-        model: ReportModel,
+        model: ReportModel
     });
 });

@@ -44,12 +44,6 @@
                         model.set("shortid", id);
                         model.fetch();
                     }
-                },
-
-                scriptsCreate: function () {
-                    app.layout.dialog.show(new ScriptsCreateView({
-                        model: new ScriptsModel()
-                    }));
                 }
             });
 

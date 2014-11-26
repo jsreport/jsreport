@@ -7,7 +7,7 @@
             var self = this;
             this.listenTo(this.model, "sync", this.render);
             this.listenTo(this.model, "change", this.render);
-        },
+        }
     });
 });
 

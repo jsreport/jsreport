@@ -63,7 +63,7 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
 
             events: {
                 "click .table tr td a": "showDetail",
-                "click #deleteCommand": "deleteAction",
+                "click #deleteCommand": "deleteAction"
             },
 
             initialize: function() {
@@ -110,7 +110,7 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
                 var selectedRows = this.$el.find("table tr.ui-selected");
                 async.each(selectedRows, function(row, cb) {
                     self.collection.models.forEach(function(m) {
-                        if (m.get(self.idKey) == $(row).attr("data-id")) {
+                        if (m.get(self.idKey) === $(row).attr("data-id")) {
                             m.destroy({ success: cb });
                         }
                     });
@@ -123,7 +123,7 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
 
             getId: function(target) {
                 return $(target).closest("tr").attr("data-id");
-            },
+            }
         });
 
         DataGrid.Filter = DataGrid.Filter || {};

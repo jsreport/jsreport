@@ -7,7 +7,10 @@
 define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"], function ($, Backbone, Marionette, async, Utils, ListenerCollection) {
     var app = new Marionette.Application();
     app.serverUrl = jsreport_server_url;
-    app.options = {};
+    app.options = {
+        mode: jsreport_mode,
+        studio: jsreport_studio
+    };
 
     app.onStartListeners = new ListenerCollection();
     app.hideSaveButton = true;

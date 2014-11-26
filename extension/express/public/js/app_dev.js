@@ -2,11 +2,15 @@
  * Copyright(c) 2014 Jan Blaha
  */
 
-define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"], function($, Marionette, async, Utils, ListenerCollection) {
-    var app = new Backbone.Marionette.Application();
+define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"],
+    function($, Backbone, Marionette, async, Utils, ListenerCollection) {
+    var app = new Marionette.Application();
     app.serverUrl = jsreport_server_url || "/";
     app.onStartListeners = new ListenerCollection();
-    app.options = {};
+    app.options = {
+        mode: jsreport_mode,
+        studio: jsreport_studio
+    };
     app.recipes = {};
 
     $.ajaxSetup({
@@ -24,7 +28,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
             app.settings = settings;
             cb(null, settings);
         });
-    }
+    };
 
     app.addInitializer(function() {
         async.parallel([
@@ -37,13 +41,13 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                 }
 
 
-                if (staticBust != "" && localStorage.getItem("templates-" + staticBust) != null) {
-                    compileTemplates(JSON.parse(localStorage.getItem("templates-" + staticBust)));
+                if (jsreport_bust && localStorage.getItem("templates-" + jsreport_bust) != null) {
+                    compileTemplates(JSON.parse(localStorage.getItem("templates-" + jsreport_bust)));
                     return cb(null, null);
                 }
 
                 $.getJSON(app.serverUrl + "html-templates", function(templates) {
-                    localStorage.setItem("templates-" + staticBust, JSON.stringify(templates));
+                    localStorage.setItem("templates-" + jsreport_bust, JSON.stringify(templates));
                     compileTemplates(templates);
                     cb(null, null);
                 });

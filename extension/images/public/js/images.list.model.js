@@ -23,7 +23,7 @@
             }).applyFilter(this.filter).toArray();
         },
 
-        model: ImageModel,
+        model: ImageModel
     });
 });
 

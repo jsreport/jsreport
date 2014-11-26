@@ -20,17 +20,17 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
             });
 
             app.on("update:success", function(model) {
-                if (model.toString() != "")
+                if (model.toString())
                     toastr.info(model.toString() + " was updated.");
             });
 
             app.on("delete:success", function(model) {
-                if (model.toString() != "")
+                if (model.toString())
                     toastr.info(model.toString() + " was deleted.");
             });
 
             app.on("create:success", function(model) {
-                if (model.toString() != "")
+                if (model.toString())
                     toastr.info(model.toString() + " was created.");
             });
 

@@ -23,5 +23,5 @@ define([], function() {
         $entity.Template.addMember("scriptId", { 'type': "Edm.String" });
 
         context["scripts"] = { type: $data.EntitySet, elementType: $entity.Script };
-    }
+    };
 })

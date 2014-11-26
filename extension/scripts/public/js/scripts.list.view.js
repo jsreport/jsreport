@@ -19,6 +19,6 @@
                 headerTemplate: "scripts-list-header",
                 rowsTemplate: "scripts-list-rows"
             });
-        },
+        }
     });
 }); 

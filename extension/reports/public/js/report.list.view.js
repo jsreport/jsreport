@@ -20,7 +20,7 @@
                 headerTemplate: "report-list-header",
                 rowsTemplate: "report-list-rows"
             });
-        },
+        }
     });
 });
 

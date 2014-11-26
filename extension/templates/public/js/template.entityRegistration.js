@@ -17,5 +17,5 @@ define([], function() {
         };
 
         context["templates"] = { type: $data.EntitySet, elementType: $entity.Template };
-    }
+    };
 })

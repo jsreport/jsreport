@@ -3,7 +3,7 @@
     var ItemModel = JayDataModelBase.extend({
         _initialize: function () {
             this.Entity = $entity.Statistic;
-        },
+        }
     });
 
     var CollectionModel = Backbone.Collection.extend({
@@ -16,7 +16,7 @@
             }, { day: now }).toArray();
         },
 
-        model: ItemModel,
+        model: ItemModel
     });
 
     return ModelBase.extend({

@@ -9,7 +9,7 @@ define(["jquery"], function($) {
         var e = {}, i, k, v = [], r = '', w = String.fromCharCode;
         var n = [[65, 91], [97, 123], [48, 58], [43, 44], [47, 48]];
 
-        for (z in n) {
+        for (var z in n) {
             for (i = n[z][0]; i < n[z][1]; i++) {
                 v.push(w(i));
             }
@@ -93,7 +93,7 @@ define(["jquery"], function($) {
 
         if (view.validateLeaving != null) {
             $('a:not(.not-validate-leaving)').off("click.validateLeaving").on('click.validateLeaving', function() {
-                return $(this).attr("href") == null ||  $(this).attr("href") == ""  ||  $(this).attr("href") == "#"  ||
+                return $(this).attr("href") == null ||  $(this).attr("href") === ""  ||  $(this).attr("href") === "#"  ||
                     view.validateLeaving() || confirm('You have unsaved changes. Are you sure you want to leave?');
             });
 

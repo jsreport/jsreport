@@ -8,7 +8,7 @@
             
             events: {
                 "click #deleteCommand": "deleteCommand",
-                "click #uploadCommand": "uploadCommand",
+                "click #uploadCommand": "uploadCommand"
             },
             
             deleteCommand: function() {

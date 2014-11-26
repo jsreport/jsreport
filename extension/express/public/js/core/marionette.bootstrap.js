@@ -20,7 +20,7 @@ define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"]
                 if (view.isChild) {
                     filteredBindings[key] = bindings[key];
                 } else {
-                    if ($(bindings[key].selector).parents("[data-child=true]").length == 0) {
+                    if ($(bindings[key].selector).parents("[data-child=true]").length === 0) {
                         filteredBindings[key] = bindings[key];
                     }
                 }

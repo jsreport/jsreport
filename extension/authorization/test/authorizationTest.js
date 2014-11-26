@@ -2,7 +2,7 @@
 
 var assert = require("assert"),
     path = require("path"),
-    authApp = require("express")();
+    authApp = require("express")(),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 describeReporting(path.join(__dirname, "../../"), ["templates", "authorization"], { "authorization" : { "externalService" : { "url": "http://localhost:1234/jsreport/authorization/" } }}, function(reporter) {
@@ -19,7 +19,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authorization"]
 
             authServer = authApp.listen(1234, function () {
                 done();
-            })
+            });
         });
 
         afterEach(function () {

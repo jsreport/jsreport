@@ -4,7 +4,7 @@
 
 (function ($) {
     $.fn.errorAlert = function (options) {
-        if (options == "close") {
+        if (options === "close") {
             return this.alert('close');
         }
 

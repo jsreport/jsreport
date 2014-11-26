@@ -4,12 +4,12 @@
         contextSet: function() { return app.dataContext.images; },
         
         fetchQuery: function (cb) {
-            return this.contextSet().single(function(r) { return r.shortid == this.id; }, { id: this.get("shortid") });
+            return this.contextSet().single(function(r) { return r.shortid === this.id; }, { id: this.get("shortid") });
         },
 
         _initialize: function() {
             var self = this;
             this.Entity = $entity.Image;
-        },
+        }
     });
 });

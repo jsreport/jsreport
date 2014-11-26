@@ -11,11 +11,6 @@ var events = require("events"),
     q = require("q"),
     toArray = require('stream-to-array');
 
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Reporting(reporter, definition);
-};
-
-
 var Reporting = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -43,7 +38,7 @@ Reporting.prototype.configureExpress = function (app) {
             });
         }).catch(function (e) {
             next(e);
-        })
+        });
     });
 };
 
@@ -107,4 +102,8 @@ Reporting.prototype._defineEntities = function () {
     });
 
     this.reporter.dataProvider.registerEntitySet("reports", this.ReportType, { tableOptions: { nedbPersistance: "singleFile" }  });
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Reporting(reporter, definition);
 };

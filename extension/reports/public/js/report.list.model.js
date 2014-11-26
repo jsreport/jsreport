@@ -22,7 +22,7 @@
         },
 
 
-        model: ReportModel,
+        model: ReportModel
     });
 });
 

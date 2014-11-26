@@ -6,7 +6,7 @@
             events: {
                 "click #saveCommand": "save",
                 "click #embedCommand": "embed",
-                "click #uploadCommand": "upload",
+                "click #uploadCommand": "upload"
             },
 
             onDomRefresh: function() {
@@ -36,6 +36,6 @@
                         content: $.render["images-embed-info"](this.model.toJSON()),
                         hideSubmit: true
                     });
-            },
+            }
         });
     });

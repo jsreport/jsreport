@@ -11,11 +11,6 @@ var shortid = require("shortid"),
     asyncReplace = require("async-replace"),
     join = require("path").join;
 
-
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Images(reporter, definition);
-};
-
 var Images = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -176,4 +171,8 @@ Images.prototype._defineEntities = function () {
     this.reporter.templates.TemplateHistoryType.addMember("images", { type: "Array", elementType: this.ImageRefType });
 
     this.reporter.dataProvider.registerEntitySet("images", this.ImageType, { tableOptions: { humanReadableKeys: [ "shortid"] }  });
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Images(reporter, definition);
 };

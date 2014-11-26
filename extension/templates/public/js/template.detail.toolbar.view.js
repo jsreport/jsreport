@@ -2,9 +2,9 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/listenerCollection",
+define(["jquery", "app", "marionette", "core/utils", "core/view.base", "underscore", "core/listenerCollection",
         "./template.embed.dialog", "core/basicModel", "./preview"],
-    function($, app, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel, preview) {
+    function($, app, Marionette, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel, preview) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
             introTemplate: "template-detail-intro",
@@ -108,7 +108,7 @@ define(["jquery", "app", "core/utils", "core/view.base", "underscore", "core/lis
             onValidate: function() {
                 var res = [];
 
-                if (this.model.get("name") == null || this.model.get("name") == "")
+                if (this.model.get("name") == null || this.model.get("name") === "")
                     res.push({
                         message: "Name cannot be empty"
                     });

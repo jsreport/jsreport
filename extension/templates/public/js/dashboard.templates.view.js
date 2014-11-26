@@ -2,13 +2,13 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["marionette", "jquery"], function(Marionette, $) {
+define(["marionette", "backbone", "jquery"], function(Marionette, Backbone, $) {
 
     return Backbone.Marionette.ItemView.extend({
         template: "dashboard-templates",
 
         events: {
-            "click tr": "showDetail",
+            "click tr": "showDetail"
         },
 
         initialize: function () {

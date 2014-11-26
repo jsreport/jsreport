@@ -9,11 +9,6 @@ var Q = require("q"),
     asyncReplace = require("async-replace"),
     extend = require("node.extend");
 
-
-module.exports = function(reporter, definition) {
-    reporter[definition.name] = new ChildTemplates(reporter, definition);
-};
-
 var ChildTemplates = function(reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -60,4 +55,8 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
     return Q.nfcall(asyncReplace, request.template.content, test, convert).then(function(result) {
         request.template.content = result;
     });
+};
+
+module.exports = function(reporter, definition) {
+    reporter[definition.name] = new ChildTemplates(reporter, definition);
 };

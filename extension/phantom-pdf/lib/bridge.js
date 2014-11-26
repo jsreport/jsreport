@@ -3,6 +3,7 @@
  *
  * Phantomjs script responsible for converting html into pdf.
  */
+/* globals phantom */
 
 
 var webpage = require('webpage');

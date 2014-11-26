@@ -32,6 +32,11 @@
     "document": true,
     "parent": true,
     "$data": true,
-    "jQuery": true
+    "jQuery": true,
+    "jsreport_bust": true,
+    "jsreport_mode": true,
+    "jsreport_studio": true,
+    "jsreport_server_url": true,
+    "jsreport_main_app": true
   }
 }

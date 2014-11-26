@@ -8,7 +8,7 @@
         
         _initialize: function () {
             this.Entity = $entity.Report;
-        },
+        }
     });
 });
 

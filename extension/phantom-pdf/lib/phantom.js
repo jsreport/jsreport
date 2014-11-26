@@ -17,19 +17,6 @@ var uuid = require("uuid").v1,
 
 var phantomManager;
 
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Phantom(reporter, definition);
-
-    if (!fs.existsSync(reporter.options.tempDirectory)) {
-        mkdirp.sync(reporter.options.tempDirectory);
-    }
-
-    if (!phantomManager) {
-        phantomManager = new PhantomManager(reporter.options.phantom);
-        return phantomManager.start();
-    }
- };
-
 var Phantom = function (reporter, definition) {
     this.reporter = reporter;
 
@@ -113,4 +100,17 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
             phantomOptions[type + "File"] = path.resolve(filePath);
         });
     });
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Phantom(reporter, definition);
+
+    if (!fs.existsSync(reporter.options.tempDirectory)) {
+        mkdirp.sync(reporter.options.tempDirectory);
+    }
+
+    if (!phantomManager) {
+        phantomManager = new PhantomManager(reporter.options.phantom);
+        return phantomManager.start();
+    }
 };

@@ -4,7 +4,7 @@
         template: "dashboard-reports",
     
         events: {
-            "click tr": "showDetail",
+            "click tr": "showDetail"
         },
     
         initialize: function() {

@@ -24,6 +24,6 @@ define(["marionette", "core/dataGrid", "jquery", "toastr"], function (Marionette
                 headerTemplate: "template-list-header",
                 rowsTemplate: "template-list-rows"
             });
-        },
+        }
     });
 });

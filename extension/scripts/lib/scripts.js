@@ -9,10 +9,6 @@ var shortid = require("shortid"),
     path = require("path"),
     q = require("q");
 
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Scripts(reporter, definition);
-};
-
 var Scripts = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -37,7 +33,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
     //back compatibility
     if (!request.template.script && request.template.scriptId) {
-        request.template.script = { shortid: request.template.scriptId}
+        request.template.script = { shortid: request.template.scriptId};
     }
 
     if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
@@ -120,4 +116,8 @@ Scripts.prototype._defineEntities = function() {
     this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
 
     this.reporter.dataProvider.registerEntitySet("scripts", this.ScriptType, { tableOptions: { humanReadableKeys: [ "shortid"] }  });
-}
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Scripts(reporter, definition);
+};

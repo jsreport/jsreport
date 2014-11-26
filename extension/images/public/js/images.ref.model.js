@@ -1,4 +1,4 @@
-﻿define(["app", "core/dataGrid"], function (app, DataGrid) {
+﻿define(["app", "Backbone", "core/dataGrid"], function (app, Backbone, DataGrid) {
 
     var ImageRefModel = Backbone.Model.extend({
     });
@@ -31,12 +31,12 @@
                 return new $entity.ImageRef({
                     name: m.name,
                     shortid: m.shortid,
-                    imageId: m.imageId,
+                    imageId: m.imageId
                 });
             }));
         },
 
-        model: ImageRefModel,
+        model: ImageRefModel
     });
 });
 

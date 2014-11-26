@@ -5,7 +5,7 @@
             var view;
 
             function renderRecipeMenu() {
-                if (context.template.get("recipe") == "phantom-pdf") {
+                if (context.template.get("recipe") === "phantom-pdf") {
                     var model = new Model();
                     model.setTemplate(context.template);
                     view = new TemplateView({ model: model});

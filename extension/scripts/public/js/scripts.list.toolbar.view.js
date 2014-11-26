@@ -7,11 +7,11 @@
             },         
             
             events: {
-                "click #deleteCommand": "deleteCommand",
+                "click #deleteCommand": "deleteCommand"
             },
 
             deleteCommand: function() {
                 this.contentView.dataGrid.deleteItems();
-            },
+            }
         });
     });
