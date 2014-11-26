@@ -83,13 +83,15 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
             if (request.data != null)
                 addInput(mapForm, "data", request.data);
 
-            addInput(mapForm, "header-host-cookie", document.cookie);
+            var headers = app.headers || {};
+            headers["host-cookie"] = document.cookie;
+            addBody("headers", headers);
 
             document.body.appendChild(mapForm);
             mapForm.submit();
             app.trigger("after-template-render");
         });
-    }
+    };
 
     return fn;
 });

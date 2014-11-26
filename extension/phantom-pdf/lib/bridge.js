@@ -69,6 +69,10 @@ var service = webserver.listen('127.0.0.1:' + port, function (req, res) {
                 } : undefined
             };
 
+            if (body.options.customHeaders) {
+                page.customHeaders = body.options.customHeaders;
+            }
+
             page.render(body.output);
             res.statusCode = 200;
 

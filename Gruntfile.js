@@ -4,7 +4,6 @@
  * grunt build # build, combine and minify files (production and development environment)
  * grunt build-dev # build just for development environment, this is important for changes in main.js files
  * grunt build-prod # build, combine and minify files
- * grunt watch-build # do the build-dev automatically when changes occure in main.js
  *
  * grunt test # start tests with file system based db (neDb), no mongo needed
  * grunt test-mongo # start tests with mongo db
@@ -52,7 +51,8 @@ module.exports = function (grunt) {
         fs.writeFileSync(path.join(__dirname, "test", "ui", "html-templates.js"), "requests.templates = " + JSON.stringify(templatesContent, null, 2) + ";");
     }
 
-    function createRequireJs() {
+    function createRequireJs(result, studio) {
+        studio = studio || "";
 
         var commonPath = {
             jquery: "empty:",
@@ -76,42 +76,43 @@ module.exports = function (grunt) {
             "core/listenerCollection": "empty:"
         };
 
-        var result = {
-            compileApp: {
-                options: {
-                    baseUrl: "./extension/express/public/js",
-                    mainConfigFile: './extension/express/public/js/require_main_fixed.js',
-                    out: "./extension/express/public/js/app_built.js",
-                    name: 'app',
-                    removeCombined: true,
-                    findNestedDependencies: true,
-                    onBuildWrite: function (moduleName, path, contents) {
-                        return contents.replace("define('app',", "define(");
-                    }
+        result["compileApp" + studio] = {
+            options: {
+                baseUrl: "./extension/express/public/js",
+                mainConfigFile: './extension/express/public/js/require_main_' + (studio ? studio + "_" : "") + 'fixed.js',
+                out: "./extension/express/public/js/app_" + (studio ? studio + "_" : "") + "built.js",
+                name: 'app',
+                removeCombined: true,
+                findNestedDependencies: true,
+                onBuildWrite: function (moduleName, path, contents) {
+                    return contents.replace("define('app',", "define(");
                 }
             }
-        }
+        };
 
         extensions.forEach(function (e) {
 
-            if (!fs.existsSync(path.join(e.directory, "public/js/main_dev.js"))) {
+            if (!fs.existsSync(path.join(e.directory, "public/js/main_" + (studio ? studio + "_" : "") + "dev.js"))) {
                 return;
             }
 
-            result[e.name] = {
+            result[e.name + studio] = {
                 options: {
                     paths: commonPath,
                     baseUrl: path.join(e.directory, "public/js"),
-                    out: path.join(e.directory, "/public/js/main.js"),
+                    out: path.join(e.directory, "/public/js/main" + (studio ? "_" + studio : "") + ".js"),
                     optimize: "none",
-                    name: "main_dev",
+                    name: "main_" + (studio ? studio + "_" : "") + "dev",
                     onBuildWrite: function (moduleName, path, contents) {
                         var regExp = new RegExp("\"[.]/", "g");
-                        return contents.replace("define('main_dev',", "define(").replace(regExp, "\"");
+                        return contents.replace("define('main_" + (studio ? studio + "_" : "") + "dev',", "define(").replace(regExp, "\"");
                     }
                 }
             };
         });
+
+        if (studio !== "embed")
+            result = createRequireJs(result, "embed");
 
         return result;
     }
@@ -155,10 +156,11 @@ module.exports = function (grunt) {
         },
 
         copy: {
-            dev: { files: [{ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app_built.js' }] }
+            dev: { files: [{ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app_built.js' }] },
+            embed: { files: [{ src: ['extension/express/public/js/app_embed.js'], dest: 'extension/express/public/js/app_embed_built.js' }] }
         },
 
-        requirejs: createRequireJs(),
+        requirejs: createRequireJs({}),
 
         replace: {
             devRoot: {
@@ -169,13 +171,6 @@ module.exports = function (grunt) {
                     { from: '{{staticBust}}', to: "" }
                 ]
             },
-            devApp: {
-                src: ['./extension/express/public/js/app.js'],
-                dest: ['./extension/express/public/js/app_dev.js'],
-                replacements: [
-                    { from: '{{templateBust}}', to: "" }
-                ]
-            },
             productionRoot: {
                 src: ['./extension/express/public/views/root.html'],
                 dest: ['./extension/express/public/views/root_built.html'],
@@ -184,34 +179,21 @@ module.exports = function (grunt) {
                     { from: '{{staticBust}}', to: new Date().getTime() + "" }
                 ]
             },
-            productionApp: {
-                src: ['./lib/extension/express/public/js/app.js'],
-                overwrite: true,
-                replacements: [
-                    { from: '{{templateBust}}', to: new Date().getTime() + "" }
-                ]
-            },
             requirejsMain: {
                 src: ['./extension/express/public/js/require_main.js'],
                 dest: ['./extension/express/public/js/require_main_fixed.js'],
                 replacements: [
-                    { from: 'jsreport_server_url + "js"', to: '"/js"' }
+                    { from: 'jsreport_server_url + "js"', to: '"/js"' },
+                    { from: 'jsreport_main_app', to: "'app_built'" }
                 ]
-            }
-        },
-
-        watch: {
-            extensions: {
-                files: ['**/main.js'],
-                tasks: ['copy:dev']
             },
-            root: {
-                files: ['**/root.html'],
-                tasks: ['replace:devRoot']
-            },
-            app: {
-                files: ['**/app.js'],
-                tasks: ['replace:devApp']
+            requirejsMainEmbed: {
+                src: ['./extension/express/public/js/require_main.js'],
+                dest: ['./extension/express/public/js/require_main_embed_fixed.js'],
+                replacements: [
+                    { from: 'jsreport_server_url + "js"', to: '"/js"' },
+                    { from: 'jsreport_main_app', to: "'app_embed_built'" }
+                ]
             }
         },
 
@@ -222,6 +204,11 @@ module.exports = function (grunt) {
                         'extension/express/public/css/bootstrap.min.css', 'extension/express/public/css/bootstrap-nonresponsive.css',
                         'extension/express/public/css/toastr.css', 'extension/express/public/css/split-pane.css',
                         'extension/express/public/css/style.css', 'extension/express/public/css/introjs.css'
+                    ],
+                    'extension/express/public/css/built_embed.css': [
+                        'extension/express/public/css/bootstrap.min.css',
+                        'extension/express/public/css/toastr.css', 'extension/express/public/css/split-pane.css',
+                        'extension/express/public/css/embed.css', 'extension/express/public/css/introjs.css'
                     ]
                 }
             }
@@ -233,8 +220,8 @@ module.exports = function (grunt) {
             },
             dist: {
                 src: ['extension/client-html/public/js/handlebars.min.js', 'extension/client-html/public/js/jsrender.min.js',
-                    'extension/client-html/public/js/client.render.js', 'extension/embedding/public/embed.js'],
-                dest: 'extension/embedding/public/embed.min.js'
+                    'extension/client-html/public/js/client.render.js'],
+                dest: 'extension/client-html/public/render.js'
             }
         }
     });
@@ -245,7 +232,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-text-replace');
     grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-env');
     grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
@@ -255,10 +241,8 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
-    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'replace:devApp', 'concat']);
-    grunt.registerTask('build-prod', [ 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'replace:productionApp', 'concat']);
-
-    grunt.registerTask('watch-build', ['watch']);
+    grunt.registerTask('build-dev', ['copy:dev','copy:embed', 'replace:devRoot', 'concat']);
+    grunt.registerTask('build-prod', [ 'replace:requirejsMainEmbed', 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'concat']);
 
     grunt.registerTask('test-nedb', ['env:dbNedb', 'mochaTest:test']);
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);

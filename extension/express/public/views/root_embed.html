@@ -7,12 +7,12 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     <meta name="author" content="Jan Blaha">
     <meta name="description" content="jsreport - javascript business reports">
-    <!-- CSS links -->
     <link href="<%= serverUrl %>css/font-awesome/css/font-awesome.min.css?v=" rel="stylesheet">
     <link href="<%= serverUrl %>css/split-pane.css?v=" rel="stylesheet">
     <link href="<%= serverUrl %>css/toastr.css?v=" rel="stylesheet">
     <link href="<%= serverUrl %>css/bootstrap.min.css?v=" rel="stylesheet">
     <link href="<%= serverUrl %>css/embed.css?v=" rel="stylesheet">
+    <link href="<%= serverUrl %>css/introjs.css?v=" rel="stylesheet">
 </head>
 <body>
 <div id="jsreport-root"></div>
@@ -26,9 +26,10 @@
     var jsreport_mode = '<%= mode %>';
     var jsreport_server_url = '<%= serverUrl %>';
 
-    function openTemplate(shortid) {
+    function openTemplate(template, options) {
+        options.template = template;
         require(["app"], function(app) {
-            app.trigger("open-template", shortid);
+            app.trigger("open-template", options);
         });
     }
 

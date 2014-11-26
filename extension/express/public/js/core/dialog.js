@@ -1,6 +1,7 @@
-﻿/*! 
+﻿/*!
  * Copyright(c) 2014 Jan Blaha 
- */ 
+ */
+/* globals _ */
 
 (function ($) {
     $.fn.dialog = function (options) {
@@ -26,11 +27,11 @@
             $(dialogSelector + " #modalDialog").modal('hide');
         });
 
-        if (options.hideButtons == true) {
+        if (options.hideButtons) {
             $(dialogSelector + " #dialogButtons").html("");
         }
 
-        if (options.hideSubmit == true) {
+        if (options.hideSubmit) {
             $(dialogSelector + " #dialogSubmit").hide();
         }
 
@@ -38,6 +39,6 @@
     };
 
     $.extend({
-        dialog: $.fn.dialog,
+        dialog: $.fn.dialog
     });
 })(jQuery);

@@ -23,7 +23,7 @@ module.exports = function (reporter, definition) {
         var deferred = q.defer();
 
         var headers = definition.options.externalService.headers || {};
-        headers.cookie = process.domain.req.headers["host-cookie"]
+        headers.cookie = process.domain.req.headers["host-cookie"];
         headers.Authorization = process.domain.req.headers["Authorization"];
 
         var authUrl =  urljoin(definition.options.externalService.url, operation.toLowerCase(), itemType,shortid);
@@ -76,7 +76,7 @@ module.exports = function (reporter, definition) {
                         return res.filter(function(r) { return r; }).length === res.length;
                     });
                 });
-            })
+            });
         }
     });
 };

@@ -7,6 +7,8 @@
               ScriptsModel, StandardTemplateView, StandardTemplateModel, ScriptsDetailView, ToolbarView,
               entityRegistration) {
 
+        app.options.scripts = app.options.scripts || { allowChoosing: false};
+
         app.module("scripts", function (module) {
 
             var Router = Backbone.Router.extend({

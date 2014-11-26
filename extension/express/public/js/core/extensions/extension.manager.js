@@ -52,10 +52,11 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                     main = "main_dev";
                 }
 
-                if (jsreport_mode === "embedded") {
+                if (jsreport_studio === "embed") {
                     if (!extension.embeddedSupport)
                         return innercb(null);
-                    main = "main_embed";
+
+                    main = jsreport_mode === "development" ? "main_embed_dev" : "main_embed";
                 }
 
                 function loadExtension(main) {
@@ -77,8 +78,11 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                         innercb();
                     }, function(e) {
                         console.log(e.message);
-                        if (main !== "main")
+                        if (main === "main_dev")
                             return loadExtension("main");
+                        if (main === "main_embed_dev")
+                            return loadExtension("main_embed");
+
                         innercb();
                     });
                 }

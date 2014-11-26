@@ -21,7 +21,7 @@ var Scripts = function (reporter, definition) {
 
     this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
 
-    this.allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore"];
+    this.allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore", "constants"];
 };
 
 Scripts.prototype.create = function (context, script) {

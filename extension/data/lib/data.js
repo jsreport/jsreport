@@ -9,13 +9,7 @@ var shortid = require("shortid"),
     _ = require("underscore"),
     q = require("q");
 
-
-module.exports = function (reporter, definition) {
-    reporter[definition.name] = new Data(reporter, definition);
-};
-
 var Data = function (reporter, definition) {
-    var self = this;
     this.reporter = reporter;
     this.definition = definition;
 
@@ -53,7 +47,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
     //back compatibility
     if (!request.template.data && request.template.dataItemId) {
-        request.template.data = { shortid: request.template.dataItemId}
+        request.template.data = { shortid: request.template.dataItemId};
     }
 
     if (!request.template.data || (!request.template.data.shortid && !request.template.data.dataJson)) {
@@ -106,4 +100,8 @@ Data.prototype._beforeCreateHandler = function (args, entity) {
 
 Data.prototype._beforeUpdateHandler = function (args, entity) {
     entity.modificationDate = new Date();
+};
+
+module.exports = function (reporter, definition) {
+    reporter[definition.name] = new Data(reporter, definition);
 };

@@ -6,6 +6,8 @@
     function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView,
               TemplateStandardView, ToolbarView, TemplateStandardModel, entityRegistration) {
 
+        app.options.data = app.options.data || { allowChoosing: true};
+
         app.module("data", function (module) {
             var Router = Backbone.Router.extend({
                 initialize: function () {
@@ -60,10 +62,10 @@
                 var model = new TemplateStandardModel();
                 model.setTemplate(context.template);
 
-                model.fetch({ success: function () {
+                model.fetch().then(function () {
                     var view = new TemplateStandardView({ model: model});
                     context.extensionsRegion.show(view, "data");
-                }});
+                });
             });
 
             app.on("entity-registration", entityRegistration);

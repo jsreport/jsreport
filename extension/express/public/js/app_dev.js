@@ -6,6 +6,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
     var app = new Backbone.Marionette.Application();
     app.serverUrl = jsreport_server_url || "/";
     app.onStartListeners = new ListenerCollection();
+    app.options = {};
     app.recipes = {};
 
     $.ajaxSetup({
@@ -35,15 +36,14 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                     }
                 }
 
-                var templateBust = "";
 
-                if (templateBust != "" && localStorage.getItem("templates-" + templateBust) != null) {
-                    compileTemplates(JSON.parse(localStorage.getItem("templates-" + templateBust)));
+                if (staticBust != "" && localStorage.getItem("templates-" + staticBust) != null) {
+                    compileTemplates(JSON.parse(localStorage.getItem("templates-" + staticBust)));
                     return cb(null, null);
                 }
 
                 $.getJSON(app.serverUrl + "html-templates", function(templates) {
-                    localStorage.setItem("templates-" + templateBust, JSON.stringify(templates));
+                    localStorage.setItem("templates-" + staticBust, JSON.stringify(templates));
                     compileTemplates(templates);
                     cb(null, null);
                 });

@@ -10,6 +10,8 @@
   "boss": true,
   "eqnull": true,
   "node": true,
+  "browser": true,
+  "devel": true,
   "es5": true,
   "globals": {
     "exports": true,

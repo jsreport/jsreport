@@ -1,3 +1,5 @@
+/* globals Handlebars, jsreport */
+
 var clientRender = (function (global, jQuery, undefined) {
 
     function renderJsRender(content, helpers, data) {
@@ -42,6 +44,7 @@ var clientRender = (function (global, jQuery, undefined) {
             var regex = /function[\s]*([^(]*)/g;
 
             var afterScript = "";
+            var matches;
             while (matches = regex.exec(request.template.helpers)) {
                 if (matches[1])
                     afterScript += "try {this." + matches[1] + "=" + matches[1] + ";}catch(e){}";
@@ -78,8 +81,8 @@ var clientRender = (function (global, jQuery, undefined) {
         var request = requestList[id];
         request.data = data;
         request.isReload = true;
-        clientRender(request, request.target, selector)
-    };
+        clientRender(request, request.target, selector);
+    }
 
     return function(request, target, selector) {
         request.target = target;
@@ -127,5 +130,9 @@ var clientRender = (function (global, jQuery, undefined) {
             doc.close();
         }, 10);
 
-    }
+    };
 })(this, this.jQuery);
+
+if (window.jsreport) {
+    jsreport.recipes["client-html"] = clientRender;
+}

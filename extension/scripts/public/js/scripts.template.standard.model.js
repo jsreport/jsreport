@@ -4,8 +4,8 @@
         
         fetch: function (options) {
             var self = this;
-            
-            app.dataContext.scripts.toArray().then(function (items) {
+
+            function processItems(items) {
                 self.items = items.map(function(i) { return i.initData; });
 
                 var script = self.templateModel.get("script");
@@ -29,16 +29,22 @@
                 self.items.unshift(empty);
 
                 if (!script.content && !script.shortid)
-                    self.set(empty, { silent: true });
+                    self.set(custom, { silent: true });
 
                 if (script.shortid)
                     self.set(_.findWhere(items, { shortid: script.shortid }).toJSON(), { silent: true });
 
                 if (script.content)
                     self.set(custom, { silent: true });
-                
-                 return options.success();
-            });
+
+                return options.success();
+            }
+
+            if (app.options.scripts.allowChoosing) {
+                app.dataContext.scripts.toArray().then(processItems);
+            } else {
+                processItems([]);
+            }
         },
 
         setTemplate: function (templateModel) {

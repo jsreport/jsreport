@@ -1,12 +1,12 @@
-﻿/*! 
+/*! 
  * Copyright(c) 2014 Jan Blaha 
  */
 
 requirejs.config({
-    baseUrl: jsreport_server_url + "js",
+    baseUrl: "/js",
     waitSeconds: 60,
     paths: {
-        app: jsreport_main_app,
+        app: 'app_embed_built',
         underscore: "../lib/underscore",
         backbone: "../lib/backbone",
         originalmarionette: "../lib/backbone.marionette",

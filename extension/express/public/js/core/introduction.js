@@ -3,7 +3,6 @@
  */ 
 
 define(["app", "introJs", "jquery"], function(app, introJs, $) {
-
     app.bind("view-render", function(view) {
 
         function introDialog(cb) {
@@ -18,17 +17,18 @@ define(["app", "introJs", "jquery"], function(app, introJs, $) {
                 dialog.off('hidden.bs.modal');
                 cb();
             });
-        };
+        }
 
         if (!view.introId)
             return;
 
         setTimeout(function() {
+            if (!localStorage.getItem("jsreport-intro-" + view.introId)) {
+                localStorage.setItem("jsreport-intro-" + view.introId, "true");
 
-            if (app.settings.data[view.introId] == null) {
                 app.settings.saveOrUpdate(view.introId, "true");
-                
-                introDialog(function() {
+
+                introDialog(function () {
                     app.trigger("introduction-dialog-closed");
                     introJs().start();
                 });

@@ -1,12 +1,16 @@
-/*! 
+/*!
  * Copyright(c) 2014 Jan Blaha
  */
 
-define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"], function ($, Marionette, async, Utils, ListenerCollection) {
-    var app = new Backbone.Marionette.Application();
+/* globals jsreport_server_url */
+
+define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"], function ($, Backbone, Marionette, async, Utils, ListenerCollection) {
+    var app = new Marionette.Application();
     app.serverUrl = jsreport_server_url;
+    app.options = {};
 
     app.onStartListeners = new ListenerCollection();
+    app.hideSaveButton = true;
 
     $.ajaxSetup({
         cache: false,
@@ -28,7 +32,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
             app.settings = settings;
             cb(null, settings);
         });
-    }
+    };
 
     app.addInitializer(function () {
         async.parallel([
@@ -42,7 +46,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
 
                 var templateBust = "";
 
-                if (templateBust != "" && localStorage.getItem("templates-" + templateBust) != null) {
+                if (templateBust !== "" && localStorage.getItem("templates-" + templateBust) != null) {
                     compileTemplates(JSON.parse(localStorage.getItem("templates-" + templateBust)));
                     return cb(null, null);
                 }
@@ -70,7 +74,7 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
             }
         ], function () {
             require(["core/menu.view", "layout", "core/extensions/module", "core/backbone.sync", "core/dataContext",
-                    "core/basicModel", "core/settingsCollection"],
+                    "core/basicModel", "core/settingsCollection", "core/introduction"],
                 function (MenuView, Layout, extensions, sync, odata, BasicModel) {
                     app.extensions.init(function () {
                         app.layout = new Layout();
@@ -91,7 +95,10 @@ define(["jquery", "marionette", "async", "core/utils", "core/listenerCollection"
                                 app.layout.render();
                                 Backbone.history.start();
                                 app.trigger("after-start");
-                                window.parent.jsreport.onLoaded();
+                                app.trigger("open-template", { template: {}});
+
+                                if (window.parent && window.parent.jsreport)
+                                    window.parent.jsreport.onLoaded(app);
                             });
                         });
                     });

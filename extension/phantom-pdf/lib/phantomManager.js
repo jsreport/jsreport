@@ -129,7 +129,7 @@ PhantomWorker.prototype.start = function () {
         //we need to wait a little bit until phantomjs server is started
         setTimeout(function() {
             defer.resolve();
-        }, 100)
+        }, 100);
 
         self._childProcess.stdout.pipe(process.stdout);
         self._childProcess.stderr.pipe(process.stderr);

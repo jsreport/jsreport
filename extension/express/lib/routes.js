@@ -4,7 +4,8 @@ var serveStatic = require("serve-static"),
     express = require("express"),
     async = require("async"),
     dir = require("node-dir"),
-    extend = require("node.extend");
+    extend = require("node.extend"),
+    S = require("string");
 
 var oneMonth = 31 * 86400000;
 
@@ -15,20 +16,28 @@ module.exports = function (app, reporter) {
 
     reporter.emit("after-express-static-configure", app);
 
-    app.get("/", function (req, res, next) {
+    function getOptions(req) {
         var optionsClone = extend(true, {}, reporter.options);
-        optionsClone = extend(true, optionsClone, req.query)
+        optionsClone = extend(true, optionsClone, req.query);
+        optionsClone.studio = optionsClone.studio || "normal";
+        optionsClone.serverUrl = optionsClone.serverUrl || "/";
+
+        return optionsClone;
+    }
+
+    app.get("/", function (req, res, next) {
+        var options = getOptions(req);
 
         reporter.options.hostname = require("os").hostname();
 
-        if (optionsClone.mode === "development")
-            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), optionsClone);
+        if (options.mode === "development")
+            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), options);
 
-        if (optionsClone.mode === "production")
-            res.render(path.join(__dirname, '../public/views', 'root_built.html'), optionsClone);
+        if (options.mode === "production")
+            res.render(path.join(__dirname, '../public/views', 'root_built.html'), options);
 
-        if (optionsClone.mode === "embedded")
-            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), optionsClone);
+        /*if (optionsClone.mode === "embedded")
+            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), optionsClone);*/
     });
 
     app.stack = _.reject(app.stack, function (s) {
@@ -67,7 +76,8 @@ module.exports = function (app, reporter) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
-        req.headers["host-cookie"] = req.body["header-host-cookie"];
+
+        extend(true, req.headers,  req.body.headers);
 
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");
@@ -95,6 +105,8 @@ module.exports = function (app, reporter) {
      * Get all jsrender html templates used to render jsreport studio in one chunk
      */
     app.get("/html-templates", function (req, res, next) {
+        var options = getOptions(req);
+
         var paths = reporter.extensionsManager.extensions.map(function (e) {
             return path.join(e.directory, 'public', 'templates');
         });
@@ -102,14 +114,18 @@ module.exports = function (app, reporter) {
         var templates = [];
 
         async.eachSeries(paths, function (p, icb) {
-            dir.readFiles(p, function (err, content, filename, nextFile) {
+            dir.readFiles(p, function (err, content, filePath, nextFile) {
                 if (content.charAt(0) === '\uFEFF')
                     content = content.substr(1);
 
-                templates.push({
-                    name: path.basename(filename, '.html'),
-                    content: content
-                });
+                var filename = path.basename(filePath, '.html');
+
+                if (options.studio !== "embed" || S(filename).startsWith("embed")) {
+                    templates.push({
+                        name: filename,
+                        content: content
+                    });
+                }
                 nextFile();
             }, function () {
                 icb();
