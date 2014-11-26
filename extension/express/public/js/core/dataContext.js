@@ -11,6 +11,7 @@ define(["deferred"], function () {
 
         $data.defaultErrorCallback = function(err) {
             console.log(err);
+            console.trace();
         };
 
         $data.EntityContext.extend('entity.Context', context);
@@ -33,6 +34,15 @@ define(["deferred"], function () {
                    .withInlineCount()
                    .skip(filter.get("pageSize") * (filter.get("pageNumber") - 1))
                    .take(filter.get("pageSize"));
+            };
+
+            dataContext.prepareRequest = function (r) {
+                if (r[0].requestUri.indexOf("?") === -1)
+                    r[0].requestUri += "?";
+                else
+                    r[0].requestUri += "&";
+
+                r[0].requestUri += "studio=" + app.options.studio;
             };
             
             dataContext.addEventListener('added', function(e, ent) {

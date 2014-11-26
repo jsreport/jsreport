@@ -7,7 +7,7 @@
               ScriptsModel, StandardTemplateView, StandardTemplateModel, ScriptsDetailView, ToolbarView,
               entityRegistration) {
 
-        app.options.scripts = app.options.scripts || { allowChoosing: false};
+        app.options.scripts = app.options.scripts || { allowSelection: true , allowCustom: false};
 
         app.module("scripts", function (module) {
 

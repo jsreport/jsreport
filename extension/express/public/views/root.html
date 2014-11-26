@@ -27,8 +27,7 @@
     var jsreport_mode = '<%= mode %>';
     var jsreport_studio = '<%= studio %>';
     var jsreport_server_url = "<%= serverUrl %>";
-    var jsreport_main_app = jsreport_studio === "embed" ? ((jsreport_mode === "production") ? "app_embed_built" : "app_embed") :
-                    jsreport_mode === "production" ? "app_built" : "app_dev";
+    var jsreport_main_app = jsreport_mode === "production" ? "app_built" : "app_dev";
 
 </script>
 

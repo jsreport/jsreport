@@ -6,6 +6,7 @@ if (process.env.DB === "neDB")
 
 var assert = require("assert"),
     shortid = require("shortid"),
+    Reporter = require("../lib/reporter.js"),
     GridFS = require("../lib/blobStorage/gridFSBlobStorage.js"),
     Readable = require("stream").Readable,
     DataProvider = require("../lib/dataProvider.js"),
@@ -21,7 +22,7 @@ describe('gridFSBlobStorage', function() {
         self.dataProvider.dropStore().then(function() {
             self.blobStorage = new GridFS(connectionString);
             done();
-        });
+        }, done);
     });
 
     it('write and read should result into equal string', function(done) {
@@ -34,6 +35,7 @@ describe('gridFSBlobStorage', function() {
         var blobName = shortid.generate();
 
         self.blobStorage.write(blobName, new Buffer("Hula"), function(err) {
+            console.log("F");
             assert.ifError(err);
 
             self.blobStorage.read(blobName, function(er, stream) {

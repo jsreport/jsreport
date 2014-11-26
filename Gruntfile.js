@@ -51,8 +51,9 @@ module.exports = function (grunt) {
         fs.writeFileSync(path.join(__dirname, "test", "ui", "html-templates.js"), "requests.templates = " + JSON.stringify(templatesContent, null, 2) + ";");
     }
 
-    function createRequireJs(result, studio) {
-        studio = studio || "";
+    function createRequireJs() {
+
+        var result = {};
 
         var commonPath = {
             jquery: "empty:",
@@ -76,11 +77,11 @@ module.exports = function (grunt) {
             "core/listenerCollection": "empty:"
         };
 
-        result["compileApp" + studio] = {
+        result["compileApp"] = {
             options: {
                 baseUrl: "./extension/express/public/js",
-                mainConfigFile: './extension/express/public/js/require_main_' + (studio ? studio + "_" : "") + 'fixed.js',
-                out: "./extension/express/public/js/app_" + (studio ? studio + "_" : "") + "built.js",
+                mainConfigFile: './extension/express/public/js/require_main_fixed.js',
+                out: "./extension/express/public/js/app_built.js",
                 name: 'app',
                 removeCombined: true,
                 findNestedDependencies: true,
@@ -90,8 +91,7 @@ module.exports = function (grunt) {
             }
         };
 
-        extensions.forEach(function (e) {
-
+        function processExtension(e, studio) {
             if (!fs.existsSync(path.join(e.directory, "public/js/main_" + (studio ? studio + "_" : "") + "dev.js"))) {
                 return;
             }
@@ -109,10 +109,12 @@ module.exports = function (grunt) {
                     }
                 }
             };
-        });
+        }
 
-        if (studio !== "embed")
-            result = createRequireJs(result, "embed");
+        extensions.forEach(function (e) {
+            processExtension(e, "");
+            processExtension(e, "embed");
+        });
 
         return result;
     }
@@ -145,7 +147,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['extension/authentication/test/*.js']
+                src: ['test/gridFSBlobStorageTest.js']
             },
             integration: {
                 options: {
@@ -156,11 +158,10 @@ module.exports = function (grunt) {
         },
 
         copy: {
-            dev: { files: [{ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app_built.js' }] },
-            embed: { files: [{ src: ['extension/express/public/js/app_embed.js'], dest: 'extension/express/public/js/app_embed_built.js' }] }
+            dev: { files: [{ src: ['extension/express/public/js/app_dev.js'], dest: 'extension/express/public/js/app_built.js' }] }
         },
 
-        requirejs: createRequireJs({}),
+        requirejs: createRequireJs(),
 
         replace: {
             devRoot: {
@@ -186,14 +187,6 @@ module.exports = function (grunt) {
                     { from: 'jsreport_server_url + "js"', to: '"/js"' },
                     { from: 'jsreport_main_app', to: "'app_built'" }
                 ]
-            },
-            requirejsMainEmbed: {
-                src: ['./extension/express/public/js/require_main.js'],
-                dest: ['./extension/express/public/js/require_main_embed_fixed.js'],
-                replacements: [
-                    { from: 'jsreport_server_url + "js"', to: '"/js"' },
-                    { from: 'jsreport_main_app', to: "'app_embed_built'" }
-                ]
             }
         },
 
@@ -206,7 +199,7 @@ module.exports = function (grunt) {
                         'extension/express/public/css/style.css', 'extension/express/public/css/introjs.css'
                     ],
                     'extension/express/public/css/built_embed.css': [
-                        'extension/express/public/css/bootstrap.min.css',
+                        'extension/express/public/css/bootstrap.min.css', 'extension/express/public/css/bootstrap-nonresponsive.css',
                         'extension/express/public/css/toastr.css', 'extension/express/public/css/split-pane.css',
                         'extension/express/public/css/embed.css', 'extension/express/public/css/introjs.css'
                     ]
@@ -241,8 +234,8 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
-    grunt.registerTask('build-dev', ['copy:dev','copy:embed', 'replace:devRoot', 'concat']);
-    grunt.registerTask('build-prod', [ 'replace:requirejsMainEmbed', 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'concat']);
+    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'concat']);
+    grunt.registerTask('build-prod', [ 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'concat']);
 
     grunt.registerTask('test-nedb', ['env:dbNedb', 'mochaTest:test']);
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);

@@ -58,7 +58,7 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
             var mapForm = document.createElement("form");
             mapForm.target = target;
             mapForm.method = "POST";
-            mapForm.action = app.serverUrl + "api/report";
+            mapForm.action = app.serverUrl + "api/report?studio=" + app.options.studio;
 
             function addBody(path, body) {
                 if (body == null)

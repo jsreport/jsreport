@@ -1,7 +1,7 @@
-var server;
+/* globals requests */
 
-server = sinon.fakeServer.create();
-started = false;
+var server = sinon.fakeServer.create();
+var started = false;
 
 expect.Assertion.prototype.shown = function (cb) {
     var self = this;
@@ -24,9 +24,18 @@ expect.Assertion.prototype.evaluate = function (fn, cb, attemp) {
 
     var self = this;
     setTimeout(function() {
-        self.evaluate(fn, cb, attemp + 1)
+        self.evaluate(fn, cb, attemp + 1);
     }, 50);
 };
+
+function waitUntil(condition, cb) {
+    if (condition()) {
+        return cb();
+    }
+    setTimeout(function () {
+        waitUntil(condition, cb);
+    }, 10);
+}
 
 function ensureStarted(cb) {
     waitUntil(function() { return started;}, function() {
@@ -35,10 +44,6 @@ function ensureStarted(cb) {
         }, cb);
     });
 }
-
-setTimeout(function() {
-    startApplication(function() { return started = true;});
-}, 1000);
 
 function startApplication(cb) {
 
@@ -49,7 +54,7 @@ function startApplication(cb) {
         });
 
         waitUntil(function () {
-            return server.requests.length > 1
+            return server.requests.length > 1;
         }, function () {
             server.requests[1].respond(
                 200,
@@ -90,15 +95,8 @@ function startApplication(cb) {
             });
         });
     });
-};
-
-function waitUntil(condition, cb) {
-    if (condition()) {
-        return cb();
-    }
-    setTimeout(function () {
-        waitUntil(condition, cb);
-    }, 10);
 }
 
-
+setTimeout(function() {
+    startApplication(function() { return started = true;});
+}, 1000);

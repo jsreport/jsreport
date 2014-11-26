@@ -54,9 +54,7 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
 
                     var self = this;
                     this.extensionsMenuRegion.show = function(view, id) {
-                        $("#side-nav-extended-pane").hide();
-                        originalFn(view);
-                        $("#side-nav-extended-pane").show();
+                        $("#side-nav-extended-pane").html("");
 
                         var size = 200;
                         if (id === self.lastMenuVisible &&  $("#side-nav-extended-pane").width()) {
@@ -66,6 +64,9 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
 
                         $("#side-nav-extended-pane").width(size);
                         $("#side-nav-divider").animate({ left: size }, 300, function() {
+                            $("#side-nav-extended-pane").hide();
+                            originalFn(view);
+                            $("#side-nav-extended-pane").show();
                             view.trigger("animation-done");
                         });
                         $("#main-pane").animate({ left: size }, 300);

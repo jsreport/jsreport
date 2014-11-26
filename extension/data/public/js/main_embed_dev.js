@@ -6,6 +6,8 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
         "core/aceBinder", "./data.entityRegistration"],
     function ($, _, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel, aceBinder, entityRegistration) {
 
+        app.options.data = $.extend(app.options.data, { allowSelection: false, allowCustom: true}, app.options.data);
+
         return app.module("data", function (module) {
 
             app.options.data = app.options.data || { allowChoosing: true};
@@ -19,7 +21,7 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
 
                     this.listenTo(this.model, "change:shortid", function() {
                         self.contentEditor.setOptions({
-                            readOnly: self.model.get("shortid") !== "custom" && app.options.data.allowChoosing
+                            readOnly: self.model.get("shortid") !== "custom" && app.options.data.allowSelection
                         });
                     });
 

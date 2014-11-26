@@ -46,8 +46,8 @@
         it("fetch should add default items", function (done) {
             app.dataContext = {data: {toArray: sinon.stub().returns($.Deferred().resolve([]))}};
             SUT.fetch().then(function () {
-                expect(SUT.items.length).to.be.eql(2);
-                expect(SUT.get("shortid")).to.be.eql("custom");
+                expect(SUT.items.length).to.be.eql(1);
+                expect(SUT.get("shortid")).to.be.eql(null);
                 done();
             });
         });

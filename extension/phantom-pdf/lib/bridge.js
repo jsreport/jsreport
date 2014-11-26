@@ -55,17 +55,25 @@ var service = webserver.listen('127.0.0.1:' + port, function (req, res) {
                         if (!phantomHeader && !body.options.headerFile)
                             return "<span></span>";
 
-                        return (phantomHeader || fs.open(body.options.headerFile, "r").read())
-                            .replace(/{#pageNum}/g, pageNum)
-                            .replace(/{#numPages}/g, numPages);
+                        if (!phantomHeader) {
+                            var stream = fs.open(body.options.headerFile, "r");
+                            phantomHeader = stream.read();
+                            stream.close();
+                        }
+
+                        return phantomHeader.replace(/{#pageNum}/g, pageNum).replace(/{#numPages}/g, numPages);
                     })
                 },
                 footer: (body.options.footerFile || phantomFooter) ? {
                     height: body.options.footerHeight || "1cm",
                     contents: phantom.callback(function (pageNum, numPages) {
-                        return (phantomFooter || fs.open(body.options.footerFile, "r").read())
-                            .replace(/{#pageNum}/g, pageNum)
-                            .replace(/{#numPages}/g, numPages);
+                        if (!phantomFooter) {
+                            var stream = fs.open(body.options.footerFile, "r");
+                            phantomFooter = stream.read();
+                            stream.close();
+                        }
+
+                        return phantomFooter.replace(/{#pageNum}/g, pageNum).replace(/{#numPages}/g, numPages);
                     })
                 } : undefined
             };

@@ -5,7 +5,7 @@
 define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, toastr) {
 
     return Marionette.Layout.extend({
-        template: "layout",
+        template: app.options.studio !== "embed" ? "layout" : "embed-layout",
         el: "#jsreport-root",
 
         initialize: function() {

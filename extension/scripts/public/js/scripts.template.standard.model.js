@@ -22,25 +22,28 @@
                 }
 
 
-                var custom = { name: "- custom -", shortid: "custom", content:   script.content};
-                self.items.unshift(custom);
+                var custom;
+                if (app.options.scripts.allowCustom) {
+                    custom = {name: "- custom -", shortid: "custom", content: script.content};
+                    self.items.unshift(custom);
+                }
 
                 var empty = { name: "- not selected -", shortid: null };
                 self.items.unshift(empty);
 
                 if (!script.content && !script.shortid)
-                    self.set(custom, { silent: true });
+                    self.set(custom || empty, { silent: true });
 
                 if (script.shortid)
                     self.set(_.findWhere(items, { shortid: script.shortid }).toJSON(), { silent: true });
 
                 if (script.content)
-                    self.set(custom, { silent: true });
+                    self.set(custom || empty, { silent: true });
 
                 return options.success();
             }
 
-            if (app.options.scripts.allowChoosing) {
+            if (app.options.scripts.allowSelection) {
                 app.dataContext.scripts.toArray().then(processItems);
             } else {
                 processItems([]);

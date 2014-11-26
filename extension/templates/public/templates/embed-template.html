@@ -2,7 +2,7 @@
     <div class="navbar-header submenu">
         <ul class="nav navbar-nav sub-header" id="extensionsToolbarBox">
             <li><a id="logo" class="brand"/></li>
-            {{if ~getApp().hideSaveButton != true}}
+            {{if #data.shortid}}
             <li><a id="saveCommand"><i class="fa fa-save"></i>Save</a></li>
             {{else}}
             {{/if}}

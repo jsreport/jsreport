@@ -20,27 +20,29 @@
 
                     self.templateModel.set("data", data);
                 }
-
-                var custom = { name: "- custom -", shortid: "custom", dataJson:   data.dataJson};
-                self.items.unshift(custom);
+                var custom;
+                if (app.options.data.allowCustom) {
+                    custom = {name: "- custom -", shortid: "custom", dataJson: data.dataJson};
+                    self.items.unshift(custom);
+                }
 
                 var empty = { name: "- not selected -", shortid: null };
                 self.items.unshift(empty);
 
                 if (!data.dataJson && !data.shortid)
-                    self.set(custom, { silent: true });
+                    self.set(custom || empty, { silent: true });
 
                 if (data.shortid) {
                     self.set(_.findWhere(self.items, {shortid: data.shortid}), {silent: true});
                 }
 
                 if (data.dataJson)
-                    self.set(custom, { silent: true });
+                    self.set(custom || empty, { silent: true });
 
                 return $.Deferred().resolve();
             }
 
-            if (app.options.data.allowChoosing) {
+            if (app.options.data.allowSelection) {
                 return app.dataContext.data.toArray().then(processItems);
             } else {
                 return processItems([]);

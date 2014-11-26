@@ -7,7 +7,7 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
     function ($, _, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel, TemplateStandardView,
               aceBinder, entityRegistration) {
 
-        app.options.scripts = app.options.scripts || { allowChoosing: false};
+        app.options.scripts = $.extend(app.options.scripts, { allowSelection: false, allowCustom: true}, app.options.scripts);
 
         return app.module("scripts", function (module) {
 
@@ -19,7 +19,7 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
                     var self = this;
                     this.listenTo(this.model, "change:shortid", function() {
                         self.contentEditor.setOptions({
-                            readOnly: self.model.get("shortid") !== "custom" && app.options.scripts.allowChoosing
+                            readOnly: self.model.get("shortid") !== "custom" && app.options.scripts.allowSelection
                         });
                     });
 
@@ -59,6 +59,7 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
 
                 context.on("after-render", function($el) {
                     $($el).find("#scriptsMenuCommand").click(function() {
+                        console.log(app.options.scripts.allowSelection);
                         var model = new TemplateStandardModel();
                         model.setTemplate(context.template);
 

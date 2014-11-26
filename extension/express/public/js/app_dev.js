@@ -9,7 +9,8 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
     app.onStartListeners = new ListenerCollection();
     app.options = {
         mode: jsreport_mode,
-        studio: jsreport_studio
+        studio: jsreport_studio,
+        headers: {}
     };
     app.recipes = {};
 
@@ -20,7 +21,13 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                 return $.parseJSON(loadedData, true);
             }
         },
-        contentType: "application/json"
+        contentType: "application/json",
+        beforeSend: function( xhr, settings ) {
+            for (var key in app.options.headers) {
+                xhr.setRequestHeader(key, app.options.headers[key]);
+            }
+            settings.url += "&studio=" + app.options.studio;
+        }
     });
 
     app.reloadSettings = function(cb) {
@@ -72,19 +79,36 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                     "core/basicModel", "core/settingsCollection", "core/introduction"],
                 function(MenuView, Layout, extensions, sync, odata, BasicModel) {
                     app.extensions.init(function() {
-                        require(["dashboard/module"], function() {
+                        function startApp() {
                             app.layout = new Layout();
 
                             odata(app, function(cx) {
                                 app.dataContext = cx;
                                 app.onStartListeners.fire(function() {
                                     app.layout.render();
-                                    app.layout.menu.show(new MenuView({ model: new BasicModel(app.settings) }));
+
+                                    if (app.options.studio !== "embed") {
+                                        app.layout.menu.show(new MenuView({model: new BasicModel(app.settings)}));
+                                    }
                                     Backbone.history.start();
                                     app.trigger("after-start");
+
+                                    if (app.options.studio === "embed") {
+                                        app.trigger("open-template", { template: {}});
+
+                                        if (window.parent && window.parent.jsreport)
+                                            window.parent.jsreport.onLoaded(app);
+                                    }
                                 });
                             });
-                        });
+                        }
+
+                        if (app.options.studio !== "embed") {
+                            require(["dashboard/module"], startApp);
+                        }
+                        else {
+                            startApp();
+                        }
                     });
 
                 });

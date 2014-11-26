@@ -6,7 +6,7 @@
     function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView,
               TemplateStandardView, ToolbarView, TemplateStandardModel, entityRegistration) {
 
-        app.options.data = app.options.data || { allowChoosing: true};
+        app.options.data = app.options.data || { allowSelection: true, allowCustom: false};
 
         app.module("data", function (module) {
             var Router = Backbone.Router.extend({

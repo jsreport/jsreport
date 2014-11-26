@@ -19,6 +19,7 @@ var jsreport = (function (global, jQuery, undefined) {
 
         this.loaded = false;
         this.recipes = {};
+        this.options = {};
     }
 
 
@@ -276,6 +277,7 @@ var jsreport = (function (global, jQuery, undefined) {
         this.loaded = true;
         this.app = app;
         app.headers = this.headers;
+        $.extend(app.options, this.options);
         this.waitingCb();
         window.parent.postMessage({ command: "jsreport-loaded" }, "*");
     }
