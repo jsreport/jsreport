@@ -4,31 +4,31 @@
         template: "report-template-toolbar",
 
         initialize: function() {
-            _.bindAll(this, "renderReport");
+            _.bindAll(this, "renderReport", "onReportRender");
         },
        
         events: {
            "click #renderCommand": "renderReport"
         },
 
+        linkToTemplateView: function(view) {
+            this.templateView = view;
+            this.templateView.beforeRenderListeners.add(this.onReportRender);
+        },
+
+        onReportRender: function(request, cb) {
+            if (this.processingReport) {
+                request.options.saveResult = true;
+            }
+            this.processingReport = false;
+
+            cb();
+        },
+
         renderReport: function() {
-            var self = this;
-            app.trigger("toastr:info", "Report generation started ...");
-            
-            $.ajax({
-                url: app.serverUrl + "api/report",
-                type: 'POST',
-                data: JSON.stringify({
-                    template: self.templateView.getUIState(),
-                    options: { saveResult: true }
-                })
-            })
-                .then(function() {
-                    app.trigger("toastr:info", "Report generation succefully finished.");
-                })
-                .fail(function(e) {
-                    app.trigger("error", e);
-                });
+            app.trigger("toastr:info", "Report generation processing ...");
+            this.processingReport = true;
+            this.templateView.preview();
         }
     });
 });

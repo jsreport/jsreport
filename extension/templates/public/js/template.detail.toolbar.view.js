@@ -3,7 +3,7 @@
  */ 
 
 define(["jquery", "app", "marionette", "core/utils", "core/view.base", "underscore", "core/listenerCollection",
-        "./template.embed.dialog", "core/basicModel", "./preview"],
+        "./template.embed.dialog", "core/basicModel", "./template.preview"],
     function($, app, Marionette, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel, preview) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",

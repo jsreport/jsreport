@@ -2,7 +2,7 @@
  * Copyright(c) 2014 Jan Blaha 
  */
 
-define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./template.model", "./preview", "core/aceBinder", "./template.entityRegistration"],
+define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./template.model", "./template.preview", "core/aceBinder", "./template.entityRegistration"],
     function ($, app, _, Marionette, Backbone, ViewBase, ListenerCollection, TemplateModel, preview, aceBinder, entityRegistration) {
 
         return app.module("template", function (module) {
