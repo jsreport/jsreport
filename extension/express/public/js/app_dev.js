@@ -10,7 +10,8 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
     app.options = {
         mode: jsreport_mode,
         studio: jsreport_studio,
-        headers: {}
+        headers: {},
+        showIntro: true
     };
     app.recipes = {};
 
