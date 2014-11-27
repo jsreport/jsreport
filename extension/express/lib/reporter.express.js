@@ -73,7 +73,7 @@ var startExpressApp = function(reporter, app, config) {
     return q.ninvoke(reporter.express.server, 'listen', config.httpsPort);
 };
 
-var configureExpressApp = function(app, reporter){
+var configureExpressApp = function(app, reporter, definition){
     reporter.express.app = app;
 
     app.options('*', function(req, res) {
@@ -83,9 +83,9 @@ var configureExpressApp = function(app, reporter){
         })(req, res);
     });
 
-    app.use(bodyParser.urlencoded({ extended: true,  limit: "2mb"}));
+    app.use(bodyParser.urlencoded({ extended: true,  limit: definition.options.inputRequestLimit || "2mb"}));
     app.use(bodyParser.json({
-        limit: "2mb"
+        limit: definition.options.inputRequestLimit || "2mb"
     }));
 
     app.set('views', path.join(__dirname, '../public/views'));
@@ -122,7 +122,7 @@ module.exports = function(reporter, definition) {
     reporter.initializeListener.add(definition.name, this, function() {
         if (definition.options.app) {
             reporter.logger.info("Configuring routes for existing express app.");
-            return configureExpressApp(app, reporter);
+            return configureExpressApp(app, reporter, definition);
         }
 
         reporter.logger.info("Creating default express app.");

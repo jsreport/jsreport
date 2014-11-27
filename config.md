@@ -63,3 +63,4 @@ Cluster will not work with `nedb` as data store. You need to set up a mongodb in
 
 **blobStorage** (`string`) - optional, specifies type of storage used for storing reports. It can be `fileSystem`, `inMemory` or `gridFS`. Defaults to `fileSystem` in full jsreport or to `inMemory` when integrating jsreport into existing node.js application. 
 
+**express.inputRequestLimit** (`string`) - optional limit for incoming request size, default is `2mb`
