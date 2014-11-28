@@ -19,6 +19,8 @@ var phantomManager;
 
 var Phantom = function (reporter, definition) {
     this.reporter = reporter;
+    this.allowLocalFilesAccess = reporter.options.phantom.hasOwnProperty("allowLocalFilesAccess") ?
+        reporter.options.phantom.allowLocalFilesAccess : false;
 
     reporter.extensionsManager.recipes.push({
         name: "phantom-pdf",
@@ -52,6 +54,7 @@ Phantom.prototype.execute = function (request, response) {
 
     var phantomOptions = request.template.phantom || new self.PhantomType();
     phantomOptions = phantomOptions.initData || phantomOptions;
+    phantomOptions.allowLocalFilesAccess = this.allowLocalFilesAccess;
 
     var generationId = uuid();
     var htmlFile = join(request.reporter.options.tempDirectory, generationId + ".html");

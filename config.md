@@ -49,7 +49,10 @@ Cluster will not work with `nedb` as data store. You need to set up a mongodb in
 
 **daemon** (`true/false`) - default `false`, non windows only, jsreport will run as [daemon](https://www.npmjs.org/package/daemon) and will not block command line
 
-**phantom** (`object`) - this attribute is `optional` and is used to configure phantom-pdf recipe. You can set here `numberOfWorkers` attribute to specify how many phantomjs instances will phantom-pdf recipe use. If the value is not filled, jsreport will use number of cpus by default. You can also set `timeout` attribute to specify default timeout for pdf rendering using phantomjs.
+**phantom** (`object`) - this attribute is `optional` and is used to configure phantom-pdf recipe. 
+**phantom.numberOfWorkers** (`int`) - specify how many phantomjs instances will phantom-pdf recipe use. If the value is not filled, jsreport will use number of cpus by default
+**phantom.timeout** (`int`) - specify default timeout for pdf rendering using phantomjs
+**phantom.allowLocalFilesAccess** (`bool`) - default is `false`. When set to true you can use local paths to get resources.
 
 **tasks** (`object`) - this attribute is `optional` and is used to configure component executing custom scripts. This component is use to excute javascript templating engines during rendering or in scripts extension. You can set here `numberOfWorkers` attribute to specify how many child nodejs instances will be used for task execution. If the value is not filled, jsreport will use number of cpus by default. You can also set `timeout` attribute to specify default timeout for one task execution.
 

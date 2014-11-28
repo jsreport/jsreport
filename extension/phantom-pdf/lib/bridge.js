@@ -24,6 +24,17 @@ var service = webserver.listen('127.0.0.1:' + port, function (req, res) {
         var body = JSON.parse(req.post);
 
         page.onResourceRequested = function (request, networkRequest) {
+            if (request.url.lastIndexOf(body.url, 0) === 0) {
+                return;
+            }
+
+            //potentially dangerous request
+            if (request.url.lastIndexOf("file:///", 0) === 0 && !body.options.allowLocalFilesAccess) {
+                networkRequest.changeUrl(request.url.replace("file:///", "http://"));
+                return;
+            }
+
+            //to support cdn like format //cdn.jquery...
             if (request.url.lastIndexOf("file://", 0) === 0 && request.url.lastIndexOf("file:///", 0) !== 0) {
                 networkRequest.changeUrl(request.url.replace("file://", "http://"));
             }
