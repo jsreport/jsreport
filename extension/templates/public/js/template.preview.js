@@ -43,7 +43,7 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
 
         var uiState = getUIState(model);
 
-        var request = { template: uiState, options: {} };
+        var request = { template: uiState, options: { preview: true} };
 
         beforeRenderListeners.fire(request, function (er) {
             if (er) {

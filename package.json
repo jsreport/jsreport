@@ -37,6 +37,7 @@
     "mkdirp": "^0.5.0",
     "moment": "*",
     "mongodb": "*",
+    "msexcel-builder-extended": "0.0.2",
     "multer": "^0.1.4",
     "nconf": "*",
     "nedb": "*",

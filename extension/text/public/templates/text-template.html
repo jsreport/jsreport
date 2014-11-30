@@ -1,0 +1,9 @@
+﻿<a class="expandable-header"><i class="glyphicon glyphicon-sm glyphicon-file"></i>Text<b class="caret caret-right" {{if ~isFilled()}}style="color: green"{{else}}{{/if}}></b></a>
+<div class="expandable-body properties" style="display: none">
+    <span class="side-title">Content Type</span>
+    <input type="text" class="form-control area-mini" placeholder="text/html" name="contentType" value="{{:contentType}}">
+    <span class="side-title">File extension</span>
+    <input type="text" class="form-control area-mini" placeholder="html" name="fileExtension" value="{{:fileExtension}}">
+    <span class="side-title">Content Disposition</span>
+    <input type="text" class="form-control area-mini" placeholder="inline" name="contentDisposition" value="{{:contentDisposition}}">
+</div>

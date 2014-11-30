@@ -91,6 +91,10 @@ module.exports = function (app, reporter) {
                 }
             }
 
+            if (!response.headers["Content-Disposition"]) {
+                res.setHeader("Content-Disposition", (req.options.preview ? "inline" : "attachment") + ";filename=report." + response.headers["File-Extension"]);
+            }
+
             res.setHeader("X-XSS-Protection", 0);
 
             if (_.isFunction(response.result.pipe)) {
