@@ -9,7 +9,7 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore
             },
 
             isFilled: function() {
-                return false;
+                return this.model.get("contentType") || this.model.get("fileExtension") || this.model.get("contentDisposition");
             }
         });
 

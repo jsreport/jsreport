@@ -9,11 +9,6 @@ define(["deferred"], function () {
         var context = {};
         app.trigger("entity-registration", context);
 
-        $data.defaultErrorCallback = function(err) {
-            console.log(err);
-            console.trace();
-        };
-
         $data.EntityContext.extend('entity.Context', context);
         
         $data.generatedContexts = $data.generatedContexts || [];
