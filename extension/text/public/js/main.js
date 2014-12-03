@@ -1,5 +1,5 @@
 define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore",  "core/basicModel"],
-    function($, app, Marionette, Backbone, ViewBase, _, ModelBase) {
+        function($, app, Marionette, Backbone, ViewBase, _, ModelBase) {
         var View = ViewBase.extend({
             tagName: "li",
             template: "text-template",
