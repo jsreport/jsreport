@@ -5,7 +5,9 @@
 var path = require("path"),
     extend = require("node.extend"),
     fs = require("fs"),
-    path = require("path");
+    path = require("path"),
+    Reporter = require("./lib/reporter.js");
+
 
 function initializeApp(force) {
     console.log("Creating server.js, config.js and package.json ");
@@ -41,27 +43,39 @@ var renderDefaults = {
     cacheAvailableExtensions: true,
     logger: { providerName: "dummy"},
     rootDirectory: __dirname,
-    tempDirectory: require("os").tmpdir(),
     extensions: ["html", "templates", "data", "phantom-pdf"]
 };
 
-var reporter = null;
+function ensureTempFolder() {
+    if (renderDefaults.tempDirectory) {
+        return;
+    }
+
+    renderDefaults.tempDirectory = path.join(require("os").tmpdir(), "jsreport");
+
+    try {
+        fs.mkdirSync(renderDefaults.tempDirectory);
+    } catch(e) {
+        if ( e.code !== 'EEXIST' ) throw e;
+    }
+}
 
 function start() {
     return require("./lib/bootstrapper.js")(renderDefaults).start().then(function (b) {
-        reporter = b.reporter;
-        return reporter;
+        return Reporter.instance;
     });
 }
 
 function render(req) {
-    if (!reporter) {
+    if (!Reporter.instance) {
+        ensureTempFolder();
+
         return start().then(function () {
-            return reporter.render(req);
+            return Reporter.instance.render(req);
         });
     }
 
-    return reporter.render(req);
+    return Reporter.instance.render(req);
 }
 
 function extendDefaults(config) {
@@ -86,6 +100,6 @@ if (require.main === module) {
     module.exports.render = render;
     module.exports.start = start;
     module.exports.extendDefaults = extendDefaults;
-    module.exports.reporter = reporter;
+    module.exports.reporter = Reporter.instance;
     module.exports.describeReporting = require("./test/helpers.js").describeReporting;
 }
