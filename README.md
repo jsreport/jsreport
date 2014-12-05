@@ -46,18 +46,16 @@ The easiest way how to contribute to jsreport open source community is to implem
 
 ##Roadmap
 
-We recently released jsreport embedding feature allowing end user report customizations in browser. http://jsreport.net/learn/embedding
+Features for the next release planned to January:
 
-Next steps are:
-
-- improve source code quality
 - java sdk
-- excel exports
-- prepare azure, google and amazon virtual machine images
-- try to integrate jsreport into sharepoint or salesforce
+- azure, google and amazon VM images
+- scheduled reports
+- scripts can run after report rendering and send email for example
+- angular plugin 
+- improved documentation and examples
 
 Missing a feature? Submit a feature request.
-
 
 ## License 
 
@@ -75,3 +73,4 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see http://www.gnu.org/licenses/agpl-3.0.html.
+
