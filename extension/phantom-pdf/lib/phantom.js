@@ -19,6 +19,8 @@ var phantomManager;
 
 var Phantom = function (reporter, definition) {
     this.reporter = reporter;
+
+    reporter.options.phantom = reporter.options.phantom || {};
     this.allowLocalFilesAccess = reporter.options.phantom.hasOwnProperty("allowLocalFilesAccess") ?
         reporter.options.phantom.allowLocalFilesAccess : false;
 
