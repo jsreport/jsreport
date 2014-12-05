@@ -26,11 +26,6 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                     self.listenTo(self.contentView, "preview", function() {
                         self.preview();
                     });
-
-                    if (app.settings.firstRun && !app.settings.templateFirstRender) {
-                        app.settings.templateFirstRender = true;
-                        this.preview();
-                    }
                 });
 
                 this.listenTo(this, "render", function() {
