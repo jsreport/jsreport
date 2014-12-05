@@ -42,6 +42,7 @@ PhantomWorker.prototype.start = function () {
         var childArgs = [
             '--ignore-ssl-errors=yes',
             '--web-security=false',
+            '--ssl-protocol=any',
             path.join(__dirname, 'bridge.js')
         ];
 

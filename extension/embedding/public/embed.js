@@ -135,6 +135,8 @@ var jsreport = (function (global, jQuery, undefined) {
 
         this.jsreportIFrame.css("width", ($(window).width() - 200) + "px");
         this.jsreportIFrame.css("height", ($(window).height() - 200) + "px");
+        this.jsreportIFrame.css("left", "100px");
+        this.jsreportIFrame.css("top", "100px");
 
         this.template = template;
 
@@ -279,7 +281,6 @@ var jsreport = (function (global, jQuery, undefined) {
         app.headers = this.headers;
         $.extend(app.options, this.options);
         this.waitingCb();
-        window.parent.postMessage({ command: "jsreport-loaded" }, "*");
     }
 
 
