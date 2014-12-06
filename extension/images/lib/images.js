@@ -80,10 +80,12 @@ Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, respo
 
             var imageData = "data:" + res[0].contentType + ";base64," + res[0].content.toString('base64');
             done(null, imageData);
+        }).catch(function(e) {
+            done(e);
         });
     }
 
-    var test = /{#image ([^{}]+)+}/g;
+    var test = /{#image ([^{}]{0,50})}/g;
 
     return q.nfcall(asyncReplace, response.result, test, convert).then(function (result) {
         response.result = result;

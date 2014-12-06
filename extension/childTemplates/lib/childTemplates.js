@@ -50,7 +50,7 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
         });
     }
 
-    var test = /{#child ([^{}]+)+}/g;
+    var test = /{#child ([^{}]{0,50})}/g;
 
     return Q.nfcall(asyncReplace, request.template.content, test, convert).then(function(result) {
         request.template.content = result;

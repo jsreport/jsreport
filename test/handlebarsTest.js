@@ -26,4 +26,9 @@ describe('render handlebars', function () {
         });
     });
 
+    it('should work with jsreport syntax', function () {
+        var html = handlebars("{#image {{b}}}", null, { b : "foo"});
+        assert.equal(html, "{#image foo}");
+    });
+
 });
