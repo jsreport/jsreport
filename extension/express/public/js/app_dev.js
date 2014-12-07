@@ -86,6 +86,7 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                             odata(app, function(cx) {
                                 app.dataContext = cx;
                                 app.onStartListeners.fire(function() {
+                                    app.layout.hideLoader();
                                     app.layout.render();
 
                                     if (app.options.studio !== "embed") {

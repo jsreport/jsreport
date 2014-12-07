@@ -14,6 +14,7 @@
                 filter: this.collection.filter,
                 idKey: "_id",
                 onShowDetail: function (id) {
+                    console.log("redirecting to id " + id);
                     window.location.hash = "/extension/reports/" + id;
                 },
                 el: $("#reportGridBox"),

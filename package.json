@@ -26,6 +26,7 @@
     "connect": "^2.14.4",
     "cookie-parser": "^1.0.1",
     "cors": "^2.4.2",
+    "cron": "^1.0.5",
     "daemon": "*",
     "ejs": "*",
     "express": "*",

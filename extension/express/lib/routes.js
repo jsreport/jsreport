@@ -35,9 +35,6 @@ module.exports = function (app, reporter) {
 
         if (options.mode === "production")
             res.render(path.join(__dirname, '../public/views', 'root_built.html'), options);
-
-        /*if (optionsClone.mode === "embedded")
-            res.render(path.join(__dirname, '../public/views', 'root_embed.html'), optionsClone);*/
     });
 
     app.stack = _.reject(app.stack, function (s) {
@@ -76,6 +73,7 @@ module.exports = function (app, reporter) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options;
+        req.options.isRootRequest = true;
 
         extend(true, req.headers,  req.body.headers);
 

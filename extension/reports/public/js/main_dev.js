@@ -54,8 +54,6 @@
 
 
             app.on("entity-registration", function (context) {
-                $entity.Template.addMember("reports", { type: Array, elementType: "$entity.Report", inverseProperty: "template" });
-
                 $data.Entity.extend('$entity.Report', {
                     '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
                     'creationDate': { 'type': 'Edm.DateTime' },

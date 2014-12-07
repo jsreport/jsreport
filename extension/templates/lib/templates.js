@@ -63,6 +63,9 @@ Templating.prototype.create = function (context, tmpl) {
 
     var template = new this.TemplateType(tmpl);
     template.isLatest = true;
+    template.recipe = template.recipe || "html";
+    template.engine = template.engine || "jsrender";
+
     context.templates.add(template);
 
     return context.templates.saveChanges().then(function () {

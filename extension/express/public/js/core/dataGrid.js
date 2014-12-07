@@ -14,11 +14,21 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
             view.rowsTemplate = options.rowsTemplate;
             view.onShowDetail = options.onShowDetail;
             view.setElement(options.el);
+            options.showSelection = options.showSelection === undefined ? true : options.showSelection;
+            view.options = options;
+            if (options.helpers)
+                $.extend(view, options.helpers);
             view.render();
+
+            view.listenTo(view, "render", function() {
+                if (options.onRender)
+                    options.onRender();
+            });
 
             var pager = new DataGrid.PagerView({ model: options.filter });
             pager.setElement($(view.el).find("#pagerBox"));
             pager.render();
+            view.pager = pager;
 
             return {
                 deleteItems: function() {
@@ -67,14 +77,19 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
             },
 
             initialize: function() {
+                var self = this;
                 this.listenTo(this.collection, "sync", this.render);
                 this.listenTo(this, "render", this.refresh);
 
-                _.bindAll(this, "getHeaderTemplate", "getRowsTemplate", "getIdFromIdKey");
+                _.bindAll(this, "getHeaderTemplate", "getRowsTemplate", "getIdFromIdKey", "getOptions");
             },
 
             getIdFromIdKey: function(item) {
                 return item[this.idKey];
+            },
+
+            getOptions: function(item) {
+                return this.options;
             },
 
             refresh: function() {
@@ -88,6 +103,11 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
                         });
                     }
                 });
+
+                if (this.pager) {
+                    this.pager.setElement($(this.el).find("#pagerBox"));
+                    this.pager.render();
+                }
             },
 
             getHeaderTemplate: function() {

@@ -24,7 +24,7 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
             limit: 2 * 1024 * 1024 * 1//2MB
         }));
 
-        app.use(serveStatic(path.join(__dirname, 'views')));3
+        app.use(serveStatic(path.join(__dirname, 'views')));
         app.engine('html', require('ejs').renderFile);
 
         var options = {
@@ -47,14 +47,17 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         beforeEach(function (done) {
             this.timeout(10000);
 
-            reporter.init().then(function () {
-                reporter.dataProvider.dropStore().then(function () {
-                    reporter.dataProvider.startContext().then(function (context) {
+            reporter.buildContext().then(function () {
+                return reporter.dataProvider.dropStore().then(function () {
+                    return reporter.dataProvider.startContext().then(function (context) {
                         reporter.context = context;
-                        done();
+                        return reporter.init().then(function() {
+                            done();
+                        });
+
                     });
                 });
-            });
+            }).catch(done);
         });
 
         afterEach(function () {

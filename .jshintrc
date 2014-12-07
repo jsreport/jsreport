@@ -13,6 +13,7 @@
   "browser": true,
   "devel": true,
   "es5": true,
+  "expr": true,
   "globals": {
     "exports": true,
     "require": true,

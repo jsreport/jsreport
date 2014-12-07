@@ -3,7 +3,7 @@
         contextSet: function () { return app.dataContext.reports; },
 
         fetchQuery: function (cb) {
-            return this.contextSet().find(this.get("_id"));
+            return this.contextSet().single(function(r) { return r._id === this._id; }, { _id: this.get("_id") });
         },
         
         _initialize: function () {

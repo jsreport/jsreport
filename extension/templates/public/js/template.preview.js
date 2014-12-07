@@ -27,7 +27,8 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
         state.helpers = state.helpers || "";
 
         delete state._id;
-        delete state.shortid;
+        /* not sure about this, I need shortid for reports, so why it is here deleted */
+        //delete state.shortid;
         return state;
     }
 

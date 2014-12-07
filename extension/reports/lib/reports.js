@@ -43,11 +43,16 @@ Reporting.prototype.configureExpress = function (app) {
 };
 
 Reporting.prototype.handleAfterRender = function (request, response) {
-    this.reporter.logger.debug("Reporting saveResult options: " + request.options.saveResult);
     var self = this;
 
-    if (!request.options.saveResult)
+    request.options.reports = request.options.reports || {};
+    if (request.options.saveResult)
+        request.options.reports.save = true;
+
+    if (!request.options.reports.save || !request.options.isRootRequest) {
+        this.reporter.logger.debug("Skipping storing report.");
         return q();
+    }
 
     function ensureBuffer() {
         if (response.isStream) {
@@ -59,14 +64,14 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         return q();
     }
 
-    var report = new this.ReportType({
-        recipe: request.options.recipe,
-        name: request.template.name,
-        fileExtension: response.headers["File-Extension"],
-        templateShortid: request.template.shortid,
-        creationDate: new Date(),
-        contentType: response.headers['Content-Type']
-    });
+    var report = new this.ReportType(_.extend(request.options.reports.mergeProperties || {},
+        {   recipe: request.options.recipe,
+            name: request.template.name,
+            fileExtension: response.headers["File-Extension"],
+            templateShortid: request.template.shortid,
+            creationDate: new Date(),
+            contentType: response.headers['Content-Type']
+        }));
 
 
     return ensureBuffer().then(function () {
@@ -82,7 +87,9 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         report.blobName = blobName;
         return request.context.reports.saveChanges();
     }).then(function () {
-        response.headers["Permanent-Link"] = request.protocol + "://" + request.headers.host + "/api/report/" + report._id + "/content";
+        if (request.headers)
+            response.headers["Permanent-Link"] = request.protocol + "://" + request.headers.host + "/api/report/" + report._id + "/content";
+
         response.headers["Report-Id"] = report._id;
         response.headers["Report-BlobName"] = report.blobName;
     });

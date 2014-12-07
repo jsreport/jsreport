@@ -63,6 +63,7 @@ Phantom.prototype.execute = function (request, response) {
     var pdfFile = join(request.reporter.options.tempDirectory, generationId + ".pdf");
 
     request.template.recipe = "html";
+    request.options.isRootRequest = false;
     return this.reporter.executeRecipe(request, response)
         .then(function () {
             return FS.write(htmlFile, response.result);
@@ -79,6 +80,7 @@ Phantom.prototype.execute = function (request, response) {
                 output: path.resolve(pdfFile),
                 options: phantomOptions
             }).then(function (numberOfPages) {
+                request.options.isRootRequest = true;
                 response.result = fs.createReadStream(pdfFile);
                 response.headers["Content-Type"] = "application/pdf";
                 response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
@@ -97,7 +99,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
     var req = extend(true, {}, request);
     req.template = { content: phantomOptions[type], recipe: "html" };
     req.data = extend(true, {}, request.data);
-    req.options.saveResult = false;
+    req.options.isRootRequest = false;
 
     return this.reporter.render(req).then(function (resp) {
         var filePath = join(request.reporter.options.tempDirectory, generationId + "-" + type + ".html");

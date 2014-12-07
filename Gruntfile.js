@@ -147,7 +147,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/gridFSBlobStorageTest.js']
+                src: ['extension/scheduling/test/*.js']
             },
             integration: {
                 options: {

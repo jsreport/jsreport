@@ -37,6 +37,9 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
             app.on("read:error create:error update:error delete:error error", function(e) {
                 self.hideLoader();
 
+                if (e.handled)
+                    return;
+
                 var responseText = (e.responseText || e.message);
                 if (responseText.length > 800)
                     responseText = responseText.substring(0, 800) + "...";
