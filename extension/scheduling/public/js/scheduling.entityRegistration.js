@@ -8,6 +8,7 @@ define([], function() {
             templateShortid: {type: "string"},
             creationDate: {type: "date"},
             nextRun: {type: "date"},
+            enabled: {type: "boolean"},
             shortid: {type: "string"},
             modificationDate: {type: "date"}
         }, null);

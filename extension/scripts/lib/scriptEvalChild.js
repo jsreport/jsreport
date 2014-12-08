@@ -1,5 +1,6 @@
 ﻿module.exports = function (req, res, next) {
 
+    var vm = require('vm');
 
     var _require = function (moduleName) {
         //we want to allow only listed modules to stay secure
@@ -15,7 +16,7 @@
         throw new Error("Unsupported module " + moduleName);
     };
 
-    var vm = require('vm');
+
     var sandbox = {
         request: req.body.request,
         response: req.body.response,
@@ -34,5 +35,8 @@
         }
     };
 
-    vm.runInNewContext(req.body.script, sandbox);
+    var runBeforeRender = "\nif (typeof beforeRender === 'function') { beforeRender(done); } else { done(); }";
+    var runAfterRender = "\nif (typeof afterRender === 'function') { afterRender(done); } else { done(); }";
+
+    vm.runInNewContext(req.body.script + (req.body.method === "beforeRender" ? runBeforeRender : runAfterRender), sandbox);
 };

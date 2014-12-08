@@ -3,8 +3,26 @@ var page = require('webpage').create(),
     fs = require('fs');
 
 var output = system.args[2];
-page.open(system.args[1], function() {
 
+page.onResourceRequested = function (request, networkRequest) {
+    //potentially dangerous request
+    if (request.url.lastIndexOf("file:///", 0) === 0) {
+        networkRequest.changeUrl(request.url.replace("file:///", "http://"));
+        return;
+    }
+
+    //to support cdn like format //cdn.jquery...
+    if (request.url.lastIndexOf("file://", 0) === 0 && request.url.lastIndexOf("file:///", 0) !== 0) {
+        networkRequest.changeUrl(request.url.replace("file://", "http://"));
+    }
+};
+
+
+var stream = fs.open(system.args[1], "r");
+var pageContent = stream.read();
+stream.close();
+
+page.onLoadFinished = function(status) {
     var result = page.evaluate(function() {
         var tableOut = { rows: [] };
         var table = document.querySelector("table");
@@ -43,8 +61,9 @@ page.open(system.args[1], function() {
     fs.write(system.args[2], JSON.stringify(result), 'w');
 
     phantom.exit();
-});
+};
 
+page.setContent(pageContent, "http://localhost");
 
 
 

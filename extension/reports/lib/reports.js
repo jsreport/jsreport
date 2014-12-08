@@ -54,16 +54,6 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         return q();
     }
 
-    function ensureBuffer() {
-        if (response.isStream) {
-            return q.nfcall(toArray, response.result).then(function (arr) {
-                response.result = Buffer.concat(arr);
-            });
-        }
-
-        return q();
-    }
-
     var report = new this.ReportType(_.extend(request.options.reports.mergeProperties || {},
         {   recipe: request.options.recipe,
             name: request.template.name,
@@ -73,12 +63,10 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             contentType: response.headers['Content-Type']
         }));
 
+    self.reporter.logger.debug("Inserting report to storage.");
+    request.context.reports.add(report);
 
-    return ensureBuffer().then(function () {
-        self.reporter.logger.debug("Inserting report to storage.");
-        request.context.reports.add(report);
-        return request.context.reports.saveChanges();
-    }).then(function () {
+    return request.context.reports.saveChanges().then(function () {
         self.reporter.logger.debug("Writing report content to blob.");
         return q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
     }).then(function (blobName) {

@@ -31,6 +31,7 @@
 
             fetchSchedule({
                 success: function() {
+                    self.trigger("sync");
                     if (self.tasks.scheduleShortid) {
                         self.tasks.fetch(options);
                     } else {
@@ -38,6 +39,10 @@
                     }
                 }
             });
+        },
+
+        defaults: {
+            enabled: true
         },
 
         _initialize: function () {

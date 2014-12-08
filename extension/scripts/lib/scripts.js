@@ -16,8 +16,9 @@ var Scripts = function (reporter, definition) {
     this._defineEntities();
 
     this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
+    this.reporter.afterRenderListeners.add(definition.name, this, Scripts.prototype.handleAfterRender);
 
-    this.allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore", "constants"];
+    this.allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
 };
 
 Scripts.prototype.create = function (context, script) {
@@ -26,6 +27,38 @@ Scripts.prototype.create = function (context, script) {
     return context.scripts.saveChanges().then(function () {
         return q(entity);
     });
+};
+
+Scripts.prototype.handleAfterRender = function (request, response) {
+    if (!request.parsedScript)
+        return;
+
+    var self = this;
+
+    return request.reporter.taskManager.execute({
+            body: {
+                script: request.parsedScript,
+                allowedModules: self.allowedModules,
+                method: "afterRender",
+                request: {
+                    data: request.data,
+                    template: {
+                        content: request.template.content,
+                        helpers: request.template.helpers
+                    },
+                    headers: request.headers
+                },
+                response: {
+                    headers: response.headers,
+                    content: response.result
+                }
+            },
+            execModulePath: path.join(__dirname, "scriptEvalChild.js"),
+            timeout: 60000
+        }).then(function (body) {
+            response.headers = body.response.headers;
+            //response.result = body.response.content;
+        });
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
@@ -55,10 +88,13 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     return findScript().then(function (script) {
         script = script.content || script;
 
+        request.parsedScript = script;
+
         return request.reporter.taskManager.execute({
             body: {
                 script: script,
                 allowedModules: self.allowedModules,
+                method: "beforeRender",
                 request: {
                     data: request.data,
                     template: {

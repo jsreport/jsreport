@@ -25,6 +25,7 @@ var Scheduling = function (reporter, definition) {
         creationDate: {type: "date"},
         nextRun: {type: "date"},
         shortid: {type: "string"},
+        enabled: {type: "bool"},
         modificationDate: {type: "date"}
     });
 
@@ -40,6 +41,7 @@ var Scheduling = function (reporter, definition) {
     var schedulesSet = this.reporter.dataProvider.registerEntitySet("schedules", this.ScheduleType, {tableOptions: {humanReadableKeys: ["shortid"]}});
     schedulesSet.beforeCreateListeners.add("schedule-before-create", Scheduling.prototype._beforeCreateHandler.bind(this));
     schedulesSet.beforeUpdateListeners.add("schedule-before-update", Scheduling.prototype._beforeUpdateHandler.bind(this));
+    schedulesSet.beforeDeleteListeners.add("schedule-before-delete", Scheduling.prototype._beforeDeleteHandler.bind(this));
     schedulesSet.afterReadListeners.add("schedule-after-read", Scheduling.prototype._afterReadHandler.bind(this));
 
     this.reporter.dataProvider.registerEntitySet("tasks", this.TaskType, {tableOptions: {nedbPersistance: "singleFile"}});
@@ -52,12 +54,11 @@ var Scheduling = function (reporter, definition) {
 util.inherits(Scheduling, events.EventEmitter);
 
 Scheduling.prototype._afterReadHandler = function (key, successResult, sets, query) {
-    var self = this;
     successResult = Array.isArray(successResult) ? successResult : [successResult];
 
     successResult.forEach(function (i) {
         var cron = new CronTime(i.cron);
-        i.nextRun = cron._getNextDateFrom(new Date());
+        i.nextRun = i.enabled ? cron._getNextDateFrom(new Date()) : null;
     });
 
     return true;
@@ -70,13 +71,13 @@ Scheduling.prototype._beforeCreateHandler = function (key, items) {
 
     entity.creationDate = new Date();
     entity.modificationDate = new Date();
+    entity.enabled = entity.enabled !== false; //default false
 
     if (!this.suspendAutoRegistration) {
         try {
             this._registerJob(entity);
         }
-        catch(e) {
-            console.log(e);
+        catch (e) {
             return false;
         }
     }
@@ -88,15 +89,22 @@ Scheduling.prototype._beforeUpdateHandler = function (key, items) {
     entity.modificationDate = new Date();
 
     if (!this.suspendAutoRegistration) {
-        this.jobs[entity.shortid].stop();
         try {
             this._registerJob(entity);
         }
-        catch(e) {
-            console.log(e);
+        catch (e) {
             return false;
         }
     }
+    return true;
+};
+
+Scheduling.prototype._beforeDeleteHandler = function (key, items) {
+    var entity = items[0];
+
+    if (this.jobs[entity.shortid])
+        this.jobs[entity.shortid].stop();
+
     return true;
 };
 
@@ -126,20 +134,23 @@ Scheduling.prototype._processSchedule = function (schedule) {
         var task = new self.TaskType({creationDate: new Date(), scheduleShortid: schedule.shortid, state: "running"});
         context.tasks.add(task);
         return context.saveChanges().then(function () {
-            return context.tasks.single(function(t) { return t._id === this._id; }, { _id : task._id }).then(function(task) {
+            return context.tasks.single(function (t) {
+                return t._id === this._id;
+            }, {_id: task._id}).then(function (task) {
                 return self.reporter.render({
                     template: {shortid: schedule.templateShortid},
                     options: {
                         scheduling: {taskId: task._id, scheduleShortid: schedule.shortid},
-                        reports: { save: true, mergeProperties: {taskId: task._id} },
-                        isRootRequest: true}
+                        reports: {save: true, mergeProperties: {taskId: task._id}},
+                        isRootRequest: true
+                    }
                 }).then(function () {
                     self.reporter.logger.debug("Processing schedule " + schedule.name + " succeeded.");
                     context.tasks.attach(task);
                     task.finishDate = new Date();
                     task.state = "success";
                     return context.saveChanges();
-                }).catch(function(e) {
+                }).catch(function (e) {
                     self.reporter.logger.debug("Processing schedule " + schedule.name + " failed with :" + e.stack);
                     context.tasks.attach(task);
                     task.finishDate = new Date();
@@ -152,7 +163,14 @@ Scheduling.prototype._processSchedule = function (schedule) {
     });
 };
 
-Scheduling.prototype._registerJob = function(schedule) {
+Scheduling.prototype._registerJob = function (schedule) {
+    if (this.jobs[schedule.shortid])
+        this.jobs[schedule.shortid].stop();
+
+    if (!schedule.enabled) {
+        return;
+    }
+
     var self = this;
     var job = new CronJob(schedule.cron, function () {
             self._processSchedule(schedule);

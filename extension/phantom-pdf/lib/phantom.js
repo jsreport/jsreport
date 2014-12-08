@@ -13,6 +13,7 @@ var uuid = require("uuid").v1,
     FS = require("q-io/fs"),
     extend = require("node.extend"),
     mkdirp = require('mkdirp'),
+    toArray = require('stream-to-array'),
     PhantomManager = require("./phantomManager.js");
 
 var phantomManager;
@@ -30,18 +31,18 @@ var Phantom = function (reporter, definition) {
     });
 
     this.PhantomType = this.reporter.dataProvider.createEntityType("PhantomType", {
-        margin: { type: "string" },
-        header: { type: "string" },
-        headerHeight: { type: "string" },
-        footer: { type: "string" },
-        footerHeight: { type: "string" },
-        orientation: { type: "string" },
-        format: { type: "string" },
-        width: { type: "string" },
-        height: { type: "string" }
+        margin: {type: "string"},
+        header: {type: "string"},
+        headerHeight: {type: "string"},
+        footer: {type: "string"},
+        footerHeight: {type: "string"},
+        orientation: {type: "string"},
+        format: {type: "string"},
+        width: {type: "string"},
+        height: {type: "string"}
     });
 
-    reporter.templates.TemplateType.addMember("phantom", { type: this.PhantomType });
+    reporter.templates.TemplateType.addMember("phantom", {type: this.PhantomType});
 
     var self = this;
     reporter.templates.TemplateType.addEventListener("beforeCreate", function (args, template) {
@@ -79,14 +80,17 @@ Phantom.prototype.execute = function (request, response) {
                 url: phantomOptions.url || "file:///" + encodeURIComponent(path.resolve(htmlFile)),
                 output: path.resolve(pdfFile),
                 options: phantomOptions
-            }).then(function (numberOfPages) {
+            });
+        }).then(function (numberOfPages) {
                 request.options.isRootRequest = true;
                 response.result = fs.createReadStream(pdfFile);
                 response.headers["Content-Type"] = "application/pdf";
                 response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
                 response.headers["File-Extension"] = "pdf";
                 response.headers["Number-Of-Pages"] = numberOfPages;
-                response.isStream = true;
+        }).then(function() {
+            return q.nfcall(toArray, response.result).then(function (arr) {
+                response.result = Buffer.concat(arr);
                 self.reporter.logger.debug("Rendering pdf end.");
             });
         });
@@ -97,7 +101,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
         return q(null);
 
     var req = extend(true, {}, request);
-    req.template = { content: phantomOptions[type], recipe: "html" };
+    req.template = {content: phantomOptions[type], recipe: "html"};
     req.data = extend(true, {}, request.data);
     req.options.isRootRequest = false;
 

@@ -59,8 +59,11 @@ module.exports = function (reporter, definition) {
                 return FS.write(htmlFile, response.result).then(function () {
                     var deferred = q.defer();
                     var childArgs = [
+                        '--ignore-ssl-errors=yes',
+                        '--web-security=false',
+                        '--ssl-protocol=any',
                         path.join(__dirname, 'extractExcel.js'),
-                        "file:///" + htmlFile,
+                        htmlFile,
                         outFile
                     ];
 

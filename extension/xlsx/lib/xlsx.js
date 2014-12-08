@@ -7,6 +7,7 @@ var path = require("path"),
     uuid = require("uuid").v1,
     fs = require("fs"),
     httpRequest = require("request"),
+    toArray = require('stream-to-array'),
     excelbuilder = require('msexcel-builder-extended');
 
 function preview(request, response, generationId, cb) {
@@ -32,14 +33,22 @@ function render(request, response, generationId) {
 function responseXlsx(workbook, generationId, request, response) {
     var deferred = q.defer();
 
+    console.log("save");
     workbook.save(function (err) {
+
         if (request.options.preview) {
-            preview(request, response, generationId, function() {
+            preview(request, response, generationId, function () {
                 return deferred.resolve();
             });
         } else {
             render(request, response, generationId);
-            return deferred.resolve();
+            toArray(response.result, function (err, arr) {
+                if (err) {
+                    return deferred.reject(err);
+                }
+                response.result = Buffer.concat(arr);
+                return deferred.resolve();
+            });
         }
     });
 
@@ -47,7 +56,7 @@ function responseXlsx(workbook, generationId, request, response) {
 }
 
 module.exports = function (reporter, definition) {
-    reporter.xlsx = { responseXlsx: responseXlsx  };
+    reporter.xlsx = {responseXlsx: responseXlsx};
 
     reporter.extensionsManager.recipes.push({
         name: "xlsx",

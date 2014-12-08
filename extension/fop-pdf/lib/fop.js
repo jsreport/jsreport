@@ -9,9 +9,10 @@ var childProcess = require('child_process'),
     join = require("path").join,
     fs = require("fs"),
     _ = require("underscore"),
-    Q = require("q"),
+    q = require("q"),
     mkdirp = require('mkdirp'),
-    FS = require("q-io/fs");
+    FS = require("q-io/fs"),
+    toArray = require('stream-to-array');
 
 var Fop = module.exports = function(reporter) {
     if (!fs.existsSync(reporter.options.tempDirectory)) {
@@ -31,7 +32,7 @@ var Fop = module.exports = function(reporter) {
                 .then(function() { return FS.write(foFilePath, response.result); })
                 .then(function() { return FS.write(foFilePath, response.result); })
                 .then(function() {
-                    return Q.nfcall(function(cb) {
+                    return q.nfcall(function(cb) {
                         reporter.logger.info("Rastering pdf child process start.");
 
                         var childArgs = [
@@ -61,8 +62,11 @@ var Fop = module.exports = function(reporter) {
                             response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
                             response.isStream = true;
 
-                            reporter.logger.info("Rendering pdf end.");
-                            return cb(null, response);
+                            return q.nfcall(toArray, response.result).then(function (arr) {
+                                response.result = Buffer.concat(arr);
+                                reporter.logger.info("Rendering pdf end.");
+                                return cb(null, response);
+                            });
                         });
                     });
                 });
