@@ -72,7 +72,7 @@ module.exports = function (app, reporter) {
     app.post("/api/report", function (req, res, next) {
         req.template = req.body.template;
         req.data = req.body.data;
-        req.options = req.body.options;
+        req.options = req.body.options || {};
         req.options.isRootRequest = true;
 
         extend(true, req.headers,  req.body.headers);

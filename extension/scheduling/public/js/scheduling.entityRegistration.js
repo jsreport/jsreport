@@ -23,7 +23,8 @@ define([], function() {
             creationDate: {type: "date"},
             finishDate: {type: "date"},
             state: {type: "string"},
-            error: {type: "string"}
+            error: {type: "string"},
+            ping: {type: "date"}
         });
 
         $entity.Task.prototype.toString = function () {

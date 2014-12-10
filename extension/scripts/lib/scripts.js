@@ -7,18 +7,20 @@
 var shortid = require("shortid"),
     _ = require("underscore"),
     path = require("path"),
-    q = require("q");
+    q = require("q"),
+    extend = require("node.extend");
 
 var Scripts = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
+    this.definition.options.timeout = this.definition.options.timeout || 30000;
 
     this._defineEntities();
 
     this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.afterRenderListeners.add(definition.name, this, Scripts.prototype.handleAfterRender);
 
-    this.allowedModules = ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
+    this.allowedModules = this.definition.options.allowedModules || ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
 };
 
 Scripts.prototype.create = function (context, script) {
@@ -31,7 +33,7 @@ Scripts.prototype.create = function (context, script) {
 
 Scripts.prototype.handleAfterRender = function (request, response) {
     if (!request.parsedScript)
-        return;
+        return q();
 
     var self = this;
 
@@ -54,10 +56,10 @@ Scripts.prototype.handleAfterRender = function (request, response) {
                 }
             },
             execModulePath: path.join(__dirname, "scriptEvalChild.js"),
-            timeout: 60000
+            timeout: self.definition.options.timeout
         }).then(function (body) {
             response.headers = body.response.headers;
-            //response.result = body.response.content;
+            response.result = new Buffer(body.response.content);
         });
 };
 
@@ -97,21 +99,38 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                 method: "beforeRender",
                 request: {
                     data: request.data,
-                    template: {
-                        content: request.template.content,
-                        helpers: request.template.helpers
-                    },
+                    template: request.template,
                     headers: request.headers
                 },
                 response: response
             },
             execModulePath: path.join(__dirname, "scriptEvalChild.js"),
-            timeout: 60000
+            timeout: self.definition.options.timeout
         }).then(function(body) {
-            request.data = body.request.data;
-            request.template.content = body.request.template.content;
-            request.template.helpers = body.request.template.helpers;
+            if (body.cancelRequest) {
+                var error = new Error("Rendering request canceled  from the script " + body.additionalInfo);
+                error.weak = true;
+                return q.reject(error);
+            }
+            if (!body.shouldRunAfterRender) {
+                request.parsedScript = null;
+            }
 
+            function merge(obj, obj2) {
+                for (var key in obj2) {
+                    if (typeof obj2[key] === undefined)
+                        continue;
+
+                    if (typeof obj2[key] !== 'object') {
+                        obj[key] = obj2[key];
+                    } else {
+                        merge(obj[key], obj2[key]);
+                    }
+                }
+            }
+            console.log(body.request.template.content);
+
+            merge(request, body.request);
             return response;
         });
     });

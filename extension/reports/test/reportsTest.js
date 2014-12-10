@@ -15,7 +15,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "express", "repo
         it('should insert report to storage', function(done) {
 
             var request = {
-                options: { recipe: "html", saveResult: true },
+                options: { recipe: "html", saveResult: true, isRootRequest: true },
                 context: reporter.context,
                 reporter: reporter,
                 template: {

@@ -27,6 +27,9 @@ page.onLoadFinished = function(status) {
         var tableOut = { rows: [] };
         var table = document.querySelector("table");
 
+        if (!table)
+            return tableOut;
+
         for (var r = 0, n = table.rows.length; r < n; r++) {
             var row = [];
             tableOut.rows.push(row);

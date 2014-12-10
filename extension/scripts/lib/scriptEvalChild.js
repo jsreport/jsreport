@@ -16,16 +16,35 @@
         throw new Error("Unsupported module " + moduleName);
     };
 
+    req.body.request.cancel = function(e) {
+        res.send({
+            cancelRequest: true,
+            additionalInfo: e
+        });
+    };
 
     var sandbox = {
         request: req.body.request,
         response: req.body.response,
         require: _require,
+        setTimeout: setTimeout,
         Buffer: Buffer,
+        doneMethods: function(err){
+            res.send({
+                request: req.body.request,
+                response: req.body.response,
+                shouldRunAfterRender: true,
+                error: err ? {
+                    message: err.message,
+                    stack: err.stack
+                } : undefined
+            });
+        },
         done: function (err) {
             res.send({
                 request: req.body.request,
                 response: req.body.response,
+                shouldRunAfterRender: false,
                 error: err ? {
                     message: err.message,
                     stack: err.stack
@@ -35,8 +54,8 @@
         }
     };
 
-    var runBeforeRender = "\nif (typeof beforeRender === 'function') { beforeRender(done); } else { done(); }";
-    var runAfterRender = "\nif (typeof afterRender === 'function') { afterRender(done); } else { done(); }";
+    var runBeforeRender = "\nif (typeof beforeRender === 'function') { beforeRender(doneMethods); } else { if (typeof afterRender === 'function') doneMethods(); }";
+    var runAfterRender = "\nif (typeof afterRender === 'function') { afterRender(doneMethods); } else { done(); }";
 
     vm.runInNewContext(req.body.script + (req.body.method === "beforeRender" ? runBeforeRender : runAfterRender), sandbox);
 };
