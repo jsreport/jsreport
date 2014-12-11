@@ -77,6 +77,7 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                 },
 
                 onDomRefresh: function () {
+                    var self = this;
                     this.contentEditor = ace.edit("htmlArea");
                     this.contentEditor.setTheme("ace/theme/chrome");
                     this.contentEditor.getSession().setMode("ace/mode/handlebars");
@@ -87,7 +88,11 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                     this.helpersEditor.getSession().setMode("ace/mode/javascript");
                     aceBinder(this.model, "helpers", this.helpersEditor);
 
-                    this.$el.find(".split-pane").splitPane();
+                    this.$el.find(".split-pane").splitPane().on("resizing-start", function() {
+                        self.$el.find("#frameOverlay").css("z-index", "2");
+                    }).on("resizing-finish", function() {
+                        self.$el.find("#frameOverlay").css("z-index", "0");
+                    });
 
                     if (this.renderExtensionsMenuContext)
                         this.renderExtensionsMenuContext.trigger("after-render", this.$el);

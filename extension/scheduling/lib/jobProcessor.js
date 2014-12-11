@@ -65,7 +65,7 @@ JobProcessor.prototype.process = function (options) {
     var self = this;
     options = options || {};
 
-    if (this.currentlyRunningTasks.length >= this.options.maxJobs) {
+    if (this.currentlyRunningTasks.length >= this.options.maxParallelJobs) {
         return q();
     }
 
@@ -95,7 +95,7 @@ JobProcessor.prototype.process = function (options) {
 JobProcessor.prototype.processOne = function (schedule, task, context) {
     var self = this;
 
-    if (this.currentlyRunningTasks.length >= this.options.maxJobs) {
+    if (this.currentlyRunningTasks.length >= this.options.maxParallelJobs) {
         return;
     }
 

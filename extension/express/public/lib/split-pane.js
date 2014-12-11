@@ -14,13 +14,14 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
         var $splitPanes = this;
         $splitPanes.each(setMinHeightAndMinWidth);
         $splitPanes.append('<div class="split-pane-resize-shim">');
-        $splitPanes.children('.split-pane-divider').bind('mousedown', mousedownHandler);
+        $splitPanes.children('.split-pane-divider').bind('mousedown', mousedownHandler(this));
         setTimeout(function () {
             // Doing this later because of an issue with Chrome (v23.0.1271.64) returning split-pane width = 0
             // and triggering multiple resize events when page is being opened from an <a target="_blank"> .
             $splitPanes.bind('_splitpaneparentresize', parentresizeHandler);
             $(window).trigger('resize');
         }, 100);
+        return this;
     };
 
     var SPLITPANERESIZE_HANDLER = '_splitpaneparentresizeHandler';
@@ -63,15 +64,21 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
         }
     }
 
-    function mousedownHandler(event) {
-        event.preventDefault();
-        var $resizeShim = $(this).siblings('.split-pane-resize-shim').show(),
-			mousemove = createMousemove($(this).parent(), event.pageX, event.pageY);
-        $(document).mousemove(mousemove);
-        $(document).one('mouseup', function (event) {
-            $(document).unbind('mousemove', mousemove);
-            $resizeShim.hide();
-        });
+    function mousedownHandler(splitPane) {
+        return function(event) {
+            event.preventDefault();
+            $(window).trigger("split-pane-resizing-start");
+            splitPane.trigger("resizing-start");
+            var $resizeShim = $(this).siblings('.split-pane-resize-shim').show(),
+                mousemove = createMousemove($(this).parent(), event.pageX, event.pageY);
+            $(document).mousemove(mousemove);
+            $(document).one('mouseup', function (event) {
+                splitPane.trigger("resizing-finish");
+                $(window).trigger("split-pane-resizing-finish");
+                $(document).unbind('mousemove', mousemove);
+                $resizeShim.hide();
+            });
+        };
     }
 
     function parentresizeHandler() {
@@ -145,7 +152,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
             return function (event) {
                 event.preventDefault();
                 var top = Math.min(Math.max(firstComponentMinHeight, topOffset + event.pageY), maxFirstComponentHeight);
-                setTop($splitPane, $firstComponent, $divider, $lastComponent, top + 'px')
+                setTop($splitPane, $firstComponent, $divider, $lastComponent, top + 'px');
             };
         } else if ($splitPane.is('.fixed-bottom')) {
             var lastComponentMinHeight = minHeight($lastComponent),
@@ -182,7 +189,7 @@ https://raw.github.com/shagstrom/split-pane/master/LICENSE
             return function (event) {
                 event.preventDefault();
                 var right = Math.min(Math.max(lastComponentMinWidth, rightOffset - event.pageX), maxLastComponentWidth);
-                setRight($splitPane, $firstComponent, $divider, $lastComponent, right + 'px');
+                setRight($splitPane, $firstComponent, $divider, $lastComponent, right + 5 + 'px');
             };
         } else if ($splitPane.is('.vertical-percent')) {
             var splitPaneWidth = $splitPane.width(),

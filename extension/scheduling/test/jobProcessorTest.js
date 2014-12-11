@@ -31,7 +31,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
 
                     var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
                         interval: 50,
-                        maxJobs: 1
+                        maxParallelJobs: 1
                     });
                     return jobProcessor.process({waitForJobToFinish: true}).then(function () {
                         return context.tasks.toArray().then(function (tasks) {
@@ -45,7 +45,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
             }).catch(done);
         });
 
-        it('should not cross maxJobs', function (done) {
+        it('should not cross maxParallelJobs', function (done) {
             this.timeout(2000);
             reporter.scheduling.stop();
 
@@ -65,7 +65,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
 
                 var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
                     interval: 50,
-                    maxJobs: 0
+                    maxParallelJobs: 0
                 });
                 return jobProcessor.process({waitForJobToFinish: true}).then(function () {
                     counter.should.be.exactly(0);
@@ -100,7 +100,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
 
                     var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
                         interval: 20,
-                        maxJobs: 1,
+                        maxParallelJobs: 1,
                         taskPingTimeout: 10
                     });
 
@@ -137,7 +137,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
 
                         var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
                             interval: 20,
-                            maxJobs: 1
+                            maxParallelJobs: 1
                         });
                         jobProcessor.currentlyRunningTasks.push(task);
                         return jobProcessor.process({waitForJobToFinish: true}).then(function () {

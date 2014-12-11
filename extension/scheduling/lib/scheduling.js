@@ -121,7 +121,7 @@ module.exports = function (reporter, definition) {
 
     definition.options = _.extend({
         interval: 5000,
-        maxJobs: 5
+        maxParallelJobs: 5
     }, definition.options);
 
     if (!jobProcessor) {

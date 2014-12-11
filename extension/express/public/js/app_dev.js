@@ -4,6 +4,7 @@
 
 define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "deferred", "jsrender.bootstrap"],
     function($, Backbone, Marionette, async, Utils, ListenerCollection) {
+      
     var app = new Marionette.Application();
     app.serverUrl = jsreport_server_url || "/";
     app.onStartListeners = new ListenerCollection();
@@ -28,6 +29,10 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                 xhr.setRequestHeader(key, app.options.headers[key]);
             }
             settings.url += "&studio=" + app.options.studio;
+        },
+        error: function(xhr, status, err) {
+            console.log(status);
+            console.log(err);
         }
     });
 
@@ -54,7 +59,7 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                     return cb(null, null);
                 }
 
-                $.getJSON(app.serverUrl + "html-templates", function(templates) {
+                $.getJSON(app.serverUrl + "html-templates", function(templates) {                 
                     localStorage.setItem("templates-" + jsreport_bust, JSON.stringify(templates));
                     compileTemplates(templates);
                     cb(null, null);
@@ -75,19 +80,19 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
             function(cb) {
                 app.reloadSettings(cb);
             }
-        ], function() {
+        ], function() {            
             require(["core/menu.view", "layout", "core/extensions/module", "core/backbone.sync", "core/dataContext",
                     "core/basicModel", "core/settingsCollection", "core/introduction"],
                 function(MenuView, Layout, extensions, sync, odata, BasicModel) {
                     app.extensions.init(function() {
                         function startApp() {
                             app.layout = new Layout();
-
+                           
                             odata(app, function(cx) {
                                 app.dataContext = cx;
                                 app.onStartListeners.fire(function() {
-                                    app.layout.hideLoader();
                                     app.layout.render();
+                                    app.layout.hideLoader();
 
                                     if (app.options.studio !== "embed") {
                                         app.layout.menu.show(new MenuView({model: new BasicModel(app.settings)}));

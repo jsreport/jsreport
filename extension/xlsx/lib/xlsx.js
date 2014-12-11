@@ -14,7 +14,12 @@ function preview(request, response, generationId, cb) {
     var req = httpRequest.post("http://jsreport.net/temp", function (err, resp, body) {
         response.headers["File-Extension"] = "html";
         response.result = "<iframe style='height:100%;width:100%' src='https://view.officeapps.live.com/op/view.aspx?src=" + encodeURIComponent("http://jsreport.net/temp/" + body) + "' />";
-        cb();
+
+        //sometimes files is not completely flushed and excel online cannot find it immediately
+        setTimeout(function() {
+            cb();
+        }, 500);
+
     });
 
     var form = req.form();
