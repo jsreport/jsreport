@@ -50,6 +50,7 @@ Templating.prototype.handleBeforeRender = function (request, response) {
     return findPromise.then(function (template) {
         extend(true, template, request.template);
         request.template = template;
+        request.template.content = request.template.content || "";
     }, function () {
         throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
     });

@@ -30,7 +30,7 @@ var service = webserver.listen('127.0.0.1:' + port, function (req, res) {
 
             //potentially dangerous request
             if (request.url.lastIndexOf("file:///", 0) === 0 && !body.options.allowLocalFilesAccess) {
-                networkRequest.changeUrl(request.url.replace("file:///", "http://"));
+                networkRequest.abort();
                 return;
             }
 

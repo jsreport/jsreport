@@ -38,7 +38,6 @@ function render(request, response, generationId) {
 function responseXlsx(workbook, generationId, request, response) {
     var deferred = q.defer();
 
-    console.log("save");
     workbook.save(function (err) {
 
         if (request.options.preview) {

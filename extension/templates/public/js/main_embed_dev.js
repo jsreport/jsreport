@@ -37,8 +37,12 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                 },
 
                 initialize: function() {
-                    _.bindAll(this, "renderExtensionsMenu");
+                    _.bindAll(this, "renderExtensionsMenu", "getViewOptions");
                     this. beforeRenderListeners = new ListenerCollection();
+                },
+
+                getViewOptions: function () {
+                    return this.viewOptions;
                 },
 
                 basicSettings: function () {
@@ -111,11 +115,12 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
 
             app.on("open-template", function(options) {
                 var view = new View({ model: new TemplateModel(options.template, { parse: true})});
+                view.viewOptions = options;
                 view.model.on("change", function() {
                     $.extend(options.template, view.model.toJSON());
                 });
 
-                if (options.fetch) {
+                if (options.fetch && options.template.shortid) {
                     view.model.fetch({
                         success: function () {
                             app.layout.content.show(view);

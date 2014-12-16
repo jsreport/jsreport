@@ -46,12 +46,8 @@ The easiest way how to contribute to jsreport open source community is to implem
 
 ##Roadmap
 
-Features for the next release planned to January:
-
 - java sdk
 - azure, google and amazon VM images
-- scheduled reports
-- scripts can run after report rendering and send email for example
 - angular plugin 
 - improved documentation and examples
 
@@ -73,4 +69,5 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see http://www.gnu.org/licenses/agpl-3.0.html.
+
 

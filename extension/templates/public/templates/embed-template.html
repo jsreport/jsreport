@@ -1,8 +1,8 @@
 <nav class="navbar navbar-fixed-top not-responsive" role="navigation">
     <div class="navbar-header submenu">
         <ul class="nav navbar-nav sub-header" id="extensionsToolbarBox">
-            <li><a id="logo" class="brand"/></li>
-            {{if #data.shortid}}
+            <li><a id="logo" class="brand" style="background: url('{{:~getServerUrl()}}img/js-logo.png') no-repeat;"/></li>
+            {{if getViewOptions().fetch !== false}}
             <li><a id="saveCommand"><i class="fa fa-save"></i>Save</a></li>
             {{else}}
             {{/if}}
