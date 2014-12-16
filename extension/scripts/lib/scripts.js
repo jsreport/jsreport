@@ -121,14 +121,13 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                     if (typeof obj2[key] === undefined)
                         continue;
 
-                    if (typeof obj2[key] !== 'object') {
+                    if (typeof obj2[key] !== 'object' || typeof obj[key] === 'undefined') {
                         obj[key] = obj2[key];
                     } else {
                         merge(obj[key], obj2[key]);
                     }
                 }
             }
-            console.log(body.request.template.content);
 
             merge(request, body.request);
             return response;

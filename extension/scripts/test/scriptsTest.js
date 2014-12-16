@@ -30,7 +30,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
             });
         }
 
-        it('shoulb be able to modify request.data', function (done) {
+        it('should be able to modify request.data', function (done) {
             prepareRequest("request.data = 'xxx'; done()").then(function (res) {
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
                     assert.equal('xxx', res.request.data);
@@ -39,7 +39,16 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
             }).catch(done);
         });
 
-        it('shoulb be able to modify request.template.content', function (done) {
+        it('should be able to modify complex request.data', function (done) {
+            prepareRequest("request.data = { a: 'xxx' }; done()").then(function (res) {
+                return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
+                    assert.equal('xxx', res.request.data.a);
+                    done();
+                });
+            }).catch(done);
+        });
+
+        it('should be able to modify request.template.content', function (done) {
             prepareRequest("request.template.content = 'xxx'; done()").then(function (res) {
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
                     assert.equal('xxx', res.request.template.content);
@@ -47,7 +56,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
             }).fin(done);
         });
 
-        it('shoulb be able to use linked modules', function (done) {
+        it('should be able to use linked modules', function (done) {
             var scriptContent = "var h = require('handlebars'); " +
                 "var compiledTemplate = h.compile('foo'); " +
                 "request.template.content = compiledTemplate();" +
@@ -61,7 +70,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
             }).catch(done);
         });
 
-        it('shoulb not be able to read local files', function (done) {
+        it('should not be able to read local files', function (done) {
             var scriptContent = "var fs = require('fs'); " +
                 "fs.readdir('d:\', function(err, files) { response.filesLength = files.length; done(); });";
 
