@@ -2,6 +2,7 @@
 
 var assert = require("assert"),
     path = require("path"),
+    should = require("should"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     q = require("q");
 
@@ -129,6 +130,20 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                     done(new Error('no error was thrown when it should have been'));
                 });
             }).catch(function() {
+                done();
+            });
+        });
+
+        it('should propagate exception from async back', function (done) {
+            prepareRequest("setTimeout(function() { foo; }, 0);").then(function (res) {
+                return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
+                    done(new Error('no error was thrown when it should have been'));
+                });
+            }).catch(function(e) {
+                try {
+                    e.message.should.containEql("foo");
+                }
+                catch(e) { return done(e);}
                 done();
             });
         });
