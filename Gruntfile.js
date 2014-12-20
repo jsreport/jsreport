@@ -147,7 +147,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/indexTest.js']
+                src: ['extension/scripts/test/*.js']
             },
             integration: {
                 options: {
@@ -214,7 +214,7 @@ module.exports = function (grunt) {
             dist: {
                 src: ['extension/client-html/public/js/handlebars.min.js', 'extension/client-html/public/js/jsrender.min.js',
                     'extension/client-html/public/js/client.render.js'],
-                dest: 'extension/client-html/public/render.js'
+                dest: 'extension/client-html/public/js/client-html.js'
             }
         }
     });

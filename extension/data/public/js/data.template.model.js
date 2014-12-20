@@ -55,7 +55,7 @@
         },
         
         apiOverride: function(addProperty) {
-            addProperty("dataItemId", this.get("shortid"));
+            addProperty("data", { "shortid": this.get("shortid"), "dataJson": "{\'foo\' : \'...\' }" });
         },
 
         initialize: function () {

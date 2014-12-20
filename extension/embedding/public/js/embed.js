@@ -11,7 +11,7 @@ var jsreport = (function (global, jQuery, undefined) {
 
     function JsReport() {
         this.serverUrl = document.getElementById("jsreport-embedding") ?
-            document.getElementById("jsreport-embedding").src.replace("/extension/embedding/public/embed.js", "") :
+            document.getElementById("jsreport-embedding").src.replace("/extension/embedding/public/js/embed.js", "") :
             window.location;
 
         this.jsreportIFrame = $("<iframe frameborder='0' style='position: absolute; display: none; left:100px;top: 100px; z-index:1000'></iframe>");
@@ -22,6 +22,46 @@ var jsreport = (function (global, jQuery, undefined) {
         this.options = {};
     }
 
+    function JsReportEditorHandle(app) {
+
+    }
+
+    JsReportEditorHandle.prototype.init = function (app) {
+        var self = this;
+        app.on("close", function () {
+            _close.call(jsreport);
+            self.emit("close");
+        }).on("full-screen", function () {
+            _fullScreen.call(jsreport);
+        }).on("small-screen", function () {
+            _smallScreen.call(jsreport);
+        }).on("template-change", function (tmpl) {
+            self.emit("template-change", tmpl);
+        });
+    };
+
+    var MicroEvent = {
+        on: function (event, fct) {
+            this._events = this._events || {};
+            this._events[event] = this._events[event] || [];
+            this._events[event].push(fct);
+            return this;
+        },
+        off: function (event, fct) {
+            this._events = this._events || {};
+            if (event in this._events === false) return;
+            this._events[event].splice(this._events[event].indexOf(fct), 1);
+            return this;
+        },
+        emit: function (event /* , args... */) {
+            this._events = this._events || {};
+            if (event in this._events === false) return;
+            for (var i = 0; i < this._events[event].length; i++) {
+                this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+            }
+            return this;
+        }
+    };
 
     function _loadTemplate(shortid, cb) {
         $.ajax({
@@ -41,10 +81,10 @@ var jsreport = (function (global, jQuery, undefined) {
         });
     }
 
-    function _serverSideRender($placeholder, template) {
+    function _serverSideRender(target, template) {
 
         var mapForm = document.createElement("form");
-        mapForm.target = $placeholder ? template.shortid : "_blank";
+        mapForm.target = target ? target : "_blank";
         mapForm.id = template.shortid;
         mapForm.method = "POST";
         mapForm.action = this.serverUrl + "/api/report";
@@ -81,56 +121,29 @@ var jsreport = (function (global, jQuery, undefined) {
         $("#" + template.shortid).remove();
     }
 
-    function _addEditButton($placeholder, template, reload) {
+    function _openEditor(template, options) {
+
+        if (this._editorHandle) {
+            this._editorHandle.off();
+            delete this._editorHandle;
+        }
+
+        options = options || {};
+
+        template = $.extend(true, {}, template);
+
         var self = this;
 
-        var $edit = $("<div style='position: absolute; display:none; z-index: 100;background-color: #d3d3d3; padding:7px; cursor: pointer'><strong>edit</strong></div>");
-        var $editShim = $("<div style='position: absolute; display:none; z-index: 20'><iframe visible='true' height='35' width='43' frameborder='0'></iframe></div>");
-
-        $edit.css("left", $placeholder.position().left + $placeholder.outerWidth() - 100);
-        $edit.css("top", $placeholder.position().top + 20);
-        $editShim.css("left", $placeholder.position().left + $placeholder.outerWidth() - 100);
-        $editShim.css("top", $placeholder.position().top + 20);
-
-        $placeholder.append($edit);
-        $placeholder.append($editShim);
-
-        $edit.click(function () {
-            $placeholder.hide();
-
-            _openEditor.call(self,{shortid: template.shortid}, {}, function () {
-                $placeholder.show();
-                reload();
-            });
-        });
-
-        var visible = false;
-        $placeholder.hover(function () {
-            if (visible)
-                return;
-            visible = true;
-            $editShim.fadeIn();
-            $edit.fadeIn();
-
-            setTimeout(function () {
-                $edit.fadeOut();
-                $editShim.fadeOut();
-
-                visible = false;
-            }, 2000);
-        }, function () {
-        });
-    }
-
-    function _openEditor(template, options, onClose) {
-        var self = this;
         if (typeof template === 'string' || template instanceof String) {
             template = {
                 shortid: template
             };
         }
 
-        options = $.extend({fetch: true}, options);
+        if (template.data && typeof template.data.dataJson !== 'string') {
+            template.data.dataJson = JSON.stringify(template.data.dataJson);
+        }
+
         $(".jsreport-backdrop").show();
 
         this.jsreportIFrame.css("width", ($(window).width() - 200) + "px");
@@ -140,52 +153,39 @@ var jsreport = (function (global, jQuery, undefined) {
 
         this.template = template;
 
+        this._editorHandle = new JsReportEditorHandle();
+
         this.jsreportIFrame.show();
         _ensureIframeLoaded.call(this, function () {
             options.template = template;
             self.app.trigger("open-template", options);
-
-            var timer = setInterval(function () {
-                var closeButton = self.jsreportIFrame.contents().find("#closeCommand");
-
-                if (closeButton.length) {
-                    closeButton.on("click", function () {
-                        closeButton.off("click");
-                        self.jsreportIFrame.hide();
-                        $(".jsreport-backdrop").hide();
-
-                        if (onClose)
-                            onClose();
-                    });
-
-                    var fullScreenButton = self.jsreportIFrame.contents().find("#fullScreenCommand");
-                    fullScreenButton.on("click", function () {
-                        smallScreenButton.show();
-                        fullScreenButton.hide();
-                        self.jsreportIFrame.css("left", "0px");
-                        self.jsreportIFrame.css("top", "0px");
-                        self.jsreportIFrame.css("right", "0px");
-                        self.jsreportIFrame.css("bottom", "0px");
-                        self.jsreportIFrame.css("width", ($(window).width()) + "px");
-                        self.jsreportIFrame.css("height", ($(window).height()) + "px");
-                    });
-
-                    var smallScreenButton = self.jsreportIFrame.contents().find("#smallScreenCommand");
-                    smallScreenButton.on("click", function () {
-                        fullScreenButton.show();
-                        smallScreenButton.hide();
-                        self.jsreportIFrame.css("left", "100px");
-                        self.jsreportIFrame.css("top", "100px");
-                        self.jsreportIFrame.css("right", null);
-                        self.jsreportIFrame.css("bottom", null);
-                        self.jsreportIFrame.css("width", ($(window).width() - 200) + "px");
-                        self.jsreportIFrame.css("height", ($(window).height() - 200) + "px");
-                    });
-
-                    clearInterval(timer);
-                }
-            }, 200);
+            self._editorHandle.init(self.app);
         });
+
+        return this._editorHandle;
+    }
+
+    function _close() {
+        this.jsreportIFrame.hide();
+        $(".jsreport-backdrop").hide();
+    }
+
+    function _fullScreen() {
+        this.jsreportIFrame.css("left", "0px");
+        this.jsreportIFrame.css("top", "0px");
+        this.jsreportIFrame.css("right", "0px");
+        this.jsreportIFrame.css("bottom", "0px");
+        this.jsreportIFrame.css("width", ($(window).width()) + "px");
+        this.jsreportIFrame.css("height", ($(window).height()) + "px");
+    }
+
+    function _smallScreen() {
+        this.jsreportIFrame.css("left", "100px");
+        this.jsreportIFrame.css("top", "100px");
+        this.jsreportIFrame.css("right", null);
+        this.jsreportIFrame.css("bottom", null);
+        this.jsreportIFrame.css("width", ($(window).width() - 200) + "px");
+        this.jsreportIFrame.css("height", ($(window).height() - 200) + "px");
     }
 
     function _ensureIframeLoaded(cb) {
@@ -215,6 +215,34 @@ var jsreport = (function (global, jQuery, undefined) {
         });
     }
 
+    jQuery.cachedScript = function (url, options) {
+        options = $.extend(options || {}, {
+            dataType: "script",
+            cache: true,
+            url: url
+        });
+
+        return jQuery.ajax(options);
+    };
+
+    var _ensureCallbacks = [];
+    function _ensureClientHtmlLoaded(serverUrl, cb) {
+        if (jsreport.recipes["client-html"]) {
+            return cb();
+        }
+
+        _ensureCallbacks.push(cb);
+
+        if (_ensureCallbacks.length > 1)
+            return;
+
+        $.cachedScript(serverUrl + "extension/client-html/public/js/client-html.js", {
+            success: function () {
+                _ensureCallbacks.forEach(function (c) { c(); });
+            }
+        });
+    }
+
     function _render($placeholder, template) {
         var self = this;
 
@@ -231,30 +259,28 @@ var jsreport = (function (global, jQuery, undefined) {
             };
         }
 
-        if (template.data) {
-            template.data = {dataJson: JSON.stringify(template.data)};
+        template = $.extend(true, {}, template);
+
+        if (template.data && typeof template.data.dataJson !== 'string') {
+            template.data.dataJson = JSON.stringify(template.data.dataJson);
         }
 
         function renderFn(loadedTemplate) {
             if (!loadedTemplate)
                 return alert("Template was not found or user doesn't have a granted access to it.");
 
+            var frameId = loadedTemplate.shortid || new Date().getTime();
             if ($placeholder) {
-                var iframe = $("<iframe frameborder='0' name='" + loadedTemplate.shortid + "' style='width:100%;height:100%;z-index: 50'></iframe>");
+                var iframe = $("<iframe frameborder='0' name='" + frameId + "' style='width:100%;height:100%;z-index: 50'></iframe>");
                 $placeholder.append(iframe);
             }
 
-            if (self.recipes["client-html"]) {
-                self.recipes["client-html"]({ template: loadedTemplate}, loadedTemplate.shortid);
-            } else {
-                _serverSideRender.call(self, $placeholder, template);
-            }
-
-            if ($placeholder) {
-                _addEditButton.call(self, $placeholder, loadedTemplate, function () {
-                    _render.call(self, $placeholder, template);
-                    self.onClose();
+            if (template.recipe === "client-html") {
+                _ensureClientHtmlLoaded(self.serverUrl, function () {
+                    self.recipes["client-html"]({ template: loadedTemplate }, frameId);
                 });
+            } else {
+                _serverSideRender.call(self, frameId, template);
             }
         }
 
@@ -283,33 +309,35 @@ var jsreport = (function (global, jQuery, undefined) {
         this.waitingCb();
     }
 
-
     JsReport.prototype = {
-        renderAll: function() {
+        renderAll: function () {
             _renderAll.call(this);
         },
-        render: function($placeholder, template) {
+        render: function ($placeholder, template) {
             _render.call(this, $placeholder, template);
         },
-        openEditor: function(template, options, onClose) {
-            _openEditor.call(this, template, options, onClose);
+        openEditor: function (template, options) {
+            return _openEditor.call(this, template, options);
         },
-        setClientContext: function(context) {
+        setClientContext: function (context) {
             this.context = context;
         },
-        onClose: function() {
+        onClose: function () {
         },
-        onLoaded: function(app) {
-            _onLoaded.call(this, app);
+        _onLoaded: function (app) {
+            return _onLoaded.call(this, app);
         }
     };
 
+    jQuery.extend(JsReport.prototype, MicroEvent);
+    jQuery.extend(JsReportEditorHandle.prototype, MicroEvent);
+
     var jsreport = new JsReport();
 
-    setTimeout(function(){
+    setTimeout(function () {
         if (window.jsreportInit !== undefined)
             jsreportInit(jsreport);
-        }, 0);
+    }, 0);
 
     return jsreport;
 

@@ -87,7 +87,7 @@ var clientRender = (function (global, jQuery, undefined) {
     return function(request, target, selector) {
         request.target = target;
         request.selector = selector;
-        requestList[request.template.shortid] = request;
+        requestList[target] = request;
 
         var $iframe = $("iframe[name='" + target + "']");
 
@@ -109,7 +109,7 @@ var clientRender = (function (global, jQuery, undefined) {
         }
 
         output = "<script>" +
-            "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + request.template.shortid + "', selector, data); };" +
+            "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
             "window.jsreport.context = parent.jsreport.context;" +
             "</script>" + output;
 

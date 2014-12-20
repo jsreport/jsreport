@@ -24,6 +24,23 @@ var useDomainMiddleware = function(reporter, req, res) {
     return require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
 };
 
+var startAsync = function(reporter, server, port) {
+    var defer = q.defer();
+
+    server.on('error', function (e) {
+        reporter.logger.error("Error when starting http server on port " + port + " " + e.stack);
+        defer.reject(e);
+    }).on("listen", function() {
+        defer.resolve();
+    });
+
+    server.listen(port, function () {
+        defer.resolve();
+    });
+
+    return defer.promise;
+};
+
 var startExpressApp = function(reporter, app, config) {
     //no port, use process.env.PORT, this is used when hosted in iisnode
     if (!config.httpPort && !config.httpsPort) {
@@ -33,11 +50,9 @@ var startExpressApp = function(reporter, app, config) {
 
     //just http port is specified, lets start server on http
     if (!config.httpsPort) {
-        reporter.express.server = http.createServer(function(req, res) { useDomainMiddleware(reporter, req, res); }).on('error', function (e) {
-            console.error("Error when starting http server on port " + config.httpPort + " " + e.stack);
-        });
+        reporter.express.server = http.createServer(function(req, res) { useDomainMiddleware(reporter, req, res); });
 
-        return q.ninvoke(reporter.express.server, 'listen', config.httpPort);
+        return startAsync(reporter, reporter.express.server, config.httpPort);
     }
 
     //http and https port specified
@@ -66,11 +81,9 @@ var startExpressApp = function(reporter, app, config) {
         rejectUnauthorized: false //support invalid certificates
     };
 
-    reporter.express.server = https.createServer(credentials, function(req, res) { useDomainMiddleware(reporter, req, res); }).on('error', function (e) {
-        console.error("Error when starting https server on port " + config.httpsPort + " " + e.stack);
-    });
+    reporter.express.server = https.createServer(credentials, function(req, res) { useDomainMiddleware(reporter, req, res); });
 
-    return q.ninvoke(reporter.express.server, 'listen', config.httpsPort);
+    return startAsync(reporter, reporter.express.server, config.httpsPort);
 };
 
 var configureExpressApp = function(app, reporter, definition){
@@ -83,9 +96,9 @@ var configureExpressApp = function(app, reporter, definition){
         })(req, res);
     });
 
-    app.use(bodyParser.urlencoded({ extended: true,  limit: definition.options.inputRequestLimit || "2mb"}));
+    app.use(bodyParser.urlencoded({ extended: true,  limit: definition.options.inputRequestLimit || "20mb"}));
     app.use(bodyParser.json({
-        limit: definition.options.inputRequestLimit || "2mb"
+        limit: definition.options.inputRequestLimit || "20mb"
     }));
 
     app.set('views', path.join(__dirname, '../public/views'));
@@ -99,15 +112,6 @@ var configureExpressApp = function(app, reporter, definition){
     routes(app, reporter);
 
     reporter.emit("express-configure", app);
-
-    if (reporter.options.httpsPort)
-        reporter.logger.info("jsreport server successfully started on https port: " + reporter.options.httpsPort);
-
-    if (reporter.options.httpPort)
-        reporter.logger.info("jsreport server successfully started on http port: " + reporter.options.httpPort);
-
-    if (!reporter.options.httpPort && !reporter.options.httpsPort && reporter.express.server)
-        reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
 };
 
 module.exports = function(reporter, definition) {
@@ -120,13 +124,29 @@ module.exports = function(reporter, definition) {
     }
 
     reporter.initializeListener.add(definition.name, this, function() {
+
+        function logStart() {
+            if (reporter.options.httpsPort)
+                reporter.logger.info("jsreport server successfully started on https port: " + reporter.options.httpsPort);
+
+            if (reporter.options.httpPort)
+                reporter.logger.info("jsreport server successfully started on http port: " + reporter.options.httpPort);
+
+            if (!reporter.options.httpPort && !reporter.options.httpsPort && reporter.express.server)
+                reporter.logger.info("jsreport server successfully started on http port: " + reporter.express.server.address().port);
+        }
+
         if (definition.options.app) {
             reporter.logger.info("Configuring routes for existing express app.");
-            return configureExpressApp(app, reporter, definition);
+            configureExpressApp(app, reporter, definition);
+            logStart();
         }
 
         reporter.logger.info("Creating default express app.");
         configureExpressApp(app, reporter, definition);
-        return startExpressApp(reporter, app, reporter.options);
+
+        return startExpressApp(reporter, app, reporter.options).then(function() {
+            logStart();
+        });
     });
 };

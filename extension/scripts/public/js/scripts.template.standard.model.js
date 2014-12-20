@@ -56,7 +56,7 @@
         },
         
         apiOverride: function(addProperty) {
-             addProperty("scriptId", this.get("shortid"));
+             addProperty("script", { shortid: this.get("shortid"), content: '....' });
         },
 
         newCustomScript: function() {

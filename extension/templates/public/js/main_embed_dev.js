@@ -27,7 +27,10 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                 events: {
                     "click #saveCommand": "save",
                     "click #previewCommand": "preview",
-                    "click #basicSettingsCommand": "basicSettings"
+                    "click #basicSettingsCommand": "basicSettings",
+                    "click #smallScreenCommand": "smallScreen",
+                    "click #fullScreenCommand": "fullScreen",
+                    "click #closeCommand": "closeFrame"
                 },
 
                 regions: {
@@ -43,6 +46,22 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
 
                 getViewOptions: function () {
                     return this.viewOptions;
+                },
+
+                smallScreen: function () {
+                    $("#fullScreenCommand").show();
+                    $("#smallScreenCommand").hide();
+                    app.trigger("small-screen");
+                },
+
+                fullScreen: function () {
+                    $("#fullScreenCommand").hide();
+                    $("#smallScreenCommand").show();
+                    app.trigger("full-screen");
+                },
+
+                closeFrame: function () {
+                    app.trigger("close");
                 },
 
                 basicSettings: function () {
@@ -117,10 +136,10 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                 var view = new View({ model: new TemplateModel(options.template, { parse: true})});
                 view.viewOptions = options;
                 view.model.on("change", function() {
-                    $.extend(options.template, view.model.toJSON());
+                    app.trigger("template-change", view.model.toJSON());
                 });
 
-                if (options.fetch && options.template.shortid) {
+                if (options.useStandardStorage && options.template.shortid) {
                     view.model.fetch({
                         success: function () {
                             app.layout.content.show(view);

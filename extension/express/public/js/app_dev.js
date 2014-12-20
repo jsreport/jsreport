@@ -104,7 +104,7 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                                         app.trigger("open-template", { template: {}});
 
                                         if (window.parent && window.parent.jsreport)
-                                            window.parent.jsreport.onLoaded(app);
+                                            window.parent.jsreport._onLoaded(app);
                                     }
                                 });
                             });

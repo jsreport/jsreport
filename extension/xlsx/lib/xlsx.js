@@ -40,6 +40,10 @@ function responseXlsx(workbook, generationId, request, response) {
 
     workbook.save(function (err) {
 
+        if (err) {
+            return deferred.reject(err);
+        }
+
         if (request.options.preview) {
             preview(request, response, generationId, function () {
                 return deferred.resolve();

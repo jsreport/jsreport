@@ -5,12 +5,30 @@ var serveStatic = require("serve-static"),
     async = require("async"),
     dir = require("node-dir"),
     extend = require("node.extend"),
-    S = require("string");
+    S = require("string"),
+    fs = require("fs");
 
 var oneMonth = 31 * 86400000;
 
 module.exports = function (app, reporter) {
     var originalMode = reporter.options.mode;
+
+    //we need to change referenced fonts relative url to the absolute one because of embedded studio
+    app.get("/css/font-awesome/css/font-awesome.min.css", function (req, res, next) {
+        var options = getOptions(req);
+
+        fs.readFile(path.join(__dirname, "../", "public", "css", "font-awesome", "css", "font-awesome.min.css"), "utf8", function (error, data) {
+            if (error)
+                return next(error);
+
+            res.setHeader("Content-Type", "text/css");
+
+            if (!options.serverUrl || options.serverUrl === "/")
+                return res.send(data);
+
+            res.send(data.replace(new RegExp('../fonts/', 'g'), options.serverUrl + "css/font-awesome/fonts/"));
+        });
+    });
 
     app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
 

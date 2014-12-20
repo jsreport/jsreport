@@ -123,7 +123,7 @@ module.exports = function (reporter, definition) {
                             reporter.xlsx.responseXlsx(workbook, generationId, request, response).then(function() {
                                 deferred.resolve();
                             }).catch(function(e) {
-                                deferred.fail(e);
+                                deferred.reject(e);
                             });
                         });
                     });
