@@ -7,6 +7,6 @@ module.exports = function(req, res, next) {
         req: req,
         res: res,
         next: next
-    }
+    };
     vm.runInNewContext(req.body.script, sandbox);
 };

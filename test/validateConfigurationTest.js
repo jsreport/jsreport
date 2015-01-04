@@ -1,7 +1,7 @@
 /*globals describe, it, beforeEach, afterEach */
 
 var assert = require("assert"),
-    path = require("path");
+    path = require("path"),
     validate = require("../lib/configuration/validate.js");
 
 describe('validating configuration', function () {
@@ -57,7 +57,7 @@ describe('validating configuration', function () {
 
         assert.throws(function() {
             validate(configuration);
-        })
+        });
     });
 
     it('should fail without connection string name', function () {
@@ -72,6 +72,6 @@ describe('validating configuration', function () {
 
         assert.throws(function() {
             validate(configuration);
-        })
+        });
     });
 });

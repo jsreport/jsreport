@@ -18,6 +18,35 @@
         });
     });
 
+    describe('list', function() {
+        var originalDataContext;
+        var listView;
+        var listToolbarView;
+        var listModel;
+        var Model;
+        var app;
+
+        beforeEach(function (done) {
+            require(["app", "data/data.list.model", "data/data.list.view", "data/data.list.toolbar.view"],
+                function (_app, ListModel, ListView, ListToolbarView) {
+
+                app = _app;
+                var model = new ListModel();
+                listView = new ListView({ collection: model});
+                listToolbarView = new ListToolbarView({ collection: model });
+                app.layout.showToolbarViewComposition(listView, listToolbarView);
+
+                done();
+            });
+        });
+
+        //it("foo", function(done) {
+        //    listView.
+        //    done();
+        //});
+        //app.dataContext = {data: {toArray: sinon.stub().returns($.Deferred().resolve([]))}}
+    });
+
     describe('model', function () {
         var originalDataContext;
         var SUT;

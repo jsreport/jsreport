@@ -1,22 +1,20 @@
 /*globals describe, it, beforeEach, afterEach */
 
 var assert = require("assert"),
-    path = require("path");
-    bootstrapper = require("../lib/bootstrapper.js");
+    path = require("path"),
+    bootstrapper = require("../lib/bootstrapper.js"),
+    connectionString = require("./helpers.js").connectionString;
 
 describe('bootstrapper', function () {
 
-    //TODO!!
-//    it('should not fail', function (done) {
-//        bootstrapper({
-//            cluster: {
-//                numberOfWorkers : 2,
-//                enabled : false
-//            },
-//            connectionString: { name: "neDB"},
-//            rootDirectory: path.join(__dirname, "../")
-//        }).start().then(function() {
-//            done();
-//        }).catch(done);
-//    });
+    it('should not fail', function (done) {
+        this.timeout(5000);
+        bootstrapper({
+            connectionString: connectionString,
+            rootDirectory: path.join(__dirname, "../"),
+            extensions: ["templates"]
+        }).start().then(function() {
+            done();
+        }).catch(done);
+    });
 });
