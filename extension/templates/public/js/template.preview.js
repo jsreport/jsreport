@@ -88,6 +88,7 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
             headers["host-cookie"] = document.cookie;
             addBody("headers", headers);
 
+            app.trigger("preview-form-submit", mapForm);
             document.body.appendChild(mapForm);
             mapForm.submit();
             app.trigger("after-template-render");

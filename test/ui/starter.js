@@ -48,6 +48,7 @@ function ensureStarted(cb) {
 function startApplication(cb) {
 
     require(["app"], function (app) {
+
         //app.options.showIntro = false;
         app.on("after-start", function() {
             setTimeout(cb, 500);

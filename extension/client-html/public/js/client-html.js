@@ -104,8 +104,8 @@
         __exports__.isFunction = isFunction;
         /* istanbul ignore next */
         var isArray = Array.isArray || function(value) {
-                return (value && typeof value === 'object') ? toString.call(value) === '[object Array]' : false;
-            };
+            return (value && typeof value === 'object') ? toString.call(value) === '[object Array]' : false;
+        };
         __exports__.isArray = isArray;
 
         function escapeExpression(string) {
@@ -435,11 +435,11 @@
                     var runtimeVersions = REVISION_CHANGES[currentRevision],
                         compilerVersions = REVISION_CHANGES[compilerRevision];
                     throw new Exception("Template was precompiled with an older version of Handlebars than the current runtime. "+
-                    "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").");
+                        "Please update your precompiler to a newer version ("+runtimeVersions+") or downgrade your runtime to an older version ("+compilerVersions+").");
                 } else {
                     // Use the embedded version info since the runtime doesn't know about this revision yet
                     throw new Exception("Template was precompiled with a newer version of Handlebars than the current runtime. "+
-                    "Please update your runtime to a newer version ("+compilerInfo[1]+").");
+                        "Please update your runtime to a newer version ("+compilerInfo[1]+").");
                 }
             }
         }
@@ -1149,8 +1149,8 @@
                             last_line: this.yylineno+1,
                             first_column: this.yylloc.first_column,
                             last_column: lines ?
-                            (lines.length === oldLines.length ? this.yylloc.first_column : 0) + oldLines[oldLines.length - lines.length].length - lines[0].length:
-                            this.yylloc.first_column - len
+                                (lines.length === oldLines.length ? this.yylloc.first_column : 0) + oldLines[oldLines.length - lines.length].length - lines[0].length:
+                                this.yylloc.first_column - len
                         };
 
                         if (this.options.ranges) {
@@ -2629,9 +2629,9 @@
                 var helperName = this.lastHelper = this.nameLookup('helpers', name, 'helper');
 
                 this.push(
-                    '((helper = (helper = ' + helperName + ' || ' + nonHelper + ') != null ? helper : helperMissing'
-                    + (helper.paramsInit ? '),(' + helper.paramsInit : '') + '),'
-                    + '(typeof helper === functionType ? helper.call(' + helper.callParams + ') : helper))');
+                        '((helper = (helper = ' + helperName + ' || ' + nonHelper + ') != null ? helper : helperMissing'
+                        + (helper.paramsInit ? '),(' + helper.paramsInit : '') + '),'
+                        + '(typeof helper === functionType ? helper.call(' + helper.callParams + ') : helper))');
             },
 
             // [invokePartial]
@@ -2886,12 +2886,12 @@
 
             quotedString: function(str) {
                 return '"' + str
-                        .replace(/\\/g, '\\\\')
-                        .replace(/"/g, '\\"')
-                        .replace(/\n/g, '\\n')
-                        .replace(/\r/g, '\\r')
-                        .replace(/\u2028/g, '\\u2028')   // Per Ecma-262 7.3 + 7.8.4
-                        .replace(/\u2029/g, '\\u2029') + '"';
+                    .replace(/\\/g, '\\\\')
+                    .replace(/"/g, '\\"')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\r/g, '\\r')
+                    .replace(/\u2028/g, '\\u2028')   // Per Ecma-262 7.3 + 7.8.4
+                    .replace(/\u2029/g, '\\u2029') + '"';
             },
 
             objectLiteral: function(obj) {
@@ -2999,22 +2999,22 @@
         };
 
         var reservedWords = (
-        "break else new var" +
-        " case finally return void" +
-        " catch for switch while" +
-        " continue function this with" +
-        " default if throw" +
-        " delete in try" +
-        " do instanceof typeof" +
-        " abstract enum int short" +
-        " boolean export interface static" +
-        " byte extends long super" +
-        " char final native synchronized" +
-        " class float package throws" +
-        " const goto private transient" +
-        " debugger implements protected volatile" +
-        " double import public let yield"
-        ).split(" ");
+            "break else new var" +
+            " case finally return void" +
+            " catch for switch while" +
+            " continue function this with" +
+            " default if throw" +
+            " delete in try" +
+            " do instanceof typeof" +
+            " abstract enum int short" +
+            " boolean export interface static" +
+            " byte extends long super" +
+            " char final native synchronized" +
+            " class float package throws" +
+            " const goto private transient" +
+            " debugger implements protected volatile" +
+            " double import public let yield"
+            ).split(" ");
 
         var compilerWords = JavaScriptCompiler.RESERVED_WORDS = {};
 
@@ -3193,9 +3193,9 @@ var clientRender = (function (global, jQuery, undefined) {
         }
 
         output = "<script>" +
-        "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
-        "window.jsreport.context = parent.jsreport.context;" +
-        "</script>" + output;
+            "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
+            "window.jsreport.context = parent.jsreport.context;" +
+            "</script>" + output;
 
         $iframe.attr("src", "");
 

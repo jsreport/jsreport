@@ -38,6 +38,7 @@
     "jsreport_mode": true,
     "jsreport_studio": true,
     "jsreport_server_url": true,
-    "jsreport_main_app": true
+    "jsreport_main_app": true,
+    "Squire": true
   }
 }
