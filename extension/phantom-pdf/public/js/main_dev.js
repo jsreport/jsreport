@@ -34,7 +34,8 @@
                 'orientation': { 'type': 'Edm.String' },
                 'format': { 'type': "string" },
                 'width': { 'type': "string" },
-                'height': { 'type': "string" }
+                'height': { 'type': "string" },
+                'printDelay': { 'type': "int" }
             }, null);
             
             $entity.Template.addMember("phantom", { 'type': "$entity.Phantom" });

@@ -1,7 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
- * Extension allowing to run custom scripts and modify request before rendering process starts.
+ * Extension allowing to add custom javascript hooks into the rendering process.
  */
 
 var shortid = require("shortid"),

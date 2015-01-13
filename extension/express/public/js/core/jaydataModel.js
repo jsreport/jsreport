@@ -29,6 +29,18 @@ define(["backbone", "jquery", "app"], function (Backbone, $, app) {
         hasChangesSyncLastSync: function() {
             return this.lastChangedDate > this.lastSyncDate;
         },
+
+        toJSON: function () {
+            var self = this;
+            var json = Backbone.Model.prototype.toJSON.call(this);
+
+            $.each(json, function (name, value) {
+                if (value != null && value.initData)
+                    json[name] = value.toJSON();
+            });
+
+            return json;
+        },
         
         copyToEntity: function () {
             

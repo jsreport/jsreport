@@ -3,8 +3,8 @@
  */ 
 
 define(["jquery", "app", "marionette", "core/utils", "core/view.base", "underscore", "core/listenerCollection",
-        "./template.embed.dialog", "core/basicModel", "./template.preview"],
-    function($, app, Marionette, Utils, LayoutBase, _, ListenerCollection, EmbedDialog, BasicModel, preview) {
+        "core/basicModel", "./template.preview"],
+    function($, app, Marionette, Utils, LayoutBase, _, ListenerCollection, BasicModel, preview) {
         return LayoutBase.extend({
             template: "template-detail-toolbar",
             introTemplate: "template-detail-intro",
@@ -70,8 +70,7 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                 "click #saveCommand": "save",
                 "click #previewCommand": "preview",
                 "click #previewNewTabCommand": "previewNewPanel",
-                "click #apiHelpCommnand": "apiHelp",
-                "click #embedCommand": "embed"
+                "click #apiHelpCommnand": "apiHelp"
             },
 
             save: function(e) {
@@ -144,12 +143,10 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                 apiBox.setValue(JSON.stringify({ template: properties }, null, 2));
             },
 
-            embed: function() {
-                var model = new BasicModel(this.model.toJSON());
-                model.set({ fileInput: true, dataArea: true });
-                var dialog = new EmbedDialog({ model: model });
+            /*share: function() {
+                var dialog = new ShareDialog({ model: this.model });
                 app.layout.dialog.show(dialog);
-            },
+            },*/
 
             hotkey: function(e) {
                 if (e.ctrlKey && e.which === 83) {

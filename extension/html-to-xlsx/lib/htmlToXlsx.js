@@ -1,5 +1,8 @@
 ﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
+ *
+ * html-to-xlsx recipe transforms html into xlsx. The process is based on extracting html and css attributes
+ * using phantomjs and then assembling excel Open XML.
  */
 
 var path = require("path"),

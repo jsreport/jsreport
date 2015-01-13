@@ -1,5 +1,7 @@
 ﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
+ *
+ * text recipe simply just evaluates engines and return the defined content type.
  */ 
 
 module.exports  = function (reporter, definition) {

@@ -1,5 +1,7 @@
 ﻿/*! 
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
+ *
+ * xlsx recipe constructs excel by dynamic assembling of Open Xml
  */
 
 var path = require("path"),

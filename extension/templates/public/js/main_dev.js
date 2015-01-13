@@ -13,7 +13,7 @@ define(["jquery", "app", "marionette", "backbone",
             module.TemplateListModel = TemplateListModel;
             module.TemplateListTooolbarView = TemplateListTooolbarView;
             module.TemplateDetailTooolbarView = ToolbarView;
-            module.preview = preview
+            module.preview = preview;
 
 
             this.listenTo(app, "after-start", function() {

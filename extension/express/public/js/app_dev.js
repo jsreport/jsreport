@@ -54,13 +54,14 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                 }
 
 
-                if (jsreport_bust && localStorage.getItem("templates-" + jsreport_bust) != null) {
+                if (jsreport_bust && localStorage && localStorage.getItem("templates-" + jsreport_bust) != null) {
                     compileTemplates(JSON.parse(localStorage.getItem("templates-" + jsreport_bust)));
                     return cb(null, null);
                 }
 
                 $.getJSON(app.serverUrl + "html-templates", function(templates) {                 
-                    localStorage.setItem("templates-" + jsreport_bust, JSON.stringify(templates));
+                    if (localStorage)
+                        localStorage.setItem("templates-" + jsreport_bust, JSON.stringify(templates));
                     compileTemplates(templates);
                     cb(null, null);
                 });

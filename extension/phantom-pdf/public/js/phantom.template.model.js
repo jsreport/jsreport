@@ -25,7 +25,7 @@
         isDirty: function() {
             return this.get("margin") != null || this.get("header") != null || this.get("footer") != null ||
                 this.get("width") != null || this.get("height") != null || this.get("orientation") !== "portrait" ||
-                this.get("format") !== "A4";
+                this.get("format") !== "A4" || this.get("printDelay");
         },
         
         apiOverride: function(addProperty) {
@@ -38,7 +38,8 @@
                     format: this.get("format") || "...",
                     orientation: this.get("orientation") || "...",
                     width: this.get("width") || "...",
-                    height: this.get("height") || "..."
+                    height: this.get("height") || "...",
+                    printDelay: this.get("printDelay") || "..."
                 });
         },
 

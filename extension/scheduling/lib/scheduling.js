@@ -1,7 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
- * Inline Data plugin able to add some sample data to rendering process
+ * Extension capable of planning reoccurring jobs which are printing specified templates into reports.
  */
 
 var events = require("events"),
@@ -117,7 +117,6 @@ Scheduling.prototype.renderReport = function (schedule, task, context) {
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Scheduling(reporter, definition);
-
 
     definition.options = _.extend({
         interval: 5000,

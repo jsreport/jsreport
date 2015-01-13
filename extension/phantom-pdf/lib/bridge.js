@@ -18,10 +18,12 @@ var port = system.stdin.readLine();
 
 var service = webserver.listen('127.0.0.1:' + port, function (req, res) {
     try {
+
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
 
         var body = JSON.parse(req.post);
+        page.settings.javascriptEnabled = body.options.blockJavaScript !== true;
 
         page.onResourceRequested = function (request, networkRequest) {
             if (request.url.lastIndexOf(body.url, 0) === 0) {
@@ -93,12 +95,14 @@ var service = webserver.listen('127.0.0.1:' + port, function (req, res) {
                 page.customHeaders = body.options.customHeaders;
             }
 
-            page.render(body.output);
-            res.statusCode = 200;
+            setTimeout(function() {
+                page.render(body.output);
 
-            res.write(numberOfPages);
-            res.close();
+                res.statusCode = 200;
 
+                res.write(numberOfPages);
+                res.close();
+            }, body.options.printDelay || 0);
         });
     } catch (e) {
         system.stdout.writeLine(JSON.stringify(e));

@@ -10,6 +10,7 @@ var async = require("async"),
     odata_server = require('odata-server'),
     q = require("q"),
     bodyParser = require("body-parser"),
+    cookieParser = require('cookie-parser'),
     fs = require("fs"),
     http = require("http"),
     https = require("https"),
@@ -96,6 +97,7 @@ var configureExpressApp = function(app, reporter, definition){
         })(req, res);
     });
 
+    app.use(cookieParser());
     app.use(bodyParser.urlencoded({ extended: true,  limit: definition.options.inputRequestLimit || "20mb"}));
     app.use(bodyParser.json({
         limit: definition.options.inputRequestLimit || "20mb"

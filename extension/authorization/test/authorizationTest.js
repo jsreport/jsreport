@@ -59,6 +59,9 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authorization"]
         it('should not call external service when user authenticated', function (done) {
             var d = require('domain').create();
             d.req = { headers : {}, user: {}};
+            d.req.isAuthenticated = function() {
+                return true;
+            };
 
             statusCode = 401;
 

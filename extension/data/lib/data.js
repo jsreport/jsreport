@@ -1,7 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
- * Inline Data plugin able to add some sample data to rendering process
+ * Extension which allows to specify some sample report data for designing purposes.
  */
 
 var shortid = require("shortid"),

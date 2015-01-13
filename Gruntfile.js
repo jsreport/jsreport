@@ -147,7 +147,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/bootstrapTest.js', 'test/settingsTest.js']
+                src: ['extension/authentication/test/*.js']
             },
             integration: {
                 options: {
@@ -205,17 +205,6 @@ module.exports = function (grunt) {
                     ]
                 }
             }
-        },
-
-        concat: {
-            options: {
-                separator: ';'
-            },
-            dist: {
-                src: ['extension/client-html/public/js/handlebars.min.js', 'extension/client-html/public/js/jsrender.min.js',
-                    'extension/client-html/public/js/client.render.js'],
-                dest: 'extension/client-html/public/js/client-html.js'
-            }
         }
     });
 
@@ -234,8 +223,8 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', ['build-dev', 'build-prod']);
 
-    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot', 'concat']);
-    grunt.registerTask('build-prod', [ 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot', 'concat']);
+    grunt.registerTask('build-dev', ['copy:dev', 'replace:devRoot']);
+    grunt.registerTask('build-prod', [ 'replace:requirejsMain', 'requirejs', 'cssmin', 'replace:productionRoot']);
 
     grunt.registerTask('test-nedb', ['env:dbNedb', 'mochaTest:test']);
     grunt.registerTask('test-mongo', ['env:dbMongo', 'mochaTest:test']);

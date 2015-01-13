@@ -44,16 +44,12 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
 
         var uiState = getUIState(model);
 
-        var request = { template: uiState, options: { preview: true} };
+        var request = { template: uiState, options: $.extend({ preview: true}, uiState.options ) };
 
         beforeRenderListeners.fire(request, function (er) {
             if (er) {
                 app.trigger("error", { responseText: er });
                 return;
-            }
-
-            if (app.recipes[uiState.recipe] && app.recipes[uiState.recipe].render) {
-                return app.recipes[uiState.recipe].render(request, target);
             }
 
             var mapForm = document.createElement("form");
@@ -72,7 +68,8 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
                     if (_.isObject(body[key])) {
                         addBody(path + "[" + key + "]", body[key]);
                     } else {
-                        addInput(mapForm, path + "[" + key + "]", body[key]);
+                        if (body[key] !== undefined && !(body[key] instanceof Array))
+                            addInput(mapForm, path + "[" + key + "]", body[key]);
                     }
                 }
             }

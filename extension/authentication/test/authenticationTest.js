@@ -20,7 +20,6 @@ describeReporting(path.join(__dirname, "../../"), ["express", "authentication"],
         it("should redirect to login without auth cookie", function(done) {
             request(reporter.options.express.app).get("/")
                 .end(function (err, res) {
-                    console.log(res.text);
                     res.header.location.should.containEql("/login");
                     done();
                 });
@@ -50,8 +49,6 @@ describeReporting(path.join(__dirname, "../../"), ["express", "authentication"],
                 .set("Authorization", "Basic " + new Buffer("admin:password").toString('base64'))
                 .expect(200, done);
         });
-
-
     });
 });
 

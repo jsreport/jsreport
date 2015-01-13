@@ -2,10 +2,6 @@
 
 var jsreport = (function (global, jQuery, undefined) {
 
-    //already loaded
-    if (window.jsreport)
-        return window.jsreport;
-
     if (typeof jQuery === 'undefined')
         throw new Error("Missing jquery.");
 
@@ -20,6 +16,7 @@ var jsreport = (function (global, jQuery, undefined) {
         this.loaded = false;
         this.recipes = {};
         this.options = {};
+        this.headers = this.headers || {};
     }
 
     function JsReportEditorHandle(app) {
@@ -28,9 +25,9 @@ var jsreport = (function (global, jQuery, undefined) {
 
     JsReportEditorHandle.prototype.init = function (app) {
         var self = this;
-        app.on("close", function () {
+        app.on("close", function (template) {
             _close.call(jsreport);
-            self.emit("close");
+            self.emit("close", template);
         }).on("full-screen", function () {
             _fullScreen.call(jsreport);
         }).on("small-screen", function () {
@@ -57,34 +54,86 @@ var jsreport = (function (global, jQuery, undefined) {
             this._events = this._events || {};
             if (event in this._events === false) return;
             for (var i = 0; i < this._events[event].length; i++) {
-                this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+                try {
+                    this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+                }
+                catch(e) {}
             }
             return this;
         }
     };
 
-    function _loadTemplate(shortid, cb) {
-        $.ajax({
-            url: this.serverUrl + "/odata/templates?$filter=shortid%20eq%20%27" + shortid + "%27&$format=json&v=" + new Date().getTime(),
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                cb(data.d.results.length === 1 ? data.d.results[0] : null);
-            },
-            error: function () {
-                alert('Failed to get a template');
-            },
-            beforeSend: function (xhr, settings) {
-                xhr.setRequestHeader('host-cookie', document.cookie);
-                settings.url += "&studio=embed";
-            }
-        });
+
+    function arrayBufferToBase64( buffer ) {
+        var binary = '';
+        var bytes = new Uint8Array( buffer );
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode( bytes[ i ] );
+        }
+        return window.btoa( binary );
     }
 
-    function _serverSideRender(target, template) {
+    function ab2str(buf) {
+        return String.fromCharCode.apply(null, new Uint8Array(buf));
+    }
 
+    function _serverSideRender2($placeholder, template) {
+        var self = this;
+
+        var xhr = new XMLHttpRequest();
+        var data = JSON.stringify({ template: template, options: template.options });
+        xhr.open('POST', this.serverUrl + '/api/report', true);
+        xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+        xhr.setRequestHeader("Content-length", data.length);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function (e) {
+            var contentType = this.getResponseHeader('Content-Type');
+
+            $placeholder.html("");
+
+            if (contentType.lastIndexOf("application/pdf", 0) === 0) {
+                var uInt8Array = new Uint8Array(this.response); // this.response == uInt8Array.buffer
+               //  var byte3 = uInt8Array[4]; // byte at offset 4
+                var pdfObject = $("<object type='application/pdf' style='width:100%;height:100%'></object>");
+                pdfObject.attr("data", "data:application/pdf;base64," + arrayBufferToBase64(uInt8Array));
+                $placeholder.append(pdfObject);
+            }
+
+            if (contentType.lastIndexOf("text/html", 0) === 0) {
+                var iframe = $("<iframe frameborder='0' name='" + (template.shortid || (new Date().getTime())) + "' style='width:100%;height:100%;z-index: 50'></iframe>");
+                $placeholder.append(iframe);
+                var ifrm = iframe[0];
+                ifrm = (ifrm.contentWindow) ? ifrm.contentWindow : (ifrm.contentDocument.document) ? ifrm.contentDocument.document : ifrm.contentDocument;
+                ifrm.jsreport = self;
+
+                iframe[0].onload = function() {
+                    ifrm.jsreport = self;
+                };
+
+                var doc = ifrm.document;
+
+                if (doc.document) {
+                    doc = doc.document;
+                }
+
+                doc.open();
+
+
+                $placeholder.iframe = iframe[0];
+
+                doc.write(ab2str(this.response));
+                doc.close();
+            }
+        };
+
+        xhr.send(data);
+    }
+
+    function _serverSideRender(template) {
         var mapForm = document.createElement("form");
-        mapForm.target = target ? target : "_blank";
+        mapForm.target = "_blank";
         mapForm.id = template.shortid;
         mapForm.method = "POST";
         mapForm.action = this.serverUrl + "/api/report";
@@ -98,21 +147,23 @@ var jsreport = (function (global, jQuery, undefined) {
         }
 
         function addBody(path, body) {
-            if (body == null)
+            if (body === null)
                 return;
 
             for (var key in body) {
                 if ($.isPlainObject(body[key])) {
                     addBody(path + "[" + key + "]", body[key]);
                 } else {
-                    addInput(mapForm, path + "[" + key + "]", body[key]);
+                    if (body[key] !== undefined && !(body[key] instanceof Array))
+                        addInput(mapForm, path + "[" + key + "]", body[key]);
                 }
             }
         }
 
         addBody("template", template);
+        addBody("options", template.options);
 
-        var headers = this.headers || {};
+        var headers = this.headers;
         headers["host-cookie"] = document.cookie;
         addBody("headers", headers);
 
@@ -122,7 +173,6 @@ var jsreport = (function (global, jQuery, undefined) {
     }
 
     function _openEditor(template, options) {
-
         if (this._editorHandle) {
             this._editorHandle.off();
             delete this._editorHandle;
@@ -141,7 +191,7 @@ var jsreport = (function (global, jQuery, undefined) {
         }
 
         if (template.data && typeof template.data.dataJson !== 'string') {
-            template.data.dataJson = JSON.stringify(template.data.dataJson);
+            template.data.dataJson = JSON.stringify(template.data.dataJson || template.data, null, 2);
         }
 
         $(".jsreport-backdrop").show();
@@ -156,6 +206,7 @@ var jsreport = (function (global, jQuery, undefined) {
         this._editorHandle = new JsReportEditorHandle();
 
         this.jsreportIFrame.show();
+
         _ensureIframeLoaded.call(this, function () {
             options.template = template;
             self.app.trigger("open-template", options);
@@ -225,71 +276,59 @@ var jsreport = (function (global, jQuery, undefined) {
         return jQuery.ajax(options);
     };
 
-    var _ensureCallbacks = [];
-    function _ensureClientHtmlLoaded(serverUrl, cb) {
-        if (jsreport.recipes["client-html"]) {
+    var _ensuredScripts = {};
+    function _ensureScript(scriptUrl, cb) {
+        if (_ensuredScripts[scriptUrl] && _ensuredScripts[scriptUrl].done) {
             return cb();
         }
 
-        _ensureCallbacks.push(cb);
+        if (!_ensuredScripts[scriptUrl])
+            _ensuredScripts[scriptUrl] = { cbs: []};
 
-        if (_ensureCallbacks.length > 1)
+        _ensuredScripts[scriptUrl].cbs.push(cb);
+
+        if (_ensuredScripts[scriptUrl].cbs.length > 1)
             return;
 
-        $.cachedScript(serverUrl + "extension/client-html/public/js/client-html.js", {
+        $.cachedScript(scriptUrl, {
             success: function () {
-                _ensureCallbacks.forEach(function (c) { c(); });
+                _ensuredScripts[scriptUrl].done = true;
+                _ensuredScripts[scriptUrl].cbs.forEach(function (c) { c(); });
             }
         });
     }
 
-    function _render($placeholder, template) {
+    function _render($placeholder, originalTemplate) {
         var self = this;
 
-        if (!template) {
-            template = $placeholder;
+        if (!originalTemplate) {
+            originalTemplate = $placeholder;
             $placeholder = null;
         } else {
             $placeholder.html("");
         }
 
-        if (typeof template === 'string' || template instanceof String) {
-            template = {
-                shortid: template
+        if (typeof originalTemplate === 'string' || originalTemplate instanceof String) {
+            originalTemplate = {
+                shortid: originalTemplate
             };
         }
 
-        template = $.extend(true, {}, template);
+        var template = $.extend(true, {}, originalTemplate);
 
         if (template.data && typeof template.data.dataJson !== 'string') {
             template.data.dataJson = JSON.stringify(template.data.dataJson);
         }
 
-        function renderFn(loadedTemplate) {
-            if (!loadedTemplate)
-                return alert("Template was not found or user doesn't have a granted access to it.");
-
-            var frameId = loadedTemplate.shortid || new Date().getTime();
-            if ($placeholder) {
-                var iframe = $("<iframe frameborder='0' name='" + frameId + "' style='width:100%;height:100%;z-index: 50'></iframe>");
-                $placeholder.append(iframe);
-            }
-
-            if (template.recipe === "client-html") {
-                _ensureClientHtmlLoaded(self.serverUrl, function () {
-                    self.recipes["client-html"]({ template: loadedTemplate }, frameId);
-                });
-            } else {
-                _serverSideRender.call(self, frameId, template);
-            }
-        }
-
-        if (template.shortid) {
-            _loadTemplate.call(self, template.shortid, function (loadedTemplate) {
-                renderFn(loadedTemplate);
+        if (template.recipe === "client-html" && template.content) {
+            _ensureScript(self.serverUrl + "/extension/client-html/public/js/client.render.js", function () {
+                self.recipes["client-html"]({ template: template, data: originalTemplate.data }, template.shortid || new Date().getTime());
             });
         } else {
-            renderFn(template);
+            if ($placeholder)
+                _serverSideRender2.call(self, $placeholder, template);
+            else
+                _serverSideRender.call(self, template);
         }
     }
 
@@ -299,6 +338,17 @@ var jsreport = (function (global, jQuery, undefined) {
         $("[data-jsreport-widget]").each(function () {
             _render.call(self, $(this), $(this).attr("data-jsreport-widget"));
         });
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0; i<ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0)===' ') c = c.substring(1);
+            if (c.indexOf(name) === 0) return c.substring(name.length,c.length);
+        }
+        return "";
     }
 
     function _onLoaded(app) {
@@ -319,6 +369,9 @@ var jsreport = (function (global, jQuery, undefined) {
         openEditor: function (template, options) {
             return _openEditor.call(this, template, options);
         },
+        ensureScript: function (scriptUrl, cb) {
+            return _ensureScript(this.serverUrl + scriptUrl, cb);
+        },
         setClientContext: function (context) {
             this.context = context;
         },
@@ -332,13 +385,17 @@ var jsreport = (function (global, jQuery, undefined) {
     jQuery.extend(JsReport.prototype, MicroEvent);
     jQuery.extend(JsReportEditorHandle.prototype, MicroEvent);
 
-    var jsreport = new JsReport();
+    var jsreportInstance = new JsReport();
 
     setTimeout(function () {
         if (window.jsreportInit !== undefined)
             jsreportInit(jsreport);
     }, 0);
 
-    return jsreport;
+    if (window.jsreport) {
+        jQuery.extend(jsreportInstance, window.jsreport);
+    }
+
+    return jsreportInstance;
 
 })(this, this.jQuery);

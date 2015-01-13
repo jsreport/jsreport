@@ -41,7 +41,7 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
 
                 initialize: function() {
                     _.bindAll(this, "renderExtensionsMenu", "getViewOptions");
-                    this. beforeRenderListeners = new ListenerCollection();
+                    this.beforeRenderListeners = new ListenerCollection();
                 },
 
                 getViewOptions: function () {
@@ -61,7 +61,7 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                 },
 
                 closeFrame: function () {
-                    app.trigger("close");
+                    app.trigger("close", this.model.toJSON());
                 },
 
                 basicSettings: function () {
@@ -139,7 +139,7 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                     app.trigger("template-change", view.model.toJSON());
                 });
 
-                if (options.useStandardStorage && options.template.shortid) {
+                if (options.useStandardStorage && !options.template.content) {
                     view.model.fetch({
                         success: function () {
                             app.layout.content.show(view);

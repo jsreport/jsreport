@@ -23,7 +23,7 @@ define(["app", "introJs", "jquery"], function(app, introJs, $) {
             return;
 
         setTimeout(function() {
-            if (!localStorage.getItem("jsreport-intro-" + view.introId) && app.options.showIntro) {
+            if (localStorage && !localStorage.getItem("jsreport-intro-" + view.introId) && app.options.showIntro) {
                 localStorage.setItem("jsreport-intro-" + view.introId, "true");
 
                 app.settings.saveOrUpdate(view.introId, "true");

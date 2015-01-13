@@ -2,10 +2,17 @@
 
 var clientRender = (function (global, jQuery, undefined) {
 
-    function renderJsRender(content, helpers, data) {
-        var tmpl = $.templates(content);
-        data = data || { };
-        return tmpl.render(data, helpers);
+    function renderJsRender(content, helpers, data, cb) {
+        jsreport.ensureScript("/extension/client-html/public/js/jsrender.min.js", function () {
+            var tmpl = $.templates(content);
+            data = data || {};
+            try {
+                cb(tmpl.render(data, helpers));
+            }
+            catch (e) {
+                cb(escapeHtml(e.toString()));
+            }
+        });
     }
 
     function escapeHtml(string) {
@@ -23,22 +30,28 @@ var clientRender = (function (global, jQuery, undefined) {
         });
     }
 
-    function renderHandlebars(content, helpers, data) {
-
-        if (helpers) {
-            for (var h in helpers) {
-                if (helpers.hasOwnProperty(h)) {
-                    Handlebars.registerHelper(h, helpers[h]);
+    function renderHandlebars(content, helpers, data, cb) {
+        jsreport.ensureScript("/extension/client-html/public/js/handlebars.min.js", function () {
+            try {
+                if (helpers) {
+                    for (var h in helpers) {
+                        if (helpers.hasOwnProperty(h)) {
+                            Handlebars.registerHelper(h, helpers[h]);
+                        }
+                    }
                 }
+
+                var compiledTemplate = Handlebars.compile(content);
+
+                cb(compiledTemplate(data));
             }
-        }
-
-        var compiledTemplate = Handlebars.compile(content);
-
-        return compiledTemplate(data);
+            catch (e) {
+                cb(escapeHtml(e.toString()));
+            }
+        });
     }
 
-    function renderHtml(request) {
+    function renderHtml(request, cb) {
 
         function getHelpers() {
             var regex = /function[\s]*([^(]*)/g;
@@ -54,28 +67,24 @@ var clientRender = (function (global, jQuery, undefined) {
         }
 
         var sandbox = {};
-        getHelpers.bind(sandbox)();
+        getHelpers.apply(sandbox);
 
-        try {
-            if (request.template.engine === "handlebars")
-                return renderHandlebars(request.template.content, sandbox, request.data);
+        if (request.template.engine === "handlebars")
+            return renderHandlebars(request.template.content, sandbox, request.data, cb);
 
-            if (request.template.engine === "jsrender")
-                return renderJsRender(request.template.content, sandbox, request.data);
+        if (request.template.engine === "jsrender")
+            return renderJsRender(request.template.content, sandbox, request.data, cb);
 
-            throw new Error("Unsupported engine " + request.template.engine);
-
-        } catch (e) {
-            return escapeHtml(e.toString());
-        }
+        throw new Error("Unsupported engine " + request.template.engine);
     }
 
     var requestList = {};
 
     function reload(id, selector, data) {
-        if (!data) {
+
+        if ((typeof selector !== 'string' && selector instanceof String)) {
             data = selector;
-            selector = "body";
+            selector = undefined;
         }
 
         var request = requestList[id];
@@ -84,52 +93,57 @@ var clientRender = (function (global, jQuery, undefined) {
         clientRender(request, request.target, selector);
     }
 
-    return function(request, target, selector) {
+    return function (request, target, selector) {
+        if (!window.jsreport) {
+            throw new Error("jsreport embedded must be loaded first.");
+        }
         request.target = target;
         request.selector = selector;
         requestList[target] = request;
 
         var $iframe = $("iframe[name='" + target + "']");
 
-        window.jsreport = window.jsreport || {};
-
-        if (parent.jsreport) {
-            window.jsreport = parent.jsreport;
-        }
-
         window.jsreport.request = request;
         window.jsreport.reloadForId = reload;
 
-        var output = renderHtml(request);
+        window.jsreport.refreshForId = function (id, template) {
+            var request = requestList[id];
+            var placeholder = $("iframe[name='" + target + "']").parent();
+            $("iframe[name='" + target + "']").remove();
+            jsreport.render(placeholder, template);
+        };
 
-        if (selector) {
-            var htmlCut = selector === "body" ? output : $(output).filter(selector).html();
-            $iframe.contents().find(selector).html(htmlCut);
-            return;
-        }
+        renderHtml(request, function (output) {
+            if (selector) {
+                var htmlCut = selector === "body" ? output : $(output).filter(selector).html();
+                $iframe.contents().find(selector).html(htmlCut);
+                return;
+            }
 
-        output = "<script>" +
-            "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
+            output = "<script>" +
+            "window.jsreport = parent.jsreport || window.jsreport || {};" +
+            "window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
+            "window.jsreport.refresh = function(template) { parent.jsreport.refreshForId('" + target + "', template)};" +
             "window.jsreport.context = parent.jsreport.context;" +
             "</script>" + output;
 
-        $iframe.attr("src", "");
+            $iframe.attr("src", "");
 
-        var doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
+            var doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
 
-        //wait a little bit until potential pdf iframe is really gone
-        setTimeout(function () {
-            if (doc.document) {
-                doc = doc.document;
-            }
+            //wait a little bit until potential pdf iframe is really gone
+            setTimeout(function () {
+                if (doc.document) {
+                    doc = doc.document;
+                }
 
-            doc.documentElement.innerHTML = "";
+                doc.documentElement.innerHTML = "";
 
-            doc.open();
-            doc.write(output);
-            doc.close();
-        }, 10);
-
+                doc.open();
+                doc.write(output);
+                doc.close();
+            }, 10);
+        });
     };
 })(this, this.jQuery);
 

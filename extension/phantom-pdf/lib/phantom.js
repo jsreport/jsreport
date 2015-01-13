@@ -39,7 +39,9 @@ var Phantom = function (reporter, definition) {
         orientation: {type: "string"},
         format: {type: "string"},
         width: {type: "string"},
-        height: {type: "string"}
+        height: {type: "string"},
+        printDelay: {type: "int"},
+        blockJavaScript: {type: "boolean"}
     });
 
     reporter.templates.TemplateType.addMember("phantom", {type: this.PhantomType});
@@ -58,6 +60,7 @@ Phantom.prototype.execute = function (request, response) {
     var phantomOptions = request.template.phantom || new self.PhantomType();
     phantomOptions = phantomOptions.initData || phantomOptions;
     phantomOptions.allowLocalFilesAccess = this.allowLocalFilesAccess;
+    phantomOptions.blockJavaScript = phantomOptions.blockJavaScript === 'true' || phantomOptions.blockJavaScript === true;
 
     var generationId = uuid();
     var htmlFile = join(request.reporter.options.tempDirectory, generationId + ".html");

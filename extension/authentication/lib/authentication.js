@@ -1,6 +1,11 @@
 /*!
  * Copyright(c) 2014 Jan Blaha
  *
+ * Extension used for authenticating user. When the extension is enabled user needs to specify
+ * credentials before the jsreport will serve the request.
+ *
+ * Browser requests are authenticated using cookie.
+ * API requests are authenticated using basic auth.
  */
 
 var q = require("q"),
@@ -11,6 +16,7 @@ var q = require("q"),
     sessions = require("client-sessions"),
     S = require("string"),
     _ = require("underscore"),
+    url = require("url"),
     bodyParser = require("body-parser");
 
 function configureRoutes(reporter, app, admin, definition) {
@@ -30,7 +36,7 @@ function configureRoutes(reporter, app, admin, definition) {
             done(null, admin);
         }
         else {
-            done(null, false, { message: "Invalid password or user does not exists." });
+            done(null, false, {message: "Invalid password or user does not exists."});
         }
     }));
 
@@ -39,7 +45,7 @@ function configureRoutes(reporter, app, admin, definition) {
             done(null, admin);
         }
         else {
-            done(null, false, { message: "Invalid password or user does not exists." });
+            done(null, false, {message: "Invalid password or user does not exists."});
         }
     }));
 
@@ -58,14 +64,14 @@ function configureRoutes(reporter, app, admin, definition) {
         if (!req.user) {
             var viewModel = _.extend({}, req.session.viewModel || {});
             req.session.viewModel = null;
-            return res.render(path.join(__dirname, '../public/views', 'login.html'), { viewModel: viewModel });
+            return res.render(path.join(__dirname, '../public/views', 'login.html'), {viewModel: viewModel});
         }
         else {
             next();
         }
     });
 
-    app.post('/login', bodyParser.urlencoded({ extended: true, limit: "2mb"}),  function (req, res, next) {
+    app.post('/login', bodyParser.urlencoded({extended: true, limit: "2mb"}), function (req, res, next) {
         req.session.viewModel = req.session.viewModel || {};
 
         passport.authenticate('local', function (err, user, info) {
@@ -94,13 +100,26 @@ function configureRoutes(reporter, app, admin, definition) {
         res.redirect("/");
     });
 
+    app.use(function(req, res, next) {
+        var publicRoute = _.find(reporter.authentication.publicRoutes, function (r) {
+            return S(req.url).startsWith(r);
+        });
+
+        var pathname = url.parse(req.url).pathname;
+
+        req.isPublic = publicRoute || S(pathname).endsWith(".js") || S(pathname).endsWith(".css");
+        next();
+    });
+
     app.use(function (req, res, next) {
-        if ((!req.isAuthenticated || !req.isAuthenticated()) &&
-            (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1) &&
-            req.query.studio !== "embed") {
+        if (!req.isAuthenticated() &&
+            (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1)) {
 
             passport.authenticate('basic', function (err, user, info) {
                 if (!user) {
+                    if (req.isPublic) {
+                        return next();
+                    }
                     res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
                     return res.status(401).end();
                 }
@@ -115,13 +134,39 @@ function configureRoutes(reporter, app, admin, definition) {
     });
 
     app.use(function (req, res, next) {
-        if (req.query.studio === "embed" || req.user || S(req.url).startsWith("/css") || S(req.url).startsWith("/img") ||
-            S(req.url).startsWith("/extension/embedding/public/embed.js")) {
+        if (req.isAuthenticated() || req.isPublic) {
             return next();
         }
 
         return res.redirect("/login");
     });
+
+    app.use(function (req, res, next) {
+        if (!reporter.authorization || req.isPublic) {
+            return next();
+        }
+
+        reporter.authorization.authorizeRequest(req, res).then(function(result) {
+            if (result) {
+                return next();
+            }
+
+            if (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1) {
+                res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
+                return res.status(401).end();
+            }
+
+            return res.redirect("/login");
+        }).catch(function(e) {
+            next(e);
+        });
+    });
+}
+
+function Authentication() {
+    this.publicRoutes = [
+        "/?studio=embed", "/css", "/img", "/js", "/lib", "/html-templates",
+        "/api/recipe", "/api/engine", "/api/settings", "/favicon.ico", "/api/extensions", "/odata/settings"];
 }
 
 module.exports = function (reporter, definition) {
@@ -131,7 +176,13 @@ module.exports = function (reporter, definition) {
 
     definition.options.admin.name = definition.options.admin.username;
 
-    reporter.on("after-express-static-configure", function(app) {
+    reporter.authentication = new Authentication();
+
+    reporter.on("export-public-route", function (route) {
+        reporter.authentication.publicRoutes.push(route);
+    });
+
+    reporter.on("after-express-static-configure", function (app) {
         configureRoutes(reporter, app, definition.options.admin, definition);
     });
 };

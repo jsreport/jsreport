@@ -1,6 +1,9 @@
 /*!
  * Copyright(c) 2014 Jan Blaha
  *
+ * Extension for authorizing requests and data access. It is dependent on Authentication extension.
+ * Data and requests are authorized based on custom hooks from other extensions like Templates sharing
+ * or based on external rest service specified in configuration.
  */
 
 var q = require("q"),
@@ -9,80 +12,120 @@ var q = require("q"),
     extend = require("node.extend"),
     urljoin = require('url-join');
 
-module.exports = function (reporter, definition) {
+function Authorization(reporter, definition) {
+    this.reporter = reporter;
+    this.definition = definition;
 
-    if (!definition.options.externalService || !definition.options.externalService.url) {
-        return;
+    this.requestAuthorizationListeners = reporter.createListenerCollection();
+    this.operationAuthorizationListeners = reporter.createListenerCollection();
+    reporter.initializeListener.add(definition.name, Authorization.prototype._initialize.bind(this));
+    this.operationAuthorizationListeners.add("external-service", Authorization.prototype.externalServiceOperationAuthorization.bind(this));
+
+}
+
+Authorization.prototype.authorizeRequest = function(req, res) {
+    return this.requestAuthorizationListeners.fireAndJoinResults(req, res).then(function(res) {
+        if (res === null)
+            return req.isAuthenticated();
+        return res;
+    });
+};
+
+Authorization.prototype.externalServiceOperationAuthorization = function(req, operation, entitySet, entity) {
+    if (!this.definition.options.externalService || !this.definition.options.externalService.url) {
+        return null;
     }
 
-    function authorize(operation, itemType, shortid) {
-        if (process.domain.req.user) {
-            return q(true);
+    if (process.domain.req.isAuthenticated && process.domain.req.isAuthenticated()) {
+        return q(true);
+    }
+
+    var self = this;
+
+    var deferred = q.defer();
+
+    var headers = this.definition.options.externalService.headers || {};
+    headers.cookie = process.domain.req.headers["host-cookie"];
+    headers.Authorization = process.domain.req.headers["Authorization"];
+
+    var authUrl = urljoin(this.definition.options.externalService.url, operation.toLowerCase(), entitySet, entity.shortid);
+    this.reporter.logger.debug("Requesting authorization at GET:" + authUrl);
+    request({
+        url: authUrl,
+        headers: headers,
+        json: true
+    }, function (error, response, body) {
+        if (error) {
+            self.reporter.logger.error("Authorization failed with error: " + error);
+            return deferred.reject(error);
         }
 
-        var deferred = q.defer();
+        self.reporter.logger.debug("Authorization response " + response.statusCode);
 
-        var headers = definition.options.externalService.headers || {};
-        headers.cookie = process.domain.req.headers["host-cookie"];
-        headers.Authorization = process.domain.req.headers["Authorization"];
+        deferred.resolve(response.statusCode === 200);
+    });
 
-        var authUrl = urljoin(definition.options.externalService.url, operation.toLowerCase(), itemType, shortid);
-        reporter.logger.debug("Requesting authorization at GET:" + authUrl);
-        request({
-            url: authUrl,
-            headers: headers,
-            json: true
-        }, function (error, response, body) {
-            if (error) {
-                reporter.logger.error("Authorization failed with error: " + error);
-                return deferred.reject(error);
-            }
+    return deferred.promise;
+};
 
-            reporter.logger.debug("Authorization response " + response.statusCode);
+Authorization.prototype.authorizeOperation = function(req, operation, entitySet, entity) {
+    return this.operationAuthorizationListeners.fireAndJoinResults(req, operation, entitySet, entity).then(function(res) {
+        if (res === null)
+            return req.isAuthenticated();
+        return res;
+    });
+};
 
-            deferred.resolve(response.statusCode === 200);
-        });
+Authorization.prototype._initialize = function() {
+    var self = this;
 
-        return deferred.promise;
-    }
+    var entitySets = this.reporter.dataProvider._entitySets;
 
-    reporter.initializeListener.add("authorization", function () {
-        var entitySets = reporter.dataProvider._entitySets;
 
-        function afterReadListener(key, successResult, sets, query) {
+    function afterReadListener(key, successResult, sets, query) {
+
+        if (Array.isArray(successResult)) {
             successResult = Array.isArray(successResult) ? successResult : [successResult];
 
             return q.all(successResult.map(function (i) {
                 if (!i.shortid)
                     return;
 
-                return authorize("Read", key, i.shortid).then(function (result) {
+                return self.authorizeOperation(process.domain.req, "Read", key, i).then(function (result) {
                     if (!result)
                         successResult.splice(successResult.indexOf(i), 1);
                 });
             }));
-        }
-
-
-
-        function registerOperationListener(operation) {
-            entitySets[key]["before" + operation + "Listeners"].add("authorization",  function (key, items) {
-                return q.all(items.map(function (i) {
-                    if (!i.shortid)
-                        return q(true);
-
-                    return authorize(operation, key, i.shortid);
-                })).then(function (res) {
-                    return res.filter(function (r) {
-                            return r;
-                        }).length === res.length;
-                });
+        } else {
+            return self.authorizeOperation(process.domain.req, "Read", key, successResult).then(function (result) {
+                if (!result) {
+                    process.domain.res.error(new Error("Unauthorized access"));
+                }
             });
         }
+    }
 
-        for (var key in entitySets) {
-            entitySets[key].afterReadListeners.add("authorization " + key, afterReadListener);
-            ["Create", "Update", "Delete"].forEach(registerOperationListener);
-        }
-    });
+    function registerOperationListener(operation) {
+        entitySets[key]["before" + operation + "Listeners"].add("authorization",  function (key, items) {
+            return q.all(items.map(function (i) {
+                if (!i.shortid)
+                    return q(true);
+
+                return self.authorizeOperation(process.domain.req, operation, key, i);
+            })).then(function (res) {
+                return res.filter(function (r) {
+                        return r;
+                    }).length === res.length;
+            });
+        });
+    }
+
+    for (var key in entitySets) {
+        entitySets[key].afterReadListeners.add("authorization " + key, afterReadListener);
+        ["Create", "Update", "Delete"].forEach(registerOperationListener);
+    }
+};
+
+module.exports = function (reporter, definition) {
+    reporter.authorization = new Authorization(reporter, definition);
 };

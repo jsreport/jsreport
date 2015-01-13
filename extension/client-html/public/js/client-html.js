@@ -3138,7 +3138,7 @@ var clientRender = (function (global, jQuery, undefined) {
         }
 
         var sandbox = {};
-        getHelpers.bind(sandbox)();
+        getHelpers.apply(sandbox);
 
         try {
             if (request.template.engine === "handlebars")
@@ -3157,9 +3157,10 @@ var clientRender = (function (global, jQuery, undefined) {
     var requestList = {};
 
     function reload(id, selector, data) {
-        if (!data) {
+
+        if ((typeof selector !== 'string' && selector instanceof String)) {
             data = selector;
-            selector = "body";
+            selector = undefined;
         }
 
         var request = requestList[id];
@@ -3184,6 +3185,14 @@ var clientRender = (function (global, jQuery, undefined) {
         window.jsreport.request = request;
         window.jsreport.reloadForId = reload;
 
+        window.jsreport.refreshForId = function(id, template) {
+            var request = requestList[id];
+            var placeholder = $("iframe[name='" + target + "']").parent();
+            $("iframe[name='" + target + "']").remove();
+            jsreport.render(placeholder, template);
+            //clientRender(request, request.target);
+        };
+
         var output = renderHtml(request);
 
         if (selector) {
@@ -3193,7 +3202,9 @@ var clientRender = (function (global, jQuery, undefined) {
         }
 
         output = "<script>" +
-            "window.jsreport = window.jsreport || {}; window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
+            "window.jsreport = parent.jsreport || window.jsreport || {};" +
+            "window.jsreport.reload = function(selector, data) { parent.jsreport.reloadForId('" + target + "', selector, data); };" +
+            "window.jsreport.refresh = function(template) { parent.jsreport.refreshForId('" + target + "', template)};" +
             "window.jsreport.context = parent.jsreport.context;" +
             "</script>" + output;
 
@@ -3206,7 +3217,7 @@ var clientRender = (function (global, jQuery, undefined) {
             if (doc.document) {
                 doc = doc.document;
             }
-
+            
             doc.documentElement.innerHTML = "";
 
             doc.open();

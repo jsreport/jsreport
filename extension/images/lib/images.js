@@ -1,7 +1,7 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  *
- * Images extension allows to upload images into mongo and reference them from the templates
+ * Images extension allows to upload images into data storage and reference them from the templates
  */
 
 var shortid = require("shortid"),

@@ -6,14 +6,16 @@
 
 var stream = require("stream"),
     shortid = require("shortid"),
+    uuid = require("uuid").v1,
     events = require("events"),
     util = require("util"),
     _ = require("underscore"),
     q = require("q"),
+    fs = require("fs"),
+    S = require("string"),
     extend = require("node.extend");
 
 var Templating = function (reporter, definition) {
-    var self = this;
     this.name = "templates";
     this.reporter = reporter;
     this.definition = definition;
@@ -43,7 +45,7 @@ Templating.prototype.handleBeforeRender = function (request, response) {
         request.template.shortid ?
             request.context.templates.single(function (t) {
                 return t.shortid === this.shortid;
-            }, { shortid: request.template.shortid })
+            }, {shortid: request.template.shortid})
             : q(request.template);
 
 
@@ -87,14 +89,14 @@ Templating.prototype._beforeCreateHandler = function (args, entity) {
 
 Templating.prototype._defineEntities = function () {
     var templateAttributes = {
-        _id: { type: "id", key: true, computed: true, nullable: false },
-        shortid: { type: "string" },
-        name: { type: "string" },
-        content: { type: "string" },
-        recipe: { type: "string" },
-        helpers: { type: "string" },
-        engine: { type: "string" },
-        modificationDate: { type: "date" }
+        _id: {type: "id", key: true, computed: true, nullable: false},
+        shortid: {type: "string"},
+        name: {type: "string"},
+        content: {type: "string"},
+        recipe: {type: "string"},
+        helpers: {type: "string"},
+        engine: {type: "string"},
+        modificationDate: {type: "date"}
     };
 
     this.TemplateHistoryType = this.reporter.dataProvider.createEntityType("TemplateHistoryType", templateAttributes);
@@ -119,7 +121,7 @@ Templating.prototype._copyHistory = function (entity) {
 Templating.prototype._defineEntitySets = function () {
     var self = this;
 
-    var templatesSet = this.reporter.dataProvider.registerEntitySet("templates", this.TemplateType, { tableOptions: { humanReadableKeys: [ "shortid"] } });
+    var templatesSet = this.reporter.dataProvider.registerEntitySet("templates", this.TemplateType, {tableOptions: {humanReadableKeys: ["shortid"]}});
 
     templatesSet.beforeUpdateListeners.add("templates-before-update", function (key, items) {
         if (!items[0]._id)

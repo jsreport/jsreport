@@ -13,6 +13,41 @@ var oneMonth = 31 * 86400000;
 module.exports = function (app, reporter) {
     var originalMode = reporter.options.mode;
 
+    app.use(function(req, res, next) {
+        res.error = function(err) {
+
+            res.status(500);
+
+            if (_.isString(err)) {
+                err = {
+                    message: err
+                };
+            }
+
+            err = err || {};
+            err.message = err.message || "Unrecognized error";
+
+            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+            var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
+
+            logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
+
+            if (!req.get('Content-Type') || req.get('Content-Type').indexOf("application/json") === -1) {
+                res.write("Error occured - " + err.message + "\n");
+                if (err.stack)
+                    res.write("Stack - " + err.stack);
+                res.end();
+                return;
+            }
+
+            //its somehow not able to serialize original err
+            res.send({message: err.message, stack: err.stack});
+        };
+
+        next();
+    });
+
     //we need to change referenced fonts relative url to the absolute one because of embedded studio
     app.get("/css/font-awesome/css/font-awesome.min.css", function (req, res, next) {
         var options = getOptions(req);
@@ -62,6 +97,14 @@ module.exports = function (app, reporter) {
     reporter.emit("express-before-odata", app);
 
     app.use("/odata", function (req, res, next) {
+        var writeHead = res.writeHead;
+
+        res.writeHead = function () {
+            res.setHeader("DataServiceVersion", "2.0");
+            res.setHeader("OData-Version", "3.0");
+            return writeHead.apply(res, arguments);
+        };
+
         reporter.dataProvider.startContext().then(function (context) {
             req.reporterContext = context;
             context.request = req;
@@ -93,7 +136,7 @@ module.exports = function (app, reporter) {
         req.options = req.body.options || {};
         req.options.isRootRequest = true;
 
-        extend(true, req.headers,  req.body.headers);
+        extend(true, req.headers, req.body.headers);
 
         if (!req.template)
             return next("Could not parse report template, aren't you missing content type?");
@@ -186,32 +229,6 @@ module.exports = function (app, reporter) {
     });
 
     app.use(function (err, req, res, next) {
-        res.status(500);
-
-        if (_.isString(err)) {
-            err = {
-                message: err
-            };
-        }
-
-        err = err || {};
-        err.message = err.message || "Unrecognized error";
-
-        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-
-        var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
-
-        logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
-
-        if (!req.get('Content-Type') || req.get('Content-Type').indexOf("application/json") === -1) {
-            res.write("Error occured - " + err.message + "\n");
-            if (err.stack)
-                res.write("Stack - " + err.stack);
-            res.end();
-            return;
-        }
-
-        //its somehow not able to serialize original err
-        res.send({ message: err.message, stack: err.stack});
+        res.error(err);
     });
 };
