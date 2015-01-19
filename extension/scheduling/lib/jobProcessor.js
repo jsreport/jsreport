@@ -123,7 +123,7 @@ JobProcessor.prototype.execute = function (schedule, task, context) {
 
     return context.saveChanges().then(function () {
         var cron = new CronTime(schedule.cron);
-        var nextRun = cron._getNextDateFrom(new Date(schedule.nextRun.getTime() + 1000));
+        var nextRun = cron._getNextDateFrom(new Date(schedule.nextRun.getTime() + 1000)).toDate();
 
         return context.schedules.rawUpdate({
             _id: schedule._id

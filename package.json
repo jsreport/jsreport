@@ -86,7 +86,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-env": "^0.4.1",
     "grunt-mocha": "*",
-    "grunt-mocha-phantomjs": "*",
+    "grunt-mocha-phantomjs": "~0.5.0",
     "grunt-mocha-test": "*",
     "grunt-text-replace": "*",
     "mocha": "*",

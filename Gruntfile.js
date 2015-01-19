@@ -122,6 +122,9 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         mocha_phantomjs: {
+            options: {
+                color: false
+            },
             test: {
                 src: ['test/ui/tests.html'],
                 run: true
@@ -147,7 +150,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/bootstrapTest.js', 'test/settingsTest.js']
+                src: ['extension/scheduling/test/jobProcessorTest.js']
             },
             integration: {
                 options: {

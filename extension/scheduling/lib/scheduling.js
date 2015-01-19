@@ -73,7 +73,7 @@ Scheduling.prototype._beforeCreateHandler = function (key, items) {
     entity.modificationDate = new Date();
     entity.enabled = entity.enabled !== false; //default false
     var cron = new CronTime(entity.cron);
-    entity.nextRun = new Date(cron._getNextDateFrom(new Date()));
+    entity.nextRun = cron._getNextDateFrom(new Date()).toDate();
     return true;
 };
 
@@ -85,7 +85,7 @@ Scheduling.prototype._beforeUpdateHandler = function (key, items) {
         return false;
 
     var cron = new CronTime(entity.cron);
-    entity.nextRun = cron._getNextDateFrom(new Date());
+    entity.nextRun = cron._getNextDateFrom(new Date()).toDate();
     entity.state = "planned";
 
     return true;
