@@ -46,12 +46,18 @@ The easiest way how to contribute to jsreport open source community is to implem
 
 ##Roadmap
 
-- java sdk
-- azure, google and amazon VM images
-- angular plugin 
-- improved documentation and examples
+**JANUARY**
+- Documentation/Examples - we are preparing set of tutorials for more advanced fearures like embedding, scheduling or sending reports in emails
+- Security - jsreport will get user management with delegated permissions and public templates sharing
 
-Missing a feature? Submit a feature request.
+**FEBRUARY**
+- Huge refactoring - splitting jsreport into multiple npm packages, improving code quality
+
+**FURTHER PLANS**
+- java sdk
+- add jsreport to amazon, google and microsoft cloud stores
+- reports directly from databases
+- Missing a feature? Submit a feature request.
 
 ## License 
 
