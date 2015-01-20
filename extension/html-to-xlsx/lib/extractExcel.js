@@ -43,6 +43,7 @@ page.onLoadFinished = function(status) {
                     backgroundColor: cs.getPropertyValue('background-color').match(/\d+/g),
                     foregroundColor: cs.getPropertyValue('color').match(/\d+/g),
                     fontSize: cs.getPropertyValue('font-size'),
+                    fontWeight: cs.getPropertyValue('font-weight'),
                     verticalAlign: cs.getPropertyValue('vertical-align'),
                     horizontalAlign: cs.getPropertyValue('text-align'),
                     width: cell.clientWidth,

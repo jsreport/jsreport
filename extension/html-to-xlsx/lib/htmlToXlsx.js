@@ -106,6 +106,7 @@ module.exports = function (reporter, definition) {
                                         family: '3',
                                         scheme: 'minor',
                                         sz: parseInt(cell.fontSize.replace("px", "")) * 18 / 24,
+                                        bold: cell.fontWeight === "bold" || parseInt(cell.fontWeight, 10) >= 700,
                                         color: isColorDefined(cell.foregroundColor) ? ('FF' + rgbToHex(cell.foregroundColor)) : undefined
                                     });
 
