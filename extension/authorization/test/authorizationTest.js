@@ -3,104 +3,82 @@
 var assert = require("assert"),
     path = require("path"),
     authApp = require("express")(),
+    should = require("should"),
+    ObjectID = require('mongodb').ObjectID,
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["templates", "authorization"], { "authorization" : { "externalService" : { "url": "http://localhost:1234/jsreport/authorization/" } }}, function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["templates", "authentication", "authorization"], function(reporter) {
 
     describe('authorization', function () {
 
-        var statusCode;
-        var authServer;
-        beforeEach(function (done) {
-            statusCode = 200;
-            authApp.get('/jsreport/authorization/:operation/:type/:shortid', function (req, res) {
-                res.status(statusCode).end();
-            });
 
-            authServer = authApp.listen(1234, function () {
-                done();
-            });
+        beforeEach(function (done) {
+            done();
         });
 
         afterEach(function () {
-            authServer.close();
         });
 
-        it('should pass when external service returns 200', function (done) {
+        function runInUserDomain(id, fn) {
             var d = require('domain').create();
-            d.req = { headers : {}};
+            d.req = { user : { _id: id}};
 
-            d.run(function() {
+            d.run(fn);
+        }
+
+        function createTemplate(userId, done, error) {
+            runInUserDomain(userId, function() {
                 reporter.dataProvider.startContext().then(function(context) {
                     return reporter.templates.create(context, { content: "foo" }).then(function() {
                         done();
                     });
-                }).catch(done);
+                }).catch(error);
             });
-        });
+        }
 
-        it('should NOT pass when external service returns 401', function (done) {
-            var d = require('domain').create();
-            d.req = { headers : {}};
-
-            statusCode = 401;
-
-            d.run(function() {
+        function countTemplates(userId, done, error) {
+            runInUserDomain(userId, function() {
                 reporter.dataProvider.startContext().then(function(context) {
-                    return reporter.templates.create(context, { content: "foo" }).then(function() {
-                        done(new Error("Authorization should reject create"));
+                    return context.templates.toArray().then(function(res) {
+                        done(res.length);
                     });
-                }).catch(function() {
+                }).catch(error);
+            });
+        }
+
+        var userId1 = "NTRiZTU1MTFiY2NkNmYzYzI3OTdiNjYz";
+        var userId2 = "NTRiZTVhMzU5ZDI4ZmU1ODFjMTI4MjMy";
+
+        it('user creating entity should be able to read it', function (done) {
+            createTemplate(userId1, function() {
+                countTemplates(userId1, function(count) {
+                    count.should.be.eql(1);
                     done();
-                });
-            });
+                }, done);
+            }, done);
         });
 
-        it('should not call external service when user authenticated', function (done) {
-            var d = require('domain').create();
-            d.req = { headers : {}, user: {}};
-            d.req.isAuthenticated = function() {
-                return true;
-            };
+        it('user should not be able to read entity without permission to it', function (done) {
+            createTemplate(userId1, function() {
+                console.log("counting templtates");
+                countTemplates(userId2, function(count) {
+                    count.should.be.eql(0);
+                    done();
+                }, done);
+            }, done);
+        });
 
-            statusCode = 401;
-
-            d.run(function() {
-                reporter.dataProvider.startContext().then(function(context) {
-                    return reporter.templates.create(context, { content: "foo" }).then(function() {
+        it('query should filter out entities without permissions', function (done) {
+            createTemplate(userId1, function() {
+                createTemplate(userId2, function() {
+                    countTemplates(userId1, function(count) {
+                        count.should.be.eql(1);
                         done();
-                    });
-                }).catch(done);
-            });
-        });
+                    }, done);
+                }, done);
 
-        it('read operation should remove unauthorized results from the resultset', function (done) {
-            var d = require('domain').create();
-            d.req = { headers : {}};
-
-            d.run(function() {
-                reporter.dataProvider.startContext().then(function(context) {
-                    return reporter.templates.create(context, { content: "foo" }).then(function() {
-                        statusCode = 401;
-                        context.templates.toArray().then(function(templates) {
-                            assert.equal(0, templates.length);
-                            done();
-                        });
-                    });
-                }).catch(done);
-            });
+            }, done);
         });
     });
 });
 
-describeReporting(path.join(__dirname, "../../"), ["authorization"], function(reporter) {
-
-    describe('authorization without optinos', function () {
-        beforeEach(function () {
-        });
-
-        it('should not fail', function (done) {
-            done();
-        });
-    });
-});

@@ -17,7 +17,8 @@ var q = require("q"),
     S = require("string"),
     _ = require("underscore"),
     url = require("url"),
-    bodyParser = require("body-parser");
+    bodyParser = require("body-parser"),
+    UsersRepository = require("./usersRepository");
 
 function configureRoutes(reporter, app, admin, definition) {
 
@@ -31,23 +32,25 @@ function configureRoutes(reporter, app, admin, definition) {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    passport.use(new LocalStrategy(function (username, password, done) {
+    function authenticate(username, password, done) {
         if (admin.username === username && admin.password === password) {
-            done(null, admin);
+            return done(null, admin);
         }
-        else {
-            done(null, false, {message: "Invalid password or user does not exists."});
-        }
-    }));
 
-    passport.use(new BasicStrategy(function (username, password, done) {
-        if (admin.username === username && admin.password === password) {
-            done(null, admin);
-        }
-        else {
-            done(null, false, {message: "Invalid password or user does not exists."});
-        }
-    }));
+        reporter.authentication.usersRepository.authenticate(username, password).then(function(user) {
+            if (!user) {
+                return done(null, false, {message: "Invalid password or user does not exists."});
+            }
+
+            return done(null, user);
+        }).catch(function(e){
+            done(null, false, {message: e.message});
+        });
+    }
+
+    passport.use(new LocalStrategy(authenticate));
+
+    passport.use(new BasicStrategy(authenticate));
 
     passport.serializeUser(function (user, done) {
         done(null, user.username);
@@ -55,9 +58,13 @@ function configureRoutes(reporter, app, admin, definition) {
 
     passport.deserializeUser(function (id, done) {
         if (id === admin.username)
-            done(null, admin);
-        else
-            done("Invalid username");
+            return done(null, admin);
+
+        reporter.authentication.usersRepository.find(id).then(function(user) {
+            done(null, user);
+        }).catch(function(e) {
+            done(e);
+        });
     });
 
     app.get("/login", function (req, res, next) {
@@ -81,7 +88,8 @@ function configureRoutes(reporter, app, admin, definition) {
 
             if (!user) {
                 req.session.viewModel.login = info.message;
-                return res.redirect('/login');
+                console.log(req.query.returnUrl);
+                return res.redirect('/login?returnUrl=' + encodeURIComponent(req.query.returnUrl || "/"));
             }
 
             req.session.viewModel = {};
@@ -90,7 +98,7 @@ function configureRoutes(reporter, app, admin, definition) {
                     return next(err);
                 }
 
-                return res.redirect('/');
+                return res.redirect(decodeURIComponent(req.query.returnUrl) || "/");
             });
         })(req, res, next);
     });
@@ -138,7 +146,9 @@ function configureRoutes(reporter, app, admin, definition) {
             return next();
         }
 
-        return res.redirect("/login");
+        var viewModel = _.extend({}, req.session.viewModel || {});
+        req.session.viewModel = null;
+        return res.render(path.join(__dirname, '../public/views', 'login.html'), {viewModel: viewModel});
     });
 
     app.use(function (req, res, next) {
@@ -161,12 +171,22 @@ function configureRoutes(reporter, app, admin, definition) {
             next(e);
         });
     });
+
+    app.post("/api/users/:shortid/password", function(req, res, next) {
+       reporter.authentication.usersRepository.changePassword(req.user, req.params.shortid,req.body.oldPassword,req.body.newPassword).then(function(user) {
+            res.send("ok");
+        }).catch(function(e) {
+            next(e);
+        });
+    });
 }
 
-function Authentication() {
+function Authentication(reporter) {
     this.publicRoutes = [
         "/?studio=embed", "/css", "/img", "/js", "/lib", "/html-templates",
         "/api/recipe", "/api/engine", "/api/settings", "/favicon.ico", "/api/extensions", "/odata/settings"];
+
+    this.usersRepository = new UsersRepository(reporter);
 }
 
 module.exports = function (reporter, definition) {
@@ -175,8 +195,9 @@ module.exports = function (reporter, definition) {
         return;
 
     definition.options.admin.name = definition.options.admin.username;
+    definition.options.admin.isAdmin = true;
 
-    reporter.authentication = new Authentication();
+    reporter.authentication = new Authentication(reporter);
 
     reporter.on("export-public-route", function (route) {
         reporter.authentication.publicRoutes.push(route);

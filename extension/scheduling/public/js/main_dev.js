@@ -49,11 +49,13 @@
             app.scheduling.router = new Router();
 
             app.on("menu-render", function (context) {
-                context.result += "<li><a href='/#/extension/scheduling/list'>Scheduling</a></li>";
+                if (!app.settings.tenant || app.settings.tenant.isAdmin)
+                    context.result += "<li><a href='/#/extension/scheduling/list'>Scheduling</a></li>";
             });
 
             app.on("menu-actions-render", function (context) {
-                context.result += "<li><a id='createScheduleCommand' href='#/extension/scheduling/detail' class='validate-leaving'>Create Schedule</a></li>";
+                if (!app.settings.tenant || app.settings.tenant.isAdmin)
+                    context.result += "<li><a id='createScheduleCommand' href='#/extension/scheduling/detail' class='validate-leaving'>Create Schedule</a></li>";
             });
 
             app.on("entity-registration", entityRegistration);

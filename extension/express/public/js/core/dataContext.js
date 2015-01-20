@@ -9,15 +9,27 @@ define(["deferred"], function () {
         var context = {};
         app.trigger("entity-registration", context);
 
+        app.trigger("after-entity-registration", context);
         $data.EntityContext.extend('entity.Context', context);
         
         $data.generatedContexts = $data.generatedContexts || [];
         $data.generatedContexts.push(entity.Context);
 
-        var dataContext = new entity.Context({
-            name: 'oData',
-            oDataServiceHost: (app.serverUrl + 'odata')
-        });
+        function newContext() {
+            var result = new entity.Context({
+                name: 'oData',
+                oDataServiceHost: (app.serverUrl + 'odata')
+            });
+
+            result.new = function() {
+                return newContext();
+            };
+
+            return result;
+        }
+
+        var dataContext = newContext();
+
 
         dataContext.onReady(function() {
             dataContext.prepareRequest = function(r) {
@@ -39,16 +51,6 @@ define(["deferred"], function () {
 
                 r[0].requestUri += "studio=" + app.options.studio;
             };
-            
-            dataContext.addEventListener('added', function(e, ent) {
-                app.trigger("create:success", ent.data);
-            });
-            dataContext.addEventListener('updated', function (e, ent) {
-                app.trigger("update:success", ent.data);
-            });
-            dataContext.addEventListener('deleted', function (e, ent) {
-                app.trigger("delete:success", ent.data);
-            });
             
             cb(dataContext);
         });

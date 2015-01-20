@@ -28,7 +28,12 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
             for (var key in app.options.headers) {
                 xhr.setRequestHeader(key, app.options.headers[key]);
             }
-            settings.url += "&studio=" + app.options.studio;
+            if (settings.url.indexOf("?") === -1)
+                settings.url += "?";
+            else
+                settings.url += "&";
+
+            settings.url += "studio=" + app.options.studio;
         },
         error: function(xhr, status, err) {
             console.log(status);

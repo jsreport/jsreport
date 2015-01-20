@@ -147,7 +147,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['extension/authentication/test/*.js']
+                src: ['extension/authorization/test/*.js']
             },
             integration: {
                 options: {
@@ -196,7 +196,8 @@ module.exports = function (grunt) {
                     'extension/express/public/css/built.css': [
                         'extension/express/public/css/bootstrap.min.css', 'extension/express/public/css/bootstrap-nonresponsive.css',
                         'extension/express/public/css/toastr.css', 'extension/express/public/css/split-pane.css',
-                        'extension/express/public/css/style.css', 'extension/express/public/css/introjs.css'
+                        'extension/express/public/css/style.css', 'extension/express/public/css/introjs.css',
+                        'extension/express/public/css/bootstrap-multiselect.css'
                     ],
                     'extension/express/public/css/built_embed.css': [
                         'extension/express/public/css/bootstrap.min.css', 'extension/express/public/css/bootstrap-nonresponsive.css',
@@ -232,6 +233,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('test-all', ['test-mongo', 'test-nedb', 'test-ui']);
     grunt.registerTask('test-integration', ['env:dbNedb', 'mochaTest:integration']);
-    grunt.registerTask('test-exact', ['env:dbMongo', 'mochaTest:testExact']);
+    grunt.registerTask('test-exact', ['env:dbNedb', 'mochaTest:testExact']);
     grunt.registerTask('test-ui', ['writeHtmlTemplatesForUiTests', 'mocha_phantomjs']);
 };

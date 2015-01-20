@@ -18,6 +18,10 @@ define(["app", "core/jaydataModel"], function(app, ModelBase) {
             this.Entity = $entity.Template;
         },
 
+        toString: function() {
+            return "Template " + (this.get("name") || "");
+        },
+
         defaults: {
             engine: "handlebars",
             recipe: "phantom-pdf"

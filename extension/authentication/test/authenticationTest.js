@@ -17,10 +17,11 @@ describeReporting(path.join(__dirname, "../../"), ["express", "authentication"],
 
     describe('authentication', function () {
 
-        it("should redirect to login without auth cookie", function(done) {
+        it("should respond with login without cookie", function(done) {
             request(reporter.options.express.app).get("/")
                 .end(function (err, res) {
-                    res.header.location.should.containEql("/login");
+                    console.log(res);
+                    res.text.should.containEql("<h1>Login</h1>");
                     done();
                 });
         });

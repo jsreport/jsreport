@@ -13,24 +13,6 @@
 
 
 <ul class="nav navbar-nav navbar-right">
-    {{if ~getTenant().name != ""}}
-    <li>
-        {{:~renderAdditionalUserInfo()}}
-    </li>
-
-    <li class="dropdown">
-        <a href="#" class="dropdown-toggle user-info-btn" data-toggle="dropdown"><i class="fa fa-user fa-logged"></i><span class="user-info"><small> Welcome,<br><b>{{:~getTenant().name}}</b> ({{:~getTenant().email}})</small></span> <b class="caret"></b></a>
-
-        <ul class="dropdown-menu">
-            <li>
-                <a id='logoutLink' onclick=" $('#logoutBtn').click()"><i class="fa fa-power-off"></i> Logout </a>
-                <form method="POST" action="/logout">
-                    <input type="submit" id="logoutBtn" style="display: none"/>
-                </form>
-            </li>
-        </ul>
-    </li>
-
-    {{else}}{{/if}}
+    {{:~renderUserInfo()}}
 </ul>
 

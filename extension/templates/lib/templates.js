@@ -28,11 +28,14 @@ var Templating = function (reporter, definition) {
     this.reporter.beforeRenderListeners.add(definition.name, Templating.prototype.handleBeforeRender.bind(this));
 
     this._defineEntitySets();
+
+    this.reporter.on("express-configure", Templating.prototype._configureExpress.bind(this));
 };
 
 util.inherits(Templating, events.EventEmitter);
 
 Templating.prototype.handleBeforeRender = function (request, response) {
+    var self = this;
 
     if (!request.template._id && !request.template.shortid) {
         if (!request.template.content)
@@ -41,15 +44,26 @@ Templating.prototype.handleBeforeRender = function (request, response) {
         return;
     }
 
-    var findPromise = request.template._id ? request.context.templates.find(request.template._id) :
-        request.template.shortid ?
-            request.context.templates.single(function (t) {
-                return t.shortid === this.shortid;
-            }, {shortid: request.template.shortid})
-            : q(request.template);
+    function findTemplate() {
+        if (!request.template._id && !request.template.shortid) {
+            return q(request.template);
+        }
+
+        return self.reporter.dataProvider.startContext().then(function (context) {
+            if (request.template._id) {
+                return context.templates.find(request.template._id);
+            }
+
+            if (request.template.shortid) {
+                return context.templates.single(function (t) {
+                    return t.shortid === this.shortid;
+                }, {shortid: request.template.shortid});
+            }
+        });
+    }
 
 
-    return findPromise.then(function (template) {
+    return findTemplate().then(function (template) {
         extend(true, template, request.template);
         request.template = template;
         request.template.content = request.template.content || "";
@@ -76,6 +90,44 @@ Templating.prototype.create = function (context, tmpl) {
     });
 };
 
+Templating.prototype._configureExpress = function (app) {
+    var self = this;
+
+    app.get("/templates/:shortid", function (req, res, next) {
+        self.reporter.dataProvider.startContext().then(function (context) {
+            return context.templates.filter(function (t) {
+                return t.shortid === this.shortid;
+            }, {shortid: req.params.shortid})
+                .toArray().then(function (templates) {
+                    if (templates.length !== 1)
+                        return q.reject(new Error("Unauthorized"));
+                    var template = templates[0];
+
+                    req.template = template;
+
+                    return self.reporter.render(req).then(function (response) {
+
+                        if (response.headers) {
+                            for (var key in response.headers) {
+                                if (response.headers.hasOwnProperty(key))
+                                    res.setHeader(key, response.headers[key]);
+                            }
+                        }
+
+                        if (_.isFunction(response.result.pipe)) {
+                            response.result.pipe(res);
+                        } else {
+                            res.send(response.result);
+                        }
+                    });
+                });
+        }).catch(function (e) {
+            next(e);
+        });
+    });
+};
+
+
 Templating.prototype._beforeUpdateHandler = function (args, entity) {
     entity.modificationDate = new Date();
 };
@@ -98,6 +150,7 @@ Templating.prototype._defineEntities = function () {
         engine: {type: "string"},
         modificationDate: {type: "date"}
     };
+
 
     this.TemplateHistoryType = this.reporter.dataProvider.createEntityType("TemplateHistoryType", templateAttributes);
     this.TemplateType = this.reporter.dataProvider.createEntityType("TemplateType", templateAttributes);

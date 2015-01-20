@@ -17,6 +17,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
                     
                         result.resolve(res.initData || res);
                 }, function (e) {
+                app.dataContext.clear();
                     e.statusText = model.originalEntity.toString() + " not found";
                     result.reject(e);
                 });
@@ -27,10 +28,11 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
     JayDataSyncProvider.prototype.update = function (model) {
         var result = $.Deferred();
 
-        model.contextSet().attach(model.originalEntity);
+        var dataContext = app.dataContext.new();
+        dataContext[model.contextSet().name].attach(model.originalEntity);
         model.copyToEntity();
 
-        app.dataContext.saveChanges()
+        dataContext.saveChanges()
             .then(function () {
                 result.resolve(model.attributes);
             }, function (e) {
@@ -44,9 +46,10 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         var result = $.Deferred();
 
         model.copyToEntity();
-        model.contextSet().add(model.originalEntity);
+        var dataContext = app.dataContext.new();
+        dataContext[model.contextSet().name].add(model.originalEntity);
         
-        app.dataContext.saveChanges()
+        dataContext.saveChanges()
            .then(function () {
                result.resolve(model.originalEntity.initData);
            }, function (e) {
@@ -58,10 +61,11 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
     
     JayDataSyncProvider.prototype.delete = function (model) {
         var result = $.Deferred();
-        
-        model.contextSet().remove({ _id: model.get("_id") });
 
-        app.dataContext.saveChanges()
+        var dataContext = app.dataContext.new();
+        dataContext[ model.contextSet().name].remove({ _id: model.get("_id") });
+
+        dataContext.saveChanges()
            .then(function () {
                result.resolve(model.attributes);
            }, function (e) {
@@ -83,8 +87,6 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
             url: app.serverUrl + "api/" + model.url(),
             type: 'PUT',
             data: JSON.stringify(model.toJSON())
-        }).then(function() {
-            app.trigger("update:success", model);
         });
     };
     
@@ -93,8 +95,6 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
             url: app.serverUrl + "api/" + model.url(),
             type: 'POST',
             data: JSON.stringify(model.toJSON())
-        }).then(function() {
-            app.trigger("create:success", model);
         });
     };
     
@@ -103,8 +103,6 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
             url: app.serverUrl + "api/" + model.url(),
             type: 'DELETE',
             data: JSON.stringify(model.toJSON())
-        }).then(function() {
-            app.trigger("delete:success", model);
         });
     };
 
@@ -122,8 +120,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
                 options.success(res);
                 model.changed = {};
                 model.syncing = false;
-                if (method === "read")
-                    app.trigger("read:success", model);
+                app.trigger(method + ":success", model);
             })
             .fail(function (e) {
                 options.error(e);

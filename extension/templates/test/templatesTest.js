@@ -13,7 +13,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates"], function(report
 
         it('should callback error when missing template', function(done) {
             var request = {
-                template: { _id: "AAAAAAAAAAAAAAAAAAAAAAAA" },
+                template: { _id: "NTRiZTU1MTFiY2NkNmYzYzI3OTdiNjYz" },
                 context: reporter.context,
                 options: { recipe: "html" }
             };

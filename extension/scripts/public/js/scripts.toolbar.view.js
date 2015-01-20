@@ -1,14 +1,32 @@
-﻿define(["jquery", "app", "core/utils", "core/view.base"],
-    function($, app, Utils, LayoutBase) {
+﻿define(["jquery", "app", "marionette", "core/utils", "core/view.base"],
+    function($, app, Marionette, Utils, LayoutBase) {
         return LayoutBase.extend({
             template: "scripts-toolbar",
 
             initialize: function() {
                 $(document).on('keydown.script-detail', this.hotkey.bind(this));
+
+                var self = this;
+                this.listenTo(this, "render", function() {
+                    var contextToolbar = {
+                        name: "script-detail",
+                        model: self.model,
+                        region: self.extensionsToolbarRegion,
+                        view: self
+                    };
+                    app.trigger("toolbar-render", contextToolbar);
+                });
             },
 
             events: {
                 "click #saveCommand": "save"
+            },
+
+            regions: {
+                extensionsToolbarRegion: {
+                    selector: "#extensionsToolbarBox",
+                    regionType: Marionette.MultiRegion
+                }
             },
 
             save: function() {

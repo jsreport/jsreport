@@ -13,8 +13,8 @@ var oneMonth = 31 * 86400000;
 module.exports = function (app, reporter) {
     var originalMode = reporter.options.mode;
 
-    app.use(function(req, res, next) {
-        res.error = function(err) {
+    app.use(function (req, res, next) {
+        res.error = function (err) {
 
             res.status(500);
 
@@ -33,16 +33,16 @@ module.exports = function (app, reporter) {
 
             logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
 
-            if (!req.get('Content-Type') || req.get('Content-Type').indexOf("application/json") === -1) {
-                res.write("Error occured - " + err.message + "\n");
-                if (err.stack)
-                    res.write("Stack - " + err.stack);
-                res.end();
-                return;
+            if ((req.get('Content-Type') && (req.get('Content-Type').indexOf("application/json") !== -1)) ||
+                (req.get('Accept') && (req.get('Accept').indexOf("application/json") !== -1))) {
+                return res.send({message: err.message, stack: err.stack});
             }
 
-            //its somehow not able to serialize original err
-            res.send({message: err.message, stack: err.stack});
+            res.write("Error occured - " + err.message + "\n");
+            if (err.stack)
+                res.write("Stack - " + err.stack);
+            res.end();
+            return;
         };
 
         next();
@@ -65,7 +65,7 @@ module.exports = function (app, reporter) {
         });
     });
 
-    app.use(serveStatic(path.join(__dirname, '../public'), { maxAge: oneMonth }));
+    app.use(serveStatic(path.join(__dirname, '../public'), {maxAge: oneMonth}));
 
     reporter.emit("after-express-static-configure", app);
 
@@ -124,7 +124,7 @@ module.exports = function (app, reporter) {
     });
 
     reporter.extensionsManager.extensions.map(function (e) {
-        app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth }));
+        app.use('/extension/' + e.name, serveStatic(e.directory, {maxAge: oneMonth}));
     });
 
     /**

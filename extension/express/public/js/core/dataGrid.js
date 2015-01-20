@@ -128,10 +128,11 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
 
                 var self = this;
                 var selectedRows = this.$el.find("table tr.ui-selected");
+
                 async.each(selectedRows, function(row, cb) {
                     self.collection.models.forEach(function(m) {
                         if (m.get(self.idKey) === $(row).attr("data-id")) {
-                            m.destroy({ success: cb });
+                            m.destroy({ success: cb, error: function(e) { console.log(e);} });
                         }
                     });
                 }, function() {

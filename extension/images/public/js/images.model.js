@@ -10,6 +10,10 @@
         _initialize: function() {
             var self = this;
             this.Entity = $entity.Image;
+        },
+
+        toString: function() {
+            return "Image " + (this.get("name") || "");
         }
     });
 });

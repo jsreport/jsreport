@@ -1,0 +1,20 @@
+<li class="dropdown">
+    <a href="#" class="dropdown-toggle user-info-btn" data-toggle="dropdown"><i class="fa fa-user fa-logged"></i><span
+            class="user-info">
+            <small> Welcome,<br>{{:~getUserIdentificationText()}}
+            </small></span> <b class="caret"></b></a>
+
+    <ul class="dropdown-menu">
+        <li>
+            {{if ~getTenant().isAdmin}}
+            {{else}}
+            <a id='changePasswordCommand'>Change password</a>
+            {{/if}}
+            <a id='logoutLink' onclick=" $('#logoutBtn').click()"><i class="fa fa-power-off"></i> Logout </a>
+
+            <form method="POST" action="/logout">
+                <input type="submit" id="logoutBtn" style="display: none"/>
+            </form>
+        </li>
+    </ul>
+</li>

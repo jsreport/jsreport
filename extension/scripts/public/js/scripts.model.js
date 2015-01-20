@@ -12,6 +12,10 @@
         
         _initialize: function () {
             this.Entity = $entity.Script;
+        },
+
+        toString: function() {
+            return "Script " + (this.get("name") || "");
         }
     });
 });

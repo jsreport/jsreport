@@ -64,7 +64,7 @@ Statistics.prototype._defineEntities = function () {
         success: { type: "int", increment: true }
     });
 
-    this.reporter.dataProvider.registerEntitySet("statistics", this.StatisticType, { tableOptions: { nedbPersistance: "singleFile" } });
+    this.reporter.dataProvider.registerEntitySet("statistics", this.StatisticType, { shared : true, tableOptions: { nedbPersistance: "singleFile" } });
 };
 
 module.exports = function (reporter, definition) {

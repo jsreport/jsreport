@@ -147,14 +147,14 @@ var jsreport = (function (global, jQuery, undefined) {
         }
 
         function addBody(path, body) {
-            if (body === null)
+            if (body === null || body === undefined)
                 return;
 
             for (var key in body) {
                 if ($.isPlainObject(body[key])) {
                     addBody(path + "[" + key + "]", body[key]);
                 } else {
-                    if (body[key] !== undefined && !(body[key] instanceof Array))
+                    if (body[key] !== null && body[key] !== undefined && !(body[key] instanceof Array))
                         addInput(mapForm, path + "[" + key + "]", body[key]);
                 }
             }

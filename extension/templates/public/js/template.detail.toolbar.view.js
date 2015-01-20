@@ -37,11 +37,12 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                     app.trigger("template-extensions-render", context);
 
                     var contextToolbar = {
-                        template: self.model,
+                        name: "template-detail",
+                        model: self.model,
                         region: self.extensionsToolbarRegion,
                         view: self
                     };
-                    app.trigger("template-extensions-toolbar-render", contextToolbar);
+                    app.trigger("toolbar-render", contextToolbar);
                 });
 
                 _.bindAll(this, "preview", "previewNewPanel", "onClose");
@@ -70,7 +71,8 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                 "click #saveCommand": "save",
                 "click #previewCommand": "preview",
                 "click #previewNewTabCommand": "previewNewPanel",
-                "click #apiHelpCommnand": "apiHelp"
+                "click #apiHelpCommnand": "apiHelp",
+                "click #linkCommand": "link"
             },
 
             save: function(e) {
@@ -143,10 +145,13 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                 apiBox.setValue(JSON.stringify({ template: properties }, null, 2));
             },
 
-            /*share: function() {
-                var dialog = new ShareDialog({ model: this.model });
-                app.layout.dialog.show(dialog);
-            },*/
+            link: function() {
+                $.dialog({
+                    header: "Link to template",
+                    content: $.render["template-detail-link"](this.model.toJSON(), this),
+                    hideSubmit: true
+                });
+            },
 
             hotkey: function(e) {
                 if (e.ctrlKey && e.which === 83) {

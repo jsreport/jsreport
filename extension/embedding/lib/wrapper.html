@@ -43,10 +43,10 @@
     jsreportInit = function () {
 
         var template = JSON.parse(decodeURIComponent("$template"));
-        var data = "$data";
+        template.data = $data;
 
-        if (data)
-            template.data = { dataJson : decodeURIComponent(data) };
+        //if (data)
+        //    template.data = { dataJson : decodeURIComponent(data) };
 
         jsreport.template = template;
 

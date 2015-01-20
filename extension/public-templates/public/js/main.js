@@ -57,9 +57,11 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore
                 }
             });
 
-            app.on("template-extensions-toolbar-render", function (context) {
-                var view = new TemplateToolbarView({ model: context.template });
-                context.region.show(view, "share");
+            app.on("toolbar-render", function (context) {
+                if (context.name === "template-detail") {
+                    var view = new TemplateToolbarView({model: context.model});
+                    context.region.show(view, "share");
+                }
             });
 
             app.on("entity-registration", function(context) {

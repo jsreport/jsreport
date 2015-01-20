@@ -46,10 +46,12 @@
                 model.fetch();
             });
 
-            app.on("template-extensions-toolbar-render", function (context) {
-                var view = new TemplateToolbarView({ model: context.template });
-                view.linkToTemplateView(context.view);
-                context.region.show(view, "render");
+            app.on("toolbar-render", function (context) {
+                if (context.name === "template-detail") {
+                    var view = new TemplateToolbarView({model: context.model});
+                    view.linkToTemplateView(context.view);
+                    context.region.show(view, "render");
+                }
             });
 
 

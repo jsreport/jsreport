@@ -31,7 +31,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "express", "repo
 
             reporter.reports.handleAfterRender(request, response).then(function() {
                 supertest(reporter.options.express.app)
-                    .get('/api/report/' + response.headers["Report-Id"] + '/content')
+                    .get('/reports/' + response.headers["Report-Id"] + '/content')
                     .expect(200)
                     .parse(function(res, cb) {
                         res.data = '';

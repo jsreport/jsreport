@@ -8,6 +8,10 @@
         
         _initialize: function () {
             this.Entity = $entity.Report;
+        },
+
+        toString: function() {
+            return "Report " + (this.get("name") || "");
         }
     });
 });

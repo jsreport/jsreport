@@ -10,7 +10,7 @@
                 <div>
                     <h5>Link with read permissions</h5>
                 </div>
-                <a target="_blank" href="{{>~getCurrentLocation()}}templates/sharing?access_token={{:readSharingToken}}">{{>~getCurrentLocation()}}templates/sharing?access_token={{:readSharingToken}}</a>
+                <a target="_blank" href="{{>~getCurrentLocation()}}public-templates?access_token={{:readSharingToken}}">{{>~getCurrentLocation()}}public-templates?access_token={{:readSharingToken}}</a>
                 {{else}}
                 <button type="button" class="btn btn-primary btn-xs" id="readLinkCommand">Generate Read Link</button>
                 {{/if}}
@@ -26,7 +26,7 @@
                 <div>
                     <h5>Link with write permissions</h5>
                 </div>
-                <a target="_blank" href="{{>~getCurrentLocation()}}templates/sharing?access_token={{:writeSharingToken}}">{{>~getCurrentLocation()}}templates/sharing?access_token={{:writeSharingToken}}</a>
+                <a target="_blank" href="{{>~getCurrentLocation()}}public-templates?access_token={{:writeSharingToken}}">{{>~getCurrentLocation()}}public-templates?access_token={{:writeSharingToken}}</a>
                 {{else}}
                 <button type="button" class="btn btn-primary btn-xs" id="writeLinkCommand">Generate Write Link</button>
                 {{/if}}

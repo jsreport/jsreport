@@ -107,6 +107,7 @@ Scheduling.prototype.stop = function () {
 Scheduling.prototype.renderReport = function (schedule, task, context) {
     return this.reporter.render({
         template: {shortid: schedule.templateShortid},
+        user : { isAdmin: true},
         options: {
             scheduling: {taskId: task._id, scheduleShortid: schedule.shortid},
             reports: {save: true, mergeProperties: {taskId: task._id}},

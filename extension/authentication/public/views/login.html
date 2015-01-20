@@ -16,7 +16,7 @@
     <div class="grid">
         <div class="row">
             <div class="col-md-4 well col-lg-offset-4">
-                <form action="/login" method="POST">
+                <form id="loginForm"  method="POST">
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input id="username" name="username" type="text"/>
@@ -41,5 +41,12 @@
         </div>
     </div>
 </div>
+<script>
+    var form = document.getElementById("loginForm");
+    if (window.location.pathname.lastIndexOf("/login", 0) === 0)
+        form.action = window.location.pathname + window.location.search;
+    else
+    form.action = "/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.hash + window.location.search);
+</script>
 </body>
 </html>

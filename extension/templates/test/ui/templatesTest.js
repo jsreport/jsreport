@@ -123,7 +123,7 @@ describe('templates', function () {
 
         afterEach(function(done) {
             app.off("template-extensions-render");
-            app.off("template-extensions-toolbar-render");
+            app.off("toolbar-render");
 
             done();
         });
@@ -161,10 +161,10 @@ describe('templates', function () {
             showDetail({}, function() {});
         });
 
-        it("should trigger template-extensions-toolbar-render during init", function(done) {
+        it("should trigger toolbar-render during init", function(done) {
 
-            app.on("template-extensions-toolbar-render", function(context, cb) {
-                expect(context.template).to.be.equal(model);
+            app.on("toolbar-render", function(context, cb) {
+                expect(context.model).to.be.equal(model);
                 expect(context.view).to.be.equal(toolbarView);
                 done();
             });

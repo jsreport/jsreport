@@ -49,6 +49,10 @@
             var self = this;
             this.Entity = $entity.Schedule;
             this.tasks = new TasksModel();
+        },
+
+        toString: function() {
+            return "Schedule " + (this.get("name") || "");
         }
     });
 });

@@ -27,6 +27,11 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
             return require("app").settings.tenant || { name: ""};
         },
 
+        getUserIdentificationText: function() {
+            var tenant = require("app").settings.tenant || { name: "", email: ""};
+            return "<b>" + (tenant.name || tenant.username) + "</b>" + (tenant.email || "");
+        },
+
         getServerUrl: function() {
             return require("app").serverUrl;
         },

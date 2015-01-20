@@ -2,15 +2,16 @@
  * Copyright(c) 2014 Jan Blaha
  *
  * Extension for authorizing requests and data access. It is dependent on Authentication extension.
- * Data and requests are authorized based on custom hooks from other extensions like Templates sharing
- * or based on external rest service specified in configuration.
+ *
+ * Adds property readPermissions and editPermissions to every object as array od user ids identifying which
+ * user can work on which object.
  */
 
 var q = require("q"),
     path = require("path"),
     request = require("request"),
     extend = require("node.extend"),
-    urljoin = require('url-join');
+    _ = require("underscore");
 
 function Authorization(reporter, definition) {
     this.reporter = reporter;
@@ -19,85 +20,98 @@ function Authorization(reporter, definition) {
     this.requestAuthorizationListeners = reporter.createListenerCollection();
     this.operationAuthorizationListeners = reporter.createListenerCollection();
     reporter.initializeListener.add(definition.name, Authorization.prototype._initialize.bind(this));
-    this.operationAuthorizationListeners.add("external-service", Authorization.prototype.externalServiceOperationAuthorization.bind(this));
-
 }
 
-Authorization.prototype.authorizeRequest = function(req, res) {
-    return this.requestAuthorizationListeners.fireAndJoinResults(req, res).then(function(res) {
+Authorization.prototype.authorizeRequest = function (req, res) {
+    return this.requestAuthorizationListeners.fireAndJoinResults(req, res).then(function (res) {
         if (res === null)
-            return req.isAuthenticated();
+            return req.user !== null && req.user !== undefined;
+
         return res;
     });
 };
 
-Authorization.prototype.externalServiceOperationAuthorization = function(req, operation, entitySet, entity) {
-    if (!this.definition.options.externalService || !this.definition.options.externalService.url) {
-        return null;
-    }
+Authorization.prototype.defaultAuthorizeOperation = function (entitySet, req, operation, entitySetKey, entity) {
+    if (entitySetKey === "settings")
+        return q(true);
 
-    if (process.domain.req.isAuthenticated && process.domain.req.isAuthenticated()) {
+    if (entity.context && entity.context.skipAuthorization) {
         return q(true);
     }
 
-    var self = this;
+    if (!req.user) {
+        return q(false);
+    }
 
-    var deferred = q.defer();
+    if (entitySetKey === "users" && operation !== "Read" && !req.user.isAdmin && (entity._id && entity._id !== req.user._id)) {
+        return q(false);
+    }
 
-    var headers = this.definition.options.externalService.headers || {};
-    headers.cookie = process.domain.req.headers["host-cookie"];
-    headers.Authorization = process.domain.req.headers["Authorization"];
+    if (entitySet.shared)
+        return q(true);
 
-    var authUrl = urljoin(this.definition.options.externalService.url, operation.toLowerCase(), entitySet, entity.shortid);
-    this.reporter.logger.debug("Requesting authorization at GET:" + authUrl);
-    request({
-        url: authUrl,
-        headers: headers,
-        json: true
-    }, function (error, response, body) {
-        if (error) {
-            self.reporter.logger.error("Authorization failed with error: " + error);
-            return deferred.reject(error);
+    if (operation === "Create" || req.user.isAdmin) {
+        return q(true);
+    }
+
+    function checkPermissions(entity) {
+        var permissions = operation === "Read" ? entity.readPermissions : entity.editPermissions;
+        var permission = _.find(permissions, function (p) {
+            return p === req.user._id;
+        });
+
+        if (!permission) {
+            return q(false);
         }
 
-        self.reporter.logger.debug("Authorization response " + response.statusCode);
+        return q(true);
+    }
 
-        deferred.resolve(response.statusCode === 200);
-    });
-
-    return deferred.promise;
-};
-
-Authorization.prototype.authorizeOperation = function(req, operation, entitySet, entity) {
-    return this.operationAuthorizationListeners.fireAndJoinResults(req, operation, entitySet, entity).then(function(res) {
-        if (res === null)
-            return req.isAuthenticated();
-        return res;
+    return this.reporter.dataProvider.startContext().then(function (context) {
+        context.skipAuthorization = true;
+        return context[entitySetKey].find(entity._id).then(function (entity) {
+            return checkPermissions(entity);
+        });
     });
 };
 
-Authorization.prototype._initialize = function() {
+Authorization.prototype.authorizeOperation = function (entitySet, req, operation, entitySetKey, entity) {
+    var self = this;
+    return this.defaultAuthorizeOperation(entitySet, req, operation, entitySetKey, entity).then(function (defaultRes) {
+        return self.operationAuthorizationListeners.fireAndJoinResults(req, operation, entitySetKey, entity).then(function (overrideRes) {
+            if (defaultRes && (overrideRes === null || overrideRes === true))
+                return true;
+
+            if (!defaultRes && overrideRes === true)
+                return true;
+
+            return false;
+        });
+    });
+};
+
+Authorization.prototype._registerAuthorizationListeners = function () {
     var self = this;
 
     var entitySets = this.reporter.dataProvider._entitySets;
 
-
     function afterReadListener(key, successResult, sets, query) {
+        if (query.context.skipAuthorization || !process.domain) {
+            return;
+        }
 
         if (Array.isArray(successResult)) {
             successResult = Array.isArray(successResult) ? successResult : [successResult];
 
             return q.all(successResult.map(function (i) {
-                if (!i.shortid)
-                    return;
-
-                return self.authorizeOperation(process.domain.req, "Read", key, i).then(function (result) {
-                    if (!result)
+                return self.authorizeOperation(entitySets[key], process.domain.req, "Read", key, i).then(function (result) {
+                    if (!result) {
                         successResult.splice(successResult.indexOf(i), 1);
+                    }
                 });
             }));
         } else {
-            return self.authorizeOperation(process.domain.req, "Read", key, successResult).then(function (result) {
+            return self.authorizeOperation(entitySets[key], process.domain.req, "Read", key, successResult).then(function (result) {
                 if (!result) {
                     process.domain.res.error(new Error("Unauthorized access"));
                 }
@@ -106,12 +120,12 @@ Authorization.prototype._initialize = function() {
     }
 
     function registerOperationListener(operation) {
-        entitySets[key]["before" + operation + "Listeners"].add("authorization",  function (key, items) {
-            return q.all(items.map(function (i) {
-                if (!i.shortid)
-                    return q(true);
+        entitySets[key]["before" + operation + "Listeners"].add("authorization", function (key, items) {
+            if (!process.domain)
+                return true;
 
-                return self.authorizeOperation(process.domain.req, operation, key, i);
+            return q.all(items.map(function (i) {
+                return self.authorizeOperation(entitySets[key], process.domain.req, operation, key, i);
             })).then(function (res) {
                 return res.filter(function (r) {
                         return r;
@@ -126,6 +140,82 @@ Authorization.prototype._initialize = function() {
     }
 };
 
+Authorization.prototype._registerQueryFilteringByPermission = function () {
+    var self = this;
+
+    this.reporter.dataProvider.on("context-created", function (context) {
+        context.events.on("before-query", function (dataProvider, query, entitySet) {
+            if (self.reporter.dataProvider._entitySets[entitySet.name].shared)
+                return;
+
+            if (process.domain && process.domain.req && process.domain.req.user && process.domain.req.user._id) {
+                query.readPermissions = dataProvider.fieldConverter.toDb["$data.ObjectID"](process.domain.req.user._id);
+            }
+        });
+    });
+};
+
+Authorization.prototype._extendEntitiesWithPermissions = function () {
+
+    function isRequestEligibleForAuth() {
+        return process.domain && process.domain.req && process.domain.req.user && !process.domain.req.user.isAdmin;
+    }
+
+    function beforeCreate(args, entity) {
+            if (!isRequestEligibleForAuth()) {
+                return;
+            }
+
+            entity.readPermissions = entity.readPermissions || [];
+            entity.editPermissions = entity.editPermissions || [];
+            entity.readPermissions.push(process.domain.req.user._id);
+            entity.editPermissions.push(process.domain.req.user._id);
+    }
+
+    function beforeUpdate(args, entity) {
+        if (!isRequestEligibleForAuth()) {
+            return;
+        }
+
+        entity.readPermissions = entity.readPermissions || [];
+        entity.editPermissions = entity.editPermissions || [];
+
+        entity.editPermissions.forEach(function (wp) {
+            if (entity.readPermissions.indexOf(wp) === -1) {
+                entity.readPermissions.push(wp);
+            }
+        });
+
+        if (entity.readPermissions.indexOf(process.domain.req.user._id) === -1) {
+            entity.readPermissions.push(process.domain.req.user._id);
+        }
+
+        if (entity.editPermissions.indexOf(process.domain.req.user._id) === -1) {
+            entity.editPermissions.push(process.domain.req.user._id);
+        }
+    }
+
+    this.reporter.dataProvider.on("building-context", function (entitySets) {
+        for (var key in entitySets) {
+            var entitySet = entitySets[key];
+            if (entitySet.shared)
+                continue;
+
+            entitySet.elementType.addMember("readPermissions", {type: "Array", elementType: "id"});
+            entitySet.elementType.addMember("editPermissions", {type: "Array", elementType: "id"});
+
+            entitySet.elementType.addEventListener("beforeCreate", beforeCreate);
+            entitySet.elementType.addEventListener("beforeUpdate", beforeUpdate);
+        }
+    });
+};
+
+Authorization.prototype._initialize = function () {
+    this._registerAuthorizationListeners();
+    this._registerQueryFilteringByPermission();
+};
+
 module.exports = function (reporter, definition) {
     reporter.authorization = new Authorization(reporter, definition);
+    reporter.authorization._extendEntitiesWithPermissions();
 };

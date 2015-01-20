@@ -23,7 +23,7 @@ var Reporting = function (reporter, definition) {
 
 Reporting.prototype.configureExpress = function (app) {
     var self = this;
-    app.get("/api/report/:id/content", function (req, res, next) {
+    app.get("/reports/:id/content", function (req, res, next) {
         self.reporter.dataProvider.startContext().then(function (context) {
             return context.reports.find(req.params.id).then(function (result) {
                 return self.reporter.blobStorage.read(result.blobName, function (err, stream) {

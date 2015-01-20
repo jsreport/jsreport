@@ -40,9 +40,21 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
                 if (e.handled)
                     return;
 
+                if (e.responseJSON) {
+                    $.dialog({
+                        header: e.responseJSON.message,
+                        content: "<b>" + e.responseJSON.message + "</b><br><small>" + e.responseJSON.stack + "</small>",
+                        hideSubmit: true,
+                        error: true
+                    });
+
+                    return;
+                }
+
                 var responseText = (e.responseText || e.message);
                 if (responseText.length > 800)
                     responseText = responseText.substring(0, 800) + "...";
+
 
                 $.dialog({
                     header: e.statusText || "Error",

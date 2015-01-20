@@ -31,6 +31,7 @@ requirejs.config({
         "jquery.ui.mouse": "../lib/jquery.ui.mouse",
         "jquery.ui.selectable": "../lib/jquery.ui.selectable",
         "jquery.fineuploader": "../lib/jquery.fineuploader-3.0",
+        "bootstrap.multiselect": "../lib/bootstrap-multiselect",
         "split-pane": "../lib/split-pane",
         "introJs": "../lib/intro",
         json2: "../lib/json2",
@@ -87,12 +88,13 @@ requirejs.config({
         "jquery.ui.selectable": ["jquery.ui.mouse"],
         "jquery.ui.resizable": ["jquery.ui.mouse"],
         "jquery.fineuploader": ["originaljquery"],
+        "bootstrap.multiselect": ["originaljquery"],
         "split-pane": ["originaljquery"],
 
         "jquery": {
             deps: ["originaljquery", "jsrender.bootstrap", "bootstrap", "jquery.flot",
                 "jquery.flot.time", "dialog", "jquery.ui.selectable", 
-                "errorAlert", "toastr", "split-pane", "jquery.fineuploader"],
+                "errorAlert", "toastr", "split-pane", "jquery.fineuploader", "bootstrap.multiselect"],
             exports: "$"
         }
     }

@@ -19,7 +19,7 @@ function handleAuthorization(reporter, definition) {
             return;
         }
 
-        reporter.emit("export-public-route", "/templates/sharing");
+        reporter.emit("export-public-route", "/public-templates");
         reporter.emit("export-public-route", "/api/report");
         reporter.emit("export-public-route", "/odata");
 
@@ -28,45 +28,23 @@ function handleAuthorization(reporter, definition) {
             return;
         }
 
-        //user should be able to render anonymous reports from the shared template
-        //this is required for printing into pdf for example
-        //reporter.authorization.requestAuthorizationListeners.add(definition.name, function (req, res) {
-        //
-        //    if (req.isAuthenticated() || !S(req.url).startsWith("/api/report")) {
-        //        return true;
-        //    }
-        //
-        //    var token = req.body.template.writeSharingToken || req.body.template.readSharingToken;
-        //
-        //    if (!token)
-        //        return false;
-        //
-        //    return reporter.dataProvider.startContext().then(function (context) {
-        //        return context.templates.filter(function (t) {
-        //            return t.readSharingToken === this.uuid || t.writeSharingToken === this.uuid;
-        //        }, {uuid: token}).toArray();
-        //    }).then(function (templates) {
-        //        return true;
-        //    }).catch(function (e) {
-        //        return false;
-        //    });
-        //});
-
         //user should be able to access the shared template for read with read token
         //and for update with write token
         reporter.authorization.operationAuthorizationListeners.add(definition.name, function (req, operation, entitySet, entity) {
-            if (req.isAuthenticated() || S(req.url).startsWith("/api/report") || S(req.url).startsWith("/templates/sharing")) {
+            if (req.isAuthenticated()) {
+                return null;
+            }
+
+            if (S(req.url).startsWith("/api/report") || S(req.url).startsWith("/public-templates")) {
                 return true;
             }
+
             if (entitySet === "templatesHistory" && operation === "Create") {
                 return true;
             }
 
             if (entitySet !== "templates")
                 return false;
-
-            if (req.skipAuthForId && entity._id === req.skipAuthForId)
-                return true;
 
             if (operation !== "Read" && operation !== "Update") {
                 return false;
@@ -75,56 +53,13 @@ function handleAuthorization(reporter, definition) {
             req.skipAuthForId = entity._id;
 
             return reporter.dataProvider.startContext().then(function (context) {
+                context.skipAuthorization = true;
                 return context.templates.find(entity._id);
             }).then(function (template) {
-                req.skipAuthForId = null;
                 return entity.writeSharingToken && (template.writeSharingToken === entity.writeSharingToken);
             }).catch(function (e) {
-                req.skipAuthForId = null;
                 return false;
             });
-
-
-            //function findTemplate() {
-            //    if (entitySet === "templates")
-            //        return q(entity);
-            //
-            //    if (entitySet === "data" || entitySet === "scripts") {
-            //        return reporter.dataProvider.startContext().then(function (context) {
-            //            return context.templates.filter(function (t) {
-            //                return t.readSharingToken === this.uuid || t.writeSharingToken === this.uuid;
-            //            }, {uuid: token}).toArray();
-            //        }).then(function (templates) {
-            //            if (templates.length !== 1)
-            //                return null;
-            //
-            //            if (entitySet === "data" && templates[0].data && templates[0].data.shortid === entity.shortid)
-            //                return templates[0];
-            //
-            //            if (entitySet === "scripts" && templates[0].script && templates[0].script.shortid === entity.shortid)
-            //                return templates[0];
-            //
-            //            return null;
-            //        }).catch(function (e) {
-            //            return null;
-            //        });
-            //    }
-            //}
-            //
-            //return findTemplate().then(function (entity) {
-            //    var writeValid = entity.writeSharingToken && entity.writeSharingToken === token;
-            //    var readValid = entity.readSharingToken && entity.readSharingToken === token;
-            //
-            //    if (operation === "Update") {
-            //        return writeValid;
-            //    }
-            //
-            //    if (operation === "Read") {
-            //        return readValid || writeValid;
-            //    }
-            //
-            //    return false;
-            //});
         });
     });
 }
@@ -166,7 +101,7 @@ function configureExpress(app, reporter) {
     });
 
     /* verify an access token and render the particular template */
-    app.get("/templates/sharing", function (req, res, next) {
+    app.get("/public-templates", function (req, res, next) {
         reporter.dataProvider.startContext().then(function (context) {
             return context.templates.filter(function (t) {
                 return t.readSharingToken === this.uuid || t.writeSharingToken === this.uuid;
@@ -219,10 +154,13 @@ module.exports = function (reporter, definition) {
         if (!reporter.authentication)
             return;
 
-        if (!req.options.authorization)
+        if (!reporter.authorization)
             return;
 
         function generateTokens() {
+            if (!req.options.authorization)
+                return;
+
             var writeSharingToken = req.template.writeSharingToken;
             req.template.writeSharingToken = undefined;
 
@@ -265,8 +203,12 @@ module.exports = function (reporter, definition) {
         return q().then(function () {
             return generateTokens();
         }).then(function () {
-            if (!req.options.authorization)
+            if (req.user)
+                return;
+
+            if (!req.options.authorization) {
                 return q.reject(new Error("Authorization options not specified."));
+            }
 
             if (req.options.authorization.readToken === req.template.readSharingToken)
                 return;

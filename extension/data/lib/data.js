@@ -27,7 +27,7 @@ var Data = function (reporter, definition) {
         shortid: { type: "string" }
     });
 
-    this.reporter.dataProvider.registerEntitySet("data", this.DataItemType, { tableOptions: { humanReadableKeys: [ "shortid"] }});
+    this.reporter.dataProvider.registerEntitySet("data", this.DataItemType, {  tableOptions: { humanReadableKeys: [ "shortid"] }});
 
     this.reporter.templates.TemplateType.addMember("data", { type: this.DataItemRefType });
 

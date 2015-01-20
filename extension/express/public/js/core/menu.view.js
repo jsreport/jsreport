@@ -6,18 +6,18 @@ define(["app", "marionette", "underscore", "core/view.base", "backbone"], functi
     return ViewBase.extend({
         template: "menu",
         renderMenuActionPartsContext: null,
-        renderAdditionalUserInfoContext: null,
+        renderUserInfoContext: null,
         
         initialize: function() {
             var self = this;
-            _.bindAll(this, "renderMenuActionParts", "renderAdditionalUserInfo");
+            _.bindAll(this, "renderMenuActionParts", "renderUserInfo");
 
             this.listenTo(this, "render", function () {
                 if (self.renderMenuActionPartsContext !== null)
                     self.renderMenuActionPartsContext.trigger("after-render", self.$el);
 
-                if (self.renderAdditionalUserInfoContext !== null)
-                    self.renderAdditionalUserInfoContext.trigger("after-render", self.$el);
+                if (self.renderUserInfoContext !== null)
+                    self.renderUserInfoContext.trigger("after-render", self.$el);
             });
         },
 
@@ -35,12 +35,12 @@ define(["app", "marionette", "underscore", "core/view.base", "backbone"], functi
             return context.result;
         },
 
-        renderAdditionalUserInfo: function () {
-            this.renderAdditionalUserInfoContext = { result: "" };
-            _.extend(this.renderAdditionalUserInfoContext, Backbone.Events);
-            app.trigger("user-info-render", this.renderAdditionalUserInfoContext);
+        renderUserInfo: function () {
+            this.renderUserInfoContext = { result: "" };
+            _.extend(this.renderUserInfoContext, Backbone.Events);
+            app.trigger("user-info-render", this.renderUserInfoContext);
 
-            return this.renderAdditionalUserInfoContext.result;
+            return this.renderUserInfoContext.result;
         },
         
         renderMenuActionParts: function () {

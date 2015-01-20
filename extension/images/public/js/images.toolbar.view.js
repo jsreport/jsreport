@@ -1,12 +1,33 @@
-﻿define(["jquery", "app", "core/utils", "core/view.base", "./images.uploader"],
-    function($, app, Utils, LayoutBase) {
+﻿define(["jquery", "app", "marionette", "core/utils", "core/view.base", "./images.uploader"],
+    function($, app, Marionette, Utils, LayoutBase) {
         return LayoutBase.extend({
             template: "images-toolbar",
+
+            initialize: function() {
+                var self = this;
+
+                this.listenTo(this, "render", function() {
+                    var contextToolbar = {
+                        name: "image-detail",
+                        model: self.model,
+                        region: self.extensionsToolbarRegion,
+                        view: self
+                    };
+                    app.trigger("toolbar-render", contextToolbar);
+                });
+            },
 
             events: {
                 "click #saveCommand": "save",
                 "click #embedCommand": "embed",
                 "click #uploadCommand": "upload"
+            },
+
+            regions: {
+                extensionsToolbarRegion: {
+                    selector: "#extensionsToolbarBox",
+                    regionType: Marionette.MultiRegion
+                }
             },
 
             onDomRefresh: function() {
