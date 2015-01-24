@@ -6,6 +6,10 @@ define(["app", "underscore", "marionette", "backbone",
               UserDetailToolbarView, UserCreateDialog, ChangePasswordDialog) {
 
         app.module("authentication", function (module) {
+
+            if (!app.settings.tenant)
+                return;
+
             module.UsersListModel = UserListModel;
 
             var Router = Backbone.Router.extend({

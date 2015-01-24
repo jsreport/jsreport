@@ -39,7 +39,7 @@
                         }
                         var taskId = $(this).attr("data-id");
                         app.dataContext.reports.single(function(r) { return r.taskId === this.id; }, { id : taskId}).then(function(report) {
-                            window.open(app.serverUrl + "api/report/" + report._id + "/content", "_blank");
+                            window.open(app.serverUrl + "reports/" + report._id + "/content", "_blank");
                         });
                     });
                 }

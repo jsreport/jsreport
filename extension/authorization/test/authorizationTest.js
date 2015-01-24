@@ -13,6 +13,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authentication"
 
 
         beforeEach(function (done) {
+            reporter.authentication = {};
             done();
         });
 

@@ -70,8 +70,6 @@ UsersRepository.prototype.changePassword = function(currentUser, shortid, oldPas
                 return q.reject(new Error("Invalid password"));
             }
 
-            console.log("updating " + currentUser.isAdmin + " " + !passwordHash.verify(oldPassword, user.password));
-
             context.users.attach(user);
             user.password = passwordHash.generate(newPassword);
 

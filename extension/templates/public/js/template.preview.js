@@ -52,6 +52,10 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
                 return;
             }
 
+            if (app.recipes[uiState.recipe] && app.recipes[uiState.recipe].render) {
+                return app.recipes[uiState.recipe].render(request, target);
+            }
+
             var mapForm = document.createElement("form");
             mapForm.target = target;
             mapForm.method = "POST";

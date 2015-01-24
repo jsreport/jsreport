@@ -9,14 +9,16 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         
     JayDataSyncProvider.prototype.read = function (model) {
         var result = $.Deferred();
+
         model.fetchQuery()
                 .then(function (res) {
                         if (res == null) {
                             return result.reject();
                         }
-                    
+
                         result.resolve(res.initData || res);
                 }, function (e) {
+                console.log(e);
                 app.dataContext.clear();
                     e.statusText = model.originalEntity.toString() + " not found";
                     result.reject(e);

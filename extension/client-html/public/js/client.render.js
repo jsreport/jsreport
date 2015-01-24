@@ -2,6 +2,38 @@
 
 var clientRender = (function (global, jQuery, undefined) {
 
+    jQuery.cachedScript = function (url, options) {
+        options = $.extend(options || {}, {
+            dataType: "script",
+            cache: true,
+            url: url
+        });
+
+        return jQuery.ajax(options);
+    };
+
+    var _ensuredScripts = {};
+    function _ensureScript(scriptUrl, cb) {
+        if (_ensuredScripts[scriptUrl] && _ensuredScripts[scriptUrl].done) {
+            return cb();
+        }
+
+        if (!_ensuredScripts[scriptUrl])
+            _ensuredScripts[scriptUrl] = { cbs: []};
+
+        _ensuredScripts[scriptUrl].cbs.push(cb);
+
+        if (_ensuredScripts[scriptUrl].cbs.length > 1)
+            return;
+
+        $.cachedScript(scriptUrl, {
+            success: function () {
+                _ensuredScripts[scriptUrl].done = true;
+                _ensuredScripts[scriptUrl].cbs.forEach(function (c) { c(); });
+            }
+        });
+    }
+
     function renderJsRender(content, helpers, data, cb) {
         jsreport.ensureScript("/extension/client-html/public/js/jsrender.min.js", function () {
             var tmpl = $.templates(content);
@@ -94,14 +126,14 @@ var clientRender = (function (global, jQuery, undefined) {
     }
 
     return function (request, target, selector) {
-        if (!window.jsreport) {
-            throw new Error("jsreport embedded must be loaded first.");
-        }
         request.target = target;
         request.selector = selector;
         requestList[target] = request;
 
         var $iframe = $("iframe[name='" + target + "']");
+
+        window.jsreport = window.jsreport || window.top.jsreport || {};
+        window.jsreport.ensureScript = window.jsreport.ensureScript || _ensureScript;
 
         window.jsreport.request = request;
         window.jsreport.reloadForId = reload;

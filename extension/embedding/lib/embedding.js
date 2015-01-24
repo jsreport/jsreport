@@ -23,7 +23,6 @@ module.exports = function (reporter, definition) {
 
                 var template = extend(true, {}, request.template.initData || request.template);
                 template.options = extend(true, {}, request.options);
-                console.log(template.options.authorization);
                 return FS.read(path.join(__dirname, "wrapper.html")).then(function(wrapper) {
                     response.result = wrapper
                         .replace("$template", encodeURIComponent(JSON.stringify(template)))

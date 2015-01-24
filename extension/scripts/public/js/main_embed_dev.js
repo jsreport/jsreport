@@ -59,7 +59,6 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
 
                 context.on("after-render", function($el) {
                     $($el).find("#scriptsMenuCommand").click(function() {
-                        console.log(app.options.scripts.allowSelection);
                         var model = new TemplateStandardModel();
                         model.setTemplate(context.template);
 

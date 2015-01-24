@@ -6,17 +6,18 @@ var jsreport = (function (global, jQuery, undefined) {
         throw new Error("Missing jquery.");
 
     function JsReport() {
-        this.serverUrl = document.getElementById("jsreport-embedding") ?
-            document.getElementById("jsreport-embedding").src.replace("/extension/embedding/public/js/embed.js", "") :
-            window.location;
-
-        this.jsreportIFrame = $("<iframe frameborder='0' style='position: absolute; display: none; left:100px;top: 100px; z-index:1000'></iframe>");
-        $("body").append(this.jsreportIFrame);
+        this.serverUrl = getServerUrl();
 
         this.loaded = false;
         this.recipes = {};
         this.options = {};
         this.headers = this.headers || {};
+
+        var self = this;
+        $(function() {
+            self.jsreportIFrame = $("<iframe frameborder='0' style='position: absolute; display: none; left:100px;top: 100px; z-index:1000'></iframe>");
+            $("body").append(self.jsreportIFrame);
+        });
     }
 
     function JsReportEditorHandle(app) {
@@ -63,6 +64,19 @@ var jsreport = (function (global, jQuery, undefined) {
         }
     };
 
+    function getServerUrl() {
+        function scriptUrl() {
+            if (document.getElementById("jsreport-embedding")) {
+                return document.getElementById("jsreport-embedding").src;
+            }
+            var scriptEls = document.getElementsByTagName( 'script' );
+            var thisScriptEl = scriptEls[scriptEls.length - 1];
+            return thisScriptEl.src;
+        }
+
+        return scriptUrl().replace("/extension/embedding/public/js/embed.js", "");
+    }
+
 
     function arrayBufferToBase64( buffer ) {
         var binary = '';
@@ -78,7 +92,7 @@ var jsreport = (function (global, jQuery, undefined) {
         return String.fromCharCode.apply(null, new Uint8Array(buf));
     }
 
-    function _serverSideRender2($placeholder, template) {
+    function _serverSideRenderToPlaceholder($placeholder, template) {
         var self = this;
 
         var xhr = new XMLHttpRequest();
@@ -178,17 +192,17 @@ var jsreport = (function (global, jQuery, undefined) {
             delete this._editorHandle;
         }
 
-        options = options || {};
-
-        template = $.extend(true, {}, template);
-
-        var self = this;
-
         if (typeof template === 'string' || template instanceof String) {
             template = {
                 shortid: template
             };
         }
+
+        options = options || {};
+
+        template = $.extend(true, {}, template);
+
+        var self = this;
 
         if (template.data && typeof template.data.dataJson !== 'string') {
             template.data.dataJson = JSON.stringify(template.data.dataJson || template.data, null, 2);
@@ -321,12 +335,18 @@ var jsreport = (function (global, jQuery, undefined) {
         }
 
         if (template.recipe === "client-html" && template.content) {
+            if (!$placeholder)
+                throw new Error("client rendering is allowed only into the placeholder");
+            var target = (template.shortid || (new Date().getTime()));
+            var iframe = $("<iframe frameborder='0' name='" + target + "' style='width:100%;height:100%;z-index: 50'></iframe>");
+            $placeholder.append(iframe);
+
             _ensureScript(self.serverUrl + "/extension/client-html/public/js/client.render.js", function () {
-                self.recipes["client-html"]({ template: template, data: originalTemplate.data }, template.shortid || new Date().getTime());
+                self.recipes["client-html"]({ template: template, data: originalTemplate.data }, target);
             });
         } else {
             if ($placeholder)
-                _serverSideRender2.call(self, $placeholder, template);
+                _serverSideRenderToPlaceholder.call(self, $placeholder, template);
             else
                 _serverSideRender.call(self, template);
         }
@@ -388,8 +408,9 @@ var jsreport = (function (global, jQuery, undefined) {
     var jsreportInstance = new JsReport();
 
     setTimeout(function () {
-        if (window.jsreportInit !== undefined)
-            jsreportInit(jsreport);
+        if (window.jsreportInit !== undefined) {
+            jsreportInit(jsreportInstance);
+        }
     }, 0);
 
     if (window.jsreport) {

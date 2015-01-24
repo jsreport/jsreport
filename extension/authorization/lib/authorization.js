@@ -39,6 +39,10 @@ Authorization.prototype.defaultAuthorizeOperation = function (entitySet, req, op
         return q(true);
     }
 
+    if (!req) {//background jobs
+        return q(true);
+    }
+
     if (!req.user) {
         return q(false);
     }
@@ -216,6 +220,10 @@ Authorization.prototype._initialize = function () {
 };
 
 module.exports = function (reporter, definition) {
+
+    if (!reporter.authentication)
+        return;
+
     reporter.authorization = new Authorization(reporter, definition);
     reporter.authorization._extendEntitiesWithPermissions();
 };

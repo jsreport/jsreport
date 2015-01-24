@@ -88,7 +88,6 @@ function configureRoutes(reporter, app, admin, definition) {
 
             if (!user) {
                 req.session.viewModel.login = info.message;
-                console.log(req.query.returnUrl);
                 return res.redirect('/login?returnUrl=' + encodeURIComponent(req.query.returnUrl || "/"));
             }
 

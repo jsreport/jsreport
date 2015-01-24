@@ -19,10 +19,7 @@
 <script>
     jsreportInit = function () {
         var template = JSON.parse(decodeURIComponent("$template"));
-        var data = "$data";
-
-        if (data)
-            template.data = { dataJson : decodeURIComponent(data) };
+        template.data = $data;
         jsreport.template = template;
 
         jsreport.render($("#placeholder"), template);

@@ -10,21 +10,24 @@ var path = require("path"),
 
 
 function initializeApp(force) {
-    console.log("Creating server.js, config.js and package.json ");
+
 
     if (!fs.existsSync("server.js") || force) {
+        console.log("Creating server.js");
         fs.writeFileSync("server.js", "require('jsreport').bootstrapper().start();");
     }
 
     if (!fs.existsSync("package.json") || force) {
+        console.log("Creating package.json");
         fs.writeFileSync("package.json", "{\r\n \"name\": \"jsreport-server\",\r\n  \"main\": \"server.js\" }");
     }
 
     if (!fs.existsSync("prod.config.json") || force) {
+        console.log("Creating prod.config.json");
         fs.writeFileSync("prod.config.json", fs.readFileSync(path.join(__dirname, "example.config.json")));
     }
 
-    console.log("Done");
+    console.log("Initialized");
 }
 
 

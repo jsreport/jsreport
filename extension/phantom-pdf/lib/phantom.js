@@ -104,7 +104,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
         return q(null);
 
     var req = extend(true, {}, request);
-    req.template = {content: phantomOptions[type], recipe: "html"};
+    req.template = {content: phantomOptions[type], recipe: "html", helpers: request.template.helpers, engine: request.template.engine};
     req.data = extend(true, {}, request.data);
     req.options.isRootRequest = false;
 

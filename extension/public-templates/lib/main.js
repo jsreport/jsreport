@@ -39,7 +39,7 @@ function handleAuthorization(reporter, definition) {
                 return true;
             }
 
-            if (entitySet === "templatesHistory" && operation === "Create") {
+            if (entitySet === "settings" || (entitySet === "templatesHistory" && operation === "Create")) {
                 return true;
             }
 
@@ -143,6 +143,7 @@ function configureExpress(app, reporter) {
 }
 
 module.exports = function (reporter, definition) {
+
     reporter.on("express-configure", function (app) {
         configureExpress(app, reporter);
     });

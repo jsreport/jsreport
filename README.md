@@ -4,7 +4,9 @@
 
 **Open source platform for designing and rendering various reports.**
 
-jsreport lets developers to define reports using  javascript templating engines (like jsrender or handlebars) and print them into pdf using [phantomjs](http://phantomjs.org) or [fop](http://xmlgraphics.apache.org/fop/). For more informations about the platform please visit http://jsreport.net
+jsreport is a reporting sever which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
+
+For more informations about the platform please visit http://jsreport.net
 
 ## Production installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
@@ -46,34 +48,38 @@ The easiest way how to contribute to jsreport open source community is to implem
 
 ##Roadmap
 
-**JANUARY**
-- Documentation/Examples - we are preparing set of tutorials for more advanced fearures like embedding, scheduling or sending reports in emails
-- Security - jsreport will get user management with delegated permissions and public templates sharing
+The project is currently in the stabilization phase. 
 
-**FEBRUARY**
-- Huge refactoring - splitting jsreport into multiple npm packages, improving code quality
-
-**FURTHER PLANS**
+Features which should come shortly in Q1 2015:
+ 
 - java sdk
-- add jsreport to amazon, google and microsoft cloud stores
-- reports directly from databases
-- Missing a feature? Submit a feature request.
+- advanced pdf features: table of contents, metadata
+- code quality: splitting jsreport into multiple npm packages, more tests, replace jaydata
+- better logging
+
+Features planned for Q2 2015
+
+- some kind of a WYSIWYG editor integrated to embedded designer allowing non-developers to customize reports
+
+**Missing a feature? Submit a feature request.**
+
+
+
 
 ## License 
 
 Copyright (c) 2014 Jan Blaha &lt;jan.blaha at hotmail.com&gt;
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License.
 
-This program is distributed in the hope that it will be useful,
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 3.0 of the License, or (at your option) any later version.
+This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see http://www.gnu.org/licenses/agpl-3.0.html.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU
+Lesser General Public License](http://www.gnu.org/licenses/lgpl.html) for more details.
+You should have received a copy of the GNU Lesser General Public
+License along with this library.
 
 

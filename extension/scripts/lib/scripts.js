@@ -48,6 +48,7 @@ Scripts.prototype.handleAfterRender = function (request, response) {
                         content: request.template.content,
                         helpers: request.template.helpers
                     },
+                    options: request.options,
                     headers: request.headers
                 },
                 response: {
@@ -100,7 +101,8 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                 request: {
                     data: request.data,
                     template: request.template,
-                    headers: request.headers
+                    headers: request.headers,
+                    options: request.options
                 },
                 response: response
             },

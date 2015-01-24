@@ -2,11 +2,14 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["app", "core/jaydataModel"], function(app, ModelBase) {
+define(["app", "jquery", "core/jaydataModel"], function(app, $, ModelBase) {
     return ModelBase.extend({
         contextSet: function() { return app.dataContext.templates; },
 
         fetchQuery: function() {
+            if (!this.get("shortid")) {
+                return $.Deferred().reject(new Error("shortid not present on this template model."));
+            }
 
             var predicate = function(t) { return t.shortid === this.id; };
 

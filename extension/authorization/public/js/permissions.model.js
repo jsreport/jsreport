@@ -30,10 +30,8 @@ define(["app", "underscore", "core/basicModel"],
                 this.entityModel.set("readPermissions", this.get("readPermissions"));
                 var self = this;
 
-                console.log("saving");
                 this.entityModel.save({}, {
                     success: function() {
-                        console.log("fetching");
                         self.entityModel.fetch(options);
                     }
                 });
