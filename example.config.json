@@ -10,15 +10,6 @@
       "numberOfWorkers": 2,
       "enabled":  false
     },
-    "authentication" : {
-        "cookieSession": {
-            "secret": "dasd321as56d1sd5s61vdv32"
-        },
-        "admin": {
-            "username" : "admin",
-            "password": "password"
-        }
-    },
     "phantom": {
         "numberOfWorkers" : 2,
         "timeout": 180000

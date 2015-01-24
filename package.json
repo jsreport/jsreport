@@ -1,6 +1,6 @@
 {
   "name": "jsreport",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -102,7 +102,7 @@
     "prepublish": "grunt build"
   },
   "main": "index.js",
-  "licence": "AGPL",
+  "licence": "LGPL",
   "_id": "jsreport@0.0.4",
   "dist": {
     "shasum": "b49168ed230fd44ad2c1e3f06cef683f00b7dfc3"

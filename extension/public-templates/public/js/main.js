@@ -4,6 +4,10 @@
 
 define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore"],
     function ($, app, Marionette, Backbone, ViewBase, _) {
+
+        if (!app.authentication)
+            return;
+
         return app.module("public-templates", function (module) {
 
             var TemplateShareDialog = ViewBase.extend({

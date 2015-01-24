@@ -5,10 +5,10 @@ define(["app", "underscore", "marionette", "backbone",
     function (app, _,  Marionette, Backbone, UserListModel, UserListView, UserListToolbarView, UserModel, UserDetailView,
               UserDetailToolbarView, UserCreateDialog, ChangePasswordDialog) {
 
-        app.module("authentication", function (module) {
+        if (!app.settings.tenant)
+            return;
 
-            if (!app.settings.tenant)
-                return;
+        app.module("authentication", function (module) {
 
             module.UsersListModel = UserListModel;
 
