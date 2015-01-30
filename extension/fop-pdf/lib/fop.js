@@ -15,9 +15,6 @@ var childProcess = require('child_process'),
     toArray = require('stream-to-array');
 
 var Fop = module.exports = function(reporter) {
-    if (!fs.existsSync(reporter.options.tempDirectory)) {
-        mkdirp.sync(reporter.options.tempDirectory);
-    }
 
     reporter.extensionsManager.recipes.push({
         name: "fop-pdf",
