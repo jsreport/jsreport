@@ -22,35 +22,29 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
 
     var fiveMinuteDate = new Date((Math.floor(new Date().getTime() / 1000 / 60 / 5) * 1000 * 60 * 5));
 
-    return request.context.statistics.filter(function (s) {
-        return s.fiveMinuteDate === this.fiveMinuteDate;
-    }, { fiveMinuteDate: fiveMinuteDate}).toArray()
-        .then(function (res) {
-            var stat;
-            if (res.length === 0) {
-                stat = new self.StatisticType({
-                    amount: 1,
-                    success: 0,
-                    fiveMinuteDate: fiveMinuteDate
-                });
-                request.context.statistics.add(stat);
-            } else {
-                stat = res[0];
-                request.context.statistics.attach(stat);
-                stat.amount = 1;
-            }
+    request.statistics = {
+        fiveMinuteDate: fiveMinuteDate
+    };
 
-            return request.context.statistics.saveChanges().then(function () {
-                response.currentStatistic = stat;
-            });
-        });
+    return request.context.statistics.rawUpdate({
+        fiveMinuteDate : fiveMinuteDate
+    }, {
+        $inc: {
+            amount : 1
+        },
+        $set : {
+            fiveMinuteDate: fiveMinuteDate
+        }
+    }, { upsert : true});
 };
 
 Statistics.prototype.handleAfterRender = function (request, response) {
-    return request.reporter.dataProvider.startContext().then(function(context) {
-        context.statistics.attach(response.currentStatistic);
-        response.currentStatistic.success = 1;
-        return context.statistics.saveChanges();
+    return request.context.statistics.rawUpdate({
+        fiveMinuteDate : request.statistics.fiveMinuteDate
+    }, {
+        $inc: {
+            success : 1
+        }
     });
 };
 

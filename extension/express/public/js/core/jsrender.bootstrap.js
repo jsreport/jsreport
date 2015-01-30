@@ -29,7 +29,7 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
 
         getUserIdentificationText: function() {
             var tenant = require("app").settings.tenant || { name: "", email: ""};
-            return "<b>" + (tenant.name || tenant.username) + "</b>" + (tenant.email || "");
+            return tenant.username || tenant.email || tenant.name || "";
         },
 
         getServerUrl: function() {

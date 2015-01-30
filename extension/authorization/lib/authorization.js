@@ -31,6 +31,13 @@ Authorization.prototype.authorizeRequest = function (req, res) {
     });
 };
 
+Authorization.authorizationResult = {
+    notDefined: "notDefined",
+    reject: "reject",
+    filterOut: "filterOut",
+    ok: "ok"
+};
+
 Authorization.prototype.defaultAuthorizeOperation = function (entitySet, req, operation, entitySetKey, entity) {
     if (entitySetKey === "settings")
         return q(true);
@@ -47,14 +54,17 @@ Authorization.prototype.defaultAuthorizeOperation = function (entitySet, req, op
         return q(false);
     }
 
-    if (entitySetKey === "users" && operation !== "Read" && !req.user.isAdmin && (entity._id && entity._id !== req.user._id)) {
+    if (req.user.isAdmin)
+        return q(true);
+
+    if (entitySetKey === "users" && operation !== "Read" && (entity._id && entity._id !== req.user._id)) {
         return q(false);
     }
 
     if (entitySet.shared)
         return q(true);
 
-    if (operation === "Create" || req.user.isAdmin) {
+    if (operation === "Create") {
         return q(true);
     }
 
@@ -84,12 +94,15 @@ Authorization.prototype.authorizeOperation = function (entitySet, req, operation
     return this.defaultAuthorizeOperation(entitySet, req, operation, entitySetKey, entity).then(function (defaultRes) {
         return self.operationAuthorizationListeners.fireAndJoinResults(req, operation, entitySetKey, entity).then(function (overrideRes) {
             if (defaultRes && (overrideRes === null || overrideRes === true))
-                return true;
+                return Authorization.authorizationResult.ok;
 
             if (!defaultRes && overrideRes === true)
-                return true;
+                return Authorization.authorizationResult.ok;
 
-            return false;
+            if (!defaultRes && overrideRes === null)
+                return Authorization.authorizationResult.filterOut;
+
+            return Authorization.authorizationResult.reject;
         });
     });
 };
@@ -109,8 +122,19 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
             return q.all(successResult.map(function (i) {
                 return self.authorizeOperation(entitySets[key], process.domain.req, "Read", key, i).then(function (result) {
-                    if (!result) {
+                    if (result === Authorization.authorizationResult.filterOut) {
                         successResult.splice(successResult.indexOf(i), 1);
+                        return true;
+                    }
+                    if (result === Authorization.authorizationResult.ok) {
+                        return true;
+                    }
+
+                    if (result === Authorization.authorizationResult.reject) {
+                        var error = new Error("Unauthorized");
+                        error.unauthorized = true;
+                        process.domain.res.error(error);
+                        return q.reject(error);
                     }
                 });
             }));
@@ -146,13 +170,13 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
 Authorization.prototype._registerQueryFilteringByPermission = function () {
     var self = this;
-
     this.reporter.dataProvider.on("context-created", function (context) {
         context.events.on("before-query", function (dataProvider, query, entitySet) {
+
             if (self.reporter.dataProvider._entitySets[entitySet.name].shared)
                 return;
 
-            if (process.domain && process.domain.req && process.domain.req.user && process.domain.req.user._id) {
+            if (process.domain && process.domain.req && process.domain.req.user && process.domain.req.user._id && !process.domain.req.user.isAdmin) {
                 query.readPermissions = dataProvider.fieldConverter.toDb["$data.ObjectID"](process.domain.req.user._id);
             }
         });

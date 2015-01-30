@@ -1,7 +1,8 @@
 ﻿/*! 
  * Copyright(c) 2014 Jan Blaha 
  * 
- * Core extension responsible for storing, versioning and loading report templates for render request..
+ * Extension allows to share report template with non authenticated users by providing
+ * auth tokens.
  */
 
 var url = require("url"),
@@ -31,7 +32,7 @@ function handleAuthorization(reporter, definition) {
         //user should be able to access the shared template for read with read token
         //and for update with write token
         reporter.authorization.operationAuthorizationListeners.add(definition.name, function (req, operation, entitySet, entity) {
-            if (req.isAuthenticated()) {
+            if (!req || req.user) {
                 return null;
             }
 
@@ -48,6 +49,13 @@ function handleAuthorization(reporter, definition) {
 
             if (operation !== "Read" && operation !== "Update") {
                 return false;
+            }
+
+            if (operation === "Read") {
+                if (!req.query.access_token)
+                    return false;
+
+                return entity.writeSharingToken === req.query.access_token || entity.readSharingToken === req.query.access_token;
             }
 
             req.skipAuthForId = entity._id;
@@ -208,7 +216,7 @@ module.exports = function (reporter, definition) {
                 return;
 
             if (!req.options.authorization) {
-                return q.reject(new Error("Authorization options not specified."));
+                throw new Error("User not authenticated and authorization tokens not specified.");
             }
 
             if (req.options.authorization.readToken === req.template.readSharingToken)
@@ -217,7 +225,7 @@ module.exports = function (reporter, definition) {
             if (req.options.authorization.writeToken === req.template.writeSharingToken)
                 return;
 
-            return q.reject(new Error("Authorization token does not match."));
+            throw new Error("Authorization token does not match.");
         });
     });
 };

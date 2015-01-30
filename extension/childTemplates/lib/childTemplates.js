@@ -44,10 +44,10 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
                 req.childs.childsCircleCache = request.childs.childsCircleCache;
 
             req.template = res[0];
-            self.reporter.render(req).then(function(resp) {
+            return self.reporter.render(req).then(function(resp) {
                 done(null, resp.result);
             });
-        });
+        }).catch(done);
     }
 
     var test = /{#child ([^{}]{0,50})}/g;

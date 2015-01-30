@@ -2,7 +2,6 @@ var CronTime = require('cron').CronTime,
     _ = require("underscore"),
     q = require("q");
 
-var interval;
 var JobProcessor = module.exports = function (executionHandler, dataProvider, logger, TaskType, options) {
 
     if (!options.taskPingTimeout)
@@ -16,18 +15,14 @@ var JobProcessor = module.exports = function (executionHandler, dataProvider, lo
     this.TaskType = TaskType;
 
     options.now = options.now || function() { return new Date();};
-
-    if (interval) {
-        clearInterval(interval);
-    }
 };
 
 JobProcessor.prototype.start = function () {
-    interval = setInterval(JobProcessor.prototype.process.bind(this), this.options.interval);
+    this.interval = setInterval(JobProcessor.prototype.process.bind(this), this.options.interval);
 };
 
 JobProcessor.prototype.stop = function () {
-    clearInterval(interval);
+    clearInterval(this.interval);
 };
 
 JobProcessor._schedulesToProcessFilter = function (s) {

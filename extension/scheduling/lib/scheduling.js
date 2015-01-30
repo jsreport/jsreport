@@ -12,8 +12,6 @@ var events = require("events"),
     CronTime = require('cron').CronTime,
     JobProcessor = require("./jobProcessor");
 
-var jobProcessor;
-
 var Scheduling = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -101,7 +99,11 @@ Scheduling.prototype._initialize = function () {
 };
 
 Scheduling.prototype.stop = function () {
-    jobProcessor.stop();
+    this.jobProcessor.stop();
+};
+
+Scheduling.prototype.start = function () {
+    this.jobProcessor.start();
 };
 
 Scheduling.prototype.renderReport = function (schedule, task, context) {
@@ -124,8 +126,9 @@ module.exports = function (reporter, definition) {
         maxParallelJobs: 5
     }, definition.options);
 
-    if (!jobProcessor) {
-        jobProcessor = new JobProcessor(Scheduling.prototype.renderReport.bind(this), reporter.dataProvider, reporter.logger, reporter[definition.name].TaskType, definition.options);
-        jobProcessor.start();
+    reporter[definition.name].jobProcessor = new JobProcessor(Scheduling.prototype.renderReport.bind(this), reporter.dataProvider, reporter.logger, reporter[definition.name].TaskType, definition.options);
+
+    if (definition.options.autoStart !== false) {
+        reporter[definition.name].start();
     }
 };

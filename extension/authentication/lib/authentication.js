@@ -20,7 +20,9 @@ var q = require("q"),
     bodyParser = require("body-parser"),
     UsersRepository = require("./usersRepository");
 
-function configureRoutes(reporter, app, admin, definition) {
+function addPassport(reporter, app, admin, definition) {
+    if (app.isAuthenticated)
+        return;
 
     app.use(sessions({
         cookieName: 'session',
@@ -107,17 +109,6 @@ function configureRoutes(reporter, app, admin, definition) {
         res.redirect("/");
     });
 
-    app.use(function(req, res, next) {
-        var publicRoute = _.find(reporter.authentication.publicRoutes, function (r) {
-            return S(req.url).startsWith(r);
-        });
-
-        var pathname = url.parse(req.url).pathname;
-
-        req.isPublic = publicRoute || S(pathname).endsWith(".js") || S(pathname).endsWith(".css");
-        next();
-    });
-
     app.use(function (req, res, next) {
         if (!req.isAuthenticated() &&
             (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1)) {
@@ -139,6 +130,21 @@ function configureRoutes(reporter, app, admin, definition) {
             next();
         }
     });
+}
+
+function configureRoutes(reporter, app, admin, definition) {
+    app.use(function(req, res, next) {
+        var publicRoute = _.find(reporter.authentication.publicRoutes, function (r) {
+            return S(req.url).startsWith(r);
+        });
+
+        var pathname = url.parse(req.url).pathname;
+
+        req.isPublic = publicRoute || S(pathname).endsWith(".js") || S(pathname).endsWith(".css");
+        next();
+    });
+
+    addPassport(reporter, app, admin, definition);
 
     app.use(function (req, res, next) {
         if (req.isAuthenticated() || req.isPublic) {

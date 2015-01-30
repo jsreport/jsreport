@@ -69,6 +69,9 @@ Data.prototype.handleBeforeRender = function (request, response) {
     }
 
     return findDataItem().then(function (di) {
+        if (!di)
+            return;
+
         di = di.dataJson || di;
 
         try {
@@ -76,7 +79,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
         } catch (e) {
             self.reporter.logger.warn("Invalid json in data item: " + e.message);
             e.weak = true;
-            return q.reject(e);
+            throw e;
         }
     });
 };

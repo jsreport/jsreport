@@ -142,6 +142,7 @@ module.exports = function(reporter, definition) {
             reporter.logger.info("Configuring routes for existing express app.");
             configureExpressApp(app, reporter, definition);
             logStart();
+            return;
         }
 
         reporter.logger.info("Creating default express app.");

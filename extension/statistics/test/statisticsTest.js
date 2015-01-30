@@ -23,19 +23,19 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "statistics"], f
                 
                 var response = {};
 
-                reporter.statistics.handleBeforeRender(request, response).then(function () {
+                return reporter.statistics.handleBeforeRender(request, response).then(function () {
                     
-                    reporter.statistics.handleBeforeRender(request, response).then(function () {
+                    return reporter.statistics.handleBeforeRender(request, response).then(function () {
                         
-                        reporter.context.statistics.toArray().then(function (stats) {
+                        return reporter.context.statistics.toArray().then(function (stats) {
                             assert.equal(1, stats.length);
                             assert.equal(2, stats[0].amount);
-                            assert.equal(0, stats[0].success);
+                            assert.equal(undefined, stats[0].success);
                             done();
                         });
                     });
                 });
-            });
+            }).catch(done);
         });
         
         it('after should increase success', function (done) {
@@ -52,18 +52,18 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "statistics"], f
                 
                 var response = {};
 
-                reporter.statistics.handleBeforeRender(request, response).then(function () {
+                return reporter.statistics.handleBeforeRender(request, response).then(function () {
                     
-                    reporter.statistics.handleAfterRender(request, response).then(function () {
+                    return reporter.statistics.handleAfterRender(request, response).then(function () {
                         
-                        reporter.context.statistics.toArray().then(function (stats) {
+                        return reporter.context.statistics.toArray().then(function (stats) {
                             assert.equal(1, stats.length);
                             assert.equal(1, stats[0].amount);
                             assert.equal(1, stats[0].success);
                             done();
                         });
                     });
-                });
+                }).catch(done);
             });
         });
     });

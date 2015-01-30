@@ -27,6 +27,11 @@ module.exports = function (app, reporter) {
             err = err || {};
             err.message = err.message || "Unrecognized error";
 
+            if (err.unauthorized) {
+                res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
+                res.status(401);
+            }
+
             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
             var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
@@ -161,7 +166,7 @@ module.exports = function (app, reporter) {
             } else {
                 res.send(response.result);
             }
-        }).catch(next);
+        }).catch(next).done();
     });
 
     /**

@@ -20,14 +20,7 @@ function UsersRepository(reporter) {
     usersSet.beforeCreateListeners.add("repository", function(key, items) {
         var user = items[0];
 
-        return self.find(user.username).then(function(user) {
-            if (user) {
-                process.domain.req.customError = new Error("User already exists");
-                return q.reject(process.domain.req.customError);
-            }
-
-            return true;
-        });
+        return self.validate(user);
     });
 
     this.UserType.addEventListener("beforeCreate", function(args, entity) {
@@ -37,6 +30,17 @@ function UsersRepository(reporter) {
         entity.password = passwordHash.generate(entity.password);
     });
 }
+
+UsersRepository.prototype.validate = function(user) {
+    return this.find(user.username).then(function(user) {
+        if (user) {
+            process.domain.req.customError = new Error("User already exists");
+            return q.reject(process.domain.req.customError);
+        }
+
+        return true;
+    });
+};
 
 
 UsersRepository.prototype.authenticate = function(username, password) {
