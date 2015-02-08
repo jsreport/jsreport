@@ -95,37 +95,20 @@ module.exports = function (app, reporter) {
             res.render(path.join(__dirname, '../public/views', 'root_built.html'), options);
     });
 
-    app.stack = _.reject(app.stack, function (s) {
-        return s.route === "/odata";
-    });
-
     reporter.emit("express-before-odata", app);
 
-    app.use("/odata", function (req, res, next) {
-        var writeHead = res.writeHead;
-
-        res.writeHead = function () {
-            res.setHeader("DataServiceVersion", "2.0");
-            res.setHeader("OData-Version", "3.0");
-            return writeHead.apply(res, arguments);
-        };
-
-        reporter.dataProvider.startContext().then(function (context) {
-            req.reporterContext = context;
-            context.request = req;
-            next();
-        }).fail(function (e) {
-            next(e);
-        });
+    var odataServer = require("simple-odata-server")("http://localhost:4000/odata");
+    odataServer.model(reporter.documentStore.model);
+    odataServer.query(function (query, cb) {
+        reporter.documentStore.collection(query.collection).exec(query).then(function(res) {
+                cb(null, res);
+            }).catch(cb);
     });
-    app.use("/odata", $data.JayService.OData.Utils.simpleBodyReader());
+
+
     app.use("/odata", function (req, res, next) {
         req.fullRoute = req.protocol + '://' + req.get('host') + "/odata";
-
-
-        $data.JayService.createAdapter(req.reporterContext.getType(), function (req, res) {
-            return req.reporterContext;
-        })(req, res, next);
+        odataServer.handle(req, res);
     });
 
     reporter.extensionsManager.extensions.map(function (e) {
