@@ -10,7 +10,6 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
     describe('childTemplates', function () {
 
         it('should replace child template mark with its content', function (done) {
-            this.timeout(10000);
 
             reporter.templates.create({
                 content: "{{>~a()}}",
@@ -20,12 +19,37 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
                 name: "t1" }).then(function (t) {
 
                 var request = {
-                    template: { content: "a{#child t1}ba{#child t1}" },
+                    template: {content: "a{#child t1}ba{#child t1}", recipe: "html", engine: "jsrender"},
                     context: reporter.context
                 };
 
-                return reporter.childTemplates.handleBeforeRender(request, {}).then(function () {
-                    assert.equal("afoobafoo", request.template.content);
+                return reporter.render(request, {}).then(function (resp) {
+                    assert.equal(resp.result, "afoobafoo");
+                    done();
+                }).catch(done);
+            });
+        });
+
+        it('should be able to build child template name using javascript templating engines', function (done) {
+
+            reporter.templates.create({
+                content: "childA",
+                engine: "jsrender",
+                recipe: "html",
+                name: "a" }).then(function (t) {
+
+                var request = {
+                    template: {
+                        content: "{#child {{:~getChildTemplateName()}}}",
+                        engine: "jsrender",
+                        recipe: "html",
+                        helpers: "function getChildTemplateName() { return 'a'; }"
+                    },
+                    context: reporter.context
+                };
+
+                return reporter.render(request, {}).then(function (resp) {
+                    assert.equal(resp.result, "childA");
                     done();
                 });
             }).catch(done);

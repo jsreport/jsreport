@@ -10,13 +10,20 @@ var Q = require("q"),
     extend = require("node.extend");
 
 var ChildTemplates = function(reporter, definition) {
+    var self = this;
     this.reporter = reporter;
     this.definition = definition;
 
-    reporter.beforeRenderListeners.add(definition.name, this, ChildTemplates.prototype.handleBeforeRender);
+    reporter.beforeRenderListeners.add(definition.name, this, function(request, response) {
+        return self.evaluateChildTemplates(request, response, true);
+    });
+
+    reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, function(request, response) {
+        return self.evaluateChildTemplates(request, response, false);
+    });
 };
 
-ChildTemplates.prototype.handleBeforeRender = function(request, response) {
+ChildTemplates.prototype.evaluateChildTemplates = function(request, response, evaluateInTemplateContent) {
     var self = this;
     
     var isRootRequest = false;
@@ -52,8 +59,12 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
 
     var test = /{#child ([^{}]{0,50})}/g;
 
-    return Q.nfcall(asyncReplace, request.template.content, test, convert).then(function(result) {
-        request.template.content = result;
+    return Q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content : response.result, test, convert).then(function(result) {
+        console.log(result);
+        if (evaluateInTemplateContent)
+            request.template.content = result;
+        else
+            response.result = result;
     });
 };
 
