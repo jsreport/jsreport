@@ -1,5 +1,5 @@
-define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore",  "core/basicModel"],
-        function($, app, Marionette, Backbone, ViewBase, _, ModelBase) {
+define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore"],
+        function($, app, Marionette, Backbone, ViewBase, _) {
         var View = ViewBase.extend({
             tagName: "li",
             template: "text-template",
@@ -30,11 +30,5 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore
             context.template.on("change:recipe", function() {
                 renderRecipeMenu();
             });
-        });
-
-        app.on("entity-registration", function(context) {
-            $entity.Template.addMember("contentType", { 'type': "string" });
-            $entity.Template.addMember("fileExtension", { 'type': "string" });
-            $entity.Template.addMember("contentDisposition", { 'type': "string" });
         });
     });

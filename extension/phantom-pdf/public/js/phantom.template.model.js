@@ -4,12 +4,15 @@
         
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
-            
-            if (templateModel.get("phantom") == null) {
-                 templateModel.set("phantom", new $entity.Phantom());
+
+            if (templateModel.get("phantom")) {
+                if (templateModel.get("phantom").isModel)
+                    this.set(templateModel.get("phantom").toJSON());
+                else
+                    this.set(templateModel.get("phantom"));
             }
-            
-            this.set(templateModel.get("phantom").initData);
+
+            templateModel.set("phantom", this);
 
             if (this.get("orientation") == null)
                 this.set("orientation", "portrait");
@@ -42,13 +45,5 @@
                     printDelay: this.get("printDelay") || "..."
                 });
         },
-
-        initialize: function () {
-            var self = this;
-            
-            this.listenTo(this, "change", function() {
-                self.copyAttributesToEntity(self.templateModel.get("phantom"));
-            });
-        }
     });
 });

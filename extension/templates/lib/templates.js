@@ -41,7 +41,7 @@ Templating.prototype.handleBeforeRender = function (request) {
 
     function findTemplate() {
         if (!request.template._id && !request.template.shortid) {
-            return q(request.template);
+            return q([request.template]);
         }
 
         var query = {};
@@ -58,9 +58,12 @@ Templating.prototype.handleBeforeRender = function (request) {
     }
 
 
-    return findTemplate().then(function (template) {
-        extend(true, template, request.template);
-        request.template = template;
+    return findTemplate().then(function (templates) {
+        if (templates.length !== 1)
+            throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
+
+        extend(true, templates[0], request.template);
+        request.template = templates[0];
         request.template.content = request.template.content || "";
     }, function () {
         throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
@@ -105,10 +108,10 @@ Templating.prototype._beforeUpdateHandler = function (query, update) {
     var self = this;
     update.$set.modificationDate = new Date();
 
-    return this.documentStore.collection("templates").find({_id: entity._id}).then(function (res) {
+    return this.documentStore.collection("templates").find({_id: query._id}).then(function (res) {
         var copy = _.extend({}, res[0]);
         delete copy._id;
-        return self.documentStore.collection("templatesHstory").insert(copy);
+        return self.documentStore.collection("templatesHistory").insert(copy);
     });
 };
 
@@ -138,8 +141,6 @@ Templating.prototype._defineEntities = function () {
             doc.shortid = doc.shortid || shortid.generate();
             doc.modificationDate = new Date();
         });
-
-        col.insert({ name:"foo"});
     });
 };
 

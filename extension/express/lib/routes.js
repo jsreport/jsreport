@@ -105,6 +105,24 @@ module.exports = function (app, reporter) {
             }).catch(cb);
     });
 
+    odataServer.update(function (collection, query, update, cb) {
+        reporter.documentStore.collection(collection).update(query, update).then(function(res) {
+            cb(null, res);
+        }).catch(cb);
+    });
+
+    odataServer.insert(function (collection, doc, cb) {
+        reporter.documentStore.collection(collection).insert(doc).then(function(res) {
+            cb(null, res);
+        }).catch(cb);
+    });
+
+    odataServer.remove(function (collection, query, cb) {
+        reporter.documentStore.collection(collection).remove(query).then(function(res) {
+            cb(null, res);
+        }).catch(cb);
+    });
+
 
     app.use("/odata", function (req, res, next) {
         req.fullRoute = req.protocol + '://' + req.get('host') + "/odata";

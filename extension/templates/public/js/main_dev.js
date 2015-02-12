@@ -6,8 +6,8 @@ define(["jquery", "app", "marionette", "backbone",
         "./template.list.model", "./template.list.view", "./template.list.toolbar.view",
         "./template.model", "./template.detail.view",
         "./dashboard.templates.model", "./dashboard.templates.view",
-        "./template.detail.toolbar.view", "./template.entityRegistration", "./template.preview"],
-    function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView, entityRegistration, preview) {
+        "./template.detail.toolbar.view", "./template.preview"],
+    function ($, app, Marionette, Backbone, TemplateListModel, TemplateListView, TemplateListTooolbarView, TemplateModel, TemplateDetailView, DashboardModel, DashboardView, ToolbarView, preview) {
         return app.module("template", function (module) {
             module.TemplateListView = TemplateListView;
             module.TemplateListModel = TemplateListModel;
@@ -21,7 +21,7 @@ define(["jquery", "app", "marionette", "backbone",
                 if (!app.settings.firstRun)
                     return;
 
-                app.dataContext.templates.take(1).toArray().then(function(templates) {
+                app.dataProvider.get("odata/templates?$limit=1").then(function(templates) {
                     if (templates.length === 0)
                         window.location.hash = "/playground";
                     else
@@ -108,7 +108,5 @@ define(["jquery", "app", "marionette", "backbone",
                 }), "templates");
                 model.fetch();
             });
-
-            app.on("entity-registration", entityRegistration);
         });
     });

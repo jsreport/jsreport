@@ -6,12 +6,12 @@
             var self = this;
 
             function processItems(items) {
-                self.items = items.map(function(i) { return i.initData; });
+                self.items = items;
 
                 var data = self.templateModel.get("data");
 
                 if (!data) {
-                    data = new $entity.DataItemRefType();
+                    data = {};
 
                     //back compatibility
                     if (self.templateModel.get("dataItemId")) {
@@ -43,7 +43,7 @@
             }
 
             if (app.options.data.allowSelection) {
-                return app.dataContext.data.toArray().then(processItems);
+                return app.dataProvider.get("odata/data").then(processItems);
             } else {
                 return processItems([]);
             }

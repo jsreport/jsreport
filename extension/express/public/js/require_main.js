@@ -21,6 +21,7 @@ requirejs.config({
         "jquery.flot.time": "../lib/jquery.flot.time",
         "jquery.flot.axislabels": "../lib/jquery.flot.axislabels",
         "jquery.flot.symbol": "../lib/jquery.flot.symbol",
+        "jquery.parseJSON": "core/jquery.parseJSON",
         dialog: "core/dialog",
         errorAlert: "core/errorAlert",
         "jsrender.bootstrap": "core/jsrender.bootstrap",
@@ -76,6 +77,7 @@ requirejs.config({
             exports: "$"
         },
         "jquery.flot": ["originaljquery"],
+        "jquery.parseJSON": ["originaljquery"],
         "jquery.flot.axislabels": ["jquery.flot"],
         "jquery.flot.symbol": ["jquery.flot.axislabels"],
         "jquery.flot.time": ["originaljquery",  "jquery.flot.axislabels"],
@@ -94,7 +96,7 @@ requirejs.config({
         "jquery": {
             deps: ["originaljquery", "jsrender.bootstrap", "bootstrap", "jquery.flot",
                 "jquery.flot.time", "dialog", "jquery.ui.selectable", 
-                "errorAlert", "toastr", "split-pane", "jquery.fineuploader", "bootstrap.multiselect"],
+                "errorAlert", "toastr", "split-pane", "jquery.fineuploader", "bootstrap.multiselect", "jquery.parseJSON"],
             exports: "$"
         }
     }

@@ -41,6 +41,7 @@ define(["app", "marionette", "jquery", "toastr"], function(app, Marionette, $, t
                     return;
 
                 if (e.responseJSON) {
+                    e.responseJSON = e.responseJSON.error || e.responseJSON;
                     $.dialog({
                         header: e.responseJSON.message,
                         content: "<b>" + e.responseJSON.message + "</b><br><small>" + e.responseJSON.stack + "</small>",

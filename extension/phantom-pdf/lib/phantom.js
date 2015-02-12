@@ -30,26 +30,21 @@ var Phantom = function (reporter, definition) {
         execute: Phantom.prototype.execute.bind(this)
     });
 
-    this.PhantomType = this.reporter.dataProvider.createEntityType("PhantomType", {
-        margin: {type: "string"},
-        header: {type: "string"},
-        headerHeight: {type: "string"},
-        footer: {type: "string"},
-        footerHeight: {type: "string"},
-        orientation: {type: "string"},
-        format: {type: "string"},
-        width: {type: "string"},
-        height: {type: "string"},
-        printDelay: {type: "int"},
-        blockJavaScript: {type: "boolean"}
+    reporter.documentStore.registerComplexType("PhantomType", {
+        margin: {type: "Edm.String"},
+        header: {type: "Edm.String"},
+        headerHeight: {type: "Edm.String"},
+        footer: {type: "Edm.String"},
+        footerHeight: {type: "Edm.String"},
+        orientation: {type: "Edm.String"},
+        format: {type: "Edm.String"},
+        width: {type: "Edm.String"},
+        height: {type: "Edm.String"},
+        printDelay: {type: "Edm.Int32"},
+        blockJavaScript: {type: "Edm.Boolean"}
     });
 
-    reporter.templates.TemplateType.addMember("phantom", {type: this.PhantomType});
-
-    var self = this;
-    reporter.templates.TemplateType.addEventListener("beforeCreate", function (args, template) {
-        template.phantom = template.phantom || new (self.PhantomType)();
-    });
+    reporter.documentStore.model.entityTypes["TemplateType"].phantom = {type: "PhantomType"};
 };
 
 Phantom.prototype.execute = function (request, response) {

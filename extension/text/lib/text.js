@@ -6,9 +6,9 @@
 
 module.exports  = function (reporter, definition) {
 
-    reporter.templates.TemplateType.addMember("contentType", { type: "string" });
-    reporter.templates.TemplateType.addMember("fileExtension", { type: "string" });
-    reporter.templates.TemplateType.addMember("contentDisposition", { type: "string" });
+    reporter.documentStore.model.entityTypes["TemplateType"].contentType = {type: "Edm.String"};
+    reporter.documentStore.model.entityTypes["TemplateType"].fileExtension = {type: "Edm.String"};
+    reporter.documentStore.model.entityTypes["TemplateType"].contentDisposition = {type: "Edm.String"};
 
     reporter.extensionsManager.recipes.push({
         name: "text",
@@ -17,7 +17,7 @@ module.exports  = function (reporter, definition) {
             response.headers["File-Extension"] = request.template.fileExtension;
 
             request.template.contentDisposition =  request.template.contentDisposition || "inline";
-                        response.headers["Content-Disposition"] = request.template.contentDisposition + (request.template.contentDisposition.indexOf(";") !== -1 ? "" :
+            response.headers["Content-Disposition"] = request.template.contentDisposition + (request.template.contentDisposition.indexOf(";") !== -1 ? "" :
                                                         ";filename=report." + request.template.fileExtension);
 
             return reporter.renderContent(request, response);

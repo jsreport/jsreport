@@ -34,7 +34,7 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
 
         request.childs.childsCircleCache[p1] = true;
 
-        request.context.templates.filter(function(t) { return t.name === this.name; }, { name: p1 }).toArray().then(function(res) {
+        self.reporter.documentStore.collection("templates").find({ name: p1 }).then(function(res) {
             if (res.length < 1)
                 return done(null);
 

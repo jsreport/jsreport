@@ -10,16 +10,4 @@ define(["app", "marionette", "backbone",
                 }), "stats");
                 model.fetch();
             });
-
-            app.on("entity-registration", function (context) {
-
-                $data.Entity.extend('$entity.Statistic', {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
-                    'fiveMinuteDate': { 'type': 'Edm.DateTime' },
-                    'amount': { 'type': 'Edm.Int32' },
-                    'success': { 'type': 'Edm.Int32' }
-                });
-
-                context["statistics"] = { type: $data.EntitySet, elementType: $entity.Statistic };
-            });
     });
