@@ -2,7 +2,7 @@ define(["app", "underscore", "marionette", "core/dataGrid", "core/view.base", "c
 
     var ChangePasswordCommand = ModelBase.extend({
         url: function() {
-            return "users/" + this.get("shortid") + "/password";
+            return "/api/users/" + this.get("shortid") + "/password";
         }
     });
 

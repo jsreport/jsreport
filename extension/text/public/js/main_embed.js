@@ -33,10 +33,4 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore
                 }
             });
         });
-
-        app.on("entity-registration", function(context) {
-            $entity.Template.addMember("contentType", { 'type': "string" });
-            $entity.Template.addMember("fileExtension", { 'type': "string" });
-            $entity.Template.addMember("contentDisposition", { 'type': "string" });
-        });
 });

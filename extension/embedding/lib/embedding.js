@@ -21,7 +21,7 @@ module.exports = function (reporter, definition) {
                 response.headers["File-Extension"] = "html";
                 response.headers["Content-Disposition"] = "inline; filename=\"report.html\"";
 
-                var template = extend(true, {}, request.template.initData || request.template);
+                var template = extend(true, {}, request.template);
                 template.options = extend(true, {}, request.options);
                 return FS.read(path.join(__dirname, "wrapper.html")).then(function(wrapper) {
                     response.result = wrapper

@@ -5,8 +5,9 @@
 define(["app", "jquery", "backbone", "core/basicModel"], function(app, $, Backbone, ModelBase) {
 
     var SettingsModel = ModelBase.extend({
-        odata: "settings",
-        url: "odata/settings"
+        url: function() {
+          return "odata/settings";
+        }
     });
 
     var SettingsCollection = Backbone.Collection.extend({

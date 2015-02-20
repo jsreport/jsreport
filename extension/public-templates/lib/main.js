@@ -29,68 +29,79 @@ function handleAuthorization(reporter, definition) {
             return;
         }
 
-        //user should be able to access the shared template for read with read token
-        //and for update with write token
-        reporter.authorization.operationAuthorizationListeners.add(definition.name, function (req, operation, entitySet, entity) {
-            if (!req || req.user) {
-                return null;
-            }
+        function verifyToken(req, query, token) {
+            req.skipAuthorizationForQuery = query;
+            return reporter.documentStore.collection("templates").find(query).then(function(templates) {
+                if (templates.length !== 1)
+                    throw new Error("Unauthorized");
 
-            if (S(req.url).startsWith("/api/report") || S(req.url).startsWith("/public-templates")) {
-                return true;
-            }
+                var template = templates[0];
 
-            if (entitySet === "settings" || (entitySet === "templatesHistory" && operation === "Create")) {
-                return true;
-            }
+                if (template.writeSharingToken !== token && template.readSharingToken !== token)
+                    throw new Error("Unauthorized");
 
-            if (entitySet !== "templates")
-                return false;
-
-            if (operation !== "Read" && operation !== "Update") {
-                return false;
-            }
-
-            if (operation === "Read") {
-                if (!req.query.access_token)
-                    return false;
-
-                return entity.writeSharingToken === req.query.access_token || entity.readSharingToken === req.query.access_token;
-            }
-
-            req.skipAuthForId = entity._id;
-
-            return reporter.dataProvider.startContext().then(function (context) {
-                context.skipAuthorization = true;
-                return context.templates.find(entity._id);
-            }).then(function (template) {
-                return entity.writeSharingToken && (template.writeSharingToken === entity.writeSharingToken);
-            }).catch(function (e) {
-                return false;
+                req.skipAuthorizationForUpdate = query;
             });
-        });
+        }
+
+        for (var key in reporter.documentStore.collections) {
+            var col = reporter.documentStore.collections[key];
+
+            col.beforeUpdateListeners.insert(0, "public-templates", col, function(query, update) {
+                if (!process.domain || !process.domain.req)
+                    return;
+
+                if (this.name === "templates" && !process.domain.req.user && update.$set && update.$set.writeSharingToken) {
+                    return verifyToken(process.domain.req, query, update.$set.writeSharingToken);
+                };
+            });
+
+            col.beforeInsertListeners.insert(0, "public-templates", col, function(doc) {
+                if (!process.domain || !process.domain.req)
+                    return;
+
+                if (this.name === "templatesHistory") {
+                    process.domain.req.skipAuthorizationForInsert = doc;
+                };
+            });
+
+            col.beforeFindListeners.add("public-templates", col, function(query) {
+                if (!process.domain || !process.domain.req)
+                    return;
+
+                var req = process.domain.req;
+
+                if (S(req.url).startsWith("/api/report") || S(req.url).startsWith("/public-templates")) {
+                    delete query.readPermissions;
+                }
+
+                if (col.name === "templates" && req.query.access_token) {
+                    return verifyToken(req, query, req.query.access_token);
+                }
+            });
+        }
     });
 }
 
 function defineEntities(reporter) {
-    reporter.templates.TemplateType.addMember("readSharingToken", {type: "string"});
-    reporter.templates.TemplateType.addMember("writeSharingToken", {type: "string"});
+    reporter.documentStore.model.entityTypes["TemplateType"].readSharingToken = {type: "Edm.String"};
+    reporter.documentStore.model.entityTypes["TemplateType"].writeSharingToken = {type: "Edm.String"};
 }
 
 function generateSharingToken(reporter, shortid, operation) {
-    return reporter.dataProvider.startContext().then(function (context) {
-        return context.templates.single(function (t) {
-            return t.shortid === this.shortid;
-        }, {shortid: shortid}).then(function (template) {
-            context.templates.attach(template);
-            var token = uuid();
-            if (operation === "read")
-                template.readSharingToken = token;
-            else
-                template.writeSharingToken = token;
-            return context.saveChanges().then(function () {
-                return token;
-            });
+    return reporter.documentStore.collection("templates").find( { shortid: shortid}).then(function (templates) {
+        var template = templates[0];
+        var token = uuid();
+        if (operation === "read")
+            template.readSharingToken = token;
+        else
+            template.writeSharingToken = token;
+
+        return reporter.documentStore.collection("templates").update({ shortid: shortid}, { $set: {
+            readSharingToken: template.readSharingToken,
+            writeSharingToken: template.writeSharingToken
+        }}).then(function() {
+            return token;
         });
     });
 }
@@ -110,40 +121,40 @@ function configureExpress(app, reporter) {
 
     /* verify an access token and render the particular template */
     app.get("/public-templates", function (req, res, next) {
-        reporter.dataProvider.startContext().then(function (context) {
-            return context.templates.filter(function (t) {
-                return t.readSharingToken === this.uuid || t.writeSharingToken === this.uuid;
-            }, {uuid: req.query.access_token})
-                .toArray().then(function (templates) {
-                    if (templates.length !== 1)
-                        return q.reject(new Error("Unauthorized"));
-                    var template = templates[0];
+        req.skipAuthorization = true;
+        reporter.documentStore.collection("templates").find({
+          $or: [ { readSharingToken: req.query.access_token }, { writeSharingToken: req.query.access_token }]
+        }).then(function(templates) {
+            if (templates.length !== 1)
+                return q.reject(new Error("Unauthorized"));
 
-                    req.template = template;
-                    req.options = {
-                        authorization: {
-                            grantRead: template.readSharingToken === req.query.access_token,
-                            grantWrite: template.writeSharingToken === req.query.access_token,
-                            readToken: template.readSharingToken === req.query.access_token ? req.query.access_token : undefined,
-                            writeToken: template.writeSharingToken === req.query.access_token ? req.query.access_token : undefined
-                        }
-                    };
 
-                    return reporter.render(req).then(function (response) {
-                        if (response.headers) {
-                            for (var key in response.headers) {
-                                if (response.headers.hasOwnProperty(key))
-                                    res.setHeader(key, response.headers[key]);
-                            }
-                        }
+            var template = templates[0];
 
-                        if (_.isFunction(response.result.pipe)) {
-                            response.result.pipe(res);
-                        } else {
-                            res.send(response.result);
-                        }
-                    });
-                });
+            req.template = template;
+            req.options = {
+                authorization: {
+                    grantRead: template.readSharingToken === req.query.access_token,
+                    grantWrite: template.writeSharingToken === req.query.access_token,
+                    readToken: template.readSharingToken === req.query.access_token ? req.query.access_token : undefined,
+                    writeToken: template.writeSharingToken === req.query.access_token ? req.query.access_token : undefined
+                }
+            };
+
+            return reporter.render(req).then(function (response) {
+                if (response.headers) {
+                    for (var key in response.headers) {
+                        if (response.headers.hasOwnProperty(key))
+                            res.setHeader(key, response.headers[key]);
+                    }
+                }
+
+                if (_.isFunction(response.result.pipe)) {
+                    response.result.pipe(res);
+                } else {
+                    res.send(response.result);
+                }
+            });
         }).catch(function (e) {
             next(e);
         });

@@ -2,7 +2,7 @@
     return Backbone.Collection.extend({
         url: function() {
             var qs =  this.filter.toOData();
-            qs.$orderby = "modificationDate desc";
+            qs.$orderby = "creationDate desc";
             return "odata/reports?" + $.param(qs);
         },
 

@@ -38,7 +38,8 @@
                             return;
                         }
                         var taskId = $(this).attr("data-id");
-                        app.dataContext.reports.single(function(r) { return r.taskId === this.id; }, { id : taskId}).then(function(report) {
+                        app.dataProvider.get("odata/reports?$filter=taskId eq '" + taskId + "'").then(function(reports) {
+                            var report = reports[0];
                             window.open(app.serverUrl + "reports/" + report._id + "/content", "_blank");
                         });
                     });

@@ -2,14 +2,15 @@
  * Copyright(c) 2014 Jan Blaha 
  */
 
-define([], function () {
+define(["app"], function (app) {
+
 
     return {
         get: function(url) {
             return $.ajax({
                 type: "GET",
                 dataType: 'json',
-                url: url,
+                url: app.serverUrl +url,
                 converters: {
                     "text json": function(data) {
                         return $.parseJSON(data, true);

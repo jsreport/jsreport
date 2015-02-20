@@ -2,11 +2,10 @@
  * Copyright(c) 2014 Jan Blaha
  */
 
-define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listenerCollection", "core/dataProvider", "toastr", "jsrender.bootstrap"],
-    function ($, Backbone, Marionette, async, Utils, ListenerCollection, dataProvider) {
+define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listenerCollection", "toastr", "jsrender.bootstrap"],
+    function ($, Backbone, Marionette, async, Utils, ListenerCollection) {
 
         var app = new Marionette.Application();
-        app.dataProvider = dataProvider;
         app.serverUrl = jsreport_server_url || "/";
         app.onStartListeners = new ListenerCollection();
         app.options = {
@@ -90,8 +89,9 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                 }
             ], function () {
                 require(["core/menu.view", "layout", "core/extensions/module", "core/backbone.sync",
-                        "core/basicModel", "core/settingsCollection", "core/introduction"],
-                    function (MenuView, Layout, extensions, sync, BasicModel) {
+                        "core/basicModel", "core/dataProvider", "core/settingsCollection", "core/introduction"],
+                    function (MenuView, Layout, extensions, sync, BasicModel, dataProvider) {
+                        app.dataProvider = dataProvider;
                         app.extensions.init(function () {
                             function startApp() {
                                 app.layout = new Layout();

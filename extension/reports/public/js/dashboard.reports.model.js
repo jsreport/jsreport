@@ -2,7 +2,7 @@
     return Backbone.Collection.extend({
 
         url: function() {
-            return "odata/reports?$orderby=modificationDate desc&$top=4";
+            return "odata/reports?$orderby=creationDate desc&$top=4";
         },
 
         model: ReportModel

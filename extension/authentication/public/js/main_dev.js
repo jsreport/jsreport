@@ -80,20 +80,5 @@ define(["app", "underscore", "marionette", "backbone",
                     });
                 }
             });
-
-            app.on("entity-registration", function(context) {
-                $data.Class.define("$entity.User", $data.Entity, null, {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String'},
-                    'shortid': { 'type': 'Edm.String' },
-                    'username': { 'type': 'Edm.String' },
-                    "password": { type: "Edm.String" }
-                }, null);
-
-                $entity.User.prototype.toString = function () {
-                    return "User " + (this.username || "");
-                };
-
-                context["users"] = { type: $data.EntitySet, elementType: $entity.User };
-            });
         });
     });

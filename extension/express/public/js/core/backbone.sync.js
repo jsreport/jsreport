@@ -16,7 +16,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             type: "GET",
             dataType: 'json',
-            url: url,
+            url: app.serverUrl + url,
             converters: {
                 "text json": function(data) {
                     return $.parseJSON(data, true);
@@ -49,7 +49,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             type: model.odata ? "PATCH" : "PUT",
             dataType: 'json',
-            url: url,
+            url: app.serverUrl +url,
             converters: {
                 "text json": function(data) {
                     return $.parseJSON(data, true);
@@ -72,7 +72,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             type: "POST",
             dataType: 'json',
-            url: model.odata ? ("odata/" + model.odata) : model.url(),
+            url: app.serverUrl + (model.odata ? ("odata/" + model.odata) : model.url()),
             converters: {
                 "text json": function(data) {
                     return $.parseJSON(data, true);
@@ -94,7 +94,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
         return $.ajax({
             type: "DELETE",
             dataType: 'json',
-            url: url,
+            url: app.serverUrl +url,
             converters: {
                 "text json": function(data) {
                     return $.parseJSON(data, true);

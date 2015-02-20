@@ -38,20 +38,4 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "./phantom.
                 }
             });
         });
-
-        app.on("entity-registration", function (context) {
-            $data.Class.define("$entity.Phantom", $data.Entity, null, {
-                'margin': { 'type': 'Edm.String' },
-                'header': { 'type': 'Edm.String' },
-                'footer': { 'type': 'Edm.String' },
-                'headerHeight': { 'type': 'Edm.String' },
-                'footerHeight': { 'type': 'Edm.String' },
-                'orientation': { 'type': 'Edm.String' },
-                'format': { 'type': "string" },
-                'width': { 'type': "string" },
-                'height': { 'type': "string" }
-            }, null);
-
-            $entity.Template.addMember("phantom", { 'type': "$entity.Phantom" });
-        });
     });

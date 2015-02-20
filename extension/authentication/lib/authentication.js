@@ -179,7 +179,7 @@ function configureRoutes(reporter, app, admin, definition) {
 
     app.post("/api/users/:shortid/password", function(req, res, next) {
        reporter.authentication.usersRepository.changePassword(req.user, req.params.shortid,req.body.oldPassword,req.body.newPassword).then(function(user) {
-            res.send("ok");
+            res.send({ result: "ok"});
         }).catch(function(e) {
             next(e);
         });
