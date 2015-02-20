@@ -27,13 +27,7 @@
         },
         
         save: function (opt) {
-            this.templateModel.set("images", this.toJSON().map(function(m) {
-                return new $entity.ImageRef({
-                    name: m.name,
-                    shortid: m.shortid,
-                    imageId: m.imageId
-                });
-            }));
+            this.templateModel.set("images", this.toJSON());
         },
 
         model: ImageRefModel

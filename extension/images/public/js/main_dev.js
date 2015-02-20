@@ -52,30 +52,5 @@
             app.on("menu-render", function(context) {
                     context.result += "<li><a href='#/extension/images'>Images</a></li>";
             });
-
-            app.on("entity-registration", function(context) {
-
-                $data.Class.define("$entity.ImageRef", $data.Entity, null, {
-                    "name": { 'type': 'Edm.String' },
-                    "shortid": { 'type': 'Edm.String' },
-                    "imageId": { 'type': 'Edm.String' }
-                }, null);
-
-                $entity.Template.addMember("images", { type: "Array", elementType: "$entity.ImageRef" });
-
-                $data.Class.define("$entity.Image", $data.Entity, null, {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
-                    "shortid": { 'type': 'Edm.String' },
-                    "name": { 'type': 'Edm.String' },
-                    "creationDate": { type: "date" },
-                    "modificationDate": { type: "date" }
-                }, null);
-
-                $entity.Image.prototype.toString = function() {
-                    return "Image " + (this.name || "");
-                };
-
-                context["images"] = { type: $data.EntitySet, elementType: $entity.Image };
-            });
         });
     });

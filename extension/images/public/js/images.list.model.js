@@ -1,6 +1,12 @@
 ﻿define(["app", "backbone", "core/dataGrid", "./images.model"], function (app, Backbone, DataGrid, ImageModel) {
-    
+
     return Backbone.Collection.extend({
+
+        url: function () {
+            var qs = this.filter.toOData();
+            qs.$orderby = "modificationDate desc";
+            return "odata/images?" + $.param(qs);
+        },
 
         initialize: function () {
             var self = this;
@@ -9,18 +15,12 @@
                 self.fetch();
             });
         },
-        
+
         parse: function (data) {
-            if (data.totalCount != null)
-                this.filter.set("totalCount", data.totalCount);
+            if (this.meta && this.meta["@odata.count"])
+                this.filter.set("totalCount", this.meta["@odata.count"]);
 
             return data;
-        },
-        
-        fetchQuery: function () {
-            return app.dataContext.images.map(function(i) {
-                 return { shortid: i.shortid, _id: i._id, name: i.name, creationDate: i.creationDate, modificationDate: i.modificationDate };
-            }).applyFilter(this.filter).toArray();
         },
 
         model: ImageModel
