@@ -6,13 +6,15 @@ var Reporter = require("../lib/reporter.js"),
     path = require("path"),
     serveStatic = require('serve-static'),
     bodyParser = require("body-parser"),
-    multer  = require('multer'),
+    multer = require('multer'),
     extend = require("node.extend");
 
-var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
-    : { name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017 };
+process.env.DB = "neDB";
 
-exports.describeReporting = function (rootDirectory, extensions, customOptions, nestedSuite ) {
+var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
+    : {name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017};
+
+exports.describeReporting = function (rootDirectory, extensions, customOptions, nestedSuite) {
     if (!nestedSuite) {
         nestedSuite = customOptions;
         customOptions = null;
@@ -28,14 +30,14 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         app.engine('html', require('ejs').renderFile);
 
         var options = {
-            tenant: { name: "test" },
+            tenant: {name: "test"},
             connectionString: connectionString,
             extensions: extensions,
             dataDirectory: "data",
             blobStorage: process.env.DB === "neDB" ? "fileSystem" : "gridFS",
             loadExtensionsFromPersistedSettings: false,
             cacheAvailableExtensions: true,
-            express: { app: app },
+            express: {app: app},
             rootDirectory: rootDirectory
         };
 
@@ -47,16 +49,12 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         beforeEach(function (done) {
             this.timeout(10000);
 
-            reporter.buildContext().then(function () {
-                return reporter.dataProvider.dropStore().then(function () {
-                    return reporter.dataProvider.startContext().then(function (context) {
-                        reporter.context = context;
-                        return reporter.init().then(function() {
-                            done();
-                        });
-
-                    });
-                });
+            reporter.documentStore.init().then(function () {
+                return reporter.documentStore.drop();
+            }).then(function () {
+                return reporter.init();
+            }).then(function () {
+                done();
             }).catch(done);
         });
 
