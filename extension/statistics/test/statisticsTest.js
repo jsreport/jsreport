@@ -18,7 +18,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "statistics"], f
                 options: { async: true}
             };
             
-            reporter.templates.create({ content: "foo" }).then(function (t) {
+            reporter.documentStore.collection("templates").insert({ content: "foo" }).then(function (t) {
                 request.template = t;
                 
                 var response = {};
@@ -27,7 +27,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "statistics"], f
                     
                     return reporter.statistics.handleBeforeRender(request, response).then(function () {
                         
-                        return reporter.context.statistics.toArray().then(function (stats) {
+                        return reporter.documentStore.collection("statistics").find({}).then(function (stats) {
                             assert.equal(1, stats.length);
                             assert.equal(2, stats[0].amount);
                             assert.equal(undefined, stats[0].success);
@@ -46,8 +46,8 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "statistics"], f
                 template: { },
                 options: { async: true }
             };
-            
-            reporter.templates.create({ content: "foo" }).then(function (t) {
+
+            reporter.documentStore.collection("templates").insert({ content: "foo" }).then(function (t) {
                 request.template = t;
                 
                 var response = {};
@@ -56,7 +56,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "statistics"], f
                     
                     return reporter.statistics.handleAfterRender(request, response).then(function () {
                         
-                        return reporter.context.statistics.toArray().then(function (stats) {
+                        return reporter.documentStore.collection("statistics").find({}).then(function (stats) {
                             assert.equal(1, stats.length);
                             assert.equal(1, stats[0].amount);
                             assert.equal(1, stats[0].success);

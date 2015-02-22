@@ -71,6 +71,8 @@ Data.prototype.handleBeforeRender = function (request, response) {
         self.reporter.logger.debug("Searching for dataItem to apply");
 
         return self.reporter.documentStore.collection("data").find({ shortid: request.template.data.shortid}).then(function(items) {
+            if (items.length !== 1)
+                throw new Error("Data not found for shortid " + request.template.data.shortid);
             return items[0];
         });
     }
@@ -80,14 +82,10 @@ Data.prototype.handleBeforeRender = function (request, response) {
             return;
 
         di = di.dataJson || di;
-
-        try {
-            request.data = JSON.parse(di);
-        } catch (e) {
-            self.reporter.logger.warn("Invalid json in data item: " + e.message);
-            e.weak = true;
-            throw e;
-        }
+        request.data = JSON.parse(di);
+    }).catch(function(e) {
+        e.weak = true;
+        throw e;
     });
 };
 

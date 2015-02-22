@@ -1,14 +1,14 @@
 /*globals describe, it, beforeEach, afterEach */
 
 var should = require("should"),
-    DocumentStore = require("../../lib/store/documentStore.js");
+    DocumentStore = require("../lib/store/documentStore.js");
 
 
 describe('document store', function () {
     var documentStore;
 
     beforeEach(function(done) {
-        require("../../lib/util/util.js").deleteFiles("../data");
+        require("../lib/util/util.js").deleteFiles("../data");
         documentStore = new DocumentStore({name: "neDB"}, {dataDirectory: "../data"});
         documentStore.registerEntityType("User", {
             "_id": {"type": "Edm.String", key: true},

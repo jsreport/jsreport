@@ -34,7 +34,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates"], function(report
                 options: { recipe: "html" }
             };
 
-            reporter.templates.create({ content: "foo" }).then(function(t) {
+            reporter.documentStore.collection("templates").insert({ content: "foo" }).then(function(t) {
                 request.template._id = t._id;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
                     assert.equal("foo", request.template.content);
@@ -51,7 +51,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates"], function(report
                 options: { recipe: "html" }
             };
 
-            reporter.templates.create({ content: "foo" }).then(function(t) {
+            reporter.documentStore.collection("templates").insert({ content: "foo" }).then(function(t) {
                 request.template.shortid = t.shortid;
                 reporter.templates.handleBeforeRender(request, {}).then(function() {
                     assert.equal("foo", request.template.content);
@@ -68,7 +68,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates"], function(report
                 options: { recipe: "html" }
             };
 
-            reporter.templates.create({ content: "foo" }).then(function(t) {
+            reporter.documentStore.collection("templates").insert({ content: "foo" }).then(function(t) {
                 request.template.shortid = "not existing";
 
                 reporter.templates.handleBeforeRender(request, {}).fail(function() {
@@ -99,12 +99,10 @@ describeReporting(path.join(__dirname, "../../"), ["templates"], function(report
         });
 
         it('deleting should work', function(done) {
-            reporter.templates.create({ content: "foo" })
+            reporter.documentStore.collection("templates").insert({ content: "foo" })
                 .then(function(t) {
-                    reporter.context.templates.remove(t);
-
-                    reporter.context.templates.saveChanges().then(function() {
-                        reporter.context.templates.toArray().then(function(list) {
+                    reporter.documentStore.collection("templates").remove({shortid: t.shortid}).then(function() {
+                        reporter.documentStore.collection("templates").find({}).then(function(list) {
                             assert.equal(list.length, 0);
                             done();
                         });

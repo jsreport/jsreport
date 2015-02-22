@@ -12,15 +12,14 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
     describe('scripts', function () {
 
         function prepareTemplate(scriptContent) {
-            var script = new reporter.scripts.ScriptType({content: scriptContent});
-            reporter.context.scripts.add(script);
-            return reporter.context.scripts.saveChanges().then(function () {
-                return reporter.templates.create({
+            return reporter.documentStore.collection("script").insert({content: scriptContent}).then(function () {
+
+                return reporter.documentStore.collection("template").insert({
                     content: "foo",
                     script: {shortid: script.shortid}
                 });
             });
-        }
+        };
 
         function prepareRequest(scriptContent) {
             return prepareTemplate(scriptContent).then(function (template) {
@@ -129,7 +128,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
                     done(new Error('no error was thrown when it should have been'));
                 });
-            }).catch(function() {
+            }).catch(function () {
                 done();
             });
         });
@@ -139,11 +138,13 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
                     done(new Error('no error was thrown when it should have been'));
                 });
-            }).catch(function(e) {
+            }).catch(function (e) {
                 try {
                     e.message.should.containEql("foo");
                 }
-                catch(e) { return done(e);}
+                catch (e) {
+                    return done(e);
+                }
                 done();
             });
         });

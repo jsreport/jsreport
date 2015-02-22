@@ -12,7 +12,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
         it('should replace child template mark with its content', function (done) {
             this.timeout(10000);
 
-            reporter.templates.create({
+            reporter.documentStore.collection("templates").insert({
                 content: "{{>~a()}}",
                 engine: "jsrender",
                 helpers: "function a() { return \"foo\"; }",
@@ -20,8 +20,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
                 name: "t1" }).then(function (t) {
 
                 var request = {
-                    template: { content: "a{#child t1}ba{#child t1}" },
-                    context: reporter.context
+                    template: { content: "a{#child t1}ba{#child t1}" }
                 };
 
                 return reporter.childTemplates.handleBeforeRender(request, {}).then(function () {
