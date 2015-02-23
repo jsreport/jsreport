@@ -57,7 +57,7 @@ Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, respo
             if (result.length < 1)
                 return done(null);
 
-            var imageData = "data:" + result[0].contentType + ";base64," + new Buffer(result[0].content).toString('base64');
+            var imageData = "data:" + result[0].contentType + ";base64," + result[0].content.toString('base64');
             done(null, imageData);
         }).catch(done);
     };
@@ -78,7 +78,7 @@ Images.prototype._configureExpress = function (app) {
                 throw new Error("Image not found");
 
             res.setHeader('Content-Type', result[0].contentType);
-            res.end(new Buffer(result[0].content), "binary");
+            res.end(result[0].content, "binary");
         }).catch(function(e) {
             res.status(404).end();
         });
@@ -90,7 +90,7 @@ Images.prototype._configureExpress = function (app) {
                 throw new Error("Image not found");
 
             res.setHeader('Content-Type', result[0].contentType);
-            res.end(new Buffer(result[0].content), "binary");
+            res.end(result[0].content, "binary");
         }).catch(function(e) {
             res.status(404).end();
         });
@@ -140,7 +140,7 @@ Images.prototype._defineEntities = function () {
 
     this.reporter.documentStore.model.entityTypes["TemplateType"].images = {elementType: "Collection(jsreport.ImageRefType)"};
     this.reporter.documentStore.model.entityTypes["TemplateHistoryType"].ImageType = {elementType: "Collection(jsreport.ImageRefType)"};
-    this.reporter.documentStore.registerEntitySet("images", {entityType: "ImageRefType"});
+    this.reporter.documentStore.registerEntitySet("images", {entityType: "ImageType", humanReadableKey: "shortid"});
 
     var self = this;
     this.reporter.initializeListener.add("images", function () {

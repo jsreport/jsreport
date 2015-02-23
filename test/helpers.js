@@ -7,9 +7,8 @@ var Reporter = require("../lib/reporter.js"),
     serveStatic = require('serve-static'),
     bodyParser = require("body-parser"),
     multer = require('multer'),
+    util = require("../lib/util/util.js"),
     extend = require("node.extend");
-
-process.env.DB = "neDB";
 
 var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
     : {name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017};
@@ -49,9 +48,7 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         beforeEach(function (done) {
             this.timeout(10000);
 
-            reporter.documentStore.init().then(function () {
-                return reporter.documentStore.drop();
-            }).then(function () {
+            return reporter.documentStore.drop().then(function () {
                 return reporter.init();
             }).then(function () {
                 done();

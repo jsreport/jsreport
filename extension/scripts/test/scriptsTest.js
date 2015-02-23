@@ -12,9 +12,8 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
     describe('scripts', function () {
 
         function prepareTemplate(scriptContent) {
-            return reporter.documentStore.collection("script").insert({content: scriptContent}).then(function () {
-
-                return reporter.documentStore.collection("template").insert({
+            return reporter.documentStore.collection("scripts").insert({content: scriptContent}).then(function (script) {
+                return reporter.documentStore.collection("templates").insert({
                     content: "foo",
                     script: {shortid: script.shortid}
                 });

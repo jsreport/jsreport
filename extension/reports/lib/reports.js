@@ -26,7 +26,7 @@ Reporting.prototype.configureExpress = function (app) {
     app.get("/reports/:id/content", function (req, res, next) {
         self.reporter.documentStore.collection("reports").find({_id: req.params.id}).then(function (result) {
             if (result.length !== 1)
-                throw new Error("Report not found");
+                throw new Error("Report " + req.params.id + " not found");
 
             return self.reporter.blobStorage.read(result[0].blobName, function (err, stream) {
                 if (err) {

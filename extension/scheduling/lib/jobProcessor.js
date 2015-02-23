@@ -29,7 +29,7 @@ JobProcessor.prototype.stop = function () {
 
 JobProcessor.prototype._schedulesToProcessFilter = function () {
     return {
-        $and: [ { nextRun: { $lt: this.options.now()}}, { state: "planned"}, {enabled: true}]
+        $and: [{nextRun: {$lt: this.options.now()}}, {state: "planned"}, {enabled: true}]
     };
 };
 
@@ -43,7 +43,7 @@ JobProcessor.prototype._pingRunningTasks = function () {
     var ids = this.currentlyRunningTasks.map(function (t) {
         return t._id;
     });
-    return this.documentStore.collection("tasks").update({id: {$in: ids}}, {$set: {ping: this.options.now()}});
+    return this.documentStore.collection("tasks").update({_id: {$in: ids}}, {$set: {ping: this.options.now()}});
 };
 
 JobProcessor.prototype._findTasksToRecover = function () {
@@ -66,11 +66,12 @@ JobProcessor.prototype.process = function (options) {
     var self = this;
     options = options || {};
 
-    if (this.currentlyRunningTasks.length >= this.options.maxParallelJobs) {
-        return q();
-    }
-
     return this._pingRunningTasks().then(function () {
+        if (self.currentlyRunningTasks.length >= self.options.maxParallelJobs) {
+            return;
+        }
+
+
         return self._findTasksToRecover().then(function (tasks) {
             var promise = q.all(tasks.map(function (task) {
                 self.logger.info("Recovering task " + task.schedule.name);

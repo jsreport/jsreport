@@ -58,7 +58,7 @@ describeReporting(path.join(__dirname, "../../"), ["express", "templates", "imag
                     };
 
                     reporter.images.handleAfterTemplatingEnginesExecuted(request, response).then(function() {
-                        assert.equal("adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'), response.result);
+                        assert.equal(response.result, "adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'));
                         done();
                     }).catch(done);
                 }).catch(done);

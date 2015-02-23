@@ -116,7 +116,7 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
         function check(colection, authAction) {
             function fn() {
-                if (!process.domain)
+                if (!process.domain || !process.domain.req)
                     return q(true);
 
                 var defaultAuth = self.defaultAuth(colection, process.domain.req);
@@ -136,7 +136,7 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
         col["beforeUpdateListeners"].add("authorization", col, function (query, update) {
             var col = this;
-            if (!process.domain || process.domain.req.skipAuthorizationForUpdate === query)
+            if (!process.domain || !process.domain.req || process.domain.req.skipAuthorizationForUpdate === query)
                return;
 
             return check(col, function() {
@@ -153,7 +153,7 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
         col["beforeInsertListeners"].add("authorization", col, function (doc) {
             var col = this;
-            if (!process.domain || process.domain.req.skipAuthorizationForInsert === doc)
+            if (!process.domain || !process.domain.req || process.domain.req.skipAuthorizationForInsert === doc)
                 return;
             return check(col, function() {
                 return q(true);

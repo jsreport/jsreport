@@ -40,7 +40,7 @@ var Scheduling = function (reporter, definition) {
     });
 
 
-    this.reporter.documentStore.registerEntitySet("schedules", {entityType: "ScheduleType"});
+    this.reporter.documentStore.registerEntitySet("schedules", {entityType: "ScheduleType", humanReadableKey: "shortid"});
     this.reporter.documentStore.model.entityTypes["ReportType"].taskId = { type: "Edm.String"};
     this.reporter.documentStore.registerEntitySet("tasks", {entityType: "TaskType"});
     reporter.initializeListener.add(definition.name, this, Scheduling.prototype._initialize);

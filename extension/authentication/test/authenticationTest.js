@@ -20,7 +20,6 @@ describeReporting(path.join(__dirname, "../../"), ["express", "authentication"],
         it("should respond with login without cookie", function(done) {
             request(reporter.options.express.app).get("/")
                 .end(function (err, res) {
-                    console.log(res);
                     res.text.should.containEql("<h1>Login</h1>");
                     done();
                 });

@@ -130,7 +130,7 @@ Templating.prototype._defineEntities = function () {
 
     this.documentStore.registerEntityType("TemplateHistoryType", templateAttributes);
     this.documentStore.registerEntityType("TemplateType", templateAttributes);
-    this.documentStore.registerEntitySet("templates", {entityType: "TemplateType"});
+    this.documentStore.registerEntitySet("templates", {entityType: "TemplateType", humanReadableKey: "shortid"});
     this.documentStore.registerEntitySet("templatesHistory", {entityType: "TemplateHistoryType"});
 
     var self = this;

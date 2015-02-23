@@ -147,7 +147,7 @@ Scripts.prototype._defineEntities = function() {
 
     this.reporter.documentStore.registerEntitySet("data", {entityType: "DataItemType"});
     this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "ScriptRefType"};
-    this.reporter.documentStore.registerEntitySet("scripts", {entityType: "ScriptType" });
+    this.reporter.documentStore.registerEntitySet("scripts", {entityType: "ScriptType", humanReadableKey: "shortid" });
 
     this.reporter.initializeListener.add("scripts", function () {
         var col = self.reporter.documentStore.collection("scripts");

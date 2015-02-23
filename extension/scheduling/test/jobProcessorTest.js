@@ -132,39 +132,6 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
                 });
             }).catch(done);
         });
-
-        it('should pass for planned in past and enabled', function () {
-            reporter.scheduling.jobProcessor._schedulesToProcessFilter({
-                enabled: true,
-                nextRun: new Date(1),
-                state: "planned"
-            }).should.be.ok;
-        });
-
-        it('should skip disabled', function () {
-            this.now = new Date();
-            reporter.scheduling.jobProcessor._schedulesToProcessFilter({
-                enabled: false,
-                nextRun: new Date(1),
-                state: "planned"
-            }).should.not.be.ok;
-        });
-
-        it('should skip running', function () {
-            reporter.scheduling.jobProcessor_schedulesToProcessFilter({
-                enabled: true,
-                nextRun: new Date(1),
-                state: "running"
-            }).should.not.be.ok;
-        });
-
-        it('should skip in future', function () {
-            reporter.scheduling.jobProcessor._schedulesToProcessFilter({
-                enabled: true,
-                nextRun: new Date(2090, 1, 1),
-                state: "running"
-            }).should.not.be.ok;
-        });
     });
 });
 

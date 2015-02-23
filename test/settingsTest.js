@@ -12,7 +12,9 @@ describe('Settings', function () {
 
         self.settings = new Settings();
 
-        self.documentStore = new DocumentStore(connectionString, { dataDirectory: "data", logger : new (require("../lib/util/consoleLogger.js"))()});
+        connectionString.logger = new (require("../lib/util/consoleLogger.js"))();
+
+        self.documentStore = new DocumentStore({ connectionString: connectionString, dataDirectory: "data" });
         self.settings.registerEntity(self.documentStore);
 
         self.documentStore.init().then(function () {

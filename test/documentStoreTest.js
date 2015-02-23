@@ -9,7 +9,7 @@ describe('document store', function () {
 
     beforeEach(function(done) {
         require("../lib/util/util.js").deleteFiles("../data");
-        documentStore = new DocumentStore({name: "neDB"}, {dataDirectory: "../data"});
+        documentStore = new DocumentStore({ connectionString: {name: "neDB"}, dataDirectory: "../data"});
         documentStore.registerEntityType("User", {
             "_id": {"type": "Edm.String", key: true},
             "test": {"type": "Edm.String"},
