@@ -83,7 +83,7 @@ Reporting.prototype._defineEntities = function () {
 
     this.ReportType = this.reporter.documentStore.registerEntityType("ReportType", {
         _id: {type: "Edm.String", key: true},
-        creationDate: {type: "Edm.Date"},
+        creationDate: {type: "Edm.DateTimeOffset"},
         recipe: {type: "Edm.String"},
         blobName: {type: "Edm.String"},
         contentType: {type: "Edm.String"},

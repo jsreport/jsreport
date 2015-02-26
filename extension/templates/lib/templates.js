@@ -124,7 +124,7 @@ Templating.prototype._defineEntities = function () {
         recipe: {type: "Edm.String"},
         helpers: {type: "Edm.String"},
         engine: {type: "Edm.String"},
-        modificationDate: {type: "Edm.Date"}
+        modificationDate: {type: "Edm.DateTimeOffset"}
     };
 
 

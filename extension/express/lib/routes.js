@@ -29,7 +29,8 @@ module.exports = function (app, reporter) {
 
             if (err.unauthorized) {
                 res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
-                res.status(401);
+                res.status(401).end();
+                return;
             }
 
             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
@@ -97,35 +98,18 @@ module.exports = function (app, reporter) {
 
     reporter.emit("express-before-odata", app);
 
-    var odataServer = require("simple-odata-server")("http://localhost:4000/odata");
-    odataServer.model(reporter.documentStore.model);
-    odataServer.query(function (query, cb) {
-        reporter.documentStore.collection(query.collection).exec(query).then(function(res) {
-                cb(null, res);
-            }).catch(cb);
-    });
+    var odataServer = require("simple-odata-server")();
+    reporter.documentStore.adaptOData(odataServer);
 
-    odataServer.update(function (collection, query, update, cb) {
-        reporter.documentStore.collection(collection).update(query, update).then(function(res) {
-            cb(null, res);
-        }).catch(cb);
-    });
-
-    odataServer.insert(function (collection, doc, cb) {
-        reporter.documentStore.collection(collection).insert(doc).then(function(res) {
-            cb(null, res);
-        }).catch(cb);
-    });
-
-    odataServer.remove(function (collection, query, cb) {
-        reporter.documentStore.collection(collection).remove(query).then(function(res) {
-            cb(null, res);
-        }).catch(cb);
+    odataServer.error(function (req, res, err, next) {
+        if (err.unauthorized)
+            res.error(err);
+        else
+            next(err);
     });
 
 
-    app.use("/odata", function (req, res, next) {
-        req.fullRoute = req.protocol + '://' + req.get('host') + "/odata";
+    app.use("/odata", function (req, res) {
         odataServer.handle(req, res);
     });
 

@@ -134,8 +134,8 @@ Scripts.prototype._defineEntities = function() {
     this.reporter.documentStore.registerEntityType("ScriptType", {
         _id: {type: "Edm.String", key: true},
         shortid: { type: "Edm.String"},
-        creationDate: { type: "Edm.Date" },
-        modificationDate: { type: "Edm.Date" },
+        creationDate: { type: "Edm.DateTimeOffset" },
+        modificationDate: { type: "Edm.DateTimeOffset" },
         content: { type: "Edm.String" },
         name: { type: "Edm.String" }
     });
@@ -146,7 +146,7 @@ Scripts.prototype._defineEntities = function() {
     });
 
     this.reporter.documentStore.registerEntitySet("data", {entityType: "DataItemType"});
-    this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "ScriptRefType"};
+    this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "jsreport.ScriptRefType"};
     this.reporter.documentStore.registerEntitySet("scripts", {entityType: "ScriptType", humanReadableKey: "shortid" });
 
     this.reporter.initializeListener.add("scripts", function () {

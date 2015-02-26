@@ -126,20 +126,20 @@ Images.prototype._defineEntities = function () {
         _id: {type: "Edm.String", key: true},
         "shortid": {type: "Edm.String"},
         "name": {type: "Edm.String"},
-        "creationDate": {type: "Edm.Date"},
-        "modificationDate": {type: "Edm.Date"},
+        "creationDate": {type: "Edm.DateTimeOffset"},
+        "modificationDate": {type: "Edm.DateTimeOffset"},
         "content": {type: "Edm.Binary"},
         "contentType": {type: "Edm.String"}
     });
 
-    this.ImageRefType = this.reporter.documentStore.registerEntityType("ImageRefType", {
+    this.ImageRefType = this.reporter.documentStore.registerComplexType("ImageRefType", {
         "shortid": {type: "Edm.String"},
         "name": {type: "Edm.String"},
         "imageId": {type: "Edm.String"}
     });
 
-    this.reporter.documentStore.model.entityTypes["TemplateType"].images = {elementType: "Collection(jsreport.ImageRefType)"};
-    this.reporter.documentStore.model.entityTypes["TemplateHistoryType"].ImageType = {elementType: "Collection(jsreport.ImageRefType)"};
+    this.reporter.documentStore.model.entityTypes["TemplateType"].images = {type: "Collection(jsreport.ImageRefType)"};
+    this.reporter.documentStore.model.entityTypes["TemplateHistoryType"].images = {type: "Collection(jsreport.ImageRefType)"};
     this.reporter.documentStore.registerEntitySet("images", {entityType: "ImageType", humanReadableKey: "shortid"});
 
     var self = this;

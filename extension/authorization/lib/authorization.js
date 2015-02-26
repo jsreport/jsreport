@@ -129,8 +129,11 @@ Authorization.prototype._registerAuthorizationListeners = function () {
             };
 
             return fn().then(function (res) {
-                if (res !== true)
-                    throw new Error("Unauthorized for " + colection.name);
+                if (res !== true) {
+                    var e = new Error("Unauthorized for " + colection.name);
+                    e.unauthorized = true;
+                    throw e;
+                }
             });
         }
 
@@ -232,8 +235,8 @@ Authorization.prototype._extendEntitiesWithPermissions = function () {
 
             var entityType = documentStore.model.entityTypes[entitySet.type];
 
-            entityType.readPermissions = {elementType: "Collection(Edm.String)"};
-            entityType.editPermissions = {elementType: "Collection(Edm.String)"};
+            entityType.readPermissions = {type: "Collection(Edm.String)"};
+            entityType.editPermissions = {type: "Collection(Edm.String)"};
         }
     });
 };

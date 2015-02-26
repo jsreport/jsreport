@@ -53,7 +53,7 @@ Statistics.prototype._defineEntities = function () {
 
     this.reporter.documentStore.registerEntityType("StatisticType", {
         _id: {type: "Edm.String", key: true},
-        fiveMinuteDate: { type: "Edm.Date" },
+        fiveMinuteDate: { type: "Edm.DateTimeOffset" },
         amount: { type: "Edm.Int64" },
         success: { type: "Edm.Int64" }
     });

@@ -21,22 +21,22 @@ var Scheduling = function (reporter, definition) {
         cron: {type: "Edm.String"},
         name: {type: "Edm.String"},
         templateShortid: {type: "Edm.String"},
-        creationDate: {type: "Edm.Date"},
-        nextRun: {type: "Edm.Date"},
+        creationDate: {type: "Edm.DateTimeOffset"},
+        nextRun: {type: "Edm.DateTimeOffset"},
         shortid: {type: "Edm.String"},
         enabled: {type: "Edm.Boolean"},
-        modificationDate: {type: "Edm.Date"},
+        modificationDate: {type: "Edm.DateTimeOffset"},
         state: {type: "Edm.String"}
     });
 
     this.TaskType = this.reporter.documentStore.registerEntityType("TaskType", {
         _id: {type: "Edm.String", key: true},
         scheduleShortid: {type: "Edm.String"},
-        creationDate: {type: "Edm.Date"},
-        finishDate: {type: "Edm.Date"},
+        creationDate: {type: "Edm.DateTimeOffset"},
+        finishDate: {type: "Edm.DateTimeOffset"},
         state: {type: "Edm.String"},
         error: {type: "Edm.String"},
-        ping: {type: "Edm.Date"}
+        ping: {type: "Edm.DateTimeOffset"}
     });
 
 

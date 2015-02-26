@@ -44,7 +44,7 @@ var Phantom = function (reporter, definition) {
         blockJavaScript: {type: "Edm.Boolean"}
     });
 
-    reporter.documentStore.model.entityTypes["TemplateType"].phantom = {type: "PhantomType"};
+    reporter.documentStore.model.entityTypes["TemplateType"].phantom = {type: "jsreport.PhantomType"};
 };
 
 Phantom.prototype.execute = function (request, response) {

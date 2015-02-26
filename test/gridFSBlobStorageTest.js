@@ -9,17 +9,18 @@ var assert = require("assert"),
     Reporter = require("../lib/reporter.js"),
     GridFS = require("../lib/blobStorage/gridFSBlobStorage.js"),
     Readable = require("stream").Readable,
-    DataProvider = require("../lib/dataProvider.js"),
+    DocumentStore = require("../lib/store/documentStore.js"),
     connectionString = require("./helpers.js").connectionString;
 
 describe('gridFSBlobStorage', function() {
 
     beforeEach(function(done) {
         var self = this;
-        self.dataProvider = new DataProvider(connectionString, { logger: new(require("../lib/util/consoleLogger"))()});
-        self.dataProvider.buildContext();
 
-        self.dataProvider.dropStore().then(function() {
+        connectionString.logger = new (require("../lib/util/consoleLogger.js"))();
+        self.documentStore = new DocumentStore({ connectionString: connectionString, dataDirectory: "data" });
+
+        self.documentStore.drop().then(function() {
             self.blobStorage = new GridFS(connectionString);
             done();
         }, done);
