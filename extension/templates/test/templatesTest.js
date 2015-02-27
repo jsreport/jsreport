@@ -4,7 +4,6 @@ var assert = require("assert"),
     fs = require('fs'),
     path = require("path"),
     Q = require("q"),
-    jaydata = require("odata-server"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 describeReporting(path.join(__dirname, "../../"), ["templates"], function (reporter) {

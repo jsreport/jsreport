@@ -3,8 +3,7 @@
  */
 /*globals $data */
 
-var async = require("async"),
-    express = require('express'),
+var express = require('express'),
     _ = require("underscore"),
     path = require("path"),
     q = require("q"),
