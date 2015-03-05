@@ -45,6 +45,7 @@ ChildTemplates.prototype.handleBeforeRender = function(request, response) {
 
             req.template = res[0];
             req.options.isRootRequest = false;
+            self.reporter.logger.debug("Rendering child template " + p1);
             return self.reporter.render(req).then(function(resp) {
                 done(null, resp.result);
             });

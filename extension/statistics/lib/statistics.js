@@ -4,9 +4,6 @@
  * Extension storing 5min based statistics - amount of successfully generated, amount of failures
  */
 
-var shortid = require("shortid"),
-    _ = require("underscore");
-
 var Statistics = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;

@@ -26,7 +26,6 @@ describeReporting(path.join(__dirname, "../../"), ["express", "authentication"],
         });
 
         it("should pass with auth cookie", function(done) {
-
             request(reporter.options.express.app).post('/login')
                 .type('form')
                 .send({ username: "admin", password:"password" })

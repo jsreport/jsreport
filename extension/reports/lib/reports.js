@@ -62,7 +62,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
             contentType: response.headers['Content-Type']
         });
 
-    self.reporter.logger.debug("Inserting report to storage.");
+    self.reporter.logger.debug("Inserting report into storage.");
 
     return self.reporter.documentStore.collection("reports").insert(report).then(function () {
         self.reporter.logger.debug("Writing report content to blob.");

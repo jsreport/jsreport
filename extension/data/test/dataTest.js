@@ -31,7 +31,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates","data"], function
         it('should callback error when missing data', function(done) {
             var request = {
                 reporter: reporter,
-                template: { content: "html", dataItemId: "MnI0b0QwNXBhZHlRSXBhRg==" },
+                template: { content: "html", data: { shortid : "MnI0b0QwNXBhZHlRSXBhRg=="} },
                 options: { recipe: "html" }
             };
 

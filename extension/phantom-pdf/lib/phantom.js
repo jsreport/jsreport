@@ -14,7 +14,7 @@ var uuid = require("uuid").v1,
     extend = require("node.extend"),
     mkdirp = require('mkdirp'),
     toArray = require('stream-to-array'),
-    PhantomManager = require("./phantomManager.js");
+    PhantomManager = require("phantom-workers").PhantomManager;
 
 var phantomManager;
 
@@ -119,6 +119,7 @@ module.exports = function (reporter, definition) {
     }
 
     if (!phantomManager) {
+        reporter.options.phantom.pathToPhantomScript = path.join(__dirname, "bridge.js");
         phantomManager = new PhantomManager(reporter.options.phantom);
         return phantomManager.start();
     }

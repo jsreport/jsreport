@@ -65,7 +65,6 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     }
 
     if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
-        self.reporter.logger.debug("Script not defined for this template.");
         return q();
     }
 
@@ -73,18 +72,16 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         if (request.template.script.content)
             return q(request.template.script);
 
-        self.reporter.logger.debug("Searching for before script to apply - " + request.template.script.shortid);
-
         return self.reporter.documentStore.collection("scripts").find({ shortid: request.template.script.shortid}).then(function(items) {
             return items[0];
         });
     }
 
     return findScript().then(function (script) {
+        self.reporter.logger.debug("Executing script " + script.shortid);
         script = script.content || script;
 
         request.parsedScript = script;
-
         return request.reporter.taskManager.execute({
             body: {
                 script: script,

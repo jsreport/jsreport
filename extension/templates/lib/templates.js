@@ -65,6 +65,8 @@ Templating.prototype.handleBeforeRender = function (request) {
         extend(true, templates[0], request.template);
         request.template = templates[0];
         request.template.content = request.template.content || "";
+        self.reporter.logger.info("Rendering template {shortid:" + request.template.shortid + ", recipe:" +
+            request.template.recipe + ",engine:" + request.template.engine + "}");
     }, function () {
         throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
     });

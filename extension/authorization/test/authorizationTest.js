@@ -11,7 +11,6 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authentication"
 
     describe('authorization', function () {
 
-
         beforeEach(function (done) {
             reporter.authentication = {};
             done();

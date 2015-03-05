@@ -51,11 +51,14 @@ Images.prototype.upload = function (name, contentType, content, shortidVal) {
 
 Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, response) {
     var self = this;
+    var replacedImages = [];
 
     function convert(str, p1, offset, s, done) {
         self.imagesCollection.find({ name: p1}).then(function(result) {
             if (result.length < 1)
                 return done(null);
+
+            replacedImages.push(p1);
 
             var imageData = "data:" + result[0].contentType + ";base64," + result[0].content.toString('base64');
             done(null, imageData);
@@ -65,6 +68,7 @@ Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, respo
     var test = /{#image ([^{}]{0,50})}/g;
 
     return q.nfcall(asyncReplace, response.result, test, convert).then(function (result) {
+        self.reporter.logger.debug("Replaced images " + JSON.stringify(replacedImages));
         response.result = result;
     });
 };

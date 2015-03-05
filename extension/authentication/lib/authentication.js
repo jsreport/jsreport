@@ -98,6 +98,7 @@ function addPassport(reporter, app, admin, definition) {
                 if (err) {
                     return next(err);
                 }
+                reporter.logger.info("Logging in user " + user.username);
 
                 return res.redirect(decodeURIComponent(req.query.returnUrl) || "/");
             });
@@ -123,6 +124,7 @@ function addPassport(reporter, app, admin, definition) {
                 }
 
                 req.logIn(user, function () {
+                    reporter.logger("API logging in user " + user.username);
                     next();
                 });
             })(req, res, next);
