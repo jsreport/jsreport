@@ -8,7 +8,6 @@
 var path = require("path"),
     q = require("q"),
     uuid = require("uuid").v1,
-    FS = require("q-io/fs"),
     fs = require("fs"),
     PhantomManager = require("phantom-workers").PhantomManager,
     excelbuilder = require('msexcel-builder-extended');
@@ -58,7 +57,7 @@ module.exports = function (reporter, definition) {
             var generationId = uuid();
 
             return reporter.renderContent(request, response).then(function () {
-                return phantomManager.execute(response.result);
+                return q.ninvoke(phantomManager, "execute", response.result);
             }).then(function (table) {
                 var workbook = excelbuilder.createWorkbook(request.reporter.options.tempDirectory, generationId + ".xlsx");
                 var sheet1 = workbook.createSheet('sheet1', getMaxLength(table.rows), table.rows.length);
@@ -119,6 +118,6 @@ module.exports = function (reporter, definition) {
             numberOfWorkers: 1,
             pathToPhantomScript: path.join(__dirname, "extractExcel.js")
         });
-        return phantomManager.start();
+        return q.ninvoke(phantomManager, "start");
     }
 };

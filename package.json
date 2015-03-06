@@ -49,6 +49,7 @@
     "passport-local": "1.0.0",
     "password-hash": "1.2.2",
     "phantomjs": "1.9.15",
+    "phantom-html-to-pdf": "0.1.0",
     "q": "1.2.0",
     "q-io": "1.11.6",
     "querystring": "0.2.0",
