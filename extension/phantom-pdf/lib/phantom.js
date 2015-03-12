@@ -55,7 +55,6 @@ Phantom.prototype.execute = function (request, response) {
     this.reporter.logger.debug("Pdf recipe start.");
 
     request.template.recipe = "html";
-    request.options.isRootRequest = false;
     var phantomOptions = request.template.phantom || {};
 
     return this.reporter.executeRecipe(request, response)

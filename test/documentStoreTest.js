@@ -9,7 +9,11 @@ describe('document store', function () {
 
     beforeEach(function(done) {
         require("../lib/util/util.js").deleteFiles("../data");
-        documentStore = new DocumentStore({ connectionString: {name: "neDB"}, dataDirectory: "../data"});
+        documentStore = new DocumentStore({
+            connectionString: {name: "neDB"},
+            dataDirectory: "../data",
+            logger: new (require("../lib/util/consoleLogger.js"))()
+        });
         documentStore.registerEntityType("User", {
             "_id": {"type": "Edm.String", key: true},
             "test": {"type": "Edm.String"},
@@ -25,26 +29,26 @@ describe('document store', function () {
     });
 
     it('insert should not fail', function (done) {
-        documentStore.collection("users").insert({ test: "foo" })
-            .then(function(doc) {
-                doc._id.should.be.ok;
-                done();
-            }).catch(done);
-    });
+                documentStore.collection("users").insert({ test: "foo" })
+                    .then(function(doc) {
+                        doc._id.should.be.ok;
+                        done();
+                    }).catch(done);
+            });
 
-    it('insert and find should return', function (done) {
-        documentStore.collection("users").insert({ test: "foo" })
-            .then(function(doc) {
-                return documentStore.collection("users").find({ test: "foo"});
-            }).then(function(docs) {
-                docs[0].test.should.be.eql("foo");
-                done();
-            }).catch(done);
-    });
+        it('insert and find should return', function (done) {
+            documentStore.collection("users").insert({ test: "foo" })
+                .then(function(doc) {
+                    return documentStore.collection("users").find({ test: "foo"});
+                }).then(function(docs) {
+                    docs[0].test.should.be.eql("foo");
+                    done();
+                }).catch(done);
+        });
 
-    it('insert and update and find should return updated', function (done) {
-        documentStore.collection("users").insert({ test: "foo" })
-            .then(function(doc) {
+        it('insert and update and find should return updated', function (done) {
+            documentStore.collection("users").insert({ test: "foo" })
+                .then(function(doc) {
                 return documentStore.collection("users").update({ test: "foo"}, { $set: { test: "foo2"}});
             }).then(function() {
                 return documentStore.collection("users").find({});

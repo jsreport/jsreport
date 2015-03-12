@@ -101,11 +101,14 @@ module.exports = function (app, reporter) {
     var odataServer = require("simple-odata-server")();
     reporter.documentStore.adaptOData(odataServer);
 
-    odataServer.error(function (req, res, err, next) {
-        if (err.unauthorized)
+    odataServer.error(function (req, res, err, def) {
+        if (err.unauthorized) {
             res.error(err);
-        else
-            next(err);
+        }
+        else {
+            reporter.logger.error("Error when processing OData " + req.method + ": " + req.originalUrl + "; " + err.stack);
+            def(err);
+        }
     });
 
 

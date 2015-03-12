@@ -124,7 +124,7 @@ function addPassport(reporter, app, admin, definition) {
                 }
 
                 req.logIn(user, function () {
-                    reporter.logger("API logging in user " + user.username);
+                    reporter.logger.debug("API logging in user " + user.username);
                     next();
                 });
             })(req, res, next);

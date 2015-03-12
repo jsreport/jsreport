@@ -130,7 +130,8 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
             return fn().then(function (res) {
                 if (res !== true) {
-                    self.reporter.logger.warn("User " + process.domain.req.user.username + " not authorized for " + collection.name);
+                    if (process.domain.req.user)
+                        self.reporter.logger.warn("User " + process.domain.req.user.username + " not authorized for " + collection.name);
                     var e = new Error("Unauthorized for " + colection.name);
                     e.unauthorized = true;
                     throw e;

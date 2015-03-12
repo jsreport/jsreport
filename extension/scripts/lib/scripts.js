@@ -27,33 +27,35 @@ Scripts.prototype.handleAfterRender = function (request, response) {
     if (!request.parsedScript)
         return q();
 
+    if (!request.options.isRootRequest)
+        return q();
+
     var self = this;
 
-    return request.reporter.taskManager.execute({
-            body: {
-                script: request.parsedScript,
-                allowedModules: self.allowedModules,
-                method: "afterRender",
-                request: {
-                    data: request.data,
-                    template: {
-                        content: request.template.content,
-                        helpers: request.template.helpers
-                    },
-                    options: request.options,
-                    headers: request.headers
-                },
-                response: {
-                    headers: response.headers,
-                    content: response.result
-                }
+    return q.ninvoke(request.reporter.scriptManager, "execute", {
+        script: request.parsedScript,
+        allowedModules: self.allowedModules,
+        method: "afterRender",
+        request: {
+            data: request.data,
+            template: {
+                content: request.template.content,
+                helpers: request.template.helpers
             },
-            execModulePath: path.join(__dirname, "scriptEvalChild.js"),
-            timeout: self.definition.options.timeout
-        }).then(function (body) {
-            response.headers = body.response.headers;
-            response.result = new Buffer(body.response.content);
-        });
+            options: request.options,
+            headers: request.headers
+        },
+        response: {
+            headers: response.headers,
+            content: response.result
+        }
+    }, {
+        execModulePath: path.join(__dirname, "scriptEvalChild.js"),
+        timeout: self.definition.options.timeout
+    }).then(function (body) {
+        response.headers = body.response.headers;
+        response.result = new Buffer(body.response.content);
+    });
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
@@ -61,7 +63,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
     //back compatibility
     if (!request.template.script && request.template.scriptId) {
-        request.template.script = { shortid: request.template.scriptId};
+        request.template.script = {shortid: request.template.scriptId};
     }
 
     if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
@@ -72,7 +74,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         if (request.template.script.content)
             return q(request.template.script);
 
-        return self.reporter.documentStore.collection("scripts").find({ shortid: request.template.script.shortid}).then(function(items) {
+        return self.reporter.documentStore.collection("scripts").find({shortid: request.template.script.shortid}).then(function (items) {
             return items[0];
         });
     }
@@ -82,22 +84,21 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         script = script.content || script;
 
         request.parsedScript = script;
-        return request.reporter.taskManager.execute({
-            body: {
-                script: script,
-                allowedModules: self.allowedModules,
-                method: "beforeRender",
-                request: {
-                    data: request.data,
-                    template: request.template,
-                    headers: request.headers,
-                    options: request.options
-                },
-                response: response
+        return q.ninvoke(request.reporter.scriptManager, "execute", {
+            script: script,
+            allowedModules: self.allowedModules,
+            method: "beforeRender",
+            request: {
+                data: request.data,
+                template: request.template,
+                headers: request.headers,
+                options: request.options
             },
+            response: response
+        }, {
             execModulePath: path.join(__dirname, "scriptEvalChild.js"),
             timeout: self.definition.options.timeout
-        }).then(function(body) {
+        }).then(function (body) {
             if (body.cancelRequest) {
                 var error = new Error("Rendering request canceled  from the script " + body.additionalInfo);
                 error.weak = true;
@@ -126,29 +127,29 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     });
 };
 
-Scripts.prototype._defineEntities = function() {
+Scripts.prototype._defineEntities = function () {
     var self = this;
     this.reporter.documentStore.registerEntityType("ScriptType", {
         _id: {type: "Edm.String", key: true},
-        shortid: { type: "Edm.String"},
-        creationDate: { type: "Edm.DateTimeOffset" },
-        modificationDate: { type: "Edm.DateTimeOffset" },
-        content: { type: "Edm.String" },
-        name: { type: "Edm.String" }
+        shortid: {type: "Edm.String"},
+        creationDate: {type: "Edm.DateTimeOffset"},
+        modificationDate: {type: "Edm.DateTimeOffset"},
+        content: {type: "Edm.String"},
+        name: {type: "Edm.String"}
     });
 
     this.reporter.documentStore.registerComplexType("ScriptRefType", {
-        content: { type: "Edm.String" },
-        shortid: { type: "Edm.String" }
+        content: {type: "Edm.String"},
+        shortid: {type: "Edm.String"}
     });
 
     this.reporter.documentStore.registerEntitySet("data", {entityType: "DataItemType"});
     this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "jsreport.ScriptRefType"};
-    this.reporter.documentStore.registerEntitySet("scripts", {entityType: "ScriptType", humanReadableKey: "shortid" });
+    this.reporter.documentStore.registerEntitySet("scripts", {entityType: "ScriptType", humanReadableKey: "shortid"});
 
     this.reporter.initializeListener.add("scripts", function () {
         var col = self.reporter.documentStore.collection("scripts");
-        col.beforeUpdateListeners.add("scripts", function(query, update) {
+        col.beforeUpdateListeners.add("scripts", function (query, update) {
             update.$set.modificationDate = new Date();
         });
         col.beforeInsertListeners.add("scripts", function (doc) {
