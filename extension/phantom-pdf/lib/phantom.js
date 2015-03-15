@@ -13,8 +13,7 @@ var uuid = require("uuid").v1,
     FS = require("q-io/fs"),
     extend = require("node.extend"),
     mkdirp = require('mkdirp'),
-    toArray = require('stream-to-array'),
-    PhantomManager = require("phantom-workers").PhantomManager;
+    toArray = require('stream-to-array');
 
 var conversion;
 
