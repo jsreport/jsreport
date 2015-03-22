@@ -34,10 +34,12 @@ describe('fileSystemBlobStorage', function () {
         var blobName = shortid.generate();
 
         self.blobStorage.write(blobName, new Buffer("Hula"), function(err) {
-            assert.ifError(err);
+            if (err)
+                return done(err);
 
             self.blobStorage.read(blobName, function(er, stream) {
-                assert.ifError(er);
+                if (err)
+                    return done(err);
 
                 var content = '';
                 stream.resume();
