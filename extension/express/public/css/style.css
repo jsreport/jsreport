@@ -409,6 +409,19 @@ blockquote { margin-bottom: 10px; }
     color: #999;
 }
 
+.datagrid-search {
+    float: right;
+}
+
+.datagrid-search-button {
+    cursor:pointer;
+}
+
+.datagrid-search-input {
+    width:180px !important;
+    float:right !important;
+}
+
 /* Report Detail */
 
 .report-view {

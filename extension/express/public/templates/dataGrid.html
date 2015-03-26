@@ -1,15 +1,18 @@
-﻿<table class="table table-hover fixed">
-    <thead>
+﻿<div id="searcherBox" style="clear:both">
+</div>
+<div>
+    <table class="table table-hover fixed">
+        <thead>
         <tr>
             {{if ~getOptions().showSelection}}
             <th class="selection">
-            </span>
+                </span>
             </th>
             {{else}}{{/if}}
             {{if true tmpl=~getHeaderTemplate()}}{{else}}{{/if}}
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         {{for items}}
         <tr data-id="{{:~getIdFromIdKey(#data)}}">
             {{if ~getOptions().showSelection}}
@@ -23,8 +26,9 @@
             {{if true tmpl=~getRowsTemplate()}}{{else}}{{/if}}
         </tr>
         {{/for}}
-          
-    </tbody>
-</table>
-<div id="pagerBox">
+
+        </tbody>
+    </table>
+    <div id="pagerBox">
+    </div>
 </div>

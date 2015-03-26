@@ -68,7 +68,6 @@ module.exports = function (grunt) {
             introJs: "empty:",
             "ace/ace": "empty:",
             "core/basicModel": "empty:",
-            "core/jaydataModel": "empty:",
             "core/aceBinder": "empty:",
             "core/view.base": "empty:",
             "core/dataGrid": "empty:",

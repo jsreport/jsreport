@@ -2,7 +2,7 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
+define(["core/view.base", "core/basicModel", "underscore", "jquery", "async"],
     function(ViewBase, ModelBase, _, $, async) {
 
         var DataGrid = {};
@@ -26,9 +26,12 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
             });
 
             var pager = new DataGrid.PagerView({ model: options.filter });
-            pager.setElement($(view.el).find("#pagerBox"));
-            pager.render();
+            view.pagerRegion.show(pager);
             view.pager = pager;
+
+            var searcher = new DataGrid.SearcherView({ model: options.filter });
+            view.searchRegion.show(searcher);
+            view.searcher = searcher;
 
             return {
                 deleteItems: function() {
@@ -68,12 +71,21 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
             }
         });
 
+        DataGrid.SearcherView = ViewBase.extend({
+            template: "dataGrid-searcher"
+        });
+
         DataGrid.View = ViewBase.extend({
             template: "dataGrid",
 
             events: {
                 "click .table tr td a": "showDetail",
                 "click #deleteCommand": "deleteAction"
+            },
+
+            regions: {
+                searchRegion: "#searcherBox",
+                pagerRegion: "#pagerBox"
             },
 
             initialize: function() {
@@ -157,14 +169,22 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
                 this.bind("change:pageNumber", function() {
                     this.trigger("apply");
                 });
+                this.bind("change:search", function() {
+                    this.trigger("apply");
+                });
             },
 
             toOData: function() {
-                return {
+                var q = {
                     $skip: this.get("pageSize") * (this.get("pageNumber") - 1),
                     $top: this.get("pageSize"),
                     $count: true
                 };
+
+                if (this.get("search"))
+                    q["$filter"] = "substringof(name, '" + this.get("search") + "')";
+
+                return q;
             },
 
             onTotalCountChanged: function() {
