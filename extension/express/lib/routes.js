@@ -66,7 +66,7 @@ module.exports = function (app, reporter) {
 
             res.setHeader("Content-Type", "text/css");
 
-            if (!options.serverUrl || options.serverUrl === "/")
+            if (!options.serverUrl || options.serverUrl === "")
                 return res.send(data);
 
             res.send(data.replace(new RegExp('../fonts/', 'g'), options.serverUrl + "css/font-awesome/fonts/"));
