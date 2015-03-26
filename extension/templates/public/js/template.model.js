@@ -2,24 +2,11 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["app", "jquery", "core/jaydataModel"], function(app, $, ModelBase) {
+define(["app", "jquery", "core/basicModel"], function(app, $, ModelBase) {
+
     return ModelBase.extend({
-        contextSet: function() { return app.dataContext.templates; },
-
-        fetchQuery: function() {
-            if (!this.get("shortid")) {
-                return $.Deferred().reject(new Error("shortid not present on this template model."));
-            }
-
-            var predicate = function(t) { return t.shortid === this.id; };
-
-            return app.dataContext.templates.single(predicate,
-                { id: this.get("shortid") });
-        },
-
-        _initialize: function() {
-            this.Entity = $entity.Template;
-        },
+        odata: "templates",
+        url: "odata/templates",
 
         toString: function() {
             return "Template " + (this.get("name") || "");

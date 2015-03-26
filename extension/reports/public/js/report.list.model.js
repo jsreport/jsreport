@@ -1,5 +1,11 @@
 ﻿define(["backbone", "app", "./report.model", "core/dataGrid"], function (Backbone, app, ReportModel, DataGrid) {
     return Backbone.Collection.extend({
+        url: function() {
+            var qs =  this.filter.toOData();
+            qs.$orderby = "creationDate desc";
+            return "odata/reports?" + $.param(qs);
+        },
+
         initialize: function () {
             var self = this;
             this.filter = new DataGrid.Filter.Base();
@@ -7,20 +13,13 @@
                 self.fetch();
             });
         },
-        
+
         parse: function (data) {
-            if (data.totalCount != null)
-                this.filter.set("totalCount", data.totalCount);
+            if (this.meta && this.meta["@odata.count"])
+                this.filter.set("totalCount", this.meta["@odata.count"]);
 
             return data;
         },
-
-        fetchQuery: function () {
-            return app.dataContext.reports
-                .orderByDescending(function (t) { return t.creationDate; })
-                .applyFilter(this.filter).toArray();
-        },
-
 
         model: ReportModel
     });

@@ -122,10 +122,10 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         mocha_phantomjs: {
-            test: {
-                src: ['test/ui/tests.html'],
+            options: {
                 run: true
-            }
+            },
+            all: ['test/ui/tests.html']
         },
         env: {
             dbNedb: {
@@ -147,7 +147,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['extension/statistics/test/*.js']
+                src: ['test/renderTest.js']
             },
             integration: {
                 options: {
@@ -191,7 +191,11 @@ module.exports = function (grunt) {
         },
 
         cssmin: {
-            combine: {
+            options:{
+                "skip-import": true,
+                "advanced": false
+            },
+            target: {
                 files: {
                     'extension/express/public/css/built.css': [
                         'extension/express/public/css/bootstrap.min.css', 'extension/express/public/css/bootstrap-nonresponsive.css',

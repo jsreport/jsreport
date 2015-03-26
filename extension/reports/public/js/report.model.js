@@ -1,14 +1,6 @@
-﻿define(["app", "core/jaydataModel"], function (app, ModelBase) {
+﻿define(["app", "core/basicModel"], function (app, ModelBase) {
     return ModelBase.extend({
-        contextSet: function () { return app.dataContext.reports; },
-
-        fetchQuery: function (cb) {
-            return this.contextSet().single(function(r) { return r._id === this._id; }, { _id: this.get("_id") });
-        },
-        
-        _initialize: function () {
-            this.Entity = $entity.Report;
-        },
+        odata: "reports",
 
         toString: function() {
             return "Report " + (this.get("name") || "");

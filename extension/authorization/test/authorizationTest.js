@@ -7,10 +7,9 @@ var assert = require("assert"),
     ObjectID = require('mongodb').ObjectID,
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["templates", "authentication", "authorization"], function(reporter) {
+describeReporting(path.join(__dirname, "../../"), ["templates", "authentication", "authorization"], function (reporter) {
 
     describe('authorization', function () {
-
 
         beforeEach(function (done) {
             reporter.authentication = {};
@@ -22,27 +21,23 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authentication"
 
         function runInUserDomain(id, fn) {
             var d = require('domain').create();
-            d.req = { user : { _id: id}};
+            d.req = {user: {_id: id}};
 
             d.run(fn);
         }
 
         function createTemplate(userId, done, error) {
-            runInUserDomain(userId, function() {
-                reporter.dataProvider.startContext().then(function(context) {
-                    return reporter.templates.create(context, { content: "foo" }).then(function() {
-                        done();
-                    });
+            runInUserDomain(userId, function () {
+                return reporter.documentStore.collection("templates").insert({content: "foo"}).then(function () {
+                    done();
                 }).catch(error);
             });
         }
 
         function countTemplates(userId, done, error) {
-            runInUserDomain(userId, function() {
-                reporter.dataProvider.startContext().then(function(context) {
-                    return context.templates.toArray().then(function(res) {
-                        done(res.length);
-                    });
+            runInUserDomain(userId, function () {
+                return reporter.documentStore.collection("templates").find({}).then(function (res) {
+                    done(res.length);
                 }).catch(error);
             });
         }
@@ -51,8 +46,8 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authentication"
         var userId2 = "NTRiZTVhMzU5ZDI4ZmU1ODFjMTI4MjMy";
 
         it('user creating entity should be able to read it', function (done) {
-            createTemplate(userId1, function() {
-                countTemplates(userId1, function(count) {
+            createTemplate(userId1, function () {
+                countTemplates(userId1, function (count) {
                     count.should.be.eql(1);
                     done();
                 }, done);
@@ -60,9 +55,9 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authentication"
         });
 
         it('user should not be able to read entity without permission to it', function (done) {
-            createTemplate(userId1, function() {
+            createTemplate(userId1, function () {
                 console.log("counting templtates");
-                countTemplates(userId2, function(count) {
+                countTemplates(userId2, function (count) {
                     count.should.be.eql(0);
                     done();
                 }, done);
@@ -70,9 +65,9 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "authentication"
         });
 
         it('query should filter out entities without permissions', function (done) {
-            createTemplate(userId1, function() {
-                createTemplate(userId2, function() {
-                    countTemplates(userId1, function(count) {
+            createTemplate(userId1, function () {
+                createTemplate(userId2, function () {
+                    countTemplates(userId1, function (count) {
                         count.should.be.eql(1);
                         done();
                     }, done);

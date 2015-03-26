@@ -17,77 +17,58 @@ var Images = function (reporter, definition) {
 
     this._defineEntities();
 
-    reporter.templates.TemplateType.addEventListener("beforeCreate", function (args, template) {
-        template.images = template.images || [];
-    });
-
-    this.ImageType.addEventListener("beforeCreate", function (args, entity) {
-        entity.creationDate = new Date();
-        entity.modificationDate = new Date();
-    });
-
-    this.ImageType.addEventListener("beforeUpdate", function (args, entity) {
-        entity.modificationDate = new Date();
-    });
-
     this.reporter.on("express-configure", Images.prototype._configureExpress.bind(this));
     this.reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, Images.prototype.handleAfterTemplatingEnginesExecuted.bind(this));
 };
 
-Images.prototype.upload = function (context, name, contentType, content, shortidVal) {
+Images.prototype.upload = function (name, contentType, content, shortidVal) {
     var self = this;
     this.reporter.logger.info("uploading image " + name);
 
-    function findOrCreate(context) {
-        if (!shortidVal) {
-            var image = new self.ImageType({
-                name: name,
-                contentType: contentType,
-                content: content,
-                shortid: shortid.generate()
-            });
-            context.images.add(image);
-            return q(image);
-        } else {
-            return context.images.single(function (i) {
-                return i.shortid === this.id;
-            }, { id: shortidVal }).then(function (img) {
-                context.images.attach(img);
-                img.content = content;
-                img.contentType = contentType;
-                img.name = name;
-                return q(img);
-            });
-        }
-    }
-
-    return findOrCreate(context).then(function (img) {
-        return context.saveChanges().then(function () {
-            return q(img);
+    if (!shortidVal) {
+        return self.imagesCollection.insert({
+            name: name,
+            contentType: contentType,
+            content: content
         });
-    });
+    } else {
+        return self.imagesCollection.find({"shortid": shortidVal}).then(function(res) {
+            return self.imagesCollection.update(
+                {
+                    "shortid": shortidVal
+                }, {
+                    $set: {
+                        content: content,
+                        name: name,
+                        contentType: contentType
+                    }
+                }).then(function() {
+                    return res[0];
+                });
+        });
+    }
 };
 
 Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, response) {
+    var self = this;
+    var replacedImages = [];
 
     function convert(str, p1, offset, s, done) {
-
-        request.context.images.filter(function (t) {
-            return t.name === this.name;
-        }, { name: p1 }).toArray().then(function (res) {
-            if (res.length < 1)
+        self.imagesCollection.find({ name: p1}).then(function(result) {
+            if (result.length < 1)
                 return done(null);
 
-            var imageData = "data:" + res[0].contentType + ";base64," + res[0].content.toString('base64');
+            replacedImages.push(p1);
+
+            var imageData = "data:" + result[0].contentType + ";base64," + result[0].content.toString('base64');
             done(null, imageData);
-        }).catch(function(e) {
-            done(e);
-        });
-    }
+        }).catch(done);
+    };
 
     var test = /{#image ([^{}]{0,50})}/g;
 
     return q.nfcall(asyncReplace, response.result, test, convert).then(function (result) {
+        self.reporter.logger.debug("Replaced images " + JSON.stringify(replacedImages));
         response.result = result;
     });
 };
@@ -95,39 +76,31 @@ Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, respo
 Images.prototype._configureExpress = function (app) {
     var self = this;
 
-    app.use("/api/image", function (req, res, next) {
-        self.reporter.dataProvider.startContext().then(function (context) {
-            req.reporterContext = context;
-            next();
-        }).fail(function(e) {
-            next(e);
-        });
-    });
-
     app.get("/api/image/:shortid", function (req, res, next) {
+        self.imagesCollection.find({shortid: req.params.shortid}).then(function(result) {
+            if (result.length !== 1)
+                throw new Error("Image not found");
 
-        req.reporterContext.images.single(function (t) {
-            return t.shortid === this.id;
-        }, { id: req.params.shortid }).then(function (result) {
-            res.setHeader('Content-Type', result.contentType);
-            res.send(result.content);
-        }, function () {
+            res.setHeader('Content-Type', result[0].contentType);
+            res.end(result[0].content, "binary");
+        }).catch(function(e) {
             res.status(404).end();
         });
     });
 
     app.get("/api/image/name/:name", function (req, res) {
-        req.reporterContext.images.single(function (t) {
-            return t.name === this.name;
-        }, { name: req.params.name }).then(function (result) {
-            res.setHeader('Content-Type', result.contentType);
-            res.send(result.content);
-        }, function () {
+        self.imagesCollection.find({name: req.params.name}).then(function(result) {
+            if (result.length !== 1)
+                throw new Error("Image not found");
+
+            res.setHeader('Content-Type', result[0].contentType);
+            res.end(result[0].content, "binary");
+        }).catch(function(e) {
             res.status(404).end();
         });
     });
 
-    app.post("/api/image/:shortid?", function (req, res) {
+    app.post("/api/image/:shortid?", function (req, res, next) {
 
         function findFirstFile() {
             for (var f in req.files) {
@@ -142,37 +115,49 @@ Images.prototype._configureExpress = function (app) {
         fs.readFile(file.path, function (err, content) {
             var name = file.originalname.replace(/\.[^/.]+$/, "");
             name = name.replace(/[^a-zA-Z0-9-_]/g, '');
-            self.upload(req.reporterContext, name, file.type, content, req.params.shortid).then(function (image) {
+            self.upload(name, file.mimetype, content, req.params.shortid).then(function (image) {
                 res.setHeader('Content-Type', "text/plain");
-                var result = JSON.stringify({ _id: image._id, shortid: image.shortid, name: name, "success": true });
+                var result = JSON.stringify({_id: image._id, shortid: image.shortid, name: name, "success": true});
                 self.reporter.logger.info("Uploading done. " + result);
                 res.send(result);
-            });
+            }).catch(next);
         });
     });
 };
 
 Images.prototype._defineEntities = function () {
-    this.ImageType = this.reporter.dataProvider.createEntityType("ImageType", {
-        "_id": { type: "id", key: true, computed: true, nullable: false },
-        "shortid": { type: "string" },
-        "name": { type: "string" },
-        "creationDate": { type: "date" },
-        "modificationDate": { type: "date" },
-        "content": { type: "blob" },
-        "contentType": { type: "string" }
+    this.ImageType = this.reporter.documentStore.registerEntityType("ImageType", {
+        _id: {type: "Edm.String", key: true},
+        "shortid": {type: "Edm.String"},
+        "name": {type: "Edm.String"},
+        "creationDate": {type: "Edm.DateTimeOffset"},
+        "modificationDate": {type: "Edm.DateTimeOffset"},
+        "content": {type: "Edm.Binary"},
+        "contentType": {type: "Edm.String"}
     });
 
-    this.ImageRefType = this.reporter.dataProvider.createEntityType("ImageRefType", {
-        "shortid": { type: "string" },
-        "name": { type: "string" },
-        "imageId": { type: "id" }
+    this.ImageRefType = this.reporter.documentStore.registerComplexType("ImageRefType", {
+        "shortid": {type: "Edm.String"},
+        "name": {type: "Edm.String"},
+        "imageId": {type: "Edm.String"}
     });
 
-    this.reporter.templates.TemplateType.addMember("images", { type: "Array", elementType: this.ImageRefType });
-    this.reporter.templates.TemplateHistoryType.addMember("images", { type: "Array", elementType: this.ImageRefType });
+    this.reporter.documentStore.model.entityTypes["TemplateType"].images = {type: "Collection(jsreport.ImageRefType)"};
+    this.reporter.documentStore.model.entityTypes["TemplateHistoryType"].images = {type: "Collection(jsreport.ImageRefType)"};
+    this.reporter.documentStore.registerEntitySet("images", {entityType: "ImageType", humanReadableKey: "shortid"});
 
-    this.reporter.dataProvider.registerEntitySet("images", this.ImageType, { tableOptions: { humanReadableKeys: [ "shortid"] }  });
+    var self = this;
+    this.reporter.initializeListener.add("images", function () {
+        var col = self.imagesCollection = self.reporter.documentStore.collection("images");
+        col.beforeUpdateListeners.add("images", function (query, update) {
+            update.$set.modificationDate = new Date();
+        });
+        col.beforeInsertListeners.add("images", function (doc) {
+            doc.shortid = doc.shortid || shortid.generate();
+            doc.creationDate = new Date();
+            doc.modificationDate = new Date();
+        });
+    });
 };
 
 module.exports = function (reporter, definition) {

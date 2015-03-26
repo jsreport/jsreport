@@ -13,41 +13,44 @@ var oneMonth = 31 * 86400000;
 module.exports = function (app, reporter) {
     var originalMode = reporter.options.mode;
 
+    function handleError(req, res, err) {
+        res.status(500);
+
+        if (_.isString(err)) {
+            err = {
+                message: err
+            };
+        }
+
+        err = err || {};
+        err.message = err.message || "Unrecognized error";
+
+        if (err.unauthorized) {
+            res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
+            res.status(401).end();
+            return;
+        }
+
+        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+        var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
+
+        logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
+
+        if ((req.get('Content-Type') && (req.get('Content-Type').indexOf("application/json") !== -1)) ||
+            (req.get('Accept') && (req.get('Accept').indexOf("application/json") !== -1))) {
+            return res.send({message: err.message, stack: err.stack});
+        }
+
+        res.write("Error occured - " + err.message + "\n");
+        if (err.stack)
+            res.write("Stack - " + err.stack);
+        res.end();
+    }
+
     app.use(function (req, res, next) {
         res.error = function (err) {
-
-            res.status(500);
-
-            if (_.isString(err)) {
-                err = {
-                    message: err
-                };
-            }
-
-            err = err || {};
-            err.message = err.message || "Unrecognized error";
-
-            if (err.unauthorized) {
-                res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
-                res.status(401);
-            }
-
-            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-
-            var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
-
-            logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
-
-            if ((req.get('Content-Type') && (req.get('Content-Type').indexOf("application/json") !== -1)) ||
-                (req.get('Accept') && (req.get('Accept').indexOf("application/json") !== -1))) {
-                return res.send({message: err.message, stack: err.stack});
-            }
-
-            res.write("Error occured - " + err.message + "\n");
-            if (err.stack)
-                res.write("Stack - " + err.stack);
-            res.end();
-            return;
+            handleError(req, res, err);
         };
 
         next();
@@ -95,37 +98,24 @@ module.exports = function (app, reporter) {
             res.render(path.join(__dirname, '../public/views', 'root_built.html'), options);
     });
 
-    app.stack = _.reject(app.stack, function (s) {
-        return s.route === "/odata";
-    });
-
     reporter.emit("express-before-odata", app);
 
-    app.use("/odata", function (req, res, next) {
-        var writeHead = res.writeHead;
+    var odataServer = require("simple-odata-server")();
+    reporter.documentStore.adaptOData(odataServer);
 
-        res.writeHead = function () {
-            res.setHeader("DataServiceVersion", "2.0");
-            res.setHeader("OData-Version", "3.0");
-            return writeHead.apply(res, arguments);
-        };
-
-        reporter.dataProvider.startContext().then(function (context) {
-            req.reporterContext = context;
-            context.request = req;
-            next();
-        }).fail(function (e) {
-            next(e);
-        });
+    odataServer.error(function (req, res, err, def) {
+        if (err.unauthorized) {
+            res.error(err);
+        }
+        else {
+            reporter.logger.error("Error when processing OData " + req.method + ": " + req.originalUrl + "; " + err.stack);
+            def(err);
+        }
     });
-    app.use("/odata", $data.JayService.OData.Utils.simpleBodyReader());
-    app.use("/odata", function (req, res, next) {
-        req.fullRoute = req.protocol + '://' + req.get('host') + "/odata";
 
 
-        $data.JayService.createAdapter(req.reporterContext.getType(), function (req, res) {
-            return req.reporterContext;
-        })(req, res, next);
+    app.use("/odata", function (req, res) {
+        odataServer.handle(req, res);
     });
 
     reporter.extensionsManager.extensions.map(function (e) {
@@ -234,6 +224,6 @@ module.exports = function (app, reporter) {
     });
 
     app.use(function (err, req, res, next) {
-        res.error(err);
+        handleError(req, res, err);
     });
 };

@@ -10,33 +10,40 @@ var shortid = require("shortid"),
     q = require("q");
 
 var Data = function (reporter, definition) {
+    var self = this;
     this.reporter = reporter;
     this.definition = definition;
 
-    this.DataItemType = this.reporter.dataProvider.createEntityType("DataItemType", {
-        _id : { type: "id", key: true, computed: true, nullable: false },
-        dataJson: { type: "string" },
-        name: { type: "string" },
-        creationDate: { type: "date" },
-        shortid: { type: "string"},
-        modificationDate: { type: "date" }
+    reporter.documentStore.registerEntityType("DataItemType", {
+        _id: {type: "Edm.String", key: true},
+        dataJson: { type: "Edm.String" },
+        name: { type: "Edm.String" },
+        creationDate: { type: "Edm.DateTimeOffset" },
+        shortid: { type: "Edm.String"},
+        modificationDate: { type: "Edm.DateTimeOffset" }
     });
 
-    this.DataItemRefType = this.reporter.dataProvider.createEntityType("DataItemRefType", {
-        dataJson: { type: "string" },
-        shortid: { type: "string" }
+    reporter.documentStore.registerComplexType("DataItemRefType", {
+        dataJson: { type: "Edm.String" },
+        shortid: { type: "Edm.String" }
     });
 
-    this.reporter.dataProvider.registerEntitySet("data", this.DataItemType, {  tableOptions: { humanReadableKeys: [ "shortid"] }});
+    reporter.documentStore.registerEntitySet("data", {entityType: "DataItemType", humanReadableKey: "shortid"});
+    reporter.documentStore.model.entityTypes["TemplateType"].data = {type: "jsreport.DataItemRefType"};
 
-    this.reporter.templates.TemplateType.addMember("data", { type: this.DataItemRefType });
+    reporter.initializeListener.add("data", function () {
+        var col = self.reporter.documentStore.collection("data");
+        col.beforeUpdateListeners.add("data", function(query, update) {
+            update.$set.modificationDate = new Date();
+        });
+        col.beforeInsertListeners.add("data", function (doc) {
+            doc.shortid = doc.shortid || shortid.generate();
+            doc.creationDate = new Date();
+            doc.modificationDate = new Date();
+        });
+    });
 
-    reporter.templates.TemplateType.addMember("dataItemId", { type: "string" });
-
-    this.DataItemType.addEventListener("beforeCreate", Data.prototype._beforeCreateHandler.bind(this));
-    this.DataItemType.addEventListener("beforeUpdate", Data.prototype._beforeUpdateHandler.bind(this));
-
-    this.reporter.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
+    reporter.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
 };
 
 Data.prototype.handleBeforeRender = function (request, response) {
@@ -63,9 +70,11 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
         self.reporter.logger.debug("Searching for dataItem to apply");
 
-        return request.context.data.single(function (d) {
-            return d.shortid === this.id;
-        }, { id: request.template.data.shortid });
+        return self.reporter.documentStore.collection("data").find({ shortid: request.template.data.shortid}).then(function(items) {
+            if (items.length !== 1)
+                throw new Error("Data entry not found (" + request.template.data.shortid + ")");
+            return items[0];
+        });
     }
 
     return findDataItem().then(function (di) {
@@ -73,36 +82,11 @@ Data.prototype.handleBeforeRender = function (request, response) {
             return;
 
         di = di.dataJson || di;
-
-        try {
-            request.data = JSON.parse(di);
-        } catch (e) {
-            self.reporter.logger.warn("Invalid json in data item: " + e.message);
-            e.weak = true;
-            throw e;
-        }
+        request.data = JSON.parse(di);
+    }).catch(function(e) {
+        e.weak = true;
+        throw e;
     });
-};
-
-Data.prototype.create = function (context, dataItem) {
-    var ent = new this.DataItemType(dataItem);
-    context.data.add(ent);
-
-    return context.saveChanges().then(function () {
-        return q(ent);
-    });
-};
-
-Data.prototype._beforeCreateHandler = function (args, entity) {
-    if (!entity.shortid)
-        entity.shortid = shortid.generate();
-
-    entity.creationDate = new Date();
-    entity.modificationDate = new Date();
-};
-
-Data.prototype._beforeUpdateHandler = function (args, entity) {
-    entity.modificationDate = new Date();
 };
 
 module.exports = function (reporter, definition) {

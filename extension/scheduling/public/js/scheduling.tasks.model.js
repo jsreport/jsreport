@@ -13,19 +13,18 @@ define(["app", "backbone", "core/dataGrid"], function (app, Backbone, DataGrid) 
         },
 
         parse: function (data) {
-            if (data.totalCount != null)
-                this.filter.set("totalCount", data.totalCount);
+            if (this.meta && this.meta["@odata.count"])
+                this.filter.set("totalCount", this.meta["@odata.count"]);
 
             return data;
         },
 
-        fetchQuery: function () {
-            return app.dataContext.tasks
-                .filter(function(t) { return t.scheduleShortid === this.scheduleShortid; }, { scheduleShortid : this.scheduleShortid})
-                .orderByDescending(function(t) {
-                    return t.finishDate;
-                })
-                .applyFilter(this.filter).toArray();
+        url: function () {
+            var qs = this.filter.toOData();
+            qs.$orderby = "finishDate desc";
+            qs.$filter = "scheduleShortid eq " + this.scheduleShortid;
+
+            return "odata/tasks?" + $.param(qs);
         },
 
         model: Model

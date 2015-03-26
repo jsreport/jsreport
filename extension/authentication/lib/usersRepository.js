@@ -6,33 +6,30 @@ function UsersRepository(reporter) {
     var self = this;
     this.reporter = reporter;
 
-    var userAttributes = {
-        _id: {type: "id", key: true, computed: true, nullable: false},
-        shortid: {type: "string"},
-        username: {type: "string"},
-        password: {type: "string"}
-    };
-
-
-    this.UserType = this.reporter.dataProvider.createEntityType("UserType", userAttributes);
-    var usersSet = this.reporter.dataProvider.registerEntitySet("users", this.UserType, { shared: true, tableOptions: {humanReadableKeys: ["shortid"]}});
-
-    usersSet.beforeCreateListeners.add("repository", function(key, items) {
-        var user = items[0];
-
-        return self.validate(user);
+    this.UserType = this.reporter.documentStore.registerEntityType("UserType", {
+        _id: {type: "Edm.String", key: true},
+        shortid: {type: "Edm.String"},
+        username: {type: "Edm.String"},
+        password: {type: "Edm.String"}
     });
 
-    this.UserType.addEventListener("beforeCreate", function(args, entity) {
-        if (!entity.shortid)
-            entity.shortid = shortid.generate();
+    this.reporter.documentStore.registerEntitySet("users", {entityType: "UserType", humanReadableKey: "shortid"});
 
-        entity.password = passwordHash.generate(entity.password);
+    this.reporter.initializeListener.add("repository", function () {
+        var col = self.usersCollection = self.imagesCollection = self.reporter.documentStore.collection("users");
+        col.beforeInsertListeners.add("users", function (doc) {
+            if (!doc.shortid)
+                doc.shortid = shortid.generate();
+
+            doc.password = passwordHash.generate(doc.password);
+
+            return self.validate(doc);
+        });
     });
 }
 
-UsersRepository.prototype.validate = function(user) {
-    return this.find(user.username).then(function(user) {
+UsersRepository.prototype.validate = function (user) {
+    return this.find(user.username).then(function (user) {
         if (user) {
             process.domain.req.customError = new Error("User already exists");
             return q.reject(process.domain.req.customError);
@@ -43,42 +40,37 @@ UsersRepository.prototype.validate = function(user) {
 };
 
 
-UsersRepository.prototype.authenticate = function(username, password) {
-    return this.reporter.dataProvider.startContext().then(function(context) {
-        context.skipAuthorization = true;
-        return context.users.filter(function(u) { return u.username === this.username; }, { username : username}).toArray().then(function(users) {
-            if (users.length !== 1 || !passwordHash.verify(password, users[0].password))
-                return null;
-
-            return users[0];
-        });
+UsersRepository.prototype.authenticate = function (username, password) {
+    var query = {username: username};
+    process.domain.req.skipAuthorizationForQuery = query;
+    return this.usersCollection.find(query).then(function (users) {
+        if (users.length !== 1 || !passwordHash.verify(password, users[0].password))
+            return null;
+        return users[0];
     });
 };
 
-UsersRepository.prototype.find = function(username) {
-    return this.reporter.dataProvider.startContext().then(function(context) {
-        context.skipAuthorization = true;
-        return context.users.filter(function(u) { return u.username === this.username; }, { username : username}).toArray().then(function(users) {
-            if (users.length !== 1)
-                return null;
+UsersRepository.prototype.find = function (username) {
+    var query = {username: username};
+    process.domain.req.skipAuthorizationForQuery = query;
 
-            return users[0];
-        });
+    return this.usersCollection.find(query).then(function (users) {
+        if (users.length !== 1)
+            return null;
+
+        return users[0];
     });
 };
 
-UsersRepository.prototype.changePassword = function(currentUser, shortid, oldPassword, newPassword) {
-    return this.reporter.dataProvider.startContext().then(function(context) {
-        return context.users.single(function(u) { return u.shortid === this.shortid; }, { shortid : shortid}).then(function(user) {
-            if (!currentUser.isAdmin && !passwordHash.verify(oldPassword, user.password)) {
-                return q.reject(new Error("Invalid password"));
-            }
+UsersRepository.prototype.changePassword = function (currentUser, shortid, oldPassword, newPassword) {
+    var self = this;
+    return this.usersCollection.find({shortid: shortid}).then(function (users) {
+        var user = users[0];
+        if (!currentUser.isAdmin && !passwordHash.verify(oldPassword, user.password)) {
+            return q.reject(new Error("Invalid password"));
+        }
 
-            context.users.attach(user);
-            user.password = passwordHash.generate(newPassword);
-
-            return context.saveChanges();
-        });
+        return self.usersCollection.update({shortid: shortid}, {$set: {password: passwordHash.generate(newPassword)}});
     });
 };
 module.exports = UsersRepository;

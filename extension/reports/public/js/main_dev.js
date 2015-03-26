@@ -53,25 +53,5 @@
                     context.region.show(view, "render");
                 }
             });
-
-
-            app.on("entity-registration", function (context) {
-                $data.Entity.extend('$entity.Report', {
-                    '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
-                    'creationDate': { 'type': 'Edm.DateTime' },
-                    'name': { 'type': 'Edm.String' },
-                    'fileExtension': { 'type': 'Edm.String' },
-                    'contentType': { 'type': 'Edm.String' },
-                    'templateShortid': { 'type': 'Edm.String' }
-                });
-
-                $entity.Report.prototype.toString = function () {
-                    return "Report " + (this.name || "");
-                };
-
-                context["reports"] = { type: $data.EntitySet, elementType: $entity.Report };
-            });
-
-
         });
     });

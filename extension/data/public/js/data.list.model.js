@@ -1,6 +1,12 @@
 ﻿define(["app", "backbone", "core/dataGrid", "./data.model"], function (app, Backbone, DataGrid, DataModel) {
     return Backbone.Collection.extend({
 
+        url: function() {
+            var qs =  this.filter.toOData();
+            qs.$orderby = "modificationDate desc";
+            return "odata/data?" + $.param(qs);
+        },
+
         initialize: function () {
             var self = this;
             this.filter = new DataGrid.Filter.Base();
@@ -10,14 +16,10 @@
         },
         
         parse: function (data) {
-            if (data.totalCount != null)
-                this.filter.set("totalCount", data.totalCount);
+            if (this.meta && this.meta["@odata.count"])
+                this.filter.set("totalCount", this.meta["@odata.count"]);
 
             return data;
-        },
-        
-        fetchQuery: function () {
-            return app.dataContext.data.applyFilter(this.filter).toArray();
         },
 
         model: DataModel

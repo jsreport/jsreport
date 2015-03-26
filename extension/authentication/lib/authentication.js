@@ -98,6 +98,7 @@ function addPassport(reporter, app, admin, definition) {
                 if (err) {
                     return next(err);
                 }
+                reporter.logger.info("Logging in user " + user.username);
 
                 return res.redirect(decodeURIComponent(req.query.returnUrl) || "/");
             });
@@ -123,6 +124,7 @@ function addPassport(reporter, app, admin, definition) {
                 }
 
                 req.logIn(user, function () {
+                    reporter.logger.debug("API logging in user " + user.username);
                     next();
                 });
             })(req, res, next);
@@ -179,7 +181,7 @@ function configureRoutes(reporter, app, admin, definition) {
 
     app.post("/api/users/:shortid/password", function(req, res, next) {
        reporter.authentication.usersRepository.changePassword(req.user, req.params.shortid,req.body.oldPassword,req.body.newPassword).then(function(user) {
-            res.send("ok");
+            res.send({ result: "ok"});
         }).catch(function(e) {
             next(e);
         });

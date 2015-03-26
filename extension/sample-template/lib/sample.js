@@ -32,15 +32,15 @@ module.exports = function (reporter, definition) {
                 }
             };
 
-            return reporter.dataProvider.startContext()
-                .then(function (context) {
-                    return reporter.data.create(context, dataObj).then(function (dataItemEntity) {
-                        templateObj.dataItemId = dataItemEntity.shortid;
-                        return reporter.templates.create(context, templateObj);
-                    }).then(function () {
-                        return reporter.settings.add("sample-created", true);
-                    });
+            return reporter.documentStore.collection("data").insert(dataObj).then(function () {
+                templateObj.data = {
+                    shortid: dataObj.shortid
+                };
+
+                return reporter.documentStore.collection("templates").insert(templateObj).then(function () {
+                    return reporter.settings.add("sample-created", true);
                 });
+            });
         }
     });
 };

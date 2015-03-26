@@ -13,8 +13,8 @@ describeReporting(path.join(__dirname, "../../"), ["express", "templates", "imag
     describe('images', function() {
 
         it('shoulb be able to upload', function(done) {
-            reporter.images.upload(reporter.context, "test", "image/jpeg", new Buffer([1, 2, 3]))
-                .then(function() { return reporter.context.images.toArray(); })
+            reporter.images.upload("test", "image/jpeg", new Buffer([1, 2, 3]))
+                .then(function() { return reporter.documentStore.collection("images").find(); })
                 .then(function(res) {
                     assert.equal(1, res.length);
                     done();
@@ -47,10 +47,10 @@ describeReporting(path.join(__dirname, "../../"), ["express", "templates", "imag
         });
 
         it('should replace image tag with base64 content', function(done) {
-            reporter.images.upload(reporter.context, "test withSpace", "image/jpeg", new Buffer([1, 2, 3]))
+            reporter.images.upload("test withSpace", "image/jpeg", new Buffer([1, 2, 3]))
                 .then(function() {
                     var request = {
-                        context: reporter.context
+
                     };
 
                     var response = {
@@ -58,7 +58,7 @@ describeReporting(path.join(__dirname, "../../"), ["express", "templates", "imag
                     };
 
                     reporter.images.handleAfterTemplatingEnginesExecuted(request, response).then(function() {
-                        assert.equal("adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'), response.result);
+                        assert.equal(response.result, "adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'));
                         done();
                     }).catch(done);
                 }).catch(done);

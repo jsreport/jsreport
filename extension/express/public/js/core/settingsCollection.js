@@ -2,56 +2,63 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["app", "jquery"], function(app, $) {
+define(["app", "jquery", "backbone", "core/basicModel"], function(app, $, Backbone, ModelBase) {
 
-    app.on("entity-registration", function(context) {
+    var SettingsModel = ModelBase.extend({
+        odata: "settings",
+        url: function() {
+          return "odata/settings";
+        }
+    });
 
-        $data.Entity.extend('$entity.Settings', {
-            '_id': { 'key': true, 'nullable': false, 'computed': true, 'type': 'Edm.String' },
-            'key': { 'type': 'Edm.String' },
-            'value': { 'type': 'Edm.String' }
-        });
-
-        $entity.Settings.prototype.toString = function() {
-            return "";
-        };
-
-        context["settings"] = { type: $data.EntitySet, elementType: $entity.Settings };
+    var SettingsCollection = Backbone.Collection.extend({
+        model: SettingsModel,
+        url: function() {
+            return "odata/settings";
+        }
     });
 
 
     app.onStartListeners.add(function(cb) {
-       app.dataContext.settings.toArray().then(function(res) {
-            app.settings.raw = res;
+        var model = new SettingsCollection();
+        model.fetch({
+            success: function() {
+                var res = model.toJSON();
+                app.settings.raw = res;
 
-            app.settings.data = {};
-            res.forEach(function(s) {
-                app.settings.data[s.key] = s;
-            });
-
-            if (app.settings.data.firstRun == null) {
-                app.settings.firstRun = true;
-                app.settings.saveOrUpdate("firstRun", "false").then(function() {
-                    cb();
+                app.settings.data = {};
+                res.forEach(function(s) {
+                    app.settings.data[s.key] = s;
                 });
-            } else {
-                app.settings.firstRun = false;
-                cb();
+
+                if (app.settings.data.firstRun == null) {
+                    app.settings.firstRun = true;
+                    cb();
+                    app.settings.saveOrUpdate("firstRun", "false", cb);
+                } else {
+                    app.settings.firstRun = false;
+                    cb();
+                }
             }
         });
     });
 
-    app.settings.saveOrUpdate = function(key, value) {
+    app.settings.saveOrUpdate = function(key, value, cb) {
         if (app.settings.data[key] == null) {
-            var s = new $entity.Settings({ key: key, value: value });
-            app.dataContext.settings.add(s);
-            app.settings.data[key] = s;
-            return app.dataContext.settings.saveChanges();
+            var s = new SettingsModel({ key: key, value: value });
+            return s.save({
+                success: function(data) {
+                    app.settings.data[key] = data;
+                    cb();
+                }
+            });
         }
 
         var setting = app.settings.data[key];
-        app.dataContext.settings.attach(setting);
         setting.value = value;
-        return app.dataContext.settings.saveChanges();
+        var s = new SettingsModel(setting);
+        s.save({
+            success: cb
+        });
     };
 });

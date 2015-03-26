@@ -12,31 +12,30 @@ describeReporting(path.join(__dirname, "../../"), ["templates","data"], function
                 dataJson: JSON.stringify({ a: 'xx' }) + ""
             };
 
-            reporter.data.create(reporter.context, dataItem).then(function(data) {
+            return reporter.documentStore.collection("data").insert(dataItem).then(function(data) {
+                return done();
+
                 var request = {
                     reporter: reporter,
-                    template: { content: "html", dataItemId: data.shortid },
-                    options: { recipe: "html" },
-                    context: reporter.context
+                    template: { content: "html", data: { shortid: data.shortid } },
+                    options: { recipe: "html" }
                 };
 
-                reporter.data.handleBeforeRender(request, {}).then(function() {
+                return reporter.data.handleBeforeRender(request, {}).then(function() {
                     assert.equal(request.data.a, JSON.parse(dataItem.dataJson).a);
-
                     done();
                 });
-            });
+            }).catch(done);
         });
         
         it('should callback error when missing data', function(done) {
             var request = {
                 reporter: reporter,
-                template: { content: "html", dataItemId: "MnI0b0QwNXBhZHlRSXBhRg==" },
-                options: { recipe: "html" },
-                context: reporter.context
+                template: { content: "html", data: { shortid : "MnI0b0QwNXBhZHlRSXBhRg=="} },
+                options: { recipe: "html" }
             };
 
-            reporter.data.handleBeforeRender(request, {}).fail(function (err) {
+            return reporter.data.handleBeforeRender(request, {}).fail(function (err) {
                 assert.notEqual(null, err);
                 done();
             });
@@ -46,13 +45,12 @@ describeReporting(path.join(__dirname, "../../"), ["templates","data"], function
             var request = {
                 reporter: reporter,
                 template: { content: "html", dataItemId: null },
-                options: { recipe: "html" },
-                context: reporter.context
+                options: { recipe: "html" }
             };
 
             reporter.data.handleBeforeRender(request, {}).then(function () {
                 done();
-            });
+            }).catch(done);
         });
 
     });

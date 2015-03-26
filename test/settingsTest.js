@@ -2,8 +2,7 @@
 
 var assert = require("assert"),
     Settings = require("../lib/util/settings.js"),
-    foo = require("odata-server"),
-    DataProvider = require("../lib/dataProvider.js"),
+    DocumentStore = require("../lib/store/documentStore.js"),
     connectionString = require("./helpers.js").connectionString;
 
 describe('Settings', function () {
@@ -13,17 +12,22 @@ describe('Settings', function () {
 
         self.settings = new Settings();
 
-        self.dataProvider = new DataProvider(connectionString, { dataDirectory: "data", logger : new (require("../lib/util/consoleLogger.js"))()});
-        self.settings.registerEntity(self.dataProvider);
-        self.dataProvider.buildContext();
+        self.documentStore = new DocumentStore({
+            connectionString: connectionString,
+            dataDirectory: "data",
+            logger: new (require("../lib/util/consoleLogger.js"))()
+        });
+        self.settings.registerEntity(self.documentStore);
 
-        self.dataProvider.dropStore().then(function() {
-            self.dataProvider.startContext().then(function (context) {
-                self.settings.init(context).then(function () {
-                    done();
+        self.documentStore.init().then(function () {
+            return self.documentStore.drop().then(function() {
+                return self.documentStore.init().then(function() {
+                    return self.settings.init(self.documentStore).then(function () {
+                        done();
+                    });
                 });
             });
-        });
+        }).catch(done);
     });
 
     it('add update get should result into updated value', function (done) {

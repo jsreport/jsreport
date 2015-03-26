@@ -12,12 +12,13 @@ var assert = require("assert"),
 describe('fileSystemBlobStorage', function () {
     
     beforeEach(function () {
+        util.deleteFiles(path.join(tmpDir, "test-output"));
+
         if (!fs.existsSync(path.join(tmpDir, "test-output"))) {
-            fs.mkdir(path.join(tmpDir, "test-output"));
+            fs.mkdirSync(path.join(tmpDir, "test-output"));
         }
 
         this.blobStorage = new FileSystem({ dataDirectory: path.join(tmpDir, "test-output") });
-        util.deleteFiles(this.blobStorage.storageDirectory);
     });
 
     afterEach(function () {
@@ -33,10 +34,12 @@ describe('fileSystemBlobStorage', function () {
         var blobName = shortid.generate();
 
         self.blobStorage.write(blobName, new Buffer("Hula"), function(err) {
-            assert.ifError(err);
+            if (err)
+                return done(err);
 
             self.blobStorage.read(blobName, function(er, stream) {
-                assert.ifError(er);
+                if (err)
+                    return done(err);
 
                 var content = '';
                 stream.resume();

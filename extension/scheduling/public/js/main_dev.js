@@ -1,9 +1,9 @@
 ﻿define(["app", "marionette", "backbone",
         "./scheduling.list.model", "./scheduling.list.view", "./scheduling.list.toolbar.view",
         "./scheduling.model", "./scheduling.detail.view",
-        "./scheduling.toolbar.view", "./scheduling.entityRegistration"],
+        "./scheduling.toolbar.view"],
     function (app, Marionette, Backbone, ListModel, ListView, ListToolbarView, Model, DetailView,
-              ToolbarView, entityRegistration) {
+              ToolbarView) {
 
         app.module("scheduling", function (module) {
             var Router = Backbone.Router.extend({
@@ -57,7 +57,5 @@
                 if (!app.settings.tenant || app.settings.tenant.isAdmin)
                     context.result += "<li><a id='createScheduleCommand' href='#/extension/scheduling/detail' class='validate-leaving'>Create Schedule</a></li>";
             });
-
-            app.on("entity-registration", entityRegistration);
         });
     });

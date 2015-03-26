@@ -6,12 +6,12 @@
             var self = this;
 
             function processItems(items) {
-                self.items = items.map(function(i) { return i.initData; });
+                self.items = items;
 
                 var script = self.templateModel.get("script");
 
                 if (!script) {
-                    script = new $entity.ScriptRefType();
+                    script = {};
 
                     //back compatibility
                     if (self.templateModel.get("scriptId")) {
@@ -20,7 +20,6 @@
 
                     self.templateModel.set("script", script);
                 }
-
 
                 var custom;
                 if (app.options.scripts.allowCustom) {
@@ -35,7 +34,7 @@
                     self.set(custom || empty, { silent: true });
 
                 if (script.shortid)
-                    self.set(_.findWhere(items, { shortid: script.shortid }).toJSON(), { silent: true });
+                    self.set(_.findWhere(items, { shortid: script.shortid }), { silent: true });
 
                 if (script.content)
                     self.set(custom || empty, { silent: true });
@@ -44,7 +43,7 @@
             }
 
             if (app.options.scripts.allowSelection) {
-                app.dataContext.scripts.toArray().then(processItems);
+                return app.dataProvider.get("odata/scripts").then(processItems);
             } else {
                 processItems([]);
             }

@@ -13,10 +13,9 @@ var uuid = require("uuid").v1,
     FS = require("q-io/fs"),
     extend = require("node.extend"),
     mkdirp = require('mkdirp'),
-    toArray = require('stream-to-array'),
-    PhantomManager = require("./phantomManager.js");
+    toArray = require('stream-to-array');
 
-var phantomManager;
+var conversion;
 
 var Phantom = function (reporter, definition) {
     this.reporter = reporter;
@@ -30,67 +29,64 @@ var Phantom = function (reporter, definition) {
         execute: Phantom.prototype.execute.bind(this)
     });
 
-    this.PhantomType = this.reporter.dataProvider.createEntityType("PhantomType", {
-        margin: {type: "string"},
-        header: {type: "string"},
-        headerHeight: {type: "string"},
-        footer: {type: "string"},
-        footerHeight: {type: "string"},
-        orientation: {type: "string"},
-        format: {type: "string"},
-        width: {type: "string"},
-        height: {type: "string"},
-        printDelay: {type: "int"},
-        blockJavaScript: {type: "boolean"}
+    reporter.documentStore.registerComplexType("PhantomType", {
+        margin: {type: "Edm.String"},
+        header: {type: "Edm.String"},
+        headerHeight: {type: "Edm.String"},
+        footer: {type: "Edm.String"},
+        footerHeight: {type: "Edm.String"},
+        orientation: {type: "Edm.String"},
+        format: {type: "Edm.String"},
+        width: {type: "Edm.String"},
+        height: {type: "Edm.String"},
+        printDelay: {type: "Edm.Int32"},
+        blockJavaScript: {type: "Edm.Boolean"}
     });
 
-    reporter.templates.TemplateType.addMember("phantom", {type: this.PhantomType});
-
-    var self = this;
-    reporter.templates.TemplateType.addEventListener("beforeCreate", function (args, template) {
-        template.phantom = template.phantom || new (self.PhantomType)();
-    });
+    reporter.documentStore.model.entityTypes["TemplateType"].phantom = {type: "jsreport.PhantomType"};
 };
+
+Phantom.prototype._mapPhantomOptions
 
 Phantom.prototype.execute = function (request, response) {
     var self = this;
     request.template.phantom = request.template.phantom || {};
     this.reporter.logger.debug("Pdf recipe start.");
 
-    var phantomOptions = request.template.phantom || new self.PhantomType();
-    phantomOptions = phantomOptions.initData || phantomOptions;
-    phantomOptions.allowLocalFilesAccess = this.allowLocalFilesAccess;
-    phantomOptions.blockJavaScript = phantomOptions.blockJavaScript === 'true' || phantomOptions.blockJavaScript === true;
-
-    var generationId = uuid();
-    var htmlFile = join(request.reporter.options.tempDirectory, generationId + ".html");
-    var pdfFile = join(request.reporter.options.tempDirectory, generationId + ".pdf");
-
     request.template.recipe = "html";
-    request.options.isRootRequest = false;
+    var phantomOptions = request.template.phantom || {};
+
     return this.reporter.executeRecipe(request, response)
         .then(function () {
-            return FS.write(htmlFile, response.result);
+            return self._processHeaderFooter(phantomOptions, request, "header");
         })
         .then(function () {
-            return self._processHeaderFooter(phantomOptions, request, generationId, "header");
+            return self._processHeaderFooter(phantomOptions, request, "footer");
         })
         .then(function () {
-            return self._processHeaderFooter(phantomOptions, request, generationId, "footer");
-        })
-        .then(function () {
-            return phantomManager.execute({
-                url: phantomOptions.url || "file:///" + encodeURIComponent(path.resolve(htmlFile)),
-                output: path.resolve(pdfFile),
-                options: phantomOptions
-            });
-        }).then(function (numberOfPages) {
+            phantomOptions.paperSize = {
+                width: phantomOptions.width,
+                height: phantomOptions.height,
+                headerHeight: phantomOptions.headerHeight,
+                footerHeight: phantomOptions.footerHeight,
+                format: phantomOptions.format,
+                orientation: phantomOptions.orientation,
+                margin: phantomOptions.margin
+            };
+            phantomOptions.allowLocalFilesAccess = self.allowLocalFilesAccess;
+            phantomOptions.settings = {
+                javascriptEnabled: phantomOptions.blockJavaScript !== 'true'
+            };
+            phantomOptions.html = response.result;
+
+            return q.nfcall(conversion, phantomOptions);
+        }).then(function (res) {
                 request.options.isRootRequest = true;
-                response.result = fs.createReadStream(pdfFile);
+                response.result = res.stream;
                 response.headers["Content-Type"] = "application/pdf";
                 response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
                 response.headers["File-Extension"] = "pdf";
-                response.headers["Number-Of-Pages"] = numberOfPages;
+                response.headers["Number-Of-Pages"] = res.numberOfPages;
         }).then(function() {
             return q.nfcall(toArray, response.result).then(function (arr) {
                 response.result = Buffer.concat(arr);
@@ -99,7 +95,7 @@ Phantom.prototype.execute = function (request, response) {
         });
 };
 
-Phantom.prototype._processHeaderFooter = function (phantomOptions, request, generationId, type) {
+Phantom.prototype._processHeaderFooter = function (phantomOptions, request, type) {
     if (!phantomOptions[type])
         return q(null);
 
@@ -109,10 +105,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, gene
     req.options.isRootRequest = false;
 
     return this.reporter.render(req).then(function (resp) {
-        var filePath = join(request.reporter.options.tempDirectory, generationId + "-" + type + ".html");
-        return FS.write(filePath, resp.result).then(function () {
-            phantomOptions[type + "File"] = path.resolve(filePath);
-        });
+        phantomOptions[type] = resp.result;
     });
 };
 
@@ -123,8 +116,8 @@ module.exports = function (reporter, definition) {
         mkdirp.sync(reporter.options.tempDirectory);
     }
 
-    if (!phantomManager) {
-        phantomManager = new PhantomManager(reporter.options.phantom);
-        return phantomManager.start();
+    if (!conversion) {
+        reporter.options.phantom.tmpDir = reporter.options.tempDirectory;
+        conversion = require("phantom-html-to-pdf")(reporter.options.phantom);
     }
 };

@@ -16,7 +16,6 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "express", "repo
 
             var request = {
                 options: { recipe: "html", saveResult: true, isRootRequest: true },
-                context: reporter.context,
                 reporter: reporter,
                 template: {
                     name: "name",

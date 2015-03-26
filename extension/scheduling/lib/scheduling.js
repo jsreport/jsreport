@@ -16,55 +16,44 @@ var Scheduling = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
-    this.ScheduleType = this.reporter.dataProvider.createEntityType("ScheduleType", {
-        _id: {type: "id", key: true, computed: true, nullable: false},
-        cron: {type: "string"},
-        name: {type: "string"},
-        templateShortid: {type: "string"},
-        creationDate: {type: "date"},
-        nextRun: {type: "date"},
-        shortid: {type: "string"},
-        enabled: {type: "bool"},
-        modificationDate: {type: "date"},
-        state: {type: "string"}
+    this.ScheduleType = this.reporter.documentStore.registerEntityType("ScheduleType", {
+        _id: {type: "Edm.String", key: true},
+        cron: {type: "Edm.String"},
+        name: {type: "Edm.String"},
+        templateShortid: {type: "Edm.String"},
+        creationDate: {type: "Edm.DateTimeOffset"},
+        nextRun: {type: "Edm.DateTimeOffset"},
+        shortid: {type: "Edm.String"},
+        enabled: {type: "Edm.Boolean"},
+        modificationDate: {type: "Edm.DateTimeOffset"},
+        state: {type: "Edm.String"}
     });
 
-    this.TaskType = this.reporter.dataProvider.createEntityType("TaskType", {
-        _id: {type: "id", key: true, computed: true, nullable: false},
-        scheduleShortid: {type: "string"},
-        creationDate: {type: "date"},
-        finishDate: {type: "date"},
-        state: {type: "string"},
-        error: {type: "string"},
-        ping: {type: "date"}
+    this.TaskType = this.reporter.documentStore.registerEntityType("TaskType", {
+        _id: {type: "Edm.String", key: true},
+        scheduleShortid: {type: "Edm.String"},
+        creationDate: {type: "Edm.DateTimeOffset"},
+        finishDate: {type: "Edm.DateTimeOffset"},
+        state: {type: "Edm.String"},
+        error: {type: "Edm.String"},
+        ping: {type: "Edm.DateTimeOffset"}
     });
 
-    var schedulesSet = this.reporter.dataProvider.registerEntitySet("schedules", this.ScheduleType, {tableOptions: {humanReadableKeys: ["shortid"]}});
-    schedulesSet.beforeCreateListeners.add("schedule-before-create", Scheduling.prototype._beforeCreateHandler.bind(this));
-    schedulesSet.beforeUpdateListeners.add("schedule-before-update", Scheduling.prototype._beforeUpdateHandler.bind(this));
-    schedulesSet.beforeDeleteListeners.add("schedule-before-delete", Scheduling.prototype._beforeDeleteHandler.bind(this));
-    schedulesSet.afterReadListeners.add("schedule-after-read", Scheduling.prototype._afterReadHandler.bind(this));
 
-    this.reporter.dataProvider.registerEntitySet("tasks", this.TaskType, {tableOptions: {nedbPersistance: "singleFile"}});
-
-    this.reporter.reports.ReportType.addMember("taskId", {type: "id"});
-
+    this.reporter.documentStore.registerEntitySet("schedules", {entityType: "ScheduleType", humanReadableKey: "shortid"});
+    this.reporter.documentStore.model.entityTypes["ReportType"].taskId = { type: "Edm.String"};
+    this.reporter.documentStore.registerEntitySet("tasks", {entityType: "TaskType"});
     reporter.initializeListener.add(definition.name, this, Scheduling.prototype._initialize);
 };
 
 util.inherits(Scheduling, events.EventEmitter);
 
-Scheduling.prototype._afterReadHandler = function (key, successResult, sets, query) {
-    return true;
-};
-
-Scheduling.prototype._beforeCreateHandler = function (key, items) {
-    var entity = items[0];
+Scheduling.prototype._beforeCreateHandler = function (entity) {
     if (!entity.shortid)
         entity.shortid = shortid.generate();
 
     if (!entity.cron)
-        return false;
+        throw new Error("cron expression must be set.");
 
     entity.state = "planned";
     entity.creationDate = new Date();
@@ -72,30 +61,28 @@ Scheduling.prototype._beforeCreateHandler = function (key, items) {
     entity.enabled = entity.enabled !== false; //default false
     var cron = new CronTime(entity.cron);
     entity.nextRun = cron._getNextDateFrom(new Date()).toDate();
-    return true;
 };
 
-Scheduling.prototype._beforeUpdateHandler = function (key, items) {
-    var entity = items[0];
-    entity.modificationDate = new Date();
+Scheduling.prototype._beforeUpdateHandler = function (query, update) {
+    var entity = update.$set;
 
-    if (!entity.cron)
-        return false;
+    if (entity.name)
+        entity.modificationDate = new Date();
 
-    var cron = new CronTime(entity.cron);
-    entity.nextRun = cron._getNextDateFrom(new Date()).toDate();
-    entity.state = "planned";
-
-    return true;
-};
-
-Scheduling.prototype._beforeDeleteHandler = function (key, items) {
-    var entity = items[0];
-    return true;
+    if (entity.cron) {
+        entity.modificationDate = new Date();
+        var cron = new CronTime(entity.cron);
+        entity.nextRun = cron._getNextDateFrom(new Date()).toDate();
+        entity.state = "planned";
+    }
 };
 
 Scheduling.prototype._initialize = function () {
     var self = this;
+
+    this.schedulesCollection = this.reporter.documentStore.collection("schedules");
+    this.schedulesCollection.beforeInsertListeners.add("schedule", Scheduling.prototype._beforeCreateHandler.bind(this));
+    this.schedulesCollection.beforeUpdateListeners.add("schedule", Scheduling.prototype._beforeUpdateHandler.bind(this));
 };
 
 Scheduling.prototype.stop = function () {
@@ -106,7 +93,7 @@ Scheduling.prototype.start = function () {
     this.jobProcessor.start();
 };
 
-Scheduling.prototype.renderReport = function (schedule, task, context) {
+Scheduling.prototype.renderReport = function (schedule, task) {
     return this.reporter.render({
         template: {shortid: schedule.templateShortid},
         user : { isAdmin: true},
@@ -119,6 +106,9 @@ Scheduling.prototype.renderReport = function (schedule, task, context) {
 };
 
 module.exports = function (reporter, definition) {
+    if (definition.options.enabled === false)
+        return;
+
     reporter[definition.name] = new Scheduling(reporter, definition);
 
     definition.options = _.extend({
@@ -126,7 +116,7 @@ module.exports = function (reporter, definition) {
         maxParallelJobs: 5
     }, definition.options);
 
-    reporter[definition.name].jobProcessor = new JobProcessor(Scheduling.prototype.renderReport.bind(this), reporter.dataProvider, reporter.logger, reporter[definition.name].TaskType, definition.options);
+    reporter[definition.name].jobProcessor = new JobProcessor(Scheduling.prototype.renderReport.bind(this), reporter.documentStore, reporter.logger, reporter[definition.name].TaskType, definition.options);
 
     if (definition.options.autoStart !== false) {
         reporter[definition.name].start();

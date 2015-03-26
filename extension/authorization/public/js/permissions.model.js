@@ -1,5 +1,5 @@
 define(["app", "underscore", "core/basicModel"],
-    function (app, _, ModelBase, UserListModel) {
+    function (app, _, ModelBase) {
 
         return ModelBase.extend({
             initialize: function() {

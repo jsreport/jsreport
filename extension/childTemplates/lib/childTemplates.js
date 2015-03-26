@@ -10,10 +10,10 @@ var Q = require("q"),
     extend = require("node.extend");
 
 var ChildTemplates = function(reporter, definition) {
-    var self = this;
     this.reporter = reporter;
     this.definition = definition;
 
+    var self = this;
     reporter.beforeRenderListeners.add(definition.name, this, function(request, response) {
         return self.evaluateChildTemplates(request, response, true);
     });
@@ -41,7 +41,7 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
 
         request.childs.childsCircleCache[p1] = true;
 
-        request.context.templates.filter(function(t) { return t.name === this.name; }, { name: p1 }).toArray().then(function(res) {
+        self.reporter.documentStore.collection("templates").find({ name: p1 }).then(function(res) {
             if (res.length < 1)
                 return done(null);
 
@@ -51,6 +51,8 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
                 req.childs.childsCircleCache = request.childs.childsCircleCache;
 
             req.template = res[0];
+            req.options.isRootRequest = false;
+            self.reporter.logger.debug("Rendering child template " + p1);
             return self.reporter.render(req).then(function(resp) {
                 done(null, resp.result);
             });
@@ -59,8 +61,7 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
 
     var test = /{#child ([^{}]{0,50})}/g;
 
-    return Q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content : response.result, test, convert).then(function(result) {
-        console.log(result);
+    return Q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content  : response.result, test, convert).then(function(result) {
         if (evaluateInTemplateContent)
             request.template.content = result;
         else

@@ -100,15 +100,12 @@
     });
 
     describe('model', function () {
-        var originalDataContext;
         var SUT;
         var templateModel;
         var app;
 
         beforeEach(function (done) {
             require(["app", "data/data.template.model", "templates/template.model"], function (_app, Model, TemplateModel) {
-                originalDataContext = _app.dataContext;
-
                 app = _app;
                 SUT = new Model();
                 templateModel = new TemplateModel();
@@ -119,13 +116,12 @@
 
         afterEach(function (done) {
             require(["app"], function (app) {
-                app.dataContext = originalDataContext;
                 done();
             });
         });
 
         it("fetch should add default items", function (done) {
-            app.dataContext = {data: {toArray: sinon.stub().returns($.Deferred().resolve([]))}};
+            app.dataProvider.get = sinon.stub().returns($.Deferred().resolve([]));
             SUT.fetch().then(function () {
                 expect(SUT.items.length).to.be.eql(1);
                 expect(SUT.get("shortid")).to.be.eql(null);
@@ -135,7 +131,7 @@
 
         it("fetch should select proper item based on template.data.shortid", function (done) {
             templateModel.set("data", {shortid: "foo"});
-            app.dataContext = {data: {toArray: sinon.stub().returns($.Deferred().resolve([new $entity.DataItem({shortid: "foo"})]))}};
+            app.dataProvider.get = sinon.stub().returns($.Deferred().resolve([{shortid: "foo"}]));
 
             SUT.fetch().then(function () {
                 expect(SUT.get("shortid")).to.be.eql("foo");
@@ -144,14 +140,10 @@
         });
 
         it("changing shortid should propagate changes to template and reload selected object", function (done) {
-            app.dataContext = {
-                data: {
-                    toArray: sinon.stub().returns($.Deferred().resolve([new $entity.DataItem({
+            app.dataProvider.get = sinon.stub().returns($.Deferred().resolve([{
                         shortid: "foo",
                         dataJson: "{}"
-                    })]))
-                }
-            };
+                    }]));
 
             SUT.fetch().then(function () {
                 SUT.set("shortid", "foo");

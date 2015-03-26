@@ -12,48 +12,35 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "reports
     describe('with scheduling extension', function () {
 
         it('creating schedule should add default values', function (done) {
-            this.timeout(3500);
 
-            var schedule = new reporter.scheduling.ScheduleType({
+            reporter.documentStore.collection("schedules").insert({
                 cron: "*/1 * * * * *",
                 templateShortid: "foo"
-            });
-
-            reporter.dataProvider.startContext().then(function (context) {
-                    context.schedules.add(schedule);
-                    return context.saveChanges();
-            }).then(function () {
+            }).then(function (schedule) {
                 schedule.nextRun.should.be.ok;
                 schedule.creationDate.should.be.ok;
                 schedule.state.should.be.exactly("planned");
                 done();
-            }).fail(done);
+            }).catch(done);
         });
 
-
         it('updating schedule should recalculate nextRun', function (done) {
-            this.timeout(3500);
 
-            var schedule = new reporter.scheduling.ScheduleType({
+            reporter.documentStore.collection("schedules").insert({
                 cron: "*/1 * * * * *",
                 templateShortid: "foo"
-            });
-
-            reporter.dataProvider.startContext().then(function (context) {
-                context.schedules.add(schedule);
-                return context.saveChanges().then(function () {
-                    context.schedules.attach(schedule);
-                    schedule.nextRun = new Date(1);
-                    return context.schedules.saveChanges();
+            }).then(function(schedule) {
+                return reporter.documentStore.collection("schedules").update({ shortid: schedule.shortid }, { $set: { cron: "*/1 * * * * *", nextRun: null }});
+            }).then(function() {
+                return reporter.documentStore.collection("schedules").find({}).then(function(schedules) {
+                    schedules[0].nextRun.should.be.ok;
+                    done();
                 });
-            }).then(function () {
-                schedule.nextRun.should.not.be.exactly(new Date(1));
-                done();
-            }).fail(done);
+            }).catch(done);
         });
 
         it('render process job should render report', function (done) {
-            this.timeout(3500);
+            reporter.scheduling.stop();
 
             var counter = 0;
 
@@ -61,9 +48,9 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "reports
                 counter++;
             });
 
-            reporter.dataProvider.startContext().then(function (context) {
-                return reporter.templates.create(context, {content: "foo"}).then(function (template) {
-                    return reporter.scheduling.renderReport({ templateShortid: template.shortid }, context).then(function () {
+            reporter.documentStore.collection("templates").insert({ content: "foo", recipe: "html" }).then(function(template) {
+                return reporter.documentStore.collection("tasks").insert({ }).then(function(task) {
+                    return reporter.scheduling.renderReport({templateShortid: template.shortid}, task).then(function () {
                         counter.should.be.exactly(1);
                         done();
                     });

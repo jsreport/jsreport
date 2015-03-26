@@ -23,45 +23,39 @@ var Scripts = function (reporter, definition) {
     this.allowedModules = this.definition.options.allowedModules || ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
 };
 
-Scripts.prototype.create = function (context, script) {
-    var entity = new this.ScriptType(script);
-    context.scripts.add(entity);
-    return context.scripts.saveChanges().then(function () {
-        return q(entity);
-    });
-};
-
 Scripts.prototype.handleAfterRender = function (request, response) {
     if (!request.parsedScript)
         return q();
 
+    if (!request.options.isRootRequest)
+        return q();
+
     var self = this;
 
-    return request.reporter.taskManager.execute({
-            body: {
-                script: request.parsedScript,
-                allowedModules: self.allowedModules,
-                method: "afterRender",
-                request: {
-                    data: request.data,
-                    template: {
-                        content: request.template.content,
-                        helpers: request.template.helpers
-                    },
-                    options: request.options,
-                    headers: request.headers
-                },
-                response: {
-                    headers: response.headers,
-                    content: response.result
-                }
+    return q.ninvoke(request.reporter.scriptManager, "execute", {
+        script: request.parsedScript,
+        allowedModules: self.allowedModules,
+        method: "afterRender",
+        request: {
+            data: request.data,
+            template: {
+                content: request.template.content,
+                helpers: request.template.helpers
             },
-            execModulePath: path.join(__dirname, "scriptEvalChild.js"),
-            timeout: self.definition.options.timeout
-        }).then(function (body) {
-            response.headers = body.response.headers;
-            response.result = new Buffer(body.response.content);
-        });
+            options: request.options,
+            headers: request.headers
+        },
+        response: {
+            headers: response.headers,
+            content: response.result
+        }
+    }, {
+        execModulePath: path.join(__dirname, "scriptEvalChild.js"),
+        timeout: self.definition.options.timeout
+    }).then(function (body) {
+        response.headers = body.response.headers;
+        response.result = new Buffer(body.response.content);
+    });
 };
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
@@ -69,11 +63,10 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 
     //back compatibility
     if (!request.template.script && request.template.scriptId) {
-        request.template.script = { shortid: request.template.scriptId};
+        request.template.script = {shortid: request.template.scriptId};
     }
 
     if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
-        self.reporter.logger.debug("Script not defined for this template.");
         return q();
     }
 
@@ -81,34 +74,33 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         if (request.template.script.content)
             return q(request.template.script);
 
-        self.reporter.logger.debug("Searching for before script to apply - " + request.template.script.shortid);
-
-        return request.context.scripts.single(function (s) {
-            return s.shortid === this.id;
-        }, { id: request.template.script.shortid });
+        return self.reporter.documentStore.collection("scripts").find({shortid: request.template.script.shortid}).then(function (items) {
+            if (items.length < 1)
+                throw new Error("Script not found or user not authorized to read it (" + request.template.script.shortid + ")");
+            return items[0];
+        });
     }
 
     return findScript().then(function (script) {
+        self.reporter.logger.debug("Executing script " + script.shortid);
         script = script.content || script;
 
         request.parsedScript = script;
-
-        return request.reporter.taskManager.execute({
-            body: {
-                script: script,
-                allowedModules: self.allowedModules,
-                method: "beforeRender",
-                request: {
-                    data: request.data,
-                    template: request.template,
-                    headers: request.headers,
-                    options: request.options
-                },
-                response: response
+        return q.ninvoke(request.reporter.scriptManager, "execute", {
+            script: script,
+            allowedModules: self.allowedModules,
+            method: "beforeRender",
+            request: {
+                data: request.data,
+                template: request.template,
+                headers: request.headers,
+                options: request.options
             },
+            response: response
+        }, {
             execModulePath: path.join(__dirname, "scriptEvalChild.js"),
             timeout: self.definition.options.timeout
-        }).then(function(body) {
+        }).then(function (body) {
             if (body.cancelRequest) {
                 var error = new Error("Rendering request canceled  from the script " + body.additionalInfo);
                 error.weak = true;
@@ -137,41 +129,36 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     });
 };
 
-Scripts.prototype._beforeCreateHandler = function (args, entity) {
-    if (!entity.shortid)
-        entity.shortid = shortid.generate();
-
-    entity.creationDate = new Date();
-    entity.modificationDate = new Date();
-};
-
-Scripts.prototype._beforeUpdateHandler = function (args, entity) {
-    entity.modificationDate = new Date();
-};
-
-Scripts.prototype._defineEntities = function() {
-
-    this.ScriptType = this.reporter.dataProvider.createEntityType("ScriptType", {
-        shortid: { type: "string"},
-        creationDate: { type: "date" },
-        modificationDate: { type: "date" },
-        content: { type: "string" },
-        name: { type: "string" }
+Scripts.prototype._defineEntities = function () {
+    var self = this;
+    this.reporter.documentStore.registerEntityType("ScriptType", {
+        _id: {type: "Edm.String", key: true},
+        shortid: {type: "Edm.String"},
+        creationDate: {type: "Edm.DateTimeOffset"},
+        modificationDate: {type: "Edm.DateTimeOffset"},
+        content: {type: "Edm.String"},
+        name: {type: "Edm.String"}
     });
 
-    this.ScriptRefType = this.reporter.dataProvider.createEntityType("ScriptRefType", {
-        content: { type: "string" },
-        shortid: { type: "string" }
+    this.reporter.documentStore.registerComplexType("ScriptRefType", {
+        content: {type: "Edm.String"},
+        shortid: {type: "Edm.String"}
     });
 
-    this.reporter.templates.TemplateType.addMember("script", { type: this.ScriptRefType });
+    this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "jsreport.ScriptRefType"};
+    this.reporter.documentStore.registerEntitySet("scripts", {entityType: "ScriptType", humanReadableKey: "shortid"});
 
-    this.ScriptType.addMember("_id", { type: "id", key: true, computed: true, nullable: false });
-
-    this.ScriptType.addEventListener("beforeCreate", Scripts.prototype._beforeCreateHandler.bind(this));
-    this.ScriptType.addEventListener("beforeUpdate", Scripts.prototype._beforeUpdateHandler.bind(this));
-
-    this.reporter.dataProvider.registerEntitySet("scripts", this.ScriptType, { tableOptions: { humanReadableKeys: [ "shortid"] }  });
+    this.reporter.initializeListener.add("scripts", function () {
+        var col = self.reporter.documentStore.collection("scripts");
+        col.beforeUpdateListeners.add("scripts", function (query, update) {
+            update.$set.modificationDate = new Date();
+        });
+        col.beforeInsertListeners.add("scripts", function (doc) {
+            doc.shortid = doc.shortid || shortid.generate();
+            doc.creationDate = new Date();
+            doc.modificationDate = new Date();
+        });
+    });
 };
 
 module.exports = function (reporter, definition) {

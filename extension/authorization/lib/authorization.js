@@ -38,209 +38,214 @@ Authorization.authorizationResult = {
     ok: "ok"
 };
 
-Authorization.prototype.defaultAuthorizeOperation = function (entitySet, req, operation, entitySetKey, entity) {
-    if (entitySetKey === "settings")
-        return q(true);
+Authorization.prototype.checkPermissions = function(entity, req) {
+    var permissions = entity.editPermissions;
+    var permission = _.find(permissions, function (p) {
+        return p === req.user._id;
+    });
 
-    if (entity.context && entity.context.skipAuthorization) {
-        return q(true);
+    if (!permission) {
+        return false;
+    }
+
+    return true;
+}
+
+Authorization.prototype.authorizeUpdate = function (query, update, collection, req) {
+    var self = this;
+    req.skipAuthorization = true;
+    return collection.find(query).then(function (items) {
+        req.skipAuthorization = false;
+        var result = true;
+        items.forEach(function (entity) {
+            if (collection.name === "users" && (entity._id && entity._id !== req.user._id)) {
+                result = false;
+            }
+
+            if (result)
+                result = self.checkPermissions(entity, req);
+        });
+        return result;
+    });
+}
+
+Authorization.prototype.authorizeRemove = function (query, collection, req) {
+    var self = this;
+    req.skipAuthorization = true;
+    return collection.find(query).then(function (items) {
+        req.skipAuthorization = false;
+        var result = true;
+        items.forEach(function (entity) {
+            if (result)
+                result = self.checkPermissions(entity, req);
+        });
+        return result;
+    });
+}
+
+Authorization.prototype.defaultAuth = function (collection, req) {
+    if (collection.name === "settings")
+        return true;
+
+    if (req.skipAuthorization) {
+        return true;
     }
 
     if (!req) {//background jobs
-        return q(true);
+        return true;
     }
 
     if (!req.user) {
-        return q(false);
+        return false;
     }
 
     if (req.user.isAdmin)
-        return q(true);
+        return true;
 
-    if (entitySetKey === "users" && operation !== "Read" && (entity._id && entity._id !== req.user._id)) {
-        return q(false);
-    }
-
-    if (entitySet.shared)
-        return q(true);
-
-    if (operation === "Create") {
-        return q(true);
-    }
-
-    function checkPermissions(entity) {
-        var permissions = operation === "Read" ? entity.readPermissions : entity.editPermissions;
-        var permission = _.find(permissions, function (p) {
-            return p === req.user._id;
-        });
-
-        if (!permission) {
-            return q(false);
-        }
-
-        return q(true);
-    }
-
-    return this.reporter.dataProvider.startContext().then(function (context) {
-        context.skipAuthorization = true;
-        return context[entitySetKey].find(entity._id).then(function (entity) {
-            return checkPermissions(entity);
-        });
-    });
-};
-
-Authorization.prototype.authorizeOperation = function (entitySet, req, operation, entitySetKey, entity) {
-    var self = this;
-    return this.defaultAuthorizeOperation(entitySet, req, operation, entitySetKey, entity).then(function (defaultRes) {
-        return self.operationAuthorizationListeners.fireAndJoinResults(req, operation, entitySetKey, entity).then(function (overrideRes) {
-            if (defaultRes && (overrideRes === null || overrideRes === true))
-                return Authorization.authorizationResult.ok;
-
-            if (!defaultRes && overrideRes === true)
-                return Authorization.authorizationResult.ok;
-
-            if (!defaultRes && overrideRes === null)
-                return Authorization.authorizationResult.filterOut;
-
-            return Authorization.authorizationResult.reject;
-        });
-    });
-};
+    return null;
+}
 
 Authorization.prototype._registerAuthorizationListeners = function () {
     var self = this;
 
-    var entitySets = this.reporter.dataProvider._entitySets;
+    for (var key in this.reporter.documentStore.collections) {
+        var col = self.reporter.documentStore.collections[key];
 
-    function afterReadListener(key, successResult, sets, query) {
-        if (query.context.skipAuthorization || !process.domain) {
-            return;
-        }
+        if (col.entitySet.shared)
+            continue;
 
-        if (Array.isArray(successResult)) {
-            successResult = Array.isArray(successResult) ? successResult : [successResult];
+        function check(colection, authAction) {
+            function fn() {
+                if (!process.domain || !process.domain.req)
+                    return q(true);
 
-            return q.all(successResult.map(function (i) {
-                return self.authorizeOperation(entitySets[key], process.domain.req, "Read", key, i).then(function (result) {
-                    if (result === Authorization.authorizationResult.filterOut) {
-                        successResult.splice(successResult.indexOf(i), 1);
-                        return true;
-                    }
-                    if (result === Authorization.authorizationResult.ok) {
-                        return true;
-                    }
+                var defaultAuth = self.defaultAuth(colection, process.domain.req);
+                if (defaultAuth === true)
+                    return q(true);
+                if (defaultAuth === false)
+                    return q(false);
 
-                    if (result === Authorization.authorizationResult.reject) {
-                        var error = new Error("Unauthorized");
-                        error.unauthorized = true;
-                        process.domain.res.error(error);
-                        return q.reject(error);
-                    }
-                });
-            }));
-        } else {
-            return self.authorizeOperation(entitySets[key], process.domain.req, "Read", key, successResult).then(function (result) {
-                if (!result) {
-                    process.domain.res.error(new Error("Unauthorized access"));
+                return authAction();
+            };
+
+            return fn().then(function (res) {
+                if (res !== true) {
+                    if (process.domain.req.user)
+                        self.reporter.logger.warn("User " + process.domain.req.user.username + " not authorized for " + collection.name);
+                    var e = new Error("Unauthorized for " + colection.name);
+                    e.unauthorized = true;
+                    throw e;
                 }
             });
         }
-    }
 
-    function registerOperationListener(operation) {
-        entitySets[key]["before" + operation + "Listeners"].add("authorization", function (key, items) {
-            if (!process.domain)
-                return true;
+        col["beforeUpdateListeners"].add("authorization", col, function (query, update) {
+            var col = this;
+            if (!process.domain || !process.domain.req || process.domain.req.skipAuthorizationForUpdate === query)
+               return;
 
-            return q.all(items.map(function (i) {
-                return self.authorizeOperation(entitySets[key], process.domain.req, operation, key, i);
-            })).then(function (res) {
-                return res.filter(function (r) {
-                        return r;
-                    }).length === res.length;
-            });
+            return check(col, function() {
+                return self.authorizeUpdate(query, update, col, process.domain.req);
+            })
         });
-    }
 
-    for (var key in entitySets) {
-        entitySets[key].afterReadListeners.add("authorization " + key, afterReadListener);
-        ["Create", "Update", "Delete"].forEach(registerOperationListener);
-    }
-};
+        col["beforeRemoveListeners"].add("authorization", col, function (query) {
+            var col = this;
+            return check(col, function() {
+                return self.authorizeRemove(query, col, process.domain.req);
+            })
+        });
 
-Authorization.prototype._registerQueryFilteringByPermission = function () {
-    var self = this;
-    this.reporter.dataProvider.on("context-created", function (context) {
-        context.events.on("before-query", function (dataProvider, query, entitySet) {
-
-            if (self.reporter.dataProvider._entitySets[entitySet.name].shared)
+        col["beforeInsertListeners"].add("authorization", col, function (doc) {
+            var col = this;
+            if (!process.domain || !process.domain.req || process.domain.req.skipAuthorizationForInsert === doc)
                 return;
-
-            if (process.domain && process.domain.req && process.domain.req.user && process.domain.req.user._id && !process.domain.req.user.isAdmin) {
-                query.readPermissions = dataProvider.fieldConverter.toDb["$data.ObjectID"](process.domain.req.user._id);
-            }
+            return check(col, function() {
+                return q(true);
+            })
         });
-    });
+    }
 };
 
-Authorization.prototype._extendEntitiesWithPermissions = function () {
+Authorization.prototype._handlePermissionsInEntities = function () {
+    var self = this;
 
     function isRequestEligibleForAuth() {
-        return process.domain && process.domain.req && process.domain.req.user && !process.domain.req.user.isAdmin;
+        return process.domain && process.domain.req && process.domain.req.user;
     }
 
-    function beforeCreate(args, entity) {
-            if (!isRequestEligibleForAuth()) {
-                return;
-            }
-
-            entity.readPermissions = entity.readPermissions || [];
-            entity.editPermissions = entity.editPermissions || [];
-            entity.readPermissions.push(process.domain.req.user._id);
-            entity.editPermissions.push(process.domain.req.user._id);
-    }
-
-    function beforeUpdate(args, entity) {
+    function beforeCreate(entity) {
         if (!isRequestEligibleForAuth()) {
             return;
         }
 
         entity.readPermissions = entity.readPermissions || [];
         entity.editPermissions = entity.editPermissions || [];
+        entity.readPermissions.push(process.domain.req.user._id);
+        entity.editPermissions.push(process.domain.req.user._id);
+    }
+
+    function beforeUpdate(query, update) {
+        if (!isRequestEligibleForAuth()) {
+            return;
+        }
+
+        var entity = update.$set;
+
+        if (!entity || (!entity.readPermissions && !entity.editPermissions))
+            return;
+
+        entity.editPermissions = entity.editPermissions || [];
+        entity.readPermissions = entity.readPermissions || [];
+
+        if (entity.editPermissions.indexOf(process.domain.req.user._id) === -1) {
+            entity.editPermissions.push(process.domain.req.user._id);
+        }
 
         entity.editPermissions.forEach(function (wp) {
             if (entity.readPermissions.indexOf(wp) === -1) {
                 entity.readPermissions.push(wp);
             }
         });
-
-        if (entity.readPermissions.indexOf(process.domain.req.user._id) === -1) {
-            entity.readPermissions.push(process.domain.req.user._id);
-        }
-
-        if (entity.editPermissions.indexOf(process.domain.req.user._id) === -1) {
-            entity.editPermissions.push(process.domain.req.user._id);
-        }
     }
 
-    this.reporter.dataProvider.on("building-context", function (entitySets) {
-        for (var key in entitySets) {
-            var entitySet = entitySets[key];
+    for (var key in self.reporter.documentStore.collections) {
+        var col = self.reporter.documentStore.collections[key];
+        if (col.entitySet.shared)
+            continue;
+
+        col.beforeUpdateListeners.add("auth-perm", col, beforeUpdate);
+        col.beforeInsertListeners.add("auth-perm", col, beforeCreate);
+        col.beforeFindListeners.add("auth-perm", col, function (query) {
+            if (this.name === "users" || this.entitySet.shared)
+                return;
+
+            if (process.domain && process.domain.req && process.domain.req.user && process.domain.req.user._id && !process.domain.req.user.isAdmin &&
+                process.domain.req.skipAuthorization !== true && process.domain.req.skipAuthorizationForQuery !== query) {
+                query.readPermissions = process.domain.req.user._id;
+            }
+        });
+    }
+}
+
+Authorization.prototype._extendEntitiesWithPermissions = function () {
+    this.reporter.documentStore.on("before-init", function (documentStore) {
+        for (var key in documentStore.model.entitySets) {
+            var entitySet = documentStore.model.entitySets[key];
             if (entitySet.shared)
                 continue;
 
-            entitySet.elementType.addMember("readPermissions", {type: "Array", elementType: "id"});
-            entitySet.elementType.addMember("editPermissions", {type: "Array", elementType: "id"});
+            var entityType = documentStore.model.entityTypes[entitySet.type];
 
-            entitySet.elementType.addEventListener("beforeCreate", beforeCreate);
-            entitySet.elementType.addEventListener("beforeUpdate", beforeUpdate);
+            entityType.readPermissions = {type: "Collection(Edm.String)"};
+            entityType.editPermissions = {type: "Collection(Edm.String)"};
         }
     });
 };
 
 Authorization.prototype._initialize = function () {
     this._registerAuthorizationListeners();
-    this._registerQueryFilteringByPermission();
+    this._handlePermissionsInEntities();
 };
 
 module.exports = function (reporter, definition) {

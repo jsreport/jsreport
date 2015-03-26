@@ -2,24 +2,16 @@
 
 var assert = require("assert"),
     render = require("../lib/render/render.js"),
-    assert = require("assert"),
-    TaskManager = require("../lib/tasks/taskManager.js");
+    q = require("q"),
+    ScriptManager = require("script-manager").ScriptManager;
 
 
 describe('render', function () {
 
-    var taskManager = new TaskManager({});
+    var scriptManager = new ScriptManager({numberOfWorkers: 2});
 
     beforeEach(function (done) {
-        this.timeout(10000);
-        taskManager.start().then(function () {
-            done();
-        }).catch(done);
-    });
-
-    afterEach(function (done) {
-        taskManager.kill();
-        done();
+        scriptManager.ensureStarted(done);
     });
 
     it('rendering should fill response.result', function (done) {
@@ -27,53 +19,15 @@ describe('render', function () {
             template: {
                 content: "foo"
             },
-            taskManager: taskManager,
-            options: { timeout: 1000}
+            scriptManager: scriptManager,
+            options: {timeout: 1000}
         };
-        render(request, {}).then(function(response) {
+
+
+        render(request, {}).then(function (response) {
             assert.equal("foo", response.result);
             done();
-        }).fail(done);
-    });
-
-    it('rendering should fill error when engine fails', function (done) {
-        var request = {
-            template: {
-                content: "foo{{if}}"
-            },
-            options: { timeout: 1000}
-        };
-        render(request, {}).fail(function() {
-            done();
-        });
-    });
-    
-     it('reporting should timeout for long child execution', function (done) {
-        var request = {
-            template: {
-                content: "foo"
-            },
-            taskManager: taskManager,
-            options: { timeout: 1}
-        };
-        render(request, {}).fail(function() {
-            done();
-        });
-    });
-    
-    it('rendering should block require', function (done) {
-        var request = {
-            template: {
-                content: "{{:~fs()}}",
-                helpers: "{ \"fs\" : function() { return require('fs') != null; } }"
-            },
-            taskManager: taskManager,
-            options: { timeout: 1000}
-        };
-
-        render(request, {}).fail(function(err, response) {
-            done();
-        });
+        }).catch(done);
     });
 
     it('rendering should be able to evaluate global function helpers', function (done) {
@@ -83,14 +37,60 @@ describe('render', function () {
                 content: "{{:~foo()}}",
                 helpers: "function foo() { return 'test'; }"
             },
-            taskManager: taskManager,
+            scriptManager: scriptManager,
+            options: {timeout: 1000}
+        };
+
+        render(request, {}).then(function (response) {
+            assert.equal('test', response.result);
+            done();
+        }).catch(done);
+    });
+
+    it('rendering should fill error when engine fails', function (done) {
+        var request = {
+            template: {
+                content: "foo{{if}}"
+            },
+            options: { timeout: 1000}
+        };
+        render(request, {}).catch(function() {
+            done();
+        });
+    });
+
+    it('reporting should timeout for long child execution', function (done) {
+        var request = {
+            template: {
+                content: "{{:~a()}}",
+                helpers: "function a() { while(true) {; } }"
+            },
+            scriptManager: scriptManager,
+            options: { timeout: 0 }
+        };
+        render(request, {}).then(function(res) {
+            console.log(res);
+            done(new Error("It should have failed"));
+        }).catch(function() {
+            done();
+        });
+    });
+
+    it('rendering should block require', function (done) {
+        var request = {
+            template: {
+                content: "{{:~fs()}}",
+                helpers: "{ \"fs\" : function() { return require('fs') != null; } }"
+            },
+            scriptManager: scriptManager,
             options: { timeout: 1000}
         };
 
-        render(request, {}).then(function(response) {
-            assert.equal('test', response.result);
+        render(request, {}).then(function() {
+            done(new Error("It should have failed"));
+        }).catch(function() {
             done();
-        }).fail(done);
+        });
     });
 
     it('rendering should be able to evaluate object based helpers', function (done) {
@@ -100,13 +100,31 @@ describe('render', function () {
                 content: "{{:~foo()}}",
                 helpers: "{ \"foo\" : function() { return 'test'; } }"
             },
-            taskManager: taskManager,
+            scriptManager: scriptManager,
             options: { timeout: 1000}
         };
 
         render(request, {}).then(function(response) {
             assert.equal('test', response.result);
             done();
-        }).fail(done);
+        }).catch(done);
+    });
+
+    it('multiple rendering requests for single script manager should work', function (done) {
+        var request = {
+            template: {
+                engine: "jsrender",
+                content: "a"
+            },
+            scriptManager: scriptManager,
+            options: { timeout: 1000}
+        };
+
+        render(request, {}).then(function(response) {
+            return render(request, {}).then(function(response) {
+                assert.equal('a', response.result);
+                done();
+            });
+        }).catch(done);
     });
 });

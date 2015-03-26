@@ -3,8 +3,8 @@
  */
 
 define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./data.template.model",
-        "core/aceBinder", "./data.entityRegistration"],
-    function ($, _, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel, aceBinder, entityRegistration) {
+        "core/aceBinder"],
+    function ($, _, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel, aceBinder) {
 
         app.options.data = $.extend(app.options.data, { allowSelection: false, allowCustom: true}, app.options.data);
 
@@ -73,8 +73,5 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
                     });
                 });
             });
-
-
-            app.on("entity-registration", entityRegistration);
         });
     });

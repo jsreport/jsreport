@@ -159,6 +159,14 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
                 });
             },
 
+            toOData: function() {
+                return {
+                    $skip: this.get("pageSize") * (this.get("pageNumber") - 1),
+                    $top: this.get("pageSize"),
+                    $count: true
+                };
+            },
+
             onTotalCountChanged: function() {
                 var totalCount = this.get("totalCount");
                 var pageSize = this.get("pageSize");

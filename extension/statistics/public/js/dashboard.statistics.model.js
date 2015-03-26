@@ -1,19 +1,13 @@
-﻿define(["app", "backbone", "core/jaydataModel", "core/basicModel"], function (app, Backbone, JayDataModelBase, ModelBase) {
+﻿define(["app", "backbone", "core/basicModel"], function (app, Backbone, ModelBase) {
 
-    var ItemModel = JayDataModelBase.extend({
-        _initialize: function () {
-            this.Entity = $entity.Statistic;
-        }
+    var ItemModel = Backbone.Model.extend({
     });
 
     var CollectionModel = Backbone.Collection.extend({
-        contextSet: function () { return app.dataContext.statistics; },
-        fetchQuery: function () {
+        url: function() {
             var now = new Date();
             now.setDate(now.getDate() - 7);
-            return this.contextSet().filter(function (s) {
-                return s.fiveMinuteDate >= this.day;
-            }, { day: now }).toArray();
+            return "odata/statistics?$filter=fiveMinuteDate gt datetime'" + now.toISOString().replace("Z", "") + "'";
         },
 
         model: ItemModel

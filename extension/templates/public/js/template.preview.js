@@ -2,7 +2,7 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
 
     function getUIState(model) {
 
-        function justNotNull(o) {
+        /*function justNotNull(o) {
             var clone = {};
             for (var key in o) {
                 if (o[key] != null)
@@ -10,18 +10,16 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
             }
 
             return clone;
-        }
+        }*/
 
-        var state = {};
-        var json = model.toJSON();
-        for (var key in json) {
-            if (json[key] != null) {
-                if (json[key].initData != null)
-                    state[key] = justNotNull(json[key].toJSON());
-                else
-                    state[key] = json[key];
-            }
-        }
+        //var state = {};
+        var state = model.toJSON();
+        /*for (var key in json) {
+            if (json[key] != null)
+                state[key] = justNotNull(json[key].toJSON());
+            else
+                state[key] = json[key];
+        }*/
 
         state.content = state.content || " ";
         state.helpers = state.helpers || "";
@@ -64,9 +62,6 @@ define(["underscore", "jquery", "app"], function (_, $, app) {
             function addBody(path, body) {
                 if (body == null)
                     return;
-
-                if (body.initData != null)
-                    body = body.initData;
 
                 for (var key in body) {
                     if (_.isObject(body[key])) {

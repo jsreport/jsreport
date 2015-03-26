@@ -2,9 +2,9 @@
         "./data.list.model", "./data.list.view", "./data.list.toolbar.view",
         "./data.model", "./data.detail.view",
         "./data.template.view",
-        "./data.toolbar.view", "./data.template.model", "./data.entityRegistration"],
+        "./data.toolbar.view", "./data.template.model"],
     function (app, Marionette, Backbone, DataListModel, DataListView, DataListToolbarView, DataModel, DataDetailView,
-              TemplateStandardView, ToolbarView, TemplateStandardModel, entityRegistration) {
+              TemplateStandardView, ToolbarView, TemplateStandardModel) {
 
         app.options.data = app.options.data || { allowSelection: true, allowCustom: false};
 
@@ -67,7 +67,5 @@
                     context.extensionsRegion.show(view, "data");
                 });
             });
-
-            app.on("entity-registration", entityRegistration);
         });
     });

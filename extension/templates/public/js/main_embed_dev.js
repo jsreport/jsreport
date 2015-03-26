@@ -2,8 +2,8 @@
  * Copyright(c) 2014 Jan Blaha 
  */
 
-define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./template.model", "./template.preview", "core/aceBinder", "./template.entityRegistration"],
-    function ($, app, _, Marionette, Backbone, ViewBase, ListenerCollection, TemplateModel, preview, aceBinder, entityRegistration) {
+define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./template.model", "./template.preview", "core/aceBinder"],
+    function ($, app, _, Marionette, Backbone, ViewBase, ListenerCollection, TemplateModel, preview, aceBinder) {
 
         return app.module("template", function (module) {
 
@@ -129,8 +129,6 @@ define(["jquery", "app", "underscore", "marionette", "backbone", "core/view.base
                     preview(this.model, this.beforeRenderListeners, "previewFrame");
                 }
             });
-
-            app.on("entity-registration", entityRegistration);
 
             app.on("open-template", function(options) {
                 var view = new View({ model: new TemplateModel(options.template, { parse: true})});

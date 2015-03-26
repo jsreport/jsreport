@@ -2,19 +2,21 @@ var CronTime = require('cron').CronTime,
     _ = require("underscore"),
     q = require("q");
 
-var JobProcessor = module.exports = function (executionHandler, dataProvider, logger, TaskType, options) {
+var JobProcessor = module.exports = function (executionHandler, documentStore, logger, TaskType, options) {
 
     if (!options.taskPingTimeout)
         options.taskPingTimeout = 2 * options.interval;
 
-    this.dataProvider = dataProvider;
+    this.documentStore = documentStore;
     this.logger = logger;
     this.options = options;
     this.executionHandler = executionHandler;
     this.currentlyRunningTasks = [];
     this.TaskType = TaskType;
 
-    options.now = options.now || function() { return new Date();};
+    options.now = options.now || function () {
+        return new Date();
+    };
 };
 
 JobProcessor.prototype.start = function () {
@@ -25,28 +27,32 @@ JobProcessor.prototype.stop = function () {
     clearInterval(this.interval);
 };
 
-JobProcessor._schedulesToProcessFilter = function (s) {
-    return s.nextRun < this.now && s.state === "planned" && s.enabled === true;
+JobProcessor.prototype._schedulesToProcessFilter = function () {
+    return {
+        $and: [{nextRun: {$lt: this.options.now()}}, {state: "planned"}, {enabled: true}]
+    };
 };
 
-JobProcessor._tasksToRecoverFilter = function (s) {
-    return s.ping < this.treshold && s.state === "running";
+JobProcessor.prototype._tasksToRecoverFilter = function () {
+    return {
+        $and: [{ping: {$lt: new Date(this.options.now().getTime() - this.options.taskPingTimeout)}}, {state: "running"}]
+    }
 };
 
-JobProcessor.prototype._pingRunningTasks = function (context) {
+JobProcessor.prototype._pingRunningTasks = function () {
     var ids = this.currentlyRunningTasks.map(function (t) {
         return t._id;
     });
-    return context.tasks.rawUpdate({id: {$in: ids}}, {$set: {ping: this.options.now()}});
+    return this.documentStore.collection("tasks").update({_id: {$in: ids}}, {$set: {ping: this.options.now()}});
 };
 
-JobProcessor.prototype._findTasksToRecover = function (context) {
-    var now = this.options.now();
-    return context.tasks.filter(JobProcessor._tasksToRecoverFilter, {treshold: new Date(now.getTime() - this.options.taskPingTimeout)}).toArray().then(function (tasks) {
+JobProcessor.prototype._findTasksToRecover = function () {
+    var self = this;
+    return this.documentStore.collection("tasks").find(self._tasksToRecoverFilter()).then(function (tasks) {
         if (tasks.length === 0)
             return [];
 
-        return context.schedules.toArray().then(function (schedules) {
+        return self.documentStore.collection("schedules").find({}).then(function (schedules) {
             tasks.forEach(function (t) {
                 t.schedule = _.findWhere(schedules, {shortid: t.scheduleShortid});
             });
@@ -60,26 +66,25 @@ JobProcessor.prototype.process = function (options) {
     var self = this;
     options = options || {};
 
-    if (this.currentlyRunningTasks.length >= this.options.maxParallelJobs) {
-        return q();
-    }
+    return this._pingRunningTasks().then(function () {
+        if (self.currentlyRunningTasks.length >= self.options.maxParallelJobs) {
+            return;
+        }
 
-    return this.dataProvider.startContext().then(function (context) {
-        return self._pingRunningTasks(context).then(function () {
-            return self._findTasksToRecover(context).then(function (tasks) {
-                var promise = q.all(tasks.map(function (task) {
-                    self.logger.info("Recovering task " + task.schedule.name);
-                    return self.processOne(task.schedule, task, context);
+
+        return self._findTasksToRecover().then(function (tasks) {
+            var promise = q.all(tasks.map(function (task) {
+                self.logger.info("Recovering task " + task.schedule.name);
+                return self.processOne(task.schedule, task);
+            }));
+            return options.waitForJobToFinish ? promise : q();
+        }).then(function () {
+            return self.documentStore.collection("schedules").find(self._schedulesToProcessFilter()).then(function (schedules) {
+                var promise = q.all(schedules.map(function (s) {
+                    return self.processOne(s, null);
                 }));
-                return options.waitForJobToFinish ? promise : q();
-            }).then(function () {
-                return context.schedules.filter(JobProcessor._schedulesToProcessFilter, {now: self.options.now()}).toArray().then(function (schedules) {
-                    var promise = q.all(schedules.map(function (s) {
-                        return self.processOne(s, null, context);
-                    }));
 
-                    return options.waitForJobToFinish ? promise : q();
-                });
+                return options.waitForJobToFinish ? promise : q();
             });
         });
     }).catch(function (e) {
@@ -87,19 +92,19 @@ JobProcessor.prototype.process = function (options) {
     });
 };
 
-JobProcessor.prototype.processOne = function (schedule, task, context) {
+JobProcessor.prototype.processOne = function (schedule, task) {
     var self = this;
 
     if (this.currentlyRunningTasks.length >= this.options.maxParallelJobs) {
         return;
     }
 
-    return context.schedules.rawUpdate({
+    return this.documentStore.collection("schedules").update({
         _id: schedule._id,
         state: "planned"
     }, {$set: {state: "planning"}}).then(function (count) {
         if (count === 1) {
-            return self.execute(schedule, task, context);
+            return self.execute(schedule, task);
         }
     }).catch(function (e) {
         self.logger.error("unable to update schedule state" + e.stack);
@@ -109,24 +114,32 @@ JobProcessor.prototype.processOne = function (schedule, task, context) {
 JobProcessor.prototype.execute = function (schedule, task, context) {
     var self = this;
 
-    if (!task) {
-        task = new (this.TaskType)({creationDate: this.options.now(), scheduleShortid: schedule.shortid, state: "running", ping: this.options.now()});
-        context.tasks.add(task);
+    function insertTaskIfNotExists() {
+        if (!task) {
+            task = {
+                creationDate: self.options.now(),
+                scheduleShortid: schedule.shortid,
+                state: "running",
+                ping: self.options.now()
+            };
+            self.currentlyRunningTasks.push(task);
+            return self.documentStore.collection("tasks").insert(task);
+        }
+        self.currentlyRunningTasks.push(task);
+        return q();
     }
 
-    this.currentlyRunningTasks.push(task);
-
-    return context.saveChanges().then(function () {
+    return insertTaskIfNotExists().then(function () {
         var cron = new CronTime(schedule.cron);
         var nextRun = cron._getNextDateFrom(new Date(schedule.nextRun.getTime() + 1000)).toDate();
 
-        return context.schedules.rawUpdate({
+        return self.documentStore.collection("schedules").update({
             _id: schedule._id
         }, {$set: {state: "planned", nextRun: new Date(nextRun.getTime())}});
-    }).then(function() {
+    }).then(function () {
         return self.executionHandler(schedule, task, context).then(function () {
             self.logger.debug("Processing schedule " + schedule.name + " succeeded.");
-            return context.tasks.rawUpdate(
+            return self.documentStore.collection("tasks").update(
                 {_id: task._id},
                 {
                     $set: {
@@ -136,7 +149,7 @@ JobProcessor.prototype.execute = function (schedule, task, context) {
                 });
         }).catch(function (e) {
             self.logger.debug("Processing schedule " + schedule.name + " failed with :" + e.stack);
-            return context.tasks.rawUpdate(
+            return self.documentStore.collection("tasks").update(
                 {_id: task._id},
                 {
                     $set: {
@@ -146,8 +159,8 @@ JobProcessor.prototype.execute = function (schedule, task, context) {
                     }
                 });
         }).fin(function () {
-            self.currentlyRunningTasks = _.filter(self.currentlyRunningTasks, function (task) {
-                return task._id !== task._id;
+            self.currentlyRunningTasks = _.filter(self.currentlyRunningTasks, function (t) {
+                return t._id !== task._id;
             });
         });
     });

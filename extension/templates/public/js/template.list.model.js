@@ -2,8 +2,15 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-define(["app", "backbone", "./template.model", "core/dataGrid"], function (app, Backbone, TemplateModel, DataGrid) {
+define(["app", "jquery", "backbone", "./template.model", "core/dataGrid"], function (app, $, Backbone, TemplateModel, DataGrid) {
     return Backbone.Collection.extend({
+
+        url: function() {
+            var qs =  this.filter.toOData();
+            qs.$orderby = "modificationDate desc";
+            return "odata/templates?" + $.param(qs);
+        },
+
         initialize: function () {
             var self = this;
             this.filter = new DataGrid.Filter.Base();
@@ -13,19 +20,12 @@ define(["app", "backbone", "./template.model", "core/dataGrid"], function (app, 
         },
 
         parse: function (data) {
-            if (data.totalCount != null)
-                this.filter.set("totalCount", data.totalCount);
+            if (this.meta && this.meta["@odata.count"])
+                this.filter.set("totalCount", this.meta["@odata.count"]);
 
             return data;
         },
 
-        fetchQuery: function () {
-            return app.dataContext.templates
-                .orderByDescending(function(t) {
-                    return t.modificationDate;
-                })
-                .applyFilter(this.filter).toArray();
-        },
 
         model: TemplateModel
     });

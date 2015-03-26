@@ -4,9 +4,6 @@
  * Extension storing 5min based statistics - amount of successfully generated, amount of failures
  */
 
-var shortid = require("shortid"),
-    _ = require("underscore");
-
 var Statistics = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
@@ -26,7 +23,7 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
         fiveMinuteDate: fiveMinuteDate
     };
 
-    return request.context.statistics.rawUpdate({
+    return this.reporter.documentStore.collection("statistics").update({
         fiveMinuteDate : fiveMinuteDate
     }, {
         $inc: {
@@ -39,7 +36,7 @@ Statistics.prototype.handleBeforeRender = function (request, response) {
 };
 
 Statistics.prototype.handleAfterRender = function (request, response) {
-    return request.context.statistics.rawUpdate({
+    return this.reporter.documentStore.collection("statistics").update({
         fiveMinuteDate : request.statistics.fiveMinuteDate
     }, {
         $inc: {
@@ -51,14 +48,14 @@ Statistics.prototype.handleAfterRender = function (request, response) {
 
 Statistics.prototype._defineEntities = function () {
 
-    this.StatisticType = this.reporter.dataProvider.createEntityType("StatisticType", {
-        _id: { type: "id", key: true, computed: true, nullable: false },
-        fiveMinuteDate: { type: "date" },
-        amount: { type: "int", increment: true },
-        success: { type: "int", increment: true }
+    this.reporter.documentStore.registerEntityType("StatisticType", {
+        _id: {type: "Edm.String", key: true},
+        fiveMinuteDate: { type: "Edm.DateTimeOffset" },
+        amount: { type: "Edm.Int64" },
+        success: { type: "Edm.Int64" }
     });
 
-    this.reporter.dataProvider.registerEntitySet("statistics", this.StatisticType, { shared : true, tableOptions: { nedbPersistance: "singleFile" } });
+    this.reporter.documentStore.registerEntitySet("statistics",  {entityType: "StatisticType", shared: true});
 };
 
 module.exports = function (reporter, definition) {

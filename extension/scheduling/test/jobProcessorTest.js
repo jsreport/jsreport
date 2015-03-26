@@ -17,29 +17,26 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
             this.timeout(3000);
             reporter.scheduling.stop();
 
-            reporter.dataProvider.startContext().then(function (context) {
-                context.schedules.add(new reporter.scheduling.ScheduleType({
-                    cron: "*/1 * * * * *"
-                }));
-                return context.saveChanges().then(function () {
-                    var counter = 0;
+            reporter.documentStore.collection("schedules").insert({
+                cron: "*/1 * * * * *"
+            }).then(function () {
+                var counter = 0;
 
-                    function exec() {
-                        counter++;
-                        return q();
-                    }
+                function exec() {
+                    counter++;
+                    return q();
+                }
 
-                    var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
-                        interval: 50,
-                        maxParallelJobs: 1
-                    });
-                    return jobProcessor.process({waitForJobToFinish: true}).then(function () {
-                        return context.tasks.toArray().then(function (tasks) {
-                            tasks.length.should.be.exactly(1);
-                            tasks[0].state.should.be.exactly("success");
-                            tasks[0].finishDate.should.be.ok;
-                            done();
-                        });
+                var jobProcessor = new JobProcessor(exec, reporter.documentStore, reporter.logger, reporter.scheduling.TaskType, {
+                    interval: 50,
+                    maxParallelJobs: 1
+                });
+                return jobProcessor.process({waitForJobToFinish: true}).then(function () {
+                    return reporter.documentStore.collection("tasks").find({}).then(function (tasks) {
+                        tasks.length.should.be.exactly(1);
+                        tasks[0].state.should.be.exactly("success");
+                        tasks[0].finishDate.should.be.ok;
+                        done();
                     });
                 });
             }).catch(done);
@@ -49,11 +46,8 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
             this.timeout(2000);
             reporter.scheduling.stop();
 
-            reporter.dataProvider.startContext().then(function (context) {
-                context.schedules.add(new reporter.scheduling.ScheduleType({
-                    cron: "*/1 * * * * *"
-                }));
-                return context.saveChanges();
+            reporter.documentStore.collection("schedules").insert({
+                cron: "*/1 * * * * *"
             }).then(function () {
 
                 var counter = 0;
@@ -63,7 +57,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
                     return q();
                 }
 
-                var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
+                var jobProcessor = new JobProcessor(exec, reporter.documentStore, reporter.logger, reporter.scheduling.TaskType, {
                     interval: 50,
                     maxParallelJobs: 0
                 });
@@ -77,37 +71,31 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
         it('should recover failed tasks', function (done) {
             reporter.scheduling.stop();
 
-            reporter.dataProvider.startContext().then(function (context) {
-                var schedule = new reporter.scheduling.ScheduleType({
-                    cron: "* * * * * 2090"
+            reporter.documentStore.collection("schedules").insert({
+                cron: "* * * * * 2090"
+            }).then(function (schedule) {
+                reporter.documentStore.collection("tasks").insert({
+                    ping: new Date(1),
+                    state: "running",
+                    scheduleShortid: schedule.shortid
+                });
+            }).then(function () {
+                var counter = 0;
+
+                function exec() {
+                    counter++;
+                    return q();
+                }
+
+                var jobProcessor = new JobProcessor(exec, reporter.documentStore, reporter.logger, reporter.scheduling.TaskType, {
+                    interval: 20,
+                    maxParallelJobs: 1,
+                    taskPingTimeout: 10
                 });
 
-                context.schedules.add(schedule);
-                return context.saveChanges().then(function () {
-                    context.tasks.add(new reporter.scheduling.TaskType({
-                        ping: new Date(1),
-                        state: "running",
-                        scheduleShortid: schedule.shortid
-                    }));
-                    return context.saveChanges();
-                }).then(function () {
-                    var counter = 0;
-
-                    function exec() {
-                        counter++;
-                        return q();
-                    }
-
-                    var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
-                        interval: 20,
-                        maxParallelJobs: 1,
-                        taskPingTimeout: 10
-                    });
-
-                    return jobProcessor.process({waitForJobToFinish: true}).then(function () {
-                        counter.should.be.exactly(1);
-                        done();
-                    });
+                return jobProcessor.process({waitForJobToFinish: true}).then(function () {
+                    counter.should.be.exactly(1);
+                    done();
                 });
             }).catch(done);
         });
@@ -115,36 +103,30 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
         it('should ping running tasks', function (done) {
             reporter.scheduling.stop();
 
-            reporter.dataProvider.startContext().then(function (context) {
-                var schedule = new reporter.scheduling.ScheduleType({
-                    cron: "* * * * * 2090"
-                });
+            reporter.documentStore.collection("schedules").insert({
+                cron: "* * * * * 2090"
+            }).then(function (schedule) {
+                return reporter.documentStore.collection("tasks").insert({
+                    ping: new Date(new Date().getTime() - 1000),
+                    state: "running",
+                    scheduleShortid: schedule.shortid
+                }).then(function (task) {
 
-                context.schedules.add(schedule);
-                return context.saveChanges().then(function () {
-                    var task = new reporter.scheduling.TaskType({
-                        ping: new Date(new Date().getTime() - 1000),
-                        state: "running",
-                        scheduleShortid: schedule.shortid
+                    var counter = 0;
+
+                    function exec() {
+                        return q();
+                    }
+
+                    var jobProcessor = new JobProcessor(exec, reporter.documentStore, reporter.logger, reporter.scheduling.TaskType, {
+                        interval: 20,
+                        maxParallelJobs: 1
                     });
-                    context.tasks.add(task);
-                    return context.saveChanges().then(function () {
-                        var counter = 0;
-
-                        function exec() {
-                            return q();
-                        }
-
-                        var jobProcessor = new JobProcessor(exec, reporter.dataProvider, reporter.logger, reporter.scheduling.TaskType, {
-                            interval: 20,
-                            maxParallelJobs: 1
-                        });
-                        jobProcessor.currentlyRunningTasks.push(task);
-                        return jobProcessor.process({waitForJobToFinish: true}).then(function () {
-                            return context.tasks.toArray().then(function (tasks) {
-                                tasks[0].ping.should.not.be.exactly(task.ping);
-                                done();
-                            });
+                    jobProcessor.currentlyRunningTasks.push(task);
+                    return jobProcessor.process({waitForJobToFinish: true}).then(function () {
+                        return reporter.documentStore.collection("tasks").find({}).then(function (tasks) {
+                            tasks[0].ping.should.not.be.exactly(task.ping);
+                            done();
                         });
                     });
                 });
@@ -152,43 +134,4 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "sche
         });
     });
 });
-
-describe("JobProcessor._schedulesToProcessFilter", function () {
-    it('should pass for planned in past and enabled', function () {
-        this.now = new Date();
-        JobProcessor._schedulesToProcessFilter.call(this, {
-            enabled: true,
-            nextRun: new Date(1),
-            state: "planned"
-        }).should.be.ok;
-    });
-
-    it('should skip disabled', function () {
-        this.now = new Date();
-        JobProcessor._schedulesToProcessFilter.call(this, {
-            enabled: false,
-            nextRun: new Date(1),
-            state: "planned"
-        }).should.not.be.ok;
-    });
-
-    it('should skip running', function () {
-        this.now = new Date();
-        JobProcessor._schedulesToProcessFilter.call(this, {
-            enabled: true,
-            nextRun: new Date(1),
-            state: "running"
-        }).should.not.be.ok;
-    });
-
-    it('should skip in future', function () {
-        this.now = new Date();
-        JobProcessor._schedulesToProcessFilter.call(this, {
-            enabled: true,
-            nextRun: new Date(2090, 1, 1),
-            state: "running"
-        }).should.not.be.ok;
-    });
-});
-
 

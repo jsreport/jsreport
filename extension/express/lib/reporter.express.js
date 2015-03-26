@@ -3,11 +3,9 @@
  */
 /*globals $data */
 
-var async = require("async"),
-    express = require('express'),
+var express = require('express'),
     _ = require("underscore"),
     path = require("path"),
-    odata_server = require('odata-server'),
     q = require("q"),
     bodyParser = require("body-parser"),
     cookieParser = require('cookie-parser'),
@@ -22,7 +20,7 @@ var async = require("async"),
 var useDomainMiddleware = function(reporter, req, res) {
     var clusterInstance = (reporter.options.cluster && reporter.options.cluster.enabled) ? reporter.options.cluster.instance : null;
 
-    return require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
+    require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
 };
 
 var startAsync = function(reporter, server, port) {

@@ -3,9 +3,9 @@
  */
 
 define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base", "core/listenerCollection", "./scripts.template.standard.model", "./scripts.template.standard.view",
-        "core/aceBinder", "./scripts.entityRegistration"],
+        "core/aceBinder"],
     function ($, _, app, Marionette, Backbone, ViewBase, ListenerCollection, TemplateStandardModel, TemplateStandardView,
-              aceBinder, entityRegistration) {
+              aceBinder) {
 
         app.options.scripts = $.extend(app.options.scripts, { allowSelection: false, allowCustom: true}, app.options.scripts);
 
@@ -69,7 +69,5 @@ define(["jquery", "underscore", "app", "marionette", "backbone", "core/view.base
                     });
                 });
             });
-
-            app.on("entity-registration", entityRegistration);
         });
     });

@@ -1,4 +1,4 @@
-﻿module.exports = function (req, res, next) {
+﻿module.exports = function (inputs, done) {
 
     var vm = require('vm');
 
@@ -6,7 +6,7 @@
         //we want to allow only listed modules to stay secure
         //module can be just string id or { id : "id", path: "path" } tuple
 
-        var modules = req.body.allowedModules.filter(function (mod) {
+        var modules = inputs.allowedModules.filter(function (mod) {
             return (mod.id || mod) === moduleName;
         });
         if (modules.length === 1) {
@@ -16,23 +16,23 @@
         throw new Error("Unsupported module " + moduleName);
     };
 
-    req.body.request.cancel = function(e) {
-        res.send({
+    inputs.request.cancel = function(e) {
+        done(null, {
             cancelRequest: true,
             additionalInfo: e
         });
     };
 
     var sandbox = {
-        request: req.body.request,
-        response: req.body.response,
+        request: inputs.request,
+        response: inputs.response,
         require: _require,
         setTimeout: setTimeout,
         Buffer: Buffer,
         doneMethods: function(err){
-            res.send({
-                request: req.body.request,
-                response: req.body.response,
+            done(null, {
+                request: inputs.request,
+                response: inputs.response,
                 shouldRunAfterRender: true,
                 error: err ? {
                     message: err.message,
@@ -41,9 +41,9 @@
             });
         },
         done: function (err) {
-            res.send({
-                request: req.body.request,
-                response: req.body.response,
+            done(null, {
+                request: inputs.request,
+                response: inputs.response,
                 shouldRunAfterRender: false,
                 error: err ? {
                     message: err.message,
@@ -57,5 +57,5 @@
     var runBeforeRender = "\nif (typeof beforeRender === 'function') { beforeRender(doneMethods); } else { if (typeof afterRender === 'function') doneMethods(); }";
     var runAfterRender = "\nif (typeof afterRender === 'function') { afterRender(doneMethods); } else { done(); }";
 
-    vm.runInNewContext(req.body.script + (req.body.method === "beforeRender" ? runBeforeRender : runAfterRender), sandbox);
+    vm.runInNewContext(inputs.script + (inputs.method === "beforeRender" ? runBeforeRender : runAfterRender), sandbox);
 };

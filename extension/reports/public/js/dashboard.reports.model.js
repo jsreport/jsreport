@@ -1,9 +1,8 @@
 ﻿define(["app", "backbone", "./report.model"], function (app, Backbone, ReportModel) {
     return Backbone.Collection.extend({
-        fetchQuery: function(cb) {
-            return app.dataContext.reports
-                .orderByDescending(function (t) { return t.creationDate; })
-                .take(4).toArray();
+
+        url: function() {
+            return "odata/reports?$orderby=creationDate desc&$top=4";
         },
 
         model: ReportModel
