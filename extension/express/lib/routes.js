@@ -13,42 +13,44 @@ var oneMonth = 31 * 86400000;
 module.exports = function (app, reporter) {
     var originalMode = reporter.options.mode;
 
+    function handleError(req, res, err) {
+        res.status(500);
+
+        if (_.isString(err)) {
+            err = {
+                message: err
+            };
+        }
+
+        err = err || {};
+        err.message = err.message || "Unrecognized error";
+
+        if (err.unauthorized) {
+            res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
+            res.status(401).end();
+            return;
+        }
+
+        var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+
+        var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
+
+        logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
+
+        if ((req.get('Content-Type') && (req.get('Content-Type').indexOf("application/json") !== -1)) ||
+            (req.get('Accept') && (req.get('Accept').indexOf("application/json") !== -1))) {
+            return res.send({message: err.message, stack: err.stack});
+        }
+
+        res.write("Error occured - " + err.message + "\n");
+        if (err.stack)
+            res.write("Stack - " + err.stack);
+        res.end();
+    }
+
     app.use(function (req, res, next) {
         res.error = function (err) {
-
-            res.status(500);
-
-            if (_.isString(err)) {
-                err = {
-                    message: err
-                };
-            }
-
-            err = err || {};
-            err.message = err.message || "Unrecognized error";
-
-            if (err.unauthorized) {
-                res.setHeader('WWW-Authenticate', 'Basic realm=\"realm\"');
-                res.status(401).end();
-                return;
-            }
-
-            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-
-            var logFn = err.weak ? reporter.logger.warn : reporter.logger.error;
-
-            logFn("Error during processing request: " + fullUrl + " details: " + err.message + " " + err.stack);
-
-            if ((req.get('Content-Type') && (req.get('Content-Type').indexOf("application/json") !== -1)) ||
-                (req.get('Accept') && (req.get('Accept').indexOf("application/json") !== -1))) {
-                return res.send({message: err.message, stack: err.stack});
-            }
-
-            res.write("Error occured - " + err.message + "\n");
-            if (err.stack)
-                res.write("Stack - " + err.stack);
-            res.end();
-            return;
+            handleError(req, res, err);
         };
 
         next();
@@ -222,6 +224,6 @@ module.exports = function (app, reporter) {
     });
 
     app.use(function (err, req, res, next) {
-        res.error(err);
+        handleError(req, res, err);
     });
 };

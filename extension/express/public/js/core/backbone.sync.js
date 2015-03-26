@@ -47,7 +47,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
             url = model.url();
 
         return $.ajax({
-            type: model.odata ? "PATCH" : "PUT",
+            type: url.indexOf("odata/") !== -1 ? "PATCH" : "PUT",
             dataType: 'json',
             url: app.serverUrl +url,
             converters: {

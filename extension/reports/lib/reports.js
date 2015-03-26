@@ -28,10 +28,10 @@ Reporting.prototype.configureExpress = function (app) {
             if (result.length !== 1)
                 throw new Error("Report " + req.params.id + " not found");
 
-            return self.reporter.blobStorage.read(result[0].blobName, function (err, stream) {
-                if (err) {
-                    return q.fail(err);
-                }
+            return q.ninvoke(self.reporter.blobStorage, "read", result[0].blobName).then(function(stream) {
+                stream.on('error', function(err) {
+                    res.error(err);
+                });
 
                 res.setHeader('Content-Type', result[0].contentType);
                 res.setHeader('File-Extension', result[0].fileExtension);

@@ -21,7 +21,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
                     options: {}
                 };
 
-                return reporter.childTemplates.handleBeforeRender(request, {}).then(function () {
+                return reporter.childTemplates.evaluateChildTemplates(request, {}, true).then(function () {
                     assert.equal("xx", request.template.content);
                     done();
                 });
@@ -41,7 +41,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTe
                     options: {}
                 };
 
-                return reporter.childTemplates.handleBeforeRender(request, {}).then(function () {
+                return reporter.childTemplates.evaluateChildTemplates(request, {}, true).then(function () {
                     assert.equal("afoobafoo", request.template.content);
                     done();
                 });

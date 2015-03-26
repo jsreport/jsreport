@@ -75,6 +75,8 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             return q(request.template.script);
 
         return self.reporter.documentStore.collection("scripts").find({shortid: request.template.script.shortid}).then(function (items) {
+            if (items.length < 1)
+                throw new Error("Script not found or user not authorized to read it (" + request.template.script.shortid + ")");
             return items[0];
         });
     }

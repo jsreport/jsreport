@@ -106,6 +106,9 @@ Scheduling.prototype.renderReport = function (schedule, task) {
 };
 
 module.exports = function (reporter, definition) {
+    if (definition.options.enabled === false)
+        return;
+
     reporter[definition.name] = new Scheduling(reporter, definition);
 
     definition.options = _.extend({

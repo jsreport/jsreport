@@ -41,8 +41,9 @@ UsersRepository.prototype.validate = function (user) {
 
 
 UsersRepository.prototype.authenticate = function (username, password) {
-    return this.usersCollection.find({username: username}).then(function (users) {
-        //TODO context.skipAuthorization = true;
+    var query = {username: username};
+    process.domain.req.skipAuthorizationForQuery = query;
+    return this.usersCollection.find(query).then(function (users) {
         if (users.length !== 1 || !passwordHash.verify(password, users[0].password))
             return null;
         return users[0];
@@ -50,8 +51,10 @@ UsersRepository.prototype.authenticate = function (username, password) {
 };
 
 UsersRepository.prototype.find = function (username) {
-    return this.usersCollection.find({username: username}).then(function (users) {
-        //TODO context.skipAuthorization = true;
+    var query = {username: username};
+    process.domain.req.skipAuthorizationForQuery = query;
+
+    return this.usersCollection.find(query).then(function (users) {
         if (users.length !== 1)
             return null;
 

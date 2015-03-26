@@ -32,14 +32,18 @@ function handleAuthorization(reporter, definition) {
         function verifyToken(req, query, token) {
             req.skipAuthorizationForQuery = query;
             return reporter.documentStore.collection("templates").find(query).then(function(templates) {
-                if (templates.length !== 1)
-                    throw new Error("Unauthorized");
+                if (templates.length !== 1) {
+                    var e = new Error("Unauthorized");
+                    e.unauthorized = true;
+                    throw e;
+                }
 
                 var template = templates[0];
 
                 if (template.writeSharingToken !== token && template.readSharingToken !== token)
                     throw new Error("Unauthorized");
 
+                req.tokenVerified = true;
                 req.skipAuthorizationForUpdate = query;
             });
         }
@@ -71,12 +75,20 @@ function handleAuthorization(reporter, definition) {
 
                 var req = process.domain.req;
 
-                if (S(req.url).startsWith("/api/report") || S(req.url).startsWith("/public-templates")) {
-                    delete query.readPermissions;
-                }
+                if (req.user || req.skipAuthorizationForQuery === query || req.tokenVerified)
+                    return;
 
-                if (col.name === "templates" && req.query.access_token) {
+                if (this.name === "templates" && req.query.access_token) {
+
+                    if (S(req.url).startsWith("/api/report") || S(req.url).startsWith("/public-templates")) {
+                        delete query.readPermissions;
+                    }
+
                     return verifyToken(req, query, req.query.access_token);
+                } else {
+                    var e = new Error("Unauthorized");
+                    e.unauthorized = true;
+                    throw e;
                 }
             });
         }
@@ -121,10 +133,10 @@ function configureExpress(app, reporter) {
 
     /* verify an access token and render the particular template */
     app.get("/public-templates", function (req, res, next) {
-        req.skipAuthorization = true;
-        reporter.documentStore.collection("templates").find({
-          $or: [ { readSharingToken: req.query.access_token }, { writeSharingToken: req.query.access_token }]
-        }).then(function(templates) {
+        var query = {
+            $or: [ { readSharingToken: req.query.access_token }, { writeSharingToken: req.query.access_token }] };
+        req.skipAuthorizationForQuery = query;
+        reporter.documentStore.collection("templates").find(query).then(function(templates) {
             if (templates.length !== 1)
                 return q.reject(new Error("Unauthorized"));
 

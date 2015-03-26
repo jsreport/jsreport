@@ -20,7 +20,7 @@ var express = require('express'),
 var useDomainMiddleware = function(reporter, req, res) {
     var clusterInstance = (reporter.options.cluster && reporter.options.cluster.enabled) ? reporter.options.cluster.instance : null;
 
-    return require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
+    require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
 };
 
 var startAsync = function(reporter, server, port) {

@@ -72,7 +72,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
         return self.reporter.documentStore.collection("data").find({ shortid: request.template.data.shortid}).then(function(items) {
             if (items.length !== 1)
-                throw new Error("Data not found for shortid " + request.template.data.shortid);
+                throw new Error("Data entry not found (" + request.template.data.shortid + ")");
             return items[0];
         });
     }

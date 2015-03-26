@@ -162,7 +162,7 @@ define(["core/view.base", "core/jaydataModel", "underscore", "jquery", "async"],
             toOData: function() {
                 return {
                     $skip: this.get("pageSize") * (this.get("pageNumber") - 1),
-                    $take: this.get("pageSize"),
+                    $top: this.get("pageSize"),
                     $count: true
                 };
             },
