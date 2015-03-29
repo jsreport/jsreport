@@ -5,7 +5,7 @@
  * Syntax is {#child [template name]}
  */
 
-var Q = require("q"),
+var q = require("q"),
     asyncReplace = require("async-replace"),
     extend = require("node.extend");
 
@@ -61,7 +61,7 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
 
     var test = /{#child ([^{}]{0,50})}/g;
 
-    return Q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content  : response.result, test, convert).then(function(result) {
+    return q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content  : response.result, test, convert).then(function(result) {
         if (evaluateInTemplateContent)
             request.template.content = result;
         else

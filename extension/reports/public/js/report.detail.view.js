@@ -3,12 +3,7 @@
         template: "report-detail",
 
         initialize: function () {
-            _.bindAll(this, "refresh");
-            this.listenTo(this.model, "sync", this.refresh);
-        },
-        
-        refresh: function() {
-            
+            this.listenTo(this.model, "sync", this.render);
         }
     });
 });

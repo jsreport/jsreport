@@ -13,7 +13,7 @@ function UsersRepository(reporter) {
         password: {type: "Edm.String"}
     });
 
-    this.reporter.documentStore.registerEntitySet("users", {entityType: "UserType", humanReadableKey: "shortid"});
+    this.reporter.documentStore.registerEntitySet("users", {entityType: "jsreport.UserType", humanReadableKey: "shortid"});
 
     this.reporter.initializeListener.add("repository", function () {
         var col = self.usersCollection = self.imagesCollection = self.reporter.documentStore.collection("users");

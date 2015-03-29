@@ -29,9 +29,11 @@ define(["core/view.base", "core/basicModel", "underscore", "jquery", "async"],
             view.pagerRegion.show(pager);
             view.pager = pager;
 
-            var searcher = new DataGrid.SearcherView({ model: options.filter });
-            view.searchRegion.show(searcher);
-            view.searcher = searcher;
+            if (options.showSearch !== false) {
+                var searcher = new DataGrid.SearcherView({model: options.filter});
+                view.searchRegion.show(searcher);
+                view.searcher = searcher;
+            }
 
             return {
                 deleteItems: function() {
@@ -182,7 +184,7 @@ define(["core/view.base", "core/basicModel", "underscore", "jquery", "async"],
                 };
 
                 if (this.get("search"))
-                    q["$filter"] = "substringof(name, '" + this.get("search") + "')";
+                    q["$filter"] = "substringof(" + (this.get("searchProperty") || "name") + ", '" + this.get("search") + "')";
 
                 return q;
             },

@@ -11,7 +11,7 @@
                 app.dataProvider.get("odata/templates").then(function (templates) {
                     self.templates = templates.map(function (t) {
                         return {shortid: t.shortid, name: t.name};
-                    })
+                    });
                     self.templates.unshift({name: "-- select template --"});
                     if (self.get("shortid")) {
                         return app.dataProvider.get("odata/schedules?$filter=shortid eq " + self.get("shortid")).then(function (schedules) {

@@ -17,8 +17,7 @@ var stream = require("stream"),
 
 var Templating = function (reporter, definition) {
     this.name = "templates";
-    this.reporter = reporter;
-    this.definition = definition;
+    this.reporter = reporter;  this.definition = definition;
     this.documentStore = reporter.documentStore;
 
     this._defineEntities();
@@ -132,8 +131,8 @@ Templating.prototype._defineEntities = function () {
 
     this.documentStore.registerEntityType("TemplateHistoryType", templateAttributes);
     this.documentStore.registerEntityType("TemplateType", templateAttributes);
-    this.documentStore.registerEntitySet("templates", {entityType: "TemplateType", humanReadableKey: "shortid"});
-    this.documentStore.registerEntitySet("templatesHistory", {entityType: "TemplateHistoryType"});
+    this.documentStore.registerEntitySet("templates", {entityType: "jsreport.TemplateType", humanReadableKey: "shortid"});
+    this.documentStore.registerEntitySet("templatesHistory", {entityType: "jsreport.TemplateHistoryType"});
 
     var self = this;
     this.reporter.initializeListener.add("templates", function () {

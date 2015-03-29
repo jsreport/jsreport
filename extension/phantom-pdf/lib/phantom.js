@@ -46,8 +46,6 @@ var Phantom = function (reporter, definition) {
     reporter.documentStore.model.entityTypes["TemplateType"].phantom = {type: "jsreport.PhantomType"};
 };
 
-Phantom.prototype._mapPhantomOptions
-
 Phantom.prototype.execute = function (request, response) {
     var self = this;
     request.template.phantom = request.template.phantom || {};

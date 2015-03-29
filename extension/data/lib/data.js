@@ -28,7 +28,7 @@ var Data = function (reporter, definition) {
         shortid: { type: "Edm.String" }
     });
 
-    reporter.documentStore.registerEntitySet("data", {entityType: "DataItemType", humanReadableKey: "shortid"});
+    reporter.documentStore.registerEntitySet("data", {entityType: "jsreport.DataItemType", humanReadableKey: "shortid"});
     reporter.documentStore.model.entityTypes["TemplateType"].data = {type: "jsreport.DataItemRefType"};
 
     reporter.initializeListener.add("data", function () {

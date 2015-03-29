@@ -63,7 +63,7 @@ Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, respo
             var imageData = "data:" + result[0].contentType + ";base64," + result[0].content.toString('base64');
             done(null, imageData);
         }).catch(done);
-    };
+    }
 
     var test = /{#image ([^{}]{0,50})}/g;
 
@@ -144,7 +144,7 @@ Images.prototype._defineEntities = function () {
 
     this.reporter.documentStore.model.entityTypes["TemplateType"].images = {type: "Collection(jsreport.ImageRefType)"};
     this.reporter.documentStore.model.entityTypes["TemplateHistoryType"].images = {type: "Collection(jsreport.ImageRefType)"};
-    this.reporter.documentStore.registerEntitySet("images", {entityType: "ImageType", humanReadableKey: "shortid"});
+    this.reporter.documentStore.registerEntitySet("images", {entityType: "jsreport.ImageType", humanReadableKey: "shortid"});
 
     var self = this;
     this.reporter.initializeListener.add("images", function () {

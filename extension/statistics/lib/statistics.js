@@ -55,7 +55,7 @@ Statistics.prototype._defineEntities = function () {
         success: { type: "Edm.Int64" }
     });
 
-    this.reporter.documentStore.registerEntitySet("statistics",  {entityType: "StatisticType", shared: true});
+    this.reporter.documentStore.registerEntitySet("statistics",  {entityType: "jsreport.StatisticType", shared: true});
 };
 
 module.exports = function (reporter, definition) {

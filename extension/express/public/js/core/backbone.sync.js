@@ -6,7 +6,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
 
     function read(model) {
         var url;
-        if (model.odata) {
+        if (model.odata && !_.isFunction(model.url)) {
             url = "odata/" + model.odata + "?$filter=shortid eq '" + model.get("shortid") + "'";
         }
 
@@ -33,7 +33,7 @@ define(["backbone", "jquery", "app", "underscore"], function (Backbone, $, app, 
             }
 
             return res;
-        })
+        });
     }
 
     function update(model) {

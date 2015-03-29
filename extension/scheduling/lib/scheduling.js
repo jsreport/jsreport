@@ -40,9 +40,9 @@ var Scheduling = function (reporter, definition) {
     });
 
 
-    this.reporter.documentStore.registerEntitySet("schedules", {entityType: "ScheduleType", humanReadableKey: "shortid"});
+    this.reporter.documentStore.registerEntitySet("schedules", {entityType: "jsreport.ScheduleType", humanReadableKey: "shortid"});
     this.reporter.documentStore.model.entityTypes["ReportType"].taskId = { type: "Edm.String"};
-    this.reporter.documentStore.registerEntitySet("tasks", {entityType: "TaskType"});
+    this.reporter.documentStore.registerEntitySet("tasks", {entityType: "jsreport.TaskType"});
     reporter.initializeListener.add(definition.name, this, Scheduling.prototype._initialize);
 };
 

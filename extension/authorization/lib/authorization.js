@@ -49,7 +49,7 @@ Authorization.prototype.checkPermissions = function(entity, req) {
     }
 
     return true;
-}
+};
 
 Authorization.prototype.authorizeUpdate = function (query, update, collection, req) {
     var self = this;
@@ -67,7 +67,7 @@ Authorization.prototype.authorizeUpdate = function (query, update, collection, r
         });
         return result;
     });
-}
+};
 
 Authorization.prototype.authorizeRemove = function (query, collection, req) {
     var self = this;
@@ -81,7 +81,7 @@ Authorization.prototype.authorizeRemove = function (query, collection, req) {
         });
         return result;
     });
-}
+};
 
 Authorization.prototype.defaultAuth = function (collection, req) {
     if (collection.name === "settings")
@@ -103,7 +103,7 @@ Authorization.prototype.defaultAuth = function (collection, req) {
         return true;
 
     return null;
-}
+};
 
 Authorization.prototype._registerAuthorizationListeners = function () {
     var self = this;
@@ -114,30 +114,30 @@ Authorization.prototype._registerAuthorizationListeners = function () {
         if (col.entitySet.shared)
             continue;
 
-        function check(colection, authAction) {
+        var check = function(collection, authAction) {
             function fn() {
                 if (!process.domain || !process.domain.req)
                     return q(true);
 
-                var defaultAuth = self.defaultAuth(colection, process.domain.req);
+                var defaultAuth = self.defaultAuth(collection, process.domain.req);
                 if (defaultAuth === true)
                     return q(true);
                 if (defaultAuth === false)
                     return q(false);
 
                 return authAction();
-            };
+            }
 
             return fn().then(function (res) {
                 if (res !== true) {
                     if (process.domain.req.user)
                         self.reporter.logger.warn("User " + process.domain.req.user.username + " not authorized for " + collection.name);
-                    var e = new Error("Unauthorized for " + colection.name);
+                    var e = new Error("Unauthorized for " + collection.name);
                     e.unauthorized = true;
                     throw e;
                 }
             });
-        }
+        };
 
         col["beforeUpdateListeners"].add("authorization", col, function (query, update) {
             var col = this;
@@ -146,14 +146,14 @@ Authorization.prototype._registerAuthorizationListeners = function () {
 
             return check(col, function() {
                 return self.authorizeUpdate(query, update, col, process.domain.req);
-            })
+            });
         });
 
         col["beforeRemoveListeners"].add("authorization", col, function (query) {
             var col = this;
             return check(col, function() {
                 return self.authorizeRemove(query, col, process.domain.req);
-            })
+            });
         });
 
         col["beforeInsertListeners"].add("authorization", col, function (doc) {
@@ -162,7 +162,7 @@ Authorization.prototype._registerAuthorizationListeners = function () {
                 return;
             return check(col, function() {
                 return q(true);
-            })
+            });
         });
     }
 };
@@ -171,7 +171,7 @@ Authorization.prototype._handlePermissionsInEntities = function () {
     var self = this;
 
     function isRequestEligibleForAuth() {
-        return process.domain && process.domain.req && process.domain.req.user;
+        return process.domain && process.domain.req && process.domain.req.user && !process.domain.req.user.isAdmin;
     }
 
     function beforeCreate(entity) {
@@ -226,7 +226,7 @@ Authorization.prototype._handlePermissionsInEntities = function () {
             }
         });
     }
-}
+};
 
 Authorization.prototype._extendEntitiesWithPermissions = function () {
     this.reporter.documentStore.on("before-init", function (documentStore) {
@@ -235,7 +235,7 @@ Authorization.prototype._extendEntitiesWithPermissions = function () {
             if (entitySet.shared)
                 continue;
 
-            var entityType = documentStore.model.entityTypes[entitySet.type];
+            var entityType = documentStore.model.entityTypes[entitySet.entityType.replace(documentStore.model.namespace + ".", "")];
 
             entityType.readPermissions = {type: "Collection(Edm.String)"};
             entityType.editPermissions = {type: "Collection(Edm.String)"};

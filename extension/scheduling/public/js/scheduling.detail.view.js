@@ -26,6 +26,7 @@
                 headerTemplate: "scheduling-tasks-header",
                 rowsTemplate: "scheduling-tasks-rows",
                 showSelection: false,
+                showSearch: false,
                 onRender: function() {
                     self.$el.find(".reportDownload").click(function() {
                         if ($(this).attr("data-error")) {

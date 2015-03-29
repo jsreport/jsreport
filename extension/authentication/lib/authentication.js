@@ -39,13 +39,13 @@ function addPassport(reporter, app, admin, definition) {
             return done(null, admin);
         }
 
-        reporter.authentication.usersRepository.authenticate(username, password).then(function(user) {
+        reporter.authentication.usersRepository.authenticate(username, password).then(function (user) {
             if (!user) {
                 return done(null, false, {message: "Invalid password or user does not exists."});
             }
 
             return done(null, user);
-        }).catch(function(e){
+        }).catch(function (e) {
             done(null, false, {message: e.message});
         });
     }
@@ -62,9 +62,9 @@ function addPassport(reporter, app, admin, definition) {
         if (id === admin.username)
             return done(null, admin);
 
-        reporter.authentication.usersRepository.find(id).then(function(user) {
+        reporter.authentication.usersRepository.find(id).then(function (user) {
             done(null, user);
-        }).catch(function(e) {
+        }).catch(function (e) {
             done(e);
         });
     });
@@ -111,11 +111,18 @@ function addPassport(reporter, app, admin, definition) {
     });
 
     app.use(function (req, res, next) {
-        if (!req.isAuthenticated() &&
-            (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1)) {
+        if (req.isAuthenticated()) {
+            return next();
+        }
 
-            passport.authenticate('basic', function (err, user, info) {
-                if (!user) {
+        passport.authenticate('basic', function (err, user, info) {
+            if (user) {
+                req.logIn(user, function () {
+                    reporter.logger.debug("API logging in user " + user.username);
+                    next();
+                });
+            } else {
+                if (req.url.indexOf("/api") > -1 || req.url.indexOf("/odata") > -1) {
                     if (req.isPublic) {
                         return next();
                     }
@@ -123,19 +130,14 @@ function addPassport(reporter, app, admin, definition) {
                     return res.status(401).end();
                 }
 
-                req.logIn(user, function () {
-                    reporter.logger.debug("API logging in user " + user.username);
-                    next();
-                });
-            })(req, res, next);
-        } else {
-            next();
-        }
-    });
+                next();
+            }
+        })(req, res, next);
+    });  
 }
 
 function configureRoutes(reporter, app, admin, definition) {
-    app.use(function(req, res, next) {
+    app.use(function (req, res, next) {
         var publicRoute = _.find(reporter.authentication.publicRoutes, function (r) {
             return S(req.url).startsWith(r);
         });
@@ -163,7 +165,7 @@ function configureRoutes(reporter, app, admin, definition) {
             return next();
         }
 
-        reporter.authorization.authorizeRequest(req, res).then(function(result) {
+        reporter.authorization.authorizeRequest(req, res).then(function (result) {
             if (result) {
                 return next();
             }
@@ -174,15 +176,15 @@ function configureRoutes(reporter, app, admin, definition) {
             }
 
             return res.redirect("/login");
-        }).catch(function(e) {
+        }).catch(function (e) {
             next(e);
         });
     });
 
-    app.post("/api/users/:shortid/password", function(req, res, next) {
-       reporter.authentication.usersRepository.changePassword(req.user, req.params.shortid,req.body.oldPassword,req.body.newPassword).then(function(user) {
-            res.send({ result: "ok"});
-        }).catch(function(e) {
+    app.post("/api/users/:shortid/password", function (req, res, next) {
+        reporter.authentication.usersRepository.changePassword(req.user, req.params.shortid, req.body.oldPassword, req.body.newPassword).then(function (user) {
+            res.send({result: "ok"});
+        }).catch(function (e) {
             next(e);
         });
     });

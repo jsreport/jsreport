@@ -24,7 +24,7 @@
                     var model = new ReportModel();
                     model.set("_id", id);
                     model.fetch({
-                        success: function () {
+                        success: function (x) {
                             app.layout.showToolbarViewComposition(new ReportDetailView({ model: model }), new ReportToolbarView({ model: model }));
                         }
                     });

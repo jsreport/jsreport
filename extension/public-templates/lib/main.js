@@ -57,7 +57,7 @@ function handleAuthorization(reporter, definition) {
 
                 if (this.name === "templates" && !process.domain.req.user && update.$set && update.$set.writeSharingToken) {
                     return verifyToken(process.domain.req, query, update.$set.writeSharingToken);
-                };
+                }
             });
 
             col.beforeInsertListeners.insert(0, "public-templates", col, function(doc) {
@@ -66,7 +66,7 @@ function handleAuthorization(reporter, definition) {
 
                 if (this.name === "templatesHistory") {
                     process.domain.req.skipAuthorizationForInsert = doc;
-                };
+                }
             });
 
             col.beforeFindListeners.add("public-templates", col, function(query) {
@@ -78,13 +78,18 @@ function handleAuthorization(reporter, definition) {
                 if (req.user || req.skipAuthorizationForQuery === query || req.tokenVerified)
                     return;
 
-                if (this.name === "templates" && req.query.access_token) {
+                var hasToken = req.body && req.body.options && req.body.options.authorization && (req.body.options.authorization.writeToken || req.body.options.authorization.readToken);
+
+                if (this.name === "settings")
+                    return;
+
+                if (this.name === "templates" && (req.query.access_token || hasToken)) {
 
                     if (S(req.url).startsWith("/api/report") || S(req.url).startsWith("/public-templates")) {
                         delete query.readPermissions;
                     }
 
-                    return verifyToken(req, query, req.query.access_token);
+                    return verifyToken(req, query, req.query.access_token || req.body.options.authorization.writeToken || req.body.options.authorization.readToken);
                 } else {
                     var e = new Error("Unauthorized");
                     e.unauthorized = true;

@@ -8,7 +8,7 @@ define(["app", "backbone", "core/dataGrid", "./user.model"], function (app, Back
 
         initialize: function () {
             var self = this;
-            this.filter = new DataGrid.Filter.Base();
+            this.filter = new DataGrid.Filter.Base({ searchProperty: "username"});
             this.filter.bind("apply", function () {
                 self.fetch();
             });

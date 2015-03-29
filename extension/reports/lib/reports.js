@@ -92,7 +92,7 @@ Reporting.prototype._defineEntities = function () {
         templateShortid: {type: "Edm.String"}
     });
 
-    this.reporter.documentStore.registerEntitySet("reports", {entityType: "ReportType"});
+    this.reporter.documentStore.registerEntitySet("reports", {entityType: "jsreport.ReportType"});
 };
 
 module.exports = function (reporter, definition) {
