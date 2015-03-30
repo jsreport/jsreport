@@ -79,7 +79,7 @@ Phantom.prototype.execute = function (request, response) {
 
             return q.nfcall(conversion, phantomOptions);
         }).then(function (res) {
-                request.options.isRootRequest = true;
+                request.options.isChildRequest = false;
                 response.result = res.stream;
                 response.headers["Content-Type"] = "application/pdf";
                 response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
@@ -100,7 +100,7 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, type
     var req = extend(true, {}, request);
     req.template = {content: phantomOptions[type], recipe: "html", helpers: request.template.helpers, engine: request.template.engine};
     req.data = extend(true, {}, request.data);
-    req.options.isRootRequest = false;
+    req.options.isChildRequest = true;
 
     return this.reporter.render(req).then(function (resp) {
         phantomOptions[type] = resp.result;

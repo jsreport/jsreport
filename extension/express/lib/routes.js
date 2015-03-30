@@ -129,7 +129,6 @@ module.exports = function (app, reporter) {
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options || {};
-        req.options.isRootRequest = true;
 
         extend(true, req.headers, req.body.headers);
 

@@ -1,6 +1,6 @@
 ﻿module.exports = {
   "name": "excel-parser",
   "main": "lib/excelParser.js",
-  "dependencies": [  ],
+  "dependencies": [ "templates" ],
   "hasPublicPart": false
 }

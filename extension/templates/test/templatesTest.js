@@ -79,7 +79,6 @@ describeReporting(path.join(__dirname, "../../"), ["templates"], function (repor
                     };
 
                     return reporter.templates.handleBeforeRender(request, {}).then(function () {
-                        console.log(request.template.content);
                         assert.equal("foo", request.template.content);
 
                         done();

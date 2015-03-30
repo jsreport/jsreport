@@ -99,8 +99,7 @@ Scheduling.prototype.renderReport = function (schedule, task) {
         user : { isAdmin: true},
         options: {
             scheduling: {taskId: task._id, scheduleShortid: schedule.shortid},
-            reports: {save: true, mergeProperties: {taskId: task._id}},
-            isRootRequest: true
+            reports: {save: true, mergeProperties: {taskId: task._id}}
         }
     });
 };

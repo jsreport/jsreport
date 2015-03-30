@@ -25,21 +25,17 @@ var ChildTemplates = function(reporter, definition) {
 
 ChildTemplates.prototype.evaluateChildTemplates = function(request, response, evaluateInTemplateContent) {
     var self = this;
-    
-    var isRootRequest = false;
-    if (!request.childs) {
-        request.childs = {};
-        isRootRequest = true;
-    }
 
-    request.childs.childsCircleCache = request.childs.childsCircleCache || {};
+    request.childsCircleCache = request.childsCircleCache || {};
 
     function convert(str, p1, offset, s, done) {
-        if (request.childs.childsCircleCache[p1] && !isRootRequest) {
-            return done(null, "circle in using child template " + p1);
+        if (request.childsCircleCache[p1] && request.options.isChildRequest) {
+            var e = new Error("circle in using child template " + p1);
+            e.weak = true;
+            return done(e);
         }
 
-        request.childs.childsCircleCache[p1] = true;
+        request.childsCircleCache[p1] = true;
 
         self.reporter.documentStore.collection("templates").find({ name: p1 }).then(function(res) {
             if (res.length < 1)
@@ -47,11 +43,8 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
 
             var req = extend(true, {}, request);
 
-            if (!isRootRequest)
-                req.childs.childsCircleCache = request.childs.childsCircleCache;
-
             req.template = res[0];
-            req.options.isRootRequest = false;
+            req.options.isChildRequest = true;
             self.reporter.logger.debug("Rendering child template " + p1);
             return self.reporter.render(req).then(function(resp) {
                 done(null, resp.result);

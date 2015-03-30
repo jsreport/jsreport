@@ -17,7 +17,9 @@ var Scripts = function (reporter, definition) {
 
     this._defineEntities();
 
-    this.reporter.beforeRenderListeners.add(definition.name, this, Scripts.prototype.handleBeforeRender);
+    //we want to put it after templates...
+    //TODO this should be refactored with some kind of a workflow schema where is clear what is the order in the pipeline
+    this.reporter.beforeRenderListeners.insert(1, definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.afterRenderListeners.add(definition.name, this, Scripts.prototype.handleAfterRender);
 
     this.allowedModules = this.definition.options.allowedModules || ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
@@ -27,7 +29,7 @@ Scripts.prototype.handleAfterRender = function (request, response) {
     if (!request.parsedScript)
         return q();
 
-    if (!request.options.isRootRequest)
+    if (request.options.isChildRequest)
         return q();
 
     var self = this;
@@ -60,6 +62,9 @@ Scripts.prototype.handleAfterRender = function (request, response) {
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
     var self = this;
+
+    if (request.options.isChildRequest)
+        return q();
 
     //back compatibility
     if (!request.template.script && request.template.scriptId) {

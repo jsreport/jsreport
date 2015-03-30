@@ -48,7 +48,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     if (request.options.saveResult)
         request.options.reports.save = true;
 
-    if (!request.options.reports.save || !request.options.isRootRequest) {
+    if (!request.options.reports.save || request.options.isChildRequest) {
         this.reporter.logger.debug("Skipping storing report.");
         return q();
     }
