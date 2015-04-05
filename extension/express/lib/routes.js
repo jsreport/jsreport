@@ -82,6 +82,7 @@ module.exports = function (app, reporter) {
         optionsClone = extend(true, optionsClone, req.query);
         optionsClone.studio = optionsClone.studio || "normal";
         optionsClone.serverUrl = optionsClone.serverUrl || "/";
+        optionsClone.version = require('../../../package.json').version;
 
         return optionsClone;
     }

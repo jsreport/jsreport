@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>jsreport</title>
+    <title>jsreport <%= version %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="/img/favicon.ico">
     <meta name="author" content="Jan Blaha">
@@ -24,6 +24,7 @@
 
     var jsreport_bust = "{{staticBust}}";
 
+    var jsreport_version = '<%= version %>';
     var jsreport_mode = '<%= mode %>';
     var jsreport_studio = '<%= studio %>';
     var jsreport_server_url = "<%= serverUrl %>";
