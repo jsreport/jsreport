@@ -1,6 +1,7 @@
 ﻿/*globals describe, it, beforeEach, afterEach */
 
 var assert = require("assert"),
+    should = require("should"),
     ListenerCollection = require("../lib/util/listenerCollection.js"),
     q = require("q");
 
@@ -63,6 +64,79 @@ describe('ListenersCollection', function () {
         });
 
         this.listeners.fire(function () {
+            done();
+        });
+    });
+
+    it('insert should respect the after condition', function (done) {
+        var invocations = [];
+
+        this.listeners.add("test", function (next) {
+            invocations.push("test");
+            next();
+        });
+
+        this.listeners.add("test3", function (next) {
+            invocations.push("test3");
+            next();
+        });
+
+        this.listeners.insert({ after: "test"}, "test2", this, function (next) {
+            invocations.push("test2");
+            next();
+        });
+
+
+        this.listeners.fire(function () {
+            invocations.should.have.length(3);
+            invocations[0].should.be.eql("test");
+            invocations[1].should.be.eql("test2");
+            invocations[2].should.be.eql("test3");
+            done();
+        });
+    });
+
+    it('insert should respect the after and before condition', function (done) {
+        var invocations = [];
+
+
+        this.listeners.add("test3", function (next) {
+            invocations.push("test3");
+            next();
+        });
+
+        this.listeners.insert({ after: "test", "before": "test3" }, "test2", this, function (next) {
+            invocations.push("test2");
+            next();
+        });
+
+
+        this.listeners.fire(function () {
+            invocations.should.have.length(2);
+            invocations[0].should.be.eql("test2");
+            invocations[1].should.be.eql("test3");
+            done();
+        });
+    });
+
+    it('insert should work if the conditioned element not present', function (done) {
+        var invocations = [];
+
+        this.listeners.add("test3", function (next) {
+            invocations.push("test3");
+            next();
+        });
+
+        this.listeners.insert("test2", this, { after: "test"}, function (next) {
+            invocations.push("test2");
+            next();
+        });
+
+
+        this.listeners.fire(function () {
+            invocations.should.have.length(2);
+            invocations[0].should.be.eql("test3");
+            invocations[1].should.be.eql("test2");
             done();
         });
     });
@@ -158,7 +232,7 @@ describe('ListenersCollection', function () {
         });
     });
 
-    it('firePromise should apploy post hooks', function (done) {
+    it('firePromise should apply post hooks', function (done) {
         var postResult;
         this.listeners.post(function () {
             postResult = this.key;

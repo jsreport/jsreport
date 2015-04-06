@@ -17,9 +17,7 @@ var Scripts = function (reporter, definition) {
 
     this._defineEntities();
 
-    //we want to put it after templates...
-    //TODO this should be refactored with some kind of a workflow schema where is clear what is the order in the pipeline
-    this.reporter.beforeRenderListeners.insert(1, definition.name, this, Scripts.prototype.handleBeforeRender);
+    this.reporter.beforeRenderListeners.insert({ after: "data", before: "childTemplates"}, definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.afterRenderListeners.add(definition.name, this, Scripts.prototype.handleAfterRender);
 
     this.allowedModules = this.definition.options.allowedModules || ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];

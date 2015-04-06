@@ -43,7 +43,7 @@ var Data = function (reporter, definition) {
         });
     });
 
-    reporter.beforeRenderListeners.add(definition.name, this, Data.prototype.handleBeforeRender);
+    reporter.beforeRenderListeners.insert(0, definition.name, this, Data.prototype.handleBeforeRender);
 };
 
 Data.prototype.handleBeforeRender = function (request, response) {
