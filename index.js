@@ -19,7 +19,14 @@ function initializeApp(force) {
 
     if (!fs.existsSync("package.json") || force) {
         console.log("Creating package.json");
-        fs.writeFileSync("package.json", "{\r\n \"name\": \"jsreport-server\",\r\n  \"main\": \"server.js\" }");
+        var packageJson = {
+            "name": "jsreport-server",
+            "dependencies": {
+                "jsreport": "*"
+            },
+            "main": "server.js"
+        };
+        fs.writeFileSync("package.json", JSON.stringify(packageJson, null, 2));
     }
 
     if (!fs.existsSync("prod.config.json") || force) {
