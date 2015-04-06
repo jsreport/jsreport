@@ -6,7 +6,6 @@ var Reporter = require("../lib/reporter.js"),
     path = require("path"),
     serveStatic = require('serve-static'),
     bodyParser = require("body-parser"),
-    multer = require('multer'),
     util = require("../lib/util/util.js"),
     extend = require("node.extend");
 
@@ -21,12 +20,6 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
 
     describe("reporting", function () {
         var app = express();
-        app.use(bodyParser.json({
-            limit: 2 * 1024 * 1024 * 1//2MB
-        }));
-
-        app.use(serveStatic(path.join(__dirname, 'views')));
-        app.engine('html', require('ejs').renderFile);
 
         var options = {
             tenant: {name: "test"},
@@ -43,7 +36,22 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         options = extend(true, options, customOptions || {});
 
         var reporter = new Reporter(options);
+        app.use(function(req, res, next) {
+            var d = require('domain').create();
+            d.add(req);
+            d.add(res);
+            d.req = req;
+            d.res = res;
 
+            d.run(function () {
+                next();
+            });
+        });
+        app.use(bodyParser.json({
+            limit: 2 * 1024 * 1024 * 1//2MB
+        }));
+        app.use(serveStatic(path.join(__dirname, 'views')));
+        app.engine('html', require('ejs').renderFile);
 
         beforeEach(function (done) {
             this.timeout(10000);

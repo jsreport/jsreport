@@ -3,8 +3,7 @@
  */
 /*globals $data */
 
-var express = require('express'),
-    _ = require("underscore"),
+var _ = require("underscore"),
     path = require("path"),
     q = require("q"),
     bodyParser = require("body-parser"),
@@ -120,7 +119,7 @@ module.exports = function(reporter, definition) {
     var app = definition.options.app;
 
     if (!app) {
-        app = express();
+        app = require("express")();
     }
 
     reporter.initializeListener.add(definition.name, this, function() {
