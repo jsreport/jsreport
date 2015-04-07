@@ -12,7 +12,7 @@
                     this.set(templateModel.get("phantom"));
             }
 
-            templateModel.set("phantom", this);
+            templateModel.set("phantom", this, { silent: true});
 
             if (this.get("orientation") == null)
                 this.set("orientation", "portrait");
@@ -21,6 +21,10 @@
             if (this.get("format") == null) {
                 this.set("format", "A4");
             }
+
+            this.listenTo(this, "change", function() {
+                templateModel.trigger("change");
+            });
 
             this.listenTo(templateModel, "api-overrides", this.apiOverride);
         },
@@ -44,6 +48,6 @@
                     height: this.get("height") || "...",
                     printDelay: this.get("printDelay") || "..."
                 });
-        },
+        }
     });
 });
