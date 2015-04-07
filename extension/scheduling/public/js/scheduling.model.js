@@ -14,7 +14,7 @@
                     });
                     self.templates.unshift({name: "-- select template --"});
                     if (self.get("shortid")) {
-                        return app.dataProvider.get("odata/schedules?$filter=shortid eq " + self.get("shortid")).then(function (schedules) {
+                        return app.dataProvider.get("odata/schedules?$filter=shortid eq '" + self.get("shortid") + "'").then(function (schedules) {
                             var schedule = schedules[0];
                             self.set(schedule);
                             self.set("templateName", _.findWhere(templates, {shortid: schedule.templateShortid}).name);

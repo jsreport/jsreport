@@ -36,12 +36,14 @@ describe('gridFSBlobStorage', function() {
         var blobName = shortid.generate();
 
         self.blobStorage.write(blobName, new Buffer("Hula"), function(err) {
-            console.log("F");
-            assert.ifError(err);
+            if (err)
+                return done(err);
 
-            self.blobStorage.read(blobName, function(er, stream) {
+            self.blobStorage.read(blobName, function(err, stream) {
+                if (err)
+                    return done(err);
+
                 var content = '';
-                stream.resume();
                 stream.on('data', function(buf) { content += buf.toString(); });
                 stream.on('end', function() {
                     assert.equal(content, "Hula");

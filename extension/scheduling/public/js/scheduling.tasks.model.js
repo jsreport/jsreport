@@ -22,7 +22,7 @@ define(["app", "backbone", "core/dataGrid"], function (app, Backbone, DataGrid) 
         url: function () {
             var qs = this.filter.toOData();
             qs.$orderby = "finishDate desc";
-            qs.$filter = "scheduleShortid eq " + this.scheduleShortid;
+            qs.$filter = "scheduleShortid eq '" + this.scheduleShortid + "'";
 
             return "odata/tasks?" + $.param(qs);
         },

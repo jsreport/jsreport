@@ -33,7 +33,7 @@ describe('Settings', function () {
     it('add update get should result into updated value', function (done) {
         var self = this;
         this.settings.add("test", "val").then(function () {
-            self.settings.set("test", "modified").then(function () {
+            return self.settings.set("test", "modified").then(function () {
                 assert.equal("modified", self.settings.get("test").value);
                 done();
             });

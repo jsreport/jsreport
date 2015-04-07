@@ -52,6 +52,8 @@ Data.prototype.handleBeforeRender = function (request, response) {
         return q();
     }
 
+    request.data = request.data || {};
+
     //back compatibility
     if (!request.template.data && request.template.dataItemId) {
         request.template.data = { shortid: request.template.dataItemId};
