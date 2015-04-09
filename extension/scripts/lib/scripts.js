@@ -17,7 +17,10 @@ var Scripts = function (reporter, definition) {
 
     this._defineEntities();
 
-    this.reporter.beforeRenderListeners.insert({ after: "data", before: "childTemplates"}, definition.name, this, Scripts.prototype.handleBeforeRender);
+    this.reporter.beforeRenderListeners.insert({
+        after: "data",
+        before: "childTemplates"
+    }, definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.afterRenderListeners.add(definition.name, this, Scripts.prototype.handleAfterRender);
 
     this.allowedModules = this.definition.options.allowedModules || ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
@@ -31,6 +34,7 @@ Scripts.prototype.handleAfterRender = function (request, response) {
         return q();
 
     var self = this;
+    var domain = process.domain;
 
     return q.ninvoke(request.reporter.scriptManager, "execute", {
         script: request.parsedScript,
@@ -50,6 +54,11 @@ Scripts.prototype.handleAfterRender = function (request, response) {
             content: response.result
         }
     }, {
+        callback: function (req, cb) {
+            domain.run(function() {
+                self._handleCallback(request, req, cb);
+            });
+        },
         execModulePath: path.join(__dirname, "scriptEvalChild.js"),
         timeout: self.definition.options.timeout
     }).then(function (body) {
@@ -89,6 +98,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         script = script.content || script;
 
         request.parsedScript = script;
+        var domain = process.domain;
         return q.ninvoke(request.reporter.scriptManager, "execute", {
             script: script,
             allowedModules: self.allowedModules,
@@ -102,7 +112,12 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             response: response
         }, {
             execModulePath: path.join(__dirname, "scriptEvalChild.js"),
-            timeout: self.definition.options.timeout
+            timeout: self.definition.options.timeout,
+            callback: function (req, cb) {
+                domain.run(function() {
+                    self._handleCallback(request, req, cb);
+                });
+            }
         }).then(function (body) {
             if (body.cancelRequest) {
                 var error = new Error("Rendering request canceled  from the script " + body.additionalInfo);
@@ -132,6 +147,29 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     });
 };
 
+Scripts.prototype._handleCallback = function (originalReq, req, cb) {
+    req.user = req.user || originalReq.user;
+
+    process.domain.req._scriptRequestCounter = process.domain.req._scriptRequestCounter || 0;
+    process.domain.req._scriptRequestCounter++;
+
+    if (process.domain.req._scriptRequestCounter > 3) {
+        return cb(new Error("Reached maximum number of script rendering requests. Verify reporter.render is not causing cycle."));
+    }
+
+    this.reporter.render(req).then(function (res) {
+        return res.result.toBuffer().then(function (buf) {
+            var serializableResponse = {
+                headers: res.headers,
+                content: buf
+            };
+            cb(null, serializableResponse);
+        });
+    }).catch(function (e) {
+        cb(e);
+    });
+};
+
 Scripts.prototype._defineEntities = function () {
     var self = this;
     this.reporter.documentStore.registerEntityType("ScriptType", {
@@ -149,7 +187,10 @@ Scripts.prototype._defineEntities = function () {
     });
 
     this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "jsreport.ScriptRefType"};
-    this.reporter.documentStore.registerEntitySet("scripts", {entityType: "jsreport.ScriptType", humanReadableKey: "shortid"});
+    this.reporter.documentStore.registerEntitySet("scripts", {
+        entityType: "jsreport.ScriptType",
+        humanReadableKey: "shortid"
+    });
 
     this.reporter.initializeListener.add("scripts", function () {
         var col = self.reporter.documentStore.collection("scripts");

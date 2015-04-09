@@ -19,9 +19,11 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                     template: {content: "{#child {{:a}}}", engine: "jsrender", recipe: "html"},
                     data: {a: "foo"}
                 }).then(function (resp) {
+                    return resp.result.toBuffer().then(function(buf) {
+                        buf.toString().should.be.eql("child content");
+                        done();
+                    });
 
-                    resp.result.should.be.eql("child content");
-                    done();
                 });
             }).catch(done);
 
@@ -63,8 +65,8 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                         }
                     }
                 }).then(function (resp) {
-                    return streamToString(resp.result).then(function (str) {
-                        str.should.be.eql("x");
+                    return resp.result.toBuffer().then(function (buf) {
+                        buf.toString().should.be.eql("x");
                         done();
                     });
                 });

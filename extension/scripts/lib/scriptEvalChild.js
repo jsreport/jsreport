@@ -1,4 +1,4 @@
-﻿module.exports = function (inputs, done) {
+﻿module.exports = function (inputs, callback, done) {
 
     var vm = require('vm');
 
@@ -13,7 +13,7 @@
             return require(modules[0].path || modules[0]);
         }
 
-        throw new Error("Unsupported module " + moduleName);
+        done(new Error("Unsupported module " + moduleName));
     };
 
     inputs.request.cancel = function(e) {
@@ -39,6 +39,11 @@
                     stack: err.stack
                 } : undefined
             });
+        },
+        reporter: {
+            render: function(shortid, cb) {
+                callback(shortid, cb);
+            }
         },
         done: function (err) {
             done(null, {

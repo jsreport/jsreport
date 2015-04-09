@@ -60,6 +60,7 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
             return reporter.documentStore.drop().then(function () {
                 return reporter.init();
             }).then(function () {
+                process.domain.req = {};
                 done();
             }).catch(done);
         });

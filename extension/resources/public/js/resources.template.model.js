@@ -4,6 +4,7 @@ define(["app", "core/basicModel", "underscore", "jquery"], function (app, ModelB
 
         fetch: function (options) {
             var self = this;
+            this.fetching = true;
             return app.dataProvider.get("odata/data?$select=name,shortid").then(function(items) {
                 self.items = items;
 
@@ -13,6 +14,7 @@ define(["app", "core/basicModel", "underscore", "jquery"], function (app, ModelB
                 });
                 self.set("resources", resources);
                 self.set("language", templateResources.defaultLanguage);
+                self.fetching = false;
             });
         },
 
@@ -22,19 +24,19 @@ define(["app", "core/basicModel", "underscore", "jquery"], function (app, ModelB
 
         initialize: function () {
             var self = this;
+
             this.listenTo(this, "change", function() {
-                if (!self.get("resources"))
-                    return;
+                var resources = self.get("resources") || [];
 
                 self.templateModel.set("resources", {
-                    items: self.get("resources").map(function(r) {
+                    items: resources.map(function(r) {
                         return {
                             entitySet: "data",
                             shortid: r
                         };
                     }),
                     defaultLanguage: self.get("language")
-                });
+                }, { silent: self.fetching});
             });
         }
     });

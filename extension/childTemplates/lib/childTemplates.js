@@ -47,18 +47,22 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
             req.options.isChildRequest = true;
             self.reporter.logger.debug("Rendering child template " + p1);
             return self.reporter.render(req).then(function(resp) {
-                done(null, resp.result);
+                return resp.result.toBuffer().then(function(buf) {
+                    done(null, buf.toString());
+                });
             });
         }).catch(done);
     }
 
     var test = /{#child ([^{}]{0,50})}/g;
 
-    return q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content  : response.result, test, convert).then(function(result) {
-        if (evaluateInTemplateContent)
+    return q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content  : response.result.toString(), test, convert).then(function(result) {
+        if (evaluateInTemplateContent) {
             request.template.content = result;
-        else
-            response.result = result;
+        }
+        else {
+            response.result = new Buffer(result);
+        }
     });
 };
 

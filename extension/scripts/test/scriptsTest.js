@@ -3,6 +3,7 @@
 var assert = require("assert"),
     path = require("path"),
     should = require("should"),
+    S = require("string"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     q = require("q");
 
@@ -18,7 +19,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                     script: {shortid: script.shortid}
                 });
             });
-        };
+        }
 
         function prepareRequest(scriptContent) {
             return prepareTemplate(scriptContent).then(function (template) {
@@ -144,6 +145,107 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                 catch (e) {
                     return done(e);
                 }
+                done();
+            });
+        });
+
+        it('should be abble to callback and call reporter.render', function (done) {
+            reporter.documentStore.collection("templates").insert({
+                name: "foo",
+                content: "foo",
+                engine: "jsrender",
+                recipe: "html"
+            }).then(function (tmpl) {
+                var request = {
+                    template: {
+                        content: "original",
+                        recipe: "html",
+                        engine: "jsrender",
+                        script: {
+                            content: "function afterRender(done) { reporter.render({ template: { shortid: '" + tmpl.shortid + "'} }, function(err, resp) { if (err) return done(err); response.content = resp.content; done(); }); };"
+                        }
+                    }
+                };
+                return reporter.render(request).then(function (response) {
+                    return response.result.toBuffer().then(function (buf) {
+                        buf.toString().should.be.eql("foo");
+                        done();
+                    });
+
+                });
+            }).catch(done);
+        });
+
+        it('should callback error should be gracefully handled', function (done) {
+            var request = {
+                template: {
+                    content: "original",
+                    recipe: "html",
+                    engine: "jsrender",
+                    script: {
+                        content: "function afterRender(done) { reporter.render({ }, function(err, resp) { if (err) return done(err); response.content = resp.content; done(); }); };"
+                    }
+                }
+            };
+            return reporter.render(request).then(function (response) {
+                done(new Error("Should have failed."));
+            }).catch(function (e) {
+                e.message.should.containEql("template property must");
+                done();
+            });
+        });
+
+        it('should be able to substitute template with another template using callback', function (done) {
+            reporter.documentStore.collection("templates").insert({
+                name: "foo",
+                content: "foo",
+                engine: "jsrender",
+                recipe: "html"
+            }).then(function (tmpl) {
+                var request = {
+                    template: {
+                        content: "original",
+                        recipe: "html",
+                        engine: "jsrender",
+                        script: {
+                            content: "function beforeRender(done) { reporter.render({ template: { shortid: '" + tmpl.shortid + "'} }, function(err, resp) { if (err) return done(err); " +
+                            "request.template.content = new Buffer(resp.content).toString(); done(); }); };"
+                        }
+                    }
+                };
+                return reporter.render(request).then(function (response) {
+                    return response.result.toBuffer().then(function (buf) {
+                        buf.toString().should.be.eql("foo");
+                        done();
+                    });
+
+                });
+            }).catch(done);
+        });
+
+        it('should monitor rendering cycles', function (done) {
+            this.timeout(5000);
+            reporter.documentStore.collection("templates").insert({
+                name: "foo",
+                content: "foo",
+                engine: "jsrender",
+                recipe: "html",
+                shortid: "id",
+                script: {
+                    content: "function beforeRender(done) { reporter.render({ template: { shortid: 'id'} }, function(err, resp) { if (err) return done(err); " +
+                    "request.template.content = new Buffer(resp.content).toString(); done(); }); };"
+                }
+            }).then(function (tmpl) {
+                var request = {
+                    template: {
+                        shortid: "id"
+                    }
+                };
+                return reporter.render(request).then(function (response) {
+                    done(new Error("It should have failed"));
+                });
+            }).catch(function(e) {
+                e.message.should.containEql("cycle");
                 done();
             });
         });

@@ -103,7 +103,9 @@ Phantom.prototype._processHeaderFooter = function (phantomOptions, request, type
     req.options.isChildRequest = true;
 
     return this.reporter.render(req).then(function (resp) {
-        phantomOptions[type] = resp.result;
+        return resp.result.toBuffer().then(function(buf) {
+            phantomOptions[type] = buf.toString();
+        });
     });
 };
 

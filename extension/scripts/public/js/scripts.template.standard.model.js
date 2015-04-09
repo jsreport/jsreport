@@ -18,7 +18,7 @@
                         script.shortid = self.templateModel.get("scriptId");
                     }
 
-                    self.templateModel.set("script", script);
+                    self.templateModel.set("script", script, { silent: true});
                 }
 
                 var custom;

@@ -10,8 +10,10 @@ describe('index.js', function () {
         require("../lib/reporter.js").instance = null;
 
         index.render({ template: { content: "foo", recipe: "html"} }).then(function(response) {
-            response.result.should.be.exactly("foo");
-            done();
+            return response.result.toBuffer().then(function(buf) {
+                buf.toString().should.be.exactly("foo");
+                done();
+            });
         }).catch(done);
     });
 });

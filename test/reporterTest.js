@@ -10,8 +10,10 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (
         
         it('should render html', function (done) {
             reporter.render({ template: { content: "Hey", engine: "handlebars", recipe: "html" } }).then(function(resp) {
-                assert.equal("Hey", resp.result);
-                done();
+                return resp.result.toBuffer().then(function(buf) {
+                    assert.equal("Hey", buf.toString());
+                    done();
+                });
             }).catch(done);
         });
         
@@ -38,9 +40,11 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates"], function (
                 template: { content: "{{{a}}}", engine: "handlebars", recipe: "html" },
                 data: "{ \"a\":\"1\" }"
             }).then(function(resp) {
-                assert.equal("1", resp.result);
-                done();
-            });
+                return resp.result.toBuffer().then(function(buf) {
+                    assert.equal("1", buf.toString());
+                    done();
+                });
+            }).catch(done);
         });
 
         it('getEngines should return some engines', function (done) {
