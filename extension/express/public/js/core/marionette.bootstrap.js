@@ -41,28 +41,6 @@ define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"]
         this.$el.fadeIn("slow");
     };
 
-    Backbone.Model.prototype.copyAttributesToEntity = function(entity) {
-
-        function copyAttributes(e, m) {
-            for (var p in m.attributes) {
-                var attr = m.attributes[p];
-
-                if (attr != null) {
-                    if (attr.attributes != null) {
-                        if (e[p] == null)
-                            e[p] = new attr.Entity();
-
-                        copyAttributes(e[p], attr);
-                    } else {
-                        e[p] = attr;
-                    }
-                }
-            }
-        }
-
-        copyAttributes(entity, this);
-    };
-
 
     Backbone.Marionette.MultiRegion = Backbone.Marionette.Region.extend({
         views: {},
@@ -70,6 +48,7 @@ define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"]
         open: function(view) {
             this.ensureEl();
             this.$el.append(view.el);
+            bind(view);
         },
 
         close: function() {
@@ -122,7 +101,6 @@ define(["jquery", "originalmarionette", "core/utils", "modelBinder", "backbone"]
             view.isChild = true;
             view.$el.attr("data-child", true);
             this.views[id] = view;
-            bind(view);
         },
 
         _removeView: function(view, id) {

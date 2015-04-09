@@ -43,7 +43,7 @@
             }
 
             if (app.options.data.allowSelection) {
-                return app.dataProvider.get("odata/data").then(processItems);
+                return app.dataProvider.get("odata/data?$select=name,shortid").then(processItems);
             } else {
                 return processItems([]);
             }

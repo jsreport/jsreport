@@ -1,9 +1,6 @@
 ﻿/*globals describe, it, beforeEach, afterEach */
 
 var assert = require("assert"),
-    fs = require('fs'),
-    async = require("async"),
-    join = require("path").join,
     path = require("path"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     supertest = require('supertest');

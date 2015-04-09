@@ -20,7 +20,8 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                     if (self.viewRendered)
                         return;
 
-                    self.render();
+                    //TODO it seems to work even whitout this call
+                    //self.render();
                     self.viewRendered = true;
 
                     self.listenTo(self.contentView, "preview", function() {

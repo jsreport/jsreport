@@ -1,0 +1,15 @@
+<a class="expandable-header"><i class="glyphicon glyphicon-sm glyphicon-book"></i>Resources<b class="caret caret-right" {{if ~isFilled()}}style="color: green"{{else}}{{/if}}></b></a>
+
+<div class="expandable-body properties" style="display: none">
+
+    <select id="resources" name="resources" multiple="multiple">
+        {{for ~getItems()}}
+        <option value="{{:shortid}}">{{:name}}</option>
+        {{/for}}
+    </select>
+
+    <div>
+        <span class="side-title">Language</span>
+        <input type="text" value="language" name="language" placeholder="en" class="form-control area-mini">
+    </div>
+</div>
