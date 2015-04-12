@@ -199,6 +199,7 @@ var jsreport = (function (global, jQuery, undefined) {
         }
 
         options = options || {};
+        options.fullScreen = options.fullScreen === true;
 
         template = $.extend(true, {}, template);
 
@@ -210,10 +211,11 @@ var jsreport = (function (global, jQuery, undefined) {
 
         $(".jsreport-backdrop").show();
 
-        this.jsreportIFrame.css("width", ($(window).width() - 200) + "px");
-        this.jsreportIFrame.css("height", ($(window).height() - 200) + "px");
-        this.jsreportIFrame.css("left", "100px");
-        this.jsreportIFrame.css("top", "100px");
+
+        if (options.fullScreen)
+            _fullScreen.bind(this)();
+        else
+            _smallScreen.bind(this)();
 
         this.template = template;
 
@@ -236,6 +238,7 @@ var jsreport = (function (global, jQuery, undefined) {
     }
 
     function _fullScreen() {
+        console.log("full");
         this.jsreportIFrame.css("left", "0px");
         this.jsreportIFrame.css("top", "0px");
         this.jsreportIFrame.css("right", "0px");

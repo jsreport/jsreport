@@ -42,10 +42,7 @@ Scripts.prototype.handleAfterRender = function (request, response) {
         method: "afterRender",
         request: {
             data: request.data,
-            template: {
-                content: request.template.content,
-                helpers: request.template.helpers
-            },
+            template: request.template,
             options: request.options,
             headers: request.headers
         },

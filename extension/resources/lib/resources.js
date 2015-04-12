@@ -47,14 +47,16 @@ Resources.prototype.handleBeforeRender = function (request, response) {
         request.options.resource = resourcesByName;
         request.data["$resource"] = resourcesByName;
 
-        if (request.options.language) {
+        if (request.options.language || (request.template.resources && request.template.resources.defaultLanguage)) {
             var applicableResources = resources.filter(function(r) {
                 return S(r.name).startsWith(request.options.language + "-");
             });
 
-            if (!applicableResources.length && request.template.localization && request.template.localization.defaultLanguage) {
+            self.reporter.logger.debug("Found " + applicableResources.length + " applicable resources.");
+
+            if (!applicableResources.length && request.template.resources && request.template.resources.defaultLanguage) {
                 applicableResources = resources.filter(function(r) {
-                    return S(r.name).startsWith(request.template.localization.defaultLanguage + "-");
+                    return S(r.name).startsWith(request.template.resources.defaultLanguage + "-");
                 });
             }
 

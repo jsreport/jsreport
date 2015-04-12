@@ -125,15 +125,9 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                     hideSubmit: true
                 });
 
-                var properties = {};
-                properties.content = "...";
-                properties.helpers = "...";
-                properties.recipe = "..." ;
+                var req = { template: { content: "...", helpers: "...", engine: "...", recipe: "..."}, options: {}};
 
-                this.model.trigger("api-overrides", function(key, value) {
-                    value = value || "...";
-                    properties[key] = _.isObject(value) ? value : "...";
-                });
+                this.model.trigger("api-overrides", req);
 
                 var apiBox = ace.edit("apiBox");
                 apiBox.setTheme("ace/theme/chrome");
@@ -143,7 +137,9 @@ define(["jquery", "app", "marionette", "core/utils", "core/view.base", "undersco
                     highlightActiveLine: false,
                     highlightGutterLine: false
                 });
-                apiBox.setValue(JSON.stringify({ template: properties }, null, 2));
+
+                apiBox.setValue(JSON.stringify(req , null, 2));
+                apiBox.gotoLine(-1);
             },
 
             link: function() {

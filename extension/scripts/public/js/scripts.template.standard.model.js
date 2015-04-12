@@ -54,8 +54,8 @@
             this.listenTo(templateModel, "api-overrides", this.apiOverride);
         },
         
-        apiOverride: function(addProperty) {
-             addProperty("script", { shortid: this.get("shortid"), content: '....' });
+        apiOverride: function(req) {
+             req.template.script = { shortid: this.get("shortid") || "...", content: '....' };
         },
 
         newCustomScript: function() {

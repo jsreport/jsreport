@@ -35,8 +35,8 @@
                 this.get("format") !== "A4" || this.get("printDelay");
         },
         
-        apiOverride: function(addProperty) {
-            addProperty("phantom", {
+        apiOverride: function(req) {
+            req.template.phantom = {
                     maring: this.get("margin") || "...",
                     header: this.get("header") || "...",
                     footer: this.get("footer") || "...",
@@ -47,7 +47,7 @@
                     width: this.get("width") || "...",
                     height: this.get("height") || "...",
                     printDelay: this.get("printDelay") || "..."
-                });
+                };
         }
     });
 });

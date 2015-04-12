@@ -54,8 +54,8 @@
             this.listenTo(templateModel, "api-overrides", this.apiOverride);
         },
         
-        apiOverride: function(addProperty) {
-            addProperty("data", { "shortid": this.get("shortid"), "dataJson": "{\'foo\' : \'...\' }" });
+        apiOverride: function(req) {
+            req.template.data = { "shortid": this.get("shortid") || "...", "dataJson": "{\'foo\' : \'...\' }" };
         },
 
         initialize: function () {

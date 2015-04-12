@@ -20,6 +20,11 @@ define(["app", "core/basicModel", "underscore", "jquery"], function (app, ModelB
 
         setTemplate: function (templateModel) {
             this.templateModel = templateModel;
+            this.listenTo(this.templateModel, "api-overrides", this.apiOverride);
+        },
+
+        apiOverride: function(req) {
+            req.options.language = "...";
         },
 
         initialize: function () {
