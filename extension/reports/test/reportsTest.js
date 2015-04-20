@@ -18,11 +18,12 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "express", "repo
                     name: "name",
                     recipe: "html"
                 },
-                headers: {}
+                headers: {
+                }
             };
             var response = {
                 result: new Buffer("Hey"),
-                headers: {}
+                headers: { "Content-Type": "foo", "File-Extension": "foo"}
             };
 
             reporter.reports.handleAfterRender(request, response).then(function() {
