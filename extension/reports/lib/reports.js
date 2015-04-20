@@ -69,13 +69,13 @@ Reporting.prototype.handleAfterRender = function (request, response) {
         return q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
     }).then(function (blobName) {
         self.reporter.logger.debug("Updating report blob name " + blobName);
-        return self.reporter.documentStore.collection("reports").update({ _id: report._id }, {$set: {blobName: blobName}});
-    }).then(function () {
-        if (request.headers)
-            response.headers["Permanent-Link"] = request.protocol + "://" + request.headers.host + "/api/report/" + report._id + "/content";
+        return self.reporter.documentStore.collection("reports").update({_id: report._id}, {$set: {blobName: blobName}}).then(function () {
+            if (request.headers)
+                response.headers["Permanent-Link"] = request.protocol + "://" + request.headers.host + "/reports/" + report._id + "/content";
 
-        response.headers["Report-Id"] = report._id;
-        response.headers["Report-BlobName"] = report.blobName;
+            response.headers["Report-Id"] = report._id;
+            response.headers["Report-BlobName"] = blobName;
+        });
     });
 };
 
