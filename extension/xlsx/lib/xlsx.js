@@ -68,20 +68,21 @@ module.exports = function (reporter, definition) {
             var generationId = uuid();
 
             return reporter.renderContent(request, response).then(function () {
+                var result = response.result.toString();
                 var deferred = q.defer();
                 var workbook = excelbuilder.createWorkbook(request.reporter.options.tempDirectory, generationId + ".xlsx");
 
-                var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + response.result.substring(
-                        response.result.indexOf("<worksheet"),
-                        response.result.indexOf("</worksheet>") + "</worksheet>".length);
+                var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
+                        result.indexOf("<worksheet"),
+                        result.indexOf("</worksheet>") + "</worksheet>".length);
 
                 var sheet1 = workbook.createSheet('sheet1', 0, 0);
                 sheet1.raw(worksheet);
 
-                if (response.result.indexOf("<styleSheet") > 0) {
-                    var stylesheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + response.result.substring(
-                            response.result.indexOf("<styleSheet"),
-                            response.result.indexOf("</styleSheet>") + "</styleSheet>".length);
+                if (result.indexOf("<styleSheet") > 0) {
+                    var stylesheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
+                            result.indexOf("<styleSheet"),
+                            result.indexOf("</styleSheet>") + "</styleSheet>".length);
                     workbook.st.raw(stylesheet);
                 }
 
