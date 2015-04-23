@@ -30,9 +30,6 @@ Scripts.prototype.handleAfterRender = function (request, response) {
     if (!request.parsedScript)
         return q();
 
-    if (request.options.isChildRequest)
-        return q();
-
     var self = this;
     var domain = process.domain;
 
@@ -66,9 +63,6 @@ Scripts.prototype.handleAfterRender = function (request, response) {
 
 Scripts.prototype.handleBeforeRender = function (request, response) {
     var self = this;
-
-    if (request.options.isChildRequest)
-        return q();
 
     //back compatibility
     if (!request.template.script && request.template.scriptId) {

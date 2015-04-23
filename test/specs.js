@@ -72,5 +72,27 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                 });
             }).catch(done);
         });
+
+        it('child templates should be able to have assigned scripts loading data', function (done) {
+
+            reporter.documentStore.collection("templates").insert({
+                content: "{{:foo}}", engine: "jsrender", recipe: "html", name: "foo",
+                script: { content: "function beforeRender(done) { request.data.foo = 'yes'; done(); }"}
+            }).then(function() {
+                return reporter.render({
+                    template: {
+                        content: "{#child foo}", engine: "jsrender", recipe: "html",
+                        script: {
+                            content: "function beforeRender(done) { request.data.foo = 'no'; done(); }"
+                        }
+                    }
+                }).then(function (resp) {
+                    return resp.result.toBuffer().then(function (buf) {
+                        buf.toString().should.be.eql("yes");
+                        done();
+                    });
+                });
+            }).catch(done);
+        });
     });
 });
