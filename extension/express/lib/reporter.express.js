@@ -16,10 +16,10 @@ var _ = require("underscore"),
     routes = require("./routes.js"),
     multer  = require('multer');
 
-var useDomainMiddleware = function(reporter, req, res) {
+var useDomainMiddleware = function(reporter, req, res, next) {
     var clusterInstance = (reporter.options.cluster && reporter.options.cluster.enabled) ? reporter.options.cluster.instance : null;
 
-    require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, reporter.express.app);
+    require("./clusterDomainMiddleware.js")(clusterInstance, reporter.express.server, reporter.logger, req, res, next);
 };
 
 var startAsync = function(reporter, server, port) {
@@ -48,7 +48,7 @@ var startExpressApp = function(reporter, app, config) {
 
     //just http port is specified, lets start server on http
     if (!config.httpsPort) {
-        reporter.express.server = http.createServer(function(req, res) { useDomainMiddleware(reporter, req, res); });
+        reporter.express.server = http.createServer(app);
 
         return startAsync(reporter, reporter.express.server, config.httpPort);
     }
@@ -79,13 +79,17 @@ var startExpressApp = function(reporter, app, config) {
         rejectUnauthorized: false //support invalid certificates
     };
 
-    reporter.express.server = https.createServer(credentials, function(req, res) { useDomainMiddleware(reporter, req, res); });
+    reporter.express.server = https.createServer(credentials, app);
 
     return startAsync(reporter, reporter.express.server, config.httpsPort);
 };
 
 var configureExpressApp = function(app, reporter, definition){
     reporter.express.app = app;
+
+    app.use(function(req, res, next) {
+        useDomainMiddleware(reporter, req, res, next);
+    });
 
     app.options('*', function(req, res) {
         require("cors")({

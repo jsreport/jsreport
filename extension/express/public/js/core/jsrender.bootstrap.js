@@ -41,7 +41,7 @@ define(["jquery", "jsrender", "core/utils"], function($, foo, Utils) {
         },
         
         getCurrentLocation: function() {
-            return window.location.protocol + "//" + window.location.host + "/";
+            return window.location.href.split('?')[0].split('#')[0];
         }
     });
 

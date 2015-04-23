@@ -49,11 +49,11 @@
             app.scripts.router = new Router();
 
             app.on("menu-render", function (context) {
-                context.result += "<li><a href='/#/extension/scripts/list'>Scripts</a></li>";
+                context.result += "<li><a href='#/extension/scripts/list'>Scripts</a></li>";
             });
 
             app.on("menu-actions-render", function (context) {
-                context.result += "<li><a href='/#/extension/scripts/detail'>Create Script</a></li>";
+                context.result += "<li><a href='#/extension/scripts/detail'>Create Script</a></li>";
             });
 
             app.on("template-extensions-render", function (context) {

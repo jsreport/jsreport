@@ -41,6 +41,6 @@ module.exports = function (cluster, server, logger, req, res, next) {
     d.res = res;
 
     d.run(function () {
-        next(req, res);
+        next();
     });
 };

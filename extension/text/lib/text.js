@@ -13,11 +13,11 @@ module.exports  = function (reporter, definition) {
     reporter.extensionsManager.recipes.push({
         name: "text",
         execute: function(request, response) {
-            response.headers["Content-Type"] = request.template.contentType;
-            response.headers["File-Extension"] = request.template.fileExtension;
+            response.headers["Content-Type"] = request.template.contentType || "text/plain";
+            response.headers["File-Extension"] = request.template.fileExtension || ".txt";
 
             request.template.contentDisposition =  request.template.contentDisposition || "inline";
-            response.headers["Content-Disposition"] = request.template.contentDisposition + (request.template.contentDisposition.indexOf(";") !== -1 ? "" :
+            response.headers["Content-Dwisposition"] = request.template.contentDisposition + (request.template.contentDisposition.indexOf(";") !== -1 ? "" :
                                                         ";filename=report." + request.template.fileExtension);
 
             return reporter.renderContent(request, response);

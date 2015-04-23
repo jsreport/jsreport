@@ -6,8 +6,8 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     <meta name="author" content="Jan Blaha">
     <meta name="description" content="jsreport - javascript business reports">
-    <link href="/css/font-awesome/css/font-awesome.min.css?v=" rel="stylesheet">
-    <link href="/css/built.css?v=" rel="stylesheet">
+    <link href="css/font-awesome/css/font-awesome.min.css?v=" rel="stylesheet">
+    <link href="css/built.css?v=" rel="stylesheet">
 </head>
 <body>
 <div class="container text-center">
@@ -43,10 +43,16 @@
 </div>
 <script>
     var form = document.getElementById("loginForm");
-    if (window.location.pathname.lastIndexOf("/login", 0) === 0)
+    if (window.location.pathname.lastIndexOf("login", 0) === 0) {
         form.action = window.location.pathname + window.location.search;
-    else
-    form.action = "/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.hash + window.location.search);
+    }
+    else {
+        if (window.location.search.indexOf("returnUrl") === -1) {
+            form.action = "login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.hash + window.location.search);
+        } else {
+            form.action = "login" + window.location.search;
+        }
+    }
 </script>
 </body>
 </html>

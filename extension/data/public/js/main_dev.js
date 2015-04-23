@@ -49,7 +49,7 @@
 
 
             app.on("menu-render", function (context) {
-                context.result += "<li><a href='/#/extension/data/list'>Data</a></li>";
+                context.result += "<li><a href='#/extension/data/list'>Data</a></li>";
             });
 
             app.on("menu-actions-render", function (context) {

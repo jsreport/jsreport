@@ -50,7 +50,7 @@
 
             app.on("menu-render", function (context) {
                 if (!app.settings.tenant || app.settings.tenant.isAdmin)
-                    context.result += "<li><a href='/#/extension/scheduling/list'>Scheduling</a></li>";
+                    context.result += "<li><a href='#/extension/scheduling/list'>Scheduling</a></li>";
             });
 
             app.on("menu-actions-render", function (context) {

@@ -13,6 +13,7 @@ describeReporting(path.join(__dirname, "../../"), ["templates", "express", "repo
 
             var request = {
                 options: { recipe: "html", saveResult: true },
+                originalUrl: "http://localhost/api/report",
                 reporter: reporter,
                 template: {
                     name: "name",

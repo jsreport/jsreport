@@ -17,7 +17,7 @@ var Resources = function (reporter, definition) {
 
 Resources.prototype.handleBeforeRender = function (request, response) {
 
-    if (!request.template.resources || request.template.resources.items.length < 1) {
+    if (!request.template.resources || !request.template.resources.items || request.template.resources.items.length < 1) {
         this.reporter.logger.debug("Resources not defined for this template.");
         return;
     }

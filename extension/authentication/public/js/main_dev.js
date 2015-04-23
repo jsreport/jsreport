@@ -55,7 +55,7 @@ define(["app", "underscore", "marionette", "backbone",
 
             app.on("menu-render", function (context) {
                 if (app.settings.tenant.isAdmin) {
-                    context.result += "<li><a href='/#/extension/users/list'>Users</a></li>";
+                    context.result += "<li><a href='#/extension/users/list'>Users</a></li>";
                 }
             });
 

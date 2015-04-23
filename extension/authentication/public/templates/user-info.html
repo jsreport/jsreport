@@ -12,7 +12,7 @@
             {{/if}}
             <a id='logoutLink' onclick=" $('#logoutBtn').click()"><i class="fa fa-power-off"></i> Logout </a>
 
-            <form method="POST" action="/logout">
+            <form method="POST" action="{{:~getServerUrl()}}logout">
                 <input type="submit" id="logoutBtn" style="display: none"/>
             </form>
         </li>

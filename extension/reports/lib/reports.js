@@ -9,6 +9,7 @@ var events = require("events"),
     async = require("async"),
     _ = require("underscore"),
     q = require("q"),
+    url = require("url"),
     toArray = require('stream-to-array');
 
 var Reporting = function (reporter, definition) {
@@ -70,8 +71,11 @@ Reporting.prototype.handleAfterRender = function (request, response) {
     }).then(function (blobName) {
         self.reporter.logger.debug("Updating report blob name " + blobName);
         return self.reporter.documentStore.collection("reports").update({_id: report._id}, {$set: {blobName: blobName}}).then(function () {
-            if (request.headers)
-                response.headers["Permanent-Link"] = request.protocol + "://" + request.headers.host + "/reports/" + report._id + "/content";
+            if (request.headers) {
+                var link = request.protocol + "://" + request.headers.host;
+                link += url.parse(request.originalUrl).pathname.replace("/api/report", "/reports/");
+                response.headers["Permanent-Link"] = link + report._id + "/content";
+            }
 
             response.headers["Report-Id"] = report._id;
             response.headers["Report-BlobName"] = blobName;

@@ -90,7 +90,10 @@ function addPassport(reporter, app, admin, definition) {
 
             if (!user) {
                 req.session.viewModel.login = info.message;
-                return res.redirect('/login?returnUrl=' + encodeURIComponent(req.query.returnUrl || "/"));
+                //we cannot do just simple redirect to / because app can run on subpath
+                var url = req.originalUrl.replace("/login", "");
+                url = url.split('?')[0].split('#')[0];
+                return res.redirect(url + '?returnUrl=' + encodeURIComponent(req.query.returnUrl || "/"));
             }
 
             req.session.viewModel = {};
@@ -107,7 +110,8 @@ function addPassport(reporter, app, admin, definition) {
 
     app.post("/logout", function (req, res) {
         req.logout();
-        res.redirect("/");
+        //we cannot do just simple redirect to / because app can run on subpath
+        res.redirect(req.originalUrl.replace("logout", ""));
     });
 
     app.use(function (req, res, next) {

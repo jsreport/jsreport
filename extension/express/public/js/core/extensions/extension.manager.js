@@ -64,7 +64,7 @@ define(["jquery", "app", "underscore", "async"], function($, app, _, async) {
                         packages: [
                             {
                                 name: extension.name,
-                                location: app.serverUrl +
+                                location: (app.serverUrl !== "" ? app.serverUrl : window.location.pathname) +
                                     (app.serverUrl.lastIndexOf("file:///", 0) === 0 ? '../../' :  'extension/') +
                                      extension.name + '/public/js',
                                 main: main

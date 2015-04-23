@@ -6,7 +6,7 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
     function ($, Backbone, Marionette, async, Utils, ListenerCollection) {
 
         var app = new Marionette.Application();
-        app.serverUrl = jsreport_server_url || "/";
+        app.serverUrl = jsreport_server_url || "";
         app.onStartListeners = new ListenerCollection();
         app.options = {
             mode: jsreport_mode,
