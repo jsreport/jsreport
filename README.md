@@ -48,24 +48,25 @@ See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documen
 The easiest way how to contribute to jsreport open source community is to implement jsreport extension. Pull requests to this core repository are also welcome.
 
 ##Roadmap
+The following features are planned for Q2 and Q3. 
 
-The project is currently in the stabilization phase. 
+### Template designer in CKEditor
+The current embedded jsreport editor is way too complex for non developers. We would like to create some plugins into CKEditor and improve end user experience when editing simple template. This should work great with pdf reports but for interactive html reports we need to find a different solution.
 
-Features which should come shortly in Q1 2015:
- 
-- java sdk
-- advanced pdf features: table of contents, metadata
-- code quality: splitting jsreport into multiple npm packages, more tests, replace jaydata
-- better logging
+###Anonymous statistics
+Collect anonymous usage statistics from jsreport studio. This won't have any value for the jsreport users, but great value for us. 
 
-Features planned for Q2 2015
+###Client application
+We would like to provide a consumer web based application.  Where user can login and browse reports. The client application should be very responsive and display well on all kind of client devices from small phones to desktops. 
 
-- some kind of a WYSIWYG editor integrated to embedded designer allowing non-developers to customize reports
+###Phantom pdf improvements
+The most requested features are support for Table of Contents and click-able 
+links. This is currently work in progress in phantomjs, when it is merged we will try to make it working in jsreport as well.
+
+###Template history extension
+Extension tracking changes in templates and capable to switch back to one of the previous versions.
 
 **Missing a feature? Submit a feature request.**
-
-
-
 
 ## License 
 
@@ -82,5 +83,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU
 Lesser General Public License](http://www.gnu.org/licenses/lgpl.html) for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library.
+
 
 
