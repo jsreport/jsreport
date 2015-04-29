@@ -89,20 +89,22 @@ var jsreport = (function (global, jQuery, undefined) {
     }
 
     function ab2str(buf) {
-        return String.fromCharCode.apply(null, new Uint8Array(buf));
+        var encodedString = String.fromCharCode.apply(null, new Uint8Array(buf));
+        var decodedString = decodeURIComponent(escape((encodedString)));
+        return decodedString;
     }
 
-    function _serverSideRenderToPlaceholder($placeholder, template) {
+    function _serverSideRenderUsingXHR($placeholder, template) {
         var self = this;
 
         var xhr = new XMLHttpRequest();
         var data = JSON.stringify({ template: template, options: template.options });
         xhr.open('POST', this.serverUrl + '/api/report', true);
         xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
-        xhr.setRequestHeader("Content-length", data.length);
         xhr.responseType = 'arraybuffer';
 
         xhr.onload = function (e) {
+
             var contentType = this.getResponseHeader('Content-Type');
 
             $placeholder.html("");
@@ -145,10 +147,17 @@ var jsreport = (function (global, jQuery, undefined) {
         xhr.send(data);
     }
 
-    function _serverSideRender(template) {
+    function _serverSideRender(template, $placeholder) {
+        var frameName = template.shortid || new Date().getTime();
+
+        if ($placeholder) {
+           var iframe = $("<iframe frameborder='0' name='" + frameName + "' style='width:100%;height:100%;z-index: 50'></iframe>");
+           $placeholder.append(iframe);
+        }
+
         var mapForm = document.createElement("form");
-        mapForm.target = "_blank";
-        mapForm.id = template.shortid;
+        mapForm.target = $placeholder ? frameName : "_blank";
+        mapForm.id = new Date().getTime();
         mapForm.method = "POST";
         mapForm.action = this.serverUrl + "/api/report";
 
@@ -182,8 +191,12 @@ var jsreport = (function (global, jQuery, undefined) {
         addBody("headers", headers);
 
         document.body.appendChild(mapForm);
-        mapForm.submit();
-        $("#" + template.shortid).remove();
+
+        //we need to wait a little because of FF otherwise it throws NS_ERROR_FAILURE
+        setTimeout(function() {
+            mapForm.submit();
+            $("#" +  mapForm.id).remove();
+        }, 10);
     }
 
     function _openEditor(template, options) {
@@ -238,7 +251,6 @@ var jsreport = (function (global, jQuery, undefined) {
     }
 
     function _fullScreen() {
-        console.log("full");
         this.jsreportIFrame.css("left", "0px");
         this.jsreportIFrame.css("top", "0px");
         this.jsreportIFrame.css("right", "0px");
@@ -315,7 +327,7 @@ var jsreport = (function (global, jQuery, undefined) {
         });
     }
 
-    function _render($placeholder, originalTemplate) {
+    function _render($placeholder, originalTemplate, options) {
         var self = this;
 
         if (!originalTemplate) {
@@ -348,10 +360,11 @@ var jsreport = (function (global, jQuery, undefined) {
                 self.recipes["client-html"]({ template: template, data: originalTemplate.data }, target);
             });
         } else {
-            if ($placeholder)
-                _serverSideRenderToPlaceholder.call(self, $placeholder, template);
+            if ($placeholder && options && options.useXHR) {
+                _serverSideRenderUsingXHR.call(self, $placeholder, template);
+            }
             else
-                _serverSideRender.call(self, template);
+                _serverSideRender.call(self, template, $placeholder);
         }
     }
 
@@ -386,8 +399,8 @@ var jsreport = (function (global, jQuery, undefined) {
         renderAll: function () {
             _renderAll.call(this);
         },
-        render: function ($placeholder, template) {
-            _render.call(this, $placeholder, template);
+        render: function ($placeholder, template, options) {
+            _render.call(this, $placeholder, template, options);
         },
         openEditor: function (template, options) {
             return _openEditor.call(this, template, options);

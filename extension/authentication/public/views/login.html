@@ -6,8 +6,8 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     <meta name="author" content="Jan Blaha">
     <meta name="description" content="jsreport - javascript business reports">
-    <link href="css/font-awesome/css/font-awesome.min.css?v=" rel="stylesheet">
-    <link href="css/built.css?v=" rel="stylesheet">
+    <link href="<%= options.appPath %>css/font-awesome/css/font-awesome.min.css?v=" rel="stylesheet">
+    <link href="<%= options.appPath %>css/built.css?v=" rel="stylesheet">
 </head>
 <body>
 <div class="container text-center">
@@ -48,9 +48,9 @@
     }
     else {
         if (window.location.search.indexOf("returnUrl") === -1) {
-            form.action = "login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.hash + window.location.search);
+            form.action = "<%= options.appPath %>login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.hash + window.location.search);
         } else {
-            form.action = "login" + window.location.search;
+            form.action = "<%= options.appPath %>login" + window.location.search;
         }
     }
 </script>

@@ -19,7 +19,7 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                     template: {content: "{#child {{:a}}}", engine: "jsrender", recipe: "html"},
                     data: {a: "foo"}
                 }).then(function (resp) {
-                    return resp.result.toBuffer().then(function(buf) {
+                    return resp.result.toBuffer().then(function (buf) {
                         buf.toString().should.be.eql("child content");
                         done();
                     });
@@ -56,7 +56,7 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
 
             reporter.documentStore.collection("templates").insert({
                 content: "{{:foo}}", engine: "jsrender", recipe: "html", name: "foo"
-            }).then(function() {
+            }).then(function () {
                 return reporter.render({
                     template: {
                         content: "{#child foo}", engine: "jsrender", recipe: "html",
@@ -77,8 +77,8 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
 
             reporter.documentStore.collection("templates").insert({
                 content: "{{:foo}}", engine: "jsrender", recipe: "html", name: "foo",
-                script: { content: "function beforeRender(done) { request.data.foo = 'yes'; done(); }"}
-            }).then(function() {
+                script: {content: "function beforeRender(done) { request.data.foo = 'yes'; done(); }"}
+            }).then(function () {
                 return reporter.render({
                     template: {
                         content: "{#child foo}", engine: "jsrender", recipe: "html",
@@ -91,6 +91,23 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                         buf.toString().should.be.eql("yes");
                         done();
                     });
+                });
+            }).catch(done);
+        });
+
+        it('should be able to process high volume inputs', function (done) {
+            this.timeout(7000);
+            var data = { people: []};
+            for (var i = 0; i < 1000000; i++) {
+                data.people.push(i);
+            }
+            return reporter.render({
+                template: {content: "foo", engine: "jsrender", recipe: "html"},
+                data: data
+            }).then(function (resp) {
+                return resp.result.toBuffer().then(function (buf) {
+                    buf.toString().should.be.eql("foo");
+                    done();
                 });
             }).catch(done);
         });

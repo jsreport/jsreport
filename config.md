@@ -53,8 +53,14 @@ Cluster will not work with `nedb` as data store. You need to set up a mongodb in
 **phantom.numberOfWorkers** (`int`) - specify how many phantomjs instances will phantom-pdf recipe use. If the value is not filled, jsreport will use number of cpus by default
 **phantom.timeout** (`int`) - specify default timeout for pdf rendering using phantomjs
 **phantom.allowLocalFilesAccess** (`bool`) - default is `false`. When set to true you can use local paths to get resources.
+**phantom.host** (`string`) - Set a custom hostname on which phantomjs server is started, useful is cloud environments where you need to set specific IP.
+**phantom.portLeftBoundary** (`number`) - set a specific port range for phantomjs server
+**phantom.portRightBoundary** (`number`) - set a specific port range for phantomjs server
 
 **tasks** (`object`) - this attribute is `optional` and is used to configure component executing custom scripts. This component is use to excute javascript templating engines during rendering or in scripts extension. You can set here `numberOfWorkers` attribute to specify how many child nodejs instances will be used for task execution. If the value is not filled, jsreport will use number of cpus by default. You can also set `timeout` attribute to specify default timeout for one task execution.
+**tasks.host** (`string`) - Set a custom hostname on which script execution server is started, useful is cloud environments where you need to set specific IP.
+**tasks.portLeftBoundary** (`number`) - set a specific port range for script execution server
+**tasks.portRightBoundary** (`number`) - set a specific port range for script execution server
 
 **rootDirectory** (`string`)  - optionally specifies where the application stores data, logs and temp files
 

@@ -1,6 +1,7 @@
 <!DOCTYPE xmlns="http://www.w3.org/1999/xhtml">
 <html>
 <head lang="en">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
     <script src="$serverUrl/lib/jquery.js"></script>
     <style>
         * {
@@ -35,7 +36,7 @@
 <table>
     <tr>
         <td id="placeholder">
-            <iframe id="contentIframe" frameborder="0" style='width:100%;height:100%;z-index: 50'></iframe>
+            <iframe name="contentIframe" id="contentIframe" frameborder="0" style='width:100%;height:100%;z-index: 50'></iframe>
         </td>
     </tr>
 </table>
@@ -64,7 +65,7 @@
             var tmpl = $.extend({}, template);
             tmpl.recipe = "html";
             tmpl.shortid = undefined;
-            jsreport.render($("#placeholder"), tmpl);
+            jsreport.render($("#placeholder"), tmpl, { useXHR: true});
         };
 
         ifrm.jsreport = jsreport;

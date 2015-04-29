@@ -119,6 +119,10 @@ var configureExpressApp = function(app, reporter, definition){
 
 module.exports = function(reporter, definition) {
 
+    reporter.options.appPath = reporter.options.appPath || "/";
+    if (reporter.options.appPath.substr(-1) !==  "/")
+        reporter.options.appPath += "/";
+
     reporter.express = {};
     var app = definition.options.app;
 

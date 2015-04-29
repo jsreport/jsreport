@@ -73,7 +73,7 @@ function addPassport(reporter, app, admin, definition) {
         if (!req.user) {
             var viewModel = _.extend({}, req.session.viewModel || {});
             req.session.viewModel = null;
-            return res.render(path.join(__dirname, '../public/views', 'login.html'), {viewModel: viewModel});
+            return res.render(path.join(__dirname, '../public/views', 'login.html'), {viewModel: viewModel, options: reporter.options});
         }
         else {
             next();
@@ -90,10 +90,7 @@ function addPassport(reporter, app, admin, definition) {
 
             if (!user) {
                 req.session.viewModel.login = info.message;
-                //we cannot do just simple redirect to / because app can run on subpath
-                var url = req.originalUrl.replace("/login", "");
-                url = url.split('?')[0].split('#')[0];
-                return res.redirect(url + '?returnUrl=' + encodeURIComponent(req.query.returnUrl || "/"));
+                return res.redirect(reporter.options.appPath + '?returnUrl=' + encodeURIComponent(req.query.returnUrl || "/"));
             }
 
             req.session.viewModel = {};
@@ -110,8 +107,7 @@ function addPassport(reporter, app, admin, definition) {
 
     app.post("/logout", function (req, res) {
         req.logout();
-        //we cannot do just simple redirect to / because app can run on subpath
-        res.redirect(req.originalUrl.replace("logout", ""));
+        res.redirect(reporter.options.appPath);
     });
 
     app.use(function (req, res, next) {
@@ -161,7 +157,8 @@ function configureRoutes(reporter, app, admin, definition) {
 
         var viewModel = _.extend({}, req.session.viewModel || {});
         req.session.viewModel = null;
-        return res.render(path.join(__dirname, '../public/views', 'login.html'), {viewModel: viewModel});
+
+        return res.render(path.join(__dirname, '../public/views', 'login.html'), {viewModel: viewModel, options: reporter.options});
     });
 
     app.use(function (req, res, next) {
