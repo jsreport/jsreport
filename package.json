@@ -66,6 +66,7 @@
     "string": "3.1.1",
     "stringformat": "0.0.5",
     "underscore": "1.8.3",
+    "universal-analytics": "0.3.6",
     "url": "0.10.3",
     "url-join": "0.0.1",
     "uuid": "2.0.1",
