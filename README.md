@@ -47,6 +47,8 @@ See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documen
 ## Contributions
 The easiest way how to contribute to jsreport open source community is to implement jsreport extension. Pull requests to this core repository are also welcome.
 
+**Check the tutorial for [writing custom extensions](http://jsreport.net/learn/custom-extension)**
+
 ##Roadmap
 The following features are planned for Q2 and Q3. 
 
