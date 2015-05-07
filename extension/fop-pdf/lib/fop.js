@@ -39,7 +39,9 @@ var Fop = module.exports = function(reporter) {
                             foFilePath.replace(".fo", ".pdf")
                         ];
 
-                        childProcess.execFile("fop.bat", childArgs, function(error, stdout, stderr) {
+                        var isWin = /^win/.test(process.platform);
+                        var fopFile = "fop" + (isWin ? ".bat" : "");
+                        childProcess.execFile(fopFile, childArgs, function(error, stdout, stderr) {
                             reporter.logger.info("Rastering pdf child process end.");
 
                             if (error !== null) {
