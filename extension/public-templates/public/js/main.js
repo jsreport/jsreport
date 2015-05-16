@@ -67,10 +67,5 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore
                     context.region.show(view, "share");
                 }
             });
-
-            app.on("entity-registration", function(context) {
-                $entity.Template.addMember("readSharingToken", { type: "string" });
-                $entity.Template.addMember("writeSharingToken", { type: "string" });
-            });
         });
     });

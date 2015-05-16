@@ -20,6 +20,10 @@ var Reporting = function (reporter, definition) {
     this.reporter.on("express-configure", Reporting.prototype.configureExpress.bind(this));
 
     this._defineEntities();
+
+    if (this.reporter.authorization) {
+        this.reporter.authorization.findPermissionFilteringListeners.add(definition.name,  Reporting.prototype._reportsFiltering.bind(this));
+    }
 };
 
 Reporting.prototype.configureExpress = function (app) {
@@ -97,6 +101,29 @@ Reporting.prototype._defineEntities = function () {
     });
 
     this.reporter.documentStore.registerEntitySet("reports", {entityType: "jsreport.ReportType"});
+};
+
+Reporting.prototype._reportsFiltering = function (collection, query) {
+
+    if (collection.name === "reports") {
+        if (query.templateShortid) {
+            return this.reporter.documentStore.collection("templates").find({ shortid: query.templateShortid }).then(function(templates) {
+                if (templates.length !== 1)
+                    return;
+
+                delete query.readPermissions;
+            });
+        }
+
+        return this.reporter.documentStore.collection("templates").find({}).then(function(templates) {
+            delete query.readPermissions;
+            query.templateShortid = {
+                $in: templates.map(function(t) {
+                    return t.shortid;
+                })
+            };
+        });
+    }
 };
 
 module.exports = function (reporter, definition) {

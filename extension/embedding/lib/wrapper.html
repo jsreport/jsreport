@@ -55,7 +55,13 @@
             doc = doc.document;
         }
 
-        doc.documentElement.innerHTML = "";
+        try {
+            //this creashes in IE9, but it should almost work even without it, so we silently ignore the error
+            doc.documentElement.innerHTML = "";
+        }
+        catch(e) {
+
+        }
 
         doc.open();
         doc.write(decodeURIComponent("$html"));

@@ -17,9 +17,14 @@ function Authorization(reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
+    this.findPermissionFilteringListeners = reporter.createListenerCollection();
     this.requestAuthorizationListeners = reporter.createListenerCollection();
     this.operationAuthorizationListeners = reporter.createListenerCollection();
     reporter.initializeListener.add(definition.name, Authorization.prototype._initialize.bind(this));
+
+    this.findPermissionFilteringListeners.add(definition.name, function(collection, query) {
+        query.readPermissions = process.domain.req.user._id;
+    });
 }
 
 Authorization.prototype.authorizeRequest = function (req, res) {
@@ -62,8 +67,13 @@ Authorization.prototype.authorizeUpdate = function (query, update, collection, r
                 result = false;
             }
 
-            if (result)
-                result = self.checkPermissions(entity, req);
+            if (collection.name === "users" && (entity._id && entity._id === req.user._id)) {
+                result = true;
+            } else {
+                if (result) {
+                    result = self.checkPermissions(entity, req);
+                }
+            }
         });
         return result;
     });
@@ -132,6 +142,7 @@ Authorization.prototype._registerAuthorizationListeners = function () {
                 if (res !== true) {
                     if (process.domain.req.user)
                         self.reporter.logger.warn("User " + process.domain.req.user.username + " not authorized for " + collection.name);
+
                     var e = new Error("Unauthorized for " + collection.name);
                     e.unauthorized = true;
                     throw e;
@@ -222,7 +233,7 @@ Authorization.prototype._handlePermissionsInEntities = function () {
 
             if (process.domain && process.domain.req && process.domain.req.user && process.domain.req.user._id && !process.domain.req.user.isAdmin &&
                 process.domain.req.skipAuthorization !== true && process.domain.req.skipAuthorizationForQuery !== query) {
-                query.readPermissions = process.domain.req.user._id;
+                return self.findPermissionFilteringListeners.fire(this, query);
             }
         });
     }

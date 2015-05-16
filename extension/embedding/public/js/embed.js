@@ -192,11 +192,21 @@ var jsreport = (function (global, jQuery, undefined) {
 
         document.body.appendChild(mapForm);
 
-        //we need to wait a little because of FF otherwise it throws NS_ERROR_FAILURE
-        setTimeout(function() {
-            mapForm.submit();
-            $("#" +  mapForm.id).remove();
-        }, 10);
+        function submit(i) {
+            if (i > 10)
+                return console.log("Unable to submit render form.");
+            try {
+                mapForm.submit();
+                $("#" + mapForm.id).remove();
+            }
+            catch(e) {
+                setTimeout(function() {
+                    submit(i + 1);
+                }, 50);
+            }
+        }
+
+        submit(0);
     }
 
     function _openEditor(template, options) {

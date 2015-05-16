@@ -189,6 +189,10 @@ function configureRoutes(reporter, app, admin, definition) {
             next(e);
         });
     });
+
+    app.get("/api/current-user", function (req, res, next) {
+        res.send({ username: req.user.username });
+    });
 }
 
 function Authentication(reporter) {
@@ -214,6 +218,7 @@ module.exports = function (reporter, definition) {
     });
 
     reporter.on("after-express-static-configure", function (app) {
+        reporter.emit("before-authentication-express-routes", app);
         configureRoutes(reporter, app, definition.options.admin, definition);
     });
 };

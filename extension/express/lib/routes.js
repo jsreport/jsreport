@@ -11,7 +11,6 @@ var serveStatic = require("serve-static"),
 var oneMonth = 31 * 86400000;
 
 module.exports = function (app, reporter) {
-    var originalMode = reporter.options.mode;
 
     function handleError(req, res, err) {
         res.status(500);
@@ -86,6 +85,7 @@ module.exports = function (app, reporter) {
 
         return optionsClone;
     }
+    
 
     app.get("/", function (req, res, next) {
         var options = getOptions(req);
@@ -98,6 +98,8 @@ module.exports = function (app, reporter) {
         if (options.mode === "production")
             res.render(path.join(__dirname, '../public/views', 'root_built.html'), options);
     });
+
+
 
     reporter.emit("express-before-odata", app);
 
