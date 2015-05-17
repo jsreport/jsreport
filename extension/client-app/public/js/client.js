@@ -1,15 +1,7 @@
 /* globals jsreport, jsreportOptions */
 
-$(function() {
+$(function () {
 
-    function refreshDefaultTemplateIcon() {
-        $(".template-command").show();
-        if (window.user && window.user.defaultTemplateShortid === window.template.shortid) {
-            $("#default-template-icon").addClass("default-template");
-        } else {
-            $("#default-template-icon").removeClass("default-template");
-        }
-    }
 
     function renderTemplate(shortid) {
         var template = window.templates[shortid];
@@ -18,11 +10,11 @@ $(function() {
         $("#title").attr("href", "");
         $("#page").data("shortid", shortid);
         $(".list-command").hide();
+        $(".template-command").show();
 
         window.template = template;
-        refreshDefaultTemplateIcon();
 
-        jsreport.render($("#page"), { shortid: shortid});
+        jsreport.render($("#page"), {shortid: shortid});
     }
 
     function renderTemplateReports(shortid) {
@@ -31,6 +23,7 @@ $(function() {
         $("#title").attr("href", "");
         $("#page").data("shortid", shortid);
         $(".list-command").hide();
+        $("#goToList").show();
 
         $.getJSON("/odata/reports?$orderby=creationDate desc&$filter=templateShortid eq '" + shortid + "'", function (data) {
             window.reports = {};
@@ -39,7 +32,7 @@ $(function() {
                 window.reports[data.value[i]._id] = data.value[i];
             }
 
-            $("#page").html($.templates("#reports-template").render({ items: data.value }));
+            $("#page").html($.templates("#reports-template").render({items: data.value}));
         });
     }
 
@@ -50,8 +43,9 @@ $(function() {
         $("#title").text(window.reports[id].name);
         $("#title").attr("href", "#/template-reports/" + $("#page").data("shortid"));
         $("#page").data("_id", id);
+        $("#goToList").show();
 
-        $("#page").html($.templates("#report-template").render({ _id: id}));
+        $("#page").html($.templates("#report-template").render({_id: id}));
     }
 
     function renderList() {
@@ -66,14 +60,14 @@ $(function() {
         document.title = "jsreport";
         $("#title").text("");
         $("#title").attr("href", "");
-        $("#page").html($.templates("#list-template").render({ items: window.templatesList, mode: jsreportOptions.mode }));
+        $("#page").html($.templates("#list-template").render({
+            items: window.templatesList,
+            mode: jsreportOptions.mode
+        }));
     }
-
-    var redirectToDefault = false;
 
     function refresh() {
         if (!window.location.hash) {
-            redirectToDefault = true;
             window.location.hash = "#/";
             return;
         }
@@ -98,42 +92,28 @@ $(function() {
             return;
         }
 
-        if (window.user && redirectToDefault &&
-            ((window.user.defaultTemplateShortid && window.templates[window.user.defaultTemplateShortid]) ||
-            (window.defaultTemplate))) {
-            redirectToDefault = false;
-            window.location.hash = "#/template/" + (window.user.defaultTemplateShortid || window.defaultTemplate);
+        if (window.location.hash.indexOf("#/list") === 0) {
+            renderList();
+            return;
+        }
+
+        if (window.defaultTemplate) {
+            window.location.hash = "#/template/" + window.defaultTemplate;
         }
         else {
             renderList();
         }
     }
 
-    $("#logout").click(function() {
+    $("#logout").click(function () {
         $("#logoutBtn").click();
     });
 
-    $(".home").click(function() {
+    $(".home").click(function () {
         window.location.href = window.location.href.split("#")[0] + "#/";
     });
 
-    $("#setDefault").click(function() {
-        if (!window.user)
-            return;
-
-        window.user.defaultTemplateShortid = window.user.defaultTemplateShortid === window.template.shortid ? null :  window.template.shortid;
-        refreshDefaultTemplateIcon();
-
-        $.ajax({
-            method: "PATCH",
-            url: "odata/users(" + window.user._id + ")",
-            data: {
-                defaultTemplateShortid: window.user.defaultTemplateShortid
-            }
-        });
-    });
-
-    $("#openStudio").click(function() {
+    $("#openStudio").click(function () {
         var shortid = $("#page").data("shortid");
         var url = "";
 
@@ -146,7 +126,7 @@ $(function() {
         window.location = url + "#extension/templates/" + shortid;
     });
 
-    $("#switchMixedMode").click(function() {
+    $("#switchMixedMode").click(function () {
         if (jsreportOptions.mode === "templates")
             jsreportOptions.mode = "reports";
         else
@@ -155,32 +135,23 @@ $(function() {
         renderList();
     });
 
-    function initTemplates() {
-        $.getJSON("odata/templates?$select=name,shortid,isClientDefault,modificationDate", function (data) {
-            window.templates = {};
-            window.templatesList = data.value;
-            for (var i = 0; i < data.value.length; ++i) {
-                data.value[i].modificationDate = new Date(Date.parse(data.value[i].modificationDate)).toLocaleString();
-                window.templates[data.value[i].shortid] = data.value[i];
-                if (data.value[i].isClientDefault && !window.defaultTemplate) {//take the first one
-                    window.defaultTemplate = data.value[i].shortid;
-                }
+
+    $.getJSON("odata/templates?$select=name,shortid,isClientDefault,modificationDate", function (data) {
+        window.templates = {};
+        window.templatesList = data.value;
+        for (var i = 0; i < data.value.length; ++i) {
+            data.value[i].modificationDate = new Date(Date.parse(data.value[i].modificationDate)).toLocaleString();
+            window.templates[data.value[i].shortid] = data.value[i];
+            if (data.value[i].isClientDefault && !window.defaultTemplate) {//take the first one
+                window.defaultTemplate = data.value[i].shortid;
             }
+        }
 
-            refresh();
-        });
-    }
+        refresh();
+    });
 
-    if (jsreportOptions.isAuthEnabled) {
-        $.getJSON("/api/current-user", function (user) {
-            $.getJSON("/odata/users?$filter=username eq '" + user.username + "'", function (users) {
-                window.user = users.value[0];
-                initTemplates();
-            });
-        });
-    }
-    else {
-        initTemplates();
+    if (!jsreportOptions.isAuthEnabled) {
+        $("#logout").hide();
     }
 
     $(window).on('hashchange', refresh);
