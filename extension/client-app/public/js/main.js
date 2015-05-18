@@ -30,6 +30,33 @@ define(["jquery", "app", "marionette", "backbone", "core/view.base", "underscore
                 }
             });
 
+            var UserToolbarView = ViewBase.extend({
+                tagName: "li",
+                template: "user-set-preference",
+
+                initialize: function() {
+                    _.bindAll(this, "setPreference");
+                    this.model.set("isClientAppPreferred", this.model.get("isClientAppPreferred") === true, { silent: true});
+                },
+
+                events: {
+                    "click #setPreferenceCommand": "setPreference"
+                },
+
+                setPreference: function() {
+                    this.model.set("isClientAppPreferred", !this.model.get("isClientAppPreferred"));
+                    this.model.save();
+                    this.render();
+                }
+            });
+
+            app.on("toolbar-render", function (context) {
+                if (context.name === "user-detail") {
+                    var view = new UserToolbarView({model: context.model});
+                    context.region.show(view, "setPreference");
+                }
+            });
+
             app.on("toolbar-render", function (context) {
                 if (context.name === "template-detail") {
                     var view = new TemplateToolbarView({model: context.model});

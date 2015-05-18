@@ -1,5 +1,5 @@
-define(["jquery", "app", "core/utils", "core/view.base", "./user.changePassword.dialog"],
-    function($, app, Utils, LayoutBase, ChangePasswordDialog) {
+define(["jquery", "app", "marionette", "core/utils", "core/view.base", "./user.changePassword.dialog"],
+    function($, app, Marionette, Utils, LayoutBase, ChangePasswordDialog) {
         return LayoutBase.extend({
             template: "user-detail-toolbar",
 
@@ -7,6 +7,29 @@ define(["jquery", "app", "core/utils", "core/view.base", "./user.changePassword.
                 "click #saveCommand": "save",
                 "click #changePasswordCommand": "change"
 
+            },
+
+            initialize: function() {
+                var self = this;
+                this.listenTo(this.model, "change", function() {
+                    self.render();
+                });
+                this.listenTo(this, "render", function() {
+                    var contextToolbar = {
+                        name: "user-detail",
+                        model: self.model,
+                        region: self.extensionsToolbarRegion,
+                        view: self
+                    };
+                    app.trigger("toolbar-render", contextToolbar);
+                });
+            },
+
+            regions: {
+                extensionsToolbarRegion: {
+                    selector: "#extensionsToolbarBox",
+                    regionType: Marionette.MultiRegion
+                }
             },
 
             save: function() {

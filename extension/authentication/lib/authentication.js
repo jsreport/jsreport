@@ -220,5 +220,6 @@ module.exports = function (reporter, definition) {
     reporter.on("after-express-static-configure", function (app) {
         reporter.emit("before-authentication-express-routes", app);
         configureRoutes(reporter, app, definition.options.admin, definition);
+        reporter.emit("after-authentication-express-routes", app);
     });
 };

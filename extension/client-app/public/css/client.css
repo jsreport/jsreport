@@ -53,6 +53,7 @@ nav ul li {
     cursor: pointer;
     padding-left: 10px;
     text-align: center;
+    line-height: 35px;
 }
 
 nav ul li.last {
@@ -79,6 +80,7 @@ nav ul li a {
 
 .icon-title {
     font-size: 10px;
+    margin-top: -20px;
 }
 
 .navbar-brand {
