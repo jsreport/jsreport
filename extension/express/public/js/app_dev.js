@@ -60,10 +60,14 @@ define(["jquery", "backbone", "marionette", "async", "core/utils", "core/listene
                     }
 
 
+                    //DON'T KNOW HOW TO INVALIDATE LOCAL TEMPLATES WHEN YOU INSTALL NEW EXTENSION
+                    //LET"S AVOID CACHING THESE 60KB FOR NOW
+                    /*
                     if (jsreport_bust && localStorage && localStorage.getItem("templates-" + jsreport_bust) != null) {
                         compileTemplates(JSON.parse(localStorage.getItem("templates-" + jsreport_bust)));
                         return cb(null, null);
                     }
+                    */
 
                     $.getJSON(app.serverUrl + "html-templates", function (templates) {
                         if (localStorage)

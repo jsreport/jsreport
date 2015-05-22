@@ -6,7 +6,8 @@
  */
 
 var path = require("path"),
-    q = require("q");
+    q = require("q"),
+    extend = require("node.extend");
 
 var conversion;
 
@@ -23,8 +24,7 @@ module.exports = function (reporter, definition) {
     });
 
     if (!conversion) {
-        conversion = require("html-to-xlsx")({
-            numberOfWorkers: 1
-        });
+        reporter.options.phantom = reporter.options.phantom || {};
+        conversion = require("html-to-xlsx")(extend(true, {}, reporter.options.phantom));
     }
 };

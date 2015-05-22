@@ -9,8 +9,8 @@ var Reporter = require("../lib/reporter.js"),
     util = require("../lib/util/util.js"),
     extend = require("node.extend");
 
-var connectionString = exports.connectionString = process.env.DB === "neDB" ? {name: "neDB"}
-    : {name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017};
+var connectionString = exports.connectionString = process.env.DB === "mongo" ? {name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017}
+    : {name: "neDB"};
 
 exports.describeReporting = function (rootDirectory, extensions, customOptions, nestedSuite) {
     if (!nestedSuite) {
@@ -27,7 +27,7 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
             extensions: extensions,
             dataDirectory: "data",
             tempDirectory: "data/temp",
-            blobStorage: process.env.DB === "neDB" ? "fileSystem" : "gridFS",
+            blobStorage: process.env.DB === "mongoDB" ? "gridFS" : "fileSystem",
             loadExtensionsFromPersistedSettings: false,
             cacheAvailableExtensions: true,
             express: {app: app},

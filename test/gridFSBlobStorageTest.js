@@ -1,7 +1,7 @@
 ﻿/*globals describe, it, beforeEach, afterEach */
 
 
-if (process.env.DB === "neDB")
+if (process.env.DB !== "mongo")
     return;
 
 var assert = require("assert"),

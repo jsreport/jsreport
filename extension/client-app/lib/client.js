@@ -47,7 +47,6 @@ module.exports = function (reporter, definition) {
             clientRouting(app);
 
         app.get("/client", function(req, res, next) {
-            console.log("rendering");
             res.render(path.join(__dirname, '../public/views', 'client-root.html'), {
                 mode: definition.options.mode || "templates",
                 isAuthEnabled: reporter.authentication !== undefined

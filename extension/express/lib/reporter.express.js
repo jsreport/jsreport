@@ -32,7 +32,7 @@ var startAsync = function(reporter, server, port) {
         defer.resolve();
     });
 
-    server.listen(port, function () {
+    server.listen(port, reporter.options.hostname, function () {
         defer.resolve();
     });
 
@@ -43,7 +43,7 @@ var startExpressApp = function(reporter, app, config) {
     //no port, use process.env.PORT, this is used when hosted in iisnode
     if (!config.httpPort && !config.httpsPort) {
         reporter.express.server = http.createServer(app);
-        return q.ninvoke(reporter.express.server, "listen", process.env.PORT);
+        return q.ninvoke(reporter.express.server, "listen", process.env.PORT, reporter.options.hostname);
     }
 
     //just http port is specified, lets start server on http
@@ -62,7 +62,7 @@ var startExpressApp = function(reporter, app, config) {
                 'Location': "https://" + req.headers.host.split(':')[0] + ':' + config.httpsPort + req.url
             });
             res.end();
-        }).listen(config.httpPort).on('error', function (e) {
+        }).listen(config.httpPort, reporter.options.hostname).on('error', function (e) {
             console.error("Error when starting http server on port " + config.httpPort + " " + e.stack);
         });
     }
