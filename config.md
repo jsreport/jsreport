@@ -1,6 +1,6 @@
 #Configuration documentatoin
 
-jsreport loads `dev.config.json` or `prod.config.json` on startup depending on your nodejs environment.  Configuration can be also specified directly in code, see [adapting jsreport](http://jsreport.net/learn/adapting-jsreport) for details. This article lists all the possible options for jsreport which can be used in config file ordirectly in code.
+jsreport loads `dev.config.json` or `prod.config.json` on startup depending on your nodejs environment.  Configuration can be also specified directly in code, see [adapting jsreport](http://jsreport.net/learn/adapting-jsreport) for details. This article lists all the possible options for jsreport which can be used in config file directly in code.
 
 ```javascript
 {
