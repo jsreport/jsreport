@@ -25,6 +25,8 @@ module.exports = function (reporter, definition) {
 
     if (!conversion) {
         reporter.options.phantom = reporter.options.phantom || {};
-        conversion = require("html-to-xlsx")(extend(true, {}, reporter.options.phantom));
+        var options = extend(true, {}, reporter.options.phantom);
+        delete options.pathToPhantomScript;
+        conversion = require("html-to-xlsx")(options);
     }
 };
