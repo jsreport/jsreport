@@ -40,6 +40,8 @@ all extensions located under root directory if it's undefined or null. If the at
 from http to https, if any of `httpPort` and `httpsPort` is specified default process.env.PORT will be used
 **httpsPort** (number) - https port on which jsreport is running
 
+**hostname** `(string)` - hostname to be used for the jsreport server (`optional`)
+
 **ga** `object`: google analytics settings, example
 `"ga": { "name" : "jsreport.net", "id" : "UA-xxxxx-2" }`
 
