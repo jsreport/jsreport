@@ -50,23 +50,10 @@ The easiest way how to contribute to jsreport open source community is to implem
 **Check the tutorial for [writing custom extensions](http://jsreport.net/learn/custom-extension)**
 
 ##Roadmap
-The following features are planned for Q2 and Q3. 
 
-### Template designer in CKEditor
-The current embedded jsreport editor is way too complex for non developers. We would like to create some plugins into CKEditor and improve end user experience when editing simple template. This should work great with pdf reports but for interactive html reports we need to find a different solution.
-
-###Anonymous statistics
-Collect anonymous usage statistics from jsreport studio. This won't have any value for the jsreport users, but great value for us. 
-
-###Client application
-We would like to provide a consumer web based application.  Where user can login and browse reports. The client application should be very responsive and display well on all kind of client devices from small phones to desktops. 
-
-###Phantom pdf improvements
-The most requested features are support for Table of Contents and click-able 
-links. This is currently work in progress in phantomjs, when it is merged we will try to make it working in jsreport as well.
-
-###Template history extension
-Extension tracking changes in templates and capable to switch back to one of the previous versions.
+1. Improving jsreport codebase - extract whole rendering process into a separate lightweight package that could be easier used in node.js applications
+2. Improving stability and documentation to reach release 1.0
+3. Thinking about end user drag and drop designer.. 
 
 **Missing a feature? Submit a feature request.**
 
