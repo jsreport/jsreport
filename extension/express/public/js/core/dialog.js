@@ -28,11 +28,16 @@
         });
 
         if (options.hideButtons) {
-            $(dialogSelector + " #dialogButtons").html("");
+            $(dialogSelector + " #dialogButtons").hide();
+        } else {
+            $(dialogSelector + " #dialogButtons").show();
         }
+
 
         if (options.hideSubmit) {
             $(dialogSelector + " #dialogSubmit").hide();
+        } else {
+            $(dialogSelector + " #dialogSubmit").show();
         }
 
         return $(dialogSelector + " #modalDialog");
