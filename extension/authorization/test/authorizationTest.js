@@ -7,7 +7,7 @@ var assert = require("assert"),
     ObjectID = require('mongodb').ObjectID,
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["templates", "authentication", "authorization"], function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["templates", "authentication", "authorization"], function (reporter) {
 
     describe('authorization', function () {
 

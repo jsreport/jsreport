@@ -53,7 +53,7 @@ var renderDefaults = {
     cacheAvailableExtensions: true,
     logger: { providerName: "dummy"},
     rootDirectory: __dirname,
-    extensions: ["html", "templates", "data", "phantom-pdf"]
+    extensions: ["html", "templates", "data", "phantom-pdf", "jsrender", "handlebars"]
 };
 
 function ensureTempFolder() {

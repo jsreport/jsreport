@@ -67,9 +67,9 @@ Images.prototype.handleAfterTemplatingEnginesExecuted = function (request, respo
 
     var test = /{#image ([^{}]{0,50})}/g;
 
-    return q.nfcall(asyncReplace, response.result.toString(), test, convert).then(function (result) {
+    return q.nfcall(asyncReplace, response.content.toString(), test, convert).then(function (result) {
         self.reporter.logger.debug("Replaced images " + JSON.stringify(replacedImages));
-        response.result = new Buffer(result);
+        response.content = new Buffer(result);
     });
 };
 

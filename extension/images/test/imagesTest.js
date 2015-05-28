@@ -8,7 +8,7 @@ var fs = require("fs"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(path.join(__dirname, "../../"), ["express", "templates", "images"], function(reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["express", "templates", "images"], function(reporter) {
 
     describe('images', function() {
 
@@ -54,11 +54,11 @@ describeReporting(path.join(__dirname, "../../"), ["express", "templates", "imag
                     };
 
                     var response = {
-                        result: "a{#image test withSpace}"
+                        content: new Buffer("a{#image test withSpace}")
                     };
 
                     reporter.images.handleAfterTemplatingEnginesExecuted(request, response).then(function() {
-                        assert.equal(response.result, "adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'));
+                        assert.equal(response.content, "adata:image/jpeg;base64," + new Buffer([1, 2, 3]).toString('base64'));
                         done();
                     }).catch(done);
                 }).catch(done);

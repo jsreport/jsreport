@@ -2,19 +2,19 @@
  * Copyright(c) 2014 Jan Blaha 
  */ 
 
-var Q = require("q"),
-    FS = require("q-io/fs"),
-    path = require("path");
+var q = require("q"),
+    toner = require("toner");
 
 var Html = module.exports  = function (reporter, definition) {
     reporter.extensionsManager.recipes.push({
         name: "html",
         execute: function(request, response) {
-            response.headers["Content-Type"] = "text/html";
-            response.headers["File-Extension"] = "html";
-            response.headers["Content-Disposition"] = "inline; filename=\"report.html\"";
-
-            return reporter.renderContent(request, response);
+            return q.nfcall(toner.htmlRecipe, request, response);
         }
+    });
+
+    reporter.extensionsManager.engines.push({
+        name: "none",
+        pathToEngine: toner.noneEngine
     });
 };

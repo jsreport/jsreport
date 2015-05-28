@@ -5,7 +5,7 @@ var assert = require("assert"),
     fs = require('fs'),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["excel-parser"], function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["excel-parser"], function (reporter) {
 
     describe('excel-parser', function () {
 

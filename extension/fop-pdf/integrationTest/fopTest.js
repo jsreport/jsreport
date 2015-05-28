@@ -7,7 +7,7 @@ var assert = require("assert"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(path.join(__dirname, "../../"), ["html", "fop-pdf"], function(reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["html", "fop-pdf"], function(reporter) {
     describe('fop pdf', function () {
         
         it('should be rendered', function(done) {

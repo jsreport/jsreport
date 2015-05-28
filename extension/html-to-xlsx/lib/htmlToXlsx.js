@@ -15,10 +15,8 @@ module.exports = function (reporter, definition) {
     reporter.extensionsManager.recipes.push({
         name: "html-to-xlsx",
         execute: function (request, response) {
-            return reporter.renderContent(request, response).then(function () {
-                return q.nfcall(conversion, response.result.toString()).then(function (stream) {
-                    return reporter.xlsx.responseXlsx(request, response, stream);
-                });
+            return q.nfcall(conversion, response.content.toString()).then(function (stream) {
+                return reporter.xlsx.responseXlsx(request, response, stream);
             });
         }
     });

@@ -18,7 +18,7 @@ var authOptions = {
     }
 };
 
-describeReporting(path.join(__dirname, "../../"), ["html", "templates", "authentication", "authorization", "public-templates"], authOptions, function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templates", "authentication", "authorization", "public-templates"], authOptions, function (reporter) {
 
     describe('public-templates', function () {
 
@@ -164,7 +164,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "authent
     });
 });
 
-describeReporting(path.join(__dirname, "../../"), ["express", "html", "templates", "authentication", "authorization", "public-templates"], authOptions, function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["jsrender", "express", "html", "templates", "authentication", "authorization", "public-templates"], authOptions, function (reporter) {
 
     describe('public-templates', function () {
 

@@ -9,21 +9,21 @@ var q = require("q"),
     asyncReplace = require("async-replace"),
     extend = require("node.extend");
 
-var ChildTemplates = function(reporter, definition) {
+var ChildTemplates = function (reporter, definition) {
     this.reporter = reporter;
     this.definition = definition;
 
     var self = this;
-    reporter.beforeRenderListeners.add(definition.name, this, function(request, response) {
+    reporter.beforeRenderListeners.add(definition.name, this, function (request, response) {
         return self.evaluateChildTemplates(request, response, true);
     });
 
-    reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, function(request, response) {
+    reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, function (request, response) {
         return self.evaluateChildTemplates(request, response, false);
     });
 };
 
-ChildTemplates.prototype.evaluateChildTemplates = function(request, response, evaluateInTemplateContent) {
+ChildTemplates.prototype.evaluateChildTemplates = function (request, response, evaluateInTemplateContent) {
     var self = this;
 
     request.childsCircleCache = request.childsCircleCache || {};
@@ -37,7 +37,7 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
 
         request.childsCircleCache[p1] = true;
 
-        self.reporter.documentStore.collection("templates").find({ name: p1 }).then(function(res) {
+        self.reporter.documentStore.collection("templates").find({name: p1}).then(function (res) {
             if (res.length < 1)
                 return done(null);
 
@@ -46,26 +46,24 @@ ChildTemplates.prototype.evaluateChildTemplates = function(request, response, ev
             req.template = res[0];
             req.options.isChildRequest = true;
             self.reporter.logger.debug("Rendering child template " + p1);
-            return self.reporter.render(req).then(function(resp) {
-                return resp.result.toBuffer().then(function(buf) {
-                    done(null, buf.toString());
-                });
+            return self.reporter.render(req).then(function (resp) {
+                done(null, resp.content.toString());
             });
         }).catch(done);
     }
 
     var test = /{#child ([^{}]{0,50})}/g;
 
-    return q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content  : response.result.toString(), test, convert).then(function(result) {
+    return q.nfcall(asyncReplace, evaluateInTemplateContent ? request.template.content : response.content.toString(), test, convert).then(function (result) {
         if (evaluateInTemplateContent) {
             request.template.content = result;
         }
         else {
-            response.result = new Buffer(result);
+            response.content = new Buffer(result);
         }
     });
 };
 
-module.exports = function(reporter, definition) {
+module.exports = function (reporter, definition) {
     reporter[definition.name] = new ChildTemplates(reporter, definition);
 };

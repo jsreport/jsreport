@@ -153,11 +153,7 @@ module.exports = function (app, reporter) {
 
             res.setHeader("X-XSS-Protection", 0);
 
-            if (_.isFunction(response.result.pipe)) {
-                response.result.pipe(res);
-            } else {
-                res.send(response.result);
-            }
+            response.stream.pipe(res);
         }).catch(next).done();
     });
 
@@ -212,9 +208,9 @@ module.exports = function (app, reporter) {
     });
 
     app.get("/api/engine", function (req, res, next) {
-        reporter.getEngines().then(function (engines) {
-            return res.json(engines);
-        }).catch(next);
+        res.json(_.map(reporter.extensionsManager.engines, function (r) {
+            return r.name;
+        }));
     });
 
     app.get("/api/extensions", function (req, res, next) {

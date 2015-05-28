@@ -5,7 +5,7 @@ var assert = require("assert"),
     describeReporting = require("../../../test/helpers.js").describeReporting,
     supertest = require('supertest');
 
-describeReporting(path.join(__dirname, "../../"), ["templates", "express", "reports"], function(reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["templates", "express", "reports"], function(reporter) {
 
     describe('with reports extension', function() {
 

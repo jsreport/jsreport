@@ -20,7 +20,6 @@ module.exports  = function (reporter, definition) {
             response.headers["Content-Dwisposition"] = request.template.contentDisposition + (request.template.contentDisposition.indexOf(";") !== -1 ? "" :
                                                         ";filename=report." + request.template.fileExtension);
 
-            return reporter.renderContent(request, response);
         }
     });
 };

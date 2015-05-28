@@ -8,7 +8,7 @@ var assert = require("assert"),
     q = require("q");
 
 
-describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts"], function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templates", "scripts"], function (reporter) {
 
     describe('scripts', function () {
 
@@ -57,14 +57,13 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
         });
 
         it('should be able to use linked modules', function (done) {
-            var scriptContent = "var h = require('handlebars'); " +
-                "var compiledTemplate = h.compile('foo'); " +
-                "request.template.content = compiledTemplate();" +
+            var scriptContent = "request.template.content = require('underscore').isArray([]); " +
                 "done();";
 
             prepareRequest(scriptContent).then(function (res) {
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
-                    assert.equal('foo', res.request.template.content);
+
+                    res.request.template.content.should.be.eql(true);
                     done();
                 });
             }).catch(done);
@@ -105,9 +104,9 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
         it('should be able to processes afterRender function', function (done) {
             prepareRequest("function afterRender(done){ response.content[0] = 1; done(); }").then(function (res) {
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {
-                    res.response.result = new Buffer([1]);
+                    res.response.content = new Buffer([1]);
                     return reporter.scripts.handleAfterRender(res.request, res.response).then(function () {
-                        assert.equal(1, res.response.result[0]);
+                        assert.equal(1, res.response.content[0]);
                         done();
                     });
                 });
@@ -167,11 +166,8 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                     }
                 };
                 return reporter.render(request).then(function (response) {
-                    return response.result.toBuffer().then(function (buf) {
-                        buf.toString().should.be.eql("foo");
-                        done();
-                    });
-
+                    response.content.toString().should.be.eql("foo");
+                    done();
                 });
             }).catch(done);
         });
@@ -214,11 +210,8 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                     }
                 };
                 return reporter.render(request).then(function (response) {
-                    return response.result.toBuffer().then(function (buf) {
-                        buf.toString().should.be.eql("foo");
-                        done();
-                    });
-
+                    response.content.toString().should.be.eql("foo");
+                    done();
                 });
             }).catch(done);
         });
@@ -244,7 +237,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "scripts
                 return reporter.render(request).then(function (response) {
                     done(new Error("It should have failed"));
                 });
-            }).catch(function(e) {
+            }).catch(function (e) {
                 e.message.should.containEql("cycle");
                 done();
             });

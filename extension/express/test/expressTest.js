@@ -9,7 +9,7 @@ var assert = require("assert"),
     Q = require("q"),
     supertest = require('supertest');
 
-describeReporting(path.join(__dirname, "../../"), ["html", "express", "templates"], function(reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["handlebars", "jsrender", "html", "express", "templates"], function(reporter) {
 
     describe('express', function() {
 

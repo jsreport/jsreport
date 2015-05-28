@@ -6,14 +6,13 @@ var assert = require("assert"),
     _ = require("underscore"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["html", "templates", "phantom-pdf"], function(reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templates", "phantom-pdf"], function(reporter) {
 
     describe('phantom pdf', function () {
      
         it('should not fail when rendering', function(done) {
             var request = {
-                template: { content: "Heyx", recipe: "phantom-pdf", engine:"jsrender" },
-                data: null
+                template: { content: "Heyx", recipe: "phantom-pdf", engine:"jsrender" }
             };
 
             reporter.render(request, {}).then(function(response) {

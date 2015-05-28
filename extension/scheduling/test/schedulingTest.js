@@ -7,7 +7,7 @@ var assert = require("assert"),
     should = require("should"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["html", "templates", "reports", "scheduling"], function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["html", "templates", "reports", "scheduling"], function (reporter) {
 
     describe('with scheduling extension', function () {
 
@@ -48,7 +48,7 @@ describeReporting(path.join(__dirname, "../../"), ["html", "templates", "reports
                 counter++;
             });
 
-            reporter.documentStore.collection("templates").insert({ content: "foo", recipe: "html" }).then(function(template) {
+            reporter.documentStore.collection("templates").insert({ content: "foo", recipe: "html", engine: "none" }).then(function(template) {
                 return reporter.documentStore.collection("tasks").insert({ }).then(function(task) {
                     return reporter.scheduling.renderReport({templateShortid: template.shortid}, task).then(function () {
                         counter.should.be.exactly(1);

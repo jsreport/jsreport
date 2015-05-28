@@ -15,7 +15,7 @@ var path = require("path"),
 function preview(request, response, stream, cb) {
     var req = httpRequest.post("http://jsreport.net/temp", function (err, resp, body) {
         response.headers["File-Extension"] = "html";
-        response.result = "<iframe style='height:100%;width:100%' src='https://view.officeapps.live.com/op/view.aspx?src=" + encodeURIComponent("http://jsreport.net/temp/" + body) + "' />";
+        response.content = "<iframe style='height:100%;width:100%' src='https://view.officeapps.live.com/op/view.aspx?src=" + encodeURIComponent("http://jsreport.net/temp/" + body) + "' />";
 
         //sometimes files is not completely flushed and excel online cannot find it immediately
         setTimeout(function () {
@@ -30,7 +30,7 @@ function preview(request, response, stream, cb) {
 }
 
 function render(request, response, stream) {
-    response.result = stream;
+    response.content = stream;
     response.isStream = true;
     response.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheetf";
     response.headers["Content-Disposition"] = "inline; filename=\"report.xlsx\"";
@@ -64,31 +64,28 @@ module.exports = function (reporter, definition) {
     reporter.extensionsManager.recipes.push({
         name: "xlsx",
         execute: function (request, response) {
-
             var generationId = uuid();
 
-            return reporter.renderContent(request, response).then(function () {
-                var result = response.result.toString();
-                var deferred = q.defer();
-                var workbook = excelbuilder.createWorkbook(request.reporter.options.tempDirectory, generationId + ".xlsx");
+            var result = response.content.toString();
+            var deferred = q.defer();
+            var workbook = excelbuilder.createWorkbook(request.reporter.options.tempDirectory, generationId + ".xlsx");
 
-                var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
-                        result.indexOf("<worksheet"),
-                        result.indexOf("</worksheet>") + "</worksheet>".length);
+            var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
+                    result.indexOf("<worksheet"),
+                    result.indexOf("</worksheet>") + "</worksheet>".length);
 
-                var sheet1 = workbook.createSheet('sheet1', 0, 0);
-                sheet1.raw(worksheet);
+            var sheet1 = workbook.createSheet('sheet1', 0, 0);
+            sheet1.raw(worksheet);
 
-                if (result.indexOf("<styleSheet") > 0) {
-                    var stylesheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
-                            result.indexOf("<styleSheet"),
-                            result.indexOf("</styleSheet>") + "</styleSheet>".length);
-                    workbook.st.raw(stylesheet);
-                }
+            if (result.indexOf("<styleSheet") > 0) {
+                var stylesheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
+                        result.indexOf("<styleSheet"),
+                        result.indexOf("</styleSheet>") + "</styleSheet>".length);
+                workbook.st.raw(stylesheet);
+            }
 
-                return q.ninvoke(workbook, "save").then(function () {
-                    return reporter.xlsx.responseXlsx(request, response, fs.createReadStream(path.join(request.reporter.options.tempDirectory, generationId + ".xlsx")));
-                });
+            return q.ninvoke(workbook, "save").then(function () {
+                return reporter.xlsx.responseXlsx(request, response, fs.createReadStream(path.join(request.reporter.options.tempDirectory, generationId + ".xlsx")));
             });
         }
     });

@@ -23,7 +23,7 @@ var Scripts = function (reporter, definition) {
     }, definition.name, this, Scripts.prototype.handleBeforeRender);
     this.reporter.afterRenderListeners.add(definition.name, this, Scripts.prototype.handleAfterRender);
 
-    this.allowedModules = this.definition.options.allowedModules || ["handlebars", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
+    this.allowedModules = this.definition.options.allowedModules || ["handlebars", "moment", "request-json", "feedparser", "request", "underscore", "constants", "sendgrid"];
 };
 
 Scripts.prototype.handleAfterRender = function (request, response) {
@@ -45,11 +45,11 @@ Scripts.prototype.handleAfterRender = function (request, response) {
         },
         response: {
             headers: response.headers,
-            content: response.result
+            content: response.content
         }
     }, {
         callback: function (req, cb) {
-            domain.run(function() {
+            domain.run(function () {
                 self._handleCallback(request, req, cb);
             });
         },
@@ -57,7 +57,7 @@ Scripts.prototype.handleAfterRender = function (request, response) {
         timeout: self.definition.options.timeout
     }).then(function (body) {
         response.headers = body.response.headers;
-        response.result = new Buffer(body.response.content);
+        response.content = new Buffer(body.response.content);
     });
 };
 
@@ -105,7 +105,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
             execModulePath: path.join(__dirname, "scriptEvalChild.js"),
             timeout: self.definition.options.timeout,
             callback: function (req, cb) {
-                domain.run(function() {
+                domain.run(function () {
                     self._handleCallback(request, req, cb);
                 });
             }
@@ -149,13 +149,12 @@ Scripts.prototype._handleCallback = function (originalReq, req, cb) {
     }
 
     this.reporter.render(req).then(function (res) {
-        return res.result.toBuffer().then(function (buf) {
-            var serializableResponse = {
-                headers: res.headers,
-                content: buf
-            };
-            cb(null, serializableResponse);
-        });
+        var serializableResponse = {
+            headers: res.headers,
+            content: res.content
+        };
+
+        cb(null, serializableResponse);
     }).catch(function (e) {
         cb(e);
     });

@@ -146,7 +146,7 @@ module.exports = function (grunt) {
                 options: {
                     clearRequireCache: true
                 },
-                src: ['test/renderTest.js']
+                src: ['extension/childTemplates/test/*', 'extension/public-templates/test/*']
             },
             integration: {
                 options: {

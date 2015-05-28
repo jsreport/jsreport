@@ -6,7 +6,7 @@ var assert = require("assert"),
     request = require('supertest'),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["express", "authentication"], {
+describeReporting(path.join(__dirname, "../../../"), ["express", "authentication"], {
     authentication: {
         "cookieSession": {
             "secret": "foo",

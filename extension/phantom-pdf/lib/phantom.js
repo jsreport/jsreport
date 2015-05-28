@@ -4,18 +4,11 @@
  * Recipe rendering pdf files using phantomjs.  
  */
 
-var uuid = require("uuid").v1,
-    path = require("path"),
-    join = path.join,
-    fs = require("fs"),
-    _ = require("underscore"),
+var path = require("path"),
     q = require("q"),
-    FS = require("q-io/fs"),
-    extend = require("node.extend"),
-    mkdirp = require('mkdirp'),
-    toArray = require('stream-to-array');
+    extend = require("node.extend");
 
-var conversion;
+var phantomToner;
 
 var Phantom = function (reporter, definition) {
     this.reporter = reporter;
@@ -52,72 +45,29 @@ Phantom.prototype.execute = function (request, response) {
     this.reporter.logger.debug("Pdf recipe start.");
 
     request.template.recipe = "html";
-    var phantomOptions = request.template.phantom || {};
 
-    return this.reporter.executeRecipe(request, response)
-        .then(function () {
-            return self._processHeaderFooter(phantomOptions, request, "header");
-        })
-        .then(function () {
-            return self._processHeaderFooter(phantomOptions, request, "footer");
-        })
-        .then(function () {
-            phantomOptions.paperSize = {
-                width: phantomOptions.width,
-                height: phantomOptions.height,
-                headerHeight: phantomOptions.headerHeight,
-                footerHeight: phantomOptions.footerHeight,
-                format: phantomOptions.format,
-                orientation: phantomOptions.orientation,
-                margin: phantomOptions.margin
-            };
-            phantomOptions.allowLocalFilesAccess = self.allowLocalFilesAccess;
-            phantomOptions.settings = {
-                javascriptEnabled: phantomOptions.blockJavaScript !== 'true'
-            };
-            phantomOptions.html = response.result;
+    request.template.phantom.paperSize = {
+        width: request.template.phantom.width,
+        height: request.template.phantom.height,
+        headerHeight: request.template.phantom.headerHeight,
+        footerHeight: request.template.phantom.footerHeight,
+        format: request.template.phantom.format,
+        orientation: request.template.phantom.orientation,
+        margin: request.template.phantom.margin
+    };
+    request.template.phantom.allowLocalFilesAccess = self.allowLocalFilesAccess;
+    request.template.phantom.settings = {
+        javascriptEnabled: request.template.phantom.blockJavaScript !== 'true'
+    };
 
-            return q.nfcall(conversion, phantomOptions);
-        }).then(function (res) {
-                request.options.isChildRequest = false;
-                response.result = res.stream;
-                response.headers["Content-Type"] = "application/pdf";
-                response.headers["Content-Disposition"] = "inline; filename=\"report.pdf\"";
-                response.headers["File-Extension"] = "pdf";
-                response.headers["Number-Of-Pages"] = res.numberOfPages;
-        }).then(function() {
-            return q.nfcall(toArray, response.result).then(function (arr) {
-                response.result = Buffer.concat(arr);
-                self.reporter.logger.debug("Rendering pdf end.");
-            });
-        });
-};
-
-Phantom.prototype._processHeaderFooter = function (phantomOptions, request, type) {
-    if (!phantomOptions[type])
-        return q(null);
-
-    var req = extend(true, {}, request);
-    req.template = {content: phantomOptions[type], recipe: "html", helpers: request.template.helpers, engine: request.template.engine};
-    req.data = extend(true, {}, request.data);
-    req.options.isChildRequest = true;
-
-    return this.reporter.render(req).then(function (resp) {
-        return resp.result.toBuffer().then(function(buf) {
-            phantomOptions[type] = buf.toString();
-        });
-    });
+    return q.nfcall(phantomToner, request, response);
 };
 
 module.exports = function (reporter, definition) {
     reporter[definition.name] = new Phantom(reporter, definition);
 
-    if (!fs.existsSync(reporter.options.tempDirectory)) {
-        mkdirp.sync(reporter.options.tempDirectory);
-    }
-
-    if (!conversion) {
+    if (!phantomToner) {
         reporter.options.phantom.tmpDir = reporter.options.tempDirectory;
-        conversion = require("phantom-html-to-pdf")(reporter.options.phantom);
+        phantomToner = require("toner-phantom")(reporter.options.phantom);
     }
 };

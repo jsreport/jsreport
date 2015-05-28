@@ -9,7 +9,7 @@ var assert = require("assert"),
     JobProcessor = require("../lib/jobProcessor"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../../"), ["templates", "reports", "scheduling"], function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["templates", "reports", "scheduling"], function (reporter) {
 
     describe('for jobProcessor', function () {
 

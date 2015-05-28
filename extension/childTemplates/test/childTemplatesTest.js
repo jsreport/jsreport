@@ -5,7 +5,7 @@ var path = require("path"),
     describeReporting = require("../../../test/helpers.js").describeReporting;
 
 
-describeReporting(path.join(__dirname, "../../"), ["html", "templates", "childTemplates"], function (reporter) {
+describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templates", "childTemplates"], function (reporter) {
 
     describe('childTemplates', function () {
 

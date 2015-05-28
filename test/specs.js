@@ -6,7 +6,7 @@ var assert = require("assert"),
     streamToString = require("./streamToString.js"),
     describeReporting = require("./helpers.js").describeReporting;
 
-describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTemplates", "data", "scripts"], function (reporter) {
+describeReporting(path.join(__dirname, "../"), ["jsrender", "html", "templates", "childTemplates", "data", "scripts"], function (reporter) {
 
     describe('all extensions', function () {
 
@@ -19,11 +19,8 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                     template: {content: "{#child {{:a}}}", engine: "jsrender", recipe: "html"},
                     data: {a: "foo"}
                 }).then(function (resp) {
-                    return resp.result.toBuffer().then(function (buf) {
-                        buf.toString().should.be.eql("child content");
-                        done();
-                    });
-
+                    resp.content.toString().should.be.eql("child content");
+                    done();
                 });
             }).catch(done);
 
@@ -43,10 +40,8 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                         }
                     }
                 }).then(function (resp) {
-                    return streamToString(resp.result).then(function (str) {
-                        str.should.be.eql("foo");
-                        done();
-                    });
+                    resp.content.toString().should.be.eql("foo");
+                    done();
                 });
             }).catch(done);
 
@@ -65,10 +60,8 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                         }
                     }
                 }).then(function (resp) {
-                    return resp.result.toBuffer().then(function (buf) {
-                        buf.toString().should.be.eql("x");
-                        done();
-                    });
+                    resp.content.toString().should.be.eql("x");
+                    done();
                 });
             }).catch(done);
         });
@@ -87,17 +80,15 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                         }
                     }
                 }).then(function (resp) {
-                    return resp.result.toBuffer().then(function (buf) {
-                        buf.toString().should.be.eql("yes");
-                        done();
-                    });
+                    resp.content.toString().should.be.eql("yes");
+                    done();
                 });
             }).catch(done);
         });
 
         it('should be able to process high volume inputs', function (done) {
             this.timeout(7000);
-            var data = { people: []};
+            var data = {people: []};
             for (var i = 0; i < 1000000; i++) {
                 data.people.push(i);
             }
@@ -105,10 +96,8 @@ describeReporting(path.join(__dirname, "../"), ["html", "templates", "childTempl
                 template: {content: "foo", engine: "jsrender", recipe: "html"},
                 data: data
             }).then(function (resp) {
-                return resp.result.toBuffer().then(function (buf) {
-                    buf.toString().should.be.eql("foo");
-                    done();
-                });
+                resp.content.toString().should.be.eql("foo");
+                done();
             }).catch(done);
         });
     });
