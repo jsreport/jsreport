@@ -5,7 +5,7 @@
 
 **Open source platform for designing and rendering various reports.**
 
-jsreport is a reporting sever which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
+jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
 For more informations about the platform please visit http://jsreport.net
 
