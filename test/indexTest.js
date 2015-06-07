@@ -18,7 +18,7 @@ describe('index.js', function () {
     it('should be able to use shortcut for pdf and jsrender', function (done) {
         require("../lib/reporter.js").instance = null;
 
-        index.render({template: {content: "foo", recipe: "phantom-pdf", engine: "jsrender"}}).then(function (response) {
+        index.render({template: {content: "foo", recipe: "phantom-pdf", engine: "handlebars"}}).then(function (response) {
             response.content.toString().should.containEql("%PDF");
             done();
         }).catch(done);
