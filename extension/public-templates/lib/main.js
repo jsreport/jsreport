@@ -240,7 +240,6 @@ PublicTemplates.prototype.handleAuthorization = function(reporter, definition) {
 
                     return verifyToken(req, query, req.query.access_token || req.body.options.authorization.writeToken || req.body.options.authorization.readToken);
                 } else {
-                    console.log(process.domain.req);
                     var e = new Error("Unauthorized");
                     e.unauthorized = true;
                     throw e;
