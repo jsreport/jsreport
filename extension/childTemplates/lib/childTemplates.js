@@ -38,8 +38,10 @@ ChildTemplates.prototype.evaluateChildTemplates = function (request, response, e
         request.childsCircleCache[p1] = true;
 
         self.reporter.documentStore.collection("templates").find({name: p1}).then(function (res) {
-            if (res.length < 1)
+            if (res.length < 1) {
+                self.reporter.logger.debug("Child template " + p1 + " was not found, skipping.");
                 return done(null);
+            }
 
             var req = extend(true, {}, request);
 

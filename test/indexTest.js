@@ -23,4 +23,20 @@ describe('index.js', function () {
             done();
         }).catch(done);
     });
+
+    it('should be back compatible and include result property with stream', function (done) {
+        require("../lib/reporter.js").instance = null;
+
+        index.render({template: {content: "foo", recipe: "phantom-pdf", engine: "handlebars"}}).then(function (response) {
+            var string = "";
+            response.result.on('readable',function(buffer){
+                var part = buffer.read().toString();
+                string += part;
+            });
+            response.result.on('end',function(){
+                string.should.containEql("%PDF");
+            });
+            done();
+        }).catch(done);
+    });
 });

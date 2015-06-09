@@ -23,7 +23,7 @@ describeReporting(path.join(__dirname, "../../../"), ["templates", "express", "r
                 }
             };
             var response = {
-                result: new Buffer("Hey"),
+                content: new Buffer("Hey"),
                 headers: { "Content-Type": "foo", "File-Extension": "foo"}
             };
 

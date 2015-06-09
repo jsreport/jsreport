@@ -27,7 +27,10 @@ module.exports = function (cluster, server, logger, req, res, next) {
 
             // try to send an error to the request that triggered the problem
             res.statusCode = 500;
-            res.setHeader('content-type', 'text/plain');
+
+            try {
+                res.setHeader('content-type', 'text/plain');
+            }catch(e) {}
             res.end(er.stack);
         } catch (er2) {
             // oh well, not much we can do at this point.

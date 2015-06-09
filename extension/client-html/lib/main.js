@@ -18,7 +18,7 @@ module.exports = function (reporter, definition) {
             response.headers["Content-Disposition"] = "inline; filename=\"report.html\"";
 
             return FS.read(path.join(__dirname, "wrapper.html")).then(function(wrapper) {
-                response.result = wrapper
+                response.content = wrapper
                     .replace("$template", encodeURIComponent(JSON.stringify(request.template)))
                     .replace("$data", request.data ? JSON.stringify(request.data, null, 2) : "null")
                     .replace(/\$serverUrl/g, request.protocol + "://" + request.headers.host);

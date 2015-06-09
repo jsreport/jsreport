@@ -92,11 +92,8 @@ Templating.prototype._configureExpress = function (app) {
                     }
                 }
 
-                if (_.isFunction(response.result.pipe)) {
-                    response.result.pipe(res);
-                } else {
-                    res.send(response.result);
-                }
+
+                response.stream.pipe(res);
             });
         }).catch(function (e) {
             next(e);

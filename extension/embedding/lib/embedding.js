@@ -20,11 +20,12 @@ module.exports = function (reporter, definition) {
 
             var template = extend(true, {}, request.template);
             template.options = extend(true, {}, request.options);
+
             return FS.read(path.join(__dirname, "wrapper.html")).then(function (wrapper) {
-                response.result = wrapper
+                response.content = wrapper
                     .replace("$template", encodeURIComponent(JSON.stringify(template)))
                     .replace("$data", request.data ? JSON.stringify(request.data, null, 2) : "null")
-                    .replace("$html", encodeURIComponent(response.result))
+                    .replace("$html", encodeURIComponent(response.content))
                     .replace(/\$serverUrl/g, request.protocol + "://" + request.headers.host);
             });
         }

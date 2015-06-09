@@ -156,12 +156,7 @@ PublicTemplates.prototype.configureExpress = function(app, reporter) {
                             res.setHeader(key, response.headers[key]);
                     }
                 }
-
-                if (_.isFunction(response.result.pipe)) {
-                    response.result.pipe(res);
-                } else {
-                    res.send(response.result);
-                }
+                response.stream.pipe(res);
             });
         }).catch(function (e) {
             next(e);

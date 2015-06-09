@@ -27,6 +27,13 @@
             $(dialogSelector + " #modalDialog").modal('hide');
         });
 
+        $(dialogSelector + " #dialogStorno").unbind("click").click(function () {
+            if (options.onStorno != null)
+                options.onStorno();
+
+            $(dialogSelector + " #modalDialog").modal('hide');
+        });
+
         if (options.hideButtons) {
             $(dialogSelector + " #dialogButtons").hide();
         } else {
@@ -39,6 +46,7 @@
         } else {
             $(dialogSelector + " #dialogSubmit").show();
         }
+
 
         return $(dialogSelector + " #modalDialog");
     };

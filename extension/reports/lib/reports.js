@@ -9,8 +9,7 @@ var events = require("events"),
     async = require("async"),
     _ = require("underscore"),
     q = require("q"),
-    url = require("url"),
-    toArray = require('stream-to-array');
+    url = require("url");
 
 var Reporting = function (reporter, definition) {
     this.reporter = reporter;
@@ -38,8 +37,10 @@ Reporting.prototype.configureExpress = function (app) {
                     res.error(err);
                 });
 
-                res.setHeader('Content-Type', result[0].contentType);
-                res.setHeader('File-Extension', result[0].fileExtension);
+                if (result[0].contentType)
+                    res.setHeader('Content-Type', result[0].contentType);
+                if (result[0].fileExtension)
+                    res.setHeader('File-Extension', result[0].fileExtension);
                 stream.pipe(res);
             });
         }).catch(next);
@@ -71,7 +72,7 @@ Reporting.prototype.handleAfterRender = function (request, response) {
 
     return self.reporter.documentStore.collection("reports").insert(report).then(function () {
         self.reporter.logger.debug("Writing report content to blob.");
-        return q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.result);
+        return q.ninvoke(self.reporter.blobStorage, "write", report._id + "." + report.fileExtension, response.content);
     }).then(function (blobName) {
         self.reporter.logger.debug("Updating report blob name " + blobName);
         return self.reporter.documentStore.collection("reports").update({_id: report._id}, {$set: {blobName: blobName}}).then(function () {

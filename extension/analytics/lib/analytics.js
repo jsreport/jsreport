@@ -10,6 +10,7 @@ var ua = require('universal-analytics'),
     md5 = crypto.createHash("md5");
 
 function initializeAnalytics(reporter, definition) {
+    reporter.logger.debug("Initializing analytics");
     var hash = md5.update(hostname).digest("hex");
     var visitor = ua(definition.options.gaId || 'UA-49012894-5', hash, {strictCidFormat: false});
     visitor.event("General", "Instance Activated").send();

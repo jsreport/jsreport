@@ -16,7 +16,8 @@ module.exports = function (reporter, definition) {
         name: "html-to-xlsx",
         execute: function (request, response) {
             return q.nfcall(conversion, response.content.toString()).then(function (stream) {
-                return reporter.xlsx.responseXlsx(request, response, stream);
+                response.stream = stream;
+                return reporter.xlsx.responseXlsx(request, response);
             });
         }
     });
