@@ -192,7 +192,7 @@ module.exports = function (app, reporter) {
     });
 
     app.get("/api/version", function (req, res, next) {
-        res.send(require('../../../package.json').version);
+        res.send(reporter.version);
     });
 
     app.get("/api/settings", function (req, res, next) {
