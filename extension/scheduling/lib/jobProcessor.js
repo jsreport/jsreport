@@ -111,7 +111,7 @@ JobProcessor.prototype.processOne = function (schedule, task) {
     });
 };
 
-JobProcessor.prototype.execute = function (schedule, task, context) {
+JobProcessor.prototype.execute = function (schedule, task) {
     var self = this;
 
     function insertTaskIfNotExists() {
@@ -137,7 +137,7 @@ JobProcessor.prototype.execute = function (schedule, task, context) {
             _id: schedule._id
         }, {$set: {state: "planned", nextRun: new Date(nextRun.getTime())}});
     }).then(function () {
-        return self.executionHandler(schedule, task, context).then(function () {
+        return self.executionHandler(schedule, task).then(function () {
             self.logger.debug("Processing schedule " + schedule.name + " succeeded.");
             return self.documentStore.collection("tasks").update(
                 {_id: task._id},

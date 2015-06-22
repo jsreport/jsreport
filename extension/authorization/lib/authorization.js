@@ -23,7 +23,7 @@ function Authorization(reporter, definition) {
     reporter.initializeListener.add(definition.name, Authorization.prototype._initialize.bind(this));
 
     this.findPermissionFilteringListeners.add(definition.name, function(collection, query) {
-        query.readPermissions = process.domain.req.user._id;
+        query.readPermissions = process.domain.req.user._id.toString();
     });
 }
 
@@ -46,7 +46,7 @@ Authorization.authorizationResult = {
 Authorization.prototype.checkPermissions = function(entity, req) {
     var permissions = entity.editPermissions;
     var permission = _.find(permissions, function (p) {
-        return p === req.user._id;
+        return p === req.user._id.toString();
     });
 
     if (!permission) {
@@ -63,11 +63,11 @@ Authorization.prototype.authorizeUpdate = function (query, update, collection, r
         req.skipAuthorization = false;
         var result = true;
         items.forEach(function (entity) {
-            if (collection.name === "users" && (entity._id && entity._id !== req.user._id)) {
+            if (collection.name === "users" && (entity._id && entity._id !== req.user._id.toString())) {
                 result = false;
             }
 
-            if (collection.name === "users" && (entity._id && entity._id === req.user._id)) {
+            if (collection.name === "users" && (entity._id && entity._id === req.user._id.toString())) {
                 result = true;
             } else {
                 if (result) {
@@ -192,8 +192,8 @@ Authorization.prototype._handlePermissionsInEntities = function () {
 
         entity.readPermissions = entity.readPermissions || [];
         entity.editPermissions = entity.editPermissions || [];
-        entity.readPermissions.push(process.domain.req.user._id);
-        entity.editPermissions.push(process.domain.req.user._id);
+        entity.readPermissions.push(process.domain.req.user._id.toString());
+        entity.editPermissions.push(process.domain.req.user._id.toString());
     }
 
     function beforeUpdate(query, update) {
@@ -209,8 +209,8 @@ Authorization.prototype._handlePermissionsInEntities = function () {
         entity.editPermissions = entity.editPermissions || [];
         entity.readPermissions = entity.readPermissions || [];
 
-        if (entity.editPermissions.indexOf(process.domain.req.user._id) === -1) {
-            entity.editPermissions.push(process.domain.req.user._id);
+        if (entity.editPermissions.indexOf(process.domain.req.user._id.toString()) === -1) {
+            entity.editPermissions.push(process.domain.req.user._id.toString());
         }
 
         entity.editPermissions.forEach(function (wp) {

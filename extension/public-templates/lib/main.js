@@ -165,6 +165,7 @@ PublicTemplates.prototype.configureExpress = function(app, reporter) {
 };
 
 PublicTemplates.prototype.handleAuthorization = function(reporter, definition) {
+
     //everything is public anyway...
     if (!reporter.authentication) {
         return;
@@ -224,7 +225,7 @@ PublicTemplates.prototype.handleAuthorization = function(reporter, definition) {
 
                 var req = process.domain.req;
 
-                if (req.user || req.skipAuthorizationForQuery === query || req.tokenVerified)
+                if (req.user || _.isEqual(req.skipAuthorizationForQuery, query) || req.tokenVerified)
                     return;
 
                 var hasToken = req.body && req.body.options && req.body.options.authorization && (req.body.options.authorization.writeToken || req.body.options.authorization.readToken);

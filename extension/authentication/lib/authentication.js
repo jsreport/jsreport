@@ -98,6 +98,8 @@ function addPassport(reporter, app, admin, definition) {
                 if (err) {
                     return next(err);
                 }
+
+                req.user = user;
                 reporter.logger.info("Logging in user " + user.username);
 
                 return res.redirect(decodeURIComponent(req.query.returnUrl) || "/");

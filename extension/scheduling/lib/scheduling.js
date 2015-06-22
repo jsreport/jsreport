@@ -98,8 +98,8 @@ Scheduling.prototype.renderReport = function (schedule, task) {
         template: {shortid: schedule.templateShortid},
         user : { isAdmin: true},
         options: {
-            scheduling: {taskId: task._id, scheduleShortid: schedule.shortid},
-            reports: {save: true, mergeProperties: {taskId: task._id}}
+            scheduling: {taskId: task._id.toString(), scheduleShortid: schedule.shortid},
+            reports: {save: true, mergeProperties: {taskId: task._id.toString()}}
         }
     });
 };

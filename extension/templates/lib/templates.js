@@ -56,7 +56,6 @@ Templating.prototype.handleBeforeRender = function (request) {
         return self.documentStore.collection("templates").find(query);
     }
 
-
     return findTemplate().then(function (templates) {
         if (templates.length !== 1)
             throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));

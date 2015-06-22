@@ -16,11 +16,12 @@ function UsersRepository(reporter) {
     this.reporter.documentStore.registerEntitySet("users", {entityType: "jsreport.UserType", humanReadableKey: "shortid"});
 
     this.reporter.initializeListener.add("repository", function () {
-        var col = self.usersCollection = self.imagesCollection = self.reporter.documentStore.collection("users");
+        var col = self.usersCollection = self.reporter.documentStore.collection("users");
         col.beforeInsertListeners.add("users", function (doc) {
             if (!doc.shortid)
                 doc.shortid = shortid.generate();
 
+            delete doc.passwordVerification;
             doc.password = passwordHash.generate(doc.password);
 
             return self.validate(doc);
