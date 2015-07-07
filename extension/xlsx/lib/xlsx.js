@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  * Copyright(c) 2014 Jan Blaha
  *
  * xlsx recipe constructs excel by dynamic assembling of Open Xml
@@ -68,8 +68,14 @@ module.exports = function (reporter, definition) {
             var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
                     result.indexOf("<worksheet"),
                     result.indexOf("</worksheet>") + "</worksheet>".length);
-
-            var sheet1 = workbook.createSheet('sheet1', 0, 0);
+            var startSheetName = worksheet.indexOf("name=");
+            var sheetName = startSheetName.toString();
+            if (startSheetName > 0 && startSheetName < worksheet.indexOf(">",worksheet.indexOf("<worksheet"))){
+              var start = startSheetName+'name="'.length;
+              var end = worksheet.indexOf('"',start);
+              sheetName = worksheet.substring(start,end);
+            }
+            var sheet1 = workbook.createSheet(sheetName.toString(), 0, 0);
             sheet1.raw(worksheet);
 
             if (result.indexOf("<styleSheet") > 0) {
