@@ -66,7 +66,7 @@ module.exports = function (reporter, definition) {
             var workbook = excelbuilder.createWorkbook(request.reporter.options.tempDirectory, generationId + ".xlsx");
             var start = result.indexOf("<worksheet")
             var sheetNumber = 1;
-            while (start >= 0 && sheetNumber < 5){
+            while (start >= 0){
               var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
                       start,
                       result.indexOf("</worksheet>",start) + "</worksheet>".length,start);
