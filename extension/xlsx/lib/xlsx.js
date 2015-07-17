@@ -1,4 +1,4 @@
-﻿/*! 
+﻿/*!
  * Copyright(c) 2014 Jan Blaha
  *
  * xlsx recipe constructs excel by dynamic assembling of Open Xml
@@ -64,13 +64,24 @@ module.exports = function (reporter, definition) {
             var result = response.content.toString();
             var deferred = q.defer();
             var workbook = excelbuilder.createWorkbook(request.reporter.options.tempDirectory, generationId + ".xlsx");
-
-            var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
-                    result.indexOf("<worksheet"),
-                    result.indexOf("</worksheet>") + "</worksheet>".length);
-
-            var sheet1 = workbook.createSheet('sheet1', 0, 0);
-            sheet1.raw(worksheet);
+            var start = result.indexOf("<worksheet")
+            var sheetNumber = 1;
+            while (start >= 0){
+              var worksheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
+                      start,
+                      result.indexOf("</worksheet>",start) + "</worksheet>".length,start);
+              var startSheetName = worksheet.indexOf("name=");
+              var sheetName = 'Sheet ' + sheetNumber.toString();
+              if (startSheetName > 0 && startSheetName < worksheet.indexOf(">",worksheet.indexOf("<worksheet"))){
+                var s = startSheetName+'name="'.length;
+                var e = worksheet.indexOf('"',s);
+                sheetName = worksheet.substring(s,e);
+              }
+              var sheet1 = workbook.createSheet(sheetName, 0, 0);
+              sheet1.raw(worksheet);
+              sheetNumber = sheetNumber + 1;
+              start = result.indexOf("<worksheet",start+1);
+            }
 
             if (result.indexOf("<styleSheet") > 0) {
                 var stylesheet = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>" + result.substring(
