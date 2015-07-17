@@ -1,6 +1,7 @@
 var CronTime = require('cron').CronTime,
     _ = require("underscore"),
-    q = require("q");
+    q = require("q"),
+    domain = require("domain");
 
 var JobProcessor = module.exports = function (executionHandler, documentStore, logger, TaskType, options) {
 
@@ -36,7 +37,7 @@ JobProcessor.prototype._schedulesToProcessFilter = function () {
 JobProcessor.prototype._tasksToRecoverFilter = function () {
     return {
         $and: [{ping: {$lt: new Date(this.options.now().getTime() - this.options.taskPingTimeout)}}, {state: "running"}]
-    }
+    };
 };
 
 JobProcessor.prototype._pingRunningTasks = function () {
@@ -66,30 +67,40 @@ JobProcessor.prototype.process = function (options) {
     var self = this;
     options = options || {};
 
-    return this._pingRunningTasks().then(function () {
-        if (self.currentlyRunningTasks.length >= self.options.maxParallelJobs) {
-            return;
-        }
+    var d = domain.create();
 
+    var defer = q.defer();
 
-        return self._findTasksToRecover().then(function (tasks) {
-            var promise = q.all(tasks.map(function (task) {
-                self.logger.info("Recovering task " + task.schedule.name);
-                return self.processOne(task.schedule, task);
-            }));
-            return options.waitForJobToFinish ? promise : q();
-        }).then(function () {
-            return self.documentStore.collection("schedules").find(self._schedulesToProcessFilter()).then(function (schedules) {
-                var promise = q.all(schedules.map(function (s) {
-                    return self.processOne(s, null);
+    d.run(function() {
+        self._pingRunningTasks().then(function () {
+            if (self.currentlyRunningTasks.length >= self.options.maxParallelJobs) {
+                return;
+            }
+
+            return self._findTasksToRecover().then(function (tasks) {
+                var promise = q.all(tasks.map(function (task) {
+                    self.logger.info("Recovering task " + task.schedule.name);
+                    return self.processOne(task.schedule, task);
                 }));
-
                 return options.waitForJobToFinish ? promise : q();
+            }).then(function () {
+                return self.documentStore.collection("schedules").find(self._schedulesToProcessFilter()).then(function (schedules) {
+                    var promise = q.all(schedules.map(function (s) {
+                        return self.processOne(s, null);
+                    }));
+
+                    return options.waitForJobToFinish ? promise : q();
+                });
             });
+        }).then(function() {
+            defer.resolve();
+        }).catch(function (e) {
+            self.logger.error("unable to load planned schedules " + e.stack);
+            defer.fail(e);
         });
-    }).catch(function (e) {
-        self.logger.error("unable to load planned schedules " + e.stack);
     });
+
+    return defer.promise;
 };
 
 JobProcessor.prototype.processOne = function (schedule, task) {
