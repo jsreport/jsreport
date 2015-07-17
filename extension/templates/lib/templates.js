@@ -65,8 +65,8 @@ Templating.prototype.handleBeforeRender = function (request) {
         request.template.content = request.template.content || "";
         self.reporter.logger.info("Rendering template {shortid:" + request.template.shortid + ", recipe:" +
             request.template.recipe + ",engine:" + request.template.engine + "}");
-    }, function () {
-        throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
+    }).catch(function (e) {
+        throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid + " " + e.stack));
     });
 };
 
