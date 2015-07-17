@@ -28,14 +28,28 @@ ChildTemplates.prototype.evaluateChildTemplates = function (request, response, e
 
     request.childsCircleCache = request.childsCircleCache || {};
 
+    function hashCode(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            var ch = str.charCodeAt(i);
+            hash += ch;
+        }
+        return hash;
+    }
+
     function convert(str, p1, offset, s, done) {
-        if (request.childsCircleCache[p1] && request.options.isChildRequest) {
+        var hash = hashCode(s + offset);
+        if (request.childsCircleCache[p1] && request.childsCircleCache[p1][hash] && request.options.isChildRequest) {
             var e = new Error("circle in using child template " + p1);
             e.weak = true;
             return done(e);
         }
 
-        request.childsCircleCache[p1] = true;
+        if( !request.childsCircleCache[p1] ) {
+            request.childsCircleCache[p1] = {};
+        }
+
+        request.childsCircleCache[p1][hash] = true;
 
         self.reporter.documentStore.collection("templates").find({name: p1}).then(function (res) {
             if (res.length < 1) {
