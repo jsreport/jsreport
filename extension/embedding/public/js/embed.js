@@ -355,8 +355,9 @@ var jsreport = (function (global, jQuery, undefined) {
 
         var template = $.extend(true, {}, originalTemplate);
 
+
         if (template.data && typeof template.data.dataJson !== 'string') {
-            template.data.dataJson = JSON.stringify(template.data.dataJson);
+            template.data.dataJson = JSON.stringify(template.data.dataJson || template.data);
         }
 
         if (template.recipe === "client-html" && template.content) {
