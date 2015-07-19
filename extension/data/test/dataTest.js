@@ -6,18 +6,36 @@ describeReporting(path.join(__dirname, "../../../"), ["templates","data"], funct
     
     describe('data', function() {
 
-        it('should find and use data', function (done) {
+        it('should find and use data based on shortid', function (done) {
             var dataItem = {
                 name: "test",
                 dataJson: JSON.stringify({ a: 'xx' }) + ""
             };
 
             return reporter.documentStore.collection("data").insert(dataItem).then(function(data) {
-                return done();
-
                 var request = {
                     reporter: reporter,
                     template: { content: "html", data: { shortid: data.shortid } },
+                    options: { recipe: "html" }
+                };
+
+                return reporter.data.handleBeforeRender(request, {}).then(function() {
+                    assert.equal(request.data.a, JSON.parse(dataItem.dataJson).a);
+                    done();
+                });
+            }).catch(done);
+        });
+
+        it('should find and use data based on name', function (done) {
+            var dataItem = {
+                name: "test",
+                dataJson: JSON.stringify({ a: 'xx' }) + ""
+            };
+
+            return reporter.documentStore.collection("data").insert(dataItem).then(function(data) {
+                var request = {
+                    reporter: reporter,
+                    template: { content: "html", data: { name: "test" } },
                     options: { recipe: "html" }
                 };
 

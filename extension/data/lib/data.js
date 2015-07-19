@@ -59,7 +59,7 @@ Data.prototype.handleBeforeRender = function (request, response) {
         request.template.data = { shortid: request.template.dataItemId};
     }
 
-    if (!request.template.data || (!request.template.data.shortid && !request.template.data.dataJson)) {
+    if (!request.template.data || (!request.template.data.shortid && !request.template.data.dataJson&& !request.template.data.name)) {
         this.reporter.logger.debug("Data item not defined for this template.");
         return q();
     }
@@ -72,9 +72,16 @@ Data.prototype.handleBeforeRender = function (request, response) {
 
         self.reporter.logger.debug("Searching for dataItem to apply");
 
-        return self.reporter.documentStore.collection("data").find({ shortid: request.template.data.shortid}).then(function(items) {
+        var query = {};
+        if (request.template.data.shortid)
+            query.shortid = request.template.data.shortid;
+
+        if (request.template.data.name)
+            query.name = request.template.data.name;
+
+        return self.reporter.documentStore.collection("data").find(query).then(function(items) {
             if (items.length !== 1)
-                throw new Error("Data entry not found (" + request.template.data.shortid + ")");
+                throw new Error("Data entry not found (" + (request.template.data.shortid || request.template.data.name)  + ")");
             return items[0];
         });
     }

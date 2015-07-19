@@ -31,7 +31,7 @@ util.inherits(Templating, events.EventEmitter);
 Templating.prototype.handleBeforeRender = function (request) {
     var self = this;
 
-    if (!request.template._id && !request.template.shortid) {
+    if (!request.template._id && !request.template.shortid && !request.template.name) {
         if (!request.template.content)
             throw new Error("Template must contains _id, shortid or content attribute.");
 
@@ -39,18 +39,25 @@ Templating.prototype.handleBeforeRender = function (request) {
     }
 
     function findTemplate() {
-        if (!request.template._id && !request.template.shortid) {
+
+        function findQuery() {
+            if (request.template._id) {
+                return { _id:  request.template._id };
+            }
+
+            if (request.template.shortid) {
+                return { shortid:  request.template.shortid };
+            }
+
+            if (request.template.name) {
+                return { name:  request.template.name };
+            }
+        }
+
+        var query = findQuery();
+
+        if (!query) {
             return q([request.template]);
-        }
-
-        var query = {};
-
-        if (request.template._id) {
-            query._id = request.template._id;
-        }
-
-        if (request.template.shortid) {
-            query.shortid = request.template.shortid;
         }
 
         return self.documentStore.collection("templates").find(query);
@@ -58,7 +65,7 @@ Templating.prototype.handleBeforeRender = function (request) {
 
     return findTemplate().then(function (templates) {
         if (templates.length !== 1)
-            throw new Error("Unable to find specified template: " + (request.template._id ? request.template._id : request.template.shortid));
+            throw new Error("Unable to find specified template: " + (request.template._id || request.template.shortid || request.template.name));
 
         extend(true, templates[0], request.template);
         request.template = templates[0];

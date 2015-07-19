@@ -30,6 +30,18 @@ describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templ
             });
         }
 
+        it('should find script by its name', function (done) {
+            var req = { template: { script: { name: "foo"} }, reporter: reporter };
+            var res = {};
+
+            return reporter.documentStore.collection("scripts").insert({content: "request.template.content = 'xxx'; done()", "name": "foo"}).then(function (script) {
+                return reporter.scripts.handleBeforeRender(req, res).then(function () {
+                    assert.equal('xxx', req.template.content);
+                    done();
+                });
+            }).catch(done);
+        });
+
         it('should be able to modify request.data', function (done) {
             prepareRequest("request.data = 'xxx'; done()").then(function (res) {
                 return reporter.scripts.handleBeforeRender(res.request, res.response).then(function () {

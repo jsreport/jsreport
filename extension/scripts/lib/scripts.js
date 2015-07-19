@@ -69,7 +69,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         request.template.script = {shortid: request.template.scriptId};
     }
 
-    if (!request.template.script || (!request.template.script.shortid && !request.template.script.content)) {
+    if (!request.template.script || (!request.template.script.shortid && !request.template.script.content && !request.template.script.name)) {
         return q();
     }
 
@@ -77,9 +77,16 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
         if (request.template.script.content)
             return q(request.template.script);
 
-        return self.reporter.documentStore.collection("scripts").find({shortid: request.template.script.shortid}).then(function (items) {
+        var query = {};
+        if (request.template.script.shortid)
+            query.shortid = request.template.script.shortid;
+
+        if (request.template.script.name)
+            query.name = request.template.script.name;
+
+        return self.reporter.documentStore.collection("scripts").find(query).then(function (items) {
             if (items.length < 1)
-                throw new Error("Script not found or user not authorized to read it (" + request.template.script.shortid + ")");
+                throw new Error("Script not found or user not authorized to read it (" + (request.template.script.shortid || request.template.script.name) + ")");
             return items[0];
         });
     }
