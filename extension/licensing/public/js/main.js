@@ -1,6 +1,7 @@
 define(["app", "marionette", "backbone", "jquery"],
     function (app, Marionette, Backbone, $) {
-
+        return;
+        
         app.onStartListeners.add(function(cb) {
             cb();
 

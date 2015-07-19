@@ -7,6 +7,7 @@ var FS = require("q-io/fs"),
     path = require("path");
 
 module.exports = function (reporter, definition) {
+    return;
 
     //just checking the presence of license key... later we may verify it against the jsreport.net service
     reporter.initializeListener.add("licensing", function () {
