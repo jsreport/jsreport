@@ -10,12 +10,18 @@ module.exports = function (reporter, definition) {
 
     //just checking the presence of license key... later we may verify it against the jsreport.net service
     reporter.initializeListener.add("licensing", function () {
-        return FS.read(path.join(reporter.options.rootDirectory, "license-key.txt")).then(function(license) {
-            reporter.logger.info("License found, using enterprise");
-            return reporter.settings.addOrSet("license", true);
+        return FS.exists(path.join(reporter.options.rootDirectory, "license-key.txt")).then(function(rootExist) {
+            return FS.exists(path.join(reporter.options.dataDirectory, "license-key.txt")).then(function(dataExist) {
+                if (rootExist || dataExist) {
+                    reporter.logger.info("License found, using enterprise");
+                    return reporter.settings.addOrSet("license", true);
+                }
+
+                reporter.logger.warn("License not found, using free");
+                return reporter.settings.addOrSet("license", false);
+            });
         }).fail(function(e) {
-            reporter.logger.warn("License not found, using free");
-            return reporter.settings.addOrSet("license", false);
+            reporter.logger.error(e);
         });
     });
 };
