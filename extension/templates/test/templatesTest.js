@@ -77,6 +77,20 @@ describeReporting(path.join(__dirname, "../../../"), ["templates"], function (re
             }).catch(done);
         });
 
+
+        it('handleBefore with content and not existing name should pass', function (done) {
+            var request = {
+                template: { name: "x", content: " "},
+                context: reporter.context,
+                options: {recipe: "html"}
+            };
+
+            return reporter.templates.handleBeforeRender(request, {}).then(function () {
+                    assert.equal(" ", request.template.content);
+                    done();
+            }).catch(done);
+        });
+
         it('handleBefore with not existing template should fail requesting handleBefore second time with existing template should succeed', function (done) {
             var request = {
                 template: {},
