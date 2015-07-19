@@ -35,8 +35,13 @@ Templating.prototype.handleBeforeRender = function (request) {
         if (!request.template.content)
             throw new Error("Template must contains _id, shortid or content attribute.");
 
+        self.reporter.logger.info("Rendering anonymous template { recipe:" +
+            request.template.recipe + ",engine:" + request.template.engine + "}");
+
         return;
     }
+
+
 
     function findTemplate() {
 
