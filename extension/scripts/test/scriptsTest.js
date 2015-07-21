@@ -184,7 +184,7 @@ describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templ
             }).catch(done);
         });
 
-        it('should callback error should be gracefully handled', function (done) {
+        it('callback error should be gracefully handled', function (done) {
             var request = {
                 template: {
                     content: "original",
@@ -195,7 +195,7 @@ describeReporting(path.join(__dirname, "../../../"), ["jsrender", "html", "templ
                     }
                 }
             };
-            return reporter.render(request).then(function (response) {
+            return reporter.render(request).then(function (response) {              
                 done(new Error("Should have failed."));
             }).catch(function (e) {
                 e.message.should.containEql("template property must");

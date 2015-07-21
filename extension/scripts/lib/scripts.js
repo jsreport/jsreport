@@ -56,6 +56,11 @@ Scripts.prototype.handleAfterRender = function (request, response) {
         execModulePath: path.join(__dirname, "scriptEvalChild.js"),
         timeout: self.definition.options.timeout
     }).then(function (body) {
+        if (body.error) {
+            body.error.weak = true;
+            return q.reject(body.error);
+        }
+
         response.headers = body.response.headers;
         response.content = new Buffer(body.response.content);
     });
@@ -92,7 +97,7 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
     }
 
     return findScript().then(function (script) {
-        self.reporter.logger.debug("Executing script " + script.shortid);
+        self.reporter.logger.debug("Executing script " + (script.shortid || script.name || "anonymous"));
         script = script.content || script;
 
         request.parsedScript = script;
@@ -117,6 +122,11 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
                 });
             }
         }).then(function (body) {
+            if (body.error) {
+                body.error.weak = true;
+                return q.reject(body.error);
+            }
+
             if (body.cancelRequest) {
                 var error = new Error("Rendering request canceled  from the script " + body.additionalInfo);
                 error.weak = true;
