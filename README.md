@@ -7,7 +7,7 @@
 
 jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
-For more informations about the platform please visit http://jsreport.net
+You can find more information on the official project website http://jsreport.net
 
 ## Production installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
@@ -51,15 +51,19 @@ The easiest way how to contribute to jsreport open source community is to implem
 
 ##Roadmap
 
-1. Improving jsreport codebase - extract whole rendering process into a separate lightweight package that could be easier used in node.js applications
-2. Improving stability and documentation to reach release 1.0
-3. Thinking about end user drag and drop designer.. 
+We are currently planning next development, some of these features we have in mind..
+
+- drag and drop designer
+- improved statistics extension with logs from failed requests
+- all templates wide scripts
+- code completion for templating engines based on sample data
+
 
 **Missing a feature? Submit a feature request.**
 
 ## License 
 
-Copyright (c) 2014 Jan Blaha &lt;jan.blaha at hotmail.com&gt;
+Copyright (c) 2015 Jan Blaha &lt;jan.blaha at hotmail.com&gt;
 
 
 This library is free software; you can redistribute it and/or
