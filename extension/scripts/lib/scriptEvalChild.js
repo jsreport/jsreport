@@ -28,6 +28,7 @@
         response: inputs.response,
         require: _require,
         setTimeout: setTimeout,
+        console: console,
         Buffer: Buffer,
         doneMethods: function(err){
             done(null, {
