@@ -40,7 +40,17 @@ var startAsync = function(reporter, server, port) {
 };
 
 var startExpressApp = function(reporter, app, config) {
-    //no port, use process.env.PORT, this is used when hosted in iisnode
+
+    if (process.env.PORT) {
+        if (process.env.PORT === "443") {
+            config.httpPort = null;
+            config.httpsPort = 443;
+        } else {
+            config.httpPort = process.env.PORT;
+            config.httpsPort = null;
+        }
+    }
+
     if (!config.httpPort && !config.httpsPort) {
         reporter.express.server = http.createServer(app);
         return q.ninvoke(reporter.express.server, "listen", process.env.PORT, reporter.options.hostname);
