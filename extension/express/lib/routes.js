@@ -129,6 +129,7 @@ module.exports = function (app, reporter) {
      * Main entry point for invoking report rendering
      */
     app.post("/api/report", function (req, res, next) {
+        res.setTimeout((reporter.options.express || {}).renderTimeout || (20 * 60 * 1000));
         req.template = req.body.template;
         req.data = req.body.data;
         req.options = req.body.options || {};
