@@ -44,10 +44,13 @@ See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documen
 
  **grunt test-integration** - start all tests with nedb including integration tests,  needs java, fop and phantomjs running
 
-## Contributions
-The easiest way how to contribute to jsreport open source community is to implement jsreport extension. Pull requests to this core repository are also welcome.
+##Contributions
 
-**Check the tutorial for [writing custom extensions](http://jsreport.net/learn/custom-extension)**
+jsreport is split into many separated repositories usually representing reusable libraries. All of the repositories accepts
+pull requests without further complications. Only this main jsreport repository currently requires you to send us a
+signed [contributor license agreement](http://jsreport.net/CopyrightAssignmentAgreement.pdf). This will be required only
+for limited time until we will separate this repository into free GPL licensed jsreport and repository with payed enterprise features.
+
 
 ##Roadmap
 
@@ -61,21 +64,15 @@ We are currently planning next development, some of these features we have in mi
 
 **Missing a feature? Submit a feature request.**
 
-## License 
+##Licensing
+Copyright (C) 2015 Jan Blaha
 
-Copyright (c) 2015 Jan Blaha &lt;jan.blaha at hotmail.com&gt;
+Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
+Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
+also when having maximum 5 templates stored in jsreport storage.
 
+For commercial projects using more than 5 stored report templates see [Pricing page](http://jsreport.net/buy).
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 3.0 of the License, or (at your option) any later version.
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU
-Lesser General Public License](http://www.gnu.org/licenses/lgpl.html) for more details.
-You should have received a copy of the GNU Lesser General Public
-License along with this library.
-
+Under any of the licenses, free or not, you are allowed to download the source code and make your own edits.
 
 
