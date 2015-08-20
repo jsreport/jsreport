@@ -51,6 +51,7 @@ pull requests without further complications. Only this main jsreport repository 
 signed [contributor license agreement](http://jsreport.net/CopyrightAssignmentAgreement.pdf). This will be required only
 for limited time until we will separate this repository into free GPL licensed jsreport and repository with payed enterprise features.
 
+To motivate contributions we provide free enterprise licenses to contributors.
 
 ##Roadmap
 
