@@ -44,7 +44,7 @@ var Fop = module.exports = function (reporter) {
                 ];
 
                 var isWin = /^win/.test(process.platform);
-                var fopFile = ".\\.fop-1.1\\fop" + (isWin ? ".bat" : "");
+                var fopFile = "fop" + (isWin ? ".bat" : "");
 
                 return q.nfcall(function(cb) {
                     childProcess.execFile(fopFile, childArgs, {maxBuffer : 1024 * 1024 * 64}, function (error, stdout, stderr) {
