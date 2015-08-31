@@ -30,6 +30,7 @@
     "daemon": "1.1.0",
     "ejs": "2.3.1",
     "express": "4.12.3",
+	"entities": "latest",
     "feedparser": "1.0.0",
     "html-to-xlsx": "0.3.1",
     "jade": "1.9.2",
