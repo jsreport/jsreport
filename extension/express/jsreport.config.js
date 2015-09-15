@@ -1,4 +1,5 @@
 ﻿module.exports = {
   "name": "express",
-  "main": "lib/reporter.express.js"  
+  "main": "lib/reporter.express.js",
+  "skipInExeRender": true
 }

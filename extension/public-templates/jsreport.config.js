@@ -2,5 +2,6 @@
   "name": "public-templates",
   "dependencies": [ "templates", "authentication", "authorization" ],
   "main": "lib/main.js",
-  "embeddedSupport":true
+  "embeddedSupport":true,
+  "skipInExeRender": true
 }

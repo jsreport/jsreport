@@ -158,6 +158,8 @@ Scripts.prototype.handleBeforeRender = function (request, response) {
 Scripts.prototype._handleCallback = function (originalReq, req, cb) {
     req.user = req.user || originalReq.user;
 
+    process.domain.req = process.domain.req || {};
+
     process.domain.req._scriptRequestCounter = process.domain.req._scriptRequestCounter || 0;
     process.domain.req._scriptRequestCounter++;
 

@@ -1,5 +1,6 @@
 ﻿module.exports = {
   "name": "authentication",
   "main": "lib/authentication.js",
-  "dependencies": []
+  "dependencies": [],
+  "skipInExeRender": true
 }

@@ -1,5 +1,6 @@
 ﻿module.exports = {
   "name": "statistics",
   "main": "lib/statistics.js",
-  "dependencies": [ "templates", "reports" ]
+  "dependencies": [ "templates", "reports" ],
+  "skipInExeRender": true
 }
