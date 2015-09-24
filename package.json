@@ -54,7 +54,7 @@
     "request": "2.55.0",
     "request-json": "0.5.2",
     "sendgrid": "1.6.1",
-    "simple-odata-server": "0.1.6",
+    "simple-odata-server": "0.1.7",
     "serve-static": "1.9.2",
     "shortid": "2.2.2",
     "stream-to-array": "2.0.2",
