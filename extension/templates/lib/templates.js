@@ -68,14 +68,14 @@ Templating.prototype.handleBeforeRender = function (request) {
 
     return findTemplate().then(function (templates) {
         if (templates.length !== 1 && !request.template.content)
-            throw new Error("Unable to find specified template: " + (request.template._id || request.template.shortid || request.template.name));
+            throw new Error("Unable to find specified template or user doesnt have permissions to read it: " + (request.template._id || request.template.shortid || request.template.name));
 
         request.template = templates.length ? extend(true, templates[0], request.template) : request.template;
         request.template.content = request.template.content || "";
         self.reporter.logger.info("Rendering template {shortid:" + request.template.shortid + ", recipe:" +
             request.template.recipe + ",engine:" + request.template.engine + "}");
     }).catch(function (e) {
-        throw new Error("Unable to find specified template: " + ((request.template._id || request.template.shortid || request.template.name) + " " + e.stack));
+        throw new Error("Unable to find specified template or user doesnt have permissions to read it: " + ((request.template._id || request.template.shortid || request.template.name) + " " + e.stack));
     });
 };
 
