@@ -92,6 +92,7 @@
     "grunt-text-replace": "0.4.0",
     "jsreport-mongodb-store": "0.0.2",
     "mocha": "2.2.1",
+    "mongodb": "2.0.26",
     "proxyquire": "1.4.0",
     "should": "5.2.0",
     "sinon": "1.14.1",
