@@ -5,6 +5,9 @@ var assert = require("assert"),
     DocumentStore = require("../lib/store/documentStore.js"),
     connectionString = require("./helpers.js").connectionString;
 
+if (process.env.DB !== "neDB")
+    return;
+
 describe('Settings', function () {
 
     beforeEach(function (done) {

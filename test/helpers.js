@@ -9,7 +9,7 @@ var Reporter = require("../lib/reporter.js"),
     util = require("../lib/util/util.js"),
     extend = require("node.extend");
 
-var connectionString = exports.connectionString = process.env.DB === "mongo" ? {name: "mongoDB", databaseName: "test", address: "127.0.0.1", port: 27017}
+var connectionString = exports.connectionString = process.env.DB === "mongo" ? {name: "mongoDB", path: "jsreport-mongodb-provider", databaseName: "test", address: "127.0.0.1", port: 27017}
     : {name: "neDB"};
 
 exports.describeReporting = function (rootDirectory, extensions, customOptions, nestedSuite) {
@@ -17,6 +17,9 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         nestedSuite = customOptions;
         customOptions = null;
     }
+
+    if (extensions)
+        extensions.push("mongodb-store");
 
     describe("reporting", function () {
         var app = express();
@@ -57,8 +60,10 @@ exports.describeReporting = function (rootDirectory, extensions, customOptions, 
         beforeEach(function (done) {
             this.timeout(10000);
 
-            return reporter.documentStore.drop().then(function () {
-                return reporter.init();
+            return reporter.init().then(function() {
+                return reporter.documentStore.drop().then(function () {
+                    return reporter.init();
+                });
             }).then(function () {
                 process.domain = process.domain || require('domain').create();
                 process.domain.req = {};

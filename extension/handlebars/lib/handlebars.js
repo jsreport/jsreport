@@ -13,6 +13,9 @@ module.exports = function (reporter, definition) {
     if (!fs.existsSync(handlebarsPath))
         handlebarsPath = path.join(__dirname, "../", "../", "../", "../", "handlebars");
 
+    if (!fs.existsSync(handlebarsPath))
+        handlebarsPath =  path.join(__dirname, "../", "../", "../", "node_modules", "handlebars");
+
     reporter.options.tasks.nativeModules.push({
         globalVariableName: "handlebars",
         module: handlebarsPath

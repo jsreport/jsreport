@@ -12,7 +12,8 @@ describe('bootstrapper', function () {
         bootstrapper({
             connectionString: connectionString,
             rootDirectory: path.join(__dirname, "../"),
-            extensions: ["templates"]
+            blobStorage: "fileSystem",
+            extensions: ["mongodb-store", "templates"]
         }).start().then(function() {
             done();
         }).catch(done);
