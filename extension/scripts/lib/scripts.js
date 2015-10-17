@@ -186,8 +186,8 @@ Scripts.prototype._defineEntities = function () {
         shortid: {type: "Edm.String"},
         creationDate: {type: "Edm.DateTimeOffset"},
         modificationDate: {type: "Edm.DateTimeOffset"},
-        content: {type: "Edm.String"},
-        name: {type: "Edm.String"}
+        content: {type: "Edm.String", document: { extension: 'js'} },
+        name: {type: "Edm.String", publicKey: true}
     });
 
     this.reporter.documentStore.registerComplexType("ScriptRefType", {
@@ -198,7 +198,8 @@ Scripts.prototype._defineEntities = function () {
     this.reporter.documentStore.model.entityTypes["TemplateType"].script = {type: "jsreport.ScriptRefType"};
     this.reporter.documentStore.registerEntitySet("scripts", {
         entityType: "jsreport.ScriptType",
-        humanReadableKey: "shortid"
+        humanReadableKey: "shortid",
+        splitIntoDirectories: true
     });
 
     this.reporter.initializeListener.add("scripts", function () {

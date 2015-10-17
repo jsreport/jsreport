@@ -25,4 +25,10 @@ module.exports = function (reporter, definition) {
         name: "handlebars",
         pathToEngine: require("toner-handlebars")
     });
+
+    reporter.documentStore.addFileExtensionResolver(function(doc, entitySetName, entityType, propertyType) {
+        if (doc.engine === "handlebars" && propertyType.document.engine) {
+            return "handlebars";
+        };
+    });
 };

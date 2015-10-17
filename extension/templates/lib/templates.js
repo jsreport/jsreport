@@ -125,18 +125,17 @@ Templating.prototype._defineEntities = function () {
     var templateAttributes = {
         _id: {type: "Edm.String", key: true},
         shortid: {type: "Edm.String"},
-        name: {type: "Edm.String"},
-        content: {type: "Edm.String"},
+        name: {type: "Edm.String", publicKey: true},
+        content: {type: "Edm.String", document: { extension: "html", engine: true }},
         recipe: {type: "Edm.String"},
-        helpers: {type: "Edm.String"},
+        helpers: {type: "Edm.String", document: { extension: "js"}},
         engine: {type: "Edm.String"},
         modificationDate: {type: "Edm.DateTimeOffset"}
     };
 
-
     this.documentStore.registerEntityType("TemplateHistoryType", templateAttributes);
     this.documentStore.registerEntityType("TemplateType", templateAttributes);
-    this.documentStore.registerEntitySet("templates", {entityType: "jsreport.TemplateType", humanReadableKey: "shortid"});
+    this.documentStore.registerEntitySet("templates", {entityType: "jsreport.TemplateType", humanReadableKey: "shortid", splitIntoDirectories: true});
     this.documentStore.registerEntitySet("templatesHistory", {entityType: "jsreport.TemplateHistoryType"});
 
     var self = this;

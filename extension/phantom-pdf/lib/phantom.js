@@ -24,9 +24,9 @@ var Phantom = function (reporter, definition) {
 
     reporter.documentStore.registerComplexType("PhantomType", {
         margin: {type: "Edm.String"},
-        header: {type: "Edm.String"},
+        header: {type: "Edm.String", document: { extension: 'html', engine: true }},
         headerHeight: {type: "Edm.String"},
-        footer: {type: "Edm.String"},
+        footer: {type: "Edm.String", document: { extension: 'html', engine: true }},
         footerHeight: {type: "Edm.String"},
         orientation: {type: "Edm.String"},
         format: {type: "Edm.String"},

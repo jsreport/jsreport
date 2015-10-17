@@ -16,8 +16,8 @@ var Data = function (reporter, definition) {
 
     reporter.documentStore.registerEntityType("DataItemType", {
         _id: {type: "Edm.String", key: true},
-        dataJson: { type: "Edm.String" },
-        name: { type: "Edm.String" },
+        dataJson: { type: "Edm.String", document: { extension: 'json'  }},
+        name: { type: "Edm.String", publicKey: true },
         creationDate: { type: "Edm.DateTimeOffset" },
         shortid: { type: "Edm.String"},
         modificationDate: { type: "Edm.DateTimeOffset" }
@@ -28,7 +28,7 @@ var Data = function (reporter, definition) {
         shortid: { type: "Edm.String" }
     });
 
-    reporter.documentStore.registerEntitySet("data", {entityType: "jsreport.DataItemType", humanReadableKey: "shortid"});
+    reporter.documentStore.registerEntitySet("data", {entityType: "jsreport.DataItemType", humanReadableKey: "shortid", splitIntoDirectories: true});
     reporter.documentStore.model.entityTypes["TemplateType"].data = {type: "jsreport.DataItemRefType"};
 
     reporter.initializeListener.add("data", function () {
