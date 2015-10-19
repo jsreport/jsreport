@@ -1,5 +1,5 @@
 ﻿/*!
- * Copyright(c) 2014 Jan Blaha 
+ * Copyright(c) 2014 Jan Blaha
  */
 /*globals $data */
 
@@ -156,6 +156,15 @@ module.exports = function(reporter, definition) {
         if (definition.options.app) {
             reporter.logger.info("Configuring routes for existing express app.");
             configureExpressApp(app, reporter, definition);
+
+            if (definition.options.server) {
+                reporter.logger.info("Using existing server instance.");
+                reporter.express.server = definition.options.server;
+                //deleting server option otherwise requests to list available extensions
+                //will fail, see https://github.com/jsreport/jsreport/issues/118#issuecomment-148965452
+                delete definition.options.server;
+            }
+
             logStart();
             return;
         }
