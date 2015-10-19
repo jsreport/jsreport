@@ -26,9 +26,13 @@ module.exports = function (reporter, definition) {
         pathToEngine: require("toner-handlebars")
     });
 
-    reporter.documentStore.addFileExtensionResolver(function(doc, entitySetName, entityType, propertyType) {
-        if (doc.engine === "handlebars" && propertyType.document.engine) {
-            return "handlebars";
-        };
+    //we need to addFileExtensionResolver after the store provider extension is initialized, but before
+    //every other extension like sample template is processed
+    reporter.initializeListener.insert(0, 'handlebars', function() {
+        reporter.documentStore.addFileExtensionResolver(function(doc, entitySetName, entityType, propertyType) {
+            if (doc.engine === "handlebars" && propertyType.document.engine) {
+                return "handlebars";
+            }
+        });
     });
 };
