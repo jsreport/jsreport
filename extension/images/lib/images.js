@@ -129,10 +129,10 @@ Images.prototype._defineEntities = function () {
     this.ImageType = this.reporter.documentStore.registerEntityType("ImageType", {
         _id: {type: "Edm.String", key: true},
         "shortid": {type: "Edm.String"},
-        "name": {type: "Edm.String"},
+        "name": {type: "Edm.String", publicKey: "true"},
         "creationDate": {type: "Edm.DateTimeOffset"},
         "modificationDate": {type: "Edm.DateTimeOffset"},
-        "content": {type: "Edm.Binary"},
+        "content": {type: "Edm.Binary", document: { extension: 'png' }},
         "contentType": {type: "Edm.String"}
     });
 
@@ -144,7 +144,7 @@ Images.prototype._defineEntities = function () {
 
     this.reporter.documentStore.model.entityTypes["TemplateType"].images = {type: "Collection(jsreport.ImageRefType)"};
     this.reporter.documentStore.model.entityTypes["TemplateHistoryType"].images = {type: "Collection(jsreport.ImageRefType)"};
-    this.reporter.documentStore.registerEntitySet("images", {entityType: "jsreport.ImageType", humanReadableKey: "shortid"});
+    this.reporter.documentStore.registerEntitySet("images", {entityType: "jsreport.ImageType", humanReadableKey: "shortid", splitIntoDirectories: true});
 
     var self = this;
     this.reporter.initializeListener.add("images", function () {
@@ -156,6 +156,24 @@ Images.prototype._defineEntities = function () {
             doc.shortid = doc.shortid || shortid.generate();
             doc.creationDate = new Date();
             doc.modificationDate = new Date();
+        });
+    });
+
+    //we need to addFileExtensionResolver after the store provider extension is initialized, but before
+    //every other extension like sample template is processed
+    this.reporter.initializeListener.insert(0, 'images file extension resolution', function() {
+        self.reporter.documentStore.addFileExtensionResolver(function(doc, entitySetName, entityType, propertyType) {
+            if (entitySetName === 'images') {
+                if (doc.contentType) {
+                    var split = doc.contentType.split('/');
+
+                    if (split.length === 2) {
+                        return split[1];
+                    }
+                }
+
+                return 'png';
+            }
         });
     });
 };
