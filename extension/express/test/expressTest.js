@@ -72,6 +72,21 @@ describeReporting(path.join(__dirname, "../../../"), ["handlebars", "jsrender", 
                     }
                 });
         });
+
+        it('/api/report should use options[Content-Disposition] if set', function(done) {
+            supertest(reporter.options.express.app)
+              .post('/api/report')
+              .send({ template: { content: "{{:a}}", engine: "jsrender", recipe: "html" }, data: "{ \"a\": \"foo\" }" , options: { 'Content-Disposition': 'foo'}})
+              .expect(200, "foo")
+              .expect('Content-Disposition', 'foo')
+              .end(function(err, res) {
+                  if (err) {
+                      done(err);
+                  } else {
+                      done();
+                  }
+              });
+        });
         
         it('/odata/templates should return 200', function(done) {
             supertest(reporter.options.express.app)

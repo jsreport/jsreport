@@ -148,8 +148,12 @@ module.exports = function (app, reporter) {
                 }
             }
 
-            if (!response.headers["Content-Disposition"]) {
+            if (!response.headers["Content-Disposition"] && !req.options["Content-Disposition"]) {
                 res.setHeader("Content-Disposition", (req.options.preview ? "inline" : "attachment") + ";filename=report." + response.headers["File-Extension"]);
+            }
+
+            if (req.options["Content-Disposition"]) {
+                res.setHeader("Content-Disposition", req.options["Content-Disposition"]);
             }
 
             res.setHeader("X-XSS-Protection", 0);
