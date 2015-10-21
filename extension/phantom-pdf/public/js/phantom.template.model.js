@@ -46,7 +46,8 @@
                     orientation: this.get("orientation") || "...",
                     width: this.get("width") || "...",
                     height: this.get("height") || "...",
-                    printDelay: this.get("printDelay") || "..."
+                    printDelay: this.get("printDelay") || "...",
+                    waitForJS: this.get("waitForJS") || "..."
                 };
         }
     });

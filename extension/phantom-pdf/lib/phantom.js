@@ -33,7 +33,8 @@ var Phantom = function (reporter, definition) {
         width: {type: "Edm.String"},
         height: {type: "Edm.String"},
         printDelay: {type: "Edm.Int32"},
-        blockJavaScript: {type: "Edm.Boolean"}
+        blockJavaScript: {type: "Edm.Boolean"},
+        waitForJS: {type: "Edm.Boolean"}
     });
 
     reporter.documentStore.model.entityTypes["TemplateType"].phantom = {type: "jsreport.PhantomType"};
@@ -59,6 +60,11 @@ Phantom.prototype.execute = function (request, response) {
     request.template.phantom.settings = {
         javascriptEnabled: request.template.phantom.blockJavaScript !== 'true'
     };
+
+
+    if (request.template.phantom.waitForJS) {
+        request.template.phantom.waitForJS = JSON.parse(request.template.phantom.waitForJS);
+    }
 
     return q.nfcall(phantomToner, request, response);
 };
