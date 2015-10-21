@@ -24,7 +24,7 @@ You may find installation troubleshooting guide specific for your platform [here
 
 See [Gruntfile.js](https://github.com/jsreport/jsreport/blob/master/Gruntfile.js) for build automation options.
 
-###Environemnts
+###Environments
 jsreport adapts to `production` and `development` nodejs environments. Difference is that in `production` environment you get javascript files combined and minified for fast web application startup opposite to `development` environment where you get all js files individually what makes debugging easier. Second difference is that in `production` environment jsreport use `prod.config.json` as configuration file opposite to `dev.config.json` in `development.
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes production as default.
@@ -55,12 +55,15 @@ To motivate contributions we provide free enterprise licenses to contributors.
 
 ##Roadmap
 
-We are currently planning next development, some of these features we have in mind..
+Following we have in mind for the upcoming release 1.0
 
-- drag and drop designer
-- improved statistics extension with logs from failed requests
-- all templates wide scripts
-- code completion for templating engines based on sample data
+- **drag and drop designer**
+- electron based studio and client application
+- new recipes using electron to print pdf
+- new default template storage using [jsreport-fs-store](https://github.com/jsreport/jsreport-fs-store)
+- extracting the core part of jsreport into the extra repository
+- sql based template storage
+- tons of new extensions, recipes, engines....
 
 
 **Missing a feature? Submit a feature request.**
