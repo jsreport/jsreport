@@ -92,11 +92,10 @@ module.exports = function (app, reporter) {
 
         reporter.options.hostname = require("os").hostname();
 
-        if (options.mode === "development")
-            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), options);
-
         if (options.mode === "production")
             res.render(path.join(__dirname, '../public/views', 'root_built.html'), options);
+        else
+            res.render(path.join(__dirname, '../public/views', 'root_dev.html'), options);
     });
 
 
