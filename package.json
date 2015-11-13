@@ -33,7 +33,7 @@
     "jsreport-analytics": "*",
     "jsreport-authentication": "*",
     "jsreport-authorization": "*",
-    "jsreport-childTemplates": "*",
+    "jsreport-child-templates": "*",
     "jsreport-client-app": "*",
     "jsreport-client-html": "*",
     "jsreport-data": "*",
