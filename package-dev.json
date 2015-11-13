@@ -1,0 +1,79 @@
+{
+  "name": "jsreport",
+  "version": "0.9.1",
+  "author": {
+  "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+},
+  "contributors": [],
+  "description": "javascript based business reporting",
+  "keywords": [
+  "report",
+  "business",
+  "javascript"
+],
+  "homepage": "https://github.com/jsreport/jsreport",
+  "repository": {
+  "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+},
+  "standard": {
+  "ignore": [
+    "data/**"
+  ],
+    "globals": [
+    "describe",
+    "it",
+    "beforeEach",
+    "define"
+  ]
+},
+  "dependencies": {
+  "jsreport-core": "file:../jsreport-core",
+    "jsreport-analytics": "file:../jsreport-analytics",
+    "jsreport-authentication": "file:../jsreport-authentication",
+    "jsreport-authorization": "file:../jsreport-authorization",
+    "jsreport-childTemplates": "file:../jsreport-childTemplates",
+    "jsreport-client-app": "file:../jsreport-client-app",
+    "jsreport-client-html": "file:../jsreport-client-html",
+    "jsreport-data": "file:../jsreport-data",
+    "jsreport-embedding": "file:../jsreport-embedding",
+    "jsreport-express": "file:../jsreport-express",
+    "jsreport-fop-pdf": "file:../jsreport-fop-pdf",
+    "jsreport-fs-store": "file:../jsreport-fs-store",
+    "jsreport-handlebars": "file:../jsreport-handlebars",
+    "jsreport-html-to-xlsx": "file:../jsreport-html-to-xlsx",
+    "jsreport-images": "file:../jsreport-images",
+    "jsreport-jsrender": "file:../jsreport-jsrender",
+    "jsreport-licensing": "file:../jsreport-licensing",
+    "jsreport-phantom-pdf": "file:../jsreport-phantom-pdf",
+    "jsreport-public-templates": "file:../jsreport-public-templates",
+    "jsreport-reports": "file:../jsreport-reports",
+    "jsreport-resources": "file:../jsreport-resources",
+    "jsreport-sample-template": "file:../jsreport-sample-template",
+    "jsreport-scheduling": "file:../jsreport-scheduling",
+    "jsreport-scripts": "file:../jsreport-scripts",
+    "jsreport-statistics": "file:../jsreport-statistics",
+    "jsreport-templates": "file:../jsreport-templates",
+    "jsreport-text": "file:../jsreport-text",
+    "jsreport-xlsx": "file:../jsreport-xlsx"
+},
+  "devDependencies": {
+  "eslint": "^1.9.0",
+    "mocha": "^2.3.3",
+    "should": "^7.1.1",
+    "standard": "^5.3.1"
+},
+  "scripts": {
+  "test": "mocha test",
+    "start": "node server.js"
+},
+  "main": "index.js",
+  "license": "LGPL",
+  "_id": "jsreport@0.0.4",
+  "dist": {
+  "shasum": "b49168ed230fd44ad2c1e3f06cef683f00b7dfc3"
+},
+  "_from": "jan.blaha@hotmail.com",
+  "_resolved": "https://registry.npmjs.org/jsreport/-/jsreport-0.0.1.tgz"
+}
