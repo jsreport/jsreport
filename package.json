@@ -60,12 +60,13 @@
   },
   "devDependencies": {
     "eslint": "^1.9.0",
+    "eslint-config-standard-react": "^1.1.0",
     "mocha": "^2.3.3",
     "should": "^7.1.1",
     "standard": "^5.3.1"
   },
   "scripts": {
-    "test": "mocha test && standard",
+    "test": "mocha test --timeout 7000 && standard",
     "start": "node server.js"
   },
   "main": "index.js",
