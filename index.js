@@ -6,6 +6,7 @@ var extend = require('node.extend')
 var fs = require('fs')
 var path = require('path')
 var core = require('jsreport-core')
+var _ = require('underscore')
 
 function initializeApp (force) {
   if (!fs.existsSync('server.js') || force) {
@@ -42,7 +43,7 @@ function repair () {
 }
 
 var renderDefaults = {
-  connectionString: {name: 'InMemory'},
+  connectionString: {name: 'memory'},
   dataDirectory: path.join(__dirname, 'data'),
   blobStorage: 'inMemory',
   cacheAvailableExtensions: true,
@@ -72,6 +73,12 @@ function start () {
 }
 
 function render (req) {
+  if (_.isString(req)) {
+    req = {
+      template: {content: req, engine: 'handlebars', recipe: 'phantom-pdf'}
+    }
+  }
+
   if (!core.Reporter.instance) {
     ensureTempFolder()
 
