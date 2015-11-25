@@ -3,7 +3,8 @@
 [![NPM Downloads](https://img.shields.io/npm/dm/jsreport.svg?style=flat-square)](https://npmjs.com/package/jsreport)
 [![Build Status](https://travis-ci.org/jsreport/jsreport.png?branch=master)](https://travis-ci.org/jsreport/jsreport)
 
-**Open source platform for designing and rendering various reports.**
+**Official distribution of jsreport**
+*An open source platform for designing and rendering various reports.*
 
 jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
@@ -12,46 +13,31 @@ You can find more information on the official project website http://jsreport.ne
 ## Production installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
-## Development
-To be able to install and start jsreport on your development machine you need to do following.
-
-1. install nodejs
-2. clone this repository
-3. npm install
-4. npm start
-
-You may find installation troubleshooting guide specific for your platform [here](https://github.com/jsreport/docs/tree/master/installation).
-
-See [Gruntfile.js](https://github.com/jsreport/jsreport/blob/master/Gruntfile.js) for build automation options.
-
-###Environments
-jsreport adapts to `production` and `development` nodejs environments. Difference is that in `production` environment you get javascript files combined and minified for fast web application startup opposite to `development` environment where you get all js files individually what makes debugging easier. Second difference is that in `production` environment jsreport use `prod.config.json` as configuration file opposite to `dev.config.json` in `development.
+> **npm install jsreport**
+> **node node_modules/jsreport --init**
+> **npm start**
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes production as default.
 
-###Configurations
-jsreport loads `dev.config.json` or `prod.config.json` configuration file on start up based on nodejs environment. If configuration file is not found, jsreport creates default configuration file from `example.config.json`.
+##Configuration
+jsreport loads `dev.config.json` or `prod.config.json` configuration file on start up based on nodejs environment. The configuration file is the most common way to adapt jsreport settings like http port. In addition to configuration file you can use also corresponding command line arguments or options passed directly through nodejs code.
 
 See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documentation for details.
 
-###Tests
+##Extensions
+The jsreport official distribution includes the most of the currently implemented extensions. However there are still new extensions popping up which are not yet part of jsreport and you may like to additionally install it. See the list of extensions [here](https://github.com/jsreport/jsreport-core#list-of-extensions).
 
- **grunt test** - start tests with file system based db (neDb), no mongo needed
+You are also not limited to extensions we provide to you and  you can implement your own. See the [Implementing custom extension](http://jsreport.net/learn/custom-extension) article.
 
- **grunt test-mongo** - start tests with mongo db, mongodb must be running on localhost
+## Node.js
 
- **grunt test-all** - start tests with nedb and then once again with mongo (used with travis CI)
+You can find documentation for adapting this jsreport distribution using nodejs and also information for integrating it into an existing nodejs application in article [adapting jsreport](http://jsreport.net/learn/adapting-jsreport).
 
- **grunt test-integration** - start all tests with nedb including integration tests,  needs java, fop and phantomjs running
+This distribution includes many extensions like jsreport studio you may not need. To start from the ground see repository [jsreport-core](https://github.com/jsreport/jsreport-core).
 
 ##Contributions
 
-jsreport is split into many separated repositories usually representing reusable libraries. All of the repositories accepts
-pull requests without further complications. Only this main jsreport repository currently requires you to send us a
-signed [contributor license agreement](http://jsreport.net/CopyrightAssignmentAgreement.pdf). This will be required only
-for limited time until we will separate this repository into free GPL licensed jsreport and repository with payed enterprise features.
-
-To motivate contributions we provide free enterprise licenses to contributors.
+jsreport is split into many separated repositories usually representing extensions or other reusable libraries. Please forward your contributions to the dedicated repository.
 
 ##Roadmap
 
@@ -60,9 +46,9 @@ Following we have in mind for the upcoming release 1.0
 - **drag and drop designer**
 - electron based studio and client application
 - new recipes using electron to print pdf
-- new default template storage using [jsreport-fs-store](https://github.com/jsreport/jsreport-fs-store)
-- extracting the core part of jsreport into the extra repository
 - sql based template storage
+- image reports
+- azure blob storage support
 - tons of new extensions, recipes, engines....
 
 
