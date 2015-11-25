@@ -3,18 +3,18 @@
 [![NPM Downloads](https://img.shields.io/npm/dm/jsreport.svg?style=flat-square)](https://npmjs.com/package/jsreport)
 [![Build Status](https://travis-ci.org/jsreport/jsreport.png?branch=master)](https://travis-ci.org/jsreport/jsreport)
 
-**Official distribution of jsreport**
+**Official distribution of jsreport**<br/>
 *An open source platform for designing and rendering various reports.*
 
 jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
 You can find more information on the official project website http://jsreport.net
 
-## Production installation
+## Installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
-> **npm install jsreport**
-> **node node_modules/jsreport --init**
+> **npm install jsreport**<br/>
+> **node node_modules/jsreport --init**<br/>
 > **npm start**
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes production as default.
