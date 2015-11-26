@@ -47,7 +47,7 @@ Following we have in mind for the upcoming release 1.0
 - electron based studio and client application
 - new recipes using electron to print pdf
 - sql based template storage
-- image reports
+- multiple scripts per template
 - azure blob storage support
 - tons of new extensions, recipes, engines....
 
