@@ -38,6 +38,7 @@
     "jsreport-client-html": "*",
     "jsreport-data": "*",
     "jsreport-embedding": "*",
+    "jsreport-embedded-store": "*",
     "jsreport-express": "*",
     "jsreport-fop-pdf": "*",
     "jsreport-fs-store": "*",
