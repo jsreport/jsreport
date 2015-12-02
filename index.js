@@ -67,7 +67,7 @@ function ensureTempFolder () {
 }
 
 function start () {
-  return require('./lib/bootstrapper.js')(renderDefaults).start().then(function (b) {
+  return require('./lib/extendedBootstrapper.js')(renderDefaults).start().then(function (b) {
     return core.Reporter.instance
   })
 }
