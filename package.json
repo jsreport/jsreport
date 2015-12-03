@@ -36,7 +36,7 @@
     "jsreport-child-templates": "0.1.0",
     "jsreport-client-app": "0.1.0",
     "jsreport-client-html": "0.1.0",
-    "jsreport-core": "0.1.0",
+    "jsreport-core": "0.1.1",
     "jsreport-data": "0.1.0",
     "jsreport-embedded-store": "0.1.1",
     "jsreport-embedding": "0.1.0",
@@ -58,7 +58,7 @@
     "jsreport-statistics": "0.1.0",
     "jsreport-templates": "0.1.0",
     "jsreport-text": "0.1.0",
-    "jsreport-xlsx": "0.1.0",
+    "jsreport-xlsx": "0.1.1",
     "node.extend": "1.1.5",
     "underscore": "1.8.3"
   },
