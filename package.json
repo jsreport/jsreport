@@ -29,16 +29,17 @@
     ]
   },
   "dependencies": {
-    "jsreport-core": "0.1.0",
+    "commander": "2.9.0",
     "jsreport-analytics": "0.1.0",
     "jsreport-authentication": "0.1.0",
     "jsreport-authorization": "0.1.0",
     "jsreport-child-templates": "0.1.0",
     "jsreport-client-app": "0.1.0",
     "jsreport-client-html": "0.1.0",
+    "jsreport-core": "0.1.0",
     "jsreport-data": "0.1.0",
-    "jsreport-embedding": "0.1.0",
     "jsreport-embedded-store": "0.1.1",
+    "jsreport-embedding": "0.1.0",
     "jsreport-express": "0.1.0",
     "jsreport-fop-pdf": "0.1.0",
     "jsreport-fs-store": "0.1.1",
@@ -57,7 +58,9 @@
     "jsreport-statistics": "0.1.0",
     "jsreport-templates": "0.1.0",
     "jsreport-text": "0.1.0",
-    "jsreport-xlsx": "0.1.0"
+    "jsreport-xlsx": "0.1.0",
+    "node.extend": "1.1.5",
+    "underscore": "1.8.3"
   },
   "devDependencies": {
     "eslint": "^1.9.0",
