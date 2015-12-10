@@ -1,13 +1,15 @@
 var path = require('path')
 require('should')
-var Reporter = require('jsreport-core').Reporter
+var jsreport = require('../')
 
 describe('all extensions', function () {
   var reporter
 
   beforeEach(function (done) {
-    reporter = new Reporter({
-      rootDirectory: path.join(__dirname, '../')
+    reporter = jsreport({
+      rootDirectory: path.join(__dirname, '../'),
+      loadConfig: false,
+      connectionString: {name: 'memory'}
     })
 
     reporter.init().then(function () {

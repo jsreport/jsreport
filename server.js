@@ -1,1 +1,1 @@
-require('./').bootstrapper().start()
+require('./')({rootDirectory: __dirname}).init()

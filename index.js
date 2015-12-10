@@ -7,11 +7,13 @@ var fs = require('fs')
 var path = require('path')
 var core = require('jsreport-core')
 var _ = require('underscore')
+var bootstrapper = require('./lib/bootstrapper')
+var main = require('./lib/main')
 
 function initializeApp (force) {
   if (!fs.existsSync('server.js') || force) {
     console.log('Creating server.js')
-    fs.writeFileSync('server.js', "require('jsreport').bootstrapper().start()")
+    fs.writeFileSync('server.js', "require('jsreport')().init()")
   }
 
   if (!fs.existsSync('package.json') || force) {
@@ -44,12 +46,12 @@ function repair () {
 
 var renderDefaults = {
   connectionString: {name: 'memory'},
-  dataDirectory: path.join(__dirname, 'data'),
+  dataDirectory: path.join(__dirname, '../../', 'data'),
   blobStorage: 'inMemory',
   cacheAvailableExtensions: true,
   logger: {providerName: 'dummy'},
-  rootDirectory: __dirname,
-  extensions: ['html', 'templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars']
+  rootDirectory: path.join(__dirname, '../../'),
+  extensions: ['templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars']
 }
 
 function ensureTempFolder () {
@@ -82,7 +84,7 @@ function render (req) {
   if (!core.Reporter.instance) {
     ensureTempFolder()
 
-    return start().then(function () {
+    return main(renderDefaults).init().then(function () {
       return core.Reporter.instance.render(req)
     })
   }
@@ -104,11 +106,13 @@ if (require.main === module) {
     .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', repair)
     .parse(process.argv)
 } else {
+  module.exports = main
   module.exports.Reporter = core.Reporter
-  module.exports.bootstrapper = require('./lib/extendedBootstrapper')
+  module.exports.bootstrapper = bootstrapper
   module.exports.renderDefaults = renderDefaults
   module.exports.render = render
   module.exports.start = start
   module.exports.extendDefaults = extendDefaults
   module.exports.reporter = core.Reporter.instance
+  module.exports.core = core
 }
