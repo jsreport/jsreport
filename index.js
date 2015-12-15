@@ -51,7 +51,7 @@ var renderDefaults = {
   cacheAvailableExtensions: true,
   logger: {providerName: 'dummy'},
   rootDirectory: path.join(__dirname, '../../'),
-  extensions: ['templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars']
+  extensions: ['templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars', 'fop-pdf', 'html-to-xlsx', 'jsrender', 'scripts', 'text', 'xlsx']
 }
 
 function ensureTempFolder () {
@@ -66,12 +66,6 @@ function ensureTempFolder () {
   } catch (e) {
     if (e.code !== 'EEXIST') throw e
   }
-}
-
-function start () {
-  return require('./lib/extendedBootstrapper.js')(renderDefaults).start().then(function (b) {
-    return core.Reporter.instance
-  })
 }
 
 function render (req) {
@@ -111,7 +105,6 @@ if (require.main === module) {
   module.exports.bootstrapper = bootstrapper
   module.exports.renderDefaults = renderDefaults
   module.exports.render = render
-  module.exports.start = start
   module.exports.extendDefaults = extendDefaults
   module.exports.reporter = core.Reporter.instance
   module.exports.core = core
