@@ -42,7 +42,7 @@
     "jsreport-embedding": "0.1.0",
     "jsreport-express": "0.2.0",
     "jsreport-fop-pdf": "0.2.0",
-    "jsreport-fs-store": "0.2.0",
+    "jsreport-fs-store": "0.2.1",
     "jsreport-handlebars": "0.2.0",
     "jsreport-html-to-xlsx": "0.2.0",
     "jsreport-images": "0.2.0",
