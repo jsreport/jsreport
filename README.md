@@ -10,7 +10,8 @@
 
 jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
-You can find more information on the official project website http://jsreport.net
+You can find more information on the official project website http://jsreport.net    
+Or see youtube deep dive screencast https://www.youtube.com/watch?v=fhOQ0HPjK6s
 
 ## Installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
