@@ -29,8 +29,10 @@ function initializeApp (force) {
   }
 
   if (!fs.existsSync('prod.config.json') || force) {
-    console.log('Creating prod.config.json')
+    console.log('Creating prod.config.json (applied on npm start --production)')
     fs.writeFileSync('prod.config.json', fs.readFileSync(path.join(__dirname, 'example.config.json')))
+    console.log('Creating dev.config.json (applied on npm start)')
+    fs.writeFileSync('dev.config.json', fs.readFileSync(path.join(__dirname, 'example.config.json')))
   }
 
   console.log('Initialized')
