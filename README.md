@@ -13,6 +13,8 @@ jsreport is a reporting server which lets developers define reports using  javas
 You can find more information on the official project website http://jsreport.net    
 Or see youtube deep dive screencast https://www.youtube.com/watch?v=fhOQ0HPjK6s
 
+![studio](http://jsreport.net/screenshots/jsreport-studio.gif)
+
 ## Installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
