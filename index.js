@@ -79,6 +79,7 @@ function render (req) {
 
   if (!core.Reporter.instance) {
     ensureTempFolder()
+    renderDefaults.parentModuleDirectory = renderDefaults.parentModuleDirectory || path.dirname(module.parent.filename)
 
     return main(renderDefaults).init().then(function () {
       return core.Reporter.instance.render(req)
@@ -102,7 +103,11 @@ if (require.main === module) {
     .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', repair)
     .parse(process.argv)
 } else {
-  module.exports = main
+  module.exports = function (options) {
+    options = options || {}
+    options.parentModuleDirectory = path.dirname(module.parent.filename)
+    return main(options)
+  }
   module.exports.Reporter = core.Reporter
   module.exports.bootstrapper = bootstrapper
   module.exports.renderDefaults = renderDefaults

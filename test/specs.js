@@ -1,6 +1,6 @@
-var path = require('path')
 require('should')
 var jsreport = require('../')
+var path = require('path')
 
 describe('all extensions', function () {
   var reporter
@@ -98,6 +98,38 @@ describe('all extensions', function () {
       data: data
     }).then(function (resp) {
       resp.content.toString().should.be.eql('foo')
+      done()
+    }).catch(done)
+  })
+})
+
+describe('in memory strategy', function () {
+  var reporter
+
+  beforeEach(function (done) {
+    reporter = jsreport({
+      tasks: {strategy: 'in-process'},
+      loadConfig: false,
+      rootDirectory: path.join(__dirname, '../'),
+      connectionString: {name: 'memory'}
+    })
+
+    reporter.init().then(function () {
+      done()
+    }).fail(done)
+  })
+
+  it('should handle function passed as parameter', function (done) {
+    reporter.render({
+      template: {
+        content: '{{:~a()}}', engine: 'jsrender', recipe: 'html', helpers: {
+          a: function () {
+            return 'b'
+          }
+        }
+      }
+    }).then(function (resp) {
+      resp.content.toString().should.be.eql('b')
       done()
     }).catch(done)
   })
