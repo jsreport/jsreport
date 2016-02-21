@@ -46,16 +46,19 @@ jsreport is split into many separated repositories usually representing extensio
 
 ##Roadmap
 
-Following we have in mind for the upcoming release 1.0
+~Q2
 
-- **drag and drop designer**
-- electron based studio and client application
-- new recipes using electron to print pdf
-- sql based template storage
-- multiple scripts per template
-- azure blob storage support
-- tons of new extensions, recipes, engines....
+ - release the latest 0.13 to https://jsreportonline.net
+ -  jsreport 1.0, see #178
 
+Ideas for future features...
+
+- **drag and drop designer #132**
+- electron based desktop studio and client application #128
+- rewrite studio implementation from requirejs/backbone to more modern webpack/reactjs
+- recipes for creating Excel/Word documents using template fields
+- export/import extension
+- reach the ability to troubleshoot webkit pdf printing issues directly with their sources
 
 **Missing a feature? Submit a feature request.**
 
@@ -69,5 +72,3 @@ also when having maximum 5 templates stored in jsreport storage.
 For commercial projects using more than 5 stored report templates see [Pricing page](http://jsreport.net/buy).
 
 Under any of the licenses, free or not, you are allowed to download the source code and make your own edits.
-
-
