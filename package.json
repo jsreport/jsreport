@@ -1,6 +1,6 @@
 {
   "name": "jsreport",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
@@ -41,7 +41,7 @@
     "jsreport-debug": "0.1.1",
     "jsreport-embedded-store": "0.2.0",
     "jsreport-embedding": "0.1.0",
-    "jsreport-express": "0.3.0",
+    "jsreport-express": "0.3.1",
     "jsreport-fop-pdf": "0.2.0",
     "jsreport-fs-store": "0.3.1",
     "jsreport-handlebars": "0.3.1",
@@ -51,7 +51,7 @@
     "jsreport-licensing": "0.1.2",
     "jsreport-phantom-pdf": "0.4.1",
     "jsreport-public-templates": "0.3.0",
-    "jsreport-reports": "0.3.2",
+    "jsreport-reports": "0.3.3",
     "jsreport-resources": "0.3.0",
     "jsreport-sample-template": "0.1.0",
     "jsreport-scheduling": "0.3.0",
