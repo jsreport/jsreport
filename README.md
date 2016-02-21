@@ -49,12 +49,12 @@ jsreport is split into many separated repositories usually representing extensio
 ~Q2
 
  - release the latest 0.13 to https://jsreportonline.net
- -  jsreport 1.0, see #178
+ -  jsreport 1.0, see [#178](../../issues/178)
 
 Ideas for future features...
 
-- **drag and drop designer #132**
-- electron based desktop studio and client application #128
+- **drag and drop designer [#138](../../issues/121)**
+- electron based desktop studio and client application [#128](../../issues/128)
 - rewrite studio implementation from requirejs/backbone to more modern webpack/reactjs
 - recipes for creating Excel/Word documents using template fields
 - export/import extension
