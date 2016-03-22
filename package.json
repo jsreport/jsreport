@@ -58,7 +58,7 @@
     "jsreport-scripts": "0.5.2",
     "jsreport-statistics": "0.1.1",
     "jsreport-templates": "0.3.0",
-    "jsreport-text": "0.1.0",
+    "jsreport-text": "^0.2.0",
     "jsreport-xlsx": "0.2.0",
     "mkdirp": "0.5.1",
     "node.extend": "1.1.5",
