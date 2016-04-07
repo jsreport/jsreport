@@ -36,7 +36,7 @@
     "jsreport-child-templates": "0.3.0",
     "jsreport-client-app": "0.1.1",
     "jsreport-client-html": "0.1.0",
-    "jsreport-core": "0.6.1",
+    "jsreport-core": "0.6.3",
     "jsreport-data": "0.3.0",
     "jsreport-debug": "0.1.1",
     "jsreport-embedded-store": "0.2.0",
