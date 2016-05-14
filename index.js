@@ -9,6 +9,7 @@ var core = require('jsreport-core')
 var _ = require('underscore')
 var bootstrapper = require('./lib/bootstrapper')
 var main = require('./lib/main')
+var packageJson = require('./package.json')
 
 function initializeApp (force) {
   if (!fs.existsSync('server.js') || force) {
@@ -18,14 +19,14 @@ function initializeApp (force) {
 
   if (!fs.existsSync('package.json') || force) {
     console.log('Creating package.json')
-    var packageJson = {
+    var serverPackageJson = {
       'name': 'jsreport-server',
       'dependencies': {
-        'jsreport': '*'
+        'jsreport': packageJson.version + ''
       },
       'main': 'server.js'
     }
-    fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2))
+    fs.writeFileSync('package.json', JSON.stringify(serverPackageJson, null, 2))
   }
 
   if (!fs.existsSync('prod.config.json') || force) {
@@ -97,7 +98,7 @@ if (require.main === module) {
   // jsreport commandline support can precreate app...
 
   require('commander')
-    .version(require('./package.json').version)
+    .version(packageJson.version)
     .usage('[options]')
     .option('-i, --init', 'Initialize server.js, config.json and package.json of application and starts it. For windows also installs service.', init)
     .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', repair)
