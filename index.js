@@ -13,7 +13,7 @@ var packageJson = require('./package.json')
 function initializeApp (force) {
   if (!fs.existsSync('server.js') || force) {
     console.log('Creating server.js')
-    fs.writeFileSync('server.js', "require('jsreport')().init()")
+    fs.writeFileSync('server.js', fs.readFileSync(path.join(__dirname, 'example.server.js')))
   }
 
   if (!fs.existsSync('package.json') || force) {

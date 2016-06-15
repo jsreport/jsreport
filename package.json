@@ -79,10 +79,7 @@
   },
   "main": "index.js",
   "license": "LGPL",
-  "_id": "jsreport@0.0.4",
-  "dist": {
-    "shasum": "b49168ed230fd44ad2c1e3f06cef683f00b7dfc3"
-  },
-  "_from": "jan.blaha@hotmail.com",
-  "_resolved": "https://registry.npmjs.org/jsreport/-/jsreport-0.0.1.tgz"
+  "files": [
+    "lib", "example.config.js", "index.js", "config.md", "example.server.js"
+  ]
 }
