@@ -7,7 +7,6 @@ var fs = require('fs')
 var path = require('path')
 var core = require('jsreport-core')
 var _ = require('underscore')
-var bootstrapper = require('./lib/bootstrapper')
 var main = require('./lib/main')
 var packageJson = require('./package.json')
 
@@ -110,7 +109,6 @@ if (require.main === module) {
     return main(options)
   }
   module.exports.Reporter = core.Reporter
-  module.exports.bootstrapper = bootstrapper
   module.exports.renderDefaults = renderDefaults
   module.exports.render = render
   module.exports.extendDefaults = extendDefaults

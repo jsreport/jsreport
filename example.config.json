@@ -4,7 +4,7 @@
         "cert": "certificates/jsreport.net.cert"
     },
     "connectionString": { "name": "fs" },
-    "httpsPort": 443,
+    "httpPort": 4888,
     "blobStorage": "fileSystem",
     "phantom": {
         "numberOfWorkers" : 2,

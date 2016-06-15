@@ -33,7 +33,7 @@ describe('all extensions', function () {
 
   it('scripts should be able to use sample data loaded before evaluating scripts', function (done) {
     reporter.documentStore.collection('data').insert({
-      dataJson: '{ \"a\": \"foo\" }', shortid: 'data'
+      dataJson: '{ "a": "foo" }', shortid: 'data'
     }).then(function () {
       return reporter.render({
         template: {
