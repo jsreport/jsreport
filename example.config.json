@@ -3,15 +3,33 @@
         "key": "certificates/jsreport.net.key",    
         "cert": "certificates/jsreport.net.cert"
     },
+    "authentication" : {
+        "cookieSession": {
+            "secret": "<your strong secret>"
+        },
+        "admin": {
+            "username" : "admin",
+            "password": "password"
+        },
+        "enabled": false
+    },
     "connectionString": { "name": "fs" },
-    "httpPort": 4888,
+    "httpPort": 5488,
+    "httpsPort": null,
     "blobStorage": "fileSystem",
     "phantom": {
+        "strategy": "dedicated-process",
         "numberOfWorkers" : 2,
-        "timeout": 180000
+        "timeout": 60000
     },
     "tasks": {
+        "strategy": "dedicated-process",
         "numberOfWorkers" : 2,
-        "timeout": 10000
+        "timeout": 10000,
+        "allowedModules": []
+    },
+    "scripts": {
+        "allowedModules": [],
+        "timeout": 120000
     }
 }
