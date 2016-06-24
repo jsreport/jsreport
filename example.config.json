@@ -19,17 +19,15 @@
     "blobStorage": "fileSystem",
     "phantom": {
         "strategy": "dedicated-process",
-        "numberOfWorkers" : 2,
         "timeout": 60000
     },
     "tasks": {
         "strategy": "dedicated-process",
-        "numberOfWorkers" : 2,
         "timeout": 10000,
         "allowedModules": []
     },
     "scripts": {
         "allowedModules": [],
-        "timeout": 120000
+        "timeout": 60000
     }
 }
