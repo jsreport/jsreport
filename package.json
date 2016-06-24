@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "commander": "2.9.0",
-    "jsreport-authentication": "1.0.2",
+    "jsreport-authentication": "1.0.3",
     "jsreport-authorization": "1.0.2",
     "jsreport-browser-client": "1.0.0",
     "jsreport-child-templates": "0.4.0",
