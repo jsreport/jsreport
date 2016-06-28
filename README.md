@@ -13,12 +13,12 @@ jsreport is a reporting server which lets developers define reports using  javas
 You can find more information on the official project website http://jsreport.net    
 Or see youtube deep dive screencast https://www.youtube.com/watch?v=fhOQ0HPjK6s
 
-![studio](http://jsreport.net/screenshots/jsreport-studio.gif)
+![studio](http://jsreport.net/img/jsreport-demo.gif)
 
 ## Installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
-> **npm install jsreport**<br/>
+> **npm install jsreport --production**<br/>
 > **node node_modules/jsreport --init**<br/>
 > **npm start**
 
@@ -46,19 +46,12 @@ jsreport is split into many separated repositories usually representing extensio
 
 ##Roadmap
 
-~Q2
-
- - release the latest 0.13 to https://jsreportonline.net
- -  jsreport 1.0, see [#178](../../issues/178)
-
-Ideas for future features...
-
-- **drag and drop designer [#138](../../issues/121)**
+- stabilize release 1.0 and its documentation
+- contribute to the most important underlying pdf technologies - phantom-pdf/webkit or electron/chromium and improve jsreport core feature, pdf rendering
+- jsreport cli [#219](../../issues/219)
+- import export exntension [#221](../../issues/221)
+- drag and drop designer [#121](../../issues/121)
 - electron based desktop studio and client application [#128](../../issues/128)
-- rewrite studio implementation from requirejs/backbone to more modern webpack/reactjs
-- recipes for creating Excel/Word documents using template fields
-- export/import extension
-- reach the ability to troubleshoot webkit pdf printing issues directly with their sources
 
 **Missing a feature? Submit a feature request.**
 
