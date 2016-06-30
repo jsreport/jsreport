@@ -1,4 +1,4 @@
-﻿{
+{
     "certificate": {
         "key": "certificates/jsreport.net.key",    
         "cert": "certificates/jsreport.net.cert"
