@@ -39,13 +39,13 @@
     "jsreport-debug": "1.0.2",
     "jsreport-express": "1.0.2",
     "jsreport-fop-pdf": "0.2.0",
-    "jsreport-fs-store": "1.0.5",
+    "jsreport-fs-store": "^1.0.5",
     "jsreport-handlebars": "1.0.1",
     "jsreport-html-to-xlsx": "1.0.0",
-    "jsreport-images": "1.0.2",
+    "jsreport-images": "1.0.3",
     "jsreport-jsrender": "1.0.1",
     "jsreport-licensing": "1.0.2",
-    "jsreport-phantom-pdf": "1.0.1",
+    "jsreport-phantom-pdf": "1.0.2",
     "jsreport-public-templates": "1.0.1",
     "jsreport-reports": "1.0.2",
     "jsreport-resources": "1.0.1",
@@ -55,7 +55,7 @@
     "jsreport-studio": "1.0.6",
     "jsreport-templates": "1.0.1",
     "jsreport-text": "1.0.1",
-    "jsreport-xlsx": "1.0.9",
+    "jsreport-xlsx": "1.0.10",
     "mkdirp": "0.5.1",
     "node.extend": "1.1.5",
     "underscore": "1.8.3",
@@ -80,6 +80,10 @@
   "main": "index.js",
   "license": "LGPL",
   "files": [
-    "lib", "example.config.json", "index.js", "config.md", "example.server.js"
+    "lib",
+    "example.config.json",
+    "index.js",
+    "config.md",
+    "example.server.js"
   ]
 }
