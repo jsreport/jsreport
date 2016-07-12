@@ -32,7 +32,7 @@
     "commander": "2.9.0",
     "jsreport-authentication": "1.0.3",
     "jsreport-authorization": "1.0.2",
-    "jsreport-browser-client": "1.0.0",
+    "jsreport-browser-client": "1.0.1",
     "jsreport-child-templates": "0.4.0",
     "jsreport-core": "1.0.5",
     "jsreport-data": "1.0.1",
