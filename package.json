@@ -39,7 +39,7 @@
     "jsreport-debug": "1.0.2",
     "jsreport-express": "1.0.2",
     "jsreport-fop-pdf": "0.2.0",
-    "jsreport-fs-store": "^1.0.5",
+    "jsreport-fs-store": "1.0.5",
     "jsreport-handlebars": "1.0.1",
     "jsreport-html-to-xlsx": "1.0.0",
     "jsreport-images": "1.0.3",
