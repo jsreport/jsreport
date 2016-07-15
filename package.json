@@ -42,7 +42,7 @@
     "jsreport-fop-pdf": "0.2.0",
     "jsreport-fs-store": "1.0.5",
     "jsreport-handlebars": "1.0.1",
-    "jsreport-html-to-xlsx": "1.0.0",
+    "jsreport-html-to-xlsx": "1.0.1",
     "jsreport-images": "1.0.3",
     "jsreport-jsrender": "1.0.1",
     "jsreport-licensing": "1.0.2",
