@@ -1,5 +1,7 @@
 module name,license,repository
 ariya/phantomjs,BSD,ghttps://github.com/ariya/phantomjs
+WebKit,LGPL,http://www.webkit.org/
+Qt,LGPL,http://qt-project.org/
 abbrev@1.0.9,ISC,git+ssh://git@github.com/isaacs/abbrev-js
 accepts@1.1.4,MIT,git+https://github.com/jshttp/accepts
 accepts@1.2.13,MIT,git+https://github.com/jshttp/accepts
