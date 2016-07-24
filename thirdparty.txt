@@ -1,0 +1,10 @@
+You can find the list of Third Party Software installed with jsreport and its
+respective licenses in this document:
+
+thirdparty.csv
+https://raw.githubusercontent.com/jsreport/jsreport/master/thirdparty.csv
+
+Third Party Software may impose additional restrictions and it is the
+user's responsibility to ensure that they have met the licensing
+requirements of PhantomJS and the relevant license of the Third Party
+Software they are using.
