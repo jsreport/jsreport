@@ -56,7 +56,7 @@ jsreport is split into many separated repositories usually representing extensio
 **Missing a feature? Submit a feature request.**
 
 ##Licensing
-Copyright (C) 2015 Jan Blaha
+Copyright (C) 2016 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
@@ -65,3 +65,7 @@ also when having maximum 5 templates stored in jsreport storage.
 For commercial projects using more than 5 stored report templates see [Pricing page](http://jsreport.net/buy).
 
 Under any of the licenses, free or not, you are allowed to download the source code and make your own edits.
+
+In every case, there are no warranties of any kind provided:
+ 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
