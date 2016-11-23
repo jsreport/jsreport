@@ -9,7 +9,7 @@ describe('all extensions', function () {
     reporter = jsreport({
       rootDirectory: path.join(__dirname, '../'),
       loadConfig: false,
-      connectionString: {name: 'memory'}
+      connectionString: { name: 'memory' }
     })
 
     reporter.init().then(function () {
@@ -22,8 +22,8 @@ describe('all extensions', function () {
       content: 'child content', engine: 'jsrender', recipe: 'html', name: 'foo'
     }).then(function () {
       return reporter.render({
-        template: {content: '{#child {{:a}}}', engine: 'jsrender', recipe: 'html'},
-        data: {a: 'foo'}
+        template: { content: '{#child {{:a}}}', engine: 'jsrender', recipe: 'html' },
+        data: { a: 'foo' }
       }).then(function (resp) {
         resp.content.toString().should.be.eql('child content')
         done()
@@ -37,8 +37,10 @@ describe('all extensions', function () {
     }).then(function () {
       return reporter.render({
         template: {
-          content: 'foo', engine: 'jsrender', recipe: 'html',
-          data: {shortid: 'data'},
+          content: 'foo',
+          engine: 'jsrender',
+          recipe: 'html',
+          data: { shortid: 'data' },
           script: {
             content: 'function beforeRender(done) { request.template.content = request.data.a; done() }'
           }
@@ -52,11 +54,16 @@ describe('all extensions', function () {
 
   it('scripts should be able to load data for the child template', function (done) {
     reporter.documentStore.collection('templates').insert({
-      content: '{{:foo}}', engine: 'jsrender', recipe: 'html', name: 'foo'
+      content: '{{:foo}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      name: 'foo'
     }).then(function () {
       return reporter.render({
         template: {
-          content: '{#child foo}', engine: 'jsrender', recipe: 'html',
+          content: '{#child foo}',
+          engine: 'jsrender',
+          recipe: 'html',
           script: {
             content: "function beforeRender(done) { request.data.foo = 'x'; done() }"
           }
@@ -70,12 +77,17 @@ describe('all extensions', function () {
 
   it('child templates should be able to have assigned scripts loading data', function (done) {
     reporter.documentStore.collection('templates').insert({
-      content: '{{:foo}}', engine: 'jsrender', recipe: 'html', name: 'foo',
-      script: {content: "function beforeRender(done) { request.data.foo = 'yes'; done() }"}
+      content: '{{:foo}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      name: 'foo',
+      script: { content: "function beforeRender(done) { request.data.foo = 'yes'; done() }" }
     }).then(function () {
       return reporter.render({
         template: {
-          content: '{#child foo}', engine: 'jsrender', recipe: 'html',
+          content: '{#child foo}',
+          engine: 'jsrender',
+          recipe: 'html',
           script: {
             content: "function beforeRender(done) { request.data.foo = 'no'; done() }"
           }
@@ -87,42 +99,46 @@ describe('all extensions', function () {
     }).catch(done)
   })
 
-  it('should be able to process high volume inputs', function (done) {
+  it('should be able to process high volume inputs', function () {
     this.timeout(7000)
-    var data = {people: []}
+    var data = { people: [] }
     for (var i = 0; i < 1000000; i++) {
       data.people.push(i)
     }
     return reporter.render({
-      template: {content: 'foo', engine: 'jsrender', recipe: 'html'},
+      template: {
+        content: 'foo',
+        engine: 'jsrender',
+        recipe: 'html'
+      },
       data: data
     }).then(function (resp) {
       resp.content.toString().should.be.eql('foo')
-      done()
-    }).catch(done)
+    })
   })
 })
 
 describe('in memory strategy', function () {
   var reporter
 
-  beforeEach(function (done) {
+  beforeEach(function () {
     reporter = jsreport({
-      tasks: {strategy: 'in-process'},
+      tasks: { strategy: 'in-process' },
       loadConfig: false,
       rootDirectory: path.join(__dirname, '../'),
-      connectionString: {name: 'memory'}
+      connectionString: { name: 'memory' }
     })
 
-    reporter.init().then(function () {
-      done()
-    }).fail(done)
+    return reporter.init()
   })
 
   it('should handle function passed as parameter', function (done) {
     reporter.render({
       template: {
-        content: '{{:~a()}}', engine: 'jsrender', recipe: 'html', helpers: {
+        content: '{{:~a()}}',
+        engine: 'jsrender',
+        recipe: 'html',
+        helpers: {
           a: function () {
             return 'b'
           }
