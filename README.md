@@ -46,12 +46,13 @@ jsreport is split into many separated repositories usually representing extensio
 
 ##Roadmap
 
-- stabilize release 1.0 and its documentation
-- contribute to the most important underlying pdf technologies - phantom-pdf/webkit or electron/chromium and improve jsreport core feature, pdf rendering
-- jsreport cli [#219](../../issues/219)
+- structuring jsreport entities into folders [#250](../../issues/221)
 - import export exntension [#221](../../issues/221)
-- drag and drop designer [#121](../../issues/121)
+- replace q with bluebird [#242](../../issues/221)
+- jsreport cli [#219](../../issues/219)
 - electron based desktop studio and client application [#128](../../issues/128)
+- contribute to the most important underlying pdf technologies - phantom-pdf/webkit or electron/chromium and improve jsreport core feature, pdf rendering
+- drag and drop designer [#121](../../issues/121)
 
 **Missing a feature? Submit a feature request.**
 
