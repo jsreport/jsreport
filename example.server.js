@@ -5,5 +5,5 @@ jsreport.init(function () {
 }).catch(function (e) {
   // error during startup
   console.error(e.stack)
-  throw e
+  process.exit(1)
 })
