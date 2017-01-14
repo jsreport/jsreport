@@ -1,6 +1,6 @@
 var jsreport = require('jsreport')()
 
-jsreport.init(function () {
+jsreport.init().then(function () {
   // running
 }).catch(function (e) {
   // error during startup
