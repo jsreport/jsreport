@@ -131,3 +131,5 @@ dev.config.json
 html-templates.js
 
 request.json
+
+.vscode

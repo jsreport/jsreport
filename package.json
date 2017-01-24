@@ -34,11 +34,11 @@
     "jsreport-authentication": "1.0.3",
     "jsreport-authorization": "1.0.2",
     "jsreport-browser-client": "1.2.0",
-    "jsreport-child-templates": "0.4.1",
+    "jsreport-child-templates": "0.4.3",
     "jsreport-core": "1.0.10",
     "jsreport-data": "1.0.1",
     "jsreport-debug": "1.0.3",
-    "jsreport-express": "1.0.2",
+    "jsreport-express": "1.1.0",
     "jsreport-fop-pdf": "0.2.0",
     "jsreport-fs-store": "1.0.7",
     "jsreport-handlebars": "1.0.1",
@@ -46,7 +46,7 @@
     "jsreport-images": "1.0.3",
     "jsreport-import-export": "0.2.0",
     "jsreport-jsrender": "1.0.1",
-    "jsreport-licensing": "1.1.1",
+    "jsreport-licensing": "1.1.2",
     "jsreport-phantom-pdf": "1.3.0",
     "jsreport-public-templates": "1.0.1",
     "jsreport-reports": "1.0.2",
@@ -61,14 +61,14 @@
     "mkdirp": "0.5.1",
     "node.extend": "1.1.6",
     "underscore": "1.8.3",
-    "winston": "2.3.0"
+    "winston": "2.3.1"
   },
   "optionalDependencies": {
     "daemon": "1.1.0",
     "winser": "1.0.2"
   },
   "devDependencies": {
-    "eslint": "3.13.1",
+    "eslint": "3.14.0",
     "eslint-config-standard": "6.2.1",
     "eslint-config-standard-react": "4.2.0",
     "mocha": "3.2.0",
