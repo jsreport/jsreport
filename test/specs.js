@@ -5,16 +5,14 @@ var path = require('path')
 describe('all extensions', function () {
   var reporter
 
-  beforeEach(function (done) {
+  beforeEach(function () {
     reporter = jsreport({
       rootDirectory: path.join(__dirname, '../'),
       loadConfig: false,
       connectionString: { name: 'memory' }
     })
 
-    reporter.init().then(function () {
-      done()
-    }).fail(done)
+    return reporter.init()
   })
 
   it('child template should be resolvable dynamically', function (done) {
