@@ -1,6 +1,7 @@
 require('should')
 var jsreport = require('../')
 var path = require('path')
+var stdMocks = require('std-mocks')
 
 describe('all extensions', function () {
   var reporter
@@ -146,5 +147,66 @@ describe('in memory strategy', function () {
       resp.content.toString().should.be.eql('b')
       done()
     }).catch(done)
+  })
+})
+
+describe('logging', function () {
+  it('should log to console by default', function (done) {
+    var reporter = jsreport({
+      rootDirectory: path.join(__dirname, '../'),
+      loadConfig: false,
+      connectionString: { name: 'memory' }
+    })
+
+    stdMocks.use({ print: true })
+
+    reporter.init().then(function () {
+      return reporter.render({
+        template: { content: 'foo', engine: 'none', recipe: 'html' }
+      }).then(function (resp) {
+        var stdoutContent
+
+        stdMocks.restore()
+
+        stdoutContent = stdMocks.flush()
+
+        stdoutContent.stdout.length.should.be.above(0)
+        done()
+      })
+    }).catch(function (err) {
+      stdMocks.restore()
+
+      done(err)
+    })
+  })
+
+  it('should silent logs', function (done) {
+    var reporter = jsreport({
+      rootDirectory: path.join(__dirname, '../'),
+      loadConfig: false,
+      connectionString: { name: 'memory' },
+      logger: { silent: true }
+    })
+
+    stdMocks.use({ print: true })
+
+    reporter.init().then(function () {
+      return reporter.render({
+        template: { content: 'foo', engine: 'none', recipe: 'html' }
+      }).then(function (resp) {
+        var stdoutContent
+
+        stdMocks.restore()
+
+        stdoutContent = stdMocks.flush()
+
+        stdoutContent.stdout.length.should.be.eql(0)
+        done()
+      })
+    }).catch(function (err) {
+      stdMocks.restore()
+
+      done(err)
+    })
   })
 })

@@ -74,7 +74,8 @@
     "eslint-config-standard-react": "4.2.0",
     "mocha": "3.2.0",
     "should": "11.2.0",
-    "standard": "8.6.0"
+    "standard": "8.6.0",
+    "std-mocks": "1.0.1"
   },
   "scripts": {
     "test": "mocha test --timeout 7000 && standard",
