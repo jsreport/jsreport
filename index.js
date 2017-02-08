@@ -8,43 +8,6 @@ var path = require('path')
 var core = require('jsreport-core')
 var _ = require('underscore')
 var main = require('./lib/main')
-var packageJson = require('./package.json')
-
-function initializeApp (force) {
-  if (!fs.existsSync('server.js') || force) {
-    console.log('Creating server.js')
-    fs.writeFileSync('server.js', fs.readFileSync(path.join(__dirname, 'example.server.js')))
-  }
-
-  if (!fs.existsSync('package.json') || force) {
-    console.log('Creating package.json')
-    var serverPackageJson = {
-      'name': 'jsreport-server',
-      'dependencies': {
-        'jsreport': packageJson.version + ''
-      },
-      'main': 'server.js'
-    }
-    fs.writeFileSync('package.json', JSON.stringify(serverPackageJson, null, 2))
-  }
-
-  if (!fs.existsSync('prod.config.json') || force) {
-    console.log('Creating prod.config.json (applied on npm start --production)')
-    fs.writeFileSync('prod.config.json', fs.readFileSync(path.join(__dirname, 'example.config.json')))
-    console.log('Creating dev.config.json (applied on npm start)')
-    fs.writeFileSync('dev.config.json', fs.readFileSync(path.join(__dirname, 'example.config.json')))
-  }
-
-  console.log('Initialized')
-}
-
-function init () {
-  initializeApp(false)
-}
-
-function repair () {
-  initializeApp(true)
-}
 
 var renderDefaults = {
   connectionString: {name: 'memory'},
@@ -93,25 +56,15 @@ function extendDefaults (config) {
   return extend(true, renderDefaults, config)
 }
 
-if (require.main === module) {
-  // jsreport commandline support can precreate app...
-
-  require('commander')
-    .version(packageJson.version)
-    .usage('[options]')
-    .option('-i, --init', 'Initialize server.js, config.json and package.json of application and starts it. For windows also installs service.', init)
-    .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', repair)
-    .parse(process.argv)
-} else {
-  module.exports = function (options) {
-    options = options || {}
-    options.parentModuleDirectory = path.dirname(module.parent.filename)
-    return main(options)
-  }
-  module.exports.Reporter = core.Reporter
-  module.exports.renderDefaults = renderDefaults
-  module.exports.render = render
-  module.exports.extendDefaults = extendDefaults
-  module.exports.reporter = core.Reporter.instance
-  module.exports.core = core
+module.exports = function (options) {
+  options = options || {}
+  options.parentModuleDirectory = path.dirname(module.parent.filename)
+  return main(options)
 }
+
+module.exports.Reporter = core.Reporter
+module.exports.renderDefaults = renderDefaults
+module.exports.render = render
+module.exports.extendDefaults = extendDefaults
+module.exports.reporter = core.Reporter.instance
+module.exports.core = core
