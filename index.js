@@ -7,6 +7,9 @@ var fs = require('fs')
 var path = require('path')
 var core = require('jsreport-core')
 var _ = require('underscore')
+var initHandler = require('jsreport-cli/lib/commands/init').handler
+var repairHandler = require('jsreport-cli/lib/commands/repair').handler
+var packageJson = require('./package.json')
 var main = require('./lib/main')
 
 var renderDefaults = {
@@ -56,15 +59,28 @@ function extendDefaults (config) {
   return extend(true, renderDefaults, config)
 }
 
-module.exports = function (options) {
-  options = options || {}
-  options.parentModuleDirectory = path.dirname(module.parent.filename)
-  return main(options)
-}
+if (require.main === module) {
+  require('commander')
+    .version(packageJson.version)
+    .usage('[options]')
+    .option('-i, --init', 'Initialize server.js, config.json and package.json of application and starts it. For windows also installs service.', function () {
+      initHandler()
+    })
+    .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', function () {
+      repairHandler()
+    })
+    .parse(process.argv)
+} else {
+  module.exports = function (options) {
+    options = options || {}
+    options.parentModuleDirectory = path.dirname(module.parent.filename)
+    return main(options)
+  }
 
-module.exports.Reporter = core.Reporter
-module.exports.renderDefaults = renderDefaults
-module.exports.render = render
-module.exports.extendDefaults = extendDefaults
-module.exports.reporter = core.Reporter.instance
-module.exports.core = core
+  module.exports.Reporter = core.Reporter
+  module.exports.renderDefaults = renderDefaults
+  module.exports.render = render
+  module.exports.extendDefaults = extendDefaults
+  module.exports.reporter = core.Reporter.instance
+  module.exports.core = core
+}
