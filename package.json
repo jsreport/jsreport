@@ -35,6 +35,7 @@
     "jsreport-authorization": "1.1.0",
     "jsreport-browser-client": "1.2.0",
     "jsreport-child-templates": "0.4.3",
+    "jsreport-cli": "1.0.0",
     "jsreport-core": "1.1.0",
     "jsreport-data": "1.0.2",
     "jsreport-debug": "1.0.3",
@@ -63,10 +64,6 @@
     "node.extend": "1.1.6",
     "underscore": "1.8.3",
     "winston": "2.3.1"
-  },
-  "optionalDependencies": {
-    "daemon": "1.1.0",
-    "winser": "1.0.2"
   },
   "devDependencies": {
     "eslint": "3.14.1",

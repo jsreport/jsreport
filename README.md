@@ -19,7 +19,7 @@ Or see youtube deep dive screencast https://www.youtube.com/watch?v=fhOQ0HPjK6s
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
 > **npm install jsreport --production**<br/>
-> **node node_modules/jsreport --init**<br/>
+> **node_modules/.bin/jsreport init**<br/>
 > **npm start**
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
@@ -68,5 +68,5 @@ For commercial projects using more than 5 stored report templates see [Pricing p
 Under any of the licenses, free or not, you are allowed to download the source code and make your own edits.
 
 In every case, there are no warranties of any kind provided:
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
