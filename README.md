@@ -19,7 +19,7 @@ Or see youtube deep dive screencast https://www.youtube.com/watch?v=fhOQ0HPjK6s
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
 > **npm install jsreport --production**<br/>
-> **node_modules/.bin/jsreport init**<br/>
+> **node_modules/jsreport init**<br/>
 > **npm start**
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
@@ -47,10 +47,10 @@ jsreport is split into many separated repositories usually representing extensio
 ##Roadmap
 
 - structuring jsreport entities into folders [#250](../../issues/221)
-- import export exntension [#221](../../issues/221)
-- replace q with bluebird [#242](../../issues/221)
 - jsreport cli [#219](../../issues/219)
 - electron based desktop studio and client application [#128](../../issues/128)
+- pdf concatenation and merging
+- jsreport compilation into single executable
 - contribute to the most important underlying pdf technologies - phantom-pdf/webkit or electron/chromium and improve jsreport core feature, pdf rendering
 - drag and drop designer [#121](../../issues/121)
 
