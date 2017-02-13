@@ -1,7 +1,9 @@
 install:
+  - node --version
+  - npm --version  
   - npm install
-  - npm install jsreport-compile -np
-  - jsreport-compile
+  - npm install jsreport-compile -p
+  - "node_modules/.bin/jsreport-compile.cmd"
 
 test_script:  
   - node --version
