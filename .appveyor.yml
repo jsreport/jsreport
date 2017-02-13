@@ -9,6 +9,7 @@ install:
   - ps: Install-Product node $env:nodejs_version
   - node --version
   - npm --version  
+  - cmd: '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64'
   - appveyor-retry npm install
   - appveyor-retry npm install jsreport-compile -p
   - "node_modules/.bin/jsreport-compile.cmd"
