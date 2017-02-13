@@ -1,8 +1,12 @@
+environment:
+  nodejs_version: "6"
+
 install:
+  - ps: Install-Product node $env:nodejs_version
   - node --version
   - npm --version  
-  - npm install
-  - npm install jsreport-compile -p
+  - appveyor-retry npm install
+  - appveyor-retry npm install jsreport-compile -p
   - "node_modules/.bin/jsreport-compile.cmd"
 
 test_script:  
