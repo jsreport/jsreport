@@ -1,11 +1,9 @@
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
 environment:
   nodejs_version: "6"
+
+artifacts:
+  - path: jsreport.exe
+    name: jsreport.exe
 
 install:
   - ps: Install-Product node $env:nodejs_version
