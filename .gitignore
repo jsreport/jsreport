@@ -133,3 +133,6 @@ html-templates.js
 request.json
 
 .vscode
+build
+jsreport.exe
+jsreport.js
