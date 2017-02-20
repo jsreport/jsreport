@@ -64,10 +64,24 @@ if (require.main === module) {
     .version(packageJson.version)
     .usage('[options]')
     .option('-i, --init', 'Initialize server.js, config.json and package.json of application and starts it. For windows also installs service.', function () {
-      initHandler()
+      initHandler({
+        context: {
+          cwd: process.cwd()
+        }
+      })
+      .catch(function (error) {
+        console.error(error)
+      })
     })
     .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', function () {
-      repairHandler()
+      repairHandler({
+        context: {
+          cwd: process.cwd()
+        }
+      })
+      .catch(function (error) {
+        console.error(error)
+      })
     })
     .parse(process.argv)
 } else {
