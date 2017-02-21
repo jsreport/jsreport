@@ -34,7 +34,7 @@
   "dependencies": {
     "commander": "2.9.0",
     "jsreport-assets": "0.6.3",
-    "jsreport-authentication": "github:jsreport/jsreport-authentication",
+    "jsreport-authentication": "1.2.0-beta",
     "jsreport-authorization": "1.1.0",
     "jsreport-browser-client": "1.2.0",
     "jsreport-child-templates": "0.4.3",
@@ -58,7 +58,7 @@
     "jsreport-sample-template": "1.1.0-beta",
     "jsreport-scheduling": "1.1.0",
     "jsreport-scripts": "1.4.0-beta",
-    "jsreport-studio": "github:jsreport/jsreport-studio",
+    "jsreport-studio": "1.4.0-beta",
     "jsreport-tags": "1.0.1",
     "jsreport-templates": "1.1.0",
     "jsreport-text": "1.0.1",
