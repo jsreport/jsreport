@@ -19,7 +19,7 @@ var renderDefaults = {
   cacheAvailableExtensions: true,
   logger: {providerName: 'dummy'},
   rootDirectory: path.join(__dirname, '../../'),
-  extensions: ['templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars', 'fop-pdf', 'html-to-xlsx', 'jsrender', 'scripts', 'text', 'xlsx']
+  extensions: ['templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars', 'fop-pdf', 'html-to-xlsx', 'jsrender', 'scripts', 'text', 'xlsx', 'assets']
 }
 
 function ensureTempFolder () {
