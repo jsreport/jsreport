@@ -40,7 +40,7 @@
     "jsreport-child-templates": "0.4.3",
     "jsreport-cli": "github:jsreport/jsreport-cli",    
     "jsreport-core": "1.2.0-beta",
-    "jsreport-data": "1.0.2",
+    "jsreport-data": "1.1.0",
     "jsreport-debug": "1.0.3",
     "jsreport-express": "1.2.0",
     "jsreport-fop-pdf": "1.0.0",
@@ -55,9 +55,9 @@
     "jsreport-public-templates": "1.1.1",
     "jsreport-reports": "1.0.2",
     "jsreport-resources": "1.0.1",
-    "jsreport-sample-template": "1.1.1-beta",
-    "jsreport-scheduling": "1.1.1",
-    "jsreport-scripts": "1.4.0-beta",
+    "jsreport-sample-template": "jsreport/jsreport-sample-template",
+    "jsreport-scheduling": "1.2.0",
+    "jsreport-scripts": "1.4.1-beta",
     "jsreport-studio": "1.4.2-beta",
     "jsreport-tags": "1.0.1",
     "jsreport-templates": "1.1.0",
@@ -69,12 +69,12 @@
     "winston": "2.3.1"
   },
   "devDependencies": {
-    "eslint": "3.15.0",
-    "eslint-config-standard": "6.2.1",
+    "eslint": "3.17.0",
+    "eslint-config-standard": "7.0.0",
     "eslint-config-standard-react": "4.2.0",
     "mocha": "3.2.0",
     "should": "11.2.0",
-    "standard": "8.6.0"
+    "standard": "9.0.0"
   },
   "scripts": {
     "test": "mocha test --timeout 10000 && standard",
