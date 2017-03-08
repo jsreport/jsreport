@@ -11,16 +11,15 @@
 jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
 You can find more information on the official project website http://jsreport.net    
-Or see youtube deep dive screencast https://www.youtube.com/watch?v=fhOQ0HPjK6s
 
 ![studio](http://jsreport.net/img/jsreport-demo.gif)
 
 ## Installation
 see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
-> **npm install jsreport --production**<br/>
-> **node_modules/jsreport init**<br/>
-> **npm start**
+> **npm install -g jsreport-cli**<br/>
+> **jsreport init**<br/>
+> **jsreport start**
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
 
@@ -45,19 +44,19 @@ This distribution includes many extensions like jsreport studio you may not need
 jsreport is split into many separated repositories usually representing extensions or other reusable libraries. Please forward your contributions to the dedicated repository.
 
 ##Roadmap
-
-- structuring jsreport entities into folders [#250](../../issues/221)
-- jsreport cli [#219](../../issues/219)
+- electron headers, footers, toc    
+- c#/java client libraries    
+- fs store cluster    
+- backup extension    
+- pdf concatenation and merging    
+- structuring jsreport entities into folders [#250](../../issues/221)    
+- drag and drop designer [#121](../../issues/121)    
 - electron based desktop studio and client application [#128](../../issues/128)
-- pdf concatenation and merging
-- jsreport compilation into single executable
-- contribute to the most important underlying pdf technologies - phantom-pdf/webkit or electron/chromium and improve jsreport core feature, pdf rendering
-- drag and drop designer [#121](../../issues/121)
 
 **Missing a feature? Submit a feature request.**
 
 ##Licensing
-Copyright (C) 2016 Jan Blaha
+Copyright (C) 2017 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
