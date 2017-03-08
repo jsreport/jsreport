@@ -11,9 +11,9 @@ node_js:
   - '6'
 
 before_deploy:  
-  - "cp example.config.json dev.config.json"     
-  - "npm install jsreport-compile"
   - "npm install -g npm-run"
+  - "cp example.config.json dev.config.json"     
+  - "npm install jsreport-compile"  
   - "npm-run jsreport-compile"  
   - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport"
   - "npm install phantomjs-exact-2-1-1"
