@@ -12,10 +12,11 @@ node_js:
 
 before_deploy:  
   - "cp example.config.json dev.config.json"     
+  - "npm install jsreport-compile"
   - "node_modules/.bin/jsreport-compile"  
   - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport"
   - "npm install phantomjs-exact-2-1-1"
-  - "env phantom:defaultPhantomjsVersion=2.1.1 'node_modules/.bin/jsreport-compile'"  
+  - "env phantom:defaultPhantomjsVersion=2.1.1 node_modules/.bin/jsreport-compile"  
   - "tar -czvf jsreport-$TRAVIS_OS_NAME-ph2.tar.gz jsreport"
 
 addons:
