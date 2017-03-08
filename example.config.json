@@ -29,5 +29,8 @@
     "scripts": {
         "allowedModules": [],
         "timeout": 60000
+    },
+    "sample-template": {
+        "createSamples": true   
     }
 }
