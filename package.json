@@ -78,6 +78,7 @@
   },
   "scripts": {
     "test": "mocha test --timeout 15000 && standard",
+    "compile": "jsreport-compile",
     "start": "node server.js"
   },
   "main": "index.js",
