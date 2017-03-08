@@ -10,14 +10,13 @@ language: node_js
 node_js:
   - '6'
 
-before_deploy:  
-  - "npm install -g npm-run"
+before_deploy:    
   - "cp example.config.json dev.config.json"     
   - "npm install jsreport-compile"  
-  - "npm-run jsreport-compile"  
+  - "npm run compile"  
   - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport"
   - "npm install phantomjs-exact-2-1-1"
-  - "env phantom:defaultPhantomjsVersion=2.1.1 npm-run jsreport-compile"  
+  - "env phantom:defaultPhantomjsVersion=2.1.1 npm run compile"  
   - "tar -czvf jsreport-$TRAVIS_OS_NAME-ph2.tar.gz jsreport"
 
 addons:
