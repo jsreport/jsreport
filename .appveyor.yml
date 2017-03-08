@@ -9,12 +9,7 @@ install:
   - node --version
   - npm --version  
   - cmd: '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64'
-  - appveyor-retry npm install
-  - "npm install jsreport-compile"     
-  - "copy example.config.json dev.config.json"     
-  - "node_modules/.bin/jsreport-compile.cmd"
-  - "7z a jsreport-win.zip jsreport.exe"
-  - "appveyor PushArtifact jsreport-win.zip"   
+  - appveyor-retry npm install 
 
 test_script:  
   - node --version
@@ -23,9 +18,10 @@ test_script:
 
 before_deploy:  
   - "copy example.config.json dev.config.json"     
+  - "npm install jsreport-compile"       
   - "node_modules/.bin/jsreport-compile.cmd"
   - "7z a jsreport-win.zip jsreport.exe"
-  - "appveyor PushArtifact jsreport-win.zip"
+  - "appveyor PushArtifact jsreport-win.zip"         
 
 deploy:  
  provider: GitHub
