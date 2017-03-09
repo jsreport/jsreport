@@ -12,12 +12,13 @@ node_js:
 
 before_deploy:    
   - "cp example.config.json dev.config.json"     
+  - "cp executable-license.txt license.txt"     
   - "npm install jsreport-compile"  
   - "npm run compile"  
-  - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport"
+  - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport license.txt"
   - "npm install phantomjs-exact-2-1-1"
   - "env phantom:defaultPhantomjsVersion=2.1.1 npm run compile"  
-  - "tar -czvf jsreport-$TRAVIS_OS_NAME-ph2.tar.gz jsreport"
+  - "tar -czvf jsreport-$TRAVIS_OS_NAME-ph2.tar.gz jsreport license.txt"
 
 addons:
   apt:

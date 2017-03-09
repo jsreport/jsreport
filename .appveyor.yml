@@ -18,9 +18,10 @@ test_script:
 
 before_deploy:  
   - "copy example.config.json dev.config.json"     
+  - "copy executable-license.txt license.txt"     
   - "npm install jsreport-compile"       
   - "node_modules/.bin/jsreport-compile.cmd"
-  - "7z a jsreport-win.zip jsreport.exe"
+  - "7z a jsreport-win.zip jsreport.exe license.txt"
   - "appveyor PushArtifact jsreport-win.zip"         
 
 deploy:  
