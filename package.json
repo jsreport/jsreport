@@ -38,7 +38,7 @@
     "jsreport-authorization": "1.1.0",
     "jsreport-browser-client": "1.2.0",
     "jsreport-child-templates": "0.4.3",
-    "jsreport-cli": "1.0.0",    
+    "jsreport-cli": "1.0.1",    
     "jsreport-core": "1.2.2",
     "jsreport-data": "1.1.0",
     "jsreport-debug": "1.0.3",
