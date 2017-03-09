@@ -33,7 +33,7 @@ deploy:
   provider: releases
   skip_cleanup: true
   api_key:
-    secure: KNphk4mKNfgYkgPk2/REnDzGMPNLMt6thxIjFjSwTYDUsDsiXmyiHpqH7A00W7xPm9nqZZVwTmeDO3gQKPbqgWxiIsp/CA0FNk6ABQp7FQDLMjLBC683jCzeNNM0Jt6HcU0f/MN/i+rIpGZWxGkoShZIG7lIzY/KCsU9eNjV6D8Q/s1c+tXJCwjDpjVzwgJAB//og4+AJtl8h+MKogIEynk1ucXto5dHcUHZxlBiVQhMor1SQ2XufJKCW+SCgcfMeA5Mbng6mykGleADWtCxiL0pOLarxl//RIV13LNaaRxY8tcXKu+oXC3z7ZFuGoLCSMI8BEkmXrSO0oIh4Z5Ez/bz7d7V9thAFbM7N/DXp6caY7KKzfJvXWoEZJLHrO+A8TAyxRgwQv/9wSkUWRE1e55qWS1voWDYrwffNznWpj+8QXP4WfIch80ludhn2JxZMLVg1sEFLlliqW+uO0nhbnQm/+W5E2Bnk1yQd4xmNOvBWAz/SQhDz7p9uClWrAW9ZUt9Ldo40+QxdK9K//g2cLQJre/E9juYQkJ4FucGJG9k+7BX8Nkc4ZP2zoD4sP1MCfeD8r1p7al0+fxcPNvKQsO768v1PWpGQJGE2e495ziEKj0e4HqfxduZg4U3i/YbNAHooeuM9rDgpvDHiFAIGJht8SRabLgjmJPI0VxauiA=
+    secure: TlV2eBd3M16e1LmsBR+8H982L1z2Hn5LghbgpwkIvxxBfjo7uuMYSwoL0ihY36Q7nGMYWvCUNn3tPZCeGolXQOdKbwOggjDMpk23rKpTj7D5IL/84Izcz0iQpugi0CZe4OcmoitLIa9h/2x9oGUJAbdmqQawGdHkuASa25tb+h4=
   file:
     - jsreport-$TRAVIS_OS_NAME.tar.gz
     - jsreport-$TRAVIS_OS_NAME-ph2.tar.gz
