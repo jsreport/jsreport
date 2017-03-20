@@ -23,12 +23,12 @@ see [http://jsreport.net/downloads](http://jsreport.net/downloads)
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
 
-##Configuration
+## Configuration
 jsreport loads `dev.config.json` or `prod.config.json` configuration file on start up based on nodejs environment. The configuration file is the most common way to adapt jsreport settings like http port. In addition to configuration file you can use also corresponding command line arguments or options passed directly through nodejs code.
 
 See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documentation for details.
 
-##Extensions
+## Extensions
 The jsreport official distribution includes the most of the currently implemented extensions. However there are still new extensions popping up which are not yet part of jsreport and you may like to additionally install it. See the list of extensions [here](https://github.com/jsreport/jsreport-core#list-of-extensions).
 
 You are also not limited to extensions we provide to you and  you can implement your own. See the [Implementing custom extension](http://jsreport.net/learn/custom-extension) article.
@@ -39,11 +39,11 @@ You can find documentation for adapting this jsreport distribution using nodejs 
 
 This distribution includes many extensions like jsreport studio you may not need. To start from the ground see repository [jsreport-core](https://github.com/jsreport/jsreport-core).
 
-##Contributions
+## Contributions
 
 jsreport is split into many separated repositories usually representing extensions or other reusable libraries. Please forward your contributions to the dedicated repository.
 
-##Roadmap
+## Roadmap
 - electron headers, footers, toc    
 - c#/java client libraries    
 - fs store cluster    
@@ -55,7 +55,7 @@ jsreport is split into many separated repositories usually representing extensio
 
 **Missing a feature? Submit a feature request.**
 
-##Licensing
+## Licensing
 Copyright (C) 2017 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
