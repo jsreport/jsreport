@@ -12,10 +12,10 @@ jsreport is a reporting server which lets developers define reports using  javas
 
 You can find more information on the official project website http://jsreport.net    
 
-![studio](http://jsreport.net/img/jsreport-demo.gif)
+![studio](https://jsreport.net/img/jsreport-demo.gif)
 
 ## Installation
-see [http://jsreport.net/downloads](http://jsreport.net/downloads)
+see [https://jsreport.net/on-prem](http://jsreport.net/on-prem)
 
 > **npm install -g jsreport-cli**<br/>
 > **jsreport init**<br/>
@@ -31,11 +31,11 @@ See [config](https://github.com/jsreport/jsreport/blob/master/config.md) documen
 ## Extensions
 The jsreport official distribution includes the most of the currently implemented extensions. However there are still new extensions popping up which are not yet part of jsreport and you may like to additionally install it. See the list of extensions [here](https://github.com/jsreport/jsreport-core#list-of-extensions).
 
-You are also not limited to extensions we provide to you and  you can implement your own. See the [Implementing custom extension](http://jsreport.net/learn/custom-extension) article.
+You are also not limited to extensions we provide to you and  you can implement your own. See the [Implementing custom extension](https://jsreport.net/learn/custom-extension) article.
 
 ## Node.js
 
-You can find documentation for adapting this jsreport distribution using nodejs and also information for integrating it into an existing nodejs application in article [adapting jsreport](http://jsreport.net/learn/adapting-jsreport).
+You can find documentation for adapting this jsreport distribution using nodejs and also information for integrating it into an existing nodejs application in article [adapting jsreport](https://jsreport.net/learn/adapting-jsreport).
 
 This distribution includes many extensions like jsreport studio you may not need. To start from the ground see repository [jsreport-core](https://github.com/jsreport/jsreport-core).
 
@@ -62,7 +62,7 @@ Do you want to use jsreport for a personal purpose, in a school project or a non
 Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
 also when having maximum 5 templates stored in jsreport storage.
 
-For commercial projects using more than 5 stored report templates see [Pricing page](http://jsreport.net/buy).
+For commercial projects using more than 5 stored report templates see [Pricing page](https://jsreport.net/buy).
 
 Under any of the licenses, free or not, you are allowed to download the source code and make your own edits.
 
