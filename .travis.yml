@@ -3,21 +3,25 @@ os:
   - osx
 
 sudo: required
-dist: trusty  
-  
+dist: trusty
+
 language: node_js
 
 node_js:
   - '6'
+  - '4'
 
-before_deploy:    
-  - "cp example.config.json dev.config.json"     
-  - "cp executable-license.txt license.txt"     
-  - "npm install jsreport-compile"  
-  - "npm run compile"  
+before_install:
+  - if [[ `node -v` == v4* ]]; then npm i -g npm@2; fi
+
+before_deploy:
+  - "cp example.config.json dev.config.json"
+  - "cp executable-license.txt license.txt"
+  - "npm install jsreport-compile"
+  - "npm run compile"
   - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport license.txt"
   - "npm install phantomjs-exact-2-1-1"
-  - "env phantom:defaultPhantomjsVersion=2.1.1 npm run compile"  
+  - "env phantom:defaultPhantomjsVersion=2.1.1 npm run compile"
   - "tar -czvf jsreport-$TRAVIS_OS_NAME-ph2.tar.gz jsreport license.txt"
 
 addons:
