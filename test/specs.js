@@ -15,6 +15,22 @@ describe('all extensions', function () {
     return reporter.init()
   })
 
+  it('all available extensions should be loaded', function () {
+    var availableExtensions = reporter.extensionsManager.availableExtensions.filter(function (extension) {
+      if (!extension.options) {
+        return true
+      }
+
+      if (extension.options.enabled === false) {
+        return false
+      }
+
+      return true
+    })
+
+    availableExtensions.length.should.be.eql(reporter.extensionsManager.extensions.length)
+  })
+
   it('child template should be resolvable dynamically', function (done) {
     reporter.documentStore.collection('templates').insert({
       content: 'child content', engine: 'jsrender', recipe: 'html', name: 'foo'
