@@ -16,6 +16,22 @@
     "connectionString": { "name": "fs" },
     "httpPort": 5488,
     "httpsPort": null,
+    "logger": {
+        "console": {
+            "transport": "console",
+            "level": "debug"
+        },
+        "file": {
+            "transport": "file",
+            "level": "info",
+            "filename": "logs/reporter.log"
+        },
+        "error": {
+            "transport": "file",
+            "level": "error",
+            "filename": "logs/error.log"
+        }
+    },
     "blobStorage": "fileSystem",
     "phantom": {
         "strategy": "dedicated-process",
