@@ -1,30 +1,30 @@
-environment:		
+environment:
   nodejs_version: "6"
 
 artifacts:
   - path: jsreport-win.zip
 
-install:  
+install:
   - ps: Install-Product node $env:nodejs_version
   - node --version
-  - npm --version  
+  - npm --version
   - cmd: '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64'
-  - appveyor-retry npm install 
+  - appveyor-retry npm install
 
-test_script:  
+test_script:
   - node --version
-  - npm --version    
+  - npm --version
   - npm test
 
-before_deploy:  
-  - "copy example.config.json dev.config.json"     
-  - "copy executable-license.txt license.txt"     
-  - "npm install jsreport-compile"       
-  - "node_modules/.bin/jsreport-compile.cmd"
+before_deploy:
+  - "copy example.config.json dev.config.json"
+  - "copy executable-license.txt license.txt"
+  - "npm install jsreport-compile"
+  - "npm run compile"
   - "7z a jsreport-win.zip jsreport.exe license.txt"
-  - "appveyor PushArtifact jsreport-win.zip"         
+  - "appveyor PushArtifact jsreport-win.zip"
 
-deploy:  
+deploy:
  provider: GitHub
  auth_token:
   secure: f5JMTlhWW7SKTeONrfO9hweB+AP2EY5VGAdzcM56VRNjIcY4zX7TiC7VWXrn5Dfj
