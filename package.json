@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "commander": "2.9.0",
+    "cross-env": "2.0.1",
     "jsreport-assets": "0.6.5",
     "jsreport-authentication": "1.3.0",
     "jsreport-authorization": "1.1.1",
@@ -68,7 +69,7 @@
     "underscore": "1.8.3",
     "winston": "2.3.1"
   },
-  "devDependencies": {
+  "devDependencies": {    
     "eslint": "3.19.0",
     "eslint-config-standard": "7.1.0",
     "eslint-config-standard-react": "4.3.0",
@@ -78,7 +79,7 @@
   },
   "scripts": {
     "test": "mocha test --timeout 35000 && standard",
-    "compile": "jsreport-compile",
+    "compile": "cross-env authentication_enabled=true jsreport-compile",
     "start": "node server.js"
   },
   "main": "index.js",
