@@ -23,6 +23,10 @@ see [https://jsreport.net/on-prem](http://jsreport.net/on-prem)
 
 To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
 
+## Documentation
+
+see [https://jsreport.net/learn](https://jsreport.net/learn) for an overview of concepts, guides, clients and general documentation.
+
 ## Configuration
 jsreport loads `dev.config.json` or `prod.config.json` configuration file on start up based on nodejs environment. The configuration file is the most common way to adapt jsreport settings like http port. In addition to configuration file you can use also corresponding command line arguments or options passed directly through nodejs code.
 
