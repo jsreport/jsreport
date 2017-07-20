@@ -11,8 +11,7 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     apt-get update && \
     apt-get install -y --no-install-recommends curl nodejs npm ca-certificates wkhtmltopdf \
         libgtk2.0-dev libxtst-dev libxss1 libgconf2-dev libnss3-dev libasound2-dev xvfb xfonts-75dpi xfonts-base && \
-    apt-get clean && \
-    rm -rf /tmp/* /var/lib/apt/lists/* && \
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/* && \
     ln -s `which nodejs` /usr/local/bin/node && \
     curl -Lo phantomjs.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-x86_64.tar.bz2 && \
     tar jxvf phantomjs.tar.bz2 && \
