@@ -33,7 +33,7 @@ fi
 
 su jsreport
 
-echo Trying to remove the lock on displat 99
+echo Trying to remove the lock on display 99
 rm /tmp/.X99-lock > /dev/null 2>&1
 
 echo Running display 99
