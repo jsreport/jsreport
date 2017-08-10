@@ -32,6 +32,7 @@
     "entryPoint": "server.js"
   },
   "dependencies": {
+    "bubleify": "^0.7.0",
     "commander": "2.11.0",
     "cross-env": "2.0.1",
     "jsreport-assets": "0.6.6",
@@ -41,6 +42,7 @@
     "jsreport-browser-client": "1.2.3",
     "jsreport-child-templates": "0.4.6",
     "jsreport-cli": "1.3.0",
+    "jsreport-compile": "github:jsreport/jsreport-compile",
     "jsreport-core": "1.3.2",
     "jsreport-data": "1.1.2",
     "jsreport-debug": "1.0.5",
@@ -52,7 +54,7 @@
     "jsreport-images": "1.1.1",
     "jsreport-import-export": "0.4.2",
     "jsreport-jsrender": "1.0.2",
-    "jsreport-licensing": "1.3.1",
+    "jsreport-licensing": "1.3.2",
     "jsreport-phantom-pdf": "1.4.5",
     "jsreport-public-templates": "1.1.2",
     "jsreport-reports": "1.1.1",
