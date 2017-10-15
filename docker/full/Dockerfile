@@ -15,8 +15,7 @@ RUN adduser --disabled-password --gecos "" jsreport && \
         libasound2-dev \
         xvfb \
         xfonts-75dpi \
-        xfonts-base \
-        wkhtmltopdf \
+        xfonts-base \        
     && \
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/* && \
     curl -Lo phantomjs.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-x86_64.tar.bz2 && \
