@@ -17,7 +17,6 @@ var renderDefaults = {
   dataDirectory: path.join(__dirname, '../../', 'data'),
   blobStorage: 'inMemory',
   cacheAvailableExtensions: true,
-  logger: {providerName: 'dummy'},
   rootDirectory: path.join(__dirname, '../../'),
   extensions: ['templates', 'data', 'phantom-pdf', 'jsrender', 'handlebars', 'fop-pdf', 'html-to-xlsx', 'jsrender', 'scripts', 'text', 'xlsx', 'assets']
 }
@@ -69,9 +68,9 @@ if (require.main === module) {
           cwd: process.cwd()
         }
       })
-      .catch(function (error) {
-        console.error(error)
-      })
+        .catch(function (error) {
+          console.error(error)
+        })
     })
     .option('-r, --repair', 'Recreate server.js, config.json and package.json of application to default.', function () {
       repairHandler({
@@ -79,9 +78,9 @@ if (require.main === module) {
           cwd: process.cwd()
         }
       })
-      .catch(function (error) {
-        console.error(error)
-      })
+        .catch(function (error) {
+          console.error(error)
+        })
     })
     .parse(process.argv)
 } else {

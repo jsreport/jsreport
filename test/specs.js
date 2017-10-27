@@ -172,3 +172,19 @@ describe('in memory strategy', function () {
     }).catch(done)
   })
 })
+
+describe('rendering shortcut', function () {
+  it.only('should produce output', function () {
+    jsreport.renderDefaults.rootDirectory = path.join(__dirname, '../')
+    jsreport.renderDefaults.extensionsLocationCache = false
+    return jsreport.render({
+      template: {
+        content: 'foo',
+        engine: 'handlebars',
+        recipe: 'html'
+      }
+    }).then(function (res) {
+      res.content.toString().should.be.eql('foo')
+    })
+  })
+})

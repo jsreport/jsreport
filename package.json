@@ -25,6 +25,7 @@
       "describe",
       "it",
       "beforeEach",
+      "afterEach",
       "define"
     ]
   },
@@ -79,7 +80,7 @@
     "standard": "10.0.3"
   },
   "scripts": {
-    "test": "mocha test --timeout 35000",
+    "test": "mocha test --timeout 35000 && standard",
     "compile": "cross-env authentication_enabled=true jsreport-compile",
     "start": "node server.js"
   },
