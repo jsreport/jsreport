@@ -15,6 +15,10 @@ describe('all extensions', function () {
     return reporter.init()
   })
 
+  afterEach(function () {
+    reporter.express.server.close()
+  })
+
   it('all available extensions should be loaded', function () {
     var availableExtensions = reporter.extensionsManager.availableExtensions.filter(function (extension) {
       if (!extension.options) {
@@ -144,6 +148,10 @@ describe('in memory strategy', function () {
     })
 
     return reporter.init()
+  })
+
+  afterEach(function () {
+    reporter.express.server.close()
   })
 
   it('should handle function passed as parameter', function (done) {
