@@ -1,6 +1,6 @@
-os:
-  - linux
-  - osx
+matrix:
+  - os: linux
+  - os: osx
     on:
       tags: true
 
