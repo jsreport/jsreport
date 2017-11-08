@@ -134,6 +134,7 @@ request.json
 
 .vscode
 build
+build-runtime
 jsreport.exe
 jsreport.js
 license.json
