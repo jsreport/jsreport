@@ -1,8 +1,7 @@
 matrix:
-  - os: linux
-  - os: osx
-    on:
-      tags: true
+   include:
+      - os: osx
+        if: tag =~ ^.+$
 
 sudo: required
 dist: trusty
