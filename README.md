@@ -48,14 +48,14 @@ This distribution includes many extensions like jsreport studio you may not need
 jsreport is split into many separated repositories usually representing extensions or other reusable libraries. Please forward your contributions to the dedicated repository.
 
 ## Roadmap
-- electron headers, footers, toc    
-- c#/java client libraries    
-- fs store cluster    
-- backup extension    
-- pdf concatenation and merging    
+
+**Currently working on**
+- fs store support for Azure Storage and AWS S3  [#333](../../issues/333)    
 - structuring jsreport entities into folders [#250](../../issues/221)    
 - drag and drop designer [#121](../../issues/121)    
-- electron based desktop studio and client application [#128](../../issues/128)
+
+**Short plan**
+The most of the issues marked as [enhancement](https://github.com/jsreport/jsreport/labels/enhancement).
 
 **Missing a feature? Submit a feature request.**
 
