@@ -28,7 +28,7 @@ To change environment use cmd `set NODE_ENV=development` or use options your IDE
 see [https://jsreport.net/learn](https://jsreport.net/learn) for an overview of concepts, guides, clients and general documentation.
 
 ## Configuration
-jsreport loads `dev.config.json` or `prod.config.json` configuration file on start up based on nodejs environment. The configuration file is the most common way to adapt jsreport settings like http port. In addition to configuration file you can use also corresponding command line arguments or options passed directly through nodejs code.
+jsreport loads `jsreport.config.json` configuration file on start. The configuration file is the most common way to adapt jsreport settings like http port. In addition to configuration file you can use also corresponding command line arguments or options passed directly through nodejs code.
 
 See [config](https://jsreport.net/learn/configuration) documentation for details.
 
