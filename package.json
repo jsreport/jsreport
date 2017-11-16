@@ -47,7 +47,7 @@
     "jsreport-debug": "1.1.0",
     "jsreport-express": "1.2.4",
     "jsreport-fop-pdf": "1.1.2",
-    "jsreport-fs-store": "1.2.3",
+    "jsreport-fs-store": "1.2.4",
     "jsreport-handlebars": "1.1.2",
     "jsreport-html-to-xlsx": "1.4.6",
     "jsreport-images": "1.1.1",
