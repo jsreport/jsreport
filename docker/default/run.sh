@@ -11,22 +11,18 @@ if [ -d "/jsreport" ]; then
   ln -nsf "/jsreport/data" "/usr/src/app/data"
 
   # copy default config
-
-  if [ ! -f "/jsreport/prod.config.json" ]; then
-    cp "/usr/src/app/prod.config.json" "/jsreport/prod.config.json"
+  if [ ! -f "/jsreport/jsreport.config.json" ]; then
+    cp "/usr/src/app/jsreport.config.json" "/jsreport/jsreport.config.json"
   fi
 
-  if [ ! -f "/jsreport/dev.config.json" ]; then
-      cp "/usr/src/app/dev.config.json" "/jsreport/dev.config.json"
-  fi
-
-  # delete default config and link from volume
-
-  rm -f "/usr/src/app/prod.config.json"
+  
   ln -s "/jsreport/prod.config.json" "/usr/src/app/prod.config.json"
-
-  rm -f "/usr/src/app/dev.config.json"
   ln -s "/jsreport/dev.config.json" "/usr/src/app/dev.config.json"
+  ln -s "/jsreport/license-key.txt" "/usr/src/app/license-key.txt"
+  ln -s "/jsreport/license.json" "/usr/src/app/license.json"
+
+  rm -f "/usr/src/app/jsreport.config.json"
+  ln -s "/jsreport/jsreport.config.json" "/usr/src/app/jsreport.config.json"
 
   chown -R jsreport:jsreport /jsreport
 fi
