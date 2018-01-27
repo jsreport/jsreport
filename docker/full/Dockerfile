@@ -44,6 +44,7 @@ RUN npm install --production jsreport && \
         jsreport-version-control \
         jsreport-pdf-utils \
         jsreport-chrome-pdf \
+        phantomjs-exact-2-1-1 \
     && \
     npm cache clean -f && \
     rm -rf node_modules/moment-timezone/data/unpacked && \
