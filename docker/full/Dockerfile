@@ -5,7 +5,7 @@ EXPOSE 5488
 RUN adduser --disabled-password --gecos "" jsreport && \
     apt-get update && \
     apt-get install -y --no-install-recommends curl ca-certificates && \
-    curl -sL https://deb.nodesource.com/setup_6.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
     apt-get install -y --no-install-recommends nodejs \
         libgtk2.0-dev \
         libxtst-dev \
@@ -41,6 +41,9 @@ RUN npm install --production jsreport && \
         jsreport-wkhtmltopdf \
         electron \
         jsreport-electron-pdf \
+        jsreport-version-control \
+        jsreport-pdf-utils \
+        jsreport-chrome-pdf \
     && \
     npm cache clean -f && \
     rm -rf node_modules/moment-timezone/data/unpacked && \
