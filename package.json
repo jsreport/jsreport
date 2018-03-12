@@ -34,7 +34,6 @@
   },
   "dependencies": {
     "commander": "2.14.1",
-    "cross-env": "5.1.3",
     "jsreport-assets": "jsreport/jsreport-assets#2.0.0-beta",
     "jsreport-authentication": "jsreport/jsreport-authentication#2.0.0-beta",
     "jsreport-authorization": "jsreport/jsreport-authorization#2.0.0-beta",
@@ -70,6 +69,7 @@
     "winston": "2.4.0"
   },
   "devDependencies": {
+    "cross-env": "5.1.3",
     "eslint": "4.18.2",
     "eslint-config-standard": "11.0.0",
     "eslint-config-standard-react": "6.0.0",
