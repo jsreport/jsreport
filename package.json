@@ -33,7 +33,6 @@
     "entryPoint": "server.js"
   },
   "dependencies": {
-    "commander": "2.14.1",
     "jsreport-assets": "jsreport/jsreport-assets#2.0.0-beta",
     "jsreport-authentication": "jsreport/jsreport-authentication#2.0.0-beta",
     "jsreport-authorization": "jsreport/jsreport-authorization#2.0.0-beta",
