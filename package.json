@@ -58,13 +58,14 @@
     "jsreport-resources": "jsreport/jsreport-resources#2.0.0-beta",
     "jsreport-scheduling": "jsreport/jsreport-scheduling#2.0.0-beta",
     "jsreport-scripts": "jsreport/jsreport-scripts#2.0.0-beta",
-    "jsreport-studio": "1.6.2",
+    "jsreport-studio": "jsreport/jsreport-studio#2.0.0-beta",
     "jsreport-tags": "jsreport/jsreport-tags#2.0.0-beta",
     "jsreport-templates": "jsreport/jsreport-templates#2.0.0-beta",
     "jsreport-text": "jsreport/jsreport-text#2.0.0-beta",
     "jsreport-version-control": "0.2.0",
     "jsreport-xlsx": "jsreport/jsreport-xlsx#2.0.0-beta",
     "mkdirp": "0.5.1",
+    "puppeteer": "1.1.1",
     "winston": "2.4.0"
   },
   "devDependencies": {
@@ -74,7 +75,7 @@
     "eslint-config-standard-react": "6.0.0",
     "mocha": "5.0.1",
     "should": "13.2.1",
-    "standard": "11.0.0"
+    "standard": "11.0.0"    
   },
   "scripts": {
     "test": "mocha test --timeout 35000 && standard",

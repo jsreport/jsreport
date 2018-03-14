@@ -48,7 +48,7 @@ describe('all extensions', function () {
 
   it('scripts should be able to use sample data loaded before evaluating scripts', async () => {
     await reporter.documentStore.collection('data').insert({
-      dataJson: '{ "a": "foo" }', shortid: 'data'
+      name: 'data', dataJson: '{ "a": "foo" }', shortid: 'data'
     })
 
     const resp = await reporter.render({
