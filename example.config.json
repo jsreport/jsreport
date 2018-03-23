@@ -1,52 +1,34 @@
-{
-    "certificate": {
-        "key": "certificates/jsreport.net.key",    
-        "cert": "certificates/jsreport.net.cert"
+{   
+    "httpPort": 5488,  
+    "renderingSource": "untrusted",
+    "store": {
+        "provider": "fs"
     },
-    "authentication" : {
-        "cookieSession": {
-            "secret": "<your strong secret>"
-        },
-        "admin": {
-            "username" : "admin",
-            "password": "password"
-        },
-        "enabled": false
+    "blobStorage": {
+        "provider": "fs"
     },
-    "connectionString": { "name": "fs" },
-    "httpPort": 5488,
-    "httpsPort": null,
-    "logger": {
-        "console": {
-            "transport": "console",
-            "level": "debug"
+    "templatingEngines": {        
+        "timeout": 10000        
+    },  
+    "chrome": {
+        "timeout": 30000
+    },
+    "extensions": {
+        "authentication" : {
+            "cookieSession": {
+                "secret": "<your strong secret>"
+            },
+            "admin": {
+                "username" : "admin",
+                "password": "password"
+            },
+            "enabled": false
         },
-        "file": {
-            "transport": "file",
-            "level": "info",
-            "filename": "logs/reporter.log"
+        "sample-template": {
+            "createSamples": true   
         },
-        "error": {
-            "transport": "file",
-            "level": "error",
-            "filename": "logs/error.log"
+        "scripts": {
+            "timeout": 30000
         }
-    },
-    "blobStorage": "fileSystem",
-    "phantom": {
-        "strategy": "dedicated-process",
-        "timeout": 60000
-    },
-    "tasks": {
-        "strategy": "dedicated-process",
-        "timeout": 10000,
-        "allowedModules": []
-    },
-    "scripts": {
-        "allowedModules": [],
-        "timeout": 60000
-    },
-    "sample-template": {
-        "createSamples": true   
     }
 }
