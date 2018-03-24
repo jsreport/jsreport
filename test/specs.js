@@ -8,8 +8,7 @@ describe('all extensions', function () {
   beforeEach(() => {
     reporter = jsreport({
       rootDirectory: path.join(__dirname, '../'),
-      loadConfig: false,
-      connectionString: { name: 'memory' }
+      loadConfig: false
     })
 
     return reporter.init()
@@ -134,10 +133,9 @@ describe('in process strategy', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      tasks: { strategy: 'in-process' },
+      templatingEngines: { strategy: 'in-process' },
       loadConfig: false,
-      rootDirectory: path.join(__dirname, '../'),
-      connectionString: { name: 'memory' }
+      rootDirectory: path.join(__dirname, '../')
     })
 
     return reporter.init()
