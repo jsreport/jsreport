@@ -19,14 +19,10 @@ test_script:
 before_deploy:
   - "copy example.config.json dev.config.json"
   - "copy executable-license.txt license.txt"
-  - "npm install jsreport-compile"
+  - "npm install jsreport/jsreport-compile#2.0.0-beta jsreport/jsreport-puppeteer"
   - "npm run compile"
   - "7z a jsreport-win.zip jsreport.exe license.txt"
-  - "appveyor PushArtifact jsreport-win.zip"
-  - "npm install phantomjs-exact-2-1-1"
-  - "set phantom_defaultPhantomjsVersion=2.1.1&&npm run compile"
-  - "7z a jsreport-win-ph2.zip jsreport.exe license.txt"
-  - "appveyor PushArtifact jsreport-win-ph2.zip"
+  - "appveyor PushArtifact jsreport-win.zip"  
 
 deploy:
  provider: GitHub
