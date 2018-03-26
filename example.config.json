@@ -8,7 +8,7 @@
         "provider": "fs"
     },
     "templatingEngines": {        
-        "timeout": 10000        
+        "timeout": 10000       
     },  
     "chrome": {
         "timeout": 30000
@@ -28,7 +28,7 @@
             "createSamples": true   
         },
         "scripts": {
-            "timeout": 30000
+            "timeout": 30000           
         }
     }
 }

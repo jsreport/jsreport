@@ -8,18 +8,24 @@ const core = require('jsreport-core')
 const main = require('./lib/main')
 
 const renderDefaults = {
-  connectionString: {name: 'memory'},
-  dataDirectory: path.join(__dirname, '../../', 'data'),
-  blobStorage: 'inMemory',
+  store: { provider: 'memory' },
+  blobStorage: {provider: 'memory'},
   rootDirectory: path.join(__dirname, '../../'),
   logger: {
     console: { silent: true },
     file: { silent: true },
     error: { silent: true }
   },
-  express: { enabled: false },
-  scheduling: { enabled: false },
-  'public-templates': { enabled: false }
+  extensions: {
+    express: { enabled: false },
+    scheduling: { enabled: false },
+    authentication: { enabled: false },
+    authorization: { enabled: false },
+    studio: { enabled: false },
+    'sample-template': { enabled: false },
+    'version-control': { enabled: false },
+    'public-templates': { enabled: false }
+  }
 }
 
 function render (req) {
