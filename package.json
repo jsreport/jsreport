@@ -39,7 +39,7 @@
     "jsreport-base": "jsreport/jsreport-base#39959fb689b406ffd51742db2ded4e97bae0b166",
     "jsreport-browser-client": "jsreport/jsreport-browser-client#d6f9ded6cf8894dc9cd3ef5c9c3307d272795609",
     "jsreport-child-templates": "jsreport/jsreport-child-templates#cb4fdebddd002e39a72c80f1f26faf4352b745f0",
-    "jsreport-chrome-pdf": "jsreport/jsreport-chrome-pdf#21133a85b70ba570718a4a3493ab0ff2259fa3ac",
+    "jsreport-chrome-pdf": "jsreport/jsreport-chrome-pdf#2c09a57f72856ea39fca40ca1942d23708f537fa",
     "jsreport-cli": "jsreport/jsreport-cli#460345d612473cc4094a6413071881674549cfe0",
     "jsreport-core": "jsreport/jsreport-core#81726f5f8ed3fd220bd1fabbea589e96911bb8ff",
     "jsreport-data": "jsreport/jsreport-data#3dbade53705bb8fedba0d4f8924b53e635384d13",
