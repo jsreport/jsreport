@@ -46,7 +46,7 @@
     "jsreport-debug": "jsreport/jsreport-debug#2d5971ceeb15ccca3c6ef3d517ddfb7685acbd95",
     "jsreport-express": "jsreport/jsreport-express#3e5c1e042d40224b84d1c22ddf90d5ed35dc6ea4",
     "jsreport-freeze": "jsreport/jsreport-freeze#f9304ca8a399273ae118a7b461abcf07924df3ca",
-    "jsreport-fs-store": "jsreport/jsreport-fs-store#823f47b8d09e0859532a5ed6bfaea1e581a1ee8b",
+    "jsreport-fs-store": "jsreport/jsreport-fs-store#642713b452edb0515c3785730fe8908e2ebbddd0",
     "jsreport-handlebars": "jsreport/jsreport-handlebars#e32211bb11d16e3e4ea37121d87c8777f12adcee",
     "jsreport-html-to-xlsx": "jsreport/jsreport-html-to-xlsx#32cbcb21ae95618ae281b34e48052d908b1c430e",
     "jsreport-import-export": "jsreport/jsreport-import-export#d3cc5954a2f7cfa0125c1543c6ceed5924a501af",
