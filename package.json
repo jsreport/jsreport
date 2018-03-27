@@ -48,7 +48,7 @@
     "jsreport-freeze": "jsreport/jsreport-freeze#f9304ca8a399273ae118a7b461abcf07924df3ca",
     "jsreport-fs-store": "jsreport/jsreport-fs-store#823f47b8d09e0859532a5ed6bfaea1e581a1ee8b",
     "jsreport-handlebars": "jsreport/jsreport-handlebars#e32211bb11d16e3e4ea37121d87c8777f12adcee",
-    "jsreport-html-to-xlsx": "jsreport/jsreport-html-to-xlsx#e54db16cdde44a33989da27213c44f9455e0d69e",
+    "jsreport-html-to-xlsx": "jsreport/jsreport-html-to-xlsx#32cbcb21ae95618ae281b34e48052d908b1c430e",
     "jsreport-import-export": "jsreport/jsreport-import-export#4c041ba9d866a99f03cab928ad40131883bc9a0f",
     "jsreport-jsrender": "jsreport/jsreport-jsrender#dbbdcc5d4a7ca8b0f0312769da58f872c6d87ac1",
     "jsreport-licensing": "jsreport/jsreport-licensing#82ca2993ea8e5e5d4b5a6ae4ebbaf3c37192d34b",
@@ -73,7 +73,7 @@
     "cross-env": "5.1.3",
     "eslint": "4.18.2",
     "eslint-config-standard": "11.0.0",
-    "eslint-config-standard-react": "6.0.0",
+    "eslint-config-standard-react": "6.0.0",   
     "mocha": "5.0.1",
     "should": "13.2.1",
     "standard": "11.0.0"
