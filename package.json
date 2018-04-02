@@ -63,7 +63,7 @@
     "jsreport-tags": "jsreport/jsreport-tags#bb6f926853fb6d95c08d709ec629ab459949eb9f",
     "jsreport-templates": "jsreport/jsreport-templates#b4066e49d4b8713705493251b7f69f5fbb7393c0",
     "jsreport-text": "jsreport/jsreport-text#2c34b92684949027dc68609c0ad3bf62f14c8dbd",
-    "jsreport-version-control": "jsreport/jsreport-version-control#03c15e392eea8eb943b0b9b7c12ae066b76073a0",
+    "jsreport-version-control": "jsreport/jsreport-version-control#7118047fdd10abbed09a732bb479f5dbe91de92a",
     "jsreport-xlsx": "jsreport/jsreport-xlsx#f82a41ddd0c95f4e68dc9c692a7fec4e5c01d787",
     "mkdirp": "0.5.1",
     "puppeteer": "1.2.0",
