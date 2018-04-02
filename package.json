@@ -75,14 +75,21 @@
     "eslint": "4.18.2",
     "eslint-config-standard": "11.0.0",
     "eslint-config-standard-react": "6.0.0",
+    "in-publish": "2.0.0",
     "mocha": "5.0.1",
+    "npm-run-all": "4.1.2",
+    "rimraf": "2.6.2",
     "should": "13.2.1",
     "standard": "11.0.0"
   },
   "scripts": {
     "test": "mocha test --timeout 35000 && standard",
     "compile": "cross-env authentication_enabled=true jsreport-compile",
-    "start": "node server.js"
+    "start": "node server.js",
+    "cleanModules": "rimraf node_modules",
+    "freshInstall": "npm install",
+    "prepareRelease": "npm-run-all cleanModules freshInstall test",
+    "prepublish": "in-publish && npm run prepareRelease || not-in-publish"
   },
   "engines": {
     "node": ">=8.9"
