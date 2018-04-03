@@ -1331,6 +1331,9 @@
       "version": "0.0.4",
       "resolved": "https://registry.npmjs.org/easy-zip/-/easy-zip-0.0.4.tgz",
       "integrity": "sha1-sto31nUCIYYKrvAWjekS6/6VfZM=",
+      "requires": {
+        "async": "2.6.0"
+      },
       "dependencies": {
         "async": {
           "version": "2.6.0",
@@ -4119,7 +4122,7 @@
       }
     },
     "jsreport-core": {
-      "version": "github:jsreport/jsreport-core#1da8cea7f886376ab1c5e96d015fb34aa227b04e",
+      "version": "github:jsreport/jsreport-core#5da8dc95b42162cc5cc2525ebb6c8c4782a9567a",
       "requires": {
         "app-root-path": "2.0.1",
         "bluebird": "3.5.1",
@@ -4425,7 +4428,7 @@
       }
     },
     "jsreport-templates": {
-      "version": "github:jsreport/jsreport-templates#b4066e49d4b8713705493251b7f69f5fbb7393c0",
+      "version": "github:jsreport/jsreport-templates#f2ef8cc617f566fea7176b7c7ac5c4196f604b80",
       "requires": {
         "bluebird": "3.5.1",
         "nanoid": "1.0.1",
