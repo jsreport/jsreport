@@ -4185,10 +4185,7 @@
       }
     },
     "jsreport-freeze": {
-      "version": "github:jsreport/jsreport-freeze#f9304ca8a399273ae118a7b461abcf07924df3ca",
-      "requires": {
-        "in-publish": "2.0.0"
-      }
+      "version": "github:jsreport/jsreport-freeze#aacf279e0d02f66ec86827950ad6832dee9c738f"
     },
     "jsreport-fs-store": {
       "version": "github:jsreport/jsreport-fs-store#1fa20baa8f9dd2d195a5340d82b76b061265cf3a",
