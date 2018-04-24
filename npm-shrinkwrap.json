@@ -4172,7 +4172,7 @@
       }
     },
     "jsreport-express": {
-      "version": "github:jsreport/jsreport-express#3e5c1e042d40224b84d1c22ddf90d5ed35dc6ea4",
+      "version": "github:jsreport/jsreport-express#d2e9ee0beb8355ec54b744bf7127389dc54c195e",
       "requires": {
         "bluebird": "3.5.1",
         "body-parser": "1.18.2",
@@ -4181,7 +4181,7 @@
         "express": "4.16.2",
         "node.extend": "2.0.0",
         "serve-static": "1.13.1",
-        "simple-odata-server": "1.0.0"
+        "simple-odata-server": "1.0.1"
       }
     },
     "jsreport-freeze": {
@@ -6478,9 +6478,9 @@
       }
     },
     "simple-odata-server": {
-      "version": "1.0.0",
-      "resolved": "https://registry.npmjs.org/simple-odata-server/-/simple-odata-server-1.0.0.tgz",
-      "integrity": "sha512-sALHAC9CyMUl2yDbLxM4bgErFSabfbkdG5XmlXGnxakp7i5BG2sEgC/TuZoQQIS76CBsCmCkrrs4WRjWvKtKQQ==",
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/simple-odata-server/-/simple-odata-server-1.0.1.tgz",
+      "integrity": "sha512-rFN3m5I3Ssu+4GdgSD+R3djEYobvUijoOTVpT5l6sUD9xBnNyZKl4cEhZvrv7Ba27CZKWjXhzjWd9MBKe4BC2g==",
       "requires": {
         "methods": "1.1.2",
         "odata-parser": "1.4.1",
