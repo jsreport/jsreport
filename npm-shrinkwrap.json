@@ -727,7 +727,7 @@
     },
     "chrome-page-eval": {
       "version": "github:bjrmatos/chrome-page-eval#9715c0d99e2a1fd956802d13f590bb24ab73e3d6",
-      "from": "chrome-page-eval@github:bjrmatos/chrome-page-eval#9715c0d99e2a1fd956802d13f590bb24ab73e3d6",
+      "from": "github:bjrmatos/chrome-page-eval",
       "requires": {
         "debug": "3.1.0"
       },
@@ -3398,7 +3398,7 @@
     },
     "html-to-xlsx": {
       "version": "github:pofider/html-to-xlsx#d42e7c2e7bf69b51f8bd9bb8f5a196e0b8dde06d",
-      "from": "html-to-xlsx@github:pofider/html-to-xlsx#d42e7c2e7bf69b51f8bd9bb8f5a196e0b8dde06d",
+      "from": "github:pofider/html-to-xlsx#1.0.0-beta",
       "requires": {
         "msexcel-builder-extended": "0.0.7",
         "uuid": "3.2.1"
@@ -3986,8 +3986,8 @@
       }
     },
     "jsreport-chrome-pdf": {
-      "version": "github:jsreport/jsreport-chrome-pdf#a8b184c1650fb420e273dff705534712bd8f6f06",
-      "from": "github:jsreport/jsreport-chrome-pdf#a8b184c1650fb420e273dff705534712bd8f6f06",
+      "version": "github:jsreport/jsreport-chrome-pdf#d195de7267b3e65b2daa441ba4a2d51293d7e6f4",
+      "from": "github:jsreport/jsreport-chrome-pdf#d195de7267b3e65b2daa441ba4a2d51293d7e6f4",
       "requires": {
         "uuid": "3.2.1"
       }
@@ -4024,7 +4024,7 @@
     },
     "jsreport-client": {
       "version": "github:jsreport/nodejs-client#cdfc5679b486d5c562c955c795a16ff9dcae527c",
-      "from": "jsreport-client@github:jsreport/nodejs-client#cdfc5679b486d5c562c955c795a16ff9dcae527c",
+      "from": "github:jsreport/nodejs-client#2.0.0-beta",
       "requires": {
         "concat-stream": "1.6.0",
         "mimic-response": "1.0.0",
@@ -5641,7 +5641,7 @@
     },
     "phantom-page-eval": {
       "version": "github:bjrmatos/phantom-page-eval#4e7d141ed49bf85fa20ad6cba4bc576da717ec09",
-      "from": "phantom-page-eval@github:bjrmatos/phantom-page-eval#4e7d141ed49bf85fa20ad6cba4bc576da717ec09",
+      "from": "github:bjrmatos/phantom-page-eval",
       "requires": {
         "debug": "3.1.0",
         "nanoid": "1.0.2"
