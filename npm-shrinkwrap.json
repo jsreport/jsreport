@@ -4127,8 +4127,8 @@
       "from": "github:jsreport/jsreport-freeze#aacf279e0d02f66ec86827950ad6832dee9c738f"
     },
     "jsreport-fs-store": {
-      "version": "github:jsreport/jsreport-fs-store#1fa20baa8f9dd2d195a5340d82b76b061265cf3a",
-      "from": "github:jsreport/jsreport-fs-store#1fa20baa8f9dd2d195a5340d82b76b061265cf3a",
+      "version": "github:jsreport/jsreport-fs-store#47d605e9dd8d585beaf53b279742d63b7141f247",
+      "from": "github:jsreport/jsreport-fs-store#47d605e9dd8d585beaf53b279742d63b7141f247",
       "requires": {
         "chokidar": "2.0.2",
         "lockfile": "1.0.3",
