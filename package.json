@@ -39,7 +39,7 @@
     "jsreport-base": "github:jsreport/jsreport-base#39959fb689b406ffd51742db2ded4e97bae0b166",
     "jsreport-browser-client": "github:jsreport/jsreport-browser-client#d6f9ded6cf8894dc9cd3ef5c9c3307d272795609",
     "jsreport-child-templates": "github:jsreport/jsreport-child-templates#cb4fdebddd002e39a72c80f1f26faf4352b745f0",
-    "jsreport-chrome-pdf": "github:jsreport/jsreport-chrome-pdf#a8b184c1650fb420e273dff705534712bd8f6f06",
+    "jsreport-chrome-pdf": "github:jsreport/jsreport-chrome-pdf#d195de7267b3e65b2daa441ba4a2d51293d7e6f4",
     "jsreport-cli": "github:jsreport/jsreport-cli#028bd2a4075ff645127ceeb8126b2b0e3eaa8473",
     "jsreport-core": "github:jsreport/jsreport-core#25d35c2e37746f883550be7acaec458de324dd2c",
     "jsreport-data": "github:jsreport/jsreport-data#3dbade53705bb8fedba0d4f8924b53e635384d13",
