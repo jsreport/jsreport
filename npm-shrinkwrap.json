@@ -74,9 +74,9 @@
       }
     },
     "ajv-keywords": {
-      "version": "3.1.0",
-      "resolved": "https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-3.1.0.tgz",
-      "integrity": "sha1-rCsnk5xUPpXSwG5/f1wnvkqlQ74="
+      "version": "3.2.0",
+      "resolved": "https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-3.2.0.tgz",
+      "integrity": "sha1-6GuBnGAs+IIa1jdBNpjx3sAhhHo="
     },
     "align-text": {
       "version": "0.1.4",
@@ -339,9 +339,9 @@
       "integrity": "sha1-x57Zf380y48robyXkLzDZkdLS3k="
     },
     "atob": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/atob/-/atob-2.1.0.tgz",
-      "integrity": "sha512-SuiKH8vbsOyCALjA/+EINmt/Kdl+TQPrtFgW7XZZcwtryFu9e5kQoX3bjCW6mIvGH1fbeAZZuvwGR5IlBRznGw=="
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/atob/-/atob-2.1.1.tgz",
+      "integrity": "sha1-ri1acpR38onWDdf5amMUoi3Wwio="
     },
     "aws-sign2": {
       "version": "0.7.0",
@@ -2310,9 +2310,9 @@
       "integrity": "sha1-FQStJSMVjKpA20onh8sBQRmU6k8="
     },
     "fsevents": {
-      "version": "1.2.2",
-      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-1.2.2.tgz",
-      "integrity": "sha512-iownA+hC4uHFp+7gwP/y5SzaiUo7m2vpa0dhpzw8YuKtiZsz7cIXsFbXpLEeBM6WuCQyw1MH4RRe6XI8GFUctQ==",
+      "version": "1.2.3",
+      "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-1.2.3.tgz",
+      "integrity": "sha512-X+57O5YkDTiEQGiw8i7wYc2nQgweIekqkepI8Q3y4wVlurgBt2SuwxTeYUYMZIGpLZH3r/TsMjczCMXE5ZOt7Q==",
       "optional": true,
       "requires": {
         "nan": "^2.9.2",
@@ -3678,8 +3678,8 @@
       }
     },
     "jsreport-chrome-pdf": {
-      "version": "github:jsreport/jsreport-chrome-pdf#165e88d8c0fbdc327ef3f7ef43fb7f775d3d00d7",
-      "from": "github:jsreport/jsreport-chrome-pdf#165e88d8c0fbdc327ef3f7ef43fb7f775d3d00d7",
+      "version": "github:jsreport/jsreport-chrome-pdf#8abc595b7daf8a576021c01875e8bb21ab8e7b20",
+      "from": "github:jsreport/jsreport-chrome-pdf#8abc595b7daf8a576021c01875e8bb21ab8e7b20",
       "requires": {
         "uuid": "3.2.1"
       }
@@ -3991,11 +3991,10 @@
       }
     },
     "jsreport-scripts": {
-      "version": "github:jsreport/jsreport-scripts#1a513601981ef828c34256c7f978bac529f38ff4",
-      "from": "github:jsreport/jsreport-scripts#1a513601981ef828c34256c7f978bac529f38ff4",
+      "version": "github:jsreport/jsreport-scripts#2f1cf296d31af2cbf2b421843b11b4747dfd7421",
+      "from": "github:jsreport/jsreport-scripts#2f1cf296d31af2cbf2b421843b11b4747dfd7421",
       "requires": {
         "bluebird": "3.5.1",
-        "lodash.omit": "4.5.0",
         "nanoid": "1.0.1"
       }
     },
@@ -4071,8 +4070,8 @@
       }
     },
     "jsreport-templates": {
-      "version": "github:jsreport/jsreport-templates#f2ef8cc617f566fea7176b7c7ac5c4196f604b80",
-      "from": "github:jsreport/jsreport-templates#f2ef8cc617f566fea7176b7c7ac5c4196f604b80",
+      "version": "github:jsreport/jsreport-templates#7f8f93767a4a5f62b7862f7ad72f4fa00df99566",
+      "from": "github:jsreport/jsreport-templates#7f8f93767a4a5f62b7862f7ad72f4fa00df99566",
       "requires": {
         "bluebird": "3.5.1",
         "nanoid": "1.0.1",
@@ -6586,9 +6585,9 @@
       }
     },
     "tar-stream": {
-      "version": "1.5.7",
-      "resolved": "https://registry.npmjs.org/tar-stream/-/tar-stream-1.5.7.tgz",
-      "integrity": "sha512-euyxmyeJpl6wjWGnzPfZRQ1IGLNbqEDJWuYyue9sixDY2vfqVBRiIqZLWYhWG5da031WF4qEN9D9Ek9lZHiH1Q==",
+      "version": "1.6.0",
+      "resolved": "https://registry.npmjs.org/tar-stream/-/tar-stream-1.6.0.tgz",
+      "integrity": "sha512-lh2iAPG/BHNmN6WB9Ybdynk9rEJ5GD/dy4zscHmVlwa1dq2tpE+BH78i5vjYwYVWEaOXGBjzxr89aVACF17Cpw==",
       "requires": {
         "bl": "^1.0.0",
         "buffer-alloc": "^1.1.0",
@@ -6907,9 +6906,9 @@
       }
     },
     "upath": {
-      "version": "1.0.4",
-      "resolved": "https://registry.npmjs.org/upath/-/upath-1.0.4.tgz",
-      "integrity": "sha512-d4SJySNBXDaQp+DPrziv3xGS6w3d2Xt69FijJr86zMPBy23JEloMCEOUBBzuN7xCtjLCnmB9tI/z7SBCahHBOw=="
+      "version": "1.0.5",
+      "resolved": "https://registry.npmjs.org/upath/-/upath-1.0.5.tgz",
+      "integrity": "sha512-qbKn90aDQ0YEwvXoLqj0oiuUYroLX2lVHZ+b+xwjozFasAOC4GneDq5+OaIG5Zj+jFmbz/uO+f7a9qxjktJQww=="
     },
     "uri-js": {
       "version": "3.0.2",
