@@ -1,11 +1,11 @@
-var jsreport = require('jsreport')()
+const jsreport = require('jsreport')()
 
 if (process.env.JSREPORT_CLI) {
   module.exports = jsreport
 } else {
-  jsreport.init().then(function () {
+  jsreport.init().then(() => {
     // running
-  }).catch(function (e) {
+  }).catch((e) => {
     // error during startup
     console.error(e.stack)
     process.exit(1)

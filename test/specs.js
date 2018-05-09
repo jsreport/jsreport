@@ -1,26 +1,23 @@
 require('should')
-var jsreport = require('../')
-var path = require('path')
+const jsreport = require('../')
+const path = require('path')
 
 describe('all extensions', function () {
-  var reporter
+  let reporter
 
-  beforeEach(function () {
+  beforeEach(() => {
     reporter = jsreport({
       rootDirectory: path.join(__dirname, '../'),
-      loadConfig: false,
-      connectionString: { name: 'memory' }
+      loadConfig: false
     })
 
     return reporter.init()
   })
 
-  afterEach(function () {
-    reporter.express.server.close()
-  })
+  afterEach(() => reporter.close())
 
-  it('all available extensions should be loaded', function () {
-    var availableExtensions = reporter.extensionsManager.availableExtensions.filter(function (extension) {
+  it('all available extensions should be loaded', () => {
+    const availableExtensions = reporter.extensionsManager.availableExtensions.filter((extension) => {
       if (!extension.options) {
         return true
       }
@@ -35,127 +32,119 @@ describe('all extensions', function () {
     availableExtensions.length.should.be.eql(reporter.extensionsManager.extensions.length)
   })
 
-  it('child template should be resolvable dynamically', function (done) {
-    reporter.documentStore.collection('templates').insert({
+  it('child template should be resolvable dynamically', async () => {
+    await reporter.documentStore.collection('templates').insert({
       content: 'child content', engine: 'jsrender', recipe: 'html', name: 'foo'
-    }).then(function () {
-      return reporter.render({
-        template: { content: '{#child {{:a}}}', engine: 'jsrender', recipe: 'html' },
-        data: { a: 'foo' }
-      }).then(function (resp) {
-        resp.content.toString().should.be.eql('child content')
-        done()
-      })
-    }).catch(done)
+    })
+
+    const res = await reporter.render({
+      template: { content: '{#child {{:a}}}', engine: 'jsrender', recipe: 'html' },
+      data: { a: 'foo' }
+    })
+
+    res.content.toString().should.be.eql('child content')
   })
 
-  it('scripts should be able to use sample data loaded before evaluating scripts', function (done) {
-    reporter.documentStore.collection('data').insert({
-      dataJson: '{ "a": "foo" }', shortid: 'data'
-    }).then(function () {
-      return reporter.render({
-        template: {
-          content: 'foo',
-          engine: 'jsrender',
-          recipe: 'html',
-          data: { shortid: 'data' },
-          script: {
-            content: 'function beforeRender(done) { request.template.content = request.data.a; done() }'
-          }
+  it('scripts should be able to use sample data loaded before evaluating scripts', async () => {
+    await reporter.documentStore.collection('data').insert({
+      name: 'data', dataJson: '{ "a": "foo" }', shortid: 'data'
+    })
+
+    const resp = await reporter.render({
+      template: {
+        content: 'foo',
+        engine: 'jsrender',
+        recipe: 'html',
+        data: { shortid: 'data' },
+        script: {
+          content: 'function beforeRender(done) { request.template.content = request.data.a; done() }'
         }
-      }).then(function (resp) {
-        resp.content.toString().should.be.eql('foo')
-        done()
-      })
-    }).catch(done)
+      }
+    })
+
+    resp.content.toString().should.be.eql('foo')
   })
 
-  it('scripts should be able to load data for the child template', function (done) {
-    reporter.documentStore.collection('templates').insert({
+  it('scripts should be able to load data for the child template', async () => {
+    await reporter.documentStore.collection('templates').insert({
       content: '{{:foo}}',
       engine: 'jsrender',
       recipe: 'html',
       name: 'foo'
-    }).then(function () {
-      return reporter.render({
-        template: {
-          content: '{#child foo}',
-          engine: 'jsrender',
-          recipe: 'html',
-          script: {
-            content: "function beforeRender(done) { request.data.foo = 'x'; done() }"
-          }
-        }
-      }).then(function (resp) {
-        resp.content.toString().should.be.eql('x')
-        done()
-      })
-    }).catch(done)
+    })
+    const resp = await reporter.render({
+      template: {
+        content: '{#child foo}',
+        engine: 'jsrender',
+        recipe: 'html',
+        scripts: [{
+          content: "function beforeRender(req, res, done) { req.data.foo = 'x'; done() }"
+        }]
+      }
+    })
+
+    resp.content.toString().should.be.eql('x')
   })
 
-  it('child templates should be able to have assigned scripts loading data', function (done) {
-    reporter.documentStore.collection('templates').insert({
+  it('child templates should be able to have assigned scripts loading data', async () => {
+    await reporter.documentStore.collection('templates').insert({
       content: '{{:foo}}',
       engine: 'jsrender',
       recipe: 'html',
       name: 'foo',
-      script: { content: "function beforeRender(done) { request.data.foo = 'yes'; done() }" }
-    }).then(function () {
-      return reporter.render({
-        template: {
-          content: '{#child foo}',
-          engine: 'jsrender',
-          recipe: 'html',
-          script: {
-            content: "function beforeRender(done) { request.data.foo = 'no'; done() }"
-          }
+      scripts: [{ content: "function beforeRender(req, res, done) { req.data.foo = 'yes'; done() }" }]
+    })
+    const resp = await reporter.render({
+      template: {
+        content: '{#child foo}',
+        engine: 'jsrender',
+        recipe: 'html',
+        script: {
+          content: "function beforeRender(done) { request.data.foo = 'no'; done() }"
         }
-      }).then(function (resp) {
-        resp.content.toString().should.be.eql('yes')
-        done()
-      })
-    }).catch(done)
+      }
+    })
+
+    resp.content.toString().should.be.eql('yes')
   })
 
-  it('should be able to process high volume inputs', function () {
+  it('should be able to process high volume inputs', async function () {
     this.timeout(7000)
-    var data = { people: [] }
-    for (var i = 0; i < 1000000; i++) {
+    const data = { people: [] }
+    for (let i = 0; i < 1000000; i++) {
       data.people.push(i)
     }
-    return reporter.render({
+
+    const resp = await reporter.render({
       template: {
         content: 'foo',
         engine: 'jsrender',
         recipe: 'html'
       },
       data: data
-    }).then(function (resp) {
-      resp.content.toString().should.be.eql('foo')
     })
+
+    resp.content.toString().should.be.eql('foo')
   })
 })
 
-describe('in memory strategy', function () {
-  var reporter
+describe('in process strategy', () => {
+  let reporter
 
-  beforeEach(function () {
+  beforeEach(() => {
     reporter = jsreport({
-      tasks: { strategy: 'in-process' },
+      templatingEngines: { strategy: 'in-process' },
       loadConfig: false,
-      rootDirectory: path.join(__dirname, '../'),
-      connectionString: { name: 'memory' }
+      rootDirectory: path.join(__dirname, '../')
     })
 
     return reporter.init()
   })
 
-  afterEach(function () {
-    reporter.express.server.close()
-  })
+  afterEach(() => reporter.close())
 
-  it('should handle function passed as parameter', function (done) {
-    reporter.render({
+  it('should handle function passed as parameter', async () => {
+    const resp = await reporter.render({
       template: {
         content: '{{:~a()}}',
         engine: 'jsrender',
@@ -166,25 +155,23 @@ describe('in memory strategy', function () {
           }
         }
       }
-    }).then(function (resp) {
-      resp.content.toString().should.be.eql('b')
-      done()
-    }).catch(done)
+    })
+
+    resp.content.toString().should.be.eql('b')
   })
 })
 
-describe('rendering shortcut', function () {
-  it('should produce output', function () {
+describe('rendering shortcut', () => {
+  it('should produce output', async () => {
     jsreport.renderDefaults.rootDirectory = path.join(__dirname, '../')
-    jsreport.renderDefaults.extensionsLocationCache = false
-    return jsreport.render({
+    const res = await jsreport.render({
       template: {
         content: 'foo',
         engine: 'handlebars',
         recipe: 'html'
       }
-    }).then(function (res) {
-      res.content.toString().should.be.eql('foo')
     })
+
+    res.content.toString().should.be.eql('foo')
   })
 })

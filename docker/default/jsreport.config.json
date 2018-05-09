@@ -1,6 +1,5 @@
 {   
     "httpPort": 5488,  
-    "renderingSource": "untrusted",
     "store": {
         "provider": "fs"
     },
@@ -8,12 +7,12 @@
         "provider": "fs"
     },
     "templatingEngines": {        
-        "timeout": 10000       
+        "timeout": 10000        
     },  
     "chrome": {
-        "timeout": 30000
-    },
-    "extensions": {
+        "timeout": 40000
+    },          
+    "extensions": {    
         "authentication" : {
             "cookieSession": {
                 "secret": "<your strong secret>"
@@ -23,12 +22,9 @@
                 "password": "password"
             },
             "enabled": false
-        },
-        "sample-template": {
-            "createSamples": true   
-        },
+        },        
         "scripts": {
-            "timeout": 30000           
+            "timeout": 30000                
         }
     }
 }

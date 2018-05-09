@@ -13,6 +13,7 @@ logs
 results
 
 npm-debug.log
+.DS_Store
 
 node_modules
 
@@ -138,3 +139,4 @@ build-runtime
 jsreport.exe
 jsreport.js
 license.json
+jsreport.license.json
