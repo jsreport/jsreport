@@ -1,6 +1,21 @@
+'use strict'
+
 /*!
  * Copyright(c) 2018 Jan Blaha
  */
+
+var semver = require('semver')
+var packageJson = require('./package.json')
+
+if (!semver.satisfies(process.versions.node, packageJson.engines.node)) {
+  console.error(
+    'jsreport requires to have installed a nodejs version of at least ' +
+    packageJson.engines.node +
+    ' but you have installed version ' + process.versions.node + '. please update your nodejs version and try again'
+  )
+
+  process.exit(1)
+}
 
 const extend = require('node.extend')
 const path = require('path')
