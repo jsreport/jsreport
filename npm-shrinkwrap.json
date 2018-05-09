@@ -927,6 +927,14 @@
         "delayed-stream": "~1.0.0"
       }
     },
+    "commander": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/commander/-/commander-1.2.0.tgz",
+      "integrity": "sha1-/VcTv6FTx9bMWZN4patMRcU1Ap4=",
+      "requires": {
+        "keypress": "0.1.x"
+      }
+    },
     "component-bind": {
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/component-bind/-/component-bind-1.0.0.tgz",
@@ -3721,9 +3729,9 @@
       }
     },
     "jsreport-core": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.0.0.tgz",
-      "integrity": "sha512-bwz7VORq0sVzXTX7K5VJi6GpyXfm/ZLAXe3tidCMsDnOWNx6ehSSsNtWzeyQMv2fbzWeXLjTM5KU7H+rpNnErQ==",
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.0.1.tgz",
+      "integrity": "sha512-X2qKUewneAfK1aJl0vxMyadfYL3V01fMeGE5L9UxJMWyKWTftzrJr0e9Q1fLY8lt95nOw9YZkPHrMrLT7l4c3g==",
       "requires": {
         "ajv": "6.4.0",
         "app-root-path": "2.0.1",
@@ -5669,14 +5677,6 @@
           "version": "0.2.1",
           "resolved": "https://registry.npmjs.org/bytes/-/bytes-0.2.1.tgz",
           "integrity": "sha1-VVsIq8sGP4l1kFMCUj5M1P/f3zE="
-        },
-        "commander": {
-          "version": "1.2.0",
-          "resolved": "https://registry.npmjs.org/commander/-/commander-1.2.0.tgz",
-          "integrity": "sha1-/VcTv6FTx9bMWZN4patMRcU1Ap4=",
-          "requires": {
-            "keypress": "0.1.x"
-          }
         },
         "ms": {
           "version": "0.7.1",

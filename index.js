@@ -45,9 +45,9 @@ const renderDefaults = {
 
 function render (req) {
   if (!core.Reporter.instance) {
-    renderDefaults.parentModuleDirectory = renderDefaults.parentModuleDirectory || path.dirname(module.parent.filename)
-
-    return main(renderDefaults).init().then(function () {
+    return main({
+      parentModuleDirectory: path.dirname(module.parent.filename)
+    }, renderDefaults).init().then(function () {
       return core.Reporter.instance.render(req)
     })
   }
@@ -59,10 +59,12 @@ function extendDefaults (config) {
   return extend(true, renderDefaults, config)
 }
 
-module.exports = function (options) {
+module.exports = function (options, defaults) {
   options = options || {}
+
   options.parentModuleDirectory = path.dirname(module.parent.filename)
-  return main(options)
+
+  return main(options, defaults)
 }
 
 module.exports.Reporter = core.Reporter

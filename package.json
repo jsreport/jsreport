@@ -5,7 +5,10 @@
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
   },
-  "contributors": [],
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+    "Jan Blaha"
+  ],
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -41,7 +44,7 @@
     "jsreport-child-templates": "1.0.0",
     "jsreport-chrome-pdf": "1.0.0",
     "jsreport-cli": "2.0.1",
-    "jsreport-core": "2.0.0",
+    "jsreport-core": "2.0.1",
     "jsreport-data": "2.0.0",
     "jsreport-debug": "2.0.0",
     "jsreport-express": "2.0.0",
