@@ -3952,15 +3952,6 @@
         "uuid": "3.2.1"
       }
     },
-    "jsreport-puppeteer-compile": {
-      "version": "1.0.0",
-      "resolved": "https://registry.npmjs.org/jsreport-puppeteer-compile/-/jsreport-puppeteer-compile-1.0.0.tgz",
-      "integrity": "sha512-qfzsD9OEUxOtGc/JkVv5GwaWPNZlu7V3i1XM709Gx44ocVT1K/QaLxUo4qlxuNpDRYFVUBhf1JYVZJ5ywP8d6w==",
-      "requires": {
-        "archiver": "2.1.1",
-        "extract-zip": "1.6.6"
-      }
-    },
     "jsreport-reports": {
       "version": "2.0.0",
       "resolved": "https://registry.npmjs.org/jsreport-reports/-/jsreport-reports-2.0.0.tgz",
