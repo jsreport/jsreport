@@ -3923,8 +3923,9 @@
       }
     },
     "jsreport-pdf-utils": {
-      "version": "github:jsreport/jsreport-pdf-utils#9fb4ec38db28bf562344432996d60cc364df7d75",
-      "from": "github:jsreport/jsreport-pdf-utils#2.0.0-beta",
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/jsreport-pdf-utils/-/jsreport-pdf-utils-1.0.0.tgz",
+      "integrity": "sha512-sp1y4DQDs5eIRhiFWNKb8MZRioiPXCyz/oNFgTUX338QXSCY46ZvZUWM/r7wyqPq0q770mRl+6ysOMq2sHSSOg==",
       "requires": {
         "bluebird": "3.5.1",
         "jsreport-pdfjs": "0.2.0",
@@ -3979,8 +3980,9 @@
       }
     },
     "jsreport-sample-template": {
-      "version": "github:jsreport/jsreport-sample-template#09464002d6d2af0dee2513c2f348fb7b4cae5524",
-      "from": "github:jsreport/jsreport-sample-template#2.0.0-beta",
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/jsreport-sample-template/-/jsreport-sample-template-2.0.0.tgz",
+      "integrity": "sha512-xarP8GKlxWtNzA7/CYt6e5ihX9eBawSCAB0rsXg33P06fS224CATGyJgUlGOUCo52pG1ktmDs8foG8Rpt4FpNQ==",
       "requires": {
         "bluebird": "3.5.1",
         "lodash.omit": "4.5.0"
@@ -4101,8 +4103,9 @@
       "integrity": "sha512-MGN7ZlCiAW8IAOfNVdb0UA5t7sL+o5/qEhSrqstYFKpvEOTSIAP/3LT20giWwlNgJ4nIKM2bZ0baTLbStDo1Kw=="
     },
     "jsreport-version-control": {
-      "version": "github:jsreport/jsreport-version-control#42e9be41d0a4fb7879831c5f1f92c1eee31bbf8b",
-      "from": "github:jsreport/jsreport-version-control#2.0.0-beta",
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/jsreport-version-control/-/jsreport-version-control-1.0.0.tgz",
+      "integrity": "sha512-NYes5Gxo9k0DS9gI7EnBoG2y10EB+eLBGkMHxZjT0HnNnG54vCZZldXxDORZwV2ocW69OttyHuVZIV03BZ+goQ==",
       "requires": {
         "bluebird": "3.5.1",
         "diff": "3.4.0",
