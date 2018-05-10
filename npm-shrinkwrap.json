@@ -3826,9 +3826,9 @@
       "integrity": "sha512-xBOs8LH3Zg8INNCTCmWjuriprSrzBXD5hatydPILX2B8G/nNgvtOoWkM3vrha1zqj1sS/GHMZrPB/k4bB7xoCg=="
     },
     "jsreport-fs-store": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.1.0.tgz",
-      "integrity": "sha512-AN/q7MKrlFV4Jz20HhdufqxFQh0qrkRNKHqfRfUkl5gDuDZNIqecF1aoL7tIHJNFu+2PzdBO1gZ+boRFgEcYOQ==",
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.1.1.tgz",
+      "integrity": "sha512-KhMDfKSZDJwCFNmbf90i6QLlmsnCClbC44C8/Ed6/FtfYtKnIygKMfBHYnPOiKX7w6cvyLVl4dyVj+9r5c7oCg==",
       "requires": {
         "chokidar": "2.0.2",
         "lockfile": "1.0.3",
@@ -4005,9 +4005,9 @@
       }
     },
     "jsreport-scripts": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/jsreport-scripts/-/jsreport-scripts-2.0.0.tgz",
-      "integrity": "sha512-i5ibjLUbMNkOHHAz7ee59Z8f0atEHtzMfqdqLks2XFSq+7Bc+olek2g0j5toQUAxW5bwxV1Xth9yzP3mJJ8AyA==",
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/jsreport-scripts/-/jsreport-scripts-2.0.1.tgz",
+      "integrity": "sha512-25oJK7JOKSViyMUhRLJkdxoJ7wYNr5yPLhOFS/Omi38ee8/BxQOJNtxCFaNQY2UocNzJmsCEtZtjRX07Vnt6+Q==",
       "requires": {
         "bluebird": "3.5.1",
         "nanoid": "1.0.1"
