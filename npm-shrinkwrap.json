@@ -4102,9 +4102,9 @@
       "integrity": "sha512-MGN7ZlCiAW8IAOfNVdb0UA5t7sL+o5/qEhSrqstYFKpvEOTSIAP/3LT20giWwlNgJ4nIKM2bZ0baTLbStDo1Kw=="
     },
     "jsreport-version-control": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/jsreport-version-control/-/jsreport-version-control-1.0.1.tgz",
-      "integrity": "sha512-uXMt525rQtN6ZTdE9XIcO7I8qAwgNo6nYjux3dS+Oxmcax1abhur4IIGW0XvWGsu0IrpEBIx9pk3ShN1tjQ7yA==",
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/jsreport-version-control/-/jsreport-version-control-1.0.2.tgz",
+      "integrity": "sha512-fqY5iOyT7HCjqW0sdJGcnVkb5hmVBVfx0emjUk/DchPNNJdk9SzIb1YQxdd7kpH2dRDMvimyQCxkDElbx4dZxA==",
       "requires": {
         "bluebird": "3.5.1",
         "diff": "3.4.0",
