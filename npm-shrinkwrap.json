@@ -3686,9 +3686,9 @@
       }
     },
     "jsreport-cli": {
-      "version": "2.0.1",
-      "resolved": "https://registry.npmjs.org/jsreport-cli/-/jsreport-cli-2.0.1.tgz",
-      "integrity": "sha512-PVnh/J9s76jc5JMQTwdvWu7/TRvBVHR88mJ8EjB1H1fYd/2aP5ekEGTCsLwsFjmuxmQ83tTvfQUGY89wg/Yx/w==",
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/jsreport-cli/-/jsreport-cli-2.0.2.tgz",
+      "integrity": "sha512-KOz2ToZBLKjsczz6HfS29qm4KiLA0W4CXW/ZBZ5XqKhvl5G7Eo6r8c7EGwleybDfsX+VqI4nbf7ba2ZvW+qBdw==",
       "requires": {
         "chalk": "2.3.2",
         "cliui": "4.0.0",
