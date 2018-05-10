@@ -19,7 +19,7 @@ WORKDIR /app
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN npm install jsreport/jsreport#2.0.0-beta && \
+RUN npm install jsreport/jsreport && \
     npm cache clean -f 
 
 ADD run.sh /app/run.sh
@@ -28,5 +28,6 @@ COPY . /app
 ENV NODE_ENV production
 ENV chrome:launchOptions:executablePath /usr/lib/chromium/chrome
 ENV chrome:launchOptions:args --no-sandbox
+ENV templatingEngines:strategy http-server
 
 CMD ["bash", "/app/run.sh"]
