@@ -55,7 +55,7 @@ Apply license key
 
 You can apply your license key into the jsreport container using one of the following methods:
 
-- passing the license key value through an env var `sudo docker run -e "license-key=xxyour-key-herexx" -p 80:5488 jsreport/jsreport`
+- passing the license key value through an env var `sudo docker run -e "license-key=xxyour-key-herexx" -p 80:5488 jsreport/jsreport` or `sudo docker run -e "licenseKey=xxyour-key-herexx" -p 80:5488 jsreport/jsreport`
 - put a `license-key.txt` file with your key inside the data folder of [mounted directory](#mount-directory). Ex: if your mounted directory is located at `/jsreport-home` then you can put your license key at `/jsreport-home/data/license-key.txt` and then start the container normally.
 
 Persist in external database
