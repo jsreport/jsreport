@@ -87,7 +87,7 @@
   },
   "scripts": {
     "test": "mocha test --timeout 35000 && standard",
-    "compile": "cross-env authentication_enabled=true jsreport-compile",
+    "compile": "cross-env extensions_authentication_enabled=true jsreport-compile",
     "start": "node server.js",
     "cleanModules": "rimraf node_modules",
     "freshInstall": "npm install",
