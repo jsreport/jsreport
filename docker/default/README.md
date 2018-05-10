@@ -61,7 +61,7 @@ You can apply your license key into the jsreport container using one of the foll
 Persist in external database
 ----------------------------
 
-The full image like `jsreport/jsreport:2.0.0-full` has all the custom data stores like [mongodb](https://github.com/jsreport/jsreport-mongodb-store), [mssql](https://github.com/jsreport/jsreport-mssql-store) or [PostgreSQL](https://github.com/jsreport/jsreport-postgres-store) already installed. You only need to properly configure the `connectionString` environment variable. For example
+The full image like `jsreport/jsreport:2.0.0-full` has all the custom data stores like [mongodb](https://github.com/jsreport/jsreport-mongodb-store), [mssql](https://github.com/jsreport/jsreport-mssql-store) or [PostgreSQL](https://github.com/jsreport/jsreport-postgres-store) already installed. You only need to properly configure the `store` environment variable. For example
 
 ```sh
 sudo docker run -e "store_provider=mssql" -e "extensions_mssqlStore_uri=Server=tcp:jsreport.database.windows.net,1433;Initial Catalog=jsreport;Persist Security Info=False;User ID=myuser;Password=password;MultipleActiveResultSets=False;Encrypt=True;" -p 80:5488 jsreport/jsreport:2.0.0-full
