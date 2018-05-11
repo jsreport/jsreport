@@ -1,6 +1,6 @@
 {
   "name": "jsreport",
-  "version": "2.0.0-beta",
+  "version": "2.0.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -1363,9 +1363,6 @@
       "version": "0.0.4",
       "resolved": "https://registry.npmjs.org/easy-zip/-/easy-zip-0.0.4.tgz",
       "integrity": "sha1-sto31nUCIYYKrvAWjekS6/6VfZM=",
-      "requires": {
-        "async": "latest"
-      },
       "dependencies": {
         "async": {
           "version": "2.6.0",

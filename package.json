@@ -88,11 +88,7 @@
   "scripts": {
     "test": "mocha test --timeout 35000 && standard",
     "compile": "cross-env extensions_authentication_enabled=true jsreport-compile",
-    "start": "node server.js",
-    "cleanModules": "rimraf node_modules",
-    "freshInstall": "npm install",
-    "prepareRelease": "npm-run-all cleanModules freshInstall test",
-    "prepublish": "in-publish && npm run prepareRelease || not-in-publish"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=8.9"
