@@ -49,10 +49,14 @@ WORKDIR /app
 # the chrome was already installed from apt-get
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true  
 
-RUN npm install jsreport/jsreport --save --save-exact
+RUN npm install -g jsreport-cli && \
+    jsreport init && \
+    npm uninstall -g jsreport-cli
 
 RUN npm install --save --save-exact jsreport-ejs \
-        jsreport-pug \     
+        jsreport-pug \    
+        jsreport-azure-storage \
+        jsreport-pdf-password \       
         jsreport-phantom-pdf \
         jsreport-phantom-image \
         jsreport-mssql-store \

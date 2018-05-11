@@ -19,7 +19,9 @@ WORKDIR /app
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN npm install jsreport/jsreport && \
+RUN npm install -g jsreport-cli && \
+    jsreport init && \
+    npm uninstall -g jsreport-cli && \
     npm cache clean -f 
 
 ADD run.sh /app/run.sh
