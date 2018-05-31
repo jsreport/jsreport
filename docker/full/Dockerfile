@@ -52,7 +52,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 RUN npm install -g jsreport-cli && \
     jsreport init && \
     npm uninstall -g jsreport-cli
-
+    
 RUN npm install --save --save-exact jsreport-ejs \
         jsreport-pug \    
         jsreport-azure-storage \
@@ -76,6 +76,9 @@ RUN npm install --save --save-exact jsreport-ejs \
     && \    
     npm cache clean -f && \  
     rm -rf /tmp/*
+
+COPY editConfig.js /app/editConfig.js
+RUN node editConfig.js        
 
 ADD run.sh /app/run.sh  
 COPY . /app

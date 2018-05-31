@@ -24,6 +24,9 @@ RUN npm install -g jsreport-cli && \
     npm uninstall -g jsreport-cli && \
     npm cache clean -f 
 
+COPY editConfig.js /app/editConfig.js
+RUN node editConfig.js    
+
 ADD run.sh /app/run.sh
 COPY . /app
 
