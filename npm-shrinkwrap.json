@@ -3864,15 +3864,16 @@
       "integrity": "sha512-o3DEdjWyDANnB4AVJsUVTgVqHQMQvxHFBp08Wm2bvNg0uSkgSS9iMR31P52tYyW9xS5eQwKK7w8vvllDo6/QPQ=="
     },
     "jsreport-express": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-express/-/jsreport-express-2.1.0.tgz",
-      "integrity": "sha512-ZYI52NXEOPM66opbT9W/wp3z1cCkVtv1ExKZ6VCQL+yiAsRfm4UppVh4Sr+es77gfsDhWmOuyI6n5tky3L08DQ==",
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-express/-/jsreport-express-2.1.1.tgz",
+      "integrity": "sha512-auLyNh50WO47xr8T4/dMt0YrZIrsU4S1t+6/S2A2R/NS3a+zFPRLWT+VpzcKPV4RNtfg5A1MnHi9jrYSisTUxQ==",
       "requires": {
         "bluebird": "3.5.1",
         "body-parser": "1.18.2",
         "cookie-parser": "1.4.3",
         "cors": "2.8.4",
         "express": "4.16.2",
+        "lodash.omit": "^4.5.0",
         "node.extend": "2.0.0",
         "serve-static": "1.13.1",
         "simple-odata-server": "1.0.1"
