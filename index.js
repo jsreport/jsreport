@@ -24,7 +24,7 @@ const main = require('./lib/main')
 
 const renderDefaults = {
   store: { provider: 'memory' },
-  blobStorage: {provider: 'memory'},
+  blobStorage: { provider: 'memory' },
   rootDirectory: path.join(__dirname, '../../'),
   logger: {
     console: { silent: true },

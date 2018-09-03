@@ -1,4 +1,4 @@
-const jsreport = require('./')({rootDirectory: __dirname})
+const jsreport = require('./')({ rootDirectory: __dirname })
 
 if (process.env.JSREPORT_CLI) {
   module.exports = jsreport
