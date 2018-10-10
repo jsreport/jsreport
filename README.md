@@ -51,15 +51,16 @@ jsreport is split into many separated repositories usually representing extensio
 
 ## Roadmap
 
-- prepare v2 for playground and jsreportonline
-- reuse chrome instance over multiple requests
 - structuring jsreport entities into folders [#250](../../issues/221)    
 - drag and drop designer [#121](../../issues/121)    
+- s3 blob store [#182](../../issues/182)    
+- data types in html-to-xlsx [#17](https://github.com/jsreport/jsreport-html-to-xlsx/issues/17)
+- pdf utils improvements [#11](https://github.com/jsreport/jsreport-pdf-utils/issues/11), [#10](https://github.com/jsreport/jsreport-pdf-utils/issues/10), [#2](https://github.com/jsreport/jsreport-pdf-utils/issues/2), [#417](https://github.com/jsreport/jsreport/issues/417)
 
 **Missing a feature? Submit a feature request.**
 
 ## Licensing
-Copyright (C) 2017 Jan Blaha
+Copyright (C) 2018 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
