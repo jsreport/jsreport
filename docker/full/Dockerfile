@@ -1,4 +1,6 @@
-FROM ubuntu:bionic
+FROM ubuntu:xenial
+# not using ubuntu:bionic because phantomjs 1.9.8 does not work there
+# (it contains a newer version of OpenSSL which can not be used with phantomjs)
 EXPOSE 5488
 
 RUN adduser --disabled-password --gecos "" jsreport && \
@@ -88,7 +90,7 @@ ENV NODE_ENV production
 ENV electron:strategy electron-ipc
 ENV phantom:strategy phantom-server
 ENV templatingEngines:strategy http-server
-ENV chrome:launchOptions:executablePath google-chrome-unstable
-ENV chrome:launchOptions:args --no-sandbox
+ENV chrome_launchOptions_executablePath google-chrome-unstable
+ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "/app/run.sh"]
