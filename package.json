@@ -38,7 +38,7 @@
   "dependencies": {
     "jsreport-assets": "1.1.0",
     "jsreport-authentication": "2.2.0",
-    "jsreport-authorization": "2.1.0",
+    "jsreport-authorization": "2.2.0",
     "jsreport-base": "2.0.2",
     "jsreport-browser-client": "2.0.0",
     "jsreport-child-templates": "1.1.0",
@@ -55,7 +55,7 @@
     "jsreport-import-export": "1.1.0",
     "jsreport-jsrender": "2.0.0",
     "jsreport-licensing": "2.0.1",
-    "jsreport-pdf-utils": "1.0.5",
+    "jsreport-pdf-utils": "1.2.0",
     "jsreport-public-templates": "2.0.1",
     "jsreport-reports": "2.1.1",
     "jsreport-resources": "2.0.1",
@@ -74,7 +74,7 @@
   },
   "devDependencies": {
     "cross-env": "5.2.0",
-    "eslint": "5.5.0",
+    "eslint": "5.10.0",
     "eslint-config-standard": "12.0.0",
     "eslint-config-standard-react": "7.0.2",
     "in-publish": "2.0.0",
