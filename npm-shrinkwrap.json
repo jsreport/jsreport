@@ -3786,9 +3786,9 @@
       }
     },
     "jsreport-authentication": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-authentication/-/jsreport-authentication-2.2.0.tgz",
-      "integrity": "sha512-iGP3S6y19Ey6RW4gelnKgIVGWOdXlphi4egqILEoP7Yl30ilqgtei/FuBuw4GNTQLK7uGDF79OiTOeEcFCGvfQ==",
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/jsreport-authentication/-/jsreport-authentication-2.2.1.tgz",
+      "integrity": "sha512-VqIdnuRl+xAJjxykNMu62NHZvwIEkgdGB6vsg+YCrDxUrt0UxCODzgkp+vDDVgHoZi3Um9KSgGCkNk0bQtZ2hg==",
       "requires": {
         "body-parser": "1.18.2",
         "client-sessions": "0.8.0",
@@ -3905,9 +3905,9 @@
       }
     },
     "jsreport-core": {
-      "version": "2.3.0",
-      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.3.0.tgz",
-      "integrity": "sha512-C+oe7Suz0+9JcmxwdUbOZJfqAdqEiQip4P4bgssNYZgj8aT2BE/91HqMhwiDHqdPl6ObJfUyiCSf8VCzuJRCkQ==",
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.3.1.tgz",
+      "integrity": "sha512-7BtzTu6IEvdowIxZruCm/A1Ns8LNwsnWfwHDcgDGJDpNJTFMqVs1+IxuZYOF7MDTckbnlRgdYvlewTXHdarTzg==",
       "requires": {
         "@babel/code-frame": "7.0.0-beta.46",
         "ajv": "6.4.0",
@@ -4085,14 +4085,13 @@
       "integrity": "sha512-xBOs8LH3Zg8INNCTCmWjuriprSrzBXD5hatydPILX2B8G/nNgvtOoWkM3vrha1zqj1sS/GHMZrPB/k4bB7xoCg=="
     },
     "jsreport-fs-store": {
-      "version": "2.3.1",
-      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.3.1.tgz",
-      "integrity": "sha512-pJNOWb1ga+vDGqVH8MacGuQ7vk4Oav1lWI2K4chJPl8HER0b1F70lqsLPlOyMNws9TBogK6BXnx/Z6t96J3VKA==",
+      "version": "2.3.2",
+      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.3.2.tgz",
+      "integrity": "sha512-NLhDl8fAUOoxA3BogvWhO8o/qE86ez4z/nybvAGcQsU8A6IWT1qVbpP30u9aZ8+3iFux567pJyGK/1bZxD06Mw==",
       "requires": {
         "bluebird": "3.5.3",
         "chokidar": "2.0.4",
         "lockfile": "1.0.4",
-        "lodash.isequal": "4.5.0",
         "lodash.omit": "4.5.0",
         "mingo": "2.2.8",
         "mkdirp": "0.5.1",
@@ -4271,9 +4270,9 @@
       }
     },
     "jsreport-studio": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.2.0.tgz",
-      "integrity": "sha512-2S9p9wP9llfqA0NaLkwfYv1dYOROBpnmh+cregLYO35FoiOU0PGu/j1vKpE6xnd4xa2gKmjRZ4Ey7S8VXosmIg==",
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.2.1.tgz",
+      "integrity": "sha512-jKp88eD675Ii/jzrDqK5lLBB6Svt6g6XMKq53AEOrY2hk77Y01kOSbkZJs5PebiMyyLzN92kUbx6h41nbqPlMg==",
       "requires": {
         "bluebird": "3.5.3",
         "compression": "1.7.3",
@@ -4555,11 +4554,6 @@
       "version": "4.6.0",
       "resolved": "https://registry.npmjs.org/lodash.groupby/-/lodash.groupby-4.6.0.tgz",
       "integrity": "sha1-Cwih3PaDl8OXhVwyOXg4Mt90A9E="
-    },
-    "lodash.isequal": {
-      "version": "4.5.0",
-      "resolved": "https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.5.0.tgz",
-      "integrity": "sha1-QVxEePK8wwEgwizhDtMib30+GOA="
     },
     "lodash.isfinite": {
       "version": "3.3.2",
