@@ -3905,9 +3905,9 @@
       }
     },
     "jsreport-core": {
-      "version": "2.3.1",
-      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.3.1.tgz",
-      "integrity": "sha512-7BtzTu6IEvdowIxZruCm/A1Ns8LNwsnWfwHDcgDGJDpNJTFMqVs1+IxuZYOF7MDTckbnlRgdYvlewTXHdarTzg==",
+      "version": "2.3.2",
+      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.3.2.tgz",
+      "integrity": "sha512-xJ0HgP5yrtl/XwqBFIiutK4MUm3LHuiRwDedl8HtaRLoiECvmFdTHuuxwFFBtqGNYOgs8rf2T6ptmJd7Q6m6sw==",
       "requires": {
         "@babel/code-frame": "7.0.0-beta.46",
         "ajv": "6.4.0",
@@ -3923,6 +3923,7 @@
         "lodash.groupby": "4.6.0",
         "lodash.omit": "4.5.0",
         "lodash.set": "4.3.2",
+        "lodash.uniqby": "4.7.0",
         "lru-cache": "4.1.1",
         "mingo": "2.1.1",
         "mkdirp": "0.5.1",
@@ -4085,14 +4086,15 @@
       "integrity": "sha512-xBOs8LH3Zg8INNCTCmWjuriprSrzBXD5hatydPILX2B8G/nNgvtOoWkM3vrha1zqj1sS/GHMZrPB/k4bB7xoCg=="
     },
     "jsreport-fs-store": {
-      "version": "2.3.2",
-      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.3.2.tgz",
-      "integrity": "sha512-NLhDl8fAUOoxA3BogvWhO8o/qE86ez4z/nybvAGcQsU8A6IWT1qVbpP30u9aZ8+3iFux567pJyGK/1bZxD06Mw==",
+      "version": "2.3.3",
+      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.3.3.tgz",
+      "integrity": "sha512-GqMC1UDoHVDSw+ziGpBfA8rqE+VzEFcYhxvkwTbqK3faANGP5JEu+kGQAQrH20o9YN1z6HiOSc3yTQ0K8TscTQ==",
       "requires": {
         "bluebird": "3.5.3",
         "chokidar": "2.0.4",
         "lockfile": "1.0.4",
         "lodash.omit": "4.5.0",
+        "lodash.uniqby": "4.7.0",
         "mingo": "2.2.8",
         "mkdirp": "0.5.1",
         "node.extend.without.arrays": "1.1.5",
@@ -4140,9 +4142,9 @@
       }
     },
     "jsreport-import-export": {
-      "version": "1.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-import-export/-/jsreport-import-export-1.1.0.tgz",
-      "integrity": "sha512-sNCh2OBxO+tvOy2zF1vi8A04Zsv4c3BPOS14vZADRViIhmEIIog7DTqZP0/XrptR1G8ADK1XtaT6/CStU92aRA==",
+      "version": "1.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-import-export/-/jsreport-import-export-1.1.1.tgz",
+      "integrity": "sha512-plnd8Qx6OoENbnH5fuhmTRTBi/QuE/OJ2AuVnvjyjZXViieGxjchIHElzl1h2bDdXsp6vM8oox1viTrqhq8KWw==",
       "requires": {
         "archiver": "2.1.1",
         "bluebird": "3.5.3",
@@ -4231,22 +4233,22 @@
       }
     },
     "jsreport-resources": {
-      "version": "2.0.1",
-      "resolved": "https://registry.npmjs.org/jsreport-resources/-/jsreport-resources-2.0.1.tgz",
-      "integrity": "sha512-I7qg4akaS2DmDcNPsR7S34tskAlj2W3q6C6D9CeNOiVLyOiiJ1fEz4lwnuOf4Fd8CJuoGASr1sVw/3EcB2N/SQ=="
+      "version": "2.0.2",
+      "resolved": "https://registry.npmjs.org/jsreport-resources/-/jsreport-resources-2.0.2.tgz",
+      "integrity": "sha512-PlqKjheevApqXocWCKthVbDNv7MKt9iwwRdRKPkRARA3ONTQxBpuEZ11Aq2+lx7kKu7fy9U2hUutYEuFAjSkDA=="
     },
     "jsreport-sample-template": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-sample-template/-/jsreport-sample-template-2.2.0.tgz",
-      "integrity": "sha512-PvuBxdKLSM+ix6MTo4/wjZv8+fF+NKPDx7azc0FSH4Bh7E70CJzHBF7fw4vy7SXiNJ1XLhPEK62XHaPd2MUk+g==",
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/jsreport-sample-template/-/jsreport-sample-template-2.2.1.tgz",
+      "integrity": "sha512-X4raJbqszymukIHGL1YctvSqFWWzdjMQ9zBrWTnqjdm6OfP5UR186QKf18Q1EpKRNCT6cSgNP+PPFnkh1mSudg==",
       "requires": {
         "lodash.omit": "4.5.0"
       }
     },
     "jsreport-scheduling": {
-      "version": "2.0.3",
-      "resolved": "https://registry.npmjs.org/jsreport-scheduling/-/jsreport-scheduling-2.0.3.tgz",
-      "integrity": "sha512-4Pq0DrF8s3g6GNMtiq+ds2sX41YQ4d8LEotSm0h8++iCfJICmixmhyMVemOl6SpdtLQiQda5WJ4oidAsn32rVw==",
+      "version": "2.0.4",
+      "resolved": "https://registry.npmjs.org/jsreport-scheduling/-/jsreport-scheduling-2.0.4.tgz",
+      "integrity": "sha512-zu9zxA5uxhqyA8F9OyZ5njxo9oRnzx5dILjWVYEvCLUFCqfzth2+H3BWoAbR6exZnoRgQAsVO2WdmIeRjrsmsQ==",
       "requires": {
         "cron-parser": "2.5.0",
         "moment": "2.22.1",
@@ -4270,9 +4272,9 @@
       }
     },
     "jsreport-studio": {
-      "version": "2.2.1",
-      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.2.1.tgz",
-      "integrity": "sha512-jKp88eD675Ii/jzrDqK5lLBB6Svt6g6XMKq53AEOrY2hk77Y01kOSbkZJs5PebiMyyLzN92kUbx6h41nbqPlMg==",
+      "version": "2.2.2",
+      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.2.2.tgz",
+      "integrity": "sha512-dOAzDNhylmQVshvV9kTu6jMhbflNQIIV+/savzDX/gRthsLNs+YFzdDAfQKbOI47iA/gx3GX/uJTd1iG9lSgJg==",
       "requires": {
         "bluebird": "3.5.3",
         "compression": "1.7.3",
@@ -4594,6 +4596,11 @@
       "version": "4.1.1",
       "resolved": "https://registry.npmjs.org/lodash.throttle/-/lodash.throttle-4.1.1.tgz",
       "integrity": "sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ="
+    },
+    "lodash.uniqby": {
+      "version": "4.7.0",
+      "resolved": "https://registry.npmjs.org/lodash.uniqby/-/lodash.uniqby-4.7.0.tgz",
+      "integrity": "sha1-2ZwHpmnp5tJOE2Lf4mbGdhavEwI="
     },
     "longest": {
       "version": "1.0.1",
