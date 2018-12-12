@@ -1,4 +1,5 @@
 
+
 # jsreport
 
 [![Join the chat at https://gitter.im/jsreport/jsreport](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jsreport/jsreport?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -51,8 +52,7 @@ jsreport is split into many separated repositories usually representing extensio
 
 ## Roadmap
 
-- structuring jsreport entities into folders [#250](../../issues/221)    
-- pdf utils improvements [#11](https://github.com/jsreport/jsreport-pdf-utils/issues/11), [#10](https://github.com/jsreport/jsreport-pdf-utils/issues/10), [#2](https://github.com/jsreport/jsreport-pdf-utils/issues/2), [#417](https://github.com/jsreport/jsreport/issues/417)
+-  studio folders based features [#474](../../issues/474), [#467](../../issues/467), [#475](../../issues/475)
 - data types in html-to-xlsx [#17](https://github.com/jsreport/jsreport-html-to-xlsx/issues/17)
 - drag and drop designer [#121](../../issues/121) 
 
