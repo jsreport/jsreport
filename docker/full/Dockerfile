@@ -75,6 +75,11 @@ RUN npm install --save --save-exact jsreport-ejs \
         electron \
         jsreport-electron-pdf \    
         phantomjs-exact-2-1-1 \
+        request \
+	moment \
+        nodemailer \
+	aws-smtp-credentials \
+        moment-timezone \
     && \    
     npm cache clean -f && \  
     rm -rf /tmp/*
