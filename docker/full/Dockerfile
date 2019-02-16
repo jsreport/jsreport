@@ -72,12 +72,16 @@ RUN npm install --save --save-exact jsreport-ejs \
         jsreport-fs-store-azure-storage-persistence \
         jsreport-fs-store-azure-sb-sync \
         jsreport-fs-store-aws-sns-sync \
+	jsreport-debug \
+        promise-serial \
         electron \
         jsreport-electron-pdf \    
         phantomjs-exact-2-1-1 \
         request \
 	moment \
         nodemailer \
+	inline-css \
+        @google/maps \
 	aws-smtp-credentials \
         moment-timezone \
     && \    
