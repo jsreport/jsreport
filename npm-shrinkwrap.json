@@ -4484,9 +4484,9 @@
       }
     },
     "jsreport-scripts": {
-      "version": "2.0.10",
-      "resolved": "https://registry.npmjs.org/jsreport-scripts/-/jsreport-scripts-2.0.10.tgz",
-      "integrity": "sha512-lkggbIXeCOhggm5Ma+6tf6BvoVMC1O9kj2zO0yO5KsFyrMciOUGOe6vhDBU968xD9F7HTWaDwDUbiGfXeXOe5A==",
+      "version": "2.0.11",
+      "resolved": "https://registry.npmjs.org/jsreport-scripts/-/jsreport-scripts-2.0.11.tgz",
+      "integrity": "sha512-wCgTXrW6AERsLJztbiQ4Be/07yblnB29iZebZLjfVy9TqRKwxtpsnIRLKy3R3vt0KgNmqeNqqL4O7x5GEWDALA==",
       "requires": {
         "bluebird": "3.5.3"
       }
