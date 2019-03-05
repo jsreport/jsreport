@@ -4143,9 +4143,9 @@
       }
     },
     "jsreport-core": {
-      "version": "2.4.2",
-      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.4.2.tgz",
-      "integrity": "sha512-S7F1pLOtoFehSsyMRLE8d9ZQNw2UlyGNcsUcrmCIt64k4KNVdIQReGRDp6Fa6NPo5AdJcKYLZ+rQ76Se6bf5Aw==",
+      "version": "2.4.3",
+      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.4.3.tgz",
+      "integrity": "sha512-ZsKUKFBitGnpdebZylZPuP3PM8S8iK1FdF9bvW+voCQNonYWnNFRceq8IlcYiYRXJRKrPOG/jjtgpU+kJhkO1Q==",
       "requires": {
         "@babel/code-frame": "7.0.0-beta.46",
         "ajv": "6.4.0",
@@ -4265,9 +4265,9 @@
       "integrity": "sha512-xKt+HJEeQixLo+7C01rKHfi8BFqrN3VOo5DZMnyCEEpraLgpWgv1oeneTpxuI6NRGxnXidU5vEGhGCv9+1VNcA=="
     },
     "jsreport-express": {
-      "version": "2.3.0",
-      "resolved": "https://registry.npmjs.org/jsreport-express/-/jsreport-express-2.3.0.tgz",
-      "integrity": "sha512-9M8Mv3Hkrdol3jwhDkt9qIVe6fZkoWc+gYG8KrvzKC7VdZ93jVW3TFPE4fb5IKjtW8sMjBDS7e45rnqVGzFcoQ==",
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/jsreport-express/-/jsreport-express-2.3.1.tgz",
+      "integrity": "sha512-i6sAjGRX2BGyyYrMxIdH21zxQ3PcJ6ce+iynJEHye6lzERuiOQirSd/53gMIx3wBIEPwj1s+gs9fzhCAChSDJg==",
       "requires": {
         "bluebird": "3.5.3",
         "body-parser": "1.18.3",
@@ -5888,7 +5888,7 @@
     },
     "pdfjs-dist": {
       "version": "2.0.489",
-      "resolved": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-2.0.489.tgz",
+      "resolved": "http://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-2.0.489.tgz",
       "integrity": "sha1-Y+VLKSqGeQpFRpfrRNQ0e4+/rSc=",
       "requires": {
         "node-ensure": "^0.0.0",
