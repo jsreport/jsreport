@@ -4,8 +4,8 @@ FROM ubuntu:xenial
 EXPOSE 5488
 
 RUN adduser --disabled-password --gecos "" jsreport && \
-    apt-get update && \   
-    apt-get install -y --no-install-recommends libgconf-2-4 gnupg git curl wget ca-certificates && \   
+    apt-get update && \
+    apt-get install -y --no-install-recommends libgconf-2-4 gnupg git curl wget ca-certificates && \
     # phantom/electron
     apt-get install -y --no-install-recommends libgtk2.0-dev \
         libxtst-dev \
@@ -15,7 +15,7 @@ RUN adduser --disabled-password --gecos "" jsreport && \
         libasound2-dev \
         xvfb \
         xfonts-75dpi \
-        xfonts-base && \           
+        xfonts-base && \
     # java fop
     apt-get install -y default-jre unzip && \
     curl -o fop.zip apache.miloslavbrada.cz/xmlgraphics/fop/binaries/fop-2.1-bin.zip && \
@@ -40,8 +40,8 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     mv phantomjs-1.9.8-linux-x86_64/bin/phantomjs /usr/local/bin/ && \
     rm -rf phantomjs* && \
     # cleanup
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \   
-    rm -rf /src/*.deb    
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
+    rm -rf /src/*.deb
 
 VOLUME ["/jsreport"]
 
@@ -49,16 +49,16 @@ RUN mkdir -p /app
 WORKDIR /app
 
 # the chrome was already installed from apt-get
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true  
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN npm install -g jsreport-cli && \
     jsreport init && \
     npm uninstall -g jsreport-cli
-    
+
 RUN npm install --save --save-exact jsreport-ejs \
-        jsreport-pug \    
+        jsreport-pug \
         jsreport-azure-storage \
-        jsreport-pdf-password \       
+        jsreport-pdf-password \
         jsreport-phantom-pdf \
         jsreport-phantom-image \
         jsreport-mssql-store \
@@ -72,17 +72,17 @@ RUN npm install --save --save-exact jsreport-ejs \
         jsreport-fs-store-azure-storage-persistence \
         jsreport-fs-store-azure-sb-sync \
         jsreport-fs-store-aws-sns-sync \
-        electron \
-        jsreport-electron-pdf \    
+        electron@1.8.7 \
+        jsreport-electron-pdf \
         phantomjs-exact-2-1-1 \
-    && \    
-    npm cache clean -f && \  
+    && \
+    npm cache clean -f && \
     rm -rf /tmp/*
 
 COPY editConfig.js /app/editConfig.js
-RUN node editConfig.js        
+RUN node editConfig.js
 
-ADD run.sh /app/run.sh  
+ADD run.sh /app/run.sh
 COPY . /app
 
 ENV PATH "$PATH:/fop-2.1"
