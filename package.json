@@ -50,7 +50,7 @@
     "jsreport-express": "2.3.1",
     "jsreport-freeze": "2.0.0",
     "jsreport-fs-store": "2.4.0",
-    "jsreport-handlebars": "2.0.1",
+    "jsreport-handlebars": "2.0.2",
     "jsreport-html-to-xlsx": "2.3.0",
     "jsreport-import-export": "1.2.0",
     "jsreport-jsrender": "2.0.0",
