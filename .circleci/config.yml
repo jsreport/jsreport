@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: git submodule sync --recursive
+      - run: git submodule update --recursive --init
+      - run: docker info
+      - run: docker build --rm=false -t gridthings/jsreport ./docker/full
+      - deploy:
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              apk update
+              apk add py-pip
+              pip install awscli
+              aws configure set default.region ap-southeast-2
+              aws configure set default.output json
+              eval $(aws ecr get-login)
+              docker tag gridthings/jsreport:latest 337134270675.dkr.ecr.ap-southeast-2.amazonaws.com/gridthings/jsreport:latest
+              docker push 337134270675.dkr.ecr.ap-southeast-2.amazonaws.com/gridthings/jsreport:latest
+            fi
