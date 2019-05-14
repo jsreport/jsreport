@@ -22,4 +22,7 @@ jobs:
               eval $(aws ecr get-login)
               docker tag gridthings/jsreport:latest 337134270675.dkr.ecr.ap-southeast-2.amazonaws.com/gridthings/jsreport:latest
               docker push 337134270675.dkr.ecr.ap-southeast-2.amazonaws.com/gridthings/jsreport:latest
+              gitHash=$(git rev-parse --short HEAD)
+              docker tag gridthings/jsreport:latest 337134270675.dkr.ecr.ap-southeast-2.amazonaws.com/gridthings/jsreport:$gitHash
+              docker push 337134270675.dkr.ecr.ap-southeast-2.amazonaws.com/gridthings/jsreport:$gitHash
             fi
