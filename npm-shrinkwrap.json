@@ -4602,9 +4602,9 @@
       }
     },
     "jsreport-studio": {
-      "version": "2.5.0",
-      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.5.0.tgz",
-      "integrity": "sha512-1xd9jYjDWRuy5/dY9exC7pnwJ3V3OHK3hzwYYGnSvsgFA8RnGtdYrp1VLMOV7FXQ9sbB/42Pw5ByT2KnmAIh4w==",
+      "version": "2.5.1",
+      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.5.1.tgz",
+      "integrity": "sha512-/tSw5Q14VhCexG2C0Xy014yyrCujN76YrXI07uE2crcpOhH5sKGC2OzpiMvP2VAlInP7QnKAGOT3a5AlJLlr8w==",
       "requires": {
         "bluebird": "3.5.4",
         "compression": "1.7.4",
@@ -6595,9 +6595,9 @@
       "integrity": "sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A=="
     },
     "puppeteer": {
-      "version": "1.16.0",
-      "resolved": "https://registry.npmjs.org/puppeteer/-/puppeteer-1.16.0.tgz",
-      "integrity": "sha512-7hcmbUw+6INffSPBdnO8KSjJRg2bLRoI7EeZMf5MHdV5kpyYMeoMR5w8AIiZbKIhYGwrXlbgvO7gFTsXNHShuQ==",
+      "version": "1.17.0",
+      "resolved": "https://registry.npmjs.org/puppeteer/-/puppeteer-1.17.0.tgz",
+      "integrity": "sha512-3EXZSximCzxuVKpIHtyec8Wm2dWZn1fc5tQi34qWfiUgubEVYHjUvr0GOJojqf3mifI6oyKnCdrGxaOI+lWReA==",
       "requires": {
         "debug": "^4.1.0",
         "extract-zip": "^1.6.6",
