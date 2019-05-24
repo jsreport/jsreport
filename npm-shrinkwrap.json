@@ -4151,9 +4151,9 @@
       "integrity": "sha512-LMjJ/sVnODuGLpaJtEbYTvTeyzcI724ak64RvRuwfJ12rTjXovKda6fKvSfKqBoADekCwGu8CN2bY5iekRBghA=="
     },
     "jsreport-browser-client": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-browser-client/-/jsreport-browser-client-2.1.0.tgz",
-      "integrity": "sha512-5dUFi4BgV0SPAqo7awzZpwNiiw+zlQ5c9SqGTD6/a74ElOI5efIITtsRK9E6IVnOeaZeoL9IQAtHB8x2llXGxg==",
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-browser-client/-/jsreport-browser-client-2.1.1.tgz",
+      "integrity": "sha512-ARYBeWrUqYoLOjJE4dY7EBlKMDiZ2yqRHiPHuL9ljM18AS9jPXnsue8WKBOLuXUEvK133dksi5U//AaS1B0cog==",
       "requires": {
         "jsreport-browser-client-dist": "1.2.0"
       }
