@@ -37,7 +37,7 @@ COPY . /app
 
 ENV NODE_ENV production
 ENV chrome:launchOptions:executablePath /usr/lib/chromium/chrome
-ENV chrome:launchOptions:args --no-sandbox
+ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 ENV templatingEngines:strategy http-server
 
 CMD ["bash", "/app/run.sh"]
