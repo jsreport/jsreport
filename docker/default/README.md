@@ -1,4 +1,5 @@
 
+
 Tags
 ----
 
@@ -67,3 +68,9 @@ The full image like `jsreport/jsreport:2.5.0-full` has all the custom data store
 ```sh
 sudo docker run -e "store_provider=mssql" -e "extensions_mssqlStore_uri=Server=tcp:jsreport.database.windows.net,1433;Initial Catalog=jsreport;Persist Security Info=False;User ID=myuser;Password=password;MultipleActiveResultSets=False;Encrypt=True;" -p 80:5488 jsreport/jsreport:2.5.0-full
 ```
+
+Customize docker image
+----------------------------
+
+There is the dedicated article how to create your own customized docker image with the jsreport app.
+https://jsreport.net/learn/customize-docker-image
