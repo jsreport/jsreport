@@ -35,7 +35,7 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     # install latest chrome just to get package deps installed
     apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst --no-install-recommends && \
     # then replace that chrome with specific chrome version, see https://github.com/webnicer/chrome-downloads for available versions
-    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_73.0.3683.103-1_amd64.deb && \
+    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_76.0.3809.87-1_amd64.deb && \
     dpkg -i ./google-chrome*.deb && \
     rm google-chrome*.deb && \
     # phantomjs
