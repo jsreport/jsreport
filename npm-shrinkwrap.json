@@ -4271,7 +4271,7 @@
       }
     },
     "jsreport-studio": {
-      "version": "github:jsreport/jsreport-studio#958eda381495e80257f485fafb0811c71e6dd47c",
+      "version": "github:jsreport/jsreport-studio#6cbd263e64705cf17b78634a2e50857f6c191254",
       "from": "github:jsreport/jsreport-studio",
       "requires": {
         "bluebird": "3.5.4",
@@ -4283,7 +4283,7 @@
       }
     },
     "jsreport-studio-theme-dark": {
-      "version": "github:jsreport/jsreport-studio-theme-dark#dddbffa5f2b2880968012004e47746f0b1f0ac80",
+      "version": "github:jsreport/jsreport-studio-theme-dark#13dc45e4ea9e096fc3b59bf2401fc5b006181ec6",
       "from": "github:jsreport/jsreport-studio-theme-dark"
     },
     "jsreport-tags": {
