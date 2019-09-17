@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "handlebars": "4.2.0",
-    "jsreport-assets": "1.2.0",
+    "jsreport-assets": "github:jsreport/jsreport-assets",
     "jsreport-authentication": "2.3.0",
     "jsreport-authorization": "2.2.4",
     "jsreport-base": "2.0.2",

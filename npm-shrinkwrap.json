@@ -3835,9 +3835,8 @@
       }
     },
     "jsreport-assets": {
-      "version": "1.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-assets/-/jsreport-assets-1.2.0.tgz",
-      "integrity": "sha512-jNwc8nYzCplKml6lsj0Xn6sGop+SrLxQil9Gz9DEVz1U/Ty/3kwcdGya8Bqy63QYopkEhdxoKBguJsBFbnuEKg==",
+      "version": "github:jsreport/jsreport-assets#5aaa50ae2f8a07ccf8d965be07ca90182205e991",
+      "from": "github:jsreport/jsreport-assets",
       "requires": {
         "async-replace": "1.0.1",
         "bluebird": "3.5.4",
