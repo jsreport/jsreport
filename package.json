@@ -65,6 +65,7 @@
     "jsreport-sample-template": "2.4.0",
     "jsreport-scheduling": "2.1.0",
     "jsreport-scripts": "2.2.0",
+    "jsreport-static-pdf": "0.2.0",
     "jsreport-studio": "github:jsreport/jsreport-studio",
     "jsreport-studio-theme-dark": "github:jsreport/jsreport-studio-theme-dark",
     "jsreport-tags": "2.3.0",

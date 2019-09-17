@@ -2285,6 +2285,11 @@
         "flat-cache": "^2.0.1"
       }
     },
+    "file-type": {
+      "version": "11.1.0",
+      "resolved": "https://registry.npmjs.org/file-type/-/file-type-11.1.0.tgz",
+      "integrity": "sha512-rM0UO7Qm9K7TWTtA6AShI/t7H5BPjDeGVDaNyg9BjHAj3PysKy7+8C8D137R88jnR3rFJZQB/tFgydl5sN5m7g=="
+    },
     "fill-range": {
       "version": "4.0.0",
       "resolved": "https://registry.npmjs.org/fill-range/-/fill-range-4.0.0.tgz",
@@ -4322,6 +4327,14 @@
       "requires": {
         "bluebird": "3.5.4",
         "node.extend.without.arrays": "1.1.6"
+      }
+    },
+    "jsreport-static-pdf": {
+      "version": "0.2.0",
+      "resolved": "https://registry.npmjs.org/jsreport-static-pdf/-/jsreport-static-pdf-0.2.0.tgz",
+      "integrity": "sha512-9k17ETbxVcyR44i0tlhbor74Q8K2P6Q2R23uiuLL/WJUSOrfcUmKDmgjj/P0uLWK+gKBHK44XWItL7Ck5TpBMw==",
+      "requires": {
+        "file-type": "11.1.0"
       }
     },
     "jsreport-studio": {
