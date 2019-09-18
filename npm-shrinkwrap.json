@@ -3738,8 +3738,9 @@
       }
     },
     "jsreport-assets": {
-      "version": "github:jsreport/jsreport-assets#0b163440265f91e122121ef7701de8491065d9e1",
-      "from": "github:jsreport/jsreport-assets",
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/jsreport-assets/-/jsreport-assets-1.3.0.tgz",
+      "integrity": "sha512-gsN7Q1mI9bbCLfAdQiTlWQ4/e3Hk8XEVL+JnKRA63BfhK1eAhXtrSUyq4BwvfiDSU9LX25A40flLTMqsCUMMeg==",
       "requires": {
         "async-replace": "1.0.1",
         "bluebird": "3.5.4",
@@ -3804,16 +3805,17 @@
       }
     },
     "jsreport-chrome-pdf": {
-      "version": "github:jsreport/jsreport-chrome-pdf#6cb2d3ef2cb6bb1559e7c454c709950078e35948",
-      "from": "github:jsreport/jsreport-chrome-pdf",
+      "version": "1.6.1",
+      "resolved": "https://registry.npmjs.org/jsreport-chrome-pdf/-/jsreport-chrome-pdf-1.6.1.tgz",
+      "integrity": "sha512-A7XdHYgRKp//DARh9pBG/Rpb+/qVEbUuqOgTOH5mnbDsc/Q5GHf/9V7ytuhPSyOJg1sTsP6Udxi5H40ily/Z+A==",
       "requires": {
         "node.extend.without.arrays": "1.1.6"
       }
     },
     "jsreport-cli": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-cli/-/jsreport-cli-2.1.0.tgz",
-      "integrity": "sha512-KaKaQ3alfr0+GV0oPgs6k/NjEsknjbVYekliBxNHeBeiirIjaKsgLtQ3mkjZl6wNs524uUc1KxvLi7sg+4+qjQ==",
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-cli/-/jsreport-cli-2.1.1.tgz",
+      "integrity": "sha512-behUF1n2UHdCDWWpQrMvn+LP+coeREPN1VZxjPTSEykvEmx7iY+eyDHceBWI6xl66NRdDVELOpxMCH9gCjEQBg==",
       "requires": {
         "chalk": "2.4.2",
         "cliui": "4.1.0",
@@ -3931,8 +3933,9 @@
       "integrity": "sha512-G3Kfm/ySM8OAKGn+uptieaz0VcerQMbSVI14ChzAUddm4RodJBJWWKzBoIapT+9X/GxLvCcI4JWKymo4PZ20bg=="
     },
     "jsreport-docx": {
-      "version": "github:jsreport/jsreport-docx#1837866d0ee0a2a7eea7b92932a776f937adac6e",
-      "from": "github:jsreport/jsreport-docx",
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/jsreport-docx/-/jsreport-docx-2.2.0.tgz",
+      "integrity": "sha512-GTu5zyXZHMC3FUEK7hpFbTqVVbnRMdRnki8T6afJWwL5pPB7XS1GcAqD9yXXT8NeLZr7LMETOAVdHsC0AqZIgg==",
       "requires": {
         "image-size": "0.7.4",
         "jsreport-office": "1.0.1",
@@ -3961,8 +3964,9 @@
       "integrity": "sha512-xBOs8LH3Zg8INNCTCmWjuriprSrzBXD5hatydPILX2B8G/nNgvtOoWkM3vrha1zqj1sS/GHMZrPB/k4bB7xoCg=="
     },
     "jsreport-fs-store": {
-      "version": "github:jsreport/jsreport-fs-store#6aa5c7f7ead96aee140fef5d7082dc8e3213c09e",
-      "from": "github:jsreport/jsreport-fs-store",
+      "version": "2.6.0",
+      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.6.0.tgz",
+      "integrity": "sha512-XNbhxXEDm2qRIcYkZYptez2XBzYt0AzQzyBQthsk+0vSJUAGSgIoXlu2P97oJRXfCCKogwSRLJlldjo8mtGyoA==",
       "requires": {
         "bluebird": "3.5.4",
         "chokidar": "2.1.2",
@@ -4092,8 +4096,9 @@
       }
     },
     "jsreport-pptx": {
-      "version": "github:jsreport/jsreport-pptx#973b71d3f6d33287a9d867a31a34d2d68b44ac3b",
-      "from": "github:jsreport/jsreport-pptx",
+      "version": "0.3.0",
+      "resolved": "https://registry.npmjs.org/jsreport-pptx/-/jsreport-pptx-0.3.0.tgz",
+      "integrity": "sha512-DriLCv84RvFRqbJboble1bX4Lcy5bf1RmB9NyEn8rdM9SKqj4oJXdjWtedNpLG2gql2cOY5jOPVBmhUZzcx5dg==",
       "requires": {
         "image-size": "0.7.4",
         "jsreport-office": "1.0.1",
@@ -4173,8 +4178,9 @@
       }
     },
     "jsreport-studio": {
-      "version": "github:jsreport/jsreport-studio#92879d897bdb159bd66623c57b4d5a8e3df169b1",
-      "from": "github:jsreport/jsreport-studio",
+      "version": "2.6.4",
+      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.6.4.tgz",
+      "integrity": "sha512-rPQTiTtN9B14M47IY2LNwjwQAE/MT62tlwfQQxinnwwSEXhK2hJpS5eeOY9ZF2BUo9LOngHELOQImIHGViY08A==",
       "requires": {
         "bluebird": "3.5.4",
         "compression": "1.7.4",
@@ -4185,8 +4191,9 @@
       }
     },
     "jsreport-studio-theme-dark": {
-      "version": "github:jsreport/jsreport-studio-theme-dark#9f151fb12852c83707c348e5f77b19abc4e47b85",
-      "from": "github:jsreport/jsreport-studio-theme-dark"
+      "version": "0.2.0",
+      "resolved": "https://registry.npmjs.org/jsreport-studio-theme-dark/-/jsreport-studio-theme-dark-0.2.0.tgz",
+      "integrity": "sha512-hmAQhG8RG9PAgndxYSdY2cz60bVnTQUwo6aIywJhT5ogVdt7u2lMj499fwhgGFfwo41/fb8FIVsQdt9AebI4EA=="
     },
     "jsreport-tags": {
       "version": "2.3.0",
@@ -4198,8 +4205,9 @@
       }
     },
     "jsreport-templates": {
-      "version": "github:jsreport/jsreport-templates#75747d8aab7fc58057b7e010b74881ecc2382371",
-      "from": "github:jsreport/jsreport-templates",
+      "version": "2.3.2",
+      "resolved": "https://registry.npmjs.org/jsreport-templates/-/jsreport-templates-2.3.2.tgz",
+      "integrity": "sha512-Fb9C9rIcTwvzMO6lm6hCghoV3GkzP9bnrxwSJTwNvyouWln8tOU95r3cNsY4WlbqvtFu2/WGU8o+VKQROyG4+Q==",
       "requires": {
         "node.extend.without.arrays": "1.1.6"
       }
@@ -4210,8 +4218,9 @@
       "integrity": "sha512-MGN7ZlCiAW8IAOfNVdb0UA5t7sL+o5/qEhSrqstYFKpvEOTSIAP/3LT20giWwlNgJ4nIKM2bZ0baTLbStDo1Kw=="
     },
     "jsreport-version-control": {
-      "version": "github:jsreport/jsreport-version-control#111342f7b54811d50d5fd44289619e745ee99311",
-      "from": "github:jsreport/jsreport-version-control",
+      "version": "1.3.2",
+      "resolved": "https://registry.npmjs.org/jsreport-version-control/-/jsreport-version-control-1.3.2.tgz",
+      "integrity": "sha512-QjAmsDHMNyAoYu/RJhwUneuqgKvASqdEx3L4c/2nPJrZIfGw6HKWWjTNxoiQuzHaPbLzMO1mi2kW3zwBDasMPQ==",
       "requires": {
         "bluebird": "3.5.4",
         "bytes": "3.0.0",
@@ -4222,8 +4231,9 @@
       }
     },
     "jsreport-xlsx": {
-      "version": "github:jsreport/jsreport-xlsx#2d4a190fb1ffc305f705ec5684310a0d3a166558",
-      "from": "github:jsreport/jsreport-xlsx",
+      "version": "2.2.0",
+      "resolved": "https://registry.npmjs.org/jsreport-xlsx/-/jsreport-xlsx-2.2.0.tgz",
+      "integrity": "sha512-ACVBuDx9HNbq6twUh2GHYWl207fM0k7uWTqlR9+ASq1G6qbXxsIB/z9ynpKMytU2kxqzRTWnRXIL3Eik4fHPVw==",
       "requires": {
         "bluebird": "3.5.4",
         "jsreport-office": "1.0.1",
