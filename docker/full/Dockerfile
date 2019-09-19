@@ -77,6 +77,8 @@ RUN npm install --save --save-exact jsreport-ejs \
         jsreport-fs-store-azure-storage-persistence \
         jsreport-fs-store-azure-sb-sync \
         jsreport-fs-store-aws-sns-sync \
+        jsreport-pdf-sign \
+        jsreport-pdf-meta \
         electron@1.8.7 \
         jsreport-electron-pdf \
         phantomjs-exact-2-1-1 \
