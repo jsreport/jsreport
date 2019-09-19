@@ -79,6 +79,7 @@
     "semver": "6.3.0"
   },
   "devDependencies": {
+    "archiver": "3.0.0",
     "cross-env": "5.2.1",
     "eslint": "5.16.0",
     "eslint-config-standard": "12.0.0",
@@ -94,7 +95,7 @@
   },
   "scripts": {
     "test": "mocha test --timeout 35000 && standard",
-    "compile": "cross-env extensions_authentication_enabled=true jsreport-compile",
+    "compile": "node compile.js",
     "start": "node server.js"
   },
   "engines": {
