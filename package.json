@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "handlebars": "4.2.0",
-    "jsreport-assets": "1.4.0",
+    "jsreport-assets": "1.5.0",
     "jsreport-authentication": "2.3.0",
     "jsreport-authorization": "2.2.4",
     "jsreport-base": "2.0.2",
@@ -65,7 +65,7 @@
     "jsreport-sample-template": "2.4.0",
     "jsreport-scheduling": "2.1.0",
     "jsreport-scripts": "2.2.0",
-    "jsreport-static-pdf": "0.3.0",
+    "jsreport-static-pdf": "0.3.1",
     "jsreport-studio": "2.6.5",
     "jsreport-studio-theme-dark": "0.2.0",
     "jsreport-tags": "2.3.0",
