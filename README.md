@@ -52,9 +52,13 @@ jsreport is split into many separated repositories usually representing extensio
 
 ## Roadmap
 
--  studio folders based features [#474](../../issues/474), [#467](../../issues/467), [#475](../../issues/475)
-- data types in html-to-xlsx [#17](https://github.com/jsreport/jsreport-html-to-xlsx/issues/17)
+- improve pdf utils to add native support for password protection and optimization
+- improve docx/pptx recipes
+- general timeout for render requests
+- import transaction consistency in concurent environment
 - drag and drop designer [#121](../../issues/121) 
+
+More in the [backlog](https://github.com/jsreport/jsreport/issues).
 
 **Missing a feature? Submit a feature request.**
 
