@@ -38,7 +38,7 @@
       }
     },
     "@bjrmatos/pkg": {
-      "version": "github:bjrmatos/pkg#499e5120cba67ef765a9637d2cc65b83b637444b",
+      "version": "github:bjrmatos/pkg#fca656ca5aaeb3a2625c3e9de66a79869480ec42",
       "from": "github:bjrmatos/pkg",
       "dev": true,
       "requires": {
@@ -142,9 +142,9 @@
       "dev": true
     },
     "@types/node": {
-      "version": "12.7.11",
-      "resolved": "https://registry.npmjs.org/@types/node/-/node-12.7.11.tgz",
-      "integrity": "sha512-Otxmr2rrZLKRYIybtdG/sgeO+tHY20GxeDjcGmUnmmlCWyEnv2a2x1ZXBo3BTec4OiTXMQCiazB8NMBf0iRlFw==",
+      "version": "12.7.12",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-12.7.12.tgz",
+      "integrity": "sha512-KPYGmfD0/b1eXurQ59fXD1GBzhSQfz6/lKBxkaHX9dKTzjXbK68Zt7yGUxUsCS1jeTy/8aL+d9JEr+S54mpkWQ==",
       "dev": true
     },
     "abbrev": {
@@ -4301,7 +4301,7 @@
       }
     },
     "jsreport-compile": {
-      "version": "github:jsreport/jsreport-compile#bbbcb44795a4fc5ba7e4a5b1133cc8fc1ea6ff6a",
+      "version": "github:jsreport/jsreport-compile#10570d6e29d39aa9c8e5359fb437e820c154bbc6",
       "from": "github:jsreport/jsreport-compile",
       "dev": true,
       "requires": {
