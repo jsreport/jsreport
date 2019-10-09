@@ -38,8 +38,9 @@
       }
     },
     "@bjrmatos/pkg": {
-      "version": "github:bjrmatos/pkg#fca656ca5aaeb3a2625c3e9de66a79869480ec42",
-      "from": "github:bjrmatos/pkg",
+      "version": "4.6.0",
+      "resolved": "https://registry.npmjs.org/@bjrmatos/pkg/-/pkg-4.6.0.tgz",
+      "integrity": "sha512-wMkk0tdvG7Q5gKhSzVpt4CntvJdYbELr66XVksWprkwCRIk1ftC6rTkjnM6dVQql0IFDyMwjmLO+5+dL4szmBQ==",
       "dev": true,
       "requires": {
         "@babel/parser": "~7.4.4",
@@ -3410,9 +3411,9 @@
       "dev": true
     },
     "handlebars": {
-      "version": "4.2.0",
-      "resolved": "https://registry.npmjs.org/handlebars/-/handlebars-4.2.0.tgz",
-      "integrity": "sha512-Kb4xn5Qh1cxAKvQnzNWZ512DhABzyFNmsaJf3OAkWNa4NkaqWcNI8Tao8Tasi0/F4JD9oyG0YxuFyvyR57d+Gw==",
+      "version": "4.4.3",
+      "resolved": "https://registry.npmjs.org/handlebars/-/handlebars-4.4.3.tgz",
+      "integrity": "sha512-B0W4A2U1ww3q7VVthTKfh+epHx+q4mCt6iK+zEAzbMBpWQAwxCeKxEGpj/1oQTpzPXDNSOG7hmG14TsISH50yw==",
       "requires": {
         "neo-async": "^2.6.0",
         "optimist": "^0.6.1",
@@ -4184,15 +4185,15 @@
       }
     },
     "jsreport-assets": {
-      "version": "1.5.0",
-      "resolved": "https://registry.npmjs.org/jsreport-assets/-/jsreport-assets-1.5.0.tgz",
-      "integrity": "sha512-EVyln7/FRj0i+71my7JHXitED/TUIec6TY0f0rEDwk5W7BXRb2xFuFY0/L2ygyLdrsveKrn4AfGZGYJamKSdHg==",
+      "version": "1.5.1",
+      "resolved": "https://registry.npmjs.org/jsreport-assets/-/jsreport-assets-1.5.1.tgz",
+      "integrity": "sha512-xgzVekh3IKy4wRymgz1lrp3h/2fDz7CKkxQwYXw5jyshF3eCW50sbvLFo02UVSXIh/LcxVTJDjtmnk0CSIA7bg==",
       "requires": {
         "async-replace": "1.0.1",
         "bluebird": "3.5.4",
         "etag": "1.8.1",
         "js-string-escape": "1.0.1",
-        "jsreport-office": "1.0.1",
+        "jsreport-office": "1.0.2",
         "mime": "2.4.4",
         "minimatch": "3.0.4",
         "strip-bom-buf": "2.0.0"
@@ -4215,9 +4216,9 @@
       }
     },
     "jsreport-authorization": {
-      "version": "2.2.4",
-      "resolved": "https://registry.npmjs.org/jsreport-authorization/-/jsreport-authorization-2.2.4.tgz",
-      "integrity": "sha512-ZdIaKKzVuMRpNcgmLqQsS2XeU6Ed+Uz/XesP0Hc0PaXpqn7H/Qd3vVOeBvVUthDqQAihBhqJXEqpjvVElyEehg==",
+      "version": "2.2.5",
+      "resolved": "https://registry.npmjs.org/jsreport-authorization/-/jsreport-authorization-2.2.5.tgz",
+      "integrity": "sha512-k54lrZOEOhciLVnwEfLpUQlche5DyPaMO4eonVEMFrhmo9ybeHHThHhS0KiI8cUxzRIWoz97kiFdD7ZJE291xg==",
       "requires": {
         "node.extend.without.arrays": "1.1.6"
       }
@@ -4228,9 +4229,9 @@
       "integrity": "sha512-LMjJ/sVnODuGLpaJtEbYTvTeyzcI724ak64RvRuwfJ12rTjXovKda6fKvSfKqBoADekCwGu8CN2bY5iekRBghA=="
     },
     "jsreport-browser-client": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-browser-client/-/jsreport-browser-client-2.2.0.tgz",
-      "integrity": "sha512-/Pe8rTV89VVNaK8d+jWgXgC+VV/eK4LkxlihvTMQOb+P3ISLEsfgvdPFfOQ6gdyDqFsxhhp7ltvqGDKTYYlYXQ==",
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/jsreport-browser-client/-/jsreport-browser-client-2.2.1.tgz",
+      "integrity": "sha512-CRgy+vNv8y+9ww23096DqGaKENsqRo5UuvfWr2bHHsMA2Z5UCglIOnRNIQyiworDoQ5H5xN43+kObTZ6RTIHXA==",
       "requires": {
         "jsreport-browser-client-dist": "1.3.0"
       }
@@ -4301,11 +4302,12 @@
       }
     },
     "jsreport-compile": {
-      "version": "github:jsreport/jsreport-compile#10570d6e29d39aa9c8e5359fb437e820c154bbc6",
-      "from": "github:jsreport/jsreport-compile",
+      "version": "2.3.3",
+      "resolved": "https://registry.npmjs.org/jsreport-compile/-/jsreport-compile-2.3.3.tgz",
+      "integrity": "sha512-rxsLPAPWEslRxHcN49zGa5WCkUw5jxE/7H1/+zGahUBDXFGqE+bjxEDjauR2oXwJH4yBMjxmOMEVfIGFD+iyJQ==",
       "dev": true,
       "requires": {
-        "@bjrmatos/pkg": "github:bjrmatos/pkg",
+        "@bjrmatos/pkg": "4.6.0",
         "acorn": "5.5.0",
         "bubleify": "0.7.0",
         "debug": "2.6.3",
@@ -4471,9 +4473,9 @@
       }
     },
     "jsreport-core": {
-      "version": "2.6.1",
-      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.6.1.tgz",
-      "integrity": "sha512-2SNiXmbMTYFURWEYgzcS8CMBGhKVTOm4wEXlYxB/vZrY7STo9OykSz5kXRO+hMdpmK6tTXDrg9uFsV+aBTWzFw==",
+      "version": "2.6.2",
+      "resolved": "https://registry.npmjs.org/jsreport-core/-/jsreport-core-2.6.2.tgz",
+      "integrity": "sha512-uOJYJNppjc7qLgbkLMCEeGZ1/iaI1b2z3CNNORyfux5X0y8ZYVqev0nu+tIGcn4tRHvsjd19SNT/YGtoeL2Q2g==",
       "requires": {
         "@babel/code-frame": "7.5.5",
         "ajv": "6.10.0",
@@ -4497,7 +4499,7 @@
         "nconf": "0.10.0",
         "node.extend.without.arrays": "1.1.6",
         "reap2": "1.0.1",
-        "script-manager": "0.9.0",
+        "script-manager": "0.9.1",
         "stack-trace": "0.0.10",
         "streamifier": "0.1.1",
         "unset-value": "1.0.0",
@@ -4544,17 +4546,17 @@
       "integrity": "sha512-zVAo+AoXiUxFnrawTX/ARc4Ni8Ar5ciu5k7iRYl1YBJq9ZEBjBVD7zXrW4/RqFFSywnigOVh1x60sG/wZ0MHsQ=="
     },
     "jsreport-debug": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-debug/-/jsreport-debug-2.1.0.tgz",
-      "integrity": "sha512-G3Kfm/ySM8OAKGn+uptieaz0VcerQMbSVI14ChzAUddm4RodJBJWWKzBoIapT+9X/GxLvCcI4JWKymo4PZ20bg=="
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-debug/-/jsreport-debug-2.1.1.tgz",
+      "integrity": "sha512-CSYl5VQbmRtdpxtRDDdNxnICF+I1upO02id/Ys07pbmy52AfM3QE5QEobM/GRDilbHLrtQKtB/m/2vv8HALmFA=="
     },
     "jsreport-docx": {
-      "version": "2.3.0",
-      "resolved": "https://registry.npmjs.org/jsreport-docx/-/jsreport-docx-2.3.0.tgz",
-      "integrity": "sha512-vRa00MOv3OoS11QDrPApB9TVSua7SSE73WwoUH2fePrwV2DgjL6Sw50jORLeU7098MBIegyFwPQp4B+iDBp1ag==",
+      "version": "2.3.1",
+      "resolved": "https://registry.npmjs.org/jsreport-docx/-/jsreport-docx-2.3.1.tgz",
+      "integrity": "sha512-t7JdEfQrS+rybnVjzknOBk6ExP7VUpNhyuUMKscVsUkq+nMxNniGJ5rhjffIZe+Z96bY+EYV8z9JPmB0ucLNmA==",
       "requires": {
         "image-size": "0.7.4",
-        "jsreport-office": "1.0.1",
+        "jsreport-office": "1.0.2",
         "node.extend.without.arrays": "1.1.6",
         "xmldom": "0.1.27"
       }
@@ -4616,13 +4618,13 @@
       "integrity": "sha512-81yfsSDoW1shgYftwuPrzYee7ZVNP3aP2418RFmdpRxfoseoFNr6tCakD4aWlpGywUMPwVgQgORlpK31MJR0kA=="
     },
     "jsreport-html-to-xlsx": {
-      "version": "2.4.0",
-      "resolved": "https://registry.npmjs.org/jsreport-html-to-xlsx/-/jsreport-html-to-xlsx-2.4.0.tgz",
-      "integrity": "sha512-w8z1nfWiIq2bTo5xSbB30EzqCCDVN1GCrg055FSZkPhkShvnSZXKIWofPZg7gcxXb28+Kf5C6GWgudhnF3wLwA==",
+      "version": "2.4.1",
+      "resolved": "https://registry.npmjs.org/jsreport-html-to-xlsx/-/jsreport-html-to-xlsx-2.4.1.tgz",
+      "integrity": "sha512-uQpFoFR53fR/uVmV5oJuYKpyoelEwz4p6Nwt0TXbjxC7XecVaGj8EKZirCU3QTNsLRGgW3L0kd/GRgrZyGEowg==",
       "requires": {
         "chrome-page-eval": "1.2.0",
         "html-to-xlsx": "1.1.1",
-        "jsreport-office": "1.0.1",
+        "jsreport-office": "1.0.2",
         "node.extend.without.arrays": "1.1.6",
         "phantom-page-eval": "1.2.0"
       }
@@ -4673,9 +4675,9 @@
       }
     },
     "jsreport-office": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/jsreport-office/-/jsreport-office-1.0.1.tgz",
-      "integrity": "sha512-P8adqf8i5ewSxmWP/02sPX9Nmzjg719dBtnXYll1IqQCY+Lhu6S433F4X5n4wIwA8tu+xnuoUMsaAgTUlYBDQw==",
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/jsreport-office/-/jsreport-office-1.0.2.tgz",
+      "integrity": "sha512-FvLuBO9pPHe5sN+prjxe3EjmqS+FpDtj14StynrneyR5f7quOmhPT96tyFbqopQH13HBCo6JrhE6RoYGvZLw3A==",
       "requires": {
         "archiver": "3.0.0",
         "axios": "0.19.0",
@@ -4689,9 +4691,9 @@
       }
     },
     "jsreport-pdf-utils": {
-      "version": "1.5.0",
-      "resolved": "https://registry.npmjs.org/jsreport-pdf-utils/-/jsreport-pdf-utils-1.5.0.tgz",
-      "integrity": "sha512-5p5v5Ej/4GhXWxXVPezoXo99FN/wgl7bzkIUGaCiIJABV6CDSYtDHyXqLM5iuapiEAFDNPkNJRtA9Eqyr+fUjw==",
+      "version": "1.5.2",
+      "resolved": "https://registry.npmjs.org/jsreport-pdf-utils/-/jsreport-pdf-utils-1.5.2.tgz",
+      "integrity": "sha512-O3JXo9whQW4ubTW+Y507OsxVsuCOgPFUFb9BqRJucf52mRZrK1D9wX679g9oY6eaUc+Eq6w0Q9ayVIOTv9lNSQ==",
       "requires": {
         "cheerio": "0.22.0",
         "jsreport-pdfjs": "0.4.3",
@@ -4712,12 +4714,12 @@
       }
     },
     "jsreport-pptx": {
-      "version": "0.4.0",
-      "resolved": "https://registry.npmjs.org/jsreport-pptx/-/jsreport-pptx-0.4.0.tgz",
-      "integrity": "sha512-vmzxU5urPycs4xVtmQchJ89y4CBOOe8Fz0zKEWBDQiklRwhFCaipXIX+vzHvb/JS3C3PjON/llR2vv3cWtSV6A==",
+      "version": "0.4.1",
+      "resolved": "https://registry.npmjs.org/jsreport-pptx/-/jsreport-pptx-0.4.1.tgz",
+      "integrity": "sha512-aJDxsTaeK63+lPkdWymFyQ+7kHxpReX2QKJs2/OhMXOHSWO2eK2/dnPxx1eKBQpMxCpI0RCeGf7kqa6R0HjaYQ==",
       "requires": {
         "image-size": "0.7.4",
-        "jsreport-office": "1.0.1",
+        "jsreport-office": "1.0.2",
         "node.extend.without.arrays": "1.1.6",
         "xmldom": "0.1.27"
       }
@@ -4771,9 +4773,9 @@
       }
     },
     "jsreport-scheduling": {
-      "version": "2.1.0",
-      "resolved": "https://registry.npmjs.org/jsreport-scheduling/-/jsreport-scheduling-2.1.0.tgz",
-      "integrity": "sha512-lzHYffp69Xne0e5SB+UB6Y5wa5JZHVDluL3TmAqwxUvvzl1ut0rhc7pcjdL5+dj5RJemC/CxxazHN+ccSTXknw==",
+      "version": "2.1.1",
+      "resolved": "https://registry.npmjs.org/jsreport-scheduling/-/jsreport-scheduling-2.1.1.tgz",
+      "integrity": "sha512-u/H3zcRAIZySWrLvtVLc96TesR66+B2jSRw0cezkYRGdktuzNH7/2TsD9GSruf4g02OFebAHoXwuJyC/QnKmVg==",
       "requires": {
         "cron-parser": "2.7.3",
         "moment": "2.24.0"
@@ -4787,9 +4789,9 @@
       }
     },
     "jsreport-scripts": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-scripts/-/jsreport-scripts-2.2.0.tgz",
-      "integrity": "sha512-RL15z1GD3VQj8ouVS0XNlAy2gYxwumRX8BQ6T2o34NczxtGritVGniHiq39SkN4iqSDPaebcxcJEvv7E6IGlOg==",
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/jsreport-scripts/-/jsreport-scripts-2.2.1.tgz",
+      "integrity": "sha512-zgbEGce3AtxM85gYSmG/+AhasNsP7AEtchUp/eobB43rGpgJ1GQTDH4URxnYv0RcTLSh2/JimMKGDMHAFUFyvw==",
       "requires": {
         "bluebird": "3.5.4",
         "node.extend.without.arrays": "1.1.6"
@@ -4804,9 +4806,9 @@
       }
     },
     "jsreport-studio": {
-      "version": "2.6.5",
-      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.6.5.tgz",
-      "integrity": "sha512-g9Pw6+jriYCp4SeAyZXtYNN/eoXClZs8BCfTwb3cwu4zrxm6GwMgnYZp3OHIssiZXRJb7CDPsHXvBWbv6GX4JQ==",
+      "version": "2.6.6",
+      "resolved": "https://registry.npmjs.org/jsreport-studio/-/jsreport-studio-2.6.6.tgz",
+      "integrity": "sha512-wxZd4F1omzcA9HWB8br/B5uhPmudWpdbtCDbKfVR8eWuDM+Eb+Caav/2DWcLFN9qYMFHTBbUAOGvkjTWF82axg==",
       "requires": {
         "bluebird": "3.5.4",
         "compression": "1.7.4",
@@ -4857,12 +4859,12 @@
       }
     },
     "jsreport-xlsx": {
-      "version": "2.2.0",
-      "resolved": "https://registry.npmjs.org/jsreport-xlsx/-/jsreport-xlsx-2.2.0.tgz",
-      "integrity": "sha512-ACVBuDx9HNbq6twUh2GHYWl207fM0k7uWTqlR9+ASq1G6qbXxsIB/z9ynpKMytU2kxqzRTWnRXIL3Eik4fHPVw==",
+      "version": "2.2.1",
+      "resolved": "https://registry.npmjs.org/jsreport-xlsx/-/jsreport-xlsx-2.2.1.tgz",
+      "integrity": "sha512-p1Cbwtxgrdt7wOiLZESVIq1h+bsq3IZlmC4knhgLnNym5NieO7fkmX0LgswZjtRUErAZg2lv7H2AS9Xi/M9lLA==",
       "requires": {
         "bluebird": "3.5.4",
-        "jsreport-office": "1.0.1",
+        "jsreport-office": "1.0.2",
         "lodash": "4.17.15",
         "merge2": "1.2.3",
         "mkdirp": "0.5.1",
@@ -7201,9 +7203,9 @@
       }
     },
     "script-manager": {
-      "version": "0.9.0",
-      "resolved": "https://registry.npmjs.org/script-manager/-/script-manager-0.9.0.tgz",
-      "integrity": "sha512-5PwJ+LP8RKanG27joSJhaMZ6m3cQUJAtOjKStZDW3NygZUpgEiz4t9D7SuJaaZO2ifPfH7pQvSzQcyEQHMjRFg==",
+      "version": "0.9.1",
+      "resolved": "https://registry.npmjs.org/script-manager/-/script-manager-0.9.1.tgz",
+      "integrity": "sha512-V8PSuf3GYTwvdc475xJ488VivmYprU8yOH1pyfnBQ5bA6I18XFXH+FFY6lj66f6c3T5mCu7OtrtiTFpqTRU95A==",
       "requires": {
         "net-cluster": "0.0.2",
         "portscanner": "2.2.0",
@@ -8344,12 +8346,12 @@
       "integrity": "sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c="
     },
     "uglify-js": {
-      "version": "3.6.0",
-      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.6.0.tgz",
-      "integrity": "sha512-W+jrUHJr3DXKhrsS7NUVxn3zqMOFn0hL/Ei6v0anCIMoKC93TjcflTagwIHLW7SfMFfiQuktQyFVCFHGUE0+yg==",
+      "version": "3.6.1",
+      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.6.1.tgz",
+      "integrity": "sha512-+dSJLJpXBb6oMHP+Yvw8hUgElz4gLTh82XuX68QiJVTXaE5ibl6buzhNkQdYhBlIhozWOC9ge16wyRmjG4TwVQ==",
       "optional": true,
       "requires": {
-        "commander": "~2.20.0",
+        "commander": "2.20.0",
         "source-map": "~0.6.1"
       }
     },
