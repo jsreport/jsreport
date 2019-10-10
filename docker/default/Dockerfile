@@ -1,43 +1,6 @@
-FROM node:alpine
-EXPOSE 5488
+FROM jsreport/jsreport:2.6.0
 
-RUN addgroup -S jsreport && adduser -S -G jsreport jsreport
-
-RUN apk update --no-cache && apk upgrade --no-cache  && \
-  echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
-  echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
-  apk add --no-cache \
-    chromium@edge=76.0.3809.132-r0 \
-    nss@edge \
-    freetype@edge \
-    harfbuzz@edge \
-    ttf-freefont@edge \
-    # just for now as we npm install from git
-    git \
-    # so user can docker exec -it test /bin/bash
-    bash \
-  && rm -rf /var/cache/apk/* /tmp/*
-
-VOLUME ["/jsreport"]
-RUN mkdir -p /app
-WORKDIR /app
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-
-RUN npm install -g jsreport-cli && \
-    jsreport init && \
-    npm uninstall -g jsreport-cli && \
-    npm cache clean -f
-
-COPY editConfig.js /app/editConfig.js
-RUN node editConfig.js
-
-ADD run.sh /app/run.sh
-COPY . /app
-
-ENV NODE_ENV production
-ENV chrome:launchOptions:executablePath /usr/lib/chromium/chrome
-ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
-ENV templatingEngines:strategy http-server
+# we want to preserver the chrome version of 2.6.0 and just update the jsreport
+RUN npm install jsreport@2.6.1 && npm cache clean -f
 
 CMD ["bash", "/app/run.sh"]
