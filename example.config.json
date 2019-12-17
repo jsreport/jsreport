@@ -14,12 +14,12 @@
     "timeout": 30000
   },
   "extensions": {
-    "authentication" : {
+    "authentication": {
       "cookieSession": {
         "secret": "<your strong secret>"
       },
       "admin": {
-        "username" : "admin",
+        "username": "admin",
         "password": "password"
       },
       "enabled": false
@@ -29,6 +29,9 @@
     },
     "scripts": {
       "timeout": 30000
+    },
+    "fs-store": {
+      "syncModifications": false
     }
   }
 }
