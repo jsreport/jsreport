@@ -94,9 +94,6 @@ COPY . /app
 
 ENV PATH "$PATH:/fop-2.1"
 ENV NODE_ENV production
-ENV electron:strategy electron-ipc
-ENV phantom:strategy phantom-server
-ENV templatingEngines:strategy http-server
 ENV chrome_launchOptions_executablePath google-chrome-stable
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
