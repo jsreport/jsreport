@@ -52,10 +52,16 @@ jsreport is split into many separated repositories usually representing extensio
 
 ## Roadmap
 
-- improve pdf utils to add native support for password protection and optimization
-- improve docx/pptx recipes
-- general timeout for render requests
-- import transaction consistency in concurent environment
+- pdf password protection
+- pdf forms
+- pdf linearization
+- pdf remove hidden elelents
+- docx/pptx - forms, raw openxml, memory optimization...
+- word extension for reports design
+- async studio rendering - real time log output
+- signing jsreport.exe
+- html-to-xlsx - images, filters...
+- nodejs workers usage
 - drag and drop designer [#121](../../issues/121) 
 
 More in the [backlog](https://github.com/jsreport/jsreport/issues).
