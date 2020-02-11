@@ -69,7 +69,7 @@ More in the [backlog](https://github.com/jsreport/jsreport/issues).
 **Missing a feature? Submit a feature request.**
 
 ## Licensing
-Copyright (C) 2019 Jan Blaha
+Copyright (C) 2020 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
