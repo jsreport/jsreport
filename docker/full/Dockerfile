@@ -22,20 +22,16 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     unzip fop.zip && \
     rm fop.zip && \
     chmod +x fop-2.1/fop && \
-    # node
-    curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
     apt-get update && \
-    apt-get install -y --no-install-recommends nodejs && \
-    npm i -g npm && \
     # chrome
     apt-get install -y libgconf-2-4 && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
     apt-get update && \
     # install latest chrome just to get package deps installed
-    apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst --no-install-recommends && \
+    apt-get install -y lsb-release google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst --no-install-recommends && \
     # then replace that chrome with specific chrome version, see https://github.com/webnicer/chrome-downloads for available versions
-    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_76.0.3809.132-1_amd64.deb && \
+    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_79.0.3945.130-1_amd64.deb && \
     dpkg -i ./google-chrome*.deb && \
     rm google-chrome*.deb && \
     # phantomjs
@@ -48,17 +44,36 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
     rm -rf /src/*.deb
 
+RUN mkdir -p /app
+RUN chown -R jsreport:jsreport /app
+RUN rm -rf /tmp/*
+
+# we need to create the volume and give it expected owner
+# before the VOLUME step in order for the volume to be created with non-root user
+RUN mkdir /jsreport
+RUN chown jsreport:jsreport /jsreport
+RUN chmod g+s /jsreport
+
 VOLUME ["/jsreport"]
 
-RUN mkdir -p /app
+USER jsreport:jsreport
+
+ENV NVM_DIR /home/jsreport/.nvm
+ENV NODE_VERSION 8.17.0
+
+# node
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && \
+    /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
+
+ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
+ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
 WORKDIR /app
 
 # the chrome was already installed from apt-get
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN npm install -g jsreport-cli && \
-    jsreport init && \
-    npm uninstall -g jsreport-cli
+RUN npm install -g jsreport-cli
 
 RUN npm install --save --save-exact jsreport-ejs \
         jsreport-pug \
@@ -81,16 +96,17 @@ RUN npm install --save --save-exact jsreport-ejs \
         jsreport-pdf-meta \
         electron@1.8.7 \
         jsreport-electron-pdf \
-        phantomjs-exact-2-1-1 \
-    && \
-    npm cache clean -f && \
-    rm -rf /tmp/*
+        phantomjs-exact-2-1-1
 
-COPY editConfig.js /app/editConfig.js
+RUN jsreport init
+
+COPY --chown=jsreport:jsreport editConfig.js /app/editConfig.js
 RUN node editConfig.js
 
-ADD run.sh /app/run.sh
-COPY . /app
+RUN npm uninstall -g jsreport-cli && npm cache clean -f && rm -rf /tmp/*
+
+COPY --chown=jsreport:jsreport run.sh /app/run.sh
+COPY --chown=jsreport:jsreport . /app
 
 ENV PATH "$PATH:/fop-2.1"
 ENV NODE_ENV production
