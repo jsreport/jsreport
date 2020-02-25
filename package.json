@@ -75,7 +75,7 @@
     "jsreport-xlsx": "2.3.0",
     "mkdirp": "0.5.1",
     "node.extend.without.arrays": "1.1.6",
-    "puppeteer": "1.17.0",
+    "puppeteer": "2.0.0",
     "semver": "6.3.0"
   },
   "devDependencies": {
