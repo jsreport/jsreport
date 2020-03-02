@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:12.16.1-alpine3.11
 EXPOSE 5488
 
 RUN addgroup -S jsreport && adduser --shell /bin/bash -S -G jsreport jsreport

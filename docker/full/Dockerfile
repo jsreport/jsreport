@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:bionic-20200219
 # not using ubuntu:bionic because phantomjs 1.9.8 does not work there
 # (it contains a newer version of OpenSSL which can not be used with phantomjs)
 EXPOSE 5488
@@ -59,7 +59,7 @@ VOLUME ["/jsreport"]
 USER jsreport:jsreport
 
 ENV NVM_DIR /home/jsreport/.nvm
-ENV NODE_VERSION 8.17.0
+ENV NODE_VERSION 12.16.1
 
 # node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && \
