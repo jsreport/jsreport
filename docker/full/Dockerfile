@@ -82,15 +82,15 @@ RUN npm install --save --save-exact jsreport-ejs@2.2.0 \
         jsreport-pug@3.1.0 \
         jsreport-azure-storage@1.1.0 \
         jsreport-pdf-password@2.2.0 \
-        jsreport-phantom-pdf@2.4.2 \
-        jsreport/jsreport-phantom-image \
+        jsreport-phantom-pdf@2.5.0 \
+        jsreport-phantom-image@2.1.0 \
         jsreport-mssql-store@1.3.0 \
         jsreport-postgres-store@1.3.0 \
         jsreport-mongodb-store@1.3.0 \
-        jsreport-wkhtmltopdf@2.1.1 \
-        jsreport-html-to-text@2.0.2 \
-        jsreport-fop-pdf@2.1.1 \
-        jsreport-html-embedded-in-docx@2.1.0 \
+        jsreport-wkhtmltopdf@2.2.0 \
+        jsreport-html-to-text@2.1.0 \
+        jsreport-fop-pdf@2.2.0 \
+        jsreport-html-embedded-in-docx@2.2.0 \
         jsreport-fs-store-aws-s3-persistence@1.3.0 \
         jsreport-fs-store-azure-storage-persistence@1.1.0 \
         jsreport-fs-store-azure-sb-sync@1.1.0 \
@@ -98,7 +98,7 @@ RUN npm install --save --save-exact jsreport-ejs@2.2.0 \
         jsreport-pdf-sign@0.4.0 \
         jsreport-pdf-meta@0.2.0 \
         electron@1.8.7 \
-        jsreport-electron-pdf@3.0.0 \
+        jsreport-electron-pdf@3.1.0 \
         phantomjs-exact-2-1-1@0.1.0
 
 COPY --chown=jsreport:jsreport editConfig.js /app/editConfig.js
