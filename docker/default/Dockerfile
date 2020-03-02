@@ -7,6 +7,7 @@ RUN apk update --no-cache && apk upgrade --no-cache  && \
   echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
   echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
   apk add --no-cache \
+    libstdc++@edge \
     chromium@edge=79.0.3945.130-r0 \
     nss@edge \
     freetype@edge \
