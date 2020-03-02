@@ -1143,14 +1143,6 @@
             "to-regex-range": "^5.0.1"
           }
         },
-        "glob-parent": {
-          "version": "5.1.0",
-          "resolved": "https://registry.npmjs.org/glob-parent/-/glob-parent-5.1.0.tgz",
-          "integrity": "sha512-qjtRgnIVmOfnKUE3NJAQEdk+lKrxfw8t5ke7SXtfMTHcjsBfOfWXCQfdb30zfDoZQ2IRSIiidmjtbHZPZ++Ihw==",
-          "requires": {
-            "is-glob": "^4.0.1"
-          }
-        },
         "is-number": {
           "version": "7.0.0",
           "resolved": "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz",
@@ -3110,7 +3102,6 @@
       "version": "5.1.0",
       "resolved": "https://registry.npmjs.org/glob-parent/-/glob-parent-5.1.0.tgz",
       "integrity": "sha512-qjtRgnIVmOfnKUE3NJAQEdk+lKrxfw8t5ke7SXtfMTHcjsBfOfWXCQfdb30zfDoZQ2IRSIiidmjtbHZPZ++Ihw==",
-      "dev": true,
       "requires": {
         "is-glob": "^4.0.1"
       }
@@ -4375,9 +4366,9 @@
       "integrity": "sha512-xBOs8LH3Zg8INNCTCmWjuriprSrzBXD5hatydPILX2B8G/nNgvtOoWkM3vrha1zqj1sS/GHMZrPB/k4bB7xoCg=="
     },
     "jsreport-fs-store": {
-      "version": "2.7.0",
-      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.7.0.tgz",
-      "integrity": "sha512-7Gu7cwDE1sr7QZGeFHuWNOQmS+FP9P7ku9LOtpm8uGaqS21plODoGLLrn27SpfAMAwYvBzEx0cM0DrBt2vcH6w==",
+      "version": "2.7.1",
+      "resolved": "https://registry.npmjs.org/jsreport-fs-store/-/jsreport-fs-store-2.7.1.tgz",
+      "integrity": "sha512-lnzHAb1udaIDE45+IDOF6vtPQo7gzooi6Fn/PdkEd0caGezjrClxJBt/LG4yqBdcIgHTOcLYIECYDZ9HwvOUlg==",
       "requires": {
         "@jsreport/mingo": "2.4.1",
         "bluebird": "3.7.2",
