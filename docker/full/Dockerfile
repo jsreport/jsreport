@@ -91,10 +91,10 @@ RUN npm install --save --save-exact jsreport-ejs@2.2.0 \
         jsreport-html-to-text@2.1.0 \
         jsreport-fop-pdf@2.2.0 \
         jsreport-html-embedded-in-docx@2.2.0 \
-        jsreport-fs-store-aws-s3-persistence@1.3.0 \
+        jsreport-fs-store-aws-s3-persistence@1.4.0 \
         jsreport-fs-store-azure-storage-persistence@1.1.0 \
         jsreport-fs-store-azure-sb-sync@1.1.0 \
-        jsreport-fs-store-aws-sns-sync@1.2.0 \
+        jsreport-fs-store-aws-sns-sync@1.2.1 \
         jsreport-pdf-sign@0.4.0 \
         jsreport-pdf-meta@0.2.0 \
         electron@1.8.7 \
