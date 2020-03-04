@@ -75,8 +75,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN npm install -g jsreport-cli
 
-# use jsreport from git, before triggering the dockerhub we switch to the explicit jsreport version
-RUN jsreport init jsreport/jsreport
+RUN jsreport init 2.7.0
 
 RUN npm install --save --save-exact jsreport-ejs@2.2.0 \
         jsreport-pug@3.1.0 \

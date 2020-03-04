@@ -42,8 +42,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN npm install -g jsreport-cli
 
-# use jsreport from git, before triggering the dockerhub we switch to the explicit jsreport version
-RUN jsreport init jsreport/jsreport
+RUN jsreport init 2.7.0
 
 COPY --chown=jsreport:jsreport editConfig.js /app/editConfig.js
 RUN node editConfig.js
