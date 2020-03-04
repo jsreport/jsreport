@@ -7,17 +7,12 @@
   "blobStorage": {
     "provider": "fs"
   },
-  "templatingEngines": {
-    "timeout": 10000
+  "encryption": {
+    "secretKey": "yoursecretxxxxxx"
   },
-  "chrome": {
-    "timeout": 30000
-  },
+  "renderTimeout": 60000,
   "extensions": {
     "authentication": {
-      "cookieSession": {
-        "secret": "<your strong secret>"
-      },
       "admin": {
         "username": "admin",
         "password": "password"
@@ -26,9 +21,6 @@
     },
     "sample-template": {
       "createSamples": true
-    },
-    "scripts": {
-      "timeout": 30000
     },
     "fs-store": {
       "syncModifications": false
