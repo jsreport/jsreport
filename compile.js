@@ -180,9 +180,9 @@ async function run () {
 
   fs.unlinkSync(licenseFile.path)
 
-  console.log('discarting changes to npm-shrinkwrap.json "git checkout -- npm-shrinkwrap.json"..')
+  console.log('discarting changes to package-lock.json "git checkout -- package-lock.json"..')
 
-  childProcess.execSync('git checkout -- npm-shrinkwrap.json', { stdio: 'inherit' })
+  childProcess.execSync('git checkout -- package-lock.json', { stdio: 'inherit' })
 
   console.log('compilation finished')
 
