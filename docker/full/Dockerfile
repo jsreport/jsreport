@@ -81,7 +81,7 @@ RUN jsreport init jsreport/jsreport
 RUN npm install --save --save-exact jsreport-ejs@2.2.0 \
         jsreport-pug@3.1.0 \
         jsreport-azure-storage@1.1.0 \
-        jsreport-pdf-password@2.2.0 \
+        jsreport-pdf-password@2.3.0 \
         jsreport-phantom-pdf@2.5.1 \
         jsreport-phantom-image@2.1.0 \
         jsreport-mssql-store@1.3.0 \
