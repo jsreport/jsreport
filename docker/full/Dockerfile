@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20200219
+FROM ubuntu:xenial
 # not using ubuntu:bionic because phantomjs 1.9.8 does not work there
 # (it contains a newer version of OpenSSL which can not be used with phantomjs)
 EXPOSE 5488
