@@ -51,7 +51,7 @@
     "jsreport-docx": "2.5.0",
     "jsreport-express": "2.6.0",
     "jsreport-freeze": "2.0.0",
-    "jsreport-fs-store": "2.7.1",
+    "jsreport-fs-store": "2.7.2",
     "jsreport-handlebars": "2.1.0",
     "jsreport-html-to-xlsx": "2.5.0",
     "jsreport-import-export": "1.5.1",
