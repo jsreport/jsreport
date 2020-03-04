@@ -190,6 +190,11 @@
       "integrity": "sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==",
       "dev": true
     },
+    "@types/node": {
+      "version": "12.12.29",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-12.12.29.tgz",
+      "integrity": "sha512-yo8Qz0ygADGFptISDj3pOC9wXfln/5pQaN/ysDIzOaAWXt73cNHmtEC8zSO2Y+kse/txmwIAJzkYZ5fooaS5DQ=="
+    },
     "abbrev": {
       "version": "1.1.1",
       "resolved": "https://registry.npmjs.org/abbrev/-/abbrev-1.1.1.tgz",
@@ -1507,9 +1512,9 @@
       }
     },
     "dayjs": {
-      "version": "1.8.20",
-      "resolved": "https://registry.npmjs.org/dayjs/-/dayjs-1.8.20.tgz",
-      "integrity": "sha512-mH0MCDxw6UCGJYxVN78h8ugWycZAO8thkj3bW6vApL5tS0hQplIDdAQcmbvl7n35H0AKdCJQaArTrIQw2xt4Qg=="
+      "version": "1.8.21",
+      "resolved": "https://registry.npmjs.org/dayjs/-/dayjs-1.8.21.tgz",
+      "integrity": "sha512-1kbWK0hziklUHkGgiKr7xm59KwAg/K3Tp7H/8X+f58DnNCwY3pKYjOCJpIlVs125FRBukGVZdKZojC073D0IeQ=="
     },
     "debug": {
       "version": "3.1.0",
@@ -2683,13 +2688,6 @@
         "lodash.isstring": "^4.0.1",
         "lodash.isundefined": "^3.0.1",
         "lodash.uniq": "^4.5.0"
-      },
-      "dependencies": {
-        "@types/node": {
-          "version": "12.12.28",
-          "resolved": "https://registry.npmjs.org/@types/node/-/node-12.12.28.tgz",
-          "integrity": "sha512-g73GJYJDXgf0jqg+P9S8h2acWbDXNkoCX8DLtJVu7Fkn788pzQ/oJsrdJz/2JejRf/SjfZaAhsw+3nd1D5EWGg=="
-        }
       }
     },
     "fast-deep-equal": {
@@ -4410,9 +4408,9 @@
       "integrity": "sha512-81yfsSDoW1shgYftwuPrzYee7ZVNP3aP2418RFmdpRxfoseoFNr6tCakD4aWlpGywUMPwVgQgORlpK31MJR0kA=="
     },
     "jsreport-html-to-xlsx": {
-      "version": "2.5.0",
-      "resolved": "https://registry.npmjs.org/jsreport-html-to-xlsx/-/jsreport-html-to-xlsx-2.5.0.tgz",
-      "integrity": "sha512-XTg5lsHOEL7g4jCH+9JbWxj3qxZUZAs9F+RfY0MxIwxkO8gUlysiZXVTiusLFsWtdzMLb4U6EXM3CT/73pOI6w==",
+      "version": "2.6.0",
+      "resolved": "https://registry.npmjs.org/jsreport-html-to-xlsx/-/jsreport-html-to-xlsx-2.6.0.tgz",
+      "integrity": "sha512-6jG7Tmut++BYANOyh6g49DwHk7KIFkV5i4HiO/FWDfgvrrFCs87HCeE3giWksSYSGUUFuQwPX9JY93uzwLHktg==",
       "requires": {
         "chrome-page-eval": "1.3.0",
         "html-to-xlsx": "2.0.0",
