@@ -42,7 +42,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN npm install -g jsreport-cli
 
-RUN jsreport init 2.7.0
+RUN jsreport init 2.7.1
 
 COPY --chown=jsreport:jsreport editConfig.js /app/editConfig.js
 RUN node editConfig.js
