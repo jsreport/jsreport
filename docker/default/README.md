@@ -32,7 +32,7 @@ Configuring jsreport
 The easiest way is to pass the [configuration](https://jsreport.net/learn/configuration) as environment variables. The [authentication](http://jsreport.net/learn/authentication) can be for example applied in this way
 
 ```sh
-docker run -e "extensions_authentication_admin_username=admin" -e "extensions_authentication_admin_password=xxx" -e "encryption.secretKey=abcabcabcyyylong" -p 80:5488 jsreport/jsreport:2.7.0
+docker run -e "extensions_authentication_admin_username=admin" -e "extensions_authentication_admin_password=xxx" -e "extensions_authentication_cookieSession_secret=yyylong" -p 80:5488 jsreport/jsreport:2.7.0
 ```
 
 Notice that `_` is used as a separator for nested configuration properties. This works usually better in docker environments than also supported `:` separator.
