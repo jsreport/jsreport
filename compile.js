@@ -114,7 +114,7 @@ async function run () {
 
   childProcess.execSync('npm dedupe', { stdio: 'inherit' })
 
-  console.log(`copying files for executable compilation. example.config.json -> dev.config.json, executable-license.txt -> license.txt`)
+  console.log(`copying files for executable compilation. node_modules/jsreport-cli/example.config.json -> dev.config.json, executable-license.txt -> license.txt`)
 
   const configFile = {
     name: 'dev.config.json',
@@ -126,7 +126,7 @@ async function run () {
     path: path.join(__dirname, 'license.txt')
   }
 
-  fs.copyFileSync(path.join(__dirname, 'example.config.json'), configFile.path)
+  fs.copyFileSync(path.join(__dirname, 'node_modules/jsreport-cli/example.config.json'), configFile.path)
   fs.copyFileSync(path.join(__dirname, 'executable-license.txt'), licenseFile.path)
 
   console.log('running compilation "npx jsreport-compile"..')
