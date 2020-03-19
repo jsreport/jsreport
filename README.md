@@ -1,5 +1,6 @@
 
 
+
 # jsreport
 
 [![Join the chat at https://gitter.im/jsreport/jsreport](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jsreport/jsreport?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -52,11 +53,11 @@ jsreport is split into many separated repositories usually representing extensio
 
 ## Roadmap
 
-- pdf password protection
-- pdf forms
+- native js pdf password protection (done in master)
+- pdf forms (in progress)
 - pdf linearization
-- pdf remove hidden elelents
-- docx/pptx - forms, raw openxml, memory optimization...
+- pdf remove hidden elelents (in progress)
+- docx/pptx - charts, html, raw openxml, memory optimization... (in progress)
 - word extension for reports design
 - async studio rendering - real time log output
 - signing jsreport.exe
