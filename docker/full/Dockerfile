@@ -75,7 +75,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 RUN npm install -g jsreport-cli
 
-RUN jsreport init 2.7.1
+RUN jsreport init 2.7.2
 
 RUN npm install --save --save-exact jsreport-ejs@2.2.0 \
         jsreport-pug@3.1.0 \
