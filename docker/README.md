@@ -1,5 +1,4 @@
 
-
 Tags
 ----
 
@@ -7,6 +6,7 @@ Tags
 
 - `jsreport/jsreport:2.7.2` ([Dockerfile](https://github.com/jsreport/jsreport/blob/master/docker/default/Dockerfile))  contains default installation from npm
 - `jsreport/jsreport:2.7.2-full` ([Dockerfile](https://github.com/jsreport/jsreport/blob/master/docker/full/Dockerfile)) contains default installation plus all the community extensions including [wkhtmltopdf](http://jsreport.net/learn/wkhtmltopdf) or [electron](https://github.com/bjrmatos/jsreport-electron-pdf) recipes
+- `jsreport/jsreport:2.7.2-windowsservercore` ([Dockerfile](https://github.com/jsreport/jsreport/blob/master/docker/windowsservercore/Dockerfile)) contains default installation with windows server core based image. Use `c:\jsreport` for mounting volume.
 
 You can find the [list of all available tags and previous versions here](https://hub.docker.com/r/jsreport/jsreport/tags/)
 
