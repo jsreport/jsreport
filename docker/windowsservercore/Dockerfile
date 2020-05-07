@@ -17,12 +17,12 @@ WORKDIR /app
 
 # install jsreport
 RUN npm install -g jsreport-cli && \
-    jsreport init && \
+    jsreport init jsreport/jsreport && \
     npm uninstall -g jsreport-cli && \
     npm cache clean -f
 
 # volume for custom mount
-VOLUME c:\\jsreport 
+VOLUME c:\\jsreport
 ADD run.js /app/run.js
 COPY editConfig.js /app/editConfig.js
 RUN node editConfig.js
