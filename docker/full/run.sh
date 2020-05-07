@@ -1,8 +1,8 @@
 # file run.sh
 #!/bin/sh
 
-if [ -d "/jsreport" ]; then
-  # link data folder from mounted volume
+if [ "$(ls -A /jsreport)" ]; then
+  echo "linking config files and data with mounted /jsreport volume"  
 
   if [ ! -d "/jsreport/data" ]; then
     mkdir "/jsreport/data"
