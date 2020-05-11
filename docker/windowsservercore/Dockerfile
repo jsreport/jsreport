@@ -1,6 +1,12 @@
 FROM mcr.microsoft.com/windows/servercore:ltsc2019
 EXPOSE 5488
 
+# Install Chocolatey
+RUN powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+# Install git
+RUN choco install git.install -y 
+
 # install nodejs
 RUN curl https://nodejs.org/dist/v12.16.2/node-v12.16.2-x64.msi --output nodejs.msi
 RUN msiexec.exe /q /i nodejs.msi
@@ -16,9 +22,8 @@ SHELL ["cmd", "/S", "/C"]
 WORKDIR /app
 
 # install jsreport
-RUN npm install -g jsreport-cli && \
-    jsreport init jsreport/jsreport && \
-    npm uninstall -g jsreport-cli && \
+RUN npm install -g jsreport/jsreport-cli && \
+    jsreport init jsreport/jsreport && \    
     npm cache clean -f
 
 # volume for custom mount
