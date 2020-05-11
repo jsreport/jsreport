@@ -73,7 +73,7 @@ WORKDIR /app
 # the chrome was already installed from apt-get
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN npm install -g jsreport-cli
+RUN npm install -g jsreport/jsreport-cli
 
 RUN jsreport init jsreport/jsreport
 
