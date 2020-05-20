@@ -38,7 +38,7 @@
   "dependencies": {
     "handlebars": "4.7.6",
     "jsreport-assets": "1.5.3",
-    "jsreport-authentication": "2.4.2",
+    "jsreport-authentication": "2.5.0",
     "jsreport-authorization": "2.3.0",
     "jsreport-base": "2.0.2",
     "jsreport-browser-client": "2.2.2",
