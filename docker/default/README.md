@@ -18,5 +18,6 @@ Usage
 1. Install [Docker](https://www.docker.com/)
 2. `sudo docker run -p 80:5488 jsreport/jsreport:2.7.2`
 
-This is the most basic usage. It will start jsreport server on port 80 directly in the current shell with data and configuration stored directly in container. Change 80 http port to whatever you want.
+This is the most basic usage. It will start jsreport server on port 80 directly in the current shell with data and configuration stored directly in the container. Change 80 http port to whatever you want.
 
+The full documentation for the jsreport official images can be found at https://jsreport.net/learn/docker
