@@ -18,7 +18,7 @@ RUN adduser --disabled-password --gecos "" jsreport && \
         xfonts-base && \
     # java fop
     apt-get install -y default-jre unzip && \
-    curl -o fop.zip apache.miloslavbrada.cz/xmlgraphics/fop/binaries/fop-2.1-bin.zip && \
+    curl -o fop.zip archive.apache.org/dist/xmlgraphics/fop/binaries/fop-2.1-bin.zip && \
     unzip fop.zip && \
     rm fop.zip && \
     chmod +x fop-2.1/fop && \
