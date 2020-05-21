@@ -2,8 +2,6 @@
 Tags
 ----
 
-## Tags
-
 [jsreport/jsreport](https://hub.docker.com/r/jsreport/jsreport/) image is automatically pushed with adequate tags into [docker hub](https://www.docker.com/)  public repository in three variations:
 
 - `jsreport/jsreport:2.8.0` ([Dockerfile](https://github.com/jsreport/jsreport/blob/master/docker/default/Dockerfile))  contains default installation from npm
