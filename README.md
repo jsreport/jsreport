@@ -53,13 +53,12 @@ jsreport is split into many separated repositories usually representing extensio
 
 ## Roadmap
 
-- native js pdf password protection (done in master)
-- pdf forms (in progress)
-- pdf linearization
-- pdf remove hidden elelents (in progress)
-- docx/pptx - charts, html, raw openxml, memory optimization... (in progress)
+- import/export pairing by name and proper references resoliving
+- integrate to the xlsx recipe the same templating capabilities as in the docx
+- pdf linearization, PDF/A
+- docx/pptx - simple html embedding, raw openxml, memory optimization
 - word extension for reports design
-- async studio rendering - real time log output
+- async studio rendering - real-time log output
 - signing jsreport.exe
 - html-to-xlsx - images, filters...
 - nodejs workers usage
@@ -72,7 +71,7 @@ More in the [backlog](https://github.com/jsreport/jsreport/issues).
 ## Licensing
 Copyright (C) 2020 Jan Blaha
 
-Do you want to use jsreport for a personal purpose, in a school project or a non-profit organisation?
+Do you want to use jsreport for a personal purpose, in a school project or a non-profit organization?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without author's permission
 also when having maximum 5 templates stored in jsreport storage.
 
