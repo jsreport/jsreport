@@ -22,8 +22,8 @@ SHELL ["cmd", "/S", "/C"]
 WORKDIR /app
 
 # install jsreport
-RUN npm install -g jsreport-cli && \
-    jsreport init 2.8.0 && \
+RUN npm install -g jsreport/jsreport-cli && \
+    jsreport init jsreport/jsreport && \
     npm cache clean -f
 
 # volume for custom mount
