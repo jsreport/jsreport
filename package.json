@@ -49,7 +49,7 @@
     "jsreport-data": "github:jsreport/jsreport-data",
     "jsreport-debug": "2.1.3",
     "jsreport-docx": "github:jsreport/jsreport-docx",
-    "jsreport-express": "2.6.0",
+    "jsreport-express": "github:jsreport/jsreport-express",
     "jsreport-freeze": "2.0.0",
     "jsreport-fs-store": "2.8.0",
     "jsreport-handlebars": "2.1.0",
