@@ -26,4 +26,4 @@ if [ "$(ls -A /jsreport)" ]; then
   chown -R jsreport:jsreport /jsreport
 fi
 
-node "/app/server.js"
+exec node "/app/server.js"
