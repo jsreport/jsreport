@@ -67,6 +67,10 @@ More in the [backlog](https://github.com/jsreport/jsreport/issues).
 
 **Missing a feature? Submit a feature request.**
 
+## Vulnerabilities
+
+We guarantee every release is stable and has 0 vulnerabilities mentioned in the npm audit. When you see a security warning in your audit, please just wait until we release the next version with the dependencies update, there is no need to create a ticket for it. In case you see a direct impact on jsreport security, please send us an email and we will apply a direct hotfix if it will be possible.
+
 ## Licensing
 Copyright (C) 2020 Jan Blaha
 
