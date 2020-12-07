@@ -23,7 +23,7 @@ WORKDIR /app
 
 # install jsreport
 RUN npm install -g jsreport-cli && \
-    jsreport init 2.10.0 && \
+    jsreport init jsreport/jsreport && \
     npm cache clean -f
 
 # volume for custom mount
