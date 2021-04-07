@@ -11,12 +11,12 @@ language: node_js
 node_js:
   - '8'
 
-before_deploy:
-  - "cp example.config.json dev.config.json"
-  - "cp executable-license.txt license.txt"
-  - "npm install jsreport-compile jsreport-puppeteer-compile"
-  - "npm run compile"
-  - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport license.txt"
+# before_deploy:
+#   - "cp node_modules/jsreport-cli/example.config.json dev.config.json"
+#   - "cp executable-license.txt license.txt"
+#   - "npm install jsreport-compile jsreport-puppeteer-compile"
+#   - "npm run compile"
+#   - "tar -czvf jsreport-$TRAVIS_OS_NAME.tar.gz jsreport license.txt"
 
 addons:
   apt:
@@ -28,12 +28,12 @@ addons:
     - g++-5
     - clang-3.6
 
-deploy:
-  provider: releases
-  skip_cleanup: true
-  api_key:
-    secure: TlV2eBd3M16e1LmsBR+8H982L1z2Hn5LghbgpwkIvxxBfjo7uuMYSwoL0ihY36Q7nGMYWvCUNn3tPZCeGolXQOdKbwOggjDMpk23rKpTj7D5IL/84Izcz0iQpugi0CZe4OcmoitLIa9h/2x9oGUJAbdmqQawGdHkuASa25tb+h4=
-  file:
-    - jsreport-$TRAVIS_OS_NAME.tar.gz
-  on:
-    tags: true
+# deploy:
+#   provider: releases
+#   skip_cleanup: true
+#   api_key:
+#     secure: TlV2eBd3M16e1LmsBR+8H982L1z2Hn5LghbgpwkIvxxBfjo7uuMYSwoL0ihY36Q7nGMYWvCUNn3tPZCeGolXQOdKbwOggjDMpk23rKpTj7D5IL/84Izcz0iQpugi0CZe4OcmoitLIa9h/2x9oGUJAbdmqQawGdHkuASa25tb+h4=
+#   file:
+#     - jsreport-$TRAVIS_OS_NAME.tar.gz
+#   on:
+#     tags: true

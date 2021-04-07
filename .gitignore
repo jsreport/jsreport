@@ -128,6 +128,12 @@ data/*
 /result.txt
 prod.config.json
 dev.config.json
+# exe compilation
+jsreportPkgConfig.json
+jsreportStartup.js
+exe-temp-resources
+vfs.json
+# end exe compilation
 .idea
 html-templates.js
 

@@ -1,8 +1,8 @@
 # file run.sh
 #!/bin/sh
 
-if [ -d "/jsreport" ]; then
-  # link data folder from mounted volume
+if [ "$(ls -A /jsreport)" ]; then
+  echo "linking config files and data with mounted /jsreport volume"  
 
   if [ ! -d "/jsreport/data" ]; then
     mkdir "/jsreport/data"
@@ -15,7 +15,6 @@ if [ -d "/jsreport" ]; then
     cp "/app/jsreport.config.json" "/jsreport/jsreport.config.json"
   fi
 
-  
   ln -s "/jsreport/prod.config.json" "/app/prod.config.json"
   ln -s "/jsreport/dev.config.json" "/app/dev.config.json"
   ln -s "/jsreport/license-key.txt" "/app/license-key.txt"
@@ -26,8 +25,6 @@ if [ -d "/jsreport" ]; then
 
   chown -R jsreport:jsreport /jsreport
 fi
-
-su jsreport
 
 echo Trying to remove the lock on display 99
 rm /tmp/.X99-lock > /dev/null 2>&1

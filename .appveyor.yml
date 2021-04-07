@@ -17,12 +17,12 @@ test_script:
   - npm test
 
 before_deploy:
-  - "copy example.config.json dev.config.json"
+  - "copy node_modules/jsreport-cli/example.config.json dev.config.json"
   - "copy executable-license.txt license.txt"
   - "npm install jsreport-compile jsreport-puppeteer-compile"
   - "npm run compile"
   - "7z a jsreport-win.zip jsreport.exe license.txt"
-  - "appveyor PushArtifact jsreport-win.zip"  
+  - "appveyor PushArtifact jsreport-win.zip"
 
 deploy:
  provider: GitHub
