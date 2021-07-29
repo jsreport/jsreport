@@ -39,7 +39,6 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.2",
     "execa": "1.0.0",
     "in-publish": "2.0.1",
     "jsreport-assets": "1.7.0",
@@ -68,7 +67,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

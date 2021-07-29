@@ -2,7 +2,7 @@
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
 const __xlsx = (function () {
-  var fsproxy = this.fsproxy || require('fsproxy.js')
+  const fsproxy = this.fsproxy || require('fsproxy.js')
 
   function print () {
     ensureWorksheetOrder(this.ctx.root.$xlsxTemplate)
@@ -13,7 +13,7 @@ const __xlsx = (function () {
     })
   }
 
-  var worksheetOrder = {
+  const worksheetOrder = {
     sheetPr: -2,
     dimension: -1,
     sheetViews: 1,
@@ -57,7 +57,7 @@ const __xlsx = (function () {
   }
 
   function ensureWorksheetOrder (data) {
-    for (var key in data) {
+    for (const key in data) {
       if (key.indexOf('xl/worksheets/') !== 0) {
         continue
       }
@@ -66,8 +66,8 @@ const __xlsx = (function () {
         continue
       }
 
-      var worksheet = data[key].worksheet
-      var sortedWorksheet = {}
+      const worksheet = data[key].worksheet
+      const sortedWorksheet = {}
       Object.keys(worksheet).sort(function (a, b) {
         if (!worksheetOrder[a]) return -1 // undefined in worksheetOrder goes at top of list
         if (!worksheetOrder[b]) return 1
@@ -84,24 +84,24 @@ const __xlsx = (function () {
   // supports simple paths as worksheet.rows[0]
   // and also paths with array accessor like ['chart:c].plot
   function evalGet (obj, path) {
-    var fn = 'return obj' + (path[0] !== '[' && path[0] !== '.' ? '.' : '') + path
+    const fn = 'return obj' + (path[0] !== '[' && path[0] !== '.' ? '.' : '') + path
     return new Function('obj', fn)(obj)
   }
 
   function evalSet (obj, path, val) {
-    var fn = 'obj' + (path[0] !== '[' && path[0] !== '.' ? '.' : '') + path + '= val'
+    const fn = 'obj' + (path[0] !== '[' && path[0] !== '.' ? '.' : '') + path + '= val'
 
     return new Function('obj', 'val', fn)(obj, val)
   }
 
   function replace (filePath, path) {
     if (typeof path === 'string') {
-      var lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
-      var pathWithoutLastFragemnt = path.substring(0, lastFragmentIndex)
-      var pathOfLastFragment = path.substring(lastFragmentIndex)
-      var holder = evalGet(this.ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragemnt)
+      const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
+      const pathWithoutLastFragemnt = path.substring(0, lastFragmentIndex)
+      const pathOfLastFragment = path.substring(lastFragmentIndex)
+      const holder = evalGet(this.ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragemnt)
       this.$replacedValue = evalGet(holder, pathOfLastFragment)
-      var contentToReplace = this.tagCtx.render(this.ctx.data)
+      let contentToReplace = this.tagCtx.render(this.ctx.data)
       try {
         contentToReplace = xml2jsonUnwrap(contentToReplace)
       } catch (e) {
@@ -117,17 +117,17 @@ const __xlsx = (function () {
   }
 
   function remove (filePath, path, index) {
-    var obj = this.ctx.root.$xlsxTemplate[filePath]
-    var collection = evalGet(obj, path)
+    const obj = this.ctx.root.$xlsxTemplate[filePath]
+    const collection = evalGet(obj, path)
     this.ctx.root.$removedItem = collection[index]
     collection.splice(index, 1)
     return ''
   }
 
   function merge (filePath, path) {
-    var json = xml2jsonUnwrap(escape(this.tagCtx.render(this.ctx.data), this.ctx.root))
+    const json = xml2jsonUnwrap(escape(this.tagCtx.render(this.ctx.data), this.ctx.root))
 
-    var mergeTarget = evalGet(this.ctx.root.$xlsxTemplate[filePath], path)
+    const mergeTarget = evalGet(this.ctx.root.$xlsxTemplate[filePath], path)
 
     _.merge(mergeTarget, json)
     return ''
@@ -140,7 +140,7 @@ const __xlsx = (function () {
   }
 
   function bufferedFlush (root) {
-    var buffers = root.$buffers || {}
+    const buffers = root.$buffers || {}
 
     Object.keys(buffers).forEach(function (f) {
       Object.keys(buffers[f]).forEach(function (k) {
@@ -153,7 +153,7 @@ const __xlsx = (function () {
 
   function bufferedAppend (file, xmlPath, root, collection, data) {
     root.$files = root.$files || []
-    var buffers = root.$buffers = root.$buffers || {}
+    const buffers = root.$buffers = root.$buffers || {}
     buffers[file] = buffers[file] || {}
 
     buffers[file][xmlPath] = buffers[file][xmlPath] || { collection: collection, data: '' }
@@ -175,10 +175,10 @@ const __xlsx = (function () {
   }
 
   function add (filePath, xmlPath) {
-    var obj = this.ctx.root.$xlsxTemplate[filePath]
-    var collection = safeGet(obj, xmlPath)
+    const obj = this.ctx.root.$xlsxTemplate[filePath]
+    const collection = safeGet(obj, xmlPath)
 
-    var xml = escape(this.tagCtx.render(this.ctx.data).trim(), this.ctx.root)
+    const xml = escape(this.tagCtx.render(this.ctx.data).trim(), this.ctx.root)
     if (collection.length < this.ctx.root.$numberOfParsedAddIterations) {
       collection.push(xml2jsonUnwrap(xml))
       return ''
@@ -194,17 +194,17 @@ const __xlsx = (function () {
    */
   function safeGet (obj, path) {
     // split ['c:chart'].row[0] into ['c:chart', 'row', 0]
-    var paths = path.replace(/\[/g, '.').replace(/\]/g, '').replace(/'/g, '').split('.')
+    const paths = path.replace(/\[/g, '.').replace(/\]/g, '').replace(/'/g, '').split('.')
 
-    for (var i = 0; i < paths.length; i++) {
+    for (let i = 0; i < paths.length; i++) {
       if (paths[i] === '') {
         // the first can be empty string if the path starts with ['chart:c']
         continue
       }
 
-      var objReference = 'obj["' + paths[i] + '"]'
+      const objReference = 'obj["' + paths[i] + '"]'
       // the last must be always array, also if accessor is number, we want to initialize as array
-      var emptySafe = ((i === paths.length - 1) || !isNaN(paths[i + 1])) ? '[]' : '{}'
+      const emptySafe = ((i === paths.length - 1) || !isNaN(paths[i + 1])) ? '[]' : '{}'
       new Function('obj', objReference + ' = ' + objReference + ' || ' + emptySafe)(obj)
 
       obj = new Function('obj', 'return ' + objReference)(obj)
@@ -214,10 +214,10 @@ const __xlsx = (function () {
   }
 
   function addSheet (name) {
-    var id = this.ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
-    var fileName = 'sheet' + id
-    var fileFullName = fileName + '.xml'
-    var path = 'xl/worksheets/' + fileFullName
+    const id = this.ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
+    const fileName = 'sheet' + id
+    const fileFullName = fileName + '.xml'
+    const path = 'xl/worksheets/' + fileFullName
 
     this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
       $: {
@@ -243,13 +243,13 @@ const __xlsx = (function () {
   }
 
   function ensureDrawingOnSheet (sheetFullName) {
-    var drawingFullName
-    var worksheet = this.ctx.root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
+    let drawingFullName
+    const worksheet = this.ctx.root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
     if (worksheet.drawing) {
       const drawings = Array.isArray(worksheet.drawing) ? worksheet.drawing : [worksheet.drawing]
 
       for (const drawing of drawings) {
-        var rid = drawing.$['r:id']
+        const rid = drawing.$['r:id']
         this.ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.forEach(function (r) {
           if (r.$.Id === rid) {
             drawingFullName = r.$.Target.replace('../drawings/', '')
@@ -257,12 +257,12 @@ const __xlsx = (function () {
         })
       }
     } else {
-      var numberOfDrawings = 0
+      let numberOfDrawings = 0
       this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.forEach(function (o) {
         numberOfDrawings += o.$.PartName.indexOf('/xl/drawings') === -1 ? 0 : 1
       })
 
-      var drawingName = 'drawing' + (numberOfDrawings + 1)
+      const drawingName = 'drawing' + (numberOfDrawings + 1)
       drawingFullName = drawingName + '.xml'
 
       worksheet.drawing = {
@@ -309,7 +309,7 @@ const __xlsx = (function () {
   }
 
   function addImage (imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
-    var name = imageName + '.png'
+    const name = imageName + '.png'
 
     if (!this.ctx.root.$xlsxTemplate['xl/media/' + name]) {
       this.ctx.root.$xlsxTemplate['xl/media/' + name] = this.tagCtx.render(this.ctx.data)
@@ -325,9 +325,9 @@ const __xlsx = (function () {
     }
 
     ensureRelOnSheet.call(this, sheetFullName)
-    var drawingFullName = ensureDrawingOnSheet.call(this, sheetFullName)
+    const drawingFullName = ensureDrawingOnSheet.call(this, sheetFullName)
 
-    var drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
+    const drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
     this.ctx.root.$xlsxTemplate[drawingRelPath] =
       this.ctx.root.$xlsxTemplate[drawingRelPath] || {
         Relationships: {
@@ -336,8 +336,8 @@ const __xlsx = (function () {
         }
       }
 
-    var relNumber = this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
-    var relName = 'rId' + relNumber
+    const relNumber = this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
+    const relName = 'rId' + relNumber
 
     if (!this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
       this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
@@ -349,7 +349,7 @@ const __xlsx = (function () {
       })
     }
 
-    var drawing = this.ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
+    const drawing = this.ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
     drawing['xdr:wsDr']['xdr:twoCellAnchor'] = drawing['xdr:wsDr']['xdr:twoCellAnchor'] || []
 
     drawing['xdr:wsDr']['xdr:twoCellAnchor'].push(xml2jsonUnwrap(
@@ -364,17 +364,17 @@ const __xlsx = (function () {
     ))
   }
 
-  var _ = require('lodash')
-  var xml2js = require('xml2js-preserve-spaces')
+  const _ = require('lodash')
+  const xml2js = require('xml2js-preserve-spaces')
 
-  var xml2jsonUnwrap = function (xml) {
-    var result = xml2json(xml)
+  const xml2jsonUnwrap = function (xml) {
+    const result = xml2json(xml)
     return result[Object.keys(result)[0]]
   }
 
-  var xml2json = function (xml) {
-    var result = {}
-    var err = null
+  const xml2json = function (xml) {
+    let result = {}
+    let err = null
     xml2js.parseString(xml, function (aerr, res) {
       result = res
       err = aerr
@@ -391,7 +391,7 @@ const __xlsx = (function () {
     return function () {
       if (arguments.length && arguments[arguments.length - 1].name && arguments[arguments.length - 1].hash) {
         // handlebars
-        var options = arguments[arguments.length - 1]
+        const options = arguments[arguments.length - 1]
 
         this.ctx = {
           root: options.data.root,

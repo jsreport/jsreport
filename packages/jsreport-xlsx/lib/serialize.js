@@ -21,6 +21,7 @@ async function parseXlsx (base64contentOrBuffer) {
     if (!result[f.path]) {
       result[f.path] = f.data.toString('utf8')
     }
+    return result
   }))
 
   return result

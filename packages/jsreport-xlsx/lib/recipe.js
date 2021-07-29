@@ -7,7 +7,7 @@ const merge = require('merge2')
 const { response, serializeOfficeXmls } = require('jsreport-office')
 
 const stringToStream = (str) => {
-  var s = new stream.Readable()
+  const s = new stream.Readable()
   s.push(str)
   s.push(null)
   return s

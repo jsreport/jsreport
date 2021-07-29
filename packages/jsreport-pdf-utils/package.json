@@ -45,7 +45,6 @@
     "pdfjs-dist": "2.0.489"
   },
   "devDependencies": {
-    "babel-eslint": "10.1.0",
     "handlebars": "4.7.7",
     "jsreport-assets": "1.7.0",
     "jsreport-child-templates": "1.4.0",
@@ -68,7 +67,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

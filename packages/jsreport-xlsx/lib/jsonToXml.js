@@ -1,7 +1,7 @@
 const convertAttributes = (obj) => {
-  var xml = ''
+  let xml = ''
   if (obj.$) {
-    for (var attrKey in obj.$) {
+    for (const attrKey in obj.$) {
       xml += ` ${attrKey}="${convertEntitiesInAttr(obj.$[attrKey])}"`
     }
   }

@@ -43,7 +43,6 @@
     "password-hash": "1.2.2"
   },
   "devDependencies": {
-    "babel-eslint": "10.1.0",
     "express": "4.17.1",
     "in-publish": "2.0.1",
     "jsreport-core": "2.10.1",
@@ -63,7 +62,6 @@
       "studio/main.js",
       "public/**"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

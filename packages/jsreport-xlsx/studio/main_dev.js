@@ -70,10 +70,12 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
 
     return {
       key: editorKey,
-      entity: editorKey === 'assets' ? {
-        ...entity,
-        name: `${entity.name}.xlsx`
-      } : entity,
+      entity: editorKey === 'assets'
+        ? {
+            ...entity,
+            name: `${entity.name}.xlsx`
+          }
+        : entity,
       props: editorProps
     }
   }
@@ -103,8 +105,8 @@ Studio.runListeners.push((request, entities) => {
 
   Studio.openModal(() => (
     <div>
-    We need to upload your office report to our publicly hosted server to be able to use
-    Excel Online Service for previewing here in the studio. You can disable it in the configuration, see <a href='https://jsreport.net/learn/xlsx' rel='noopener noreferrer' target='_blank'>https://jsreport.net/learn/xlsx</a> for details.
+      We need to upload your office report to our publicly hosted server to be able to use
+      Excel Online Service for previewing here in the studio. You can disable it in the configuration, see <a href='https://jsreport.net/learn/xlsx' rel='noopener noreferrer' target='_blank'>https://jsreport.net/learn/xlsx</a> for details.
     </div>
   ))
 })
