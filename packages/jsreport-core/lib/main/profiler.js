@@ -73,21 +73,22 @@ module.exports = (reporter) => {
       req.context.resolvedTemplate = template
     }
 
-    const profile = await reporter.documentStore.collection('profiles').insert({
-      templateShortid: template != null ? template.shortid : null,
-      timestamp: new Date(),
-      state: 'running',
-      blobName
-    }, req)
-
-    req.context.profiling.entity = profile
-
     if (!req.context.profiling.isAttached) {
       const setting = await reporter.documentStore.collection('settings').findOne({ key: 'fullProfilerRunning' }, req)
       if (setting && JSON.parse(setting.value)) {
         req.context.profiling.isAttached = true
       }
     }
+
+    const profile = await reporter.documentStore.collection('profiles').insert({
+      templateShortid: template != null ? template.shortid : null,
+      timestamp: new Date(),
+      state: 'running',
+      blobName,
+      fullRequestProfiling: req.context.profiling.isAttached
+    }, req)
+
+    req.context.profiling.entity = profile
   })
 
   reporter.afterRenderListeners.add('profiler', async (req, res) => {
