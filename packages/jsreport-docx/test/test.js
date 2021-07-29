@@ -2,14 +2,14 @@ const should = require('should')
 const jsreport = require('jsreport-core')
 const fs = require('fs')
 const path = require('path')
-const util = require('util')
 const { DOMParser } = require('xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const { decompress } = require('jsreport-office')
 const sizeOf = require('image-size')
-const textract = util.promisify(require('textract').fromBufferWithName)
 const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
+const WordExtractor = require('word-extractor')
+const extractor = new WordExtractor()
 
 async function getImageSize (buf) {
   const files = await decompress()(buf)
@@ -99,8 +99,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
-    text.should.containEql('More than 2 users')
+    const doc = await extractor.extract(result.content)
+    doc.getBody().should.containEql('More than 2 users')
   })
 
   it('condition with docProps/thumbnail.jpeg in docx', async () => {
@@ -125,8 +125,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
-    text.should.containEql('More than 2 users')
+    const doc = await extractor.extract(result.content)
+    doc.getBody().should.containEql('More than 2 users')
   })
 
   it('variable-replace', async () => {
@@ -148,35 +148,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
-  })
-
-  it('variable-replace should remove NUL unicode character', async () => {
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
-            )
-          }
-        }
-      },
-      data: {
-        name: 'Jan\u0000'
-      }
-    })
-
-    fs.writeFileSync('out.docx', result.content)
-
-    const files = await decompress()(result.content)
-
-    const doc = files.find(f => f.path === 'word/document.xml').data.toString()
-
-    doc.indexOf('\u0000').should.be.eql(-1)
   })
 
   it('variable-replace-multi', async () => {
@@ -199,8 +172,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
-    text.should.containEql(
+    const doc = await extractor.extract(result.content)
+    doc.getBody().replace(/\n/g, ' ').should.containEql(
       'Hello world John developer Another lines John developer with Wick as lastname'
     )
   })
@@ -264,7 +237,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const doc = await extractor.extract(result.content)
+    const text = doc.getBody()
     text.should.containEql('T-123')
     text.should.containEql('jsreport')
     text.should.containEql('Prague 345')
@@ -287,7 +261,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const doc = await extractor.extract(result.content)
+    const text = doc.getEndnotes()
     text.should.containEql('endnotevalue')
   })
 
@@ -308,7 +283,8 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const doc = await extractor.extract(result.content)
+    const text = doc.getFootnotes()
     text.should.containEql('footnotevalue')
   })
 
@@ -329,7 +305,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('website')
 
     const files = await decompress()(result.content)
@@ -366,7 +342,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getHeaders()
     text.should.containEql('jsreport')
 
     const files = await decompress()(result.content)
@@ -405,7 +381,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getFooters()
     text.should.containEql('jsreport')
 
     const files = await decompress()(result.content)
@@ -448,7 +424,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getHeaders()
     text.should.containEql('jsreport')
 
     const files = await decompress()(result.content)
@@ -505,7 +481,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/\t/g, ' ')
 
     text.should.containEql('1 Preliminary 1')
     text.should.containEql('1.1 Name of the Company 1')
@@ -587,7 +563,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan')
     text.should.containEql('Boris')
   })
@@ -620,7 +596,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
 
     text.should.containEql('jsreport')
     text.should.containEql('github')
@@ -654,7 +630,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getEndnotes()
 
     text.should.containEql('note 1n')
     text.should.containEql('note 2n')
@@ -688,7 +664,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getFootnotes()
 
     text.should.containEql('note 1n')
     text.should.containEql('note 2n')
@@ -733,7 +709,7 @@ describe('docx', () => {
 
     fs.writeFileSync('out.docx', result.content)
 
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
 
     text.should.containEql('Boris')
     text.should.containEql('Junior')
@@ -765,7 +741,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/\n/g, ' ')
     text.should.containEql(
       'This is a test John here we go Test 1 Test 2 Test 3'
     )
@@ -790,7 +766,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/\n/g, ' ')
     text.should.containEql(
       'This is a test John here we go Test 1 Test 2 Test 3 This is another test John can you see me here'
     )
@@ -854,7 +830,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan')
     text.should.containEql('Boris')
   })
@@ -900,7 +876,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
 
     text.should.containEql('Go to the site1')
     text.should.containEql('Go to the site2')
@@ -951,7 +927,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getEndnotes()
 
     text.should.containEql('note site1')
     text.should.containEql('note site2')
@@ -1002,7 +978,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getFootnotes()
 
     text.should.containEql('note site1')
     text.should.containEql('note site2')
@@ -1049,7 +1025,7 @@ describe('docx', () => {
 
     fs.writeFileSync('out.docx', result.content)
 
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
 
     text.should.containEql('Rick')
     text.should.containEql('Andrea')
@@ -1089,7 +1065,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan')
     text.should.containEql('jan.blaha@foo.com')
     text.should.containEql('Boris')
@@ -1120,7 +1096,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Name')
     text.should.containEql('Email')
     text.should.containEql('Jan')
@@ -1153,7 +1129,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Name')
     text.should.containEql('Email')
     text.should.containEql('Jan')
@@ -1186,7 +1162,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('0-0')
     text.should.containEql('0-1')
     text.should.containEql('1-0')
@@ -1220,7 +1196,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('My Table - Name')
     text.should.containEql('My Table - Email')
     text.should.containEql('My Table - Jan')
@@ -1880,7 +1856,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Chapter 1')
     text.should.containEql('This is the first chapter')
     text.should.containEql('Chapter 2')
@@ -1937,7 +1913,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan Blaha')
   })
 
@@ -2737,9 +2713,7 @@ describe('docx', () => {
     dataElements.forEach((dataEl, idx) => {
       dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
 
-      let dlIdx = 0
-
-      nodeListToArray(dataEl.getElementsByTagName('c:dLbls')[0].getElementsByTagName('dLbl')).should.matchEach((dataLabelEl) => {
+      nodeListToArray(dataEl.getElementsByTagName('c:dLbls')[0].getElementsByTagName('dLbl')).should.matchEach((dataLabelEl, dlIdx) => {
         let targetDataLabel = datasets[idx].dataLabels[dlIdx]
 
         if (typeof targetDataLabel !== 'string') {
@@ -2747,67 +2721,6 @@ describe('docx', () => {
         }
 
         dataLabelEl.getElementsByTagName('c:tx')[0].getElementsByTagName('a:t')[0].textContent.should.be.eql(targetDataLabel)
-
-        dlIdx++
-      })
-    })
-  })
-
-  it('chart should allow setting error bar values', async () => {
-    const labels = ['Category1', 'Category2', 'Category3', 'Category4']
-
-    const datasets = [{
-      label: 'Data',
-      data: [4.3, 2.5, 3.5, 4.5],
-      // 0 index is for positive value and 1 index is for the negative value
-      dataErrors: [[6, 3], [3, 2], [7, 2], [3, 1]]
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-general-dataerrors.docx'))
-          }
-        }
-      },
-      data: {
-        chartData: {
-          labels,
-          datasets
-        }
-      }
-    })
-
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'word/charts/chart1.xml').data.toString()
-    )
-
-    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
-
-    dataElements.should.have.length(1)
-
-    dataElements.forEach((dataEl, idx) => {
-      dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
-
-      let vPlusIdx = 0
-
-      nodeListToArray(dataEl.getElementsByTagName('c:errBars')[0].getElementsByTagName('c:plus')[0].getElementsByTagName('c:v')).should.matchEach((vEl) => {
-        const targetValue = datasets[idx].dataErrors[vPlusIdx][0]
-        parseInt(vEl.textContent, 10).should.be.eql(targetValue)
-        vPlusIdx++
-      })
-
-      let vMinusIdx = 0
-
-      nodeListToArray(dataEl.getElementsByTagName('c:errBars')[0].getElementsByTagName('c:minus')[0].getElementsByTagName('c:v')).should.matchEach((vEl) => {
-        const targetValue = datasets[idx].dataErrors[vMinusIdx][1]
-        parseInt(vEl.textContent, 10).should.be.eql(targetValue)
-        vMinusIdx++
       })
     })
   })
@@ -4161,7 +4074,7 @@ describe('docx', () => {
       }
     })
 
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
   })
 
@@ -4212,7 +4125,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('My Table - Name')
     text.should.containEql('My Table - Email')
     text.should.containEql('My Table - Jan')
@@ -4262,7 +4175,7 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
-    const text = await textract('test.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('My Table - Name')
     text.should.containEql('My Table - Email')
     text.should.containEql('My Table - Jan')
@@ -4499,40 +4412,6 @@ describe('docx', () => {
       },
       data: {}
     }).should.be.rejectedWith(/Could not find a reference element that matches the "replaceParentElement" parameter of the docxRaw helper in the document tree: w:tc/)
-  })
-
-  it('shape with textbox enclosed in if block', async () => {
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'shape-in-if.docx'))
-          }
-        }
-      },
-      data: {
-        key: 'value'
-      }
-    })
-
-    // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
-
-    const files = await decompress()(result.content)
-
-    const doc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'word/document.xml').data.toString()
-    )
-
-    const graphicDataElements = nodeListToArray(doc.getElementsByTagName('a:graphicData'))
-    graphicDataElements.length.should.be.eql(1)
-    should(graphicDataElements[0].parentNode.nodeName).be.eql('a:graphic')
-
-    const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
-    textElements.length.should.be.eql(2)
-    should(textElements[0].textContent).be.eql('value')
   })
 })
 
