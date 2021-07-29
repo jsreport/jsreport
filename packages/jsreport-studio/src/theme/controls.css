@@ -1,0 +1,91 @@
+
+.form-group {
+  display: block;
+  margin: 0.5rem 1rem;
+  min-width: 8rem;
+}
+
+.form-group > * {
+  display: block;
+  width: 100%;
+  margin-top: 0.3rem;
+}
+
+select {
+  border: none;
+  background-color: $controls-backgroundColor;
+  color: $controls-color;
+  border-bottom: solid 0.2rem $controls-borderColor;
+  transition: border 0.3s;
+  padding: 0.5rem;
+}
+
+select:hover, select:focus, select:active {
+  border-bottom: solid 0.2rem $controls-hover-borderColor;
+}
+
+input {
+  border: none;
+  background-color: $controls-backgroundColor;
+  color: $controls-color;
+  border-bottom: solid 0.2rem $controls-borderColor;
+  transition: border 0.3s;
+  padding: 0.3rem;
+}
+
+input:hover, input:focus, input:active {
+  border-bottom: solid 0.2rem $controls-hover-borderColor;
+}
+
+input[type=text] {
+  width: 100%;
+}
+
+input[type=checkbox] {
+  width: auto;
+  /*fix for slow checks (blinks) in Safari*/
+  transform: translateZ(0);
+}
+
+textarea {
+  background-color: $controls-backgroundColor;
+  color: $controls-color;
+}
+
+.button-bar {
+  display: flex;
+  margin-top: 2rem;
+  flex-direction: row-reverse;
+}
+
+.button {
+  margin-left: 1rem;
+  flex: 0.1;
+  border: none;
+  color: $button-color;
+  padding: 0.5rem;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0 1px $button-shadowColor;
+}
+
+.button.disabled, .disabled {
+  color: $button-disabled-color;
+}
+
+.button:hover, .button:focus, button:active {
+  box-shadow: 0 0 0.1rem $button-active-shadowColor;
+}
+
+.button.confirmation {
+  background-color: $button-confirmation-backgroundColor;
+}
+
+.button.danger {
+  background-color: $button-danger-backgroundColor;
+}
+
+:focus {
+  outline: 0;
+}

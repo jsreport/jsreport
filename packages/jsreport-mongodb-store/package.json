@@ -1,0 +1,44 @@
+{
+  "name": "jsreport-mongodb-store",
+  "version": "1.3.3",
+  "description": "jsreport extension adding support for storing report templates inside mongodb",
+  "keywords": [
+    "jsreport",
+    "mongodb"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-mongodb-store",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-mongodb-store.git"
+  },
+  "author": "Jan Blaha",
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "mocha --timeout 15000 test && standard",
+    "test-with-transactions": "cross-env RUN_TRANSACTIONS_TESTS=true USE_REPLICA=true mocha --timeout 15000 test && standard"
+  },
+  "dependencies": {
+    "mongodb": "3.6.5"
+  },
+  "devDependencies": {
+    "cross-env": "6.0.3",
+    "jsreport-core": "2.10.1",
+    "mocha": "5.2.0",
+    "should": "13.2.3",
+    "standard": "12.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  }
+}

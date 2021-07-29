@@ -1,0 +1,62 @@
+{
+  "httpPort": 5488,
+  "allowLocalFilesAccess": true,
+  "store": {
+    "provider": "fs"
+  },
+  "blobStorage": {
+    "provider": "fs"
+  },
+  "reportTimeout": 60000,
+  "extensions": {
+    "docker-workers": {
+      "enabled": true,
+      "container": {
+        "image": "worker",
+        "memory": "520m",
+        "memorySwap": "720m",
+        "cpus": "0.8"
+      },
+      "numberOfWorkers": 3
+    },
+    "authentication": {
+      "admin": {
+        "username": "admin",
+        "password": "password"
+      },
+      "enabled": false
+    },
+    "sample-template": {
+      "createSamples": true
+    }
+  },
+  "extensionsList": [
+    "authentication",
+    "authorization",
+    "assets",
+    "base",
+    "data",
+    "docker-workers",
+    "docx",
+    "express",
+    "freeze",
+    "fs-store",
+    "handlebars",
+    "html-to-xlsx",
+    "import-export",
+    "child-templates",
+    "chrome-pdf",
+    "jsrender",
+    "pdf-utils",
+    "reports",
+    "pptx",
+    "sample-template",
+    "scripts",
+    "studio",
+    "studio-theme-dark",
+    "scheduling",
+    "text",
+    "version-control",
+    "xlsx"
+  ]
+}

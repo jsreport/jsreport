@@ -1,0 +1,9 @@
+{{#each numbers}}
+{{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
+    <row>
+        <c t="inlineStr"><is><t>{{this}}</t></is></c>
+    </row>
+{{/xlsxAdd}}
+{{/each}}
+
+{{{xlsxPrint}}}

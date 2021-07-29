@@ -1,0 +1,74 @@
+{
+  "name": "jsreport-assets",
+  "version": "1.7.0",
+  "description": "jsreport extension embedding static assets like fonts or helpers into the templates",
+  "keywords": [
+    "jsreport",
+    "assets"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-assets",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-assets.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "files": [
+    "lib",
+    "static",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --run-only",
+    "start": "jsreport-studio-start",
+    "test": "mocha test --timeout 5000 --exit && standard",
+    "test:watch": "mocha test --watch"
+  },
+  "dependencies": {
+    "async-replace": "1.0.1",
+    "bluebird": "3.5.4",
+    "etag": "1.8.1",
+    "js-string-escape": "1.0.1",
+    "jsreport-office": "1.2.0",
+    "mime": "2.4.4",
+    "minimatch": "3.0.4",
+    "react-copy-to-clipboard": "5.0.2",
+    "strip-bom-buf": "2.0.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.1.0",
+    "binary-extensions": "1.12.0",
+    "in-publish": "2.0.1",
+    "jsreport-core": "2.10.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-jsrender": "2.1.1",
+    "jsreport-scripts": "2.6.0",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "8.2.1",
+    "moment": "2.29.1",
+    "should": "13.2.3",
+    "standard": "16.0.3",
+    "supertest": "3.3.0"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js",
+      "static/helpers.js",
+      "test/helpers.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>$jsreportTitle</title>
+    <meta name="author" content="jsreport.net">
+    <meta name="description" content="jsreport - javascript business reports">
+    <meta name="jsreport-server-startup-hash" content="$serverStartupHash" data-jsreport-server-startup-hash>
+    <% for (var css in htmlWebpackPlugin.files.css) { %>
+    <link href="<%= htmlWebpackPlugin.files.css[css] %>" data-default-jsreport-studio-theme="true" data-jsreport-studio-theme="$defaultTheme" rel="stylesheet">
+    <% } %>
+    $customCssFiles
+</head>
+<body class="container">
+<style>
+    .loader {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 48.2842712474619px;
+        height: 48.2842712474619px;
+        margin-left: -24.14213562373095px;
+        margin-top: -24.14213562373095px;
+        border-radius: 100%;
+        animation-name: loader;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+        animation-duration: 4s;
+    }
+
+    .loader .side {
+        display: block;
+        width: 6px;
+        height: 20px;
+        background-color: #046380;
+        margin: 2px;
+        position: absolute;
+        border-radius: 50%;
+        animation-duration: 1.5s;
+        animation-iteration-count: infinite;
+        animation-timing-function: ease;
+    }
+
+    .loader .side:nth-child(1),
+    .loader .side:nth-child(5) {
+        transform: rotate(0deg);
+        animation-name: rotate0;
+    }
+
+    .loader .side:nth-child(3),
+    .loader .side:nth-child(7) {
+        transform: rotate(90deg);
+        animation-name: rotate90;
+    }
+
+    .loader .side:nth-child(2),
+    .loader .side:nth-child(6) {
+        transform: rotate(45deg);
+        animation-name: rotate45;
+    }
+
+    .loader .side:nth-child(4),
+    .loader .side:nth-child(8) {
+        -webkit-transform: rotate(135deg);
+        transform: rotate(135deg);
+        animation-name: rotate135;
+    }
+
+    .loader .side:nth-child(1) {
+        top: 24.14213562373095px;
+        left: 48.2842712474619px;
+        margin-left: -3px;
+        margin-top: -10px;
+    }
+
+    .loader .side:nth-child(2) {
+        top: 41.21320343109277px;
+        left: 41.21320343109277px;
+        margin-left: -3px;
+        margin-top: -10px;
+    }
+
+    .loader .side:nth-child(3) {
+        top: 48.2842712474619px;
+        left: 24.14213562373095px;
+        margin-left: -3px;
+        margin-top: -10px;
+    }
+
+    .loader .side:nth-child(4) {
+        top: 41.21320343109277px;
+        left: 7.07106781636913px;
+        margin-left: -3px;
+        margin-top: -10px;
+    }
+
+    .loader .side:nth-child(5) {
+        top: 24.14213562373095px;
+        left: 0px;
+        margin-left: -3px;
+        margin-top: -10px;
+    }
+
+    .loader .side:nth-child(6) {
+        top: 7.07106781636913px;
+        left: 7.07106781636913px;
+        margin-left: -3px;
+        margin-top: -10px;
+
+    }
+
+    .loader .side:nth-child(7) {
+        top: 0px;
+        left: 24.14213562373095px;
+        margin-left: -3px;
+        margin-top: -10px;
+    }
+
+    .loader .side:nth-child(8) {
+        top: 7.07106781636913px;
+        left: 41.21320343109277px;
+        margin-left: -3px;
+        margin-top: -10px;
+
+    }
+
+    @-webkit-keyframes rotate0 {
+        0% {
+            transform: rotate(0deg);
+        }
+        60% {
+            transform: rotate(180deg);
+        }
+        100% {
+            transform: rotate(180deg);
+        }
+    }
+
+    @keyframes rotate0 {
+        0% {
+            transform: rotate(0deg);
+        }
+        60% {
+            transform: rotate(180deg);
+        }
+        100% {
+            transform: rotate(180deg);
+        }
+    }
+
+    @-webkit-keyframes rotate90 {
+        0% {
+            transform: rotate(90deg);
+        }
+        60% {
+            transform: rotate(270deg);
+        }
+        100% {
+            transform: rotate(270deg);
+        }
+    }
+
+    @keyframes rotate90 {
+        0% {
+            transform: rotate(90deg);
+        }
+        60% {
+            transform: rotate(270deg);
+        }
+        100% {
+            transform: rotate(270deg);
+        }
+    }
+
+    @-webkit-keyframes rotate45 {
+        0% {
+            transform: rotate(45deg);
+        }
+        60% {
+            transform: rotate(225deg);
+        }
+        100% {
+            transform: rotate(225deg);
+        }
+    }
+
+    @keyframes rotate45 {
+        0% {
+            transform: rotate(45deg);
+        }
+        60% {
+            transform: rotate(225deg);
+        }
+        100% {
+            transform: rotate(225deg);
+        }
+    }
+
+    @-webkit-keyframes rotate135 {
+        0% {
+            transform: rotate(135deg);
+        }
+        60% {
+            transform: rotate(315deg);
+        }
+        100% {
+            transform: rotate(315deg);
+        }
+    }
+
+    @keyframes rotate135 {
+        0% {
+            transform: rotate(135deg);
+        }
+        60% {
+            transform: rotate(315deg);
+        }
+        100% {
+            transform: rotate(315deg);
+        }
+    }
+
+    @-webkit-keyframes loader {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes loader {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+<div id="loader" class="loader">
+    <div class="side"></div>
+    <div class="side"></div>
+    <div class="side"></div>
+    <div class="side"></div>
+    <div class="side"></div>
+    <div class="side"></div>
+    <div class="side"></div>
+    <div class="side"></div>
+</div>
+<div id="content" class="root-container container"></div>
+<% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+<script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+<% } %>
+</body>
+</html>

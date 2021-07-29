@@ -1,0 +1,60 @@
+
+.multiSelect {
+  background-color: $controls-backgroundColor;
+  border: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  border-bottom: .2rem solid $controls-borderColor;
+  color: $controls-color;
+  transition: border .3s;
+  padding: .5rem;
+  font: 400 11px system-ui;
+  overflow-y: scroll;
+}
+
+.multiSelect:active, .multiSelect:focus, .multiSelect:hover {
+  border-bottom: .2rem solid $controls-hover-borderColor;
+}
+
+.allCheckContainer {
+  margin-bottom: 0.2rem;
+}
+
+.allCheck {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.allCheck * {
+  cursor: inherit;
+}
+
+.list {
+  cursor: pointer;
+  margin: 0px;
+  padding: 0px;
+  list-style: none;
+}
+
+.list * {
+  cursor: inherit;
+}
+
+.listOption {
+  white-space: pre;
+  padding: 0px 2px 1px;
+  min-height: 1.2em;
+}
+
+.listOptionSelected {
+  background-color: rgb(212, 212, 212);
+}
+
+.list:active .listOptionSelected, .list:focus .listOptionSelected {
+  background-color: rgb(0, 105, 217);
+  color: #fff;
+}
+
+.listOptionLabel {
+  display: block;
+}

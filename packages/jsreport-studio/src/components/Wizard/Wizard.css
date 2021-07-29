@@ -1,0 +1,91 @@
+
+.wizardTitles {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: $tab-titles-backgroundColor;
+  border-bottom: 0.2rem $tab-titles-borderColor solid;
+  padding-top: 0.8rem;
+  min-height: 2.8rem;
+}
+
+.wizardTitle {
+  position: relative;
+  flex: 0;
+  /*flexbox workaround some browsers (mostly Safari) needs to have some properties defined explicitly to handle auto sizing correctly*/
+  flex-basis: auto;
+  flex-shrink: 0;
+  /*end flexbox workaround*/
+  height: auto;
+  white-space: nowrap;
+  display:flex;
+  background-color: $tab-title-backgroundColor;
+  padding: 0.3rem 0.5rem 0.3rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.wizardTitle + .wizardTitle {
+  padding-left: 1.4rem;
+}
+
+.wizardTitleIcon {
+  font-size: 0.9em;
+  margin-right: 2px;
+}
+
+.wizardTitle:before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 0;
+  height: 0;
+  margin-left: -1px;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-left: 13px solid $tab-title-borderColor;
+  z-index: 1;
+}
+
+.wizardTitle:after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 0;
+  height: 0;
+  margin-left: -2px;
+  border-top: 13px solid transparent;
+  border-bottom: 13px solid transparent;
+  border-left: 13px solid $tab-title-backgroundColor;
+  z-index: 2;
+}
+
+.wizardTitle:last-child {
+  padding-right: 1rem;
+}
+
+.wizardTitle:last-child:before,
+.wizardTitle:last-child:after {
+  display: none;
+}
+
+.wizardTitle.completed > span {
+  opacity: 0.4;
+}
+
+.wizardTitle.active {
+  background: $tab-title-active-backgroundColor;
+  color: $tab-title-active-color;
+}
+
+.wizardTitle.active:after {
+  border-left-color: $tab-title-active-backgroundColor;
+}
+
+.wizardContent {
+  background-color: $tab-pane-backgroundColor;
+}

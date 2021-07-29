@@ -1,0 +1,104 @@
+
+.tabPane {
+  background-color: $tab-pane-backgroundColor;
+}
+
+.tabTitles {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: $tab-titles-backgroundColor;
+  border-bottom: 0.2rem $tab-titles-borderColor solid;
+  padding-top: 0.5rem;
+  min-height: 2.4rem;
+}
+
+.tabContainer {
+  display: inline-block;
+}
+
+.tabTitle {
+  position: relative;
+  flex: 0;
+  /*flexbox workaround some browsers (mostly Safari) needs to have some properties defined explicitly to handle auto sizing correctly*/
+  flex-basis: auto;
+  flex-shrink: 0;
+  /*end flexbox workaround*/
+  min-height: 1.7rem;
+  white-space: nowrap;
+  display:flex;
+  background-color: $tab-title-backgroundColor;
+  padding: 0.3rem 0.3rem 0.3rem 0.9rem;
+  border-right: 1px $tab-title-borderColor solid;
+  cursor: pointer;
+  font-size: 0.91rem;
+  user-select: none;
+}
+
+.tabTitle.active {
+  background: $tab-title-active-backgroundColor;
+  color: $tab-title-active-color;
+}
+
+.tabTitle:hover {
+  background: $tab-title-hover-backgroundColor;
+  color: $tab-title-hover-color;
+}
+
+.tabMainTitle {
+  vertical-align: middle;
+}
+
+.tabComplementTitle {
+  display: inline-block;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
+
+.tabClose {
+  display: inline-block;
+  margin-left: 0.3rem;
+}
+
+.tabClose:after {
+  content: "\f00d";
+  color: $tab-close-color;
+  padding: 0.1rem;
+  font-family: FontAwesome;
+  font-size: 0.9rem;
+}
+
+.tabClose:hover {
+  background-color: $tab-close-hover-backgroundColor;
+}
+
+.contextMenu {
+  background-color: $contextMenu-backgroundColor;
+  position: absolute;
+  padding: 0.5rem;
+  min-width: 9rem;
+  z-index: 200;
+}
+
+.contextMenuContainer {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  z-index: 200;
+}
+
+.contextButton {
+  color: $contextMenu-button-color;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.contextButton:hover {
+  background-color: $contextMenu-button-hover-backgroundColor;
+  color: $contextMenu-button-hover-color;
+}

@@ -1,0 +1,93 @@
+{
+  "name": "jsreport-core",
+  "version": "2.10.1",
+  "description": "javascript based business reporting",
+  "keywords": [
+    "report",
+    "business",
+    "javascript"
+  ],
+  "homepage": "http://jsreport.net",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-core/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-core.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.js",
+    "test/store/common.js",
+    "test/blobStorage/common.js"
+  ],
+  "scripts": {
+    "test": "mocha --timeout 5000 --recursive test --exit && standard",
+    "test:watch": "mocha --watch --recursive test"
+  },
+  "dependencies": {
+    "@babel/code-frame": "7.12.13",
+    "@babel/parser": "7.14.4",
+    "@babel/traverse": "7.12.9",
+    "@jsreport/mingo": "2.4.1",
+    "advanced-workers": "1.0.0",
+    "ajv": "6.12.6",
+    "app-root-path": "2.0.1",
+    "async-replace": "1.0.1",
+    "camelcase": "5.0.0",
+    "debug": "4.3.2",
+    "decamelize": "2.0.0",
+    "deepmerge": "2.1.0",
+    "diff": "3.5.0",
+    "diff-match-patch": "1.0.5",
+    "has-own-deep": "1.1.0",
+    "isbinaryfile": "4.0.0",
+    "listener-collection": "1.2.0",
+    "lodash.get": "4.4.2",
+    "lodash.groupby": "4.6.0",
+    "lodash.omit": "4.5.0",
+    "lodash.set": "4.3.2",
+    "lru-cache": "4.1.1",
+    "ms": "2.1.3",
+    "nanoid": "3.1.16",
+    "nconf": "0.10.0",
+    "node.extend.without.arrays": "1.1.6",
+    "piscina": "1.6.3",
+    "reap2": "1.0.1",
+    "serializator": "1.0.2",
+    "stack-trace": "0.0.10",
+    "unset-value": "1.0.0",
+    "uuid": "8.3.2",
+    "v8-compile-cache": "*",
+    "vm2": "3.9.2",
+    "winston": "2.4.5",
+    "winston-transport": "3.0.1"
+  },
+  "devDependencies": {
+    "mocha": "8.2.1",
+    "should": "13.2.3",
+    "standard": "16.0.3",
+    "std-mocks": "1.0.1",
+    "winston-loggly": "1.3.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "maintainers": [
+    {
+      "name": "pofider",
+      "email": "jan.blaha@hotmail.com"
+    }
+  ],
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  }
+}

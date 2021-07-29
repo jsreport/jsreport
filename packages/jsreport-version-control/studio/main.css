@@ -1,0 +1,30 @@
+
+.x-version-control-VersionControl-runCaret {
+  font-family: FontAwesome;
+  padding: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.x-version-control-VersionControl-runCaret:hover {
+  color: $formPrimary-color;
+}
+
+.x-version-control-VersionControl-runCaret:after {
+  content: "\f0d7 "
+}
+
+.x-version-control-VersionControl-listContainer {
+  overflow: auto;
+  position: relative;
+  padding: 1rem;
+  min-height: 0;
+  height: auto;
+}
+
+.x-version-control-VersionControl-listContainer > table {
+  /* it somehow shows the horizontal scrollbar even when no needeit, this workaround to hide it */
+  width: 95%;
+  /* the tabs height based on flex box is otherwise wrongly calculated */
+  position: absolute !important;
+}
+

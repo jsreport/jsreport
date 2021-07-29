@@ -1,0 +1,44 @@
+
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: $modal-overlay-backgroundColor;
+  z-index: 99999;
+  opacity: 1;
+}
+
+.content {
+  background-color: $modal-backgroundColor;
+  box-shadow: 1rem 1rem 1rem 0 $modal-shadowColor;
+  color: $modal-color;
+  display: block;
+  float: left;
+  height: auto;
+  position: fixed;
+  width: auto;
+  z-index: 1050;
+  font-weight: 200;
+  min-width: 30%;
+  border-radius: 0.1rem;
+}
+
+
+.close {
+  position: absolute;
+  right: 1rem;
+  top: 0.5rem;
+}
+
+.close:after {
+  color: $modal-close-color;
+  font-family: FontAwesome;
+  content: '\f00d'
+}
+
+.close:hover:after {
+  color: $modal-close-hover-color;
+  cursor: pointer;
+}

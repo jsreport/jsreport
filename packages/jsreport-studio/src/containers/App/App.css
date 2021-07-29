@@ -1,0 +1,21 @@
+.appContent {
+  flex: 1;
+}
+
+.navbar {
+  width: 100%;
+  position: fixed;
+  z-index: 99;
+  background: deepskyblue;
+  padding: 1em;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 1em;
+}
+
+.properties {
+  background-color: red;
+}

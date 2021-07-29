@@ -1,0 +1,61 @@
+{
+  "name": "jsreport-licensing",
+  "version": "2.2.3",
+  "description": "jsreport extension for enterprise license verification ",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-licensing",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-licensing/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-licensing.git"
+  },
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 4300",
+    "test": "mocha --timeout 10000 --recursive test --exit && standard"
+  },
+  "dependencies": {
+    "axios": "0.19.2",
+    "bluebird": "3.5.4",
+    "mkdirp": "0.5.5"
+  },
+  "devDependencies": {
+    "babel-eslint": "8.2.2",
+    "in-publish": "2.0.1",
+    "jsreport-core": "2.10.1",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "7.2.0",
+    "should": "13.2.3",
+    "standard": "11.0.1",
+    "uuid": "8.3.2"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js",
+      "jsreport.config.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "parser": "babel-eslint"
+  }
+}

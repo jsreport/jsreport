@@ -1,0 +1,92 @@
+
+.resizer {
+  width: 11px;
+  display: flex;
+  position: relative;
+  margin: 0 -5px;
+  z-index: 1000;
+}
+
+.resizer-line {
+  background: $resizer-backgroundColor;
+  opacity: .2;
+  /*z-index: 1000;*/
+  box-sizing: border-box;
+  background-clip: padding-box;
+  width: 11px;
+  border-left: 5px solid $resizer-borderColor;
+  border-right: 5px solid $resizer-borderColor;
+  cursor: col-resize;
+}
+
+.resizer-horizontal {
+  background: $resizer-backgroundColor;
+  opacity: .2;
+  /*z-index: 1000;*/
+  box-sizing: border-box;
+  background-clip: padding-box;
+  height: 15px;
+  margin: -5px 0;
+  border-top: 5px solid $resizer-borderColor;
+  border-bottom: 5px solid $resizer-borderColor;
+  cursor: row-resize;
+  width: 100%;
+}
+
+
+.resizer-horizontal:hover {
+  transition: all 2s ease;
+  border-top: 5px solid $resizer-hover-borderColor;
+  border-bottom: 5px solid $resizer-hover-borderColor;
+}
+
+.resizer-line:hover {
+  transition: all 2s ease;
+  border-left: 5px solid $resizer-hover-borderColor;
+  border-right: 5px solid $resizer-hover-borderColor;
+}
+
+.resizer-line:hover {
+  transition: all 2s ease;
+}
+
+.resizer:hover .docker {
+  display: block;
+  opacity:1;
+  /*transition:0s 1s;*/
+  transition: 2s opacity;
+}
+
+.docker {
+  opacity:0;
+  font-size: 2rem;
+  color: $resizer-icons-color;
+  position: absolute;
+  transition:0s 1s;
+  cursor: pointer;
+}
+
+.docker.left {
+  margin-left: -3rem;
+}
+
+.docker:hover {
+  color: $resizer-icons-hover-color;
+}
+
+.resizer.collapsed {
+  min-width: 2.5rem;
+  background-color: $resizer-collapsed-backgroundColor;
+  cursor: pointer;
+}
+
+.resizer.collapsed:hover {
+  background-color: $resizer-collapsed-hover-backgroundColor;
+}
+
+.pane-holder {
+  color: $resizer-paneHolder-color;
+  flex: 0;
+  padding-top: 1rem;
+  writing-mode: vertical-lr;
+}

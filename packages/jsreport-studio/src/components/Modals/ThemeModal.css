@@ -1,0 +1,42 @@
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 400px;
+}
+
+.item {
+  display: inline-block;
+  width: 80px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.itemLabel {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.itemPreview {
+  border: 1px solid $alternative-backgroundColor;
+  height: 65px;
+}
+
+.miniItem {
+  display: inline-block;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.miniItemLabel {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.miniItemPreview {
+  display: inline-block;
+  border: 1px solid $alternative-backgroundColor;
+  margin-left: 2px;
+  width: 25px;
+  height: 15px;
+}

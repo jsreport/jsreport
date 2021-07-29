@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run mocha",
+            "type": "node",
+            "program": "${workspaceFolder}/packages/jsreport-data/node_modules/mocha/bin/_mocha",
+            "args": [
+                "${workspaceFolder}/packages/jsreport-core/test/**/*.js",
+                "--timeout=0"
+            ],
+            "request": "launch",
+            "outFiles": [
+                "${workspaceFolder}/packages/jsreport-core/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/server.js",
+            "envFile": "${workspaceFolder}/launch.env",
+            "autoAttachChildProcesses": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Compile",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/compile.js",
+            "autoAttachChildProcesses": true
+        }
+    ]
+}

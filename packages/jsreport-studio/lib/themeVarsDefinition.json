@@ -1,0 +1,482 @@
+[
+  {
+    "name": "primary-color",
+    "default": "#2f2f2f"
+  },
+  {
+    "name": "primary-backgroundColor",
+    "default": "#FFFFFF"
+  },
+  {
+    "name": "primary-selection-backgroundColor",
+    "default": "#007ACC"
+  },
+  {
+    "name": "primary-selection-color",
+    "default": "#FFFFFF"
+  },
+  {
+    "name": "primary-hover-color",
+    "default": "#FFFFFF"
+  },
+  {
+    "name": "primary-hover-backgroundColor",
+    "default": "#1C97EA"
+  },
+  {
+    "name": "secondary-color",
+    "default": "#d9d9d9"
+  },
+  {
+    "name": "secondary-backgroundColor",
+    "default": "#F6F6F6"
+  },
+  {
+    "name": "secondary-hover-backgroundColor",
+    "default": "#73a2ff"
+  },
+  {
+    "name": "alternative-backgroundColor",
+    "default": "rgb(85, 85, 85)"
+  },
+  {
+    "name": "formPrimary-color",
+    "default": "#ffc40d"
+  },
+  {
+    "name": "button-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "button-disabled-color",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "button-shadowColor",
+    "default": "rgba(0, 0, 0, 0)"
+  },
+  {
+    "name": "button-active-shadowColor",
+    "default": "rgba(0, 0, 0, 0.6)"
+  },
+  {
+    "name": "button-confirmation-backgroundColor",
+    "default": "#008CBA"
+  },
+  {
+    "name": "button-danger-backgroundColor",
+    "default": "#FCBE59"
+  },
+  {
+    "name": "headings-color",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "table-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "table-heading-backgroundColor",
+    "extends": "primary-backgroundColor"
+  },
+  {
+    "name": "table-heading-borderColor",
+    "default": "#ddd"
+  },
+  {
+    "name": "table-row-backgroundColor",
+    "extends": "primary-backgroundColor"
+  },
+  {
+    "name": "table-row-borderColor",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "table-row-active-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "table-row-active-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "table-row-hover-backgroundColor",
+    "extends": "secondary-hover-backgroundColor"
+  },
+  {
+    "name": "table-row-hover-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "table-selection-backgroundColor",
+    "default": "#eeeeee"
+  },
+  {
+    "name": "table-selection-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "resizer-backgroundColor",
+    "default": "#000"
+  },
+  {
+    "name": "resizer-borderColor",
+    "default": "rgba(255, 255, 255, 0)"
+  },
+  {
+    "name": "resizer-hover-borderColor",
+    "default": "rgba(0, 0, 0, 0.5)"
+  },
+  {
+    "name": "resizer-icons-color",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "resizer-icons-hover-color",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "resizer-paneHolder-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "resizer-collapsed-backgroundColor",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "resizer-collapsed-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "scrollBar-thumb-backgroundColor",
+    "default": "#C1C1C1"
+  },
+  {
+    "name": "scrollBar-thumb-hover-backgroundColor",
+    "default": "#7D7D7D"
+  },
+  {
+    "name": "scrollBar-track-backgroundColor",
+    "default": "#FAFAFA"
+  },
+  {
+    "name": "scrollBar-resizer-backgroundColor",
+    "extends": "scrollBar-thumb-backgroundColor"
+  },
+  {
+    "name": "scrollBar-corner-backgroundColor",
+    "extends": "scrollBar-thumb-backgroundColor"
+  },
+  {
+    "name": "toolbar-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "toolbar-backgroundColor",
+    "extends": "alternative-backgroundColor"
+  },
+  {
+    "name": "toolbar-target-backgroundColor",
+    "default": "#323c47"
+  },
+  {
+    "name": "toolbar-button-disabled-color",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "toolbar-button-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "toolbar-button-hover-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "tab-titles-backgroundColor",
+    "default": "#FEFEFE"
+  },
+  {
+    "name": "tab-titles-borderColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "tab-pane-backgroundColor",
+    "default": "#FEFEFE"
+  },
+  {
+    "name": "tab-title-backgroundColor",
+    "default": "#FEFEFE"
+  },
+  {
+    "name": "tab-title-borderColor",
+    "default": "#E6E6E6"
+  },
+  {
+    "name": "tab-title-active-backgroundColor",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "tab-title-active-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "tab-title-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "tab-title-hover-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "tab-close-color",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "tab-close-hover-backgroundColor",
+    "extends": "secondary-hover-backgroundColor"
+  },
+  {
+    "name": "controls-backgroundColor",
+    "extends": "primary-backgroundColor"
+  },
+  {
+    "name": "controls-color",
+    "default": "#000000"
+  },
+  {
+    "name": "controls-borderColor",
+    "default": "#d9d9d9"
+  },
+  {
+    "name": "controls-hover-borderColor",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "controls-list-hover-backgroundColor",
+    "extends": "secondary-hover-backgroundColor"
+  },
+  {
+    "name": "controls-list-hover-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "modal-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "modal-overlay-backgroundColor",
+    "default": "rgba(0, 0, 0, 0.6)"
+  },
+  {
+    "name": "modal-backgroundColor",
+    "extends": "secondary-backgroundColor"
+  },
+  {
+    "name": "modal-shadowColor",
+    "default": "rgba(0, 0, 0, 0.3)"
+  },
+  {
+    "name": "modal-close-color",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "modal-close-hover-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "preview-backgroundColor",
+    "default": "rgba(0, 0, 0, 0)"
+  },
+  {
+    "name": "preview-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "property-heading-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "property-heading-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "property-title-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "property-title-backgroundColor",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "property-title-expanded-color",
+    "extends": "secondary-backgroundColor"
+  },
+  {
+    "name": "property-title-expanded-backgroundColor",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "property-title-hover-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "property-title-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "property-panel-backgroundColor",
+    "extends": "secondary-backgroundColor"
+  },
+  {
+    "name": "entityTree-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "entityTree-backgroundColor",
+    "extends": "secondary-backgroundColor"
+  },
+  {
+    "name": "entityTree-outlineColor",
+    "extends": "alternative-backgroundColor"
+  },
+  {
+    "name": "entityTree-node-active-backgroundColor",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "entityTree-node-active-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "entityTree-node-hover-backgroundColor",
+    "extends": "secondary-hover-backgroundColor"
+  },
+  {
+    "name": "entityTree-node-hover-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "entityTree-collapseIcon-collapsed-color",
+    "default": "#c6c6c6"
+  },
+  {
+    "name": "entityTree-collapseIcon-color",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "entityTree-collapseIcon-hover-color",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "entityTree-icon-color",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "entityTree-icon-hover-color",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "entityTree-highlight-color",
+    "default": "#3397ea"
+  },
+  {
+    "name": "entityIcon-color",
+    "default": "#F16220"
+  },
+  {
+    "name": "entityTree-button-color",
+    "default": "#494949"
+  },
+  {
+    "name": "entityTree-button-backgroundColor",
+    "extends": "secondary-backgroundColor"
+  },
+  {
+    "name": "entityTree-button-borderColor",
+    "default": "#e2e2e2"
+  },
+  {
+    "name": "entityTree-button-hover-color",
+    "default": "#494949"
+  },
+  {
+    "name": "entityTree-button-hover-backgroundColor",
+    "extends": "primary-backgroundColor"
+  },
+  {
+    "name": "entityTree-button-active-borderColor",
+    "extends": "primary-selection-backgroundColor"
+  },
+  {
+    "name": "contextMenu-backgroundColor",
+    "default": "#d9d9d9"
+  },
+  {
+    "name": "contextMenu-button-color",
+    "extends": "primary-color"
+  },
+  {
+    "name": "contextMenu-button-disabled-color",
+    "default": "#7d8a98"
+  },
+  {
+    "name": "contextMenu-button-hover-color",
+    "extends": "primary-hover-color"
+  },
+  {
+    "name": "contextMenu-button-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "entityFinder-input-shadowColor",
+    "default": "rgba(0, 0, 0, 0.2)"
+  },
+  {
+    "name": "entityFinder-input-hover-borderColor",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "entityFinder-results-shadowColor",
+    "default": "rgba(0, 0, 0, 0.1)"
+  },
+  {
+    "name": "entityFinder-results-borderColor",
+    "extends": "secondary-color"
+  },
+  {
+    "name": "entityFinder-results-item-active-color",
+    "default": "#FFFFFF"
+  },
+  {
+    "name": "entityFinder-results-item-active-backgroundColor",
+    "default": "#007ACC"
+  },
+  {
+    "name": "popover-backgroundColor",
+    "extends": "primary-backgroundColor"
+  },
+  {
+    "name": "popover-borderColor",
+    "default": "rgba(0,0,0,0.2)"
+  },
+  {
+    "name": "popover-shadowColor",
+    "default": "rgba(0,0,0,0.15)"
+  },
+  {
+    "name": "popup-color",
+    "extends": "primary-selection-color"
+  },
+  {
+    "name": "popup-backgroundColor",
+    "default": "#424c57"
+  },
+  {
+    "name": "popup-hover-backgroundColor",
+    "extends": "primary-hover-backgroundColor"
+  },
+  {
+    "name": "anchors-color",
+    "extends": "primary-selection-backgroundColor"
+  }
+]

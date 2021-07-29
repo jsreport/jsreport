@@ -1,0 +1,13 @@
+{{xlsxRemove "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row" 1}}
+
+{{#each people}}
+{{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
+<row>
+    <c t="inlineStr" s="{{@root.$removedItem.c.[0].$.s}}"><is><t>{{name}}</t></is></c>
+    <c t="inlineStr" s="{{@root.$removedItem.c.[1].$.s}}"><is><t>{{gender}}</t></is></c>
+    <c s="{{@root.$removedItem.c.[2].$.s}}"><v>{{age}}</v></c>
+</row>
+{{/xlsxAdd}}
+{{/each}}
+
+{{{xlsxPrint}}}

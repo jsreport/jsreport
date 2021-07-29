@@ -1,0 +1,18 @@
+language: node_js
+
+node_js:  
+  - "8"
+
+services:
+  - mongodb
+  - postgresql
+
+addons:
+  apt:
+    sources:
+    - mongodb-3.0-precise
+    packages:
+    - mongodb-org-server
+
+before_script:
+  - psql -c 'create database jsreport;' -U postgres

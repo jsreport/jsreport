@@ -1,0 +1,2 @@
+export const PROGRESS_START = 'PROGRESS_START'
+export const PROGRESS_END = 'PROGRESS_END'

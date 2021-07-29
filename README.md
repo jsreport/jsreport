@@ -1,6 +1,3 @@
-
-
-
 # jsreport
 
 [![Join the chat at https://gitter.im/jsreport/jsreport](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jsreport/jsreport?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -14,7 +11,7 @@
 
 jsreport is a reporting server which lets developers define reports using  javascript templating engines (like jsrender or handlebars). It supports various report output formats like html, pdf, excel and others.  It also includes advanced reporting features like user management, REST API, scheduling, designer or sending emails.
 
-You can find more information on the official project website https://jsreport.net    
+You can find more information on the official project website https://jsreport.net
 
 ![studio](https://github.com/jsreport/website/blob/master/public/img/jsreport-demo.gif?raw=true)
 
@@ -25,8 +22,6 @@ see [https://jsreport.net/on-prem](http://jsreport.net/on-prem)
 > **jsreport init**<br/>
 > **jsreport configure**<br/>
 > **jsreport start**
-
-To change environment use cmd `set NODE_ENV=development` or use options your IDE provides. If you don't specify node environment jsreport assumes `development` as default.
 
 ## Documentation
 
@@ -61,7 +56,7 @@ jsreport is split into many separated repositories usually representing extensio
 - signing jsreport.exe
 - html-to-xlsx - images, filters...
 - nodejs workers usage
-- drag and drop designer [#121](../../issues/121) 
+- drag and drop designer [#121](../../issues/121)
 
 More in the [backlog](https://github.com/jsreport/jsreport/issues).
 

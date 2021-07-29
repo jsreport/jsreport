@@ -1,0 +1,15 @@
+<!-- 
+    Template representing pdf header for Orders template.
+    See the docs about pdf utils extension for more details.
+!-->
+<html>
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metro/4.1.5/css/metro.min.css">
+</head>
+<body>
+    {{#with (lookup $pdf.pages $pdf.pageIndex)}}
+    <h1>{{group}}</h1>
+    {{/with}}
+</body>
+</html>

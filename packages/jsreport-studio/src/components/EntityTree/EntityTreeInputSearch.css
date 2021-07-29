@@ -1,0 +1,29 @@
+
+.container {
+  display: inline-block;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+}
+
+.search {
+  display: inline-block;
+}
+
+.search > input {
+  border: none;
+  border-bottom: solid 0.2rem $controls-borderColor;
+  transition: border 0.3s;
+  padding: 0.2rem;
+  width: 10rem;
+}
+
+.search > input:focus {
+  border-bottom: solid 0.2rem $controls-hover-borderColor;
+}
+
+.search:before {
+  content: "\f002";
+  margin-right: 0.3rem;
+  color: $entityTree-icon-color;
+  font-family: FontAwesome;
+}

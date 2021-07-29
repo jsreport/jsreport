@@ -1,0 +1,48 @@
+
+.popoverDisplayLayer {
+  display: none;
+  position: fixed;
+  z-index: 2;
+}
+
+.popoverContainer {
+  position: absolute;
+  z-index: 2;
+}
+
+.popoverCloseLayer {
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+}
+
+.popoverContent {
+  position: relative;
+  z-index: 2;
+}
+
+.popoverContentWrapper {
+  background: $popover-backgroundColor;
+  border: 1px solid $popover-borderColor;
+  box-shadow: 0 3px 12px $popover-shadowColor;
+  border-radius: 4px;
+  padding: 0.3rem;
+}
+
+.popoverTriangle {
+  border: 7px solid transparent;
+  border-bottom-color: $popover-backgroundColor;
+  left: 10px;
+  position: absolute;
+  top: -14px;
+}
+
+.popoverTriangleShadow {
+  border: 8px solid transparent;
+  border-bottom-color: $popover-shadowColor;
+  left: 9px;
+  position: absolute;
+  top: -16px;
+}

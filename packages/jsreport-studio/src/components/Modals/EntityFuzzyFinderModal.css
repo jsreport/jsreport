@@ -1,0 +1,75 @@
+
+.container {
+  margin: 0;
+  width: 560px;
+  height: 280px;
+  overflow: hidden;
+}
+
+.input {
+  width: 100%;
+  padding-top: 0.7rem;
+  box-shadow: $entityFinder-input-shadowColor 0px 1px 5px 2px;
+}
+
+.input:hover, .input:focus, .input:active {
+  border-bottom: solid 0.2rem $entityFinder-input-hover-borderColor !important;
+}
+
+.results {
+  border-width: 0px 0px 1px;
+  box-shadow: $entityFinder-results-shadowColor 0px 12px 30px 2px;
+  border-top-style: initial;
+  border-right-style: solid;
+  border-bottom-style: solid;
+  border-left-style: solid;
+  border-top-color: initial;
+  border-right-color: $entityFinder-results-borderColor;
+  border-bottom-color: $entityFinder-results-borderColor;
+  border-left-color: $entityFinder-results-borderColor;
+  border-image: initial;
+  font-size: 0.8rem;
+  margin: 0px;
+  max-height: 250px;
+  width: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+.resultsItem {
+  position: relative;
+  padding: 0.6rem;
+  border-top: 1px solid $entityFinder-results-borderColor;
+  cursor: pointer;
+}
+
+.resultsItem::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.resultsItem.active {
+  background-color: $entityFinder-results-item-active-backgroundColor;
+  color: $entityFinder-results-item-active-color;
+}
+
+.resultsItemIcon {
+  margin-right: 0.2rem;
+  width: 0.9rem;
+  color: $entityIcon-color;
+}
+
+.resultsItemDefaultIcon:after {
+  font-family: FontAwesome;
+  content: "\f1fe";
+}
+
+.resultsItemPath {
+  float: right;
+  opacity: 0.5;
+}
+
+.emptyResults {
+  opacity: 0.5;
+}

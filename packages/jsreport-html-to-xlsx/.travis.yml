@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - "8.9"
+sudo: required
+dist: trusty
+addons:
+  apt:
+    packages:
+      # This is required to run new chrome on old trusty
+      - libnss3

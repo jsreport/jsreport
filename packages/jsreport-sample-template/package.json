@@ -1,0 +1,74 @@
+{
+  "name": "jsreport-sample-template",
+  "version": "2.6.1",
+  "description": "jsreport extension which creates a sample template at the first run",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-sample-template",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-sample-template/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-sample-template.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "samples.json",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "node lib/prepublish.js && jsreport-studio-build",
+    "prepublish": "in-publish && npm run build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 4300",
+    "test": "npm run build && mocha test --timeout 20000 && standard"
+  },
+  "dependencies": {
+    "lodash.omit": "4.5.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.3",
+    "handlebars": "4.7.7",
+    "in-publish": "2.0.1",
+    "jsreport-assets": "1.7.0",
+    "jsreport-chrome-pdf": "1.10.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-data": "2.4.0",
+    "jsreport-fs-store": "2.9.2",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-html-to-xlsx": "2.8.4",
+    "jsreport-pdf-utils": "1.11.0",
+    "jsreport-scripts": "2.6.0",
+    "jsreport-studio-dev": "1.6.0",
+    "jsreport-xlsx": "2.5.0",
+    "mocha": "7.0.1",
+    "puppeteer": "9.1.1",
+    "rimraf": "^3.0.2",
+    "should": "13.2.3",
+    "standard": "14.3.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "samples/**",
+      "lib/samples/**",
+      "test/data",
+      "studio/main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

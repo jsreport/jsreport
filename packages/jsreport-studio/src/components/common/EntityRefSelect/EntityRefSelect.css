@@ -1,0 +1,72 @@
+
+.heading {
+  margin-bottom: 0.2rem;
+}
+
+.select {
+  overflow-y: auto;
+  overflow-x: auto;
+  color: $controls-color;
+  background-color: $controls-backgroundColor
+}
+
+.select > ul {
+  margin: 0rem;
+  padding: 0rem;
+  list-style: none;
+}
+
+.select > ul > li {
+  cursor: pointer;
+  padding: 0.3rem;
+  border-bottom: 0.1rem solid $controls-borderColor;
+}
+
+.select > ul > li:hover {
+  background-color: $controls-list-hover-backgroundColor;
+  color: $controls-list-hover-color;
+}
+
+.selectInput {
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: $controls-backgroundColor;
+  border-bottom: solid 0.2rem $controls-borderColor;
+  transition: border 0.3s;
+  padding: 0.5rem;
+  width: 100%;
+  display: flex;
+  color: $controls-color;
+  margin-top: 2px;
+}
+
+.selectInput:hover, .selectInput:focus, .selectInput:active {
+  border-bottom: solid 0.2rem $controls-hover-borderColor;
+}
+
+.selectInput > i {
+  margin-top: 0.1rem;
+}
+
+.selectInput > i:hover {
+  color: $controls-hover-borderColor;
+}
+
+.selectInput > span {
+  margin-left: 0.5rem;
+  white-space: nowrap;
+  overflow-x: hidden;
+}
+
+.selectInput > span.link:hover {
+  margin-left: 0.5rem;
+  color: $controls-hover-borderColor;
+  text-decoration: underline;
+}
+
+.nameLabel {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

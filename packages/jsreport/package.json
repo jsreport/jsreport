@@ -1,0 +1,104 @@
+{
+  "name": "jsreport",
+  "version": "2.11.0",
+  "description": "javascript based business reporting",
+  "keywords": [
+    "report",
+    "business",
+    "javascript"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    {
+      "name": "BJR Matos",
+      "email": "bjrmatos@gmail.com",
+      "url": "https://github.com/bjrmatos"
+    },
+    {
+      "name": "Jan Blaha"
+    }
+  ],
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.js",
+    "example.server.js"
+  ],
+  "scripts": {
+    "test": "mocha test --timeout 35000 && standard"
+  },
+  "dependencies": {
+    "handlebars": "4.7.7",
+    "jsreport-assets": "1.7.0",
+    "jsreport-authentication": "2.6.1",
+    "jsreport-authorization": "2.4.0",
+    "jsreport-base": "2.0.2",
+    "jsreport-browser-client": "2.2.2",
+    "jsreport-child-templates": "1.4.0",
+    "jsreport-chrome-pdf": "1.10.0",
+    "jsreport-cli": "2.2.5",
+    "jsreport-core": "2.10.1",
+    "jsreport-data": "2.4.0",
+    "jsreport-docx": "2.9.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-freeze": "2.0.0",
+    "jsreport-fs-store": "2.9.2",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-html-to-xlsx": "2.8.4",
+    "jsreport-import-export": "2.1.1",
+    "jsreport-jsrender": "2.1.1",
+    "jsreport-licensing": "2.2.3",
+    "jsreport-localization": "0.1.0",
+    "jsreport-pdf-utils": "1.11.0",
+    "jsreport-pptx": "0.7.3",
+    "jsreport-public-templates": "2.2.0",
+    "jsreport-reports": "2.5.2",
+    "jsreport-sample-template": "2.6.1",
+    "jsreport-scheduling": "2.5.0",
+    "jsreport-scripts": "2.6.0",
+    "jsreport-static-pdf": "0.4.0",
+    "jsreport-studio": "2.10.1",
+    "jsreport-studio-theme-dark": "0.3.0",
+    "jsreport-tags": "2.5.0",
+    "jsreport-text": "2.0.0",
+    "jsreport-version-control": "1.6.2",
+    "jsreport-xlsx": "2.5.0",
+    "mkdirp": "0.5.5",
+    "node.extend.without.arrays": "1.1.6",
+    "puppeteer": "9.1.1",
+    "semver": "6.3.0"
+  },
+  "devDependencies": {
+    "mocha": "6.2.0",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "jsreport": {
+    "entryPoint": "server.js"
+  },
+  "standard": {
+    "ignore": [
+      "data/**"
+    ],
+    "env": {
+      "mocha": true,
+      "browser": true,
+      "node": true
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "jsreport-worker",
+  "version": "0.9.1",
+  "description": "Sandbox jsreport execution into extra process",
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test --timeout=12000 --exit && standard"
+  },
+  "dependencies": {
+    "advanced-workers": "1.0.0",
+    "bluebird": "3.7.2",
+    "camelcase": "6.2.0",
+    "handlebars": "4.7.7",
+    "jsreport-browser-client": "2.2.2",
+    "jsreport-chrome-pdf": "1.10.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-docx": "2.9.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-html-to-xlsx": "2.8.4",
+    "jsreport-jsrender": "2.1.1",
+    "jsreport-pdf-utils": "1.11.0",
+    "jsreport-pptx": "0.7.3",
+    "jsreport-scripts": "2.6.0",
+    "jsreport-static-pdf": "0.4.0",
+    "jsreport-text": "2.0.0",
+    "jsreport-version-control": "1.6.2",
+    "jsreport-xlsx": "2.5.0",
+    "koa": "2.13.1",
+    "koa-bodyparser": "4.3.0",
+    "listener-collection": "1.2.0",
+    "lodash.omit": "4.5.0",
+    "nconf": "0.11.2",
+    "node.extend": "2.0.2",
+    "puppeteer": "9.1.1",
+    "serializator": "1.0.2",
+    "uuid": "8.3.2"
+  },
+  "devDependencies": {
+    "jsreport-docker-workers": "1.5.1",
+    "mocha": "8.3.2",
+    "should": "13.2.3",
+    "standard": "16.0.3",
+    "supertest": "6.1.3"
+  },
+  "standard": {
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  }
+}

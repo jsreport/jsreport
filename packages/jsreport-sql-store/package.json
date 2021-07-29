@@ -1,0 +1,33 @@
+{
+  "name": "jsreport-sql-store",
+  "version": "1.4.2",
+  "description": "Base implementation for stores using sql",
+  "homepage": "https://github.com/jsreport/jsreport-sql-store#readme",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-sql-store/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-sql-store.git"
+  },
+  "author": "Jan Blaha",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "files": [
+    "lib",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "standard"
+  },
+  "dependencies": {
+    "bluebird": "3.5.3",
+    "odata-to-sql": "0.10.2",
+    "uuid": "8.3.2"
+  },
+  "devDependencies": {
+    "standard": "11.0.1"
+  }
+}

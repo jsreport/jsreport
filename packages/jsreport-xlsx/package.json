@@ -1,0 +1,74 @@
+{
+  "name": "jsreport-xlsx",
+  "version": "2.5.0",
+  "description": "jsreport recipe rendering excels directly from open xml",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-xlsx",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-xlsx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-xlsx.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "static",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 4900",
+    "test": "mocha test --timeout 10000 && standard"
+  },
+  "dependencies": {
+    "bluebird": "3.7.2",
+    "jsreport-office": "1.2.0",
+    "lodash": "4.17.19",
+    "merge2": "1.3.0",
+    "mkdirp": "0.5.5",
+    "msexcel-builder-extended": "0.0.8",
+    "node.extend.without.arrays": "1.1.6",
+    "uuid": "8.3.2",
+    "xml2js-preserve-spaces": "0.0.1"
+  },
+  "devDependencies": {
+    "babel-core": "6.26.3",
+    "babel-eslint": "10.0.3",
+    "cross-env": "6.0.3",
+    "handlebars": "4.7.7",
+    "in-publish": "2.0.1",
+    "jsreport-assets": "1.7.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "7.0.0",
+    "should": "13.2.3",
+    "standard": "14.3.4",
+    "xlsx": "0.15.4"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "parser": "babel-eslint"
+  }
+}

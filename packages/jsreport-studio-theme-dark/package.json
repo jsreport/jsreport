@@ -1,0 +1,61 @@
+{
+  "name": "jsreport-studio-theme-dark",
+  "version": "0.3.0",
+  "description": "dark theme for jsreport studio",
+  "keywords": [
+    "jsreport",
+    "jsreport-studio"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-studio-theme-dark",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-studio-theme-dark/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-studio-theme-dark.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "BJR Matos",
+    "email": "bjrmatos@gmail.com",
+    "url": "https://github.com/bjrmatos"
+  },
+  "contributors": [
+    {
+      "name": "BJR Matos",
+      "email": "bjrmatos@gmail.com",
+      "url": "https://github.com/bjrmatos"
+    },
+    {
+      "name": "Jan Blaha",
+      "email": "jan.blaha@hotmail.com"
+    }
+  ],
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "run": "jsreport-studio-start --run-only",
+    "start": "jsreport-studio-start",
+    "test": "echo \"No tests here :)\""
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.2",
+    "jsreport-studio-dev": "1.6.0",
+    "standard": "13.1.0"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

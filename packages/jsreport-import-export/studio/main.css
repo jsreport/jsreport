@@ -1,0 +1,47 @@
+
+.x-import-export-FileInput-selectInput {
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: $controls-backgroundColor;
+  border-bottom: solid 0.2rem $controls-borderColor;
+  transition: border 0.3s;
+  padding: 0.5rem;
+  width: 100%;
+  display: flex;
+  color: $controls-color;
+  margin-top: 2px;
+}
+
+.x-import-export-FileInput-selectInput:hover, .x-import-export-FileInput-selectInput:focus, .x-import-export-FileInput-selectInput:active {
+  border-bottom: solid 0.2rem $controls-hover-borderColor;
+}
+
+.x-import-export-FileInput-selectInput > i {
+  margin-top: 0.1rem;
+  vertical-align: middle;
+}
+
+.x-import-export-FileInput-selectInput > i:hover {
+  color: $controls-hover-borderColor;
+}
+
+.x-import-export-FileInput-selectInput > span {
+  margin-left: 0.5rem;
+  white-space: nowrap;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+.x-import-export-FileInput-selectInput > span.x-import-export-FileInput-link:hover {
+  margin-left: 0.5rem;
+  color: $controls-hover-borderColor;
+  text-decoration: underline;
+}
+
+.x-import-export-FileInput-nameLabel {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

@@ -1,0 +1,46 @@
+{
+  "name": "jsreport-browser-client-dist",
+  "version": "1.3.0",
+  "description": "jsreport browser client standalone distribution",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-browser-client-dist",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-browser-client-dist/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-browser-client-dist.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "main": "jsreport.js",
+  "files": [
+    "jsreport.js",
+    "jsreport.min.js"
+  ],
+  "scripts": {
+    "prepublish": "uglifyjs src/jsreport.js -o tools/jsreport.min.js && node tools/build.js",
+    "test": "standard"
+  },
+  "devDependencies": {
+    "standard": "12.0.1",
+    "uglify-js": "3.5.15"
+  },
+  "maintainers": [
+    {
+      "name": "pofider",
+      "email": "jan.blaha@hotmail.com"
+    }
+  ],
+  "standard": {
+    "ignore": [
+      "thirdparty/FileSaver.js",
+      "/jsreport.min.js",
+      "/jsreport.js"
+    ]
+  }
+}

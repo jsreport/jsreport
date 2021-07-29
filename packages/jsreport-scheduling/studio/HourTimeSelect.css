@@ -1,0 +1,34 @@
+
+.container {
+  background: $popover-backgroundColor;
+  border: 1px solid $popover-borderColor;
+  box-shadow: 0 3px 12px $popover-shadowColor;
+  border-radius: 4px;
+}
+
+.title {
+  background-color: $primary-selection-backgroundColor;
+  color: $primary-selection-color;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 2px 0px;
+}
+
+.list {
+  font-size: 0.75rem;
+  max-height: 66px;
+  overflow-y: scroll;
+}
+
+.item {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0.35rem;
+  text-align: center;
+  width: 21.60px;
+}
+
+.item:hover, .itemSelected {
+  background-color: $primary-hover-backgroundColor;
+  color: $primary-hover-color;
+}

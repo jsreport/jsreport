@@ -1,0 +1,20 @@
+
+.entityTreeButton {
+  background-color: $entityTree-button-backgroundColor;
+  border: none;
+  color: $entityTree-button-color;
+  cursor: pointer;
+  padding: 0.2rem;
+  user-select: none;
+  border: 0.1rem solid $entityTree-button-borderColor;
+  font-size: 0.75rem;
+}
+
+.entityTreeButton:hover {
+  background-color: $entityTree-button-hover-backgroundColor;
+  color: $entityTree-button-hover-color;
+}
+
+.entityTreeButton.active {
+  border: 0.1rem solid $entityTree-button-active-borderColor;
+}

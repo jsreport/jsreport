@@ -1,0 +1,53 @@
+{
+  "name": "jsreport-child-templates",
+  "version": "1.4.0",
+  "description": "jsreport extension adding support to combine one template from multiple sub templates",
+  "keywords": [
+    "jsreport",
+    "sub-reports"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-child-templates",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-child-templates/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-child-templates.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "static",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "mocha test --timeout 5000 && standard",
+    "test:watch": "mocha test --watch"
+  },
+  "dependencies": {
+    "async-replace-with-limit": "1.1.0",
+    "bluebird": "3.5.4",
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "devDependencies": {
+    "handlebars": "4.7.7",
+    "jsreport-core": "2.10.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-jsrender": "2.1.1",
+    "mocha": "5.2.0",
+    "should": "13.2.3",
+    "standard": "12.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  }
+}

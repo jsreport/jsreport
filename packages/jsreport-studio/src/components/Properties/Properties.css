@@ -1,0 +1,66 @@
+
+.propertiesPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: $property-panel-backgroundColor;
+  user-select: none;
+  width: 100%;
+}
+
+.title {
+  background-color: $property-heading-backgroundColor;
+  color: $property-heading-color;
+  min-height: 1.7rem;
+  font-size: 0.9rem;
+  padding: 0.3rem;
+}
+
+.propertiesContainer {
+  overflow: auto;
+}
+
+.propertyTitle {
+  cursor: pointer;
+  padding: 0.5rem 0.5rem 0.5rem 1.2rem;
+  background-color: $property-title-backgroundColor;
+  color: $property-title-color;
+}
+
+.propertyTitle.expanded {
+  background-color: $property-title-expanded-backgroundColor;
+  color: $property-title-expanded-color;
+}
+
+.propertyTitle:hover {
+  background-color: $property-title-hover-backgroundColor;
+  color: $property-title-hover-color;
+}
+
+.propertyBox {
+  margin: 0.3rem 0.3rem;
+  min-width: 9rem;
+}
+
+.propertyContentBox {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s;
+}
+
+.propertyContentBox.expanded {
+  max-height: 95rem;
+}
+
+:global .properties-section {
+  box-shadow: 0 0.1rem 0.1rem 0 rgba(0, 0, 0, 0.2);
+  border-radius: 0.1rem;
+  padding-bottom: 0.5rem;
+}
+
+.propertiesNodes {
+  padding: 0.5em;
+  overflow: auto;
+  flex-direction: column;
+  display: flex;
+}

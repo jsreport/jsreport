@@ -1,0 +1,4 @@
+
+const ENTITY_NODE_DRAG_TYPE = 'ENTITY_TREE_NODE'
+
+export default ENTITY_NODE_DRAG_TYPE

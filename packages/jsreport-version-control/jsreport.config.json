@@ -1,0 +1,31 @@
+{
+  "httpPort": 5488,
+  "allowLocalFilesAccess": false,
+  "store": {
+    "provider": "fs"
+  },
+  "blobStorage": {
+    "provider": "fs"
+  },
+  "chrome": {
+    "timeout": 30000
+  },
+  "extensions": {
+    "authentication": {
+      "cookieSession": {
+        "secret": "<your strong secret>"
+      },
+      "admin": {
+        "username": "admin",
+        "password": "password"
+      },
+      "enabled": false
+    },
+    "sample-template": {
+      "createSamples": false
+    },
+    "scripts": {
+      "timeout": 30000
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "name": "jsreport-version-control",
+  "version": "1.6.2",
+  "description": "jsreport extension adding support for versioning templates and other entities",
+  "keywords": [
+    "jsreport",
+    "pdf"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-version-control",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-version-control.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "test",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard"
+  },
+  "dependencies": {
+    "bluebird": "3.5.4",
+    "bytes": "3.0.0",
+    "diff": "3.5.0",
+    "diff-match-patch": "1.0.5",
+    "isbinaryfile": "3.0.3",
+    "lodash.omit": "4.5.0",
+    "mime-types": "2.1.27",
+    "nanoid": "3.1.22",
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.1",
+    "in-publish": "2.0.1",
+    "jsreport-assets": "1.7.0",
+    "jsreport-authentication": "2.6.1",
+    "jsreport-chrome-pdf": "1.10.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-data": "2.4.0",
+    "jsreport-express": "2.8.1",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "5.2.0",
+    "puppeteer": "9.1.1",
+    "rimraf": "2.6.3",
+    "should": "13.2.3",
+    "standard": "12.0.1",
+    "supertest": "3.4.2"
+  },
+  "engines": {
+    "node": ">=14.x.x"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

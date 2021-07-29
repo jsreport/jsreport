@@ -1,0 +1,27 @@
+
+.x-assets-AssetEditor-toolbarContainer {
+  padding: 0.6rem 0 0.4rem 0;
+  background-color: $secondary-backgroundColor;
+}
+
+.x-assets-AssetEditor-toolbarRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.x-assets-AssetEditor-toolbarRow > *,
+.x-assets-AssetEditor-toolbarRow > .button {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.x-assets-AssetEditor-toolbarAssetName {
+  display: inline-flex;
+  flex-direction: column;
+  margin: 0px;
+  margin-left: 0.6rem;
+  justify-content: center;
+}
+

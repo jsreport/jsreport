@@ -1,0 +1,78 @@
+table {
+    border-collapse: collapse;
+}
+
+.empty-cell {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+td:not(.empty-cell) {
+    min-width: 100px;
+}
+
+.t-left {
+    text-align: left;
+}
+
+.t-center {
+    text-align: center;
+}
+
+.t-right {
+    text-align: right;
+}
+
+.head .title {
+    background-color: #70AD47;
+    color: #fff;
+    font-size: 21px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.label {
+    font-weight: bold;
+}
+
+.head .content {
+    background-color: #fff;
+    padding: 2px;
+}
+
+.head .border-top {
+    border-top: 1px solid #000;
+}
+
+.head .border-left {
+    border-left: 1px solid #000;
+}
+
+.head .border-right {
+    border-right: 1px solid #000;
+}
+
+.head .border-bottom {
+    border-bottom: 1px solid #000;
+}
+
+.detail {
+    border: 1px solid #BEDBAA;
+}
+
+.detail th {
+    background-color: #70AD47;
+    border: 1px solid #BEDBAA;
+    color: #fff;
+    font-weight: bold;
+}
+
+.detail .odd td {
+    background-color: #E2EFDA;
+    border-top: 1px solid #BEDBAA;
+    border-bottom: 1px solid #BEDBAA;
+}
+
+.detail td {
+    padding: 4px; 
+}

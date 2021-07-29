@@ -1,0 +1,160 @@
+@import "./controls.css";
+@import "./resizer.css";
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+html, body {
+  box-sizing: border-box;
+  font-family: proxima-nova, Helvetica Neue, Helvetica, Arial, sans-serif;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-size: 0.9em;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $scrollBar-thumb-backgroundColor;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: $scrollBar-thumb-hover-backgroundColor;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: $scrollBar-thumb-hover-backgroundColor;
+}
+
+::-webkit-scrollbar-track {
+  background: $scrollBar-track-backgroundColor;
+}
+
+::-webkit-resizer {
+  background: $scrollBar-resizer-backgroundColor;
+}
+
+::-webkit-scrollbar-corner {
+  background: $scrollBar-corner-backgroundColor;
+}
+
+.root-container {
+  background-color: $primary-backgroundColor;
+  color: $primary-color;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.block {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.block-item {
+  flex: 1;
+}
+
+.custom-editor {
+  padding: 1rem;
+}
+
+h1,h2,h3,h4 {
+  text-transform: lowercase;
+  font-weight: 150;
+  color: $headings-color;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table tr {
+  color: $table-color;
+  background-color: $table-row-backgroundColor;
+}
+
+.table tr th {
+  background-color: $table-heading-backgroundColor;
+}
+
+.table > thead {
+  width: 100%;
+}
+
+.table > thead > tr {
+  width: 100%;
+}
+
+.table > thead > tr > th {
+   font-weight: bold;
+   text-transform: uppercase;
+   text-align: left;
+   padding: 0.4rem 1rem 0.5rem 1rem;
+   vertical-align: bottom;
+   border-bottom: 0.1rem solid $table-heading-borderColor;
+   border-right: 0.1rem solid $table-heading-borderColor;
+   font-size: 0.8rem;
+ }
+
+.table > tbody > tr {
+  vertical-align: middle;
+  cursor: pointer;
+  width: 100%;
+  border-bottom: 0.2rem solid $table-row-borderColor;
+}
+
+.table > tbody > tr.active {
+  background-color: $table-row-active-backgroundColor;
+  color: $table-row-active-color;
+}
+
+.table > tbody > tr:hover > td {
+  background-color: $table-row-hover-backgroundColor;
+  color: $table-row-hover-color;
+}
+
+.table > tbody > tr > td > a:link {
+  text-decoration: inherit;
+  display: block;
+  color: inherit;
+  cursor: pointer;
+}
+
+.table > tbody > tr > td > a:visited {
+  text-decoration: inherit;
+  display: block;
+  color: inherit;
+  cursor: pointer;
+}
+
+.table > tbody > tr > td {
+  font-weight: normal;
+  padding: 0.6rem;
+  border: 0;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.table > tbody > tr:not(:hover):not(.active) > td.selection {
+  background-color: $table-selection-backgroundColor;
+  color: $table-selection-color;
+}
+
+a:not(.button)[href]:link, a:not(.button)[href]:visited, a:not(.button)[href]:hover, a:not(.button)[href]:active {
+  color: $anchors-color;
+}

@@ -1,0 +1,38 @@
+.listContainer {
+  margin-top: 1rem;
+  overflow: auto;
+  position: relative;
+  padding: 1rem;
+  min-height: 0;
+  height: auto;
+}
+
+.listContainer > div {
+  /* it somehow shows the horizontal scrollbar even when no needeit, this workaround to hide it */
+  width: 95%;
+  /* the tabs height based on flex box is otherwise wrongly calculated */
+  position: absolute !important;
+}
+
+.state {
+  font-size: 0.8rem;
+  padding: 0.3rem;
+  display: inline-block;
+  text-align: center;
+  min-width: 4rem;
+}
+
+.error {
+  background-color: #da532c;
+  color: white;
+}
+
+.cancelled {
+  background-color: orange;
+  color: white;
+}
+
+.success {
+  background-color: #4CAF50;
+  color: white;
+}

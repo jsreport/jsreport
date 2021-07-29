@@ -1,0 +1,21 @@
+const concatTags = require('./concatTags')
+const bookmark = require('./bookmark')
+const drawingObject = require('./drawingObject')
+const list = require('./list')
+const raw = require('./raw')
+const table = require('./table')
+const link = require('./link')
+const style = require('./style')
+const pageBreak = require('./pageBreak')
+
+module.exports = (files) => {
+  concatTags(files)
+  bookmark(files)
+  drawingObject(files)
+  list(files)
+  raw(files)
+  table(files)
+  link(files)
+  style(files)
+  pageBreak(files)
+}

@@ -1,0 +1,38 @@
+{{#xlsxReplace "xl/worksheets/sheet2.xml"}}
+    <worksheet
+        xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+        xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <dimension ref="A1"/>
+        <sheetViews>
+            <sheetView workbookViewId="0"/>
+        </sheetViews>
+        <sheetFormatPr defaultRowHeight="13.5"/>
+        <cols>
+            <col min="1" max="1" width="56" />
+            <col min="2" max="2" width="18" />
+        </cols>
+        <sheetData>
+            <row>
+                <c t="inlineStr"><is><t>Fooo</t></is></c>
+                <c t="inlineStr"><is><t>Theeere</t></is></c>
+            </row>
+        </sheetData>
+        <phoneticPr fontId="1" type="noConversion"/>
+        <pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
+        <pageSetup paperSize="9" orientation="portrait" horizontalDpi="200" verticalDpi="200"/>
+    </worksheet>
+{{/xlsxReplace}}
+
+{{#xlsxAdd "[Content_Types].xml" "Types.Override"}}
+    <Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+{{/xlsxAdd}}
+
+{{#xlsxAdd "xl/workbook.xml" "workbook.sheets[0].sheet"}}
+    <sheet name="Test" sheetId="3" r:id="sheet2"/>
+{{/xlsxAdd}}
+
+{{#xlsxAdd "xl/_rels/workbook.xml.rels" "Relationships.Relationship"}}
+    <Relationship Id="sheet2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>
+{{/xlsxAdd}}
+
+{{{xlsxPrint}}}

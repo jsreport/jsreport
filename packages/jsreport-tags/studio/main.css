@@ -1,0 +1,107 @@
+
+.x-tags-TagEntityTreeButtonToolbar-active {
+  border-bottom: 0.1rem solid $controls-color;
+}
+
+
+.x-tags-TagEntityTreeFilterByTags-searchTagsContainer {
+  display: inline-block;
+  margin-left: -0.3rem;
+  margin-right: -0.3rem;
+  position: relative;
+}
+
+.x-tags-TagEntityTreeFilterByTags-searchTagsInputBox {
+  display: inline-block;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+  position: relative;
+}
+
+.x-tags-TagEntityTreeFilterByTags-searchTagsInputBox:before {
+  content: "\f02b";
+  margin-right: 0.3rem;
+  color: $entityTree-collapseIcon-collapsed-color;
+  font-family: FontAwesome;
+  position: absolute;
+}
+
+.x-tags-TagEntityTreeFilterByTags-searchTags {
+  border: none;
+  border-bottom-width: 0;
+  transition: border 0.3s;
+  padding: 0.2rem;
+  width: 35px;
+}
+
+.x-tags-TagEntityTreeFilterByTags-searchTags:focus,
+.x-tags-TagEntityTreeFilterByTags-searchTags:hover {
+  border-bottom-width: 0;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsListContainer {
+  display: block;
+  max-height: 150px;
+  position: relative;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsList {
+  background-color: $popover-backgroundColor;
+  border: 1px solid $popover-borderColor;
+  box-shadow: 0 3px 12px $popover-shadowColor;
+  display: inline-block;
+  overflow: auto;
+  position: absolute;
+  top: 4px;
+  width: 100%;
+  z-index: 3;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsListEmpty {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  text-align: center;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsListItem {
+  color: $controls-color;
+  cursor: pointer;
+  padding-bottom: 0.4rem;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+  padding-top: 0.4rem;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsListItem:hover {
+  background-color: $primary-hover-backgroundColor;
+  color: $primary-hover-color;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsSelect {
+  display: inline-block;
+  padding-left: 18px;
+  width: 150px;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsSelectItem {
+  border: 1px solid transparent;
+  border-radius: 2px;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  margin-right: 0.3rem;
+  padding-bottom: 0.1rem;
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+  padding-top: 0.1rem;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsSelectItemRemove {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.x-tags-TagEntityTreeFilterByTags-tagsSelectItemRemove:before {
+  content: " ×";
+}
+

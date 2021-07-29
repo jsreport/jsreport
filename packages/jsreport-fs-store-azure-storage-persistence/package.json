@@ -1,0 +1,39 @@
+{
+  "name": "jsreport-fs-store-azure-storage-persistence",
+  "version": "1.2.2",
+  "description": "Make jsreport fs store persist entities into azure blob storage",
+  "keywords": [
+    "jsreport",
+    "azure"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-fs-store-azure-storage-persistence",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-fs-store-azure-storage-persistence.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "standard"
+  },
+  "dependencies": {
+    "azure-storage": "2.10.4"
+  },
+  "devDependencies": {
+    "standard": "12.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "env": {
+      "node": true
+    }
+  }
+}

@@ -1,0 +1,69 @@
+
+.separator {
+  border: 1px solid $tab-titles-borderColor;
+  margin-bottom: 1rem;
+}
+
+.operationTable {
+  border-collapse: collapse;
+  border:none;
+  overflow: scroll
+}
+
+.operationTable th {
+  padding: 0.5rem
+}
+
+.operationTable td:nth-child(3),
+.operationTable td:nth-child(4),
+.operationTable td:nth-child(5),
+.operationTable th:nth-child(3),
+.operationTable th:nth-child(4),
+.operationTable th:nth-child(5)  {
+  text-align: center;
+  padding-left: 1rem;
+  background-color: $secondary-backgroundColor;
+}
+
+.tabContainer {
+  background-color: $tab-pane-backgroundColor;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+
+.tabTitles {
+  margin: 0 0 10px;
+  padding: 0;
+  background-color: $tab-titles-backgroundColor;
+  border-bottom: 0.2rem $tab-titles-borderColor solid;
+}
+
+.tabTitle {
+  display: inline-block;
+  background-color: $tab-title-backgroundColor;
+  border-right: 1px $tab-title-borderColor solid;
+  border-bottom: none;
+  bottom: -1px;
+  position: relative;
+  list-style: none;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.tabTitle.active {
+  background: $tab-title-active-backgroundColor;
+  color: $tab-title-active-color;
+}
+
+.tabTitle:hover {
+  background: $tab-title-hover-backgroundColor;
+  color: $tab-title-hover-color;
+}
+
+.tabPanel {
+  display: none;
+}
+
+.tabPanel.active {
+  display: block;
+}

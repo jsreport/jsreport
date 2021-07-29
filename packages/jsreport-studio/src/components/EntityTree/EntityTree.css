@@ -1,0 +1,245 @@
+
+.treeListContainer {
+  flex: 1;
+  background-color: $entityTree-backgroundColor;
+  color: $entityTree-color;
+  display: flex;
+  flex-direction: column;
+  /*firefox needs min-height and min-width explicitly declared to allow descendants flex items to be scrollable (overflow)*/
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.treeListContainer.dragging {
+
+}
+
+.toolbar {
+  padding: 0.3rem;
+}
+
+.toolbarGroup {
+  display: inline-block;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+}
+
+.nodeBox {
+  flex: 1;
+}
+
+.nodeBoxItem {
+  margin-top: 0;
+}
+
+.nodeBoxItemContent {
+  display: inline-block;
+  outline: 1px dashed transparent;
+  outline-offset: 1px;
+  opacity: 1;
+  margin-left: 0.2rem;
+}
+
+.nodeBoxItemContent.dragging,
+.nodeContainer.dragging .nodeBoxItemContent {
+  opacity: 0.5;
+}
+
+.nodeBoxItemContent.dragging {
+  outline-color: $entityTree-outlineColor;
+}
+
+.nodesBox {
+  flex: 1;
+  height: auto;
+  overflow: auto;
+  position: relative;
+  width: auto;
+  /*gives a little bit of space to show hierarchy*/
+  /*highlight when dragging over the root*/
+  padding-top: 4px;
+}
+
+.nodeTitle {
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 0.2rem;
+  user-select: none;
+}
+
+.nodeTitle:before {
+  font-size: 1rem;
+  font-family: FontAwesome;
+  color: $entityTree-collapseIcon-collapsed-color;
+}
+
+.nodeTitle:not(.collapsed):before {
+  content: "\f0da";
+  transform: rotateZ(45deg);
+  display: inline-block;
+  margin-right: 0.3rem;
+  color: $entityTree-collapseIcon-color;
+}
+
+.nodeTitle.collapsed:before {
+  content: "\f0da";
+  display: inline-block;
+  margin-right: 0.3rem;
+}
+
+.nodeTitle:hover:before {
+  color: $entityTree-collapseIcon-hover-color;
+}
+
+.nodeContainer:not(.collapsed) {
+  max-height: 15999px;
+  transition: 0.15s;
+}
+
+.nodeContainer.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  transition: 0.15s;
+}
+
+.link {
+  padding: 0.3rem;
+  padding-left: 1.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.link.active {
+  background: $entityTree-node-active-backgroundColor;
+  color: $entityTree-node-active-color;
+}
+
+.link:hover, .link.focused {
+  background: $entityTree-node-hover-backgroundColor;
+  color: $entityTree-node-hover-color;
+}
+
+.treeListContainer.dragging .link:hover {
+  background: inherit;
+  color: inherit;
+}
+
+.link.dragging {
+  background-color: inherit;
+  color: inherit;
+}
+
+.entityIcon {
+  margin-right: 0.4rem;
+  width: 0.9rem;
+  color: $entityIcon-color;
+}
+
+.entityDefaultIcon:after {
+  font-family: FontAwesome;
+  content: "\f1fe";
+}
+
+.add {
+  cursor: pointer;
+}
+
+.add:after {
+  content: "\f067";
+  font-family: FontAwesome;
+  color: $entityTree-icon-color;
+  padding: 0.1rem;
+  font-size: 1rem;
+}
+
+.add:hover:after {
+  color: $entityTree-icon-hover-color;
+}
+
+.help {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.help:after {
+  content: "\f128";
+  font-family: FontAwesome;
+  color: $entityTree-icon-color;
+  padding: 0.1rem;
+  font-size: 1rem;
+  visibility: hidden;
+}
+
+.nodeBox:hover .help:after {
+  visibility: visible;
+}
+
+.help:hover:after {
+  color: $entityTree-icon-hover-color;
+}
+
+.contextMenu {
+  background-color: $contextMenu-backgroundColor;
+  position: relative;
+  min-width: 9rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  z-index: 200;
+  box-shadow: 0.1rem 0.1rem 0.1rem 0.05rem rgba(0, 0, 0, 0.6);
+}
+
+.contextMenuContainer {
+  position: absolute;
+  z-index: 9999999;
+}
+
+.contextMenuContainer.nestedLevel {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  transition: opacity;
+  transition-delay: 0.2s;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.contextButton {
+  position: relative;
+  color: $contextMenu-button-color;
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.contextButton i {
+  width: 0.8rem;
+  margin-right: 0.6rem;
+  display: inline-block;
+}
+
+.contextButton.disabled {
+  color: $contextMenu-button-disabled-color;
+}
+
+.contextButton.hasNestedLevels:after {
+  font-family: FontAwesome;
+  font-size: 0.9rem;
+  padding-right: 0.5rem;
+  content: "\f0da";
+  position: absolute;
+  right: 0;
+}
+
+.contextButton:hover:not(.disabled) {
+  background-color: $contextMenu-button-hover-backgroundColor;
+  color: $contextMenu-button-hover-color;
+}
+
+.contextButton.hasNestedLevels:hover > .contextMenuContainer.nestedLevel {
+  opacity: 1;
+  height: auto;
+  overflow: visible;
+}

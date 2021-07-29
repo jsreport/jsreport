@@ -1,0 +1,66 @@
+{
+  "name": "jsreport-pptx",
+  "version": "0.7.3",
+  "description": "jsreport recipe rendering pptx files",
+  "keywords": [
+    "jsreport",
+    "pptx"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-pptx",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport-pptx.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "files": [
+    "lib",
+    "static",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "start": "jsreport-studio-start --httpPort 3000",
+    "test": "mocha test --timeout 8000 && standard"
+  },
+  "dependencies": {
+    "image-size": "0.7.4",
+    "jsreport-office": "1.2.0",
+    "xmldom": "0.1.27"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.2",
+    "handlebars": "4.7.7",
+    "jsreport-assets": "1.7.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "6.1.4",
+    "should": "13.2.3",
+    "standard": "12.0.1",
+    "textract": "2.5.0"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

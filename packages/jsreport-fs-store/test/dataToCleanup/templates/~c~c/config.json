@@ -1,0 +1,11 @@
+{
+    "shortid": "HkemshAJG",
+    "name": "c",
+    "recipe": "phantom-pdf",
+    "engine": "handlebars",
+    "modificationDate": {
+        "$$date": 1511078682022
+    },
+    "_id": "yTkmUIdwHgsbjhz7",
+    "$entitySet": "templates"
+}

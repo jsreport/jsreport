@@ -1,0 +1,12 @@
+
+.errorContainer {
+  max-width: 650px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+.errorMessage,
+.errorStack {
+  word-break: break-all;
+  white-space: break-spaces;
+}

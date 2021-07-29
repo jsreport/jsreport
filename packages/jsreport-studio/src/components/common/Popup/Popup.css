@@ -1,0 +1,22 @@
+
+.container {
+  background-color: $popup-backgroundColor;
+  color: $popup-color;
+  position: absolute;
+  padding: 0.5rem;
+  top: 2.4rem;
+  z-index: 2000
+}
+
+.container > div  {
+  padding: 0.5rem;
+}
+
+.container > div:hover {
+  background-color: $popup-hover-backgroundColor;
+}
+
+.container :global(.fa) {
+  width: 1.1rem;
+  margin-right: 0.3rem;
+}

@@ -1,0 +1,84 @@
+
+.toolbar {
+  background-color: $toolbar-backgroundColor;
+  color: $toolbar-color;
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+}
+
+:global .toolbar-button {
+  padding: 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+:global .toolbar-button .fa {
+  margin-right: 0.4em;
+}
+
+:global .toolbar-button.disabled {
+  color: $toolbar-button-disabled-color;
+}
+
+:global .toolbar-button:hover:not(.disabled) {
+  background: $toolbar-button-hover-backgroundColor;
+  color: $toolbar-button-hover-color;
+}
+
+.run:before {
+  content: "\f04b";
+  font-family: FontAwesome;
+}
+
+.save:before {
+  content: "\f0c7";
+  font-family: FontAwesome;
+}
+
+.saveAll:before {
+  content: "\f0c7";
+  font-family: FontAwesome;
+}
+
+.spinner {
+  flex: 1;
+  color: $formPrimary-color;
+  font-size: 1.5rem;
+}
+
+.spinner > i {
+}
+
+.delete:before {
+  content: "\f014";
+  font-family: FontAwesome;
+}
+
+.logo {
+  background: linear-gradient(to left, $toolbar-backgroundColor 0%, $toolbar-target-backgroundColor 100%);
+  background-size: auto 100%;
+  background-repeat: no-repeat;
+  padding-left: 0.2rem;
+  padding-right: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  height: 2.5rem;
+}
+
+.runCaret {
+  font-family: FontAwesome;
+  padding: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.runCaret:hover {
+  color: $formPrimary-color;
+}
+
+.runCaret:after {
+  content: "\f0d7 "
+}

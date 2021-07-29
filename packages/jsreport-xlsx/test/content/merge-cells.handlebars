@@ -1,0 +1,18 @@
+{{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
+<row r="1">
+    <c r="A1" t="inlineStr">
+        <is>
+            <t>I want to be a merged cell</t>
+        </is>
+    </c>
+</row>
+{{/xlsxAdd}}
+
+{{#xlsxReplace "xl/worksheets/sheet1.xml" "worksheet.mergeCells"}}
+    <mergeCells>
+        <mergeCell ref="A1:C2"/>
+    </mergeCells>
+{{/xlsxReplace}}
+
+
+{{{xlsxPrint}}}

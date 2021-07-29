@@ -1,0 +1,13 @@
+{{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
+    <row>
+        <c t="inlineStr"><is><t>foo</t></is></c>
+    </row>
+{{/xlsxAdd}}
+
+{{#xlsxReplace "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row[0]"}}
+    <row>
+        <c t="inlineStr"><is><t>xxx</t></is></c>
+    </row>
+{{/xlsxReplace}}
+
+{{{xlsxPrint}}}

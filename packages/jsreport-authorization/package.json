@@ -1,0 +1,65 @@
+{
+  "name": "jsreport-authorization",
+  "version": "2.4.0",
+  "description": "jsreport extension adding authorization cappabilities",
+  "keywords": [
+    "jsreport",
+    "authorization"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-authorization",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-authorization/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-authorization.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout 5000 && standard"
+  },
+  "dependencies": {
+    "lodash.omit": "4.5.0",
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.1",
+    "in-publish": "2.0.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-fs-store": "2.9.2",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "5.2.0",
+    "ncp": "2.0.0",
+    "rimraf": "2.6.3",
+    "should": "13.2.3",
+    "standard": "12.0.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js",
+      "test/data"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "parser": "babel-eslint"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "name": "jsreport-studio",
+  "version": "2.10.1",
+  "description": "jsreport templates editor and designer",
+  "keywords": [
+    "jsreport"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-studio",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-studio/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-studio.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha"
+  },
+  "main": "src/server.js",
+  "files": [
+    "lib",
+    "shared",
+    "src",
+    "static",
+    "webpack",
+    ".babelrc",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "npm run build-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
+    "build-eslint-browser": "jsreport-studio-build --config webpack/eslint-browser.config.js --stats.modules=false",
+    "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js && not-in-publish || npm run build-eslint-browser",
+    "docs": "jsdoc2md src/Studio.js > static/Studio.md",
+    "prepublish": "in-publish && npm run build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --run-only",
+    "server-test": "mocha test/server",
+    "start": "npm run check-build-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
+    "test": "npm run ui-test && npm run server-test",
+    "test:watch": "npm test -- --watch",
+    "ui-test": "mocha test/ui/.setup.js test/ui --recursive --require babel-core/register --require mocha-clean --require ignore-styles"
+  },
+  "dependencies": {
+    "bluebird": "3.5.4",
+    "compression": "1.7.4",
+    "diff2html": "2.5.0",
+    "lodash": "4.17.19",
+    "semaphore-async-await": "1.5.1",
+    "serve-favicon": "2.5.0",
+    "serve-static": "1.14.1"
+  },
+  "devDependencies": {
+    "@seznam/compose-react-refs": "1.0.4",
+    "babel-eslint": "8.2.1",
+    "chart.js": "2.9.4",
+    "classnames": "2.2.6",
+    "connected-react-router": "6.8.0",
+    "dagre": "0.8.5",
+    "enzyme": "3.11.0",
+    "enzyme-adapter-react-16": "1.15.2",
+    "eslint": "5.16.0",
+    "filesaver.js-npm": "1.0.1",
+    "font-awesome": "4.7.0",
+    "font-awesome-webpack-4": "1.0.0",
+    "ignore-styles": "5.0.1",
+    "in-publish": "2.0.1",
+    "js-beautify-jsreport": "1.6.19",
+    "js-cookie": "2.2.1",
+    "jsdom": "15.0.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-express": "2.8.1",
+    "jsreport-studio-dev": "1.6.0",
+    "mini-css-extract-plugin": "0.9.0",
+    "mocha": "7.2.0",
+    "mocha-clean": "1.0.0",
+    "monaco-editor": "0.26.1",
+    "monaco-editor-webpack-plugin": "4.1.1",
+    "monaco-themes": "0.3.3",
+    "ok-file": "1.5.2",
+    "prop-types": "15.7.2",
+    "react": "16.14.0",
+    "react-chartjs-2": "2.11.1",
+    "react-dnd": "11.1.3",
+    "react-dnd-html5-backend": "11.1.3",
+    "react-dom": "16.14.0",
+    "react-flow-renderer": "9.6.1",
+    "react-list": "0.8.15",
+    "react-modal": "3.11.2",
+    "react-monaco-editor": "0.44.0",
+    "react-redux": "7.2.4",
+    "react-router-dom": "5.2.0",
+    "react-split-pane": "0.1.91",
+    "react-transform-catch-errors": "1.0.2",
+    "react-transform-hmr": "1.0.4",
+    "redbox-react": "1.6.0",
+    "redux": "4.1.0",
+    "redux-batched-actions": "0.5.0",
+    "redux-immutable-state-invariant": "2.1.0",
+    "redux-logger": "3.0.6",
+    "redux-mock-store": "1.5.4",
+    "redux-thunk": "2.3.0",
+    "reselect": "4.0.0",
+    "shortid": "2.2.15",
+    "should": "13.2.3",
+    "socket.io-client": "2.4.0",
+    "standard": "16.0.3",
+    "string-replace-loader": "2.3.0",
+    "superagent": "5.3.1",
+    "supertest": "4.0.2",
+    "webpack-dev-middleware": "3.7.2",
+    "webpack-hot-middleware": "2.25.0",
+    "worker-loader": "2.0.0"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "static/**",
+      "src/extensions.js",
+      "webpack/**"
+    ],
+    "global": [
+      "__DEVELOPMENT__",
+      "Studio"
+    ],
+    "env": {
+      "mocha": true,
+      "node": true,
+      "browser": true
+    },
+    "parser": "babel-eslint"
+  }
+}

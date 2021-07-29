@@ -1,0 +1,26 @@
+
+.toolbarContainer {
+  padding: 0.6rem 0 0.4rem 0;
+  background-color: $secondary-backgroundColor;
+}
+
+.toolbarRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.toolbarRow > *,
+.toolbarRow > :global(.button) {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.toolbarAssetName {
+  display: inline-flex;
+  flex-direction: column;
+  margin: 0px;
+  margin-left: 0.6rem;
+  justify-content: center;
+}

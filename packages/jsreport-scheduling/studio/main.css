@@ -1,0 +1,74 @@
+.x-scheduling-ScheduleEditor-listContainer {
+  margin-top: 1rem;
+  overflow: auto;
+  position: relative;
+  padding: 1rem;
+  min-height: 0;
+  height: auto;
+}
+
+.x-scheduling-ScheduleEditor-listContainer > div {
+  /* it somehow shows the horizontal scrollbar even when no needeit, this workaround to hide it */
+  width: 95%;
+  /* the tabs height based on flex box is otherwise wrongly calculated */
+  position: absolute !important;
+}
+
+.x-scheduling-ScheduleEditor-state {
+  font-size: 0.8rem;
+  padding: 0.3rem;
+  display: inline-block;
+  text-align: center;
+  min-width: 4rem;
+}
+
+.x-scheduling-ScheduleEditor-error {
+  background-color: #da532c;
+  color: white;
+}
+
+.x-scheduling-ScheduleEditor-cancelled {
+  background-color: orange;
+  color: white;
+}
+
+.x-scheduling-ScheduleEditor-success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+
+.x-scheduling-HourTimeSelect-container {
+  background: $popover-backgroundColor;
+  border: 1px solid $popover-borderColor;
+  box-shadow: 0 3px 12px $popover-shadowColor;
+  border-radius: 4px;
+}
+
+.x-scheduling-HourTimeSelect-title {
+  background-color: $primary-selection-backgroundColor;
+  color: $primary-selection-color;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 2px 0px;
+}
+
+.x-scheduling-HourTimeSelect-list {
+  font-size: 0.75rem;
+  max-height: 66px;
+  overflow-y: scroll;
+}
+
+.x-scheduling-HourTimeSelect-item {
+  cursor: pointer;
+  display: inline-block;
+  padding: 0.35rem;
+  text-align: center;
+  width: 21.60px;
+}
+
+.x-scheduling-HourTimeSelect-item:hover, .x-scheduling-HourTimeSelect-itemSelected {
+  background-color: $primary-hover-backgroundColor;
+  color: $primary-hover-color;
+}
+

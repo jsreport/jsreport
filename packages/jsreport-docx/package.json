@@ -1,0 +1,76 @@
+{
+  "name": "jsreport-docx",
+  "version": "2.9.1",
+  "description": "jsreport recipe rendering docx files",
+  "keywords": [
+    "jsreport",
+    "docx"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-docx",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-docx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-docx.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "files": [
+    "lib",
+    "static",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "start": "jsreport-studio-start --httpPort 4000",
+    "test": "mocha test --timeout 8000 && standard"
+  },
+  "dependencies": {
+    "axios": "0.19.2",
+    "image-size": "0.7.4",
+    "js-excel-date-convert": "1.0.2",
+    "jsreport-office": "1.2.0",
+    "moment": "2.29.1",
+    "semaphore-async-await": "1.5.1",
+    "string-replace-async": "2.0.0",
+    "unescape": "1.0.1",
+    "xmldom": "0.1.27"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.0.2",
+    "handlebars": "4.7.7",
+    "jsreport-assets": "1.7.0",
+    "jsreport-core": "2.10.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "6.1.4",
+    "nock": "11.7.2",
+    "should": "13.2.3",
+    "standard": "12.0.1",
+    "textract": "2.5.0"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

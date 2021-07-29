@@ -1,0 +1,19 @@
+sudo: required
+addons:
+  apt:
+    packages:
+      - alien
+language: node_js
+node_js:
+  - "14"
+services:
+  - docker
+env:
+  - USE_DOCKER_CONNECTION=true ORACLE_HOME=/usr/lib/oracle/18.5/client64 PATH=$ORACLE_HOME/bin:$PATH LD_LIBRARY_PATH=$ORACLE_HOME/lib
+install:
+  - docker pull pvargacl/oracle-xe-18.4.0:latest
+  - docker run -d --name oracle_database -p 1521:1521 -e ORACLE_PWD=oracle -v ${PWD}/oracle-setup:/docker-entrypoint-initdb.d/startup pvargacl/oracle-xe-18.4.0:latest
+  - npm ci
+  - wget https://download.oracle.com/otn_software/linux/instantclient/185000/oracle-instantclient18.5-basic-18.5.0.0.0-3.x86_64.rpm
+  - sudo alien -i oracle-instantclient18.5-*.rpm
+script: npm run test-with-db

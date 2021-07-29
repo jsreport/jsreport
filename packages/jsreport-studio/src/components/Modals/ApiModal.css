@@ -1,0 +1,39 @@
+
+.label {
+  background-color: $primary-hover-backgroundColor;
+  color: $primary-hover-color;
+  padding: 0.2rem;
+  font-weight: lighter;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+  width: 5rem;
+  display: inline-block
+}
+
+.label.minor {
+  background-color: $secondary-color;
+}
+
+.url {
+  color: $secondary-hover-backgroundColor;
+}
+
+.row {
+  margin: 0.2rem 0 0.2rem 0;
+}
+
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
+
+.overridesBox {
+  height: 17rem;
+  overflow: auto;
+  width: 100%;
+}
+
+.link {
+  text-decoration: none;
+}

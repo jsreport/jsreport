@@ -1,0 +1,6 @@
+
+.container {
+  position: relative;
+  background-color: $preview-backgroundColor;
+  color: $preview-color;
+}

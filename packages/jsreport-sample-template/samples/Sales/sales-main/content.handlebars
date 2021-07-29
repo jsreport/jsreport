@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <style>
+            {{asset "sales-styles.css" "utf8"}}
+        </style>
+    </head>
+    <body>
+        <table name="Sales-Detail">
+            <tbody class="head">
+                <tr>
+                    <td></td>
+                    <td colspan="5" class="title">SALES DETAIL</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    {{generateEmptyCell 7}}
+                </tr>
+                <tr>
+                    {{generateEmptyCell 1}}
+                    <td class="label content border-top border-left">Customer</td>
+                    <td class="content border-top">{{customer}}</td>
+                    {{generateEmptyCell 1 "content border-top"}}
+                    <td class="label content border-top">Report Date</td>
+                    <td class="content border-top border-right t-right" data-cell-type="date" data-cell-format-str="dd-mm-yyyy">{{nowStr}}</td>
+                    {{generateEmptyCell 1}}
+                </tr>
+                <tr>
+                    {{generateEmptyCell 1}}
+                    <td class="label content border-bottom border-left">Month</td>
+                    <td class="content border-bottom">{{month}}</td>
+                    {{generateEmptyCell 1 "content border-bottom"}}
+                    <td class="label content border-bottom">Tax</td>
+                    <!-- enum = "9" percentage -->
+                    <td class="content border-bottom border-right t-right" data-cell-type="number" data-cell-format-enum="9">{{taxPercentage}}</td>
+                    {{generateEmptyCell 1}}
+                </tr>
+                <tr>
+                    {{generateEmptyCell 7}}
+                </tr>
+            </tbody>
+            <tbody class="detail">
+                <tr>
+                    <th class="t-center">Date</th>
+                    <th class="t-left">Product</th>
+                    <th class="t-left">Category</th>
+                    <th class="t-right">Unit Price</th>
+                    <th class="t-right">Quantity</th>
+                    <th class="t-right">Discount</th>
+                    <th class="t-right">Amount</th>
+                </tr>
+                {{#each detail}}
+                    <tr class="{{oddClassName @index}}">
+                        <td class="t-center" data-cell-type="date" data-cell-format-str="dd-mm-yyyy">{{date}}</td>
+                        <td>{{product}}</td>
+                        <td>{{category}}</td>
+                        <td class="t-right" data-cell-type="number">{{unitPrice}}</td>
+                        <td class="t-right" data-cell-type="number">{{quantity}}</td>
+                        <td class="t-right" data-cell-type="number" data-cell-format-enum="9">{{discountPercentage}}</td>
+                        <td class="t-right" data-cell-type="formula">=(D{{getDetailRowIndex @index}}*E{{getDetailRowIndex @index}}) - (D{{getDetailRowIndex @index}}*E{{getDetailRowIndex @index}}*F{{getDetailRowIndex @index}})</td>
+                    </tr>
+                {{/each}}
+                <tr>
+                    {{generateEmptyCell 5}}
+                    <td class="label">Total Net Amount $</td>
+                    <td class="t-right" data-cell-type="formula">=SUM(G{{getDetailRowIndex 0}}:G{{getDetailRowIndex (sum detail.length -1)}})</td>
+                </tr>
+                <tr>
+                    {{generateEmptyCell 5}}
+                    <td class="label" data-cell-type="formula" data-cell-format-enum="2">=CONCATENATE("VAT (", F4*100, "%)", " $")</td>
+                    <td class="t-right" data-cell-type="formula" data-cell-format-enum="2">=G{{getDetailRowIndex detail.length}}*F4</td>
+                </tr>
+                <tr>
+                    {{generateEmptyCell 5}}
+                    <td class="label">Total $</td>
+                    <td class="t-right" data-cell-type="formula" data-cell-format-enum="2">=SUM(G{{getDetailRowIndex detail.length}}:GG{{getDetailRowIndex (sum detail.length 1)}})</td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

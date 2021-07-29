@@ -1,0 +1,71 @@
+{
+  "name": "jsreport-html-to-xlsx",
+  "version": "2.8.4",
+  "description": "jsreport recipe capable of converting html into excel",
+  "keywords": [
+    "jsreport",
+    "xlsx"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-html-to-xlsx",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-html-to-xlsx.git"
+  },
+  "license": "LGPL",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
+  ],
+  "files": [
+    "lib",
+    "studio",
+    "static",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test --timeout 8000 && standard"
+  },
+  "dependencies": {
+    "chrome-page-eval": "1.3.0",
+    "html-to-xlsx": "2.0.3",
+    "jsreport-office": "1.2.0",
+    "nanoid": "1.0.7",
+    "node.extend.without.arrays": "1.1.6",
+    "opentype.js": "1.1.0",
+    "phantom-page-eval": "1.2.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.1.0",
+    "handlebars": "4.7.7",
+    "in-publish": "2.0.1",
+    "jsreport-core": "2.10.1",
+    "jsreport-handlebars": "2.1.0",
+    "jsreport-studio-dev": "1.6.0",
+    "mocha": "5.2.0",
+    "puppeteer": "9.1.1",
+    "should": "13.2.3",
+    "standard": "14.3.4",
+    "xlsx-populate": "1.20.1"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  }
+}

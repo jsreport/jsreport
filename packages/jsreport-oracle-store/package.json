@@ -1,0 +1,42 @@
+{
+  "name": "jsreport-oracle-store",
+  "version": "0.2.0",
+  "description": "Extension allowing to store template in Oracle Database",
+  "homepage": "https://github.com/jsreport/jsreport-oracle-store#readme",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-oracle-store/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport-oracle-store.git"
+  },
+  "author": "Jan Blaha",
+  "main": "index.js",
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "mocha test/test.js --timeout=18000 && standard"
+  },
+  "dependencies": {
+    "jsreport-sql-store": "1.4.2",
+    "oracledb": "5.1.0"
+  },
+  "devDependencies": {
+    "jsreport-core": "2.10.1",
+    "mocha": "8.3.2",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "standard": {
+    "env": [
+      "mocha",
+      "node"
+    ]
+  }
+}

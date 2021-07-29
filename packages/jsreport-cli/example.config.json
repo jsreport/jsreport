@@ -1,0 +1,26 @@
+{
+  "httpPort": 5488,
+  "allowLocalFilesAccess": false,
+  "store": {
+    "provider": "fs"
+  },
+  "blobStorage": {
+    "provider": "fs"
+  },
+  "reportTimeout": 60000,
+  "extensions": {
+    "authentication": {
+      "admin": {
+        "username": "admin",
+        "password": "password"
+      },
+      "enabled": false
+    },
+    "sample-template": {
+      "createSamples": true
+    },
+    "fs-store": {
+      "syncModifications": false
+    }
+  }
+}

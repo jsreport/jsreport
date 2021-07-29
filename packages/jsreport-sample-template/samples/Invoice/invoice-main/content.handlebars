@@ -1,0 +1,81 @@
+<!--
+Invoice dynamically rendered into html using handlebars and converted into pdf
+using chrome-pdf recipe. The styles are extracted into separate asset for
+better readability and later reuse.
+
+Data to this sample are mocked at the design time and should be filled on the
+incoming API request.
+!-->
+
+<html>
+    <head>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <style>
+            {{asset "invoice-styles.css" "utf8"}}
+        </style>
+    </head>
+    <body>
+        <div class="invoice-box">
+            <table cellpadding="0" cellspacing="0">
+                <tr class="top">
+                    <td colspan="2">
+                        <table>
+                            <tr>
+                                <td class="title">
+                                    <img src="{{asset "invoice-logo.png" "dataURI"}}" style="width:100%; max-width:300px;" />
+                                </td>
+                                <td>
+                                    Invoice #: {{number}}
+                                    <br> Created: {{nowLocalStr}}
+                                    <br> Due: {{nowPlus20Days}}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr class="information">
+                    <td colspan="2 ">
+                        <table>
+                            <tr>
+                                <td>
+                                    {{seller.name}}<br>
+                                    {{seller.road}}<br>
+                                    {{seller.country}}
+                                </td>
+                                <td>
+                                    {{buyer.name}}<br>
+                                    {{buyer.road}}<br>
+                                    {{buyer.country}}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr class="heading">
+                    <td>
+                        Item
+                    </td>
+                    <td>
+                        Price
+                    </td>
+                </tr>
+                {{#each items}}
+                <tr class="item">
+                    <td>
+                        {{name}}
+                    </td>
+                    <td>
+                        $ {{price}}
+                    </td>
+                </tr>
+                {{/each}}
+                <tr class="total">
+                    <td></td>
+                    <td>
+                        Total: ${{total items}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </body>
+</html>
