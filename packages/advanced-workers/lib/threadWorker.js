@@ -30,6 +30,7 @@ module.exports = ({
   })
 
   function postAndWait (m, { executeMain, timeout }) {
+    worker.ref()
     // eslint-disable-next-line
     return new Promise(async (resolve, reject) => {
       let isDone = false
@@ -37,8 +38,9 @@ module.exports = ({
         setTimeout(() => {
           if (!isDone) {
             isDone = true
-            const e = new Error(`Timeout occurred when waiting for the worker${m.systemAction != null ? ` action "${m.systemAction}"` : ''}`)
+            const e = new Error(`Timeout occurred when waiting for the worker${m.systemAction != null ? ` action "${m.systemAction}"` : ''}`
             e.code = 'WORKER_TIMEOUT'
+            worker.unref()
             reject(e)
           }
         }, timeout).unref()
@@ -51,6 +53,7 @@ module.exports = ({
 
         if (workerResponse.workerCrashed) {
           isDone = true
+          worker.unref()
           return reject(workerResponse.err)
         }
 
@@ -64,8 +67,10 @@ module.exports = ({
             const error = new Error(workerResponse.errorData.message)
             error.stack = workerResponse.errorData.stack
             Object.assign(error, workerResponse.errorData)
+            worker.unref()
             return reject(error)
           }
+          worker.unref()
           return resolve(workerResponse.userData)
         }
 
@@ -98,6 +103,7 @@ module.exports = ({
     if (closingAwaiter && !closingAwaiter.isSettled) {
       closingAwaiter.resolve()
     }
+    worker.unref()
   })
 
   worker.on('error', (err) => {
@@ -106,15 +112,16 @@ module.exports = ({
       workerCrashed: true,
       err
     })
+    worker.unref()
   })
+
+  worker.unref()
 
   return {
     init: () => {
       return postAndWait({
         systemAction: 'init'
-      }, { timeout: initTimeout }).finally(() => {
-        worker.unref()
-      })
+      }, { timeout: initTimeout })
     },
     execute: (userData, { executeMain, timeout }) => {
       return postAndWait({
@@ -134,16 +141,19 @@ module.exports = ({
           workerCrashed: true,
           err
         })
+        worker.unref()
       }
 
       setTimeout(() => {
         if (!exited && !closingAwaiter.isSettled) {
           worker.terminate()
           closingAwaiter.resolve()
+          worker.unref()
         }
       }, closeTimeout).unref()
 
       closingAwaiter = asyncAwaiter()
+      worker.ref()
       worker.postMessage({
         systemAction: 'close'
       })
