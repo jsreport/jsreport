@@ -8,7 +8,9 @@ describe('fileSystemBlobStorage', () => {
     let reporter
 
     beforeEach(async () => {
-      await fs.rmdirSync(tmpData, { recursive: true })
+      if (fs.existsSync(tmpData)) {
+        await fs.rmdirSync(tmpData, { recursive: true })
+      }
 
       reporter = jsreport({
         store: { provider: 'fs' },
@@ -47,7 +49,9 @@ describe('fileSystemBlobStorage', () => {
     let reporter
 
     beforeEach(async () => {
-      await fs.rmdirSync(tmpData, { recursive: true })
+      if (fs.existsSync(tmpData)) {
+        await fs.rmdirSync(tmpData, { recursive: true })
+      }
 
       reporter = jsreport({
         store: { provider: 'fs' },
