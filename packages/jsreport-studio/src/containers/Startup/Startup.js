@@ -8,6 +8,7 @@ import api from '../../helpers/api'
 import resolveUrl from '../../helpers/resolveUrl'
 import { openModal } from '../../helpers/openModal'
 import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
+import { startupComponents } from '../../lib/configuration'
 
 function randomColor () {
   const hue = Math.floor(Math.random() * 360)
@@ -288,8 +289,10 @@ class Startup extends Component {
 
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
+        {startupComponents.map((c, i) => <div key={'startuprow' + i} style={{ display: 'flex', flexDirection: 'row' }}>{React.createElement(c, { key: `StartupComponent${i}` })}       </div>)}
+
         <div>
-          Quick actions:
+          <h2>quick actions:</h2>
           <button className='button confirmation' onClick={() => openModal(NewTemplateModal)}>Create template</button>
           <button className='button confirmation' onClick={() => openTab({ key: 'ProfilerPage', editorComponentKey: 'profiler', title: 'Profiler' })}>Open profiler</button>
         </div>

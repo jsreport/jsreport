@@ -1,14 +1,21 @@
 /* eslint no-path-concat: 0 */
-const Promise = require('bluebird')
 const path = require('path')
-const fs = require('fs')
-const readFileAsync = Promise.promisify(fs.readFile)
-const writeFileAsync = Promise.promisify(fs.writeFile)
+const fs = require('fs').promises
 const axios = require('axios')
 const hostname = require('os').hostname()
 const crypto = require('crypto')
 const hostId = crypto.createHash('sha1').update(hostname + __dirname).digest('hex')
-const mkdirpAsync = Promise.promisify(require('mkdirp'))
+
+async function exists (path) {
+  try {
+    await fs.access(path)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+const licensingUsageCheckInterval = process.env.LICENSING_USAGE_CHECK_INTERVAL || 120000
 
 async function verifyLicenseKey (reporter, definition, key) {
   const trimmedKey = key.trim()
@@ -21,7 +28,7 @@ async function verifyLicenseKey (reporter, definition, key) {
     }
   }
   reporter.logger.info('Verifying license key ' + maskedKey)
-
+  definition.options.licenseKey = trimmedKey
   const count = await reporter.documentStore.collection('templates').count({})
   return processVerification(reporter, definition, {
     licenseKey: trimmedKey,
@@ -32,9 +39,9 @@ async function verifyLicenseKey (reporter, definition, key) {
 }
 
 async function processVerification (reporter, definition, m) {
-  const licenseInfoPath = path.join(reporter.options.rootDirectory, 'jsreport.license.json')
+  const licenseInfoPath = definition.options.licenseInfoPath || path.join(reporter.options.rootDirectory, 'jsreport.license.json')
 
-  if (!fs.existsSync(licenseInfoPath) || definition.options.useSavedLicenseInfo === false) {
+  if (!(await exists(licenseInfoPath)) || definition.options.useSavedLicenseInfo === false) {
     if (m.licenseKey === 'free' && m.numberOfTemplates <= 5) {
       definition.options.license = definition.options.type = 'free'
       return reporter.logger.info('Using free license')
@@ -46,9 +53,9 @@ async function processVerification (reporter, definition, m) {
 
   let l
   try {
-    l = await fs.readFileAsync(licenseInfoPath, 'utf8')
+    l = await fs.readFile(licenseInfoPath, 'utf8')
   } catch (e) {
-    reporter.logger.warn('Failed to read the jsreport.license.json, processing remote license verification')
+    reporter.logger.warn(`Failed to read the ${licenseInfoPath} processing remote license verification`)
     return verifyInService(reporter, definition, m, licenseInfoPath)
   }
 
@@ -58,12 +65,12 @@ async function processVerification (reporter, definition, m) {
   const hash = storedLicense.securityHash
   delete storedLicense.securityHash
   if (hash !== crypto.createHash('sha1').update(JSON.stringify(storedLicense)).digest('hex')) {
-    reporter.logger.warn('License info stored in jsreport.license.json is corrupted, processing remote license verification')
+    reporter.logger.warn(`License info stored in ${licenseInfoPath} is corrupted, processing remote license verification`)
     return verifyInService(reporter, definition, m, licenseInfoPath)
   }
 
   if (storedLicense.licenseKey !== m.licenseKey) {
-    reporter.logger.info('License key being verified and license key stored in jsreport.license.json doesn\'t match, processing remote license verification')
+    reporter.logger.info(`License key being verified and license key stored in ${licenseInfoPath} doesn't match, processing remote license verification`)
 
     // the user should be able to perform remote verification and then copy jsreport.license.json with app
     // no need to set somewhere the license key again, because the license key from jsreport.license.json will be used
@@ -76,27 +83,20 @@ async function processVerification (reporter, definition, m) {
 
   if (storedLicense.type === 'subscription') {
     if (new Date(storedLicense.expiresOn) < new Date()) {
-      reporter.logger.info('License info stored in jsreport.license.json is no longer valid, processing remote license verification')
+      reporter.logger.info(`License info stored in ${licenseInfoPath} is no longer valid, processing remote license verification`)
       return verifyInService(reporter, definition, m, licenseInfoPath)
     }
 
-    definition.options = Object.assign({}, storedLicense)
-
-    // don't expose the licenseKey
-    delete definition.options.licenseKey
-
-    return reporter.logger.info('License key for subscription verified against the jsreport.license.json file')
+    definition.options = Object.assign({}, definition.options, storedLicense)
+    return reporter.logger.info(`License key for subscription verified against the ${licenseInfoPath} file`)
   }
 
   if (storedLicense.validatedForVersion === reporter.version) {
-    definition.options = Object.assign({}, storedLicense)
+    definition.options = Object.assign({}, definition.options, storedLicense)
 
-    // don't expose the licenseKey
-    delete definition.options.licenseKey
-
-    return reporter.logger.info('License key for perpetual license verified against jsreport.license.json file')
+    return reporter.logger.info(`License key for perpetual license verified against ${licenseInfoPath} file`)
   } else {
-    reporter.logger.info('The already verified instance version stored in jsreport.license.json doesn\'t match with the current jsreport version, processing remote license verification')
+    reporter.logger.info(`The already verified instance version stored in ${licenseInfoPath} doesn't match with the current jsreport version, processing remote license verification`)
     return verifyInService(reporter, definition, m, licenseInfoPath)
   }
 }
@@ -126,6 +126,7 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
       reporter.logger.info('The licensing server was not reachable during instance startup. The instance now runs in the enterprise mode.')
 
       definition.options = {
+        ...definition.options,
         license: 'enterprise',
         unreachable: true
       }
@@ -167,12 +168,9 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
         validatedForVersion: reporter.version
       })
 
-      // don't expose the licenseKey
-      delete definition.options.licenseKey
-
       // persist the jsreport.license.json only in case of valid enterprise license which is not expiring
       if (body.type !== 'trial' && body.type !== 'free' && definition.options.useSavedLicenseInfo !== false) {
-        reporter.logger.info('Storing license verification information to jsreport.license.json')
+        reporter.logger.info(`Storing license verification information to ${licenseInfoPath}`)
         definition.options.licenseInfoSaved = true
 
         const licensingInfo = {
@@ -181,16 +179,17 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
           expiresOn: body.expiresOn,
           license: body.license,
           type: body.type,
+          needsUsageCheck: body.needsUsageCheck,
           paymentType: body.paymentType
         }
 
         licensingInfo.securityHash = crypto.createHash('sha1').update(JSON.stringify(licensingInfo)).digest('hex')
 
         try {
-          await writeFileAsync(licenseInfoPath, JSON.stringify(licensingInfo, null, 4), 'utf8')
+          await fs.writeFile(licenseInfoPath, JSON.stringify(licensingInfo, null, 4), 'utf8')
         } catch (e) {
           definition.options.licenseInfoSaved = false
-          reporter.logger.warn('Unable to write verified license info to jsreport.license.json, the remote verification will be performed again during the next instance start: ' + e)
+          reporter.logger.warn(`Unable to write verified license info to ${licenseInfoPath}, the remote verification will be performed again during the next instance start: ` + e)
         }
       }
       resolve()
@@ -198,7 +197,7 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
 
     axios({
       method: 'post',
-      url: definition.options.licensingServerUrl,
+      url: (process.env.LICENSING_SERVER || 'https://jsreportonline.net') + '/license-key',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -213,8 +212,8 @@ async function isLicenseKeyStoredInNegativeCache (reporter, licenseKey) {
   const licenseCacheFile = path.join(reporter.options.tempDirectory, 'licensing', licenseKey + '.json')
 
   try {
-    await mkdirpAsync(path.join(reporter.options.tempDirectory, 'licensing'))
-    const t = await readFileAsync(licenseCacheFile, 'utf8')
+    await fs.mkdir(path.join(reporter.options.tempDirectory, 'licensing'), { recursive: true })
+    const t = await fs.readFile(licenseCacheFile, 'utf8')
     var info = JSON.parse(t)
 
     if (info.version !== reporter.version) {
@@ -240,10 +239,65 @@ function writeLicenseKeyToNegativeCache (reporter, licenseKey, message) {
     lastVerification: new Date()
   })
 
-  return writeFileAsync(path.join(reporter.options.tempDirectory, 'licensing', licenseKey + '.json'), info).catch(() => { })
+  return fs.writeFile(path.join(reporter.options.tempDirectory, 'licensing', licenseKey + '.json'), info).catch(() => { })
+}
+
+async function verifyLicenseUsage (reporter, definition) {
+  try {
+    if (!definition.options.needsUsageCheck) {
+      return
+    }
+
+    const response = await axios({
+      method: 'post',
+      url: (process.env.LICENSING_SERVER || 'https://jsreportonline.net') + '/license-usage',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: {
+        licenseKey: definition.options.licenseKey,
+        hostId,
+        checkInterval: licensingUsageCheckInterval
+      }
+    })
+
+    if (response == null || response.status !== 200 || response.data == null || !Number.isInteger(response.data.status)) {
+      definition.options.usageCheckFailureInfo = null
+      exposeOptions(reporter, definition)
+      return
+    }
+
+    const body = response.data
+
+    if (body.status === 1) {
+      definition.options.usageCheckFailureInfo = body
+      exposeOptions(reporter, definition)
+      reporter.logger.warn(body.message + ' ' + 'The development instances should use config license.development=true and every production instance should have its own enterprise license key. The deployment with several production jsreport instances should use enterprise scale license  which doesn\'t limit the license key usage.')
+    } else {
+      definition.options.usageCheckFailureInfo = null
+      exposeOptions(reporter, definition)
+    }
+  } catch (e) {
+    reporter.logger.error('License usage check failed', e.message)
+  }
+}
+
+function exposeOptions (reporter, definition) {
+  reporter.express.exposeOptionsToApi(definition.name, {
+    development: definition.options.development,
+    license: definition.options.license,
+    usageCheckFailureInfo: definition.options.usageCheckFailureInfo,
+    type: definition.options.type,
+    pendingExpiration: definition.options.pendingExpiration,
+    unreachable: definition.options.unreachable,
+    expiresOn: definition.options.expiresOn,
+    validatedForVersion: definition.options.validatedForVersion,
+    paymentType: definition.options.paymentType
+  })
 }
 
 module.exports = function (reporter, definition) {
+  Object.assign(definition.options, reporter.options.license)
   reporter.on('express-configure', (app) => {
     app.post('/api/licensing/trial', (req, res, next) => {
       verifyLicenseKey(reporter, definition, 'free')
@@ -255,20 +309,30 @@ module.exports = function (reporter, definition) {
     })
   })
 
+  let licenseUsageCheckInterval
+  let delayedLicenseUseCheckTimeout
+
+  let closed = false
+  reporter.closeListeners.add('listeners', () => {
+    closed = true
+    clearInterval(licenseUsageCheckInterval)
+    clearInterval(delayedLicenseUseCheckTimeout)
+  })
+
   reporter.initializeListeners.add('licensing', async () => {
-    const licenseKeyFromOption = reporter.options['license-key'] || reporter.options['licenseKey']
+    const licenseKeyFromOption = reporter.options['license-key'] || reporter.options['licenseKey'] || definition.options.licenseKey
 
     if (licenseKeyFromOption) {
       await verifyLicenseKey(reporter, definition, licenseKeyFromOption)
     } else {
       let licenseKeyPath
 
-      if (fs.existsSync(path.join(reporter.options.rootDirectory, 'license-key.txt'))) {
+      if (await exists(path.join(reporter.options.rootDirectory, 'license-key.txt'))) {
         licenseKeyPath = path.join(reporter.options.rootDirectory, 'license-key.txt')
       }
 
       if (licenseKeyPath) {
-        let key = await readFileAsync(licenseKeyPath, 'utf8')
+        let key = await fs.readFile(licenseKeyPath, 'utf8')
 
         if (key.charCodeAt(0) === 0xFEFF) {
           key = key.substring(1)
@@ -280,16 +344,18 @@ module.exports = function (reporter, definition) {
       }
     }
 
+    if (definition.options.development !== true) {
+      delayedLicenseUseCheckTimeout = setTimeout(() => {
+        if (!closed) {
+          licenseUsageCheckInterval = setInterval(() => verifyLicenseUsage(reporter, definition), licensingUsageCheckInterval)
+          licenseUsageCheckInterval.unref()
+        }
+      }, licensingUsageCheckInterval)
+      delayedLicenseUseCheckTimeout.unref()
+    }
+
     if (reporter.express) {
-      reporter.express.exposeOptionsToApi(definition.name, {
-        license: definition.options.license,
-        type: definition.options.type,
-        pendingExpiration: definition.options.pendingExpiration,
-        unreachable: definition.options.unreachable,
-        expiresOn: definition.options.expiresOn,
-        validatedForVersion: definition.options.validatedForVersion,
-        paymentType: definition.options.paymentType
-      })
+      exposeOptions(reporter, definition)
     }
   })
 }

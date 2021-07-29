@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import * as configuration from './lib/configuration'
 import FileInput from './components/common/FileInput/FileInput'
 import TemplateProperties from './components/Properties/TemplateProperties'
-import EntityTree from './components/EntityTree/EntityTree'
 import EntityTreeNewButton from './components/EntityTree/EntityTreeNewButton'
 import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch'
 import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton'
@@ -458,4 +457,7 @@ export default () => {
       }
     })
   })
+
+  // eslint-disable-next-line
+  configuration.startupComponents = []
 }

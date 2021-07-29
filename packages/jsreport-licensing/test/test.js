@@ -3,8 +3,11 @@ const http = require('http')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const path = require('path')
-require('should')
+const should = require('should')
 let licenseJsonFilePath = path.join(__dirname, '../', 'jsreport.license.json')
+
+process.env.LICENSING_SERVER = 'http://localhost:6000'
+process.env.LICENSING_USAGE_CHECK_INTERVAL = 100
 
 describe('licensing', () => {
   let jsreport
@@ -40,9 +43,7 @@ describe('licensing', () => {
     }
 
     jsreport = JsReport({ rootDirectory: path.join(__dirname, '../') })
-      .use(require('../')({
-        licensingServerUrl: 'http://localhost:6000'
-      }))
+      .use(require('../')())
   })
 
   afterEach(async () => {
@@ -52,6 +53,10 @@ describe('licensing', () => {
 
     if (fs.existsSync(path.join(__dirname, '../', 'license-key.txt'))) {
       fs.unlinkSync(path.join(__dirname, '../', 'license-key.txt'))
+    }
+
+    if (fs.existsSync(path.join(__dirname, '../', 'jsreport2.license.json'))) {
+      fs.unlinkSync(path.join(__dirname, '../', 'jsreport2.license.json'))
     }
 
     if (jsreport) {
@@ -208,5 +213,184 @@ describe('licensing', () => {
     const message = messages.find((m) => m.includes('Verifying license key'))
     message.should.not.containEql('XXX')
     message.should.containEql(key)
+  })
+
+  it('should update usageCheckFailureInfo when /license-usage returns status 1', async () => {
+    jsreport.options.licenseKey = 'foo'
+    await createServer((req, res) => {
+      if (req.url === '/license-key') {
+        return res.end(JSON.stringify({
+          status: 0,
+          message: 'ok',
+          needsUsageCheck: true
+        }))
+      }
+
+      if (req.url === '/license-usage') {
+        res.end(JSON.stringify({
+          status: 1,
+          message: 'Parallel usage detected'
+        }))
+      }
+    })
+    await jsreport.init()
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const licensingOptions = jsreport.extensionsManager.usedExtensions.find(e => e.name === 'licensing').options
+    licensingOptions.usageCheckFailureInfo.message.should.be.ok()
+    licensingOptions.usageCheckFailureInfo.status.should.be.eql(1)
+  })
+
+  it('should not update usageCheckFailureInfo when /license-usage returns status 0', async () => {
+    jsreport.options.licenseKey = 'foo'
+    await createServer((req, res) => {
+      if (req.url === '/license-key') {
+        res.end(JSON.stringify({
+          status: 0,
+          message: 'ok',
+          needsUsageCheck: true
+        }))
+      }
+
+      if (req.url === '/license-usage') {
+        res.end(JSON.stringify({
+          status: 0,
+          message: 'Ok'
+        }))
+      }
+    })
+    await jsreport.init()
+    await new Promise(resolve => setTimeout(resolve, 300))
+    const licensingOptions = jsreport.extensionsManager.usedExtensions.find(e => e.name === 'licensing').options
+    should(licensingOptions.usageCheckFailureInfo).not.be.ok()
+  })
+
+  it('should not call /license-usage when needsUsageCheck is false', async () => {
+    jsreport.options.licenseKey = 'foo'
+    return new Promise(async (resolve, reject) => {
+      await createServer((req, res) => {
+        if (req.url === '/license-key') {
+          res.end(JSON.stringify({
+            status: 0,
+            message: 'ok'
+          }))
+        }
+
+        if (req.url === '/license-usage') {
+          reject(new Error('should not be used'))
+        }
+      })
+      await jsreport.init()
+      await new Promise(resolve => setTimeout(resolve, 300))
+      resolve()
+    })
+  })
+
+  it('should update usageCheckFailureInfo to null when second server is turned off', async () => {
+    jsreport.options.licenseKey = 'foo'
+    let attemp = 0
+
+    await createServer((req, res) => {
+      if (req.url === '/license-key') {
+        res.end(JSON.stringify({
+          status: 0,
+          message: 'ok',
+          needsUsageCheck: true
+        }))
+      }
+
+      if (req.url === '/license-usage') {
+        if (++attemp === 1) {
+          res.end(JSON.stringify({
+            status: 1,
+            message: 'Wrong'
+          }))
+        } else {
+          res.end(JSON.stringify({
+            status: 0,
+            message: 'Ok'
+          }))
+        }
+      }
+    })
+    await jsreport.init()
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    const licensingOptions = jsreport.extensionsManager.usedExtensions.find(e => e.name === 'licensing').options
+    should(licensingOptions.usageCheckFailureInfo).not.be.ok()
+  })
+
+  it('shouldnt verify license usage when license.development', async () => {
+    jsreport.options.license = { development: true }
+    return new Promise(async (resolve, reject) => {
+      await createServer((req, res) => {
+        if (req.url === '/license-key') {
+          return res.end(JSON.stringify({
+            status: 0,
+            message: 'ok',
+            needsUsageCheck: true
+          }))
+        }
+
+        if (req.url === '/license-usage') {
+          reject(new Error('shouldnt get here'))
+        }
+      })
+      await jsreport.init()
+      await new Promise(resolve => setTimeout(resolve, 300))
+      resolve()
+    })
+  })
+
+  it('shouldnt use jsreport.license.json when license.useSavedLicenseInfo=false', async () => {
+    jsreport.options.licenseKey = 'foo'
+
+    let attemp = 0
+    await createServer((req, res) => {
+      attemp++
+      return res.end(JSON.stringify({
+        status: 0,
+        message: 'ok'
+      }))
+    })
+
+    await jsreport.init()
+    await jsreport.close()
+    jsreport = JsReport({ rootDirectory: path.join(__dirname, '../'), license: { useSavedLicenseInfo: false, licenseKey: 'foo' } })
+      .use(require('../')())
+
+    await jsreport.init()
+
+    attemp.should.be.eql(2)
+  })
+
+  it('should use jsreport.license.json from license.licenseInfoPath', async () => {
+    jsreport.options.licenseKey = 'foo'
+
+    let attemp = 0
+    await createServer((req, res) => {
+      attemp++
+      return res.end(JSON.stringify({
+        status: 0,
+        message: 'ok'
+      }))
+    })
+
+    await jsreport.init()
+    await jsreport.close()
+
+    fs.renameSync(path.join(__dirname, '../', 'jsreport.license.json'), path.join(__dirname, '../', 'jsreport2.license.json'))
+
+    jsreport = JsReport({
+      rootDirectory: path.join(__dirname, '../'),
+      license: {
+        licenseInfoPath: path.join(__dirname, '../', 'jsreport2.license.json'),
+        licenseKey: 'foo'
+      }
+    })
+      .use(require('../')())
+
+    await jsreport.init()
+
+    attemp.should.be.eql(1)
   })
 })

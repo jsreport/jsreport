@@ -213,6 +213,9 @@ function openInspectModal ({
   outputId,
   onClose = () => {}
 }) {
+  if (!profileOperations[0].startEvent.req) {
+    return openModal('This request was performed in the standard mode. The inspection works only when the full request profiling is enabled.')
+  }
   openModal(ProfileInspectModal, {
     data: {
       sourceId,

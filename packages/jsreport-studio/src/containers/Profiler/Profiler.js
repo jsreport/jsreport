@@ -16,8 +16,10 @@ class Profiler extends Component {
   componentDidMount () {
     this.loadProfiles()
     this._interval = setInterval(() => this.loadProfiles(), 5000)
+
+    const fullProfilerRunning = storeMethods.getSettingsByKey('fullProfilerRunning', false)
     this.setState({
-      fullProfilingEnabled: storeMethods.getSettingsByKey('fullProfilerRunning', false)
+      fullProfilingEnabled: fullProfilerRunning != null ? fullProfilerRunning : false
     })
   }
 
@@ -163,7 +165,6 @@ class Profiler extends Component {
             <label>
               <input
                 type='radio'
-                value='full'
                 checked={!this.state.fullProfilingEnabled}
                 onChange={(ev) => {
                   ev.target.checked && this.stopFullRequestProfiling()
@@ -174,7 +175,6 @@ class Profiler extends Component {
             <label style={{ paddingLeft: '1rem' }}>
               <input
                 type='radio'
-                value='simple'
                 checked={this.state.fullProfilingEnabled}
                 onChange={(ev) => {
                   ev.target.checked && this.startFullRequestProfiling()

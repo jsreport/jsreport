@@ -1,22 +1,23 @@
 
 const schema = {
-  type: 'string'
+  type: 'object',
+  properties: {
+    licenseKey: { type: 'string' },
+    useSavedLicenseInfo: { type: 'boolean', default: true },
+    licenseInfoPath: { type: 'string' },
+    development: { tyle: 'boolean', default: false }
+  }
 }
 
 module.exports = {
   name: 'licensing',
   main: 'lib/licensing.js',
   optionsSchema: {
-    'license-key': { ...schema },
-    licenseKey: { ...schema },
+    'license-key': { type: 'string' },
+    licenseKey: { type: 'string' },
+    ...schema,
     extensions: {
-      'licensing': {
-        type: 'object',
-        properties: {
-          useSavedLicenseInfo: { type: 'boolean' },
-          licensingServerUrl: { type: 'string', default: 'https://jsreportonline.net/license-key' }
-        }
-      }
+      'licensing': schema
     }
   },
   dependencies: [],

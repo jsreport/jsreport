@@ -211,6 +211,15 @@ class Studio {
   }
 
   /**
+   * Add component displayed at the startup page top
+   *
+   * @param {ReactComponent|Function} startupComponent
+   */
+  addStartupComponent (startupComponent) {
+    configuration.startupComponents.push(startupComponent)
+  }
+
+  /**
    * Array of functions used to resolve ace editor mode for template content. This is used by custom templating engines
    * to add highlighting support for jade,ejs...
    *

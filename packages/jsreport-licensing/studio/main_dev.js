@@ -1,4 +1,5 @@
 import Studio from 'jsreport-studio'
+import Style from './style.css'
 
 function renderLicenseType (licensingInfo) {
   if (licensingInfo.unreachable) {
@@ -63,7 +64,24 @@ function PaymentNote ({ paymentType }) {
 }
 
 Studio.readyListeners.push(async () => {
-  var licensingInfo = Studio.extensions['licensing'].options
+  const licensingInfo = Studio.extensions['licensing'].options
+  if (licensingInfo.development) {
+    Studio.addStartupComponent((props) => <div className={Style.developmentLicense}>
+      Development only license applied
+    </div>)
+  }
+
+  if (licensingInfo.usageCheckFailureInfo) {
+    Studio.openModal(() => <div>
+      <p>
+        {licensingInfo.usageCheckFailureInfo.message}
+      </p>
+
+      <p>
+      The development instances should use config license.development=true and every production instance should have its own enterprise license key. The deployment with several production jsreport instances should use enterprise scale license which doesn't limit the license key usage.
+      </p>
+    </div>)
+  }
 
   const trialModal = () => Studio.openModal(() => <div>
     <p>
@@ -78,7 +96,10 @@ Studio.readyListeners.push(async () => {
   </div>)
 
   const licenseInfoModal = () => Studio.openModal(() => <div>
-    <h2>{licensingInfo.license} license</h2>
+    <h2>
+      {licensingInfo.license} license
+      {licensingInfo.development ? ' (development)' : ''}
+    </h2>
     {renderLicenseType(licensingInfo)}
     <p>More information about licensing and pricing can be found <a href='http://jsreport.net/buy' target='_blank'>here</a>.</p>
   </div>)

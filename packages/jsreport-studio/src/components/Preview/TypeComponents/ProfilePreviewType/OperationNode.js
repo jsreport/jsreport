@@ -4,6 +4,7 @@ import { Handle } from 'react-flow-renderer'
 import fileSaver from 'filesaver.js-npm'
 import { actions as progressActions } from '../../../../redux/progress'
 import styles from '../../Preview.css'
+import { openModal } from '../../../../helpers/openModal'
 
 const OperationNode = React.memo(function OperationNode (props) {
   const {
@@ -14,7 +15,7 @@ const OperationNode = React.memo(function OperationNode (props) {
     sourcePosition = 'bottom'
   } = props
 
-  const { time, timeCost, error, renderResult, end } = data
+  const { time, timeCost, error, renderResult, end, isFullRequestProfilingEnabled } = data
 
   const dispatch = useDispatch()
 
@@ -29,6 +30,10 @@ const OperationNode = React.memo(function OperationNode (props) {
   }, [dispatch])
 
   const handleDownloadRenderResultClick = useCallback(async () => {
+    if (!isFullRequestProfilingEnabled) {
+      return openModal('This request was performed in the standard mode. You can download the report outputs only when the full request profiling enabled.')
+    }
+
     if (renderResult == null || renderResult.getContent == null || downloading) {
       return
     }
@@ -48,7 +53,7 @@ const OperationNode = React.memo(function OperationNode (props) {
         setDownloading(false)
       }
     }, 200)
-  }, [downloading, renderResult, progressStart, progressStop])
+  }, [downloading, renderResult, isFullRequestProfilingEnabled, progressStart, progressStop])
 
   return (
     // eslint-disable-next-line

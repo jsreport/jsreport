@@ -227,6 +227,7 @@ function getElementsFromOperations (operations, errorEvent) {
       data: {
         time: getTime(operation, endTimestamp),
         timeCost: getTimeCost(operation, startTimestamp, endTimestamp),
+        isFullRequestProfilingEnabled: operations[0].startEvent.req != null,
         renderResult: {
           getContent: () => getStateAtProfileOperation(operations, operation.id, true)
         },
