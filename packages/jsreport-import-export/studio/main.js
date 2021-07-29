@@ -227,7 +227,7 @@ _jsreportStudio2.default.entityTreeDropResolvers.push({
                 targetInfo.shortid = dragOverContext.containerTargetEntity.shortid;
               }
 
-              if (files && files.length === 1 && /\.zip$/.test(files[0].name)) {
+              if (files && files.length === 1 && (/\.zip$/.test(files[0].name) || /\.jsrexport$/.test(files[0].name))) {
                 dropComplete();
 
                 opts = {
@@ -380,7 +380,7 @@ var ExportModal = function (_Component) {
                 response = _context.sent;
 
 
-                _filesaver2.default.saveAs(response, 'export.zip');
+                _filesaver2.default.saveAs(response, 'export.jsrexport');
 
                 this.setState({
                   processing: false
@@ -687,7 +687,7 @@ var ImportModal = function (_Component2) {
                 _context.next = 8;
                 return _jsreportStudio2.default.api.post('api/validate-import', {
                   params: params,
-                  attach: { filename: 'import.zip', file: file }
+                  attach: { filename: 'import.jsrexport', file: file }
                 }, true);
 
               case 8:
@@ -767,7 +767,7 @@ var ImportModal = function (_Component2) {
                 _context2.next = 9;
                 return _jsreportStudio2.default.api.post('api/import', {
                   params: params,
-                  attach: { filename: 'import.zip', file: this.state.selectedFile }
+                  attach: { filename: 'import.jsrexport', file: this.state.selectedFile }
                 }, true);
 
               case 9:

@@ -470,7 +470,7 @@ _jsreportStudio2.default.entityTreeDropResolvers.push({
                       case 0:
                         file = _step.value;
 
-                        if (!/\.zip$/.test(file.name)) {
+                        if (!(/\.zip$/.test(file.name) || /\.jsrexport$/.test(file.name))) {
                           _context2.next = 3;
                           break;
                         }
@@ -1364,11 +1364,17 @@ var AssetEditor = function (_Component) {
       }
 
       var content = (entity.content || entity.forceUpdate ? entity.content : this.state.content) || '';
+      var text = void 0;
+      try {
+        text = decodeURIComponent(escape(atob(content)));
+      } catch (e) {
+        return this.renderBinary(entity);
+      }
 
       return _react2.default.createElement(_jsreportStudio.TextEditor, {
         name: entity._id,
         mode: mode,
-        value: decodeURIComponent(escape(atob(content))),
+        value: text,
         onUpdate: function onUpdate(v) {
           return _this4.props.onUpdate(Object.assign({}, entity, { content: btoa(unescape(encodeURIComponent(v))), forceUpdate: true }));
         }
