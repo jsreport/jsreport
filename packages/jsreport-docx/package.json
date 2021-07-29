@@ -1,15 +1,40 @@
 {
+  "name": "jsreport-docx",
+  "version": "2.9.1",
+  "description": "jsreport recipe rendering docx files",
+  "keywords": [
+    "jsreport",
+    "docx"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport-docx",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport-docx/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jsreport/jsreport-docx.git"
+  },
+  "license": "MIT",
   "author": {
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
   },
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-docx/issues"
-  },
-  "bundleDependencies": false,
-  "contributos": [
+  "contributors": [
     "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)"
   ],
+  "files": [
+    "lib",
+    "static",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublishOnly": "jsreport-studio-build",
+    "start": "jsreport-studio-start --httpPort 4000",
+    "test": "mocha test --timeout 20000 && standard"
+  },
   "dependencies": {
     "axios": "0.19.2",
     "image-size": "0.7.4",
@@ -21,13 +46,9 @@
     "unescape": "1.0.1",
     "xmldom": "0.1.27"
   },
-  "deprecated": false,
-  "description": "jsreport recipe rendering docx files",
   "devDependencies": {
     "babel-eslint": "10.0.2",
-    "eslint": "6.0.1",
-    "eslint-plugin-babel": "5.3.1",
-    "handlebars": "4.7.6",
+    "handlebars": "4.7.7",
     "jsreport-assets": "1.7.0",
     "jsreport-core": "2.10.1",
     "jsreport-handlebars": "2.1.0",
@@ -41,30 +62,6 @@
   "engines": {
     "node": ">=8.9"
   },
-  "files": [
-    "lib",
-    "static",
-    "studio",
-    "index.js",
-    "jsreport.config.js"
-  ],
-  "homepage": "https://github.com/jsreport/jsreport-docx",
-  "keywords": [
-    "jsreport",
-    "docx"
-  ],
-  "license": "MIT",
-  "name": "jsreport-docx",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-docx.git"
-  },
-  "scripts": {
-    "build": "jsreport-studio-build",
-    "prepublishOnly": "jsreport-studio-build",
-    "start": "jsreport-studio-start --httpPort 4000",
-    "test": "mocha test --timeout 20000 && standard"
-  },
   "standard": {
     "ignore": [
       "main.js"
@@ -75,6 +72,5 @@
       "mocha": true,
       "browser": true
     }
-  },
-  "version": "2.9.0"
+  }
 }
