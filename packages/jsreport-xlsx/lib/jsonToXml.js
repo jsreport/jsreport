@@ -1,6 +1,8 @@
 const convertAttributes = (obj) => {
   let xml = ''
+
   if (obj.$) {
+    // eslint-disable-next-line no-unused-vars
     for (const attrKey in obj.$) {
       xml += ` ${attrKey}="${convertEntitiesInAttr(obj.$[attrKey])}"`
     }
@@ -53,6 +55,8 @@ module.exports = (o) => {
     }
 
     let xml = ''
+
+    // eslint-disable-next-line no-unused-vars
     for (const key in obj) {
       if (obj[key] == null || key === '$') {
         continue

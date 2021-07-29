@@ -71,12 +71,7 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
     /* eslint-disable */
     return {
       key: editorKey,
-      entity: editorKey === 'assets'
-        ? {
-            ...entity,
-            name: `${entity.name}.xlsx`
-          }
-        : entity,
+      entity: editorKey === 'assets' ? { ...entity, name: `${entity.name}.xlsx` } : entity,
       props: editorProps
     }
     /* eslint-enable */
