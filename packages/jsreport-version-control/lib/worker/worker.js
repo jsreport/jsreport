@@ -11,7 +11,7 @@ module.exports = (reporter, definition) => {
     return commit(data, reporter, req)
   })
 
-  reporter.registerWorkerAction('version-control-apply-pathes', (data, req) => {
+  reporter.registerWorkerAction('version-control-apply-patches', (data, req) => {
     return applyPatches(data, reporter, req)
   })
 }

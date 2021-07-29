@@ -102,7 +102,7 @@ class ImportModal extends Component {
 
       const result = await Studio.api.post('api/validate-import', {
         params,
-        attach: { filename: 'import.zip', file }
+        attach: { filename: 'import.jsrexport', file }
       }, true)
 
       this.setState({
@@ -146,7 +146,7 @@ class ImportModal extends Component {
 
       const result = await Studio.api.post('api/import', {
         params,
-        attach: { filename: 'import.zip', file: this.state.selectedFile }
+        attach: { filename: 'import.jsrexport', file: this.state.selectedFile }
       }, true)
 
       this.setState({

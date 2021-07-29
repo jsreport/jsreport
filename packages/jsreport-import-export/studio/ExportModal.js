@@ -66,7 +66,7 @@ export default class ExportModal extends Component {
         responseType: 'blob'
       }, true)
 
-      fileSaver.saveAs(response, 'export.zip')
+      fileSaver.saveAs(response, 'export.jsrexport')
 
       this.setState({
         processing: false

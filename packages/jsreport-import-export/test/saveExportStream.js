@@ -3,7 +3,7 @@ const fs = require('fs')
 
 module.exports = function saveExportStream (reporter, stream) {
   return new Promise(function (resolve, reject) {
-    const exportPath = path.join(reporter.options.tempDirectory, 'myExport.zip')
+    const exportPath = path.join(reporter.options.tempDirectory, 'myExport.jsrexport')
     const exportDist = fs.createWriteStream(exportPath)
 
     stream.on('error', reject)

@@ -54,12 +54,12 @@ describe('rest api', () => {
   })
 
   it('/api/export and /api/import should get store to the original state', async () => {
-    const importPath = path.join(reporter.options.tempDirectory, 'myImport.zip')
+    const importPath = path.join(reporter.options.tempDirectory, 'myImport.jsrexport')
 
     // insert a fake template
     await reporter.documentStore.collection('templates').insert({ content: 'foo', name: 'foo', engine: 'none', recipe: 'html' })
 
-    // export store to myImport.zip
+    // export store to myImport.jsrexport
     await new Promise((resolve) => {
       const exportStream = request(reporter.express.app).post('/api/export')
       exportStream.pipe(fs.createWriteStream(importPath)).on('finish', resolve)
@@ -68,10 +68,10 @@ describe('rest api', () => {
     // clean up all templates in store
     await reporter.documentStore.collection('templates').remove({})
 
-    // import myImport.zip back
+    // import myImport.jsrexport back
     await request(reporter.express.app)
       .post('/api/import')
-      .attach('import.zip', importPath)
+      .attach('import.jsrexport', importPath)
       .expect(200)
 
     // check if the template is back
@@ -79,14 +79,14 @@ describe('rest api', () => {
     res.should.have.length(1)
   })
 
-  it('should return meaningfull message when import.zip missing', () => {
+  it('should return meaningfully message when passing invalid file', () => {
     return request(reporter.express.app)
       .post('/api/import')
-      .attach('wrong.zip', path.join(__dirname, 'exportsTest.js'))
+      .attach('wrong.jsrexport', path.join(__dirname, 'exportsTest.js'))
       .expect(500, /Unable to read export file/)
   })
 
-  it('should return meaningfull message when there is no multipart part', () => {
+  it('should return meaningfully message when there is no multipart part', () => {
     return request(reporter.express.app)
       .post('/api/import')
       .expect(500, /Unable to read export file/)
@@ -385,7 +385,7 @@ describe('import-export', () => {
     })
 
     it('should be able to import legacy export', async () => {
-      const exportPath = path.join(__dirname, 'legacy-export.zip')
+      const exportPath = path.join(__dirname, 'legacy-export.jsrexport')
       const req = reporter.Request({})
       await reporter.import(exportPath, req)
       const folderRes = await reporter.documentStore.collection('folders').find({})
@@ -563,7 +563,7 @@ describe('import-export', () => {
       })
     })
 
-    it('should be able to handle full import mode (entity should be restored to the state inside the zip)', async () => {
+    it('should be able to handle full import mode (entity should be restored to the state inside the export file)', async () => {
       const t1 = await reporter.documentStore.collection('templates').insert({ name: 'a', content: 'a', engine: 'none', recipe: 'html' })
 
       const req = reporter.Request({})

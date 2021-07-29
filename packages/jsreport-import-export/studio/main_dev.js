@@ -100,7 +100,10 @@ Studio.entityTreeDropResolvers.push({
     if (
       files &&
       files.length === 1 &&
-      /\.zip$/.test(files[0].name)
+      (
+        /\.zip$/.test(files[0].name) ||
+        /\.jsrexport$/.test(files[0].name)
+      )
     ) {
       dropComplete()
 

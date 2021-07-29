@@ -1,5 +1,5 @@
+const path = require('path')
 const fs = require('fs')
-const urlModule = require('url')
 const FormData = require('form-data')
 const doRequest = require('./doRequest')
 const normalizePath = require('./normalizePath')
@@ -45,25 +45,29 @@ exports.builder = (yargs) => {
   return (
     yargs
       .usage(`${description}\n\n${getUsage(`jsreport ${command}`)}`)
-      .positional('zipFile', {
+      .positional('exportFile', {
         type: 'string',
-        description: 'Absolute or relative path to the zip file to import'
+        description: 'Absolute or relative path to the export file to import'
       })
       .group(options, 'Command options:')
       .options(commandOptions)
       .check((argv) => {
         if (!argv || !argv._[1]) {
-          throw new Error('"zipFile" argument is required')
+          throw new Error('"exportFile" argument is required')
         }
 
-        argv._[1] = normalizePath(argv.context.cwd, 'zipFile', argv._[1], {
+        if (!argv._[1].endsWith('.zip') && !argv._[1].endsWith('.jsrexport')) {
+          throw new Error('"exportFile" argument should have .jsrexport or .zip extension')
+        }
+
+        argv._[1] = normalizePath(argv.context.cwd, 'exportFile', argv._[1], {
           type: 'argument',
           read: false,
           strict: true
         })
 
         if (!fs.existsSync(argv._[1])) {
-          throw new Error(`zipFile argument "${argv._[1]}" points to a file that does not exists. make sure to specify a zip file`)
+          throw new Error(`exportFile argument "${argv._[1]}" points to a file that does not exists. make sure to specify an existing file`)
         }
 
         if (argv.user && !argv.serverUrl) {
@@ -88,7 +92,7 @@ exports.builder = (yargs) => {
 }
 
 exports.handler = async (argv) => {
-  const zipFilePath = argv._[1]
+  const exportFilePath = argv._[1]
   const context = argv.context
   const logger = context.logger
   const options = getOptions(argv)
@@ -105,7 +109,7 @@ exports.handler = async (argv) => {
       const result = await startImport(null, {
         logger,
         importOptions: options.import,
-        input: zipFilePath,
+        input: exportFilePath,
         remote: options.remote
       })
 
@@ -159,7 +163,7 @@ exports.handler = async (argv) => {
     return (await startImport(jsreportInstance, {
       logger,
       importOptions: options.import,
-      input: zipFilePath
+      input: exportFilePath
     }))
   } catch (e) {
     return onCriticalError(e)
@@ -186,7 +190,7 @@ async function startImport (jsreportInstance, { remote, importOptions, input, lo
     try {
       const form = new FormData()
 
-      form.append('import.zip', fs.createReadStream(input))
+      form.append('import.jsrexport', fs.createReadStream(input))
 
       const formHeaders = await new Promise((resolve, reject) => {
         form.getLength((err, length) => {
@@ -200,7 +204,7 @@ async function startImport (jsreportInstance, { remote, importOptions, input, lo
       })
 
       const reqOpts = {
-        url: urlModule.resolve(remote.url, importOptions.validation ? 'api/validate-import' : 'api/import'),
+        url: path.posix.join(remote.url, importOptions.validation ? 'api/validate-import' : 'api/import'),
         method: 'POST',
         headers: {
           // this sets the Content-type: multipart/form-data
@@ -356,19 +360,19 @@ function getOptions (argv) {
 function getUsage (command) {
   return [
     `Usage:\n`,
-    `${command} <zipFile>`,
-    `${command} <zipFile> --serverUrl=<url>`,
-    `${command} <zipFile> --serverUrl=<url> --user=<user> --password=<password>`
+    `${command} <exportFile>`,
+    `${command} <exportFile> --serverUrl=<url>`,
+    `${command} <exportFile> --serverUrl=<url> --user=<user> --password=<password>`
   ].join('\n')
 }
 
 function getExamples (command) {
   return [
-    [`${command} jsreportExport.zip`, `Import the export file into the local instance`],
-    [`${command} jsreportExport.zip --serverUrl=http://jsreport-host.com`, `Import the export file into the jsreport instance at http://jsreport-host.com`],
-    [`${command} jsreportExport.zip --serverUrl=http://jsreport-host.com --user admin --password xxxx`, `Import the export file into the authenticated jsreport instance at http://jsreport-host.com`],
-    [`${command} jsreportExport.zip --fullImport`, `Execute a full import into the local instance`],
-    [`${command} jsreportExport.zip --targetFolder=folderShortid`, `Execute an import into a target folder, the entities of the export file will be imported inside the specified folder`],
-    [`${command} jsreportExport.zip --validation`, `Execute an import validation of the export file into the local instance, the import won't be done`]
+    [`${command} export.jsrexport`, `Import the export file into the local instance`],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com`, `Import the export file into the jsreport instance at http://jsreport-host.com`],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com --user admin --password xxxx`, `Import the export file into the authenticated jsreport instance at http://jsreport-host.com`],
+    [`${command} export.jsrexport --fullImport`, `Execute a full import into the local instance`],
+    [`${command} export.jsrexport --targetFolder=folderShortid`, `Execute an import into a target folder, the entities of the export file will be imported inside the specified folder`],
+    [`${command} export.jsrexport --validation`, `Execute an import validation of the export file into the local instance, the import won't be done`]
   ]
 }

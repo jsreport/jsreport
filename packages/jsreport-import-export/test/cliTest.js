@@ -45,11 +45,11 @@ describe('cli import/export', () => {
       should(stdout).containEql('Examples')
     })
 
-    it('should fail when missing zipFile argument', async () => {
+    it('should fail when missing exportFile argument', async () => {
       const dirname = 'export-throw'
       await setup(dirname)
 
-      return should(exec(dirname, 'export')).be.rejectedWith(/"zipFile" argument is required/)
+      return should(exec(dirname, 'export')).be.rejectedWith(/"exportFile" argument is required/)
     })
 
     describe('local instance', () => {
@@ -195,11 +195,11 @@ describe('cli import/export', () => {
       should(stdout).containEql('Examples')
     })
 
-    it('should fail when missing zipFile argument', async () => {
+    it('should fail when missing exportFile argument', async () => {
       const dirname = 'import-throw'
       await setup(dirname)
 
-      return should(exec(dirname, 'import')).be.rejectedWith(/"zipFile" argument is required/)
+      return should(exec(dirname, 'import')).be.rejectedWith(/"exportFile" argument is required/)
     })
 
     describe('local instance', () => {
@@ -210,7 +210,7 @@ describe('cli import/export', () => {
 
         await setup(dirName)
 
-        fs.copyFileSync(path.join(__dirname, 'export-test.zip'), path.join(fullDir, 'export.zip'))
+        fs.copyFileSync(path.join(__dirname, 'export-test.jsrexport'), path.join(fullDir, 'export.jsrexport'))
 
         const reporter = await init(dirName)
 
@@ -255,7 +255,7 @@ describe('cli import/export', () => {
           }
         })
 
-        fs.copyFileSync(path.join(__dirname, 'export-test.zip'), path.join(fullDir, 'export.zip'))
+        fs.copyFileSync(path.join(__dirname, 'export-test.jsrexport'), path.join(fullDir, 'export.jsrexport'))
 
         const reporter = await init(dirName)
         await reporter.documentStore.collection('templates').insert({ name: 'xxx', engine: 'none', recipe: 'html' })
@@ -263,7 +263,7 @@ describe('cli import/export', () => {
       })
 
       it('should be able to do full import', async () => {
-        await exec(dirName, 'import --fullImport export.zip')
+        await exec(dirName, 'import --fullImport export.jsrexport')
       })
     })
 
@@ -278,7 +278,7 @@ describe('cli import/export', () => {
         await setup(dirName)
         await setup(remoteDirName)
 
-        fs.copyFileSync(path.join(__dirname, 'export-test.zip'), path.join(fullDir, 'export.zip'))
+        fs.copyFileSync(path.join(__dirname, 'export-test.jsrexport'), path.join(fullDir, 'export.jsrexport'))
 
         reporter = await init(remoteDirName, { httpPort: remotePort })
 
@@ -321,7 +321,7 @@ describe('cli import/export', () => {
         await setup(dirName)
         await setup(remoteDirName, ['jsreport-authentication'])
 
-        fs.copyFileSync(path.join(__dirname, 'export-test.zip'), path.join(fullDir, 'export.zip'))
+        fs.copyFileSync(path.join(__dirname, 'export-test.jsrexport'), path.join(fullDir, 'export.jsrexport'))
 
         reporter = await init(remoteDirName, {
           httpPort: remotePort,
@@ -375,15 +375,15 @@ describe('cli import/export', () => {
 
     if (remote) {
       it('should fail when connecting to invalid server', async () => {
-        const cmd = addRemoteArgs('export export.zip', 'http://localhost:9768')
+        const cmd = addRemoteArgs('export export.jsrexport', 'http://localhost:9768')
 
         return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/)
       })
     }
 
-    it('should export to relative location (export export.zip)', async () => {
+    it('should export to relative location (export export.jsrexport)', async () => {
       const fullDir = getTempDir(dirName)
-      let cmd = 'export export.zip'
+      let cmd = 'export export.jsrexport'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -397,12 +397,12 @@ describe('cli import/export', () => {
         should(stdout).containEql('in local instance')
       }
 
-      should(fs.existsSync(path.join(fullDir, 'export.zip'))).be.true()
+      should(fs.existsSync(path.join(fullDir, 'export.jsrexport'))).be.true()
     })
 
-    it('should export to absolute location (export /path/to/export.zip)', async () => {
+    it('should export to absolute location (export /path/to/export.jsrexport)', async () => {
       const fullDir = getTempDir(dirName)
-      let cmd = `export ${path.join(fullDir, 'export.zip')}`
+      let cmd = `export ${path.join(fullDir, 'export.jsrexport')}`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -416,12 +416,12 @@ describe('cli import/export', () => {
         should(stdout).containEql('in local instance')
       }
 
-      should(fs.existsSync(path.join(fullDir, 'export.zip'))).be.true()
+      should(fs.existsSync(path.join(fullDir, 'export.jsrexport'))).be.true()
     })
 
     it('should export all entities by default', async () => {
       const fullDir = getTempDir(dirName)
-      let cmd = 'export export.zip'
+      let cmd = 'export export.jsrexport'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -437,7 +437,7 @@ describe('cli import/export', () => {
 
       should(stdout).containEql('total entities exported: 2')
 
-      const result = await unzipEntities(path.join(fullDir, 'export.zip'))
+      const result = await unzipEntities(path.join(fullDir, 'export.jsrexport'))
 
       should(result.entities.templates.length).be.eql(2)
       should(result.metadata).be.ok()
@@ -445,7 +445,7 @@ describe('cli import/export', () => {
 
     it('should export selected entities (--entities=entityId)', async () => {
       const fullDir = getTempDir(dirName)
-      let cmd = `export export.zip --entities=foo`
+      let cmd = `export export.jsrexport --entities=foo`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -461,7 +461,7 @@ describe('cli import/export', () => {
 
       should(stdout).containEql('total entities exported: 1')
 
-      const result = await unzipEntities(path.join(fullDir, 'export.zip'))
+      const result = await unzipEntities(path.join(fullDir, 'export.jsrexport'))
 
       should(result.entities.templates.length).be.eql(1)
       should(result.metadata).be.ok()
@@ -472,7 +472,7 @@ describe('cli import/export', () => {
 
       fs.writeFileSync(path.join(fullDir, 'entities.json'), `["foo"]`)
 
-      let cmd = `export export.zip --entitiesPath=entities.json`
+      let cmd = `export export.jsrexport --entitiesPath=entities.json`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -488,7 +488,7 @@ describe('cli import/export', () => {
 
       should(stdout).containEql('total entities exported: 1')
 
-      const result = await unzipEntities(path.join(fullDir, 'export.zip'))
+      const result = await unzipEntities(path.join(fullDir, 'export.jsrexport'))
 
       should(result.entities.templates.length).be.eql(1)
       should(result.metadata).be.ok()
@@ -506,14 +506,14 @@ describe('cli import/export', () => {
 
     if (remote) {
       it('should fail when connecting to invalid server', async () => {
-        const cmd = addRemoteArgs('import export.zip', 'http://localhost:9768')
+        const cmd = addRemoteArgs('import export.jsrexport', 'http://localhost:9768')
 
         return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/)
       })
     }
 
-    it('should import from relative location (import export.zip)', async () => {
-      let cmd = 'import export.zip'
+    it('should import from relative location (import export.jsrexport)', async () => {
+      let cmd = 'import export.jsrexport'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -551,10 +551,10 @@ describe('cli import/export', () => {
       await reporter.close()
     })
 
-    it('should import from absolute location (import /path/to/export.zip)', async () => {
+    it('should import from absolute location (import /path/to/export.jsrexport)', async () => {
       const fullDir = getTempDir(dirName)
 
-      let cmd = `import ${path.join(fullDir, 'export.zip')}`
+      let cmd = `import ${path.join(fullDir, 'export.jsrexport')}`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -591,7 +591,7 @@ describe('cli import/export', () => {
     })
 
     it('should import at target folder (--targetFolder)', async () => {
-      let cmd = `import export.zip --targetFolder=target`
+      let cmd = `import export.jsrexport --targetFolder=target`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -630,7 +630,7 @@ describe('cli import/export', () => {
     })
 
     it('should be able to do a full import (--fullImport)', async () => {
-      let cmd = `import export.zip --fullImport`
+      let cmd = `import export.jsrexport --fullImport`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -664,7 +664,7 @@ describe('cli import/export', () => {
     })
 
     it('should be able to do an import validation (--validation)', async () => {
-      let cmd = `import export.zip --validation`
+      let cmd = `import export.jsrexport --validation`
 
       if (remote) {
         cmd = addRemoteArgs(cmd)

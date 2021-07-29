@@ -27,7 +27,7 @@ function conflictsUtils (reporter) {
     async exportEntities (...toCreate) {
       const entities = await create(reporter, toCreate, localReq)
       const { stream } = await reporter.export(entities.map((e) => e._id), localReq)
-      const zipPath = await saveExportStream(reporter, stream)
+      const exportFilePath = await saveExportStream(reporter, stream)
 
       for (const entitySet of Object.keys(reporter.documentStore.collections)) {
         if (entitySet === 'folders') {
@@ -41,9 +41,9 @@ function conflictsUtils (reporter) {
         }
       }
 
-      exportPath = zipPath
+      exportPath = exportFilePath
 
-      return { entities, zipPath }
+      return { entities, exportFilePath }
     },
     async importEntities (...args) {
       let opts

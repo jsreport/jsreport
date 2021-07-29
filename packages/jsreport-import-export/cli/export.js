@@ -1,5 +1,5 @@
+const path = require('path')
 const fs = require('fs')
-const urlModule = require('url')
 const doRequest = require('./doRequest')
 const normalizePath = require('./normalizePath')
 
@@ -40,18 +40,22 @@ exports.builder = (yargs) => {
   return (
     yargs
       .usage(`${description}\n\n${getUsage(`jsreport ${command}`)}`)
-      .positional('zipFile', {
+      .positional('exportFile', {
         type: 'string',
-        description: 'Absolute or relative path to the zip file that will be created as the result of the export'
+        description: 'Absolute or relative path to the export file that will be created as the result of the export'
       })
       .group(options, 'Command options:')
       .options(commandOptions)
       .check((argv) => {
         if (!argv || !argv._[1]) {
-          throw new Error('"zipFile" argument is required')
+          throw new Error('"exportFile" argument is required')
         }
 
-        argv._[1] = normalizePath(argv.context.cwd, 'zipFile', argv._[1], {
+        if (!argv._[1].endsWith('.jsrexport')) {
+          throw new Error('"exportFile" argument should have .jsrexport extension')
+        }
+
+        argv._[1] = normalizePath(argv.context.cwd, 'exportFile', argv._[1], {
           type: 'argument',
           read: false,
           strict: true
@@ -95,7 +99,7 @@ exports.builder = (yargs) => {
 }
 
 exports.handler = async (argv) => {
-  const zipFilePath = argv._[1]
+  const exportFilePath = argv._[1]
   const context = argv.context
   const logger = context.logger
   const options = getOptions(argv)
@@ -110,7 +114,7 @@ exports.handler = async (argv) => {
       const result = await startExport(null, {
         logger,
         exportOptions: options.export,
-        output: zipFilePath,
+        output: exportFilePath,
         remote: options.remote
       })
 
@@ -157,7 +161,7 @@ exports.handler = async (argv) => {
     return (await startExport(jsreportInstance, {
       logger,
       exportOptions: options.export,
-      output: zipFilePath
+      output: exportFilePath
     }))
   } catch (e) {
     return onCriticalError(e)
@@ -183,7 +187,7 @@ async function startExport (jsreportInstance, { remote, exportOptions, output, l
   if (remote) {
     try {
       const reqOpts = {
-        url: urlModule.resolve(remote.url, 'api/export'),
+        url: path.posix.join(remote.url, 'api/export'),
         method: 'POST',
         data: exportOptions,
         responseType: 'stream'
@@ -344,20 +348,20 @@ function getOptions (argv) {
 function getUsage (command) {
   return [
     `Usage:\n`,
-    `${command} <zipFile>`,
-    `${command} <zipFile> --serverUrl=<url>`,
-    `${command} <zipFile> --serverUrl=<url> --user=<user> --password=<password>`,
-    `${command} <zipFile> --entities entity1Id --entities entity2Id`,
-    `${command} <zipFile> --entitiesPath entities.json`
+    `${command} <exportFile>`,
+    `${command} <exportFile> --serverUrl=<url>`,
+    `${command} <exportFile> --serverUrl=<url> --user=<user> --password=<password>`,
+    `${command} <exportFile> --entities entity1Id --entities entity2Id`,
+    `${command} <exportFile> --entitiesPath entities.json`
   ].join('\n')
 }
 
 function getExamples (command) {
   return [
-    [`${command} jsreportExport.zip`, `Export all the entities of the local instance into an export file`],
-    [`${command} jsreportExport.zip --serverUrl=http://jsreport-host.com`, `Export all the entities of the jsreport instance at http://jsreport-host.com into an export file`],
-    [`${command} jsreportExport.zip --serverUrl=http://jsreport-host.com --user admin --password xxxx`, `Export all the entities of the authenticated jsreport instance at http://jsreport-host.com into an export file`],
-    [`${command} jsreportExport.zip --entities entity1Id --entities entity2Id`, `Export just the selected entities of the local instance into an export file`],
-    [`${command} jsreportExport.zip --entitiesPath entities.json`, `Export just the selected entities (specified in a json file) of the local instance into an export file`]
+    [`${command} export.jsrexport`, `Export all the entities of the local instance into an export file`],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com`, `Export all the entities of the jsreport instance at http://jsreport-host.com into an export file`],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com --user admin --password xxxx`, `Export all the entities of the authenticated jsreport instance at http://jsreport-host.com into an export file`],
+    [`${command} export.jsrexport --entities entity1Id --entities entity2Id`, `Export just the selected entities of the local instance into an export file`],
+    [`${command} export.jsrexport --entitiesPath entities.json`, `Export just the selected entities (specified in a json file) of the local instance into an export file`]
   ]
 }

@@ -6,28 +6,29 @@ const ZFolder = require('zfolder')
 
 const desktopPath = path.join(os.homedir(), 'Desktop')
 
-async function extract (zipPathArg) {
-  if (!zipPathArg) {
-    throw new Error('zipPath can not be empty')
+async function extract (exportFilePathArg) {
+  if (!exportFilePathArg) {
+    throw new Error('exportFile can not be empty')
   }
 
-  if (!zipPathArg.endsWith('.zip')) {
-    throw new Error('zipPath does not have .zip extension')
+  if (!exportFilePathArg.endsWith('.zip') && !exportFilePathArg.endsWith('.jsrexport')) {
+    throw new Error('exportFile does not have .zip or .jsrexport extension')
   }
 
-  const zipPath = path.resolve(desktopPath, zipPathArg)
+  const exportFilePath = path.resolve(desktopPath, exportFilePathArg)
 
-  const zipFilename = path.basename(zipPath, '.zip')
+  const exportFileExt = path.extname(exportFilePath)
+  const exportFileBasename = path.basename(exportFilePath, exportFileExt)
 
-  const outputPath = path.join(desktopPath, zipFilename)
+  const outputPath = path.join(desktopPath, exportFileBasename)
 
-  await extractZip(zipPath, { dir: outputPath })
+  await extractZip(exportFilePath, { dir: outputPath })
   console.log(`extracted into ${outputPath}`)
 }
 
 async function create (inputFolder) {
   const inputFolderPath = path.resolve(desktopPath, inputFolder)
-  const outputPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.zip`)
+  const outputPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.jsrexport`)
 
   await ZFolder(inputFolderPath, outputPath)
   console.log(`created into ${outputPath}`)

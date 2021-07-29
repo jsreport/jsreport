@@ -8,7 +8,7 @@ async function exportToStream (reporter, selection, req) {
   const exportableCollectionsWithoutFolders = Object.keys(reporter.documentStore.collections).filter((collectionName) => {
     return (
       (
-        // null check for backcompatible support
+        // null check for back-compatible support
         reporter.documentStore.model.entitySets[collectionName].exportable == null ||
         reporter.documentStore.model.entitySets[collectionName].exportable === true
       ) && collectionName !== 'folders'

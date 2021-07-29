@@ -118,7 +118,7 @@ module.exports.zipEntities = (entities, metadata) => {
 }
 
 module.exports.parseMultipart = (multer) => (req, res, cb) => {
-  multer.array('import.zip')(req, res, (err) => {
+  multer.any()(req, res, (err) => {
     if (err) {
       return cb(new Error('Unable to read export file key from multipart stream'))
     }

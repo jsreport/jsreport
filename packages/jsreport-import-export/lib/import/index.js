@@ -1,7 +1,7 @@
 const os = require('os')
 const getImportRecords = require('./getImportRecords')
 const reqWithNoUser = require('./reqWithNoUser')
-const persistEntitiy = require('./persistEntity')
+const persistEntity = require('./persistEntity')
 const { unzipEntities } = require('../helpers')
 
 async function processImport (reporter, exportFilePath, opts, req) {
@@ -340,7 +340,7 @@ async function processEntityRecord (reporter, req, record, { metadata, logs }) {
   processingInfo.entityNameDisplay = entityNameDisplay
   processingInfo.entityNameDisplayProperty = entityNameDisplayProperty
 
-  const newEntity = await persistEntitiy(reporter, entityToProcess, processingInfo, req)
+  const newEntity = await persistEntity(reporter, entityToProcess, processingInfo, req)
 
   if (record.updateReferences) {
     await record.updateReferences(

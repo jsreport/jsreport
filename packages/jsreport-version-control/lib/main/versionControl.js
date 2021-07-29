@@ -339,7 +339,7 @@ module.exports = (reporter, options) => {
 
       const versions = await reporter.documentStore.collection('versions').find({}, req)
 
-      const result = await reporter.executeWorkerAction('version-control-apply-pathes',
+      const result = await reporter.executeWorkerAction('version-control-apply-patches',
         {
           versions,
           documentModel
@@ -372,7 +372,7 @@ module.exports = (reporter, options) => {
 
       const versionsToPatch = await reporter.documentStore.collection('versions').find({ creationDate: { $lte: versionToCheckout.creationDate } }, req)
 
-      const result = await reporter.executeWorkerAction('version-control-apply-pathes',
+      const result = await reporter.executeWorkerAction('version-control-apply-patches',
         {
           versions: versionsToPatch,
           documentModel
