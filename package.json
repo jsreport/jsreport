@@ -24,17 +24,6 @@
   },
   "devDependencies": {
     "archiver": "3.0.0",
-    "cross-env": "5.2.1",
-    "standard": "16.0.3"
-  },
-  "standard": {
-    "ignore": [
-      "data/**"
-    ],
-    "env": {
-      "mocha": true,
-      "browser": true,
-      "node": true
-    }
+    "cross-env": "5.2.1"
   }
 }

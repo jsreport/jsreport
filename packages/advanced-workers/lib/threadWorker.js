@@ -38,7 +38,7 @@ module.exports = ({
         setTimeout(() => {
           if (!isDone) {
             isDone = true
-            const e = new Error(`Timeout occurred when waiting for the worker${m.systemAction != null ? ` action "${m.systemAction}"` : ''}`
+            const e = new Error(`Timeout occurred when waiting for the worker${m.systemAction != null ? ` action "${m.systemAction}"` : ''}`)
             e.code = 'WORKER_TIMEOUT'
             worker.unref()
             reject(e)
