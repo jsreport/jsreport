@@ -233,7 +233,7 @@ jsreport also exposes `logger` property which can be used to adapt the logging a
 ```js
 const winston = require('winston')
 const jsreport = require('jsreport-core')()
-jsreport.logger.add(winston.transports.Console, { level: 'info' })
+jsreport.logger.add(new winston.transports.Console({ level: 'info' }))
 ```
 
 ## Typescript

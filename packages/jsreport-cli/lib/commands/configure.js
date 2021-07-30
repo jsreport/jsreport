@@ -34,7 +34,6 @@ exports.handler = async (argv) => {
   const context = argv.context
   const cwd = context.cwd
   const logger = context.logger
-  const appInfo = context.appInfo
   const localConfigPath = path.join(cwd, 'jsreport.config.json')
 
   let answers

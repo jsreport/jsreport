@@ -75,8 +75,6 @@
     "jsreport-text": "2.0.0",
     "jsreport-version-control": "1.6.2",
     "jsreport-xlsx": "2.5.0",
-    "mkdirp": "0.5.5",
-    "node.extend.without.arrays": "1.1.6",
     "puppeteer": "9.1.1",
     "semver": "6.3.0"
   },

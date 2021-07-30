@@ -561,6 +561,16 @@ function createLogger (verboseMode) {
 
       console.log(...messages)
     },
+    warn: (...messages) => {
+      const msg = messages.join(' ')
+
+      logs.push({
+        type: 'warn',
+        message: msg
+      })
+
+      console.error(...messages)
+    },
     error: (...messages) => {
       const msg = messages.join(' ')
 

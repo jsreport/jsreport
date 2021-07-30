@@ -1,86 +1,65 @@
 const path = require('path')
 const omit = require('lodash.omit')
+const { MESSAGE } = require('triple-beam')
 const winston = require('winston')
 const Transport = require('winston-transport')
 const debug = require('debug')('jsreport')
-const getLogMeta = require('../shared/getLogMeta')
+const createDefaultLoggerFormat = require('./createDefaultLoggerFormat')
+const normalizeMetaFromLogs = require('../shared/normalizeMetaFromLogs')
 
-class DebugTransport extends Transport {
-  constructor (options = {}) {
-    super(options)
-    this.name = 'debug'
-    this.level = options.level || 'debug'
-  }
-
-  log (level, msg, meta, callback) {
-    debug(level + ' ' + msg)
-    callback(null, true)
-  }
-}
+const defaultLoggerFormat = createDefaultLoggerFormat()
+const defaultLoggerFormatWithTimestamp = createDefaultLoggerFormat({ timestamp: true })
 
 function createLogger () {
-  if (!winston.loggers.has('jsreport')) {
-    const debugTransport = new DebugTransport()
+  const logger = winston.createLogger(getConfigurationOptions())
 
-    winston.loggers.add('jsreport', {
-      transports: [debugTransport]
-    })
+  logger.on('error', (err) => {
+    let dir
+    let msg
 
-    winston.loggers.get('jsreport').emitErrs = true
+    if (err.code === 'ENOENT') {
+      dir = path.dirname(err.path)
 
-    winston.loggers.get('jsreport').on('error', function (err) {
-      let dir
-      let msg
-
-      if (err.code === 'ENOENT') {
-        dir = path.dirname(err.path)
-
-        if (dir === '.') {
-          msg = 'Error from logger (winston) while trying to use a file to store logs:'
-        } else {
-          msg = 'Error from logger (winston) while trying to use a file to store logs. If the directory "' + dir + '" does not exist, please create it:'
-        }
-
-        // make the error intentionally more visible to get the attention of the user
-        console.error('------------------------')
-        console.error(msg, err)
-        console.error('------------------------')
+      if (dir === '.') {
+        msg = 'Error from logger (winston) while trying to use a file to store logs:'
+      } else {
+        msg = 'Error from logger (winston) while trying to use a file to store logs. If the directory "' + dir + '" does not exist, please create it:'
       }
-    })
-  } else {
-    if (!winston.loggers.get('jsreport').transports.debug) {
-      winston.loggers.get('jsreport').add(DebugTransport)
+
+      // make the error intentionally more visible to get the attention of the user
+      console.error('------------------------')
+      console.error(msg, err)
+      console.error('------------------------')
     }
-  }
-
-  const logger = winston.loggers.get('jsreport')
-
-  logger.rewriters.push((level, msg, meta) => {
-    return getLogMeta(level, msg, meta)
   })
 
   return logger
 }
 
 function configureLogger (logger, _transports) {
+  const configuredPreviously = logger.__configured__ === true
+
+  if (configuredPreviously) {
+    return
+  }
+
   const transports = _transports || {}
 
   const knownTransports = {
     debug: DebugTransport,
-    memory: winston.transports.Memory,
     console: winston.transports.Console,
     file: winston.transports.File,
     http: winston.transports.Http
   }
 
   const knownOptions = ['transport', 'module', 'enabled']
+  const transportsToAdd = []
 
-  Object.keys(transports).forEach((transpName) => {
-    const transpOptions = transports[transpName]
+  for (const [transpName, transpOptions] of Object.entries(transports)) {
     let transportModule
 
     if (!transpOptions || typeof transpOptions !== 'object' || Array.isArray(transpOptions)) {
-      return
+      continue
     }
 
     if (typeof transpOptions.transport !== 'string' || transpOptions.transport === '') {
@@ -95,16 +74,43 @@ function configureLogger (logger, _transports) {
       }", option "level" is not specified or has an incorrect value, must be a string with a valid value. check your "logger" config`)
     }
 
-    if (transpOptions.enabled === false) {
-      return
+    if (transpName !== 'debug' && transpOptions.enabled === false) {
+      continue
+    }
+
+    if (
+      transpOptions.format != null &&
+      typeof transpOptions.format.constructor !== 'function'
+    ) {
+      throw new Error(`Invalid option for transport object "${
+        transpName
+      }", option "format" has an incorrect value, must be an instance of loggerFormat. check your "logger" config`)
+    }
+
+    let originalFormat
+
+    if (transpOptions.format != null) {
+      originalFormat = transpOptions.format
+      delete transpOptions.format
+    }
+
+    const options = Object.assign(omit(transpOptions, knownOptions), {
+      name: transpName
+    })
+
+    if (originalFormat != null) {
+      options.format = originalFormat
     }
 
     if (knownTransports[transpOptions.transport]) {
-      if (!logger.transports[transpName]) {
-        logger.add(knownTransports[transpOptions.transport], Object.assign(omit(transpOptions, knownOptions), {
-          name: transpName
-        }))
+      if (transpName === 'debug') {
+        options.enabled = transpOptions.enabled !== false
       }
+
+      transportsToAdd.push({
+        TransportClass: knownTransports[transpOptions.transport],
+        options
+      })
     } else {
       if (transpOptions.module == null) {
         throw new Error(`Invalid option for transport object "${
@@ -142,21 +148,94 @@ function configureLogger (logger, _transports) {
         throw e
       }
 
-      if (!logger.transports[transpName]) {
-        logger.add(transportModule, Object.assign(omit(transpOptions, knownOptions), {
-          name: transpName
-        }))
+      transportsToAdd.push({
+        TransportClass: transportModule,
+        options
+      })
+    }
+  }
+
+  for (const { TransportClass, options } of transportsToAdd) {
+    const transportInstance = new TransportClass(options)
+
+    const existingTransport = logger.transports.find((t) => t.name === transportInstance.name)
+
+    if (existingTransport) {
+      logger.remove(existingTransport)
+    }
+
+    logger.add(transportInstance)
+  }
+
+  logger.__configured__ = true
+}
+
+function getConfigurationOptions () {
+  const normalizeMeta = winston.format((info) => {
+    const { level, message, ...meta } = info
+    const newMeta = normalizeMetaFromLogs(level, message, meta)
+
+    if (newMeta != null) {
+      return {
+        level,
+        message,
+        ...newMeta
       }
     }
+
+    return info
   })
+
+  return {
+    levels: {
+      error: 0,
+      warn: 1,
+      info: 2,
+      debug: 3
+    },
+    format: winston.format.combine(
+      normalizeMeta(),
+      defaultLoggerFormatWithTimestamp()
+    ),
+    transports: [new DebugTransport()]
+  }
 }
 
 function silentLogs (logger) {
-  if (logger.transports) {
-    Object.keys(logger.transports).forEach((transportName) => {
+  if (logger.transports.length > 0) {
     // this is the recommended way to modify transports in runtime, as per winston's docs
-      logger.transports[transportName].silent = true
-    })
+    for (const transport of logger.transports) {
+      transport.silent = true
+    }
+  }
+}
+
+class DebugTransport extends Transport {
+  constructor (options = {}) {
+    super(options)
+    this.name = 'debug'
+    this.level = options.level || 'debug'
+
+    this.format = options.format || winston.format.combine(
+      winston.format.colorize(),
+      defaultLoggerFormat()
+    )
+
+    this.enabled = options.enabled !== false
+  }
+
+  log (info, callback) {
+    if (this.enabled) {
+      setImmediate(() => {
+        this.emit('logged', info)
+      })
+
+      debug(info[MESSAGE])
+    }
+
+    if (callback) {
+      callback()
+    }
   }
 }
 
