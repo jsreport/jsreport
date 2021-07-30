@@ -68,6 +68,7 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
       editorProps.emptyMessage = 'xlsxTemplate is empty'
     }
 
+    /* eslint-disable */
     return {
       key: editorKey,
       entity: editorKey === 'assets'
@@ -78,6 +79,7 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
         : entity,
       props: editorProps
     }
+    /* eslint-enable */
   }
 })
 
