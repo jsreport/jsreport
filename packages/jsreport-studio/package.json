@@ -39,7 +39,7 @@
     "start": "npm run check-build-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
     "test": "npm run ui-test && npm run server-test",
     "test:watch": "npm test -- --watch",
-    "ui-test": "mocha test/ui/.setup.js test/ui --recursive --require babel-core/register --require mocha-clean --require ignore-styles"
+    "ui-test": "mocha test/ui/.setup.js test/ui --recursive --exit --require babel-core/register --require mocha-clean --require ignore-styles"
   },
   "dependencies": {
     "bluebird": "3.5.4",
