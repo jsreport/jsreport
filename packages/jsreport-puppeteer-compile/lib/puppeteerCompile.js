@@ -39,7 +39,8 @@ module.exports = async function (reporter, definition) {
     reporter.options.chrome = reporter.options.chrome || {}
     reporter.options.chrome.launchOptions = reporter.options.chrome.launchOptions || {}
 
-    const chromeExeName = process.platform === 'darwin' ? 'Chromium.app/Contents/MacOS/Chromium'
+    const chromeExeName = process.platform === 'darwin'
+      ? 'Chromium.app/Contents/MacOS/Chromium'
       : (process.platform === 'win32' ? 'chrome.exe' : 'chrome')
 
     reporter.options.chrome.launchOptions.executablePath = path.join(

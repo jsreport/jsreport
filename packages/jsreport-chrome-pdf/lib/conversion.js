@@ -172,7 +172,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
 
     if (optionsToUse.mediaType) {
       if (optionsToUse.mediaType !== 'screen' && optionsToUse.mediaType !== 'print') {
-        throw reporter.createError(`chrome.mediaType must be equal to 'screen' or 'print'`, { weak: true })
+        throw reporter.createError('chrome.mediaType must be equal to "screen" or "print"', { weak: true })
       }
 
       // emulateMedia has been renamed emulateMediaType in puppeteer 5.0.0 so we check existence of the method name accordingly
@@ -193,7 +193,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       }
 
       if (optionsToUse.type !== 'png' && optionsToUse.type !== 'jpeg') {
-        throw reporter.createError(`chromeImage.type must be equal to 'jpeg' or 'png'`, { weak: true })
+        throw reporter.createError('chromeImage.type must be equal to "jpeg" or "png"', { weak: true })
       }
 
       if (optionsToUse.type === 'png') {
@@ -230,7 +230,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
         optionsToUse.clip.width == null ||
         optionsToUse.clip.height == null
       ) {
-        throw reporter.createError(`All chromeImage clip properties needs to be specified when at least one of them is passed. Make sure to specify values for "chromeImage.clipX", "chromeImage.clipY", "chromeImage.clipWidth", "chromeImage.clipHeight"`, { weak: true })
+        throw reporter.createError('All chromeImage clip properties needs to be specified when at least one of them is passed. Make sure to specify values for "chromeImage.clipX", "chromeImage.clipY", "chromeImage.clipWidth", "chromeImage.clipHeight"', { weak: true })
       }
 
       optionsToUse.encoding = 'binary'
@@ -286,6 +286,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
 }
 
 function runWithTimeout (fn, ms, msg) {
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     let resolved = false
 

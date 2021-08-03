@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 'use strict'
 
+// eslint-disable-next-line no-var
 var semver = require('semver')
+// eslint-disable-next-line no-var
 var cliPackageJson = require('./package.json')
 
 if (!semver.satisfies(process.versions.node, cliPackageJson.engines.node)) {

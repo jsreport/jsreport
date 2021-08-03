@@ -56,7 +56,7 @@ const prepareStartExpressApp = function (reporter, app, config) {
     if (config.httpPort) {
       reporter.express.redirectServer = http.createServer((req, res) => {
         res.writeHead(302, {
-          'Location': 'https://' + req.headers.host.split(':')[0] + ':' + config.httpsPort + req.url
+          Location: 'https://' + req.headers.host.split(':')[0] + ':' + config.httpsPort + req.url
         })
 
         res.end()

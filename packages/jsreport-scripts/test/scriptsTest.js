@@ -30,7 +30,7 @@ describe('scripts', () => {
           template: {
             content: 'foo',
             scripts: [{
-              content: `function beforeRender(req, res, done) { setTimeout(function() { foo; }, 0); }`
+              content: 'function beforeRender(req, res, done) { setTimeout(function() { foo; }, 0); }'
             }],
             engine: 'none',
             recipe: 'html'
@@ -50,7 +50,7 @@ describe('scripts', () => {
   function common () {
     it('should find script by its name', async () => {
       await reporter.documentStore.collection('scripts').insert({
-        content: `function beforeRender(req, res) { req.template.content = 'xxx' }`,
+        content: 'function beforeRender(req, res) { req.template.content = "xxx" }',
         name: 'foo'
       })
 
@@ -810,7 +810,7 @@ describe('scripts', () => {
           engine: 'none',
           recipe: 'html',
           scripts: [{
-            content: `function beforeRender(request, response) { request.template.content = require('helperA')(); }`
+            content: 'function beforeRender(request, response) { request.template.content = require("helperA")(); }'
           }]
         }
       })
@@ -832,7 +832,7 @@ describe('scripts', () => {
           engine: 'none',
           recipe: 'html',
           scripts: [{
-            content: `function beforeRender(request, response) { request.template.content = require('helperA')(); }`
+            content: 'function beforeRender(request, response) { request.template.content = require("helperA")(); }'
           }]
         }
       })
@@ -846,7 +846,7 @@ describe('scripts', () => {
           recipe: 'html',
           engine: 'none',
           scripts: [{
-            content: `var request = function () { return '5'; } \n function beforeRender(req, res, done) { req.template.content = request(); done() }`
+            content: 'var request = function () { return "5"; } \n function beforeRender(req, res, done) { req.template.content = request(); done() }'
           }]
         }
       })
@@ -867,12 +867,12 @@ describe('scripts', () => {
           engine: 'none',
           recipe: 'html',
           scripts: [{
-            content: `function beforeRender(req, res) { }`
+            content: 'function beforeRender(req, res) { }'
           }]
         }
       })
 
-      res.content.toString().should.be.eql(`function beforeRender(req, res) { }`)
+      res.content.toString().should.be.eql('function beforeRender(req, res) { }')
     })
 
     it('should write console.log to the logger', async () => {
@@ -889,7 +889,7 @@ describe('scripts', () => {
           recipe: 'html',
           engine: 'none',
           scripts: [{
-            content: `function beforeRender(req, res) { console.log('hello') }`
+            content: 'function beforeRender(req, res) { console.log("hello") }'
           }]
         }
       })
@@ -904,7 +904,7 @@ describe('scripts', () => {
           recipe: 'html',
           engine: 'none',
           scripts: [{
-            content: `function beforeRender(req, res, done) { done(new Error('foo')) } `
+            content: 'function beforeRender(req, res, done) { done(new Error("foo")) } '
           }]
         }
       }).should.be.rejectedWith(/foo/)

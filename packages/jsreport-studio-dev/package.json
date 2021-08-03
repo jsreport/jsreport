@@ -22,6 +22,9 @@
     "jsreport-studio-build": "./bin/build.js",
     "jsreport-studio-start": "./bin/start.js"
   },
+  "scripts": {
+    "test": "standard"
+  },
   "browserslist": [
     "last 2 version"
   ],
@@ -58,7 +61,7 @@
     "yargs-parser": "13.1.2"
   },
   "devDependencies": {
-    "standard": "12.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"

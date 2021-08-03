@@ -60,7 +60,7 @@ module.exports = (reporter, definition) => {
     return
   }
 
-  reporter.documentStore.model.entityTypes['TemplateType'].readSharingToken = { type: 'Edm.String' }
+  reporter.documentStore.model.entityTypes.TemplateType.readSharingToken = { type: 'Edm.String' }
   reporter.on('express-configure', routes(reporter))
   reporter.initializeListeners.add('public-templates', () => reporter.emit('export-public-route', '/public-templates'))
 }

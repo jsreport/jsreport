@@ -34,7 +34,7 @@ function getErrors (err) {
   const errors = []
 
   while (parent != null) {
-    let customProps = Object.assign({}, parent)
+    const customProps = Object.assign({}, parent)
     let currentStack = parent.stack || ''
     let cleanState = false
 
@@ -77,7 +77,7 @@ function getErrorMessages (err) {
 
   errors.forEach((error) => {
     let customProps = error.meta || {}
-    let currentStack = error.stack
+    const currentStack = error.stack
 
     if (!cleanState && error.cleanState === true) {
       cleanState = true
@@ -96,7 +96,7 @@ function getErrorMessages (err) {
     }
 
     if (currentStack !== '') {
-      let causedBy = `caused by error (${count}):`
+      const causedBy = `caused by error (${count}):`
 
       if (customProps !== '') {
         stacks.push(`${causedBy}\n-> meta = ${customProps}\n-> stack\n${currentStack}`)

@@ -51,7 +51,7 @@ class NewTagModal extends Component {
     entity.description = this.descriptionRef.current.value
 
     try {
-      let response = await Studio.api.post('/odata/tags', {
+      const response = await Studio.api.post('/odata/tags', {
         data: entity
       })
 
@@ -107,18 +107,21 @@ class NewTagModal extends Component {
         </div>
         <div className='form-group'>
           <span
-            style={{color: 'red', display: error ? 'block' : 'none'}}>{error}</span>
+            style={{ color: 'red', display: error ? 'block' : 'none' }}
+          >
+            {error}
+          </span>
         </div>
-        <div className='form-group' style={{opacity: 0.8}}>
+        <div className='form-group' style={{ opacity: 0.8 }}>
           <hr />
           <span>
             You can use tags to organize jsreport objects.<br />
             This can be for example a tag to organize and group related templates, images, data, scripts, assets, etc. <br />
-            See the <a target='_blank' title='Help' href='http://jsreport.net/learn/tags'>documentation</a> for details.
+            See the <a target='_blank' rel='noreferrer' title='Help' href='http://jsreport.net/learn/tags'>documentation</a> for details.
           </span>
         </div>
         <div className='button-bar'>
-          <button onClick={() => this.createTag()} className={'button confirmation'}>Ok</button>
+          <button onClick={() => this.createTag()} className='button confirmation'>Ok</button>
         </div>
       </div>
     )

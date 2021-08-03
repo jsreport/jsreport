@@ -42,8 +42,6 @@ module.exports = (opt = {}) => {
       timeout
     })
 
-    let stream
-
     if (tables != null && !Array.isArray(tables)) {
       tables = [tables]
     }
@@ -52,7 +50,7 @@ module.exports = (opt = {}) => {
       throw new Error('No table element(s) found in html')
     }
 
-    stream = await tableToXlsx(options, tables, xlsxTemplateBuf, id)
+    const stream = await tableToXlsx(options, tables, xlsxTemplateBuf, id)
 
     return stream
   }

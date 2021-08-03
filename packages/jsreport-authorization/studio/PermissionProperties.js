@@ -49,15 +49,19 @@ export default class PermissionProperties extends Component {
       return <div />
     }
 
-    const readPermissionsEntities = entity.readPermissions ? entity.readPermissions.map((_id) => {
-      const currentEntity = Studio.getEntityById(_id, false)
-      return currentEntity != null ? currentEntity : null
-    }).filter((i) => i != null) : []
+    const readPermissionsEntities = entity.readPermissions
+      ? entity.readPermissions.map((_id) => {
+          const currentEntity = Studio.getEntityById(_id, false)
+          return currentEntity != null ? currentEntity : null
+        }).filter((i) => i != null)
+      : []
 
-    const editPermissionsEntities = entity.editPermissions ? entity.editPermissions.map((_id) => {
-      const currentEntity = Studio.getEntityById(_id, false)
-      return currentEntity != null ? currentEntity : null
-    }).filter((i) => i != null) : []
+    const editPermissionsEntities = entity.editPermissions
+      ? entity.editPermissions.map((_id) => {
+          const currentEntity = Studio.getEntityById(_id, false)
+          return currentEntity != null ? currentEntity : null
+        }).filter((i) => i != null)
+      : []
 
     return (
       <div className='properties-section'>

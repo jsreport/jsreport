@@ -172,7 +172,7 @@ describe('win-install command', function () {
     if (serviceStdout) {
       should(serviceStdout.indexOf('RUNNING') !== -1).be.eql(true)
     } else {
-      throw new Error(`Can't detect is service is running or not`)
+      throw new Error('Can\'t detect is service is running or not')
     }
 
     console.log(`uninstalling service "${serviceName}" after test case has finished..`)

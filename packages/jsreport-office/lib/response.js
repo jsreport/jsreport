@@ -63,7 +63,7 @@ module.exports = async function response ({
     let message = `${officeDocumentType} file upload to ${targetPublicUri} failed.`
 
     if (e.response && e.response.status && e.response.status === 413) {
-      message += ` File is too big and it pass the upload limits of server.`
+      message += ' File is too big and it pass the upload limits of server.'
     }
     message += ' Returning plain document for download.'
     message += ` (full error: ${e.message})`

@@ -21,16 +21,18 @@ const ShowColor = (props) => {
   }
 
   return (
-    <span style={{
-      backgroundColor: currentColor,
-      borderWidth: '1px',
-      borderStyle: 'solid',
-      borderColor: borderColor,
-      display: 'inline-block',
-      height: height,
-      verticalAlign: 'middle',
-      width: width
-    }} />
+    <span
+      style={{
+        backgroundColor: currentColor,
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: borderColor,
+        display: 'inline-block',
+        height: height,
+        verticalAlign: 'middle',
+        width: width
+      }}
+    />
   )
 }
 

@@ -28,6 +28,6 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "standard": "11.0.1"
+    "standard": "16.0.3"
   }
 }

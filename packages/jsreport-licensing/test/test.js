@@ -4,7 +4,7 @@ const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const path = require('path')
 const should = require('should')
-let licenseJsonFilePath = path.join(__dirname, '../', 'jsreport.license.json')
+const licenseJsonFilePath = path.join(__dirname, '../', 'jsreport.license.json')
 
 process.env.LICENSING_SERVER = 'http://localhost:6000'
 process.env.LICENSING_USAGE_CHECK_INTERVAL = 100
@@ -78,9 +78,10 @@ describe('licensing', () => {
     fs.writeFileSync(path.join(__dirname, '../', 'license-key.txt'), key)
     await insertTemplates(6)
 
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve) => {
       await createServer((req, res) => {
-        let body = []
+        const body = []
         req.on('data', (chunk) => {
           body.push(chunk)
         }).on('end', () => {
@@ -93,7 +94,7 @@ describe('licensing', () => {
     })
   })
 
-  it('should create jsreport.license.json file with successfull check', async () => {
+  it('should create jsreport.license.json file with successfully check', async () => {
     jsreport.options.licenseKey = uuidv4()
     await insertTemplates(6)
     await createServer((req, res) => {
@@ -149,9 +150,11 @@ describe('licensing', () => {
   it('should mask license key in the logs', async () => {
     const messages = []
     const key = uuidv4()
-    jsreport.logger.log = (level, m) => {
+
+    jsreport.logger.info = (m) => {
       messages.push(m)
     }
+
     jsreport.options.licenseKey = key
     await createServer((req, res) => {
       res.end(
@@ -172,7 +175,7 @@ describe('licensing', () => {
   it('should mask short license key in the logs', async () => {
     const messages = []
     const key = 'hello'
-    jsreport.logger.log = (level, m) => {
+    jsreport.logger.info = (m) => {
       messages.push(m)
     }
     jsreport.options.licenseKey = key
@@ -192,10 +195,10 @@ describe('licensing', () => {
     message.should.not.containEql(key)
   })
 
-  it('should not mask free license ky', async () => {
+  it('should not mask free license key', async () => {
     const messages = []
     const key = 'free'
-    jsreport.logger.log = (level, m) => {
+    jsreport.logger.info = (m) => {
       messages.push(m)
     }
     jsreport.options.licenseKey = key
@@ -266,6 +269,7 @@ describe('licensing', () => {
 
   it('should not call /license-usage when needsUsageCheck is false', async () => {
     jsreport.options.licenseKey = 'foo'
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await createServer((req, res) => {
         if (req.url === '/license-key') {
@@ -287,7 +291,7 @@ describe('licensing', () => {
 
   it('should update usageCheckFailureInfo to null when second server is turned off', async () => {
     jsreport.options.licenseKey = 'foo'
-    let attemp = 0
+    let attempt = 0
 
     await createServer((req, res) => {
       if (req.url === '/license-key') {
@@ -299,7 +303,7 @@ describe('licensing', () => {
       }
 
       if (req.url === '/license-usage') {
-        if (++attemp === 1) {
+        if (++attempt === 1) {
           res.end(JSON.stringify({
             status: 1,
             message: 'Wrong'
@@ -319,8 +323,9 @@ describe('licensing', () => {
     should(licensingOptions.usageCheckFailureInfo).not.be.ok()
   })
 
-  it('shouldnt verify license usage when license.development', async () => {
+  it('should not verify license usage when license.development', async () => {
     jsreport.options.license = { development: true }
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await createServer((req, res) => {
         if (req.url === '/license-key') {
@@ -332,7 +337,7 @@ describe('licensing', () => {
         }
 
         if (req.url === '/license-usage') {
-          reject(new Error('shouldnt get here'))
+          reject(new Error('should not get here'))
         }
       })
       await jsreport.init()
@@ -341,12 +346,12 @@ describe('licensing', () => {
     })
   })
 
-  it('shouldnt use jsreport.license.json when license.useSavedLicenseInfo=false', async () => {
+  it('should not use jsreport.license.json when license.useSavedLicenseInfo=false', async () => {
     jsreport.options.licenseKey = 'foo'
 
-    let attemp = 0
+    let attempt = 0
     await createServer((req, res) => {
-      attemp++
+      attempt++
       return res.end(JSON.stringify({
         status: 0,
         message: 'ok'
@@ -360,15 +365,15 @@ describe('licensing', () => {
 
     await jsreport.init()
 
-    attemp.should.be.eql(2)
+    attempt.should.be.eql(2)
   })
 
   it('should use jsreport.license.json from license.licenseInfoPath', async () => {
     jsreport.options.licenseKey = 'foo'
 
-    let attemp = 0
+    let attempt = 0
     await createServer((req, res) => {
-      attemp++
+      attempt++
       return res.end(JSON.stringify({
         status: 0,
         message: 'ok'
@@ -391,6 +396,6 @@ describe('licensing', () => {
 
     await jsreport.init()
 
-    attemp.should.be.eql(1)
+    attempt.should.be.eql(1)
   })
 })

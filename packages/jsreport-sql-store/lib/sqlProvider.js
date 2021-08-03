@@ -38,7 +38,7 @@ class Cursor {
   async count () {
     const q = this.odataSql.count(this.entitySet, this.query)
     const res = await this.executeQuery(q, this.options)
-    return parseInt(res.records[0]['undefined_count'])
+    return parseInt(res.records[0].undefined_count)
   }
 
   sort (h) {
@@ -79,7 +79,7 @@ module.exports = (options, dialect, executeQuery, transactionManager = {}) => ({
   insert: async function (entitySet, doc, opts = {}) {
     opts.entitySet = opts
     doc._id = doc._id || uuidv4()
-    var q = this.odataSql.insert(entitySet, doc)
+    const q = this.odataSql.insert(entitySet, doc)
     await executeQuery(q, opts)
     return doc
   },

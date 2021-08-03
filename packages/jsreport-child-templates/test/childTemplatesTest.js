@@ -156,7 +156,7 @@ describe('childTemplates', () => {
         }
       },
       template: {
-        content: `{#child t1 @data.foo$={{:~childTemplateSerializeData(foo)}}}`,
+        content: '{#child t1 @data.foo$={{:~childTemplateSerializeData(foo)}}}',
         engine: 'jsrender',
         recipe: 'html'
       },
@@ -253,7 +253,7 @@ describe('childTemplates', () => {
   it('should collect logs from child template to the parent', async () => {
     await reporter.documentStore.collection('templates').insert({
       content: '{{:~a()}}',
-      helpers: `function a() { console.log('hello'); }`,
+      helpers: 'function a() { console.log("hello"); }',
       engine: 'jsrender',
       recipe: 'html',
       name: 't1'
@@ -335,7 +335,7 @@ describe('childTemplates', () => {
     res.content.toString().should.be.eql('xx')
   })
 
-  it('should resolve template at specifed path when there are others with same name', async () => {
+  it('should resolve template at specified path when there are others with same name', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'folder',
       shortid: 'folder'
@@ -908,7 +908,7 @@ describe('childTemplates', () => {
     })
 
     const request = {
-      template: { content: '{#child t1 @data.a={{aHelper}}}', engine: 'handlebars', recipe: 'html', helpers: `function aHelper() { return 'foo'}` }
+      template: { content: '{#child t1 @data.a={{aHelper}}}', engine: 'handlebars', recipe: 'html', helpers: 'function aHelper() { return "foo"}' }
     }
 
     const res = await reporter.render(request)

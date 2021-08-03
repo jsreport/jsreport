@@ -38,7 +38,6 @@
     "xmldom": "0.1.27"
   },
   "devDependencies": {
-    "babel-eslint": "10.0.2",
     "handlebars": "4.7.7",
     "jsreport-assets": "1.7.0",
     "jsreport-core": "2.10.1",
@@ -46,7 +45,7 @@
     "jsreport-studio-dev": "1.6.0",
     "mocha": "6.1.4",
     "should": "13.2.3",
-    "standard": "12.0.1",
+    "standard": "16.0.3",
     "textract": "2.5.0"
   },
   "engines": {
@@ -56,7 +55,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

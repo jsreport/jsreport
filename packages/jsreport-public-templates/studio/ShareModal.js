@@ -33,15 +33,20 @@ class ShareModal extends Component {
     return (
       <div>
         <h2>Link with read permissions</h2>
-        {entity.readSharingToken ? <div>
-          <a target='_blank' href={Studio.rootUrl + `/public-templates?access_token=${entity.readSharingToken}`}>
-            {Studio.rootUrl + `/public-templates?access_token=${entity.readSharingToken}`}
-          </a>
-        </div> : <div>
-          <button type='button' className='button confirmation' onClick={() => this.generateLink('read')}>Generate Read Link
-          </button>
-        </div>
-        }
+        {entity.readSharingToken
+          ? (
+            <div>
+              <a target='_blank' rel='noreferrer' href={Studio.rootUrl + `/public-templates?access_token=${entity.readSharingToken}`}>
+                {Studio.rootUrl + `/public-templates?access_token=${entity.readSharingToken}`}
+              </a>
+            </div>
+            )
+          : (
+            <div>
+              <button type='button' className='button confirmation' onClick={() => this.generateLink('read')}>Generate Read Link
+              </button>
+            </div>
+            )}
         <div className={Style.infoBox}>
           When requesting this link, jsreport will skip the authentication and authorization and render this
           particular template. User will be also able to execute

@@ -130,10 +130,10 @@ function addRow (sheet, row, context) {
     const cell = sheet.getCell(`${context.currentRowInFile + 1}`, `${currentCellOffsetsPerRow[context.currentRowInFile][0].startCell + currentCellOffsetsPerRow[context.currentRowInFile][0].offset}`)
 
     // column number is returned as 1-base
-    let startCell = cell.col
+    const startCell = cell.col
     let endCell = cell.col
     // row number is returned as 1-based
-    let startRow = cell.row
+    const startRow = cell.row
     let endRow = cell.row
 
     usedCells[`${cell.row},${cell.col}`] = true
@@ -158,7 +158,7 @@ function addRow (sheet, row, context) {
 
     const styleValues = {}
 
-    for (let styleProp of styleProperties) {
+    for (const styleProp of styleProperties) {
       styleValues[styleProp] = cellInfo[styleProp]
     }
 
@@ -288,7 +288,7 @@ function getXlsxStyles (cellInfo) {
 }
 
 function setStyles (cell, styles) {
-  for (let [styleName, styleValue] of Object.entries(styles)) {
+  for (const [styleName, styleValue] of Object.entries(styles)) {
     cell[styleName] = styleValue
   }
 }

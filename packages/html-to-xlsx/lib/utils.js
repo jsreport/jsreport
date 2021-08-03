@@ -119,12 +119,14 @@ function isColorDefined (c) {
 }
 
 function colorToArgb (c) {
-  const input = Array.isArray(c) ? {
-    r: c[0],
-    g: c[1],
-    b: c[2],
-    a: c[3]
-  } : c
+  const input = Array.isArray(c)
+    ? {
+        r: c[0],
+        g: c[1],
+        b: c[2],
+        a: c[3]
+      }
+    : c
 
   const rgba = color(input).toHex8()
   return rgba.substr(6) + rgba.substr(0, 6)
@@ -169,6 +171,7 @@ function getBorder (cellInfo, type) {
 }
 
 function assetLegalXMLChar (str) {
+  // eslint-disable-next-line no-control-regex
   const validChars = /[\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE-\uFFFF]/
 
   const result = str.match(validChars)

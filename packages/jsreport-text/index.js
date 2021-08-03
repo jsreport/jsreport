@@ -1,4 +1,4 @@
-var config = require('./jsreport.config.js')
+const config = require('./jsreport.config.js')
 
 module.exports = function (options) {
   config.options = options

@@ -6,11 +6,6 @@ import { createGetByIdSelector } from '../../redux/entities/selectors'
 import { actions as entitiesActions } from '../../redux/entities'
 
 class ConcurrentUpdateErrorModal extends Component {
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-
   constructor (props) {
     super(props)
 
@@ -121,6 +116,11 @@ class ConcurrentUpdateErrorModal extends Component {
       </div>
     )
   }
+}
+
+ConcurrentUpdateErrorModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 function makeMapStateToProps () {

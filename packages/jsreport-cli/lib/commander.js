@@ -1,6 +1,8 @@
 'use strict'
 
+// eslint-disable-next-line no-var
 var semver = require('semver')
+// eslint-disable-next-line no-var
 var cliPackageJson = require('../package.json')
 
 if (!semver.satisfies(process.versions.node, cliPackageJson.engines.node)) {
@@ -180,7 +182,7 @@ class Commander extends events.EventEmitter {
             requiresArg: true,
             coerce: (value) => {
               if (!isAbsoluteUrl(value)) {
-                let error = new Error('serverUrl option must be a valid absolute url')
+                const error = new Error('serverUrl option must be a valid absolute url')
                 error.cleanState = true
                 throw error
               }
@@ -317,7 +319,6 @@ class Commander extends events.EventEmitter {
       let originalOptionFn
       let originalOptionsFn
       let commandCheckFn
-      let modYargs
 
       if (typeof yargs.usage === 'function') {
         originalUsageFn = yargs.usage
@@ -372,7 +373,7 @@ class Commander extends events.EventEmitter {
         }
       }
 
-      modYargs = commandBuilder(yargs)
+      const modYargs = commandBuilder(yargs)
 
       if (typeof yargs.usage === 'function') {
         yargs.usage = originalUsageFn
@@ -645,9 +646,11 @@ async function startProccesing (commander, logger, args) {
 
       if (versionRequired) {
         return handleVersionOption(
-          commander._jsreportVersion ? {
-            version: commander._jsreportVersion
-          } : (typeof instance === 'function' ? instance() : instance),
+          commander._jsreportVersion
+            ? {
+                version: commander._jsreportVersion
+              }
+            : (typeof instance === 'function' ? instance() : instance),
           logger
         )
       }
@@ -889,9 +892,11 @@ async function handleCommand (commander, commandName, args, options, onBeforeCLI
   try {
     logger.debug(`Searching for command "${commandName}" in extensions`)
 
-    const getInstanceAsync = commander._jsreportInstance ? (
-      Promise.resolve(commander._jsreportInstance)
-    ) : getInstance(commander, null, logger.debug, commander.cwd)
+    const getInstanceAsync = commander._jsreportInstance
+      ? (
+          Promise.resolve(commander._jsreportInstance)
+        )
+      : getInstance(commander, null, logger.debug, commander.cwd)
 
     const instanceOrFn = await getInstanceAsync
     const instance = typeof instanceOrFn === 'function' ? instanceOrFn() : instanceOrFn
@@ -955,7 +960,7 @@ async function startCLI (logger, commander, args, context) {
     } catch (e) {
       commander.emit('parsed', e, args, context)
 
-      const error = new Error(`An error ocurred while trying to execute a command`)
+      const error = new Error('An error ocurred while trying to execute a command')
       error.originalError = e
 
       throw error

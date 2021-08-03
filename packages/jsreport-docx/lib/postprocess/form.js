@@ -72,7 +72,7 @@ function processCombo (sdtEl) {
 
     for (const item of comboboxData.items) {
       const itemEl = sdtEl.createElement('w:listItem')
-      let itemConverted = item.value != null ? item : { value: item, text: item }
+      const itemConverted = item.value != null ? item : { value: item, text: item }
       itemEl.setAttribute('w:value', itemConverted.value)
       itemEl.setAttribute('w:displayText', itemConverted.text)
       comboboxEl.appendChild(itemEl)

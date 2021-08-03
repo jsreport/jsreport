@@ -5,10 +5,6 @@ import { extensions, triggerThemeChange } from '../../lib/configuration'
 import style from './ThemeModal.css'
 
 class ThemeModal extends Component {
-  static propTypes = {
-    options: PropTypes.object.isRequired
-  }
-
   constructor (props) {
     super(props)
 
@@ -138,6 +134,10 @@ class ThemeModal extends Component {
       </div>
     )
   }
+}
+
+ThemeModal.propTypes = {
+  options: PropTypes.object.isRequired
 }
 
 export default ThemeModal

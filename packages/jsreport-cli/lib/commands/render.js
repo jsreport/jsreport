@@ -364,6 +364,7 @@ async function startRender (jsreportInstance, { remote, request, output, meta, l
 async function saveResponse (logger, stream, metaData, output, meta, remote) {
   const outputStream = writeFileFromStream(stream, output)
 
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     listenOutputStream(outputStream, logger, () => {
       if (!meta) {
@@ -389,8 +390,8 @@ async function saveResponse (logger, stream, metaData, output, meta, remote) {
 function responseHeadersToMetaPOCO (headers) {
   const meta = {}
 
-  for (let property in headers) {
-    if (headers.hasOwnProperty(property)) {
+  for (const property in headers) {
+    if (Object.prototype.hasOwnProperty.call(headers, property)) {
       const val = headers[property]
       let p = property.replace(/-.{1}/g, (s) => s[1].toUpperCase())
 
@@ -479,9 +480,9 @@ function getUsage (command) {
 
 function getExamples (command) {
   return [
-    [`${command} --request request.json --out output.pdf`, `Start rendering with options in request.json`],
-    [`${command} --template template.json --out output.pdf`, `Start rendering with options for template input in template.json`],
-    [`${command} --template.recipe phantom-pdf --template.engine handlebars --template.content template.html --out output.pdf`, `Start rendering with inline options for template input`],
-    [`${command} --template template.json --data data.json --out output.pdf`, `Start rendering with options for template and data input`]
+    [`${command} --request request.json --out output.pdf`, 'Start rendering with options in request.json'],
+    [`${command} --template template.json --out output.pdf`, 'Start rendering with options for template input in template.json'],
+    [`${command} --template.recipe phantom-pdf --template.engine handlebars --template.content template.html --out output.pdf`, 'Start rendering with inline options for template input'],
+    [`${command} --template template.json --data data.json --out output.pdf`, 'Start rendering with options for template and data input']
   ]
 }

@@ -125,9 +125,9 @@ function concatTextNodes (doc, elements) {
 }
 
 function matchRegExp (str, pattern, flags) {
-  let f = flags || ''
-  let r = new RegExp(pattern, 'g' + f.replace(/g/g, ''))
-  let a = []
+  const f = flags || ''
+  const r = new RegExp(pattern, 'g' + f.replace(/g/g, ''))
+  const a = []
   let m
 
   // eslint-disable-next-line no-cond-assign

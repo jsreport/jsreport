@@ -62,7 +62,7 @@ module.exports = (getReporter) => {
 
       await importEntities(
         { targetFolder: 'f1' },
-        `t2`, { _id: 't1' },
+        't2', { _id: 't1' },
         'f1'
       )
 
@@ -142,12 +142,12 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when shortid conflict on same folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
-        'd2', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'd2', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('t1', 'd1', (entities) => {
@@ -162,14 +162,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when shortid conflict on same folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d2', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('f1/d1', 'f1/t1', (entities) => {
@@ -217,13 +217,13 @@ module.exports = (getReporter) => {
 
     it('should produce entity insert and updated references when shortid conflict on different folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         'f1',
-        'f1/d2', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('t1', 'd1', 'f1/d2', (entities) => {
@@ -249,14 +249,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity insert and updated references when shortid conflict on different folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'd2', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'd2', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d2', 'f1/d1', 'f1/t1', (entities) => {
@@ -313,11 +313,11 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when both _id and shortid conflict on same folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
-      await importEntities('d2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` })
+      await importEntities('d2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' })
 
       await assertExists('d1', 't1', (entities) => {
         const { templates, data } = entities
@@ -332,14 +332,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when both _id and shortid conflict on same folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('f1/d1', 'f1/t1', (entities) => {
@@ -390,13 +390,13 @@ module.exports = (getReporter) => {
 
     it('should produce entity insert and updated references when both _id and shortid conflict on different folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         'f1',
-        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d1', 't1', 'f1/d2', (entities) => {
@@ -424,14 +424,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity insert and updated references when both _id and shortid conflict on different folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'd2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'd2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d2', 'f1/t1', 'f1/d1', (entities) => {
@@ -458,13 +458,13 @@ module.exports = (getReporter) => {
 
     it('should produce updated references when no shortid conflict but entities referenced in conflict', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         'f1',
-        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d1', 't1', 'f1/d2', (entities) => {
@@ -643,12 +643,12 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when shortid conflict on same folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
-        'd1', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'd1', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d1', 't1', (entities) => {
@@ -663,14 +663,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when shortid conflict on same folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d1', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('f1/t1', 'f1/d1', (entities) => {
@@ -732,14 +732,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and updated references when shortid conflict on different folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
-        'd1', { _id: undefined, shortid: undefined, dataJson: `{ "a": "b" }` },
+        'd1', { _id: undefined, shortid: undefined, dataJson: '{ "a": "b" }' },
         'f1',
-        'f1/d2', { shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d1', 't1', 'f1/d2', (entities) => {
@@ -765,15 +765,15 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and updated references when shortid conflict on different folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
-        'd2', { shortid: 'd1', dataJson: `{ "a": "b" }` },
+        'd2', { shortid: 'd1', dataJson: '{ "a": "b" }' },
         'f1',
-        'f1/d1', { _id: undefined, shortid: undefined, dataJson: `{ "a": "b" }` }
+        'f1/d1', { _id: undefined, shortid: undefined, dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d2', 'f1/d1', 'f1/t1', (entities) => {
@@ -831,12 +831,12 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when both _id and shortid conflict on same folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
-        'd1', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'd1', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d1', 't1', (entities) => {
@@ -852,14 +852,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and keep references when both _id and shortid conflict on same folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d1', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('f1/d1', 'f1/t1', (entities) => {
@@ -939,14 +939,14 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and updated references when both _id and shortid conflict on different folder level (import on root)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
-        'd1', { _id: undefined, shortid: undefined, dataJson: `{ "a": "b" }` },
+        'd1', { _id: undefined, shortid: undefined, dataJson: '{ "a": "b" }' },
         'f1',
-        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d1', 't1', 'f1/d2', (entities) => {
@@ -976,15 +976,15 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and updated references when both _id and shortid conflict on different folder level (import on folder)', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { data: { shortid: 'd1' } }
       )
 
       await importEntities(
         { targetFolder: 'f1' },
-        'd2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` },
+        'd2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' },
         'f1',
-        'f1/d1', { _id: undefined, shortid: undefined, dataJson: `{ "a": "b" }` }
+        'f1/d1', { _id: undefined, shortid: undefined, dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('d2', 'f1/d1', 'f1/t1', (entities) => {
@@ -1013,15 +1013,15 @@ module.exports = (getReporter) => {
 
     it('should produce entity update and updated references when no shortid conflict but entities referenced in conflict', async () => {
       await exportEntities(
-        'd1', { dataJson: `{ "a": "a" }` },
+        'd1', { dataJson: '{ "a": "a" }' },
         't1', { engine: 'handlebars', data: { shortid: 'd1' } }
       )
 
       await importEntities(
         't1', { _id: undefined, shortid: undefined },
-        'd1', { _id: undefined, shortid: undefined, dataJson: `{ "a": "b" }` },
+        'd1', { _id: undefined, shortid: undefined, dataJson: '{ "a": "b" }' },
         'f1',
-        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: `{ "a": "b" }` }
+        'f1/d2', { _id: 'd1', shortid: 'd1', dataJson: '{ "a": "b" }' }
       )
 
       await assertExists('t1', 'd1', 'f1/d2', (entities) => {
@@ -1055,7 +1055,7 @@ module.exports = (getReporter) => {
     it('should produce entity replace when there is conflict between entities of different entity sets (import on root)', async () => {
       await exportEntities('t1')
 
-      await importEntities('d1', { name: 't1', dataJson: `{ "a": "a" }` })
+      await importEntities('d1', { name: 't1', dataJson: '{ "a": "a" }' })
 
       await assertExists('t1', (entities) => {
         const { templates, data } = entities
@@ -1071,7 +1071,7 @@ module.exports = (getReporter) => {
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('f1/t1', (entities) => {
@@ -1088,7 +1088,7 @@ module.exports = (getReporter) => {
 
       await importEntities(
         { fullImport: true },
-        'd1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'd1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('t1', (entities) => {
@@ -1102,7 +1102,7 @@ module.exports = (getReporter) => {
     it('should produce entity replace (keeping _id) when there is conflict between entities of different entity sets (import on root)', async () => {
       await exportEntities('t1')
 
-      await importEntities('d1', { name: 't1', dataJson: `{ "a": "a" }` })
+      await importEntities('d1', { name: 't1', dataJson: '{ "a": "a" }' })
 
       await assertExists('t1', (entities) => {
         const { templates, data } = entities
@@ -1119,7 +1119,7 @@ module.exports = (getReporter) => {
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('f1/t1', (entities) => {
@@ -1136,7 +1136,7 @@ module.exports = (getReporter) => {
       await exportEntities('t1')
 
       await importEntities(
-        'd1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'd1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('t1', (entities) => {
@@ -1154,7 +1154,7 @@ module.exports = (getReporter) => {
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('f1/t1', (entities) => {
@@ -1171,7 +1171,7 @@ module.exports = (getReporter) => {
       await exportEntities('t1')
 
       await importEntities(
-        'd1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'd1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('t1', (entities) => {
@@ -1190,7 +1190,7 @@ module.exports = (getReporter) => {
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('f1/t1', (entities) => {
@@ -1208,7 +1208,7 @@ module.exports = (getReporter) => {
       await exportEntities('t1')
 
       await importEntities(
-        'd1', { name: 't1', dataJson: `{ "a": "a" }` },
+        'd1', { name: 't1', dataJson: '{ "a": "a" }' },
         't2', { _id: 't1' }
       )
 
@@ -1227,7 +1227,7 @@ module.exports = (getReporter) => {
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` },
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' },
         'f1/t2', { _id: 't1' }
       )
 
@@ -1245,7 +1245,7 @@ module.exports = (getReporter) => {
       await exportEntities('t1')
 
       await importEntities(
-        'd1', { name: 't1', dataJson: `{ "a": "a" }` },
+        'd1', { name: 't1', dataJson: '{ "a": "a" }' },
         'f1',
         'f1/t2', { shortid: 't1' }
       )
@@ -1265,7 +1265,7 @@ module.exports = (getReporter) => {
       await importEntities(
         { targetFolder: 'f1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` },
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' },
         't2', { shortid: 't1' }
       )
 
@@ -1283,7 +1283,7 @@ module.exports = (getReporter) => {
       await exportEntities('t1')
 
       await importEntities(
-        'd1', { name: 't1', dataJson: `{ "a": "a" }` },
+        'd1', { name: 't1', dataJson: '{ "a": "a" }' },
         'f1',
         'f1/t2', { _id: 't1', shortid: 't1' }
       )
@@ -1304,7 +1304,7 @@ module.exports = (getReporter) => {
         { targetFolder: 'f1' },
         't2', { _id: 't1', shortid: 't1' },
         'f1',
-        'f1/d1', { name: 't1', dataJson: `{ "a": "a" }` }
+        'f1/d1', { name: 't1', dataJson: '{ "a": "a" }' }
       )
 
       await assertExists('t2', 'f1/t1', (entities) => {

@@ -155,7 +155,7 @@ async function recycleBrowser (puppeteer, browserInfo, launchOptions) {
 
   if (browserInfo.instance) {
     try {
-      let pages = await browserInfo.instance.pages()
+      const pages = await browserInfo.instance.pages()
       await Promise.all(pages.map(page => page.close()))
     } finally {
       await browserInfo.instance.close()

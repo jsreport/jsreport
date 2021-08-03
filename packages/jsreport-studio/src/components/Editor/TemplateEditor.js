@@ -5,11 +5,6 @@ import SplitPane from '../../components/common/SplitPane/SplitPane.js'
 import { templateEditorModeResolvers } from '../../lib/configuration.js'
 
 class TemplateEditor extends Component {
-  static propTypes = {
-    entity: PropTypes.object.isRequired,
-    onUpdate: PropTypes.func.isRequired
-  }
-
   constructor (props) {
     super(props)
 
@@ -59,6 +54,11 @@ class TemplateEditor extends Component {
       </SplitPane>
     )
   }
+}
+
+TemplateEditor.propTypes = {
+  entity: PropTypes.object.isRequired,
+  onUpdate: PropTypes.func.isRequired
 }
 
 export default TemplateEditor

@@ -29,7 +29,7 @@ describe('handlebars', () => {
         content: '{{{a}}}',
         engine: 'handlebars',
         recipe: 'html',
-        helpers: `function a() { return 'Hey' }`
+        helpers: 'function a() { return "Hey" }'
       }
     })
     res.content.toString().should.be.eql('Hey')
@@ -76,16 +76,16 @@ describe('handlebars', () => {
   it('should work with jsreport syntax in many places', async () => {
     const res = await jsreport.render({
       template: {
-        content: `{{name2}} {#child @data.foo={{aHelper}}}<img src='{#image {{name2}}}'/>`,
+        content: '{{name2}} {#child @data.foo={{aHelper}}}<img src="{#image {{name2}}}"/>',
         engine: 'handlebars',
         recipe: 'html',
-        helpers: `function aHelper() { return 'a' }`
+        helpers: 'function aHelper() { return "a" }'
       },
       data: {
         name2: 'bar'
       }
     })
-    res.content.toString().should.be.eql(`bar {#child @data.foo=a}<img src='{#image bar}'/>`)
+    res.content.toString().should.be.eql('bar {#child @data.foo=a}<img src="{#image bar}"/>')
   })
 
   it('should expose handlebars global object', async () => {
@@ -175,7 +175,7 @@ describe('handlebars', () => {
 
   it('should throw error with lineNumber information when helper errors', async () => {
     await jsreport.documentStore.collection('templates').insert({
-      content: `{{a}}`,
+      content: '{{a}}',
       engine: 'handlebars',
       recipe: 'html',
       name: 'templateA',

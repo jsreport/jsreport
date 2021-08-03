@@ -27,7 +27,7 @@
     "test": "standard"
   },
   "devDependencies": {
-    "standard": "12.0.1",
+    "standard": "16.0.3",
     "uglify-js": "3.5.15"
   },
   "maintainers": [

@@ -210,10 +210,12 @@ module.exports = function createRecordManager (reporter, req, {
           shortid: entity.shortid
         }, reqWithNoUser(reporter, req))
 
-        const duplicatedEntityIsDeleted = duplicatedEntityByShortid ? await isDeleted({
-          collectionName,
-          entity: duplicatedEntityByShortid
-        }) : false
+        const duplicatedEntityIsDeleted = duplicatedEntityByShortid
+          ? await isDeleted({
+              collectionName,
+              entity: duplicatedEntityByShortid
+            })
+          : false
 
         if (duplicatedEntityByShortid && !duplicatedEntityIsDeleted) {
           const entityPathOfDuplicated = await reporter.folders.resolveEntityPath(duplicatedEntityByShortid, collectionName, req, async (folderShortId) => {
@@ -264,10 +266,12 @@ module.exports = function createRecordManager (reporter, req, {
         if (action === 'insert') {
           const duplicatedEntityById = await reporter.documentStore.checkDuplicatedId(collectionName, entity._id, reqWithNoUser(reporter, req))
 
-          const duplicatedEntityIsDeleted = duplicatedEntityById ? await isDeleted({
-            collectionName,
-            entity: duplicatedEntityById
-          }) : false
+          const duplicatedEntityIsDeleted = duplicatedEntityById
+            ? await isDeleted({
+                collectionName,
+                entity: duplicatedEntityById
+              })
+            : false
 
           if (duplicatedEntityById && !duplicatedEntityIsDeleted) {
             // we need to regenerate the _id to avoid the conflict
@@ -325,7 +329,7 @@ module.exports = function createRecordManager (reporter, req, {
 
         // if there is no new value set then it means we should queue
         // a lazy reference for the update to be executed later
-        if (!pendingReferenceUpdate.hasOwnProperty('newReferenceValue')) {
+        if (!Object.prototype.hasOwnProperty.call(pendingReferenceUpdate, 'newReferenceValue')) {
           for (const linkedRef of linkedEntities) {
             addLazyReferenceBetween(pendingReferenceUpdate.baseEntity, {
               properties: linkedRef.properties,

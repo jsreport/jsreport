@@ -20,9 +20,9 @@ class TagEntityTreeFilterByTags extends Component {
 
     this.createRenderer = this.createRenderer.bind(this)
     this.addSelectedTag = this.addSelectedTag.bind(this)
-    this.onTagSelectionClick = this.onTagSelectionClick.bind(this)
-    this.onChangeInputTag = this.onChangeInputTag.bind(this)
-    this.onKeyDownInputTag = this.onKeyDownInputTag.bind(this)
+    this.handleTagSelectionClick = this.handleTagSelectionClick.bind(this)
+    this.handleChangeInputTag = this.handleChangeInputTag.bind(this)
+    this.handleKeyDownInputTag = this.handleKeyDownInputTag.bind(this)
     this.onRemoveTagItem = this.onRemoveTagItem.bind(this)
   }
 
@@ -76,7 +76,7 @@ class TagEntityTreeFilterByTags extends Component {
     })
   }
 
-  onTagSelectionClick (ev) {
+  handleTagSelectionClick (ev) {
     // if the tag selection area is directly clicked
     // focus the input
     if (ev.target === this.tagSelectionRef.current) {
@@ -84,22 +84,22 @@ class TagEntityTreeFilterByTags extends Component {
     }
   }
 
-  onChangeInputTag (ev) {
+  handleChangeInputTag (ev) {
     this.setState({
       filterText: ev.target.value
     })
   }
 
-  onKeyDownInputTag (ev) {
+  handleKeyDownInputTag (ev) {
     if (ev.defaultPrevented) {
       return
     }
 
-    let keyCode = ev.keyCode
-    let inputTag = ev.target
+    const keyCode = ev.keyCode
+    const inputTag = ev.target
     let remove = false
-    let enterKey = 13
-    let removeKey = 8
+    const enterKey = 13
+    const removeKey = 8
 
     if (keyCode === enterKey) {
       ev.preventDefault()
@@ -112,8 +112,8 @@ class TagEntityTreeFilterByTags extends Component {
     }
 
     if (remove && inputTag.value === '') {
-      let selectedTags = this.props.selectedTags
-      let selectedTagsLastIndex = selectedTags.length - 1
+      const selectedTags = this.props.selectedTags
+      const selectedTagsLastIndex = selectedTags.length - 1
 
       ev.preventDefault()
 
@@ -153,8 +153,8 @@ class TagEntityTreeFilterByTags extends Component {
     const { tags, selectedTags } = this.props
     const tagsToShowInList = this.getTagsToShow(tags, selectedTags, filterText)
 
-    let stylesForTagsList = {}
-    let stylesForInputTag = {}
+    const stylesForTagsList = {}
+    const stylesForInputTag = {}
 
     if (showTagsList) {
       stylesForTagsList.display = 'block'
@@ -169,7 +169,7 @@ class TagEntityTreeFilterByTags extends Component {
     return (
       <div className={style.searchTagsContainer}>
         <div className={style.searchTagsInputBox}>
-          <div ref={this.tagSelectionRef} className={style.tagsSelect} onClick={this.onTagSelectionClick}>
+          <div ref={this.tagSelectionRef} className={style.tagsSelect} onClick={this.handleTagSelectionClick}>
             <span>
               {selectedTags.map((tag, tagIndex) => {
                 const tagStyles = {
@@ -191,8 +191,8 @@ class TagEntityTreeFilterByTags extends Component {
                 placeholder={selectedTags.length === 0 ? 'select a tag' : ''}
                 className={style.searchTags}
                 style={stylesForInputTag}
-                onChange={this.onChangeInputTag}
-                onKeyDown={this.onKeyDownInputTag}
+                onChange={this.handleChangeInputTag}
+                onKeyDown={this.handleKeyDownInputTag}
               />
             </span>
           </div>
@@ -203,16 +203,18 @@ class TagEntityTreeFilterByTags extends Component {
           style={stylesForTagsList}
         >
           <div className={style.tagsList}>
-            {tags.length === 0 ? (
-              <div className={style.tagsListEmpty}>
-                No tags registered
-              </div>
-            ) : (
-              <ReactList
-                itemRenderer={this.createRenderer(tagsToShowInList)}
-                length={tagsToShowInList.length}
-              />
-            )}
+            {tags.length === 0
+              ? (
+                <div className={style.tagsListEmpty}>
+                  No tags registered
+                </div>
+                )
+              : (
+                <ReactList
+                  itemRenderer={this.createRenderer(tagsToShowInList)}
+                  length={tagsToShowInList.length}
+                />
+                )}
           </div>
         </div>
       </div>

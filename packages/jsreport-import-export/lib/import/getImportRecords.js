@@ -19,7 +19,7 @@ module.exports = async function getImportRecords (reporter, req, {
   const exportableCollectionsWithoutFolders = Object.keys(reporter.documentStore.collections).filter((collectionName) => {
     return (
       (
-        // null check for backcompatible support
+        // null check for back-compatible support
         reporter.documentStore.model.entitySets[collectionName].exportable == null ||
         reporter.documentStore.model.entitySets[collectionName].exportable === true
       ) && collectionName !== 'folders'
@@ -43,7 +43,7 @@ module.exports = async function getImportRecords (reporter, req, {
     }
 
     // then save the rest of deletes of entities at the root level
-    for (let c of exportableCollectionsWithoutFolders) {
+    for (const c of exportableCollectionsWithoutFolders) {
       const collection = reporter.documentStore.collection(c)
 
       if (!collection) {
@@ -66,7 +66,7 @@ module.exports = async function getImportRecords (reporter, req, {
   let folderGroups
 
   if (reporter.documentStore.collections.folders != null) {
-    // we process folders first to avoid gettings errors related to missing
+    // we process folders first to avoid getting errors related to missing
     // folder when inserting an entity
     const validFolders = entitiesInExportFile.folders || []
 
@@ -87,7 +87,7 @@ module.exports = async function getImportRecords (reporter, req, {
     }
   }
 
-  for (let c of exportableCollectionsWithoutFolders) {
+  for (const c of exportableCollectionsWithoutFolders) {
     const validEntities = entitiesInExportFile[c] || []
     const collection = reporter.documentStore.collection(c)
 

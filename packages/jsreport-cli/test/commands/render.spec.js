@@ -63,7 +63,7 @@ describe('render command', () => {
   })
 
   describe('when using local instance with keepAlive option', () => {
-    const dirName = 'render-local-keepalive'
+    const dirName = 'rlkalive'
     let localPathToSocketDir
     let localPathToWorkerSocketDir
 
@@ -73,7 +73,7 @@ describe('render command', () => {
       })
 
       localPathToSocketDir = createTempDir(`${dirName}/sock`)
-      localPathToWorkerSocketDir = createTempDir(`${dirName}/workerSock`)
+      localPathToWorkerSocketDir = createTempDir(`${dirName}/wSock`)
     })
 
     afterEach(async () => {
@@ -102,7 +102,7 @@ describe('render command', () => {
         }
       `)
 
-      let cmd = `render --keepAlive --request=${requestJSONPath} --out=${outputPath}`
+      let cmd = `render --verbose --keepAlive --request=${requestJSONPath} --out=${outputPath}`
 
       const { stdout } = await exec(dirName, cmd, {
         env: {
@@ -112,7 +112,7 @@ describe('render command', () => {
 
       should(stdout).containEql('instance has been daemonized and initialized successfully')
       should(fs.existsSync(outputPath)).be.eql(true)
-      should(fs.readFileSync(outputPath).toString()).containEql(`Test instance, render keepalive`)
+      should(fs.readFileSync(outputPath).toString()).containEql('Test instance, render keepalive')
 
       const requestJSONPath2 = path.join(fullDir, 'request.json')
       const outputPath2 = path.join(fullDir, `${nanoid(7)}.html`)
@@ -138,7 +138,7 @@ describe('render command', () => {
       should(stdout2).containEql('using instance daemonized previously')
 
       should(fs.existsSync(outputPath2)).be.eql(true)
-      should(fs.readFileSync(outputPath2).toString()).containEql(`Test instance, render keepalive (second time)`)
+      should(fs.readFileSync(outputPath2).toString()).containEql('Test instance, render keepalive (second time)')
     })
 
     it('should render normally when there are concurrent calls and daemon process has not started', async function () {
@@ -160,7 +160,7 @@ describe('render command', () => {
       `)
 
       for (let i = 0; i < concurrentRenders; i++) {
-        let outputPath = path.join(fullDir, `${nanoid(7)}.html`)
+        const outputPath = path.join(fullDir, `${nanoid(7)}.html`)
 
         files.push(outputPath)
 
@@ -344,7 +344,7 @@ describe('render command', () => {
 
       should(stdout).containEql('rendering has finished')
       should(fs.existsSync(outputPath)).be.eql(true)
-      should(fs.readFileSync(outputPath).toString()).containEql(`Test instance, request option`)
+      should(fs.readFileSync(outputPath).toString()).containEql('Test instance, request option')
     })
 
     it('should render normally with template option (--template=<file.json>)', async () => {
@@ -370,7 +370,7 @@ describe('render command', () => {
 
       should(stdout).containEql('rendering has finished')
       should(fs.existsSync(outputPath)).be.eql(true)
-      should(fs.readFileSync(outputPath).toString()).containEql(`Test instance, template option`)
+      should(fs.readFileSync(outputPath).toString()).containEql('Test instance, template option')
     })
 
     it('should render normally with template option (--template.content=<content.html>)', async () => {
@@ -392,7 +392,7 @@ describe('render command', () => {
 
       should(stdout).containEql('rendering has finished')
       should(fs.existsSync(outputPath)).be.eql(true)
-      should(fs.readFileSync(outputPath).toString()).containEql(`Test instance, template option`)
+      should(fs.readFileSync(outputPath).toString()).containEql('Test instance, template option')
     })
 
     it('should render normally with template and data option', async () => {
@@ -425,7 +425,7 @@ describe('render command', () => {
 
       should(stdout).containEql('rendering has finished')
       should(fs.existsSync(outputPath)).be.eql(true)
-      should(fs.readFileSync(outputPath).toString()).containEql(`Hello i'm jsreport, using template and data option`)
+      should(fs.readFileSync(outputPath).toString()).containEql('Hello i\'m jsreport, using template and data option')
     })
 
     it('should store meta response to specified file', async () => {
@@ -453,7 +453,7 @@ describe('render command', () => {
       should(stdout).containEql('rendering has finished')
       should(fs.existsSync(outputPath)).be.eql(true)
       should(fs.existsSync(metaPath)).be.eql(true)
-      should(fs.readFileSync(outputPath).toString()).containEql(`Test instance, meta option`)
+      should(fs.readFileSync(outputPath).toString()).containEql('Test instance, meta option')
 
       if (remote) {
         // only test in remote instance since in local instance express extension is disabled

@@ -34,7 +34,7 @@ module.exports = (reporter, definition) => {
 
           const { error, logs } = await commander.startAndWait(args)
 
-          let respBody = {}
+          const respBody = {}
 
           if (error) {
             respBody.message = error.message

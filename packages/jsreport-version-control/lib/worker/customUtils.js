@@ -8,8 +8,8 @@ function deepGet (doc, path) {
 }
 
 function deepDelete (doc, path) {
-  var paths = path.split('.')
-  for (var i = 0; i < paths.length && doc; i++) {
+  const paths = path.split('.')
+  for (let i = 0; i < paths.length && doc; i++) {
     if (i === paths.length - 1) {
       delete doc[paths[i]]
     } else {
@@ -31,20 +31,18 @@ function deepSet (doc, path, val) {
 }
 
 function serialize (obj, prettify = true) {
-  var res
-
-  var originalDateToJSON = Date.prototype.toJSON
+  const originalDateToJSON = Date.prototype.toJSON
   // Keep track of the fact that this is a Date object
   Date.prototype.toJSON = function () { // eslint-disable-line
     return { $$date: this.getTime() }
   }
 
-  var originalBufferToJSON = Buffer.prototype.toJSON
+  const originalBufferToJSON = Buffer.prototype.toJSON
   Buffer.prototype.toJSON = function () {
     return { $$buffer: this.toString('base64') }
   }
 
-  res = JSON.stringify(obj, function (k, v) {
+  const res = JSON.stringify(obj, function (k, v) {
     if (typeof v === 'undefined') {
       return null
     }
@@ -115,12 +113,12 @@ function deepEqual (x, y, isRootCall = true) {
     return x.equals(y)
   }
 
-  for (var p in x) {
-    if (!x.hasOwnProperty(p)) {
+  for (const p in x) {
+    if (!Object.prototype.hasOwnProperty.call(x, p)) {
       continue
     }
 
-    if (!y.hasOwnProperty(p)) {
+    if (!Object.prototype.hasOwnProperty.call(y, p)) {
       return false
     }
 
@@ -128,7 +126,7 @@ function deepEqual (x, y, isRootCall = true) {
       continue
     }
 
-    if (typeof (x[ p ]) !== 'object') {
+    if (typeof (x[p]) !== 'object') {
       return false
     }
 
@@ -137,8 +135,8 @@ function deepEqual (x, y, isRootCall = true) {
     }
   }
 
-  for (p in y) {
-    if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) {
+  for (const p in y) {
+    if (Object.prototype.hasOwnProperty.call(y, p) && !Object.prototype.hasOwnProperty.call(x, p)) {
       return false
     }
   }

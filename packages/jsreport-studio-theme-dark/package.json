@@ -40,18 +40,16 @@
   "scripts": {
     "run": "jsreport-studio-start --run-only",
     "start": "jsreport-studio-start",
-    "test": "echo \"No tests here :)\""
+    "test": "standard"
   },
   "devDependencies": {
-    "babel-eslint": "10.0.2",
     "jsreport-studio-dev": "1.6.0",
-    "standard": "13.1.0"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
   },
   "standard": {
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

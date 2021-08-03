@@ -83,7 +83,7 @@ describe('express', () => {
   it('/api/report should parse data if string and  render report', () => {
     return supertest(jsreport.express.app)
       .post('/api/report')
-      .send({ template: { content: '{{:a}}', engine: 'jsrender', recipe: 'html' }, data: { 'a': 'foo' } })
+      .send({ template: { content: '{{:a}}', engine: 'jsrender', recipe: 'html' }, data: { a: 'foo' } })
       .expect(200, 'foo')
   })
 
@@ -92,7 +92,7 @@ describe('express', () => {
       .post('/api/report')
       .send({
         template: { content: '{{:a}}', engine: 'jsrender', recipe: 'html' },
-        data: { 'a': 'foo' },
+        data: { a: 'foo' },
         options: { 'Content-Disposition': 'foo' }
       })
       .expect(200, 'foo')
@@ -117,7 +117,7 @@ describe('express', () => {
       method: 'POST',
       json: true,
       data: {
-        template: { content: '{{:~loop()}}', engine: 'jsrender', recipe: 'html', helpers: `function loop() { while (true) { } }` }
+        template: { content: '{{:~loop()}}', engine: 'jsrender', recipe: 'html', helpers: 'function loop() { while (true) { } }' }
       },
       cancelToken: cancelTokenSource.token
     })
@@ -144,7 +144,7 @@ describe('express', () => {
     })
 
     return supertest(jsreport.express.app)
-      .get(`/odata/templates?$filter=name eq test`)
+      .get('/odata/templates?$filter=name eq test')
       .expect(200)
       .expect((res) => {
         res.body.value.should.have.length(1)
@@ -159,7 +159,7 @@ describe('express', () => {
     })
 
     return supertest(jsreport.express.app)
-      .get(`/odata/demos`)
+      .get('/odata/demos')
       .expect(200)
       .expect((res) => {
         res.body.value.should.have.length(1)
@@ -175,7 +175,7 @@ describe('express', () => {
     })
 
     return supertest(jsreport.express.app)
-      .get(`/odata/demos?$select=name,secret`)
+      .get('/odata/demos?$select=name,secret')
       .expect(200)
       .expect((res) => {
         res.body.value.should.have.length(1)
@@ -186,12 +186,12 @@ describe('express', () => {
 
   it('should make it possible to add response.meta.headers', () => {
     jsreport.tests.beforeRenderListeners.add('test', (req, res) => {
-      res.meta.headers['Test'] = 'header'
+      res.meta.headers.Test = 'header'
     })
 
     return supertest(jsreport.express.app)
       .post('/api/report')
-      .send({ template: { content: '{{:a}}', engine: 'jsrender', recipe: 'html' }, data: { 'a': 'foo' } })
+      .send({ template: { content: '{{:a}}', engine: 'jsrender', recipe: 'html' }, data: { a: 'foo' } })
       .expect(200, 'foo')
       .expect('Test', 'header')
   })
@@ -250,7 +250,7 @@ describe('express', () => {
     form.append('profile.jsrprofile', fs.createReadStream(path.join(__dirname, 'test.jsrprofile')))
 
     const eventsRes = await axios({
-      url: `http://localhost:5488/api/profile/events`,
+      url: 'http://localhost:5488/api/profile/events',
       responseType: 'arraybuffer',
       method: 'POST',
       data: form,
@@ -397,7 +397,8 @@ describe('express port', () => {
   })
 
   it('should start on httpsPort ', async () => {
-    jsreport = JsReport({ httpsPort: 7000,
+    jsreport = JsReport({
+      httpsPort: 7000,
       certificate: {
         key: '../certificates/jsreport.net.key',
         cert: '../certificates/jsreport.net.cert'
@@ -409,7 +410,8 @@ describe('express port', () => {
   })
 
   it('should start on httpsPort ', async () => {
-    jsreport = JsReport({ httpsPort: 7000,
+    jsreport = JsReport({
+      httpsPort: 7000,
       certificate: {
         key: '../certificates/jsreport.net.key',
         cert: '../certificates/jsreport.net.cert'

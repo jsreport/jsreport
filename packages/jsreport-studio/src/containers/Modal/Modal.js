@@ -100,10 +100,6 @@ class ModalContent extends Component {
 }
 
 class Modal extends Component {
-  static propTypes = {
-    openCallback: PropTypes.func
-  }
-
   constructor () {
     super()
 
@@ -254,6 +250,10 @@ class Modal extends Component {
       </ReactModal>
     )
   }
+}
+
+Modal.propTypes = {
+  openCallback: PropTypes.func
 }
 
 export default connect((state) => ({

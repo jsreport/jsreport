@@ -509,13 +509,13 @@ describe('docx', () => {
     fs.writeFileSync('out.docx', result.content)
 
     const files = await decompress()(result.content)
-    let header1 = new DOMParser().parseFromString(
+    const header1 = new DOMParser().parseFromString(
       files.find(f => f.path === 'word/header1.xml').data.toString()
     )
-    let header2 = new DOMParser().parseFromString(
+    const header2 = new DOMParser().parseFromString(
       files.find(f => f.path === 'word/header2.xml').data.toString()
     )
-    let header3 = new DOMParser().parseFromString(
+    const header3 = new DOMParser().parseFromString(
       files.find(f => f.path === 'word/header3.xml').data.toString()
     )
 
@@ -1262,9 +1262,7 @@ describe('docx', () => {
       path.join(__dirname, 'image-use-placeholder-size.docx')
     )
 
-    let placeholderImageSize
-
-    placeholderImageSize = await getImageSize(docxBuf)
+    const placeholderImageSize = await getImageSize(docxBuf)
 
     const result = await reporter.render({
       template: {
@@ -1905,7 +1903,7 @@ describe('docx', () => {
             title: 'The worst developer ever'
           },
           {
-            title: `Don't need to write semicolons`
+            title: 'Don\'t need to write semicolons'
           }
         ],
         printFooter: true
@@ -4454,7 +4452,7 @@ describe('docx with extensions.docx.previewInWordOnline === false', () => {
 })
 
 function findChildNode (nodeName, targetNode, allNodes = false) {
-  let result = []
+  const result = []
 
   for (let i = 0; i < targetNode.childNodes.length; i++) {
     let found = false

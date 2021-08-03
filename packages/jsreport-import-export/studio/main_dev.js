@@ -89,7 +89,7 @@ Studio.entityTreeDropResolvers.push({
   }) {
     const files = draggedItem.files
 
-    let targetInfo = {
+    const targetInfo = {
       shortid: null
     }
 
@@ -107,7 +107,7 @@ Studio.entityTreeDropResolvers.push({
     ) {
       dropComplete()
 
-      let opts = {
+      const opts = {
         selectedFile: files[0]
       }
 

@@ -3,8 +3,8 @@ const { DOMParser } = require('xmldom')
 
 module.exports = (files) => {
   const contentTypeDoc = files.find(f => f.path === '[Content_Types].xml').doc
-  const persentationRels = files.find(f => f.path === 'ppt/_rels/presentation.xml.rels').doc
-  const persentation = files.find(f => f.path === 'ppt/presentation.xml').doc
+  const presentationRels = files.find(f => f.path === 'ppt/_rels/presentation.xml.rels').doc
+  const presentation = files.find(f => f.path === 'ppt/presentation.xml').doc
 
   // we start with slide ids at very high value to avoid collision with existing
   let slideNumber = 5000
@@ -19,9 +19,9 @@ module.exports = (files) => {
     }
 
     const defSlidePath = file.path.substring('ppt/'.length)
-    const presenationRelEls = nodeListToArray(persentationRels.getElementsByTagName('Relationships')[0].getElementsByTagName('Relationship'))
-    const defSlideRId = presenationRelEls.find(e => e.getAttribute('Target') === defSlidePath).getAttribute('Id')
-    const sldIdEls = nodeListToArray(persentation.getElementsByTagName('p:sldIdLst')[0].getElementsByTagName('p:sldId'))
+    const presentationRelEls = nodeListToArray(presentationRels.getElementsByTagName('Relationships')[0].getElementsByTagName('Relationship'))
+    const defSlideRId = presentationRelEls.find(e => e.getAttribute('Target') === defSlidePath).getAttribute('Id')
+    const sldIdEls = nodeListToArray(presentation.getElementsByTagName('p:sldIdLst')[0].getElementsByTagName('p:sldId'))
     const defSldIdEl = sldIdEls.find((e) => e.getAttribute('r:id') === defSlideRId)
     const sldIdElAfterSeq = defSldIdEl.nextSibling
     const originalSlideRelsFile = files.find(f => f.path === `ppt/slides/_rels/slide${originalSlideNumber}.xml.rels`)
@@ -50,10 +50,10 @@ module.exports = (files) => {
 
       doc.removeChild(slides[i])
 
-      const sldIdEl = persentation.createElement('p:sldId')
+      const sldIdEl = presentation.createElement('p:sldId')
       sldIdEl.setAttribute('id', slideNumber)// I have no clue what is this id, so I put there also slideNumber
       sldIdEl.setAttribute('r:id', `rId${slideNumber}`)
-      persentation.getElementsByTagName('p:sldIdLst')[0].insertBefore(sldIdEl, sldIdElAfterSeq)
+      presentation.getElementsByTagName('p:sldIdLst')[0].insertBefore(sldIdEl, sldIdElAfterSeq)
 
       const overrideEl = contentTypeDoc.createElement('Override')
       overrideEl.setAttribute('PartName', `/ppt/slides/slide${slideNumber}.xml`)
@@ -64,9 +64,9 @@ module.exports = (files) => {
       relationship.setAttribute('Id', `rId${slideNumber}`)
       relationship.setAttribute('Type', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide')
       relationship.setAttribute('Target', `slides/slide${slideNumber}.xml`)
-      persentationRels.getElementsByTagName('Relationships')[0].appendChild(relationship)
+      presentationRels.getElementsByTagName('Relationships')[0].appendChild(relationship)
 
-      for (let extraEl of extraElsToClone) {
+      for (const extraEl of extraElsToClone) {
         const extraElFile = files.find(f => f.path === `ppt/${extraEl.name}s/${extraEl.name}${originalSlideNumber}.xml`)
         const extraElRelFile = files.find(f => f.path === `ppt/${extraEl.name}s/_rels/${extraEl.name}${originalSlideNumber}.xml.rels`)
 

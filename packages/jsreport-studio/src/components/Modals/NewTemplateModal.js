@@ -9,11 +9,6 @@ import api from '../../helpers/api.js'
 import { engines, recipes, entitySets } from '../../lib/configuration.js'
 
 class NewTemplateModal extends Component {
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-
   constructor (props) {
     super(props)
 
@@ -207,6 +202,11 @@ class NewTemplateModal extends Component {
       </div>
     )
   }
+}
+
+NewTemplateModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 function getDefaultEngine () {

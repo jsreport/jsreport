@@ -9,7 +9,7 @@ class EntityTreeTagOrganizer extends Component {
   constructor () {
     super()
 
-    let organizeByDefault = Studio.extensions['tags'].options.organizeByDefault
+    let organizeByDefault = Studio.extensions.tags.options.organizeByDefault
 
     if (organizeByDefault == null) {
       organizeByDefault = false
@@ -67,7 +67,6 @@ class EntityTreeTagOrganizer extends Component {
         }
 
         const entities = entitiesByType[type]
-        let typeItem
 
         if (!tagItem) {
           tagItem = {
@@ -90,7 +89,7 @@ class EntityTreeTagOrganizer extends Component {
           return
         }
 
-        typeItem = {
+        const typeItem = {
           name: type,
           isEntitySet: true,
           items: []
@@ -201,7 +200,7 @@ class EntityTreeTagOrganizer extends Component {
 
   groupEntitiesByTag (entitySetsNames, entities) {
     const newItems = []
-    let allTagEntities = Studio.getReferences().tags || []
+    const allTagEntities = Studio.getReferences().tags || []
     const entitiesByTagAndType = {}
     const entitiesByTypeWithoutTag = {}
 
@@ -221,7 +220,7 @@ class EntityTreeTagOrganizer extends Component {
         return
       }
 
-      let entitiesInSetCount = entitiesInSet.length
+      const entitiesInSetCount = entitiesInSet.length
 
       for (let j = 0; j < entitiesInSetCount; j++) {
         const entity = entitiesInSet[j]

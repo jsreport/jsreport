@@ -176,7 +176,7 @@ exports.handler = async (argv) => {
 }
 
 async function startImport (jsreportInstance, { remote, importOptions, input, logger }) {
-  let result = {}
+  const result = {}
 
   if (remote) {
     logger.debug('remote server options:')
@@ -198,13 +198,15 @@ async function startImport (jsreportInstance, { remote, importOptions, input, lo
             return reject(err)
           }
 
-          const headers = Object.assign({'Content-Length': length}, form.getHeaders())
+          const headers = Object.assign({ 'Content-Length': length }, form.getHeaders())
           resolve(headers)
         })
       })
 
+      const baseUrl = new URL(remote.url)
+
       const reqOpts = {
-        url: path.posix.join(remote.url, importOptions.validation ? 'api/validate-import' : 'api/import'),
+        url: new URL(path.posix.join(baseUrl.pathname, importOptions.validation ? 'api/validate-import' : 'api/import'), baseUrl).toString(),
         method: 'POST',
         headers: {
           // this sets the Content-type: multipart/form-data
@@ -322,7 +324,7 @@ function onImportError (error, logger) {
 }
 
 function getOptions (argv) {
-  let importOpts = {}
+  const importOpts = {}
   let remote = null
 
   if (argv.validation) {
@@ -359,7 +361,7 @@ function getOptions (argv) {
 
 function getUsage (command) {
   return [
-    `Usage:\n`,
+    'Usage:\n',
     `${command} <exportFile>`,
     `${command} <exportFile> --serverUrl=<url>`,
     `${command} <exportFile> --serverUrl=<url> --user=<user> --password=<password>`
@@ -368,11 +370,11 @@ function getUsage (command) {
 
 function getExamples (command) {
   return [
-    [`${command} export.jsrexport`, `Import the export file into the local instance`],
-    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com`, `Import the export file into the jsreport instance at http://jsreport-host.com`],
-    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com --user admin --password xxxx`, `Import the export file into the authenticated jsreport instance at http://jsreport-host.com`],
-    [`${command} export.jsrexport --fullImport`, `Execute a full import into the local instance`],
-    [`${command} export.jsrexport --targetFolder=folderShortid`, `Execute an import into a target folder, the entities of the export file will be imported inside the specified folder`],
-    [`${command} export.jsrexport --validation`, `Execute an import validation of the export file into the local instance, the import won't be done`]
+    [`${command} export.jsrexport`, 'Import the export file into the local instance'],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com`, 'Import the export file into the jsreport instance at http://jsreport-host.com'],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com --user admin --password xxxx`, 'Import the export file into the authenticated jsreport instance at http://jsreport-host.com'],
+    [`${command} export.jsrexport --fullImport`, 'Execute a full import into the local instance'],
+    [`${command} export.jsrexport --targetFolder=folderShortid`, 'Execute an import into a target folder, the entities of the export file will be imported inside the specified folder'],
+    [`${command} export.jsrexport --validation`, 'Execute an import validation of the export file into the local instance, the import won\'t be done']
   ]
 }

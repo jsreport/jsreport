@@ -1,5 +1,5 @@
 const Promise = require('bluebird')
-const pg = require('pg-promise')({promiseLib: Promise})
+const pg = require('pg-promise')({ promiseLib: Promise })
 
 // how to configure type parsing per instance
 // https://github.com/brianc/node-postgres/issues/1838

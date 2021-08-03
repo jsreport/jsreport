@@ -6,11 +6,6 @@ import { actions as entitiesActions } from '../../redux/entities'
 import { createGetByIdSelector } from '../../redux/entities/selectors.js'
 
 class DeleteConfirmationModal extends Component {
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-
   constructor (props) {
     super(props)
 
@@ -68,6 +63,11 @@ class DeleteConfirmationModal extends Component {
       </div>
     )
   }
+}
+
+DeleteConfirmationModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 function makeMapStateToProps () {

@@ -32,7 +32,7 @@ function getNewRelIdFromBaseId (relsDoc, itemsMap, baseId) {
     return parseInt(match[1], 10)
   }
 
-  let maxId = relationsNodes.reduce((lastId, node) => {
+  const maxId = relationsNodes.reduce((lastId, node) => {
     const nodeId = node.getAttribute('Id')
     const num = getId(nodeId)
 
@@ -130,6 +130,7 @@ module.exports.pxToEMU = (val) => {
 
 module.exports.cmToEMU = (val) => {
   // cm to dxa
+  // eslint-disable-next-line no-loss-of-precision
   const dxa = val * 567.058823529411765
   // dxa to EMU
   return Math.round(dxa * 914400 / 72 / 20)

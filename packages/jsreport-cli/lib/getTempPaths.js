@@ -8,7 +8,7 @@ module.exports = () => {
   const ROOT_PATH = !useCustomTempDirectory ? path.join(os.tmpdir(), 'jsreport') : process.env.cli_tempDirectory
   const CLI_PATH = path.join(ROOT_PATH, 'cli')
   const MAIN_SOCK_PATH = !useCustomSocketDirectory ? path.join(CLI_PATH, 'sock') : process.env.cli_socketsDirectory
-  const WORKER_SOCK_PATH = path.join(path.dirname(MAIN_SOCK_PATH), 'workerSock')
+  const WORKER_SOCK_PATH = path.join(path.dirname(MAIN_SOCK_PATH), 'wSock')
 
   return {
     useCustomSocketDirectory,

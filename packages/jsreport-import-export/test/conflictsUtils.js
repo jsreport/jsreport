@@ -135,12 +135,10 @@ function parseName (rawName) {
     entityName = parts[0]
   }
 
-  let entitySet
-
-  entitySet = nameEntitySetMap[entityName[0]]
+  const entitySet = nameEntitySetMap[entityName[0]]
 
   if (!entitySet) {
-    throw new Error(`Coult not find entity set for entity with name "${rawName}"`)
+    throw new Error(`Could not find entity set for entity with name "${rawName}"`)
   }
 
   return {
@@ -162,7 +160,7 @@ async function create (reporter, list, req) {
 
     if (typeof item === 'string') {
       if (item === '') {
-        throw new Error(`.create can not have empty string as argument`)
+        throw new Error('.create can not have empty string as argument')
       }
 
       const { entitySet, entityName, parentFolder } = parseName(item)

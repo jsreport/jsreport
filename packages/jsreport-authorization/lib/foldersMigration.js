@@ -17,7 +17,7 @@ module.exports = async (reporter) => {
     const finalVisibilityPermissionsSet = new Set()
 
     for (const es in reporter.documentStore.model.entitySets) {
-      let entities = await reporter.documentStore.collection(es).find({
+      const entities = await reporter.documentStore.collection(es).find({
         folder: {
           shortid: f.shortid
         }

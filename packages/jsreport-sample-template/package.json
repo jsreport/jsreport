@@ -34,7 +34,6 @@
     "lodash.omit": "4.5.0"
   },
   "devDependencies": {
-    "babel-eslint": "10.0.3",
     "handlebars": "4.7.7",
     "in-publish": "2.0.1",
     "jsreport-assets": "1.7.0",
@@ -52,7 +51,7 @@
     "puppeteer": "9.1.1",
     "rimraf": "^3.0.2",
     "should": "13.2.3",
-    "standard": "14.3.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -64,7 +63,6 @@
       "test/data",
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

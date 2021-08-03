@@ -27,13 +27,12 @@
     "build": "jsreport-studio-build",
     "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
     "start": "jsreport-studio-start --httpPort 5488",
-    "test": "mocha test --timeout=5000"
+    "test": "mocha test --timeout=5000 && standard"
   },
   "dependencies": {
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "babel-eslint": "9.0.0",
     "in-publish": "2.0.1",
     "jsreport-authentication": "2.6.1",
     "jsreport-authorization": "2.4.0",
@@ -42,7 +41,7 @@
     "jsreport-studio-dev": "1.6.0",
     "mocha": "5.2.0",
     "should": "13.2.3",
-    "standard": "12.0.1",
+    "standard": "16.0.3",
     "supertest": "3.4.2"
   },
   "engines": {
@@ -52,7 +51,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

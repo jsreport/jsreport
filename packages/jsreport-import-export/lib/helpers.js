@@ -124,8 +124,8 @@ module.exports.parseMultipart = (multer) => (req, res, cb) => {
     }
 
     function findFirstFile () {
-      for (let f in req.files) {
-        if (req.files.hasOwnProperty(f)) {
+      for (const f in req.files) {
+        if (Object.prototype.hasOwnProperty.call(req.files, f)) {
           return req.files[f]
         }
       }
@@ -245,8 +245,6 @@ module.exports.getEntityNameDisplay = async (reporter, { entity, allLocalEntitie
       } else {
         entityNameDisplay = `/${entity.name}`
       }
-    } else {
-
     }
 
     if (targetFolderPath != null) {

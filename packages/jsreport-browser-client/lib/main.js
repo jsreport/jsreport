@@ -8,7 +8,7 @@ const path = require('path')
 module.exports = (reporter, definition) => {
   const distPath = path.dirname(require.resolve('jsreport-browser-client-dist'))
 
-  reporter.documentStore.model.entityTypes['TemplateType'].omitDataFromOutput = { type: 'Edm.Boolean' }
+  reporter.documentStore.model.entityTypes.TemplateType.omitDataFromOutput = { type: 'Edm.Boolean' }
   reporter.extensionsManager.recipes.push({
     name: 'html-with-browser-client'
   })

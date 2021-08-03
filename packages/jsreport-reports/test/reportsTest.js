@@ -19,7 +19,7 @@ describe('with reports extension', () => {
 
   it('should store report entity and blob with save: true', async () => {
     await reporter.render({
-      options: { reports: {save: true} },
+      options: { reports: { save: true } },
       template: {
         engine: 'none',
         content: 'hello',
@@ -49,7 +49,7 @@ describe('with reports extension', () => {
       }
     })
     await reporter.render({
-      options: { reports: {save: true} },
+      options: { reports: { save: true } },
       template: {
         name: 'mytemplate'
       }
@@ -80,7 +80,7 @@ describe('with reports extension', () => {
       })
 
       reporter.render({
-        options: { reports: {async: true} },
+        options: { reports: { async: true } },
         template: {
           engine: 'none',
           content: 'hello',
@@ -129,7 +129,7 @@ describe('with reports extension', () => {
 
   it('should be able to read stored report through link', async () => {
     const request = {
-      options: { reports: {save: true} },
+      options: { reports: { save: true } },
       template: {
         engine: 'none',
         content: 'hello',
@@ -155,8 +155,8 @@ describe('with reports extension', () => {
 
   it('should return immediate response with link to status when async specified', async () => {
     const request = {
-      options: {reports: {async: true}},
-      template: {content: 'foo', recipe: 'html', engine: 'none'},
+      options: { reports: { async: true } },
+      template: { content: 'foo', recipe: 'html', engine: 'none' },
       context: { http: { baseUrl: 'http://localhost' } }
     }
 
@@ -168,20 +168,20 @@ describe('with reports extension', () => {
 
     const response = await reporter.render(request)
     response.content.toString().should.containEql('Async rendering in progress')
-    response.meta.headers['Location'].should.be.ok()
+    response.meta.headers.Location.should.be.ok()
 
     return waitForAsyncFinishPromise
   })
 
   it('should return 200 status code on /status if report is not finished', async () => {
-    const r = await reporter.documentStore.collection('reports').insert({name: 'foo', state: 'planned'})
+    const r = await reporter.documentStore.collection('reports').insert({ name: 'foo', state: 'planned' })
     return supertest(reporter.express.app)
       .get('/reports/' + r._id + '/status')
       .expect(200)
   })
 
   it('should return 201 status code and Location header on /status if report is finished', async () => {
-    const r = await reporter.documentStore.collection('reports').insert({name: 'foo', blobName: 'foo', state: 'finished'})
+    const r = await reporter.documentStore.collection('reports').insert({ name: 'foo', blobName: 'foo', state: 'finished' })
     return supertest(reporter.express.app)
       .get('/reports/' + r._id + '/status')
       .expect(201)
@@ -206,8 +206,8 @@ describe('with reports extension', () => {
 
   it('should pass inline data into the child rendering request when async specified', () => {
     const request = {
-      options: {reports: {async: true}},
-      data: {foo: 'hello'},
+      options: { reports: { async: true } },
+      data: { foo: 'hello' },
       template: {
         content: 'foo',
         recipe: 'html',
@@ -317,7 +317,7 @@ describe('with reports extension', () => {
 
   it('should store report after custom script afterRender modifies it', async () => {
     await reporter.render({
-      options: { reports: {save: true} },
+      options: { reports: { save: true } },
       template: {
         engine: 'none',
         content: 'hello',
@@ -362,7 +362,7 @@ describe('with reports extension and clean enabled', () => {
   })
 })
 
-describe('with reports extension and clean enabled but long treshold', () => {
+describe('with reports extension and clean enabled but long threshold', () => {
   let reporter
 
   beforeEach(() => {

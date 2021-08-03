@@ -5,7 +5,7 @@ const stream = require('stream')
 
 async function retry (fn, maxCount = 10) {
   let error
-  for (var i = 0; i < maxCount; i++) {
+  for (let i = 0; i < maxCount; i++) {
     try {
       const res = await fn()
       return res
@@ -60,7 +60,7 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
     },
     writeFile: (p, c) => {
       const buffer = Buffer.from(c)
-      let s = new stream.Readable()
+      const s = new stream.Readable()
       s._read = () => {}
       s.push(buffer)
       s.push(null)
@@ -80,7 +80,7 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
 
       const finalBuffer = Buffer.concat([existingBuffer, Buffer.from(c)])
 
-      let s = new stream.Readable()
+      const s = new stream.Readable()
       s._read = () => {}
       s.push(finalBuffer)
       s.push(null)

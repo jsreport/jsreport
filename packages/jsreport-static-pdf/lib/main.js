@@ -4,5 +4,5 @@ module.exports = function (reporter, definition) {
     pdfAssetShortid: { type: 'Edm.String', referenceTo: 'assets' }
   })
 
-  reporter.documentStore.model.entityTypes['TemplateType'].staticPdf = { type: 'jsreport.StaticPdfTemplateType' }
+  reporter.documentStore.model.entityTypes.TemplateType.staticPdf = { type: 'jsreport.StaticPdfTemplateType' }
 }

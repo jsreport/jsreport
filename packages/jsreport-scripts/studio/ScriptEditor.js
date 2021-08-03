@@ -10,7 +10,7 @@ export default class ScriptEditor extends Component {
         name={entity._id}
         mode='javascript'
         value={entity.content}
-        onUpdate={(v) => onUpdate(Object.assign({}, entity, {content: v}))}
+        onUpdate={(v) => onUpdate(Object.assign({}, entity, { content: v }))}
       />
     )
   }

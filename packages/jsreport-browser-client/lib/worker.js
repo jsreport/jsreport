@@ -12,7 +12,7 @@ module.exports = (reporter, definition) => {
     }
 
     if (serverUrl == null) {
-      throw reporter.createError(`browser-client needs to know the url from where to fetch the jsreport client. Set it using "extensions.browserClient.scriptLinkRootPath" option in config`, {
+      throw reporter.createError('browser-client needs to know the url from where to fetch the jsreport client. Set it using "extensions.browserClient.scriptLinkRootPath" option in config', {
         statusCode: 400
       })
     }

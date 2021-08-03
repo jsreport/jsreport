@@ -26,7 +26,7 @@ Studio.addEntitySet({
 Studio.initializeListeners.push(() => {
   // add tags to referenceAttributes in all entities
   Object.keys(Studio.entitySets).forEach((entitySetName) => {
-    let entitySet = Studio.entitySets[entitySetName]
+    const entitySet = Studio.entitySets[entitySetName]
 
     // ignore tags entity set
     if (entitySet.name === 'tags') {
@@ -39,7 +39,9 @@ Studio.initializeListeners.push(() => {
   })
 })
 
+// eslint-disable-next-line no-import-assign
 emitter.on('organizationModeByTagsChanged', (organizationMode) => { organizeState.current = organizationMode })
+// eslint-disable-next-line no-import-assign
 emitter.on('filterByTagsChanged', (selectedTags) => { organizeState.filterTags = selectedTags })
 
 Studio.addEditorComponent('tags', TagEditor)

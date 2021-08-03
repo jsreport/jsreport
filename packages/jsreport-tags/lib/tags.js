@@ -17,7 +17,7 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.documentStore.registerComplexType('TagRefType', {
-    'shortid': { type: 'Edm.String', referenceTo: 'tags' }
+    shortid: { type: 'Edm.String', referenceTo: 'tags' }
   })
 
   // after document store initialization, extend all entity types with tag information

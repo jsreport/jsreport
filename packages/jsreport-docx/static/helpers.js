@@ -2,6 +2,7 @@
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
 
+// eslint-disable-next-line prefer-const
 let Handlebars = require('handlebars')
 
 function docxPageBreak () {
@@ -29,11 +30,15 @@ function docxTable (data, options) {
 
   if (
     arguments.length === 1 &&
-      (optionsToUse.hash.hasOwnProperty('rows') || optionsToUse.hash.hasOwnProperty('columns') || optionsToUse.hash.hasOwnProperty('ignore'))
+    (
+      Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'rows') ||
+      Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'columns') ||
+      Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'ignore')
+    )
   ) {
     // full table mode
-    if (optionsToUse.hash.hasOwnProperty('rows')) {
-      if (!optionsToUse.hash.hasOwnProperty('columns')) {
+    if (Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'rows')) {
+      if (!Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'columns')) {
         throw new Error('docxTable full table mode needs to have both rows and columns defined as params when processing row')
       }
 

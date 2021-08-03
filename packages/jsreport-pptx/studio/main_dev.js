@@ -59,7 +59,10 @@ Studio.runListeners.push((request, entities) => {
   const launchBetaModal = () => {
     Studio.openModal(() => (
       <div>
-        pptx recipe is currently in the beta phase and in continuous development. There're use cases it doesn't support yet but we get there soon if you help us with <a href='https://forum.jsreport.net' target='_blank'>feedback</a>. Please note there can be breaking changes in the next versions of the recipe until we reach stable API.
+        pptx recipe is currently in the beta phase and in continuous development.
+        There're use cases it doesn't support yet but we get there soon if you help us with
+        <a href='https://forum.jsreport.net' target='_blank' rel='noreferrer'>feedback</a>.
+        Please note there can be breaking changes in the next versions of the recipe until we reach stable API.
       </div>
     ))
   }
@@ -87,11 +90,13 @@ Studio.runListeners.push((request, entities) => {
   Studio.setSetting('office-preview-informed', true)
 
   const launchOfficeModal = () => {
-    Studio.openModal(() => <div>
-      We need to upload your pptx report to our publicly hosted server to be able to use
-      Office Online Service for previewing here in the studio. You can disable it in the configuration, see <a
-        href='https://jsreport.net/learn/pptx' target='_blank'>https://jsreport.net/learn/pptx</a> for details.
-    </div>)
+    Studio.openModal(() => (
+      <div>
+        We need to upload your pptx report to our publicly hosted server to be able to use
+        Office Online Service for previewing here in the studio. You can disable it in the configuration,
+        see <a href='https://jsreport.net/learn/pptx' target='_blank' rel='noreferrer'>https://jsreport.net/learn/pptx</a> for details.
+      </div>
+    ))
   }
 
   pendingModalsLaunch.push(launchOfficeModal)

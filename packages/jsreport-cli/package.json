@@ -47,6 +47,7 @@
     "jsreport.config.js"
   ],
   "scripts": {
+    "lint": "standard",
     "prepublish": "in-publish && standard || not-in-publish",
     "start": "cross-env JSREPORT_CLI_DEV=enabled node cli.js",
     "test": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit",
@@ -74,10 +75,7 @@
     "yargs": "13.2.4"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.2",
     "cross-env": "5.2.1",
-    "eslint": "4.18.1",
-    "eslint-plugin-babel": "5.3.1",
     "execa": "1.0.0",
     "handlebars": "4.7.7",
     "in-publish": "2.0.1",
@@ -92,7 +90,7 @@
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "sinon": "4.4.0",
-    "standard": "11.0.0",
+    "standard": "16.0.3",
     "std-mocks": "1.0.1"
   },
   "optionalDependencies": {
@@ -102,7 +100,9 @@
     "node": ">=8.9"
   },
   "standard": {
-    "parser": "babel-eslint",
+    "ignore": [
+      "/test/temp"
+    ],
     "env": {
       "node": true,
       "mocha": true

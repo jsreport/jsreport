@@ -53,7 +53,6 @@ module.exports = async function keepAliveProcess (options) {
     }
 
     processInfo = await new Promise((resolve, reject) => {
-      let socketServer
       let initOptions
       let child
       const daemonProcess = {}
@@ -64,13 +63,13 @@ module.exports = async function keepAliveProcess (options) {
       // that uses a little hack to be able to have a detached process without
       // creating a new console in windows, an because of that the built-in IPC
       // will not work.
-      socketServer = startSocketServer({
+      const socketServer = startSocketServer({
         socketPath: mainSockPath,
-        socketPrefix: 'connection',
+        socketPrefix: 'c',
         protocol: daemonInstanceProtocol
       }, (err, serverInfo) => {
         if (err) {
-          const error = new Error(`Error while trying to start socket server`)
+          const error = new Error('Error while trying to start socket server')
           error.originalError = err
           return reject(error)
         }
@@ -104,7 +103,7 @@ module.exports = async function keepAliveProcess (options) {
           }
         }
 
-        // espacing arguments in windows
+        // spacing arguments in windows
         if (IS_WINDOWS) {
           daemonProcess.args = daemonProcess.args.map((arg) => {
             return '"' + arg + '"'
@@ -195,13 +194,11 @@ module.exports = async function keepAliveProcess (options) {
 
 async function createStdFiles () {
   return new Promise((resolve) => {
-    let fileStream
+    const fileStream = fs.createWriteStream('jsreport-daemon-log.txt')
 
     function ready () {
       resolve([fileStream, fileStream])
     }
-
-    fileStream = fs.createWriteStream('jsreport-daemon-log.txt')
 
     fileStream.on('open', ready)
   })

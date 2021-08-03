@@ -183,11 +183,13 @@ module.exports = ({
         }, [])
     )
 
-    return execa(file, args, {
+    const execaResult = execa(file, args, {
       env: Object.assign({ DEBUG: 'jsreport' }, opts != null ? opts.env : undefined),
       cwd: opts && opts.cwd != null ? opts.cwd : defaultCWD,
       windowsHide: true
     })
+
+    return execaResult
   }
 }
 

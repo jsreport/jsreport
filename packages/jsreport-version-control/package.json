@@ -39,7 +39,6 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "babel-eslint": "10.0.1",
     "in-publish": "2.0.1",
     "jsreport-assets": "1.7.0",
     "jsreport-authentication": "2.6.1",
@@ -52,7 +51,7 @@
     "puppeteer": "9.1.1",
     "rimraf": "2.6.3",
     "should": "13.2.3",
-    "standard": "12.0.1",
+    "standard": "16.0.3",
     "supertest": "3.4.2"
   },
   "engines": {
@@ -62,7 +61,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

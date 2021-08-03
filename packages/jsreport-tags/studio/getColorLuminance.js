@@ -3,11 +3,11 @@ import hexToRgb from './hexToRgb'
 export default (hex) => {
   const rgb = hexToRgb(hex)
 
-  let RsRGB, GsRGB, BsRGB, R, G, B
+  let R, G, B
 
-  RsRGB = rgb.r / 255
-  GsRGB = rgb.g / 255
-  BsRGB = rgb.b / 255
+  const RsRGB = rgb.r / 255
+  const GsRGB = rgb.g / 255
+  const BsRGB = rgb.b / 255
 
   if (RsRGB <= 0.03928) {
     R = RsRGB / 12.92

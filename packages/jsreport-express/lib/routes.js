@@ -34,13 +34,15 @@ module.exports = (app, reporter, exposedOptions) => {
     res.setTimeout(reporter.options.reportTimeout * 1.2)
     res.setHeader('X-XSS-Protection', 0)
 
-    const renderRequest = typeof renderRequestContent === 'string' ? {
-      rawContent: renderRequestContent,
-      context: req.context
-    } : {
-      ...renderRequestContent,
-      context: req.context
-    }
+    const renderRequest = typeof renderRequestContent === 'string'
+      ? {
+          rawContent: renderRequestContent,
+          context: req.context
+        }
+      : {
+          ...renderRequestContent,
+          context: req.context
+        }
 
     let form
     let profiler

@@ -36,7 +36,6 @@
     "moment": "2.29.1"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.3",
     "cron-builder": "0.3.0",
     "cronstrue": "1.64.0",
     "in-publish": "2.0.1",
@@ -49,7 +48,7 @@
     "mocha": "5.2.0",
     "ordinal-number-suffix": "0.1.2",
     "should": "13.2.3",
-    "standard": "11.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -58,7 +57,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

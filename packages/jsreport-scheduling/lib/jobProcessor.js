@@ -141,7 +141,7 @@ module.exports = class JobProcessor {
 
     // someone could have deleted schedule or disable the schedule, ignore these tasks
     return tasks.filter(t => {
-      let result = t.schedule != null
+      const result = t.schedule != null
 
       if (!result) {
         return result
@@ -168,10 +168,10 @@ module.exports = class JobProcessor {
 
     const req = this.Request
       ? this.Request({
-        context: {
-          skipAuthorization: true
-        }
-      })
+          context: {
+            skipAuthorization: true
+          }
+        })
       : undefined
 
     await this.beforeProcessJobListeners.fire(schedule, task, req)

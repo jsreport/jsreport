@@ -16,7 +16,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
   }
 
   initialContext.__request.cancel = (messageOrOptions = {}) => {
-    let data = {}
+    const data = {}
 
     if (typeof messageOrOptions === 'string') {
       data.additionalInfo = messageOrOptions
@@ -59,7 +59,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
     }
 
     let err = null
-    // this will only restore original values of properties of __requext.context
+    // this will only restore original values of properties of __request.context
     // and unwrap proxies and descriptors into new sandbox object
     const restoredSandbox = restore()
 
@@ -85,10 +85,12 @@ module.exports = async function executeScript (reporter, script, method, req, re
       // creating new object avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
       res: { ...restoredSandbox.__response },
-      error: err ? {
-        message: err.message,
-        stack: err.stack
-      } : undefined
+      error: err
+        ? {
+            message: err.message,
+            stack: err.stack
+          }
+        : undefined
     }
   }
 

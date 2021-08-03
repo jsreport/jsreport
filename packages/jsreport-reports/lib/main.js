@@ -29,7 +29,7 @@ class Reports {
       const col = reporter.documentStore.collection('reports')
 
       // this listener should run after the authorization check, so it is safe to remove
-      // the blob attacthed to the report. ideally we should execute this remove in an "afterRemove"
+      // the blob attached to the report. ideally we should execute this remove in an "afterRemove"
       // event but since that does not exists we have to make sure that the listener executes after
       // the authorization check
       col.beforeRemoveListeners.add({ after: 'authorization-cascade-remove' }, definition.name, async (query, req) => {
@@ -50,7 +50,7 @@ class Reports {
     })
 
     if (definition.options.cleanInterval && definition.options.cleanThreshold) {
-      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms and treshold ${definition.options.cleanThreshold}ms`)
+      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms and threshold ${definition.options.cleanThreshold}ms`)
       this.cleanInterval = setInterval(() => this.clean(), definition.options.cleanInterval)
       this.cleanInterval.unref()
       this.reporter.closeListeners.add('reports', () => clearInterval(this.cleanInterval))
@@ -76,7 +76,7 @@ class Reports {
       }
 
       if (report.state !== 'success') {
-        let errMsg = `Report ${req.params.id} wasn't successfull`
+        let errMsg = `Report ${req.params.id} wasn't successful`
 
         if (req.context.http) {
           errMsg = `${errMsg}, check ${req.context.http.baseUrl}/reports/${report._id}/status for details`
@@ -233,9 +233,9 @@ class Reports {
 
     if (request.context.http) {
       if (request.options.reports && request.options.reports.public) {
-        response.meta.headers['Location'] = `${request.context.http.baseUrl}/reports/public/${r._id}/status`
+        response.meta.headers.Location = `${request.context.http.baseUrl}/reports/public/${r._id}/status`
       } else {
-        response.meta.headers['Location'] = `${request.context.http.baseUrl}/reports/${r._id}/status`
+        response.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
       }
     }
 

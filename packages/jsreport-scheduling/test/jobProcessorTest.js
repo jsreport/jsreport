@@ -61,7 +61,7 @@ describe('for jobProcessor', () => {
       }
     })
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
     const tasks = await reporter.documentStore.collection('tasks').find({})
     tasks.length.should.be.exactly(1)
     tasks[0].state.should.be.exactly('success')
@@ -99,7 +99,7 @@ describe('for jobProcessor', () => {
         now: () => new Date(new Date().getTime() + 1000)
       }
     })
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
     counter.should.be.exactly(0)
   })
 
@@ -138,7 +138,7 @@ describe('for jobProcessor', () => {
       }
     })
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
     counter.should.be.exactly(1)
   })
 
@@ -176,7 +176,7 @@ describe('for jobProcessor', () => {
 
     jobProcessor.currentlyRunningTasks.push(task)
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
     const tasks = await reporter.documentStore.collection('tasks').find({})
     tasks[0].ping.should.not.be.exactly(task.ping)
   })
@@ -214,7 +214,7 @@ describe('for jobProcessor', () => {
       }
     })
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
 
     const tasks = await reporter.documentStore.collection('tasks').find({})
 
@@ -259,7 +259,7 @@ describe('for jobProcessor', () => {
 
     const now = new Date()
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
 
     const tasks = await reporter.documentStore.collection('tasks').find({})
 
@@ -323,7 +323,7 @@ describe('for jobProcessor', () => {
       }
     })
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
     const tasks = await reporter.documentStore.collection('tasks').find({})
     tasks.length.should.be.exactly(1)
     tasks[0].state.should.be.exactly('error')
@@ -398,7 +398,7 @@ describe('for jobProcessor with auth enabled', () => {
       }
     })
 
-    await jobProcessor.process({waitForJobToFinish: true})
+    await jobProcessor.process({ waitForJobToFinish: true })
     const tasks = await reporter.documentStore.collection('tasks').find({})
     tasks.length.should.be.exactly(1)
     tasks[0].state.should.be.exactly('success')

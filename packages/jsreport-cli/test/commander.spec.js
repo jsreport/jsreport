@@ -850,11 +850,9 @@ describe('commander', () => {
 
       cli.on('command.success', (cmdName, result) => {
         setTimeout(() => {
-          let exitCode
-
           exitMock.restore()
 
-          exitCode = exitMock.callInfo().exitCode
+          const exitCode = exitMock.callInfo().exitCode
 
           should(cmdName).be.eql('test')
           should(exitCode).be.eql(0)
@@ -911,11 +909,9 @@ describe('commander', () => {
 
       cli.on('command.success', (cmdName, result) => {
         setTimeout(() => {
-          let exitCode
-
           exitMock.restore()
 
-          exitCode = exitMock.callInfo().exitCode
+          const exitCode = exitMock.callInfo().exitCode
 
           should(cmdName).be.eql('test')
           should(exitCode).be.eql(0)
@@ -955,11 +951,9 @@ describe('commander', () => {
 
       cli.on('instance.initialized', (result) => {
         setTimeout(() => {
-          let exitCode
-
           exitMock.restore()
 
-          exitCode = exitMock.callInfo().exitCode
+          const exitCode = exitMock.callInfo().exitCode
 
           should(exitCode).be.eql(0)
           should(instanceInitializingCalled).be.eql(true)

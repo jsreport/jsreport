@@ -29,7 +29,7 @@ const ColorPicketTrigger = (props) => {
   const currentColor = color || ''
   const currentContainerStyles = Object.assign({}, defaultContainerStyles, containerStyles)
 
-  let colorPickerContainerStyles = {}
+  const colorPickerContainerStyles = {}
 
   if (translateXColorPickerFromTrigger || translateYColorPickerFromTrigger) {
     let transformValue = ''

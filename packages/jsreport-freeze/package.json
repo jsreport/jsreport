@@ -31,13 +31,12 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "babel-eslint": "8.2.2",
     "in-publish": "2.0.0",
     "jsreport-core": "2.10.1",
     "jsreport-studio-dev": "1.6.0",
     "mocha": "5.0.5",
     "should": "13.2.1",
-    "standard": "11.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -52,7 +51,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

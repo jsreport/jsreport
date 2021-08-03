@@ -22,7 +22,7 @@ async function processImport (reporter, exportFilePath, opts, req) {
   const entitiesCount = {}
   const logs = []
 
-  for (let [collectionName, entities] of Object.entries(entitiesInExportFile)) {
+  for (const [collectionName, entities] of Object.entries(entitiesInExportFile)) {
     const collection = reporter.documentStore.collection(collectionName)
 
     entitiesCount[collectionName] = entities.length
@@ -48,7 +48,7 @@ async function processImport (reporter, exportFilePath, opts, req) {
 
   if (fullImport === true) {
     logs.push([
-      `Info: Processing as full import mode`,
+      'Info: Processing as full import mode',
       os.EOL
     ].join(''))
   } else if (opts.targetFolder != null) {
@@ -225,7 +225,7 @@ async function processImport (reporter, exportFilePath, opts, req) {
         }
       }
 
-      // sort by hierarchy level acording to the action
+      // sort by hierarchy level according to the action
       if (hierarchyPartsA.length !== hierarchyPartsB.length) {
         if (actionA === 'delete') {
           // when action is delete sort by hierarchy level DESC
@@ -300,7 +300,7 @@ async function processImport (reporter, exportFilePath, opts, req) {
   }
 
   if (!validation) {
-    reporter.logger.debug(`import finished`)
+    reporter.logger.debug('import finished')
   }
 
   if (logs.length === 0) {

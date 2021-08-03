@@ -59,7 +59,7 @@ module.exports = (opts = {}) => {
 
       try {
         for (const h in helpers) {
-          if (helpers.hasOwnProperty(h)) {
+          if (Object.prototype.hasOwnProperty.call(helpers, h)) {
             handlebarsInstance.registerHelper(h, helpers[h])
           }
         }
@@ -72,7 +72,7 @@ module.exports = (opts = {}) => {
       } finally {
         // unregister the helpers to hide them from other executions
         for (const ah in helpers) {
-          if (helpers.hasOwnProperty(ah)) {
+          if (Object.prototype.hasOwnProperty.call(helpers, ah)) {
             handlebarsInstance.unregisterHelper(ah, helpers[ah])
           }
         }
@@ -83,11 +83,11 @@ module.exports = (opts = {}) => {
 
 // taken from: http://blog.stevenlevithan.com/archives/javascript-match-recursive-regexp
 function matchRecursiveRegExp (str, left, right, flags) {
-  let f = flags || ''
-  let g = f.indexOf('g') > -1
-  let x = new RegExp(left + '|' + right, 'g' + f.replace(/g/g, ''))
-  let l = new RegExp(left, f.replace(/g/g, ''))
-  let a = []
+  const f = flags || ''
+  const g = f.indexOf('g') > -1
+  const x = new RegExp(left + '|' + right, 'g' + f.replace(/g/g, ''))
+  const l = new RegExp(left, f.replace(/g/g, ''))
+  const a = []
   let t
   let s
   let m

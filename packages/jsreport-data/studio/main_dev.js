@@ -20,7 +20,7 @@ Studio.runListeners.push((request, entities) => {
 
   // try to fill request.data from the active open tab with sample data
 
-  let dataDetails = Object.keys(entities).map((e) => entities[e])
+  const dataDetails = Object.keys(entities).map((e) => entities[e])
     .filter((d) => d.shortid === request.template.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isNew))
 
   if (!dataDetails.length) {

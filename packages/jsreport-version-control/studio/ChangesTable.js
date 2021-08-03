@@ -61,14 +61,15 @@ const renderChange = (c) => {
   )
 }
 
-export default ({ changes }) => (<table className='table'>
-  <thead>
-    <tr>
-      <th style={{ width: '20px' }}>operation</th>
-      <th>path</th>
-      <th>entity set</th>
-    </tr>
-  </thead>
-  {changes.map((c) => renderChange(c))}
-</table>
+export default ({ changes }) => (
+  <table className='table'>
+    <thead>
+      <tr>
+        <th style={{ width: '20px' }}>operation</th>
+        <th>path</th>
+        <th>entity set</th>
+      </tr>
+    </thead>
+    {changes.map((c) => renderChange(c))}
+  </table>
 )

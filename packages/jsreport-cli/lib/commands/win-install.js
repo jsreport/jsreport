@@ -110,7 +110,7 @@ exports.handler = (argv) => {
       autostart: true
     }, (err) => {
       if (err) {
-        const error = new Error(`Error while trying to install windows service`)
+        const error = new Error('Error while trying to install windows service')
         error.originalError = err
         return reject(error)
       }

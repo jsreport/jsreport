@@ -35,7 +35,6 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.6",
     "in-publish": "2.0.1",
     "jsreport-core": "2.10.1",
     "jsreport-express": "2.8.1",
@@ -43,7 +42,7 @@
     "jsreport-studio-dev": "1.6.0",
     "mocha": "5.2.0",
     "should": "13.2.3",
-    "standard": "11.0.1",
+    "standard": "16.0.3",
     "supertest": "3.1.0"
   },
   "engines": {
@@ -53,7 +52,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

@@ -14,17 +14,17 @@ class TagEntityTreeFilterButtonToolbar extends Component {
       selectedTags: organizeState.filterTags || []
     }
 
-    this.openFilter = this.openFilter.bind(this)
-    this.closeFilter = this.closeFilter.bind(this)
+    this.handleFilterClick = this.handleFilterClick.bind(this)
+    this.handleCloseFilter = this.handleCloseFilter.bind(this)
     this.handleTagSelectChange = this.handleTagSelectChange.bind(this)
   }
 
-  openFilter (ev) {
+  handleFilterClick (ev) {
     ev.stopPropagation()
     this.setState({ showFilter: true })
   }
 
-  closeFilter () {
+  handleCloseFilter () {
     this.setState({ showFilter: false })
     this.props.closeMenu()
   }
@@ -52,7 +52,7 @@ class TagEntityTreeFilterButtonToolbar extends Component {
       <div
         title='Filter entities tree by tag'
         style={{ display: 'inline-block' }}
-        onClick={this.openFilter}
+        onClick={this.handleFilterClick}
       >
         <span style={{ display: 'inline-block' }}>
           <span
@@ -69,13 +69,13 @@ class TagEntityTreeFilterButtonToolbar extends Component {
         </span>
         <Popover
           open={showFilter}
-          onClose={this.closeFilter}
+          onClose={this.handleCloseFilter}
         >
           <TagEntityTreeFilterByTags
             tags={allTags}
             selectedTags={selectedTags}
             onTagSelectChange={this.handleTagSelectChange}
-            onFilterClose={this.closeFilter}
+            onFilterClose={this.handleCloseFilter}
           />
         </Popover>
       </div>

@@ -5,9 +5,9 @@
  * able to render reports or do crud using jaydata context.
  */
 
+const path = require('path')
 const https = require('https')
 const axios = require('axios')
-const url = require('url')
 const concat = require('concat-stream')
 const mimicResponse = require('mimic-response')
 const { PassThrough } = require('stream')
@@ -28,9 +28,11 @@ class Client {
     const username = this.username
     const password = this.password
 
+    const baseUrl = new URL(rootUrl)
+
     const optionsToUse = Object.assign({
       method: 'post',
-      url: url.resolve(rootUrl, 'api/report'),
+      url: new URL(path.posix.join(baseUrl.pathname, 'api/report'), baseUrl).toString(),
       data: JSON.stringify(req),
       headers: {
         'Content-Type': 'application/json'

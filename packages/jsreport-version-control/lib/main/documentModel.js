@@ -9,15 +9,15 @@ function collectDocumentProperties (model, entityType) {
   const documentProperties = []
 
   function deepWalk (type, path) {
-    var p = path ? path + '.' : ''
+    const p = path ? path + '.' : ''
     Object.keys(type).forEach(function (k) {
       if (type[k].document) {
         return documentProperties.push({ path: p + k, type: type[k] })
       }
 
       if (type[k].type.indexOf('Edm') !== 0 && type[k].type.indexOf('Collection(') === -1) {
-        var complexTypeName = type[k].type.replace(model.namespace + '.', '')
-        var complexType = model.complexTypes[complexTypeName]
+        const complexTypeName = type[k].type.replace(model.namespace + '.', '')
+        const complexType = model.complexTypes[complexTypeName]
         deepWalk(complexType, p + k)
       }
     })

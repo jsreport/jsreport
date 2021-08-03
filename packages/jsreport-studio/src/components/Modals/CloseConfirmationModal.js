@@ -11,11 +11,6 @@ class CloseConfirmationModal extends Component {
     this.cancelRef = React.createRef()
   }
 
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-
   remove () {
     this.props.close()
     this.props.closeTab(this.props.entity._id)
@@ -47,6 +42,11 @@ class CloseConfirmationModal extends Component {
       </div>
     )
   }
+}
+
+CloseConfirmationModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 function makeMapStateToProps () {

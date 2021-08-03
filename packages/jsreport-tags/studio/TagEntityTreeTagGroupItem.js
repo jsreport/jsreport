@@ -29,7 +29,7 @@ class TagEntityTreeTagGroupItem extends Component {
       <div style={{ display: 'inline-block', marginLeft: '0.2rem', marginRight: '0.2rem' }}>
         {tags.map((tag, tagIndex) => {
           if (!tag) {
-            return
+            return null
           }
 
           return (
