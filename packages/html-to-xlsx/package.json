@@ -25,7 +25,7 @@
     "test": "mocha --timeout 15000 test/test.js && standard"
   },
   "dependencies": {
-    "jsreport-exceljs": "3.7.1",
+    "jsreport-exceljs": "jsreport/exceljs",
     "moment": "2.29.1",
     "tinycolor2": "1.4.1",
     "uuid": "8.3.2"

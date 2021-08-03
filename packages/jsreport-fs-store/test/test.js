@@ -50,7 +50,10 @@ describe('common core tests', () => {
   const tmpData = path.join(__dirname, 'tmpData')
 
   beforeEach(async () => {
-    await rimrafAsync(tmpData)
+    try {
+      await rimrafAsync(tmpData)
+    } catch (e) {
+    }
 
     reporter = jsreport({
       store: { provider: 'fs' }
