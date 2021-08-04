@@ -1,6 +1,0 @@
-{
-  "name": "jsreport-data",
-  "scripts": {
-    "build": "node ../../../webpack/buildExtension.js"
-  }
-}
