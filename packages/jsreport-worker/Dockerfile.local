@@ -51,7 +51,7 @@ RUN npm i -g yarn
 COPY --chown=jsreport:jsreport packages /app/packages
 COPY --chown=jsreport:jsreport packages/jsreport-worker /app
 COPY --chown=jsreport:jsreport packages/jsreport-worker/build/package.build.json /app/package.json
-RUN yarn install --production --cache-folder /tmp/yarn-cache
+RUN yarn install --cache-folder /tmp/yarn-cache
 RUN yarn cache clean --all && rm -rf /tmp/*
 
 ENV extensions_assets /app/packages/jsreport-assets
