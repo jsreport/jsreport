@@ -468,10 +468,13 @@ var ReportEditor = function (_Component) {
           'div',
           { className: _ReportEditor2.default.listContainer + ' block-item' },
           _react2.default.createElement(_reactList2.default, {
-            type: 'uniform', itemsRenderer: this.renderItems, itemRenderer: function itemRenderer(index) {
+            type: 'uniform',
+            itemsRenderer: this.renderItems,
+            itemRenderer: function itemRenderer(index) {
               return _this4.tryRenderItem(index);
             },
-            length: count })
+            length: count
+          })
         )
       );
     }
@@ -512,12 +515,6 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 _jsreportStudio2.default.addEditorComponent('reports', _ReportEditor2.default);
-
-_jsreportStudio2.default.addApiSpec({
-  options: {
-    reports: { save: true }
-  }
-});
 
 _jsreportStudio2.default.addToolbarComponent(_ReportsButton2.default, 'settings');
 _jsreportStudio2.default.addToolbarComponent(_DownloadButton2.default);

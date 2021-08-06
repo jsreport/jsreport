@@ -105,15 +105,6 @@ _jsreportStudio2.default.addPropertiesComponent(_UNOConvProperties2.default.titl
   return entity.__entitySet === 'templates';
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    unoconv: {
-      enabled: true,
-      format: 'pdf'
-    }
-  }
-});
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {

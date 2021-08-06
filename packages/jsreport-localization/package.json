@@ -30,6 +30,7 @@
     "jsreport.config.js"
   ],
   "scripts": {
+    "build": "jsreport-studio-build",
     "test": "mocha test --timeout 8000 && standard"
   },
   "dependencies": {},

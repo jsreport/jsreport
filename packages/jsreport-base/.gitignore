@@ -37,8 +37,8 @@ jspm_packages
 .node_repl_history
 
 .idea
-studio/main.js
-studio/main.js.map
+# studio/main.js
+# studio/main.js.map
 
 # jsreport configuration and files
 data

@@ -481,12 +481,12 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
       editorProps.emptyMessage = 'xlsxTemplate is empty';
     }
 
+    /* eslint-disable */
     return {
       key: editorKey,
-      entity: editorKey === 'assets' ? _extends({}, entity, {
-        name: entity.name + '.xlsx'
-      }) : entity,
+      entity: editorKey === 'assets' ? _extends({}, entity, { name: entity.name + '.xlsx' }) : entity,
       props: editorProps
+      /* eslint-enable */
     };
   }
 });

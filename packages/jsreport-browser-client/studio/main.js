@@ -105,17 +105,14 @@ _jsreportStudio2.default.addPropertiesComponent('browser client', _Properties2.d
   return entity.__entitySet === 'templates' && entity.recipe === 'html-with-browser-client';
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    omitDataFromOutput: false
-  }
-});
-
-_jsreportStudio2.default.previewListeners.push(function (request) {
+// TODO
+/*
+Studio.previewListeners.push((request) => {
   if (request.template && request.template.recipe === 'html-with-browser-client') {
-    return { disableTheming: true };
+    return { disableTheming: true }
   }
-});
+})
+*/
 
 /***/ }),
 /* 1 */
@@ -171,10 +168,12 @@ var Properties = function (_Component) {
             'omit serialized data from the output'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: entity.omitDataFromOutput === true,
+            type: 'checkbox',
+            checked: entity.omitDataFromOutput === true,
             onChange: function onChange(v) {
               return _onChange({ _id: entity._id, omitDataFromOutput: v.target.checked });
-            } })
+            }
+          })
         )
       );
     }

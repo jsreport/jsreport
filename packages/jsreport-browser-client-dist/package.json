@@ -23,7 +23,8 @@
     "jsreport.min.js"
   ],
   "scripts": {
-    "prepublish": "uglifyjs src/jsreport.js -o tools/jsreport.min.js && node tools/build.js",
+    "prepublish": "npm run build",
+    "build": "uglifyjs src/jsreport.js -o tools/jsreport.min.js && node tools/build.js",
     "test": "standard"
   },
   "devDependencies": {

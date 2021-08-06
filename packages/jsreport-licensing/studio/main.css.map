@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///style.css"],"names":[],"mappings":"AAAA;IACI,oDAAoD;IACpD,aAAa;IACb,SAAO;AACX","file":"main.css","sourcesContent":[".developmentLicense {    \n    border: 1px solid $primary-selection-backgroundColor;\n    padding: 1rem;\n    flex: 1;    \n}\n\n  "],"sourceRoot":""}

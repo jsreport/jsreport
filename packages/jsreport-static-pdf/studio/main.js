@@ -132,15 +132,6 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
   }
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    staticPdf: {
-      rawContent: '<...base64 PDF...>',
-      pdfAssetShortid: '...'
-    }
-  }
-});
-
 /***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {

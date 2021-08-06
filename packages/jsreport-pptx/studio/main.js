@@ -169,10 +169,10 @@ _jsreportStudio2.default.runListeners.push(function (request, entities) {
       return React.createElement(
         'div',
         null,
-        'pptx recipe is currently in the beta phase and in continuous development. There\'re use cases it doesn\'t support yet but we get there soon if you help us with ',
+        'pptx recipe is currently in the beta phase and in continuous development. There\'re use cases it doesn\'t support yet but we get there soon if you help us with',
         React.createElement(
           'a',
-          { href: 'https://forum.jsreport.net', target: '_blank' },
+          { href: 'https://forum.jsreport.net', target: '_blank', rel: 'noreferrer' },
           'feedback'
         ),
         '. Please note there can be breaking changes in the next versions of the recipe until we reach stable API.'
@@ -210,8 +210,7 @@ _jsreportStudio2.default.runListeners.push(function (request, entities) {
         'We need to upload your pptx report to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see ',
         React.createElement(
           'a',
-          {
-            href: 'https://jsreport.net/learn/pptx', target: '_blank' },
+          { href: 'https://jsreport.net/learn/pptx', target: '_blank', rel: 'noreferrer' },
           'https://jsreport.net/learn/pptx'
         ),
         ' for details.'

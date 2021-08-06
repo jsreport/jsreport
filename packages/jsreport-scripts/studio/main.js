@@ -485,7 +485,8 @@ var ScriptProperties = function (_Component) {
             type: 'checkbox', checked: entity.isGlobal === true,
             onChange: function onChange(v) {
               return _onChange({ _id: entity._id, isGlobal: v.target.checked });
-            } })
+            }
+          })
         )
       );
     }

@@ -16,6 +16,7 @@
     "compile": "node scripts/compile.js",
     "performance": "node --expose-gc --max-old-space-size=100 tools/performance.js",
     "start": "cross-env ASYNC_RENDER=true node server.js",
+    "build": "node scripts/build.js",
     "test": "node scripts/test.js"
   },
   "resolutions": {},
