@@ -1,8 +1,8 @@
-# @jsreport/jsreport-client
+# @jsreport/client
 
-[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-client.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-client)
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/client.svg?style=flat-square)](https://npmjs.com/package/@jsreport/client)
 
->npm install @jsreport/jsreport-client
+>npm install @jsreport/client
 
 **jsreport node.js remote client. Documentation can be found [here](https://jsreport.net/learn/nodejs-client).**
 

@@ -1,5 +1,5 @@
 {
-  "name": "@jsreport/jsreport-client",
+  "name": "@jsreport/client",
   "version": "3.0.0-beta.1",
   "description": "jsreport node.js client",
   "homepage": "https://github.com/jsreport/nodejs-client",
@@ -27,7 +27,7 @@
     "concat-stream": "2.0.0",
     "mimic-response": "2.1.0"
   },
-  "devDependencies": {   
+  "devDependencies": {
     "@jsreport/jsreport-authentication": "3.0.0-beta.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/jsreport-express": "3.0.0-beta.1",

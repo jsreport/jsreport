@@ -2,7 +2,7 @@
 
 const util = require('util')
 const fs = require('fs')
-const jsreportClient = require('@jsreport/jsreport-client')
+const jsreportClient = require('@jsreport/client')
 const normalizePathOptionOrArg = require('../normalizePathOptionOrArg')
 
 const writeFileAsync = util.promisify(fs.writeFile)
