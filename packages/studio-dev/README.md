@@ -1,6 +1,6 @@
-# @jsreport/jsreport-studio-dev
+# @jsreport/studio-dev
 
-[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-studio-dev.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-studio-dev)
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/studio-dev.svg?style=flat-square)](https://npmjs.com/package/@jsreport/studio-dev)
 
 **Utils for developing jsreport studio extensions**
 

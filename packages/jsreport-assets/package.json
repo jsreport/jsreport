@@ -48,7 +48,7 @@
     "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
     "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
     "@jsreport/jsreport-scripts": "3.0.0-beta.1",
-    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
     "mocha": "8.2.1",
     "moment": "2.29.1",
     "should": "13.2.3",

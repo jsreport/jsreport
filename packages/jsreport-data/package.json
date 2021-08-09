@@ -36,7 +36,7 @@
     "in-publish": "2.0.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
-    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "16.0.3"

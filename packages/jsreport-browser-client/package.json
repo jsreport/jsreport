@@ -34,7 +34,7 @@
     "@jsreport/jsreport-browser-client-dist": "3.0.0-beta.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
     "standard": "16.0.3"
   },
   "engines": {

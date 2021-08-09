@@ -2,7 +2,7 @@ require('babel-polyfill')
 
 // Webpack config for creating the production bundle.
 const path = require('path')
-const jsreportStudioDev = require('@jsreport/jsreport-studio-dev')
+const jsreportStudioDev = require('@jsreport/studio-dev')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const CleanPlugin = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
@@ -218,13 +218,13 @@ module.exports = {
       'src',
       'node_modules',
       path.join(__dirname, '../node_modules'),
-      path.join(__dirname, '../node_modules/@jsreport/jsreport-studio-dev/node_modules')
+      path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules')
     ]
   },
   resolveLoader: {
     modules: [
       path.join(__dirname, '../node_modules'),
-      path.join(__dirname, '../node_modules/@jsreport/jsreport-studio-dev/node_modules'),
+      path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules'),
       'node_modules'
     ]
   },

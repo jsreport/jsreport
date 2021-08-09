@@ -42,8 +42,8 @@
     "start": "jsreport-studio-start",
     "test": "standard"
   },
-  "devDependencies": {    
-    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
+  "devDependencies": {
+    "@jsreport/studio-dev": "3.0.0-beta.1",
     "standard": "16.0.3"
   },
   "engines": {

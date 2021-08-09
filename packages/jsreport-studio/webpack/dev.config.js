@@ -3,7 +3,7 @@ require('babel-polyfill')
 // Webpack config for development
 const fs = require('fs')
 const path = require('path')
-const jsreportStudioDev = require('@jsreport/jsreport-studio-dev')
+const jsreportStudioDev = require('@jsreport/studio-dev')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
@@ -359,13 +359,13 @@ module.exports = (extensions, extensionsInNormalMode) => {
         'src',
         'node_modules',
         path.join(__dirname, '../node_modules'),
-        path.join(__dirname, '../node_modules/@jsreport/jsreport-studio-dev/node_modules')
+        path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules')
       ]
     },
     resolveLoader: {
       modules: [
         path.join(__dirname, '../node_modules'),
-        path.join(__dirname, '../node_modules/@jsreport/jsreport-studio-dev/node_modules'),
+        path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules'),
         'node_modules'
       ]
     },
