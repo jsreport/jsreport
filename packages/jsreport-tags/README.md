@@ -12,7 +12,7 @@ See http://jsreport.net/learn/tags
 
 ## jsreport-core
 
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 ```js
 var jsreport = require('@jsreport/jsreport-core')()

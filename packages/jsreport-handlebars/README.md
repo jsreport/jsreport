@@ -2,7 +2,7 @@
 [![NPM Version](http://img.shields.io/npm/v/jsreport-handlebars.svg?style=flat-square)](https://npmjs.com/package/jsreport-handlebars)
 [![Build Status](https://travis-ci.org/jsreport/jsreport-handlebars.png?branch=master)](https://travis-ci.org/jsreport/jsreport-handlebars)
 
-[handlebars](http://handlebarsjs.com/) templating engine for jsreport. 
+[handlebars](http://handlebarsjs.com/) templating engine for jsreport.
 See the docs https://jsreport.net/learn/handlebars
 
 ## Installation
@@ -18,7 +18,7 @@ To use `handlebars` in for template rendering set `template.engine=handlebars` i
 ```
 
 ## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 ```js
 var jsreport = require('@jsreport/jsreport-core')()

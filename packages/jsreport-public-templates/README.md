@@ -11,7 +11,7 @@ See http://jsreport.net/learn/public-templates
 > npm install jsreport-public-templates
 
 ## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 ```js
 var jsreport = require('@jsreport/jsreport-core')()

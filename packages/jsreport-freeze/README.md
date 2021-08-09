@@ -23,7 +23,7 @@ You can avoid jsreport templates editing through config file:
 Second option is to freeze editing in jsreport studio. This can be found in menu `Actions->Freeze Editing`. Note this options is available only for the jsreport administrator. The editing can be also afterwards enabled again using menu `Actions->Release Freeze`.
 
 ## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 ```js
 var jsreport = require('@jsreport/jsreport-core')()

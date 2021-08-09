@@ -34,7 +34,7 @@ If you do changes to the database schema by enabling additional extensions you n
 
 
 ## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 
 ```js

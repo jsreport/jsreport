@@ -46,7 +46,7 @@ After jsreport initializes you should see tables like `jsreport.TemplateType` an
 If you do changes to the database schema by enabling additional extensions you need to drop the affected tables and let jsreport to reinitialize them.
 
 ## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 ```js
 var jsreport = require('@jsreport/jsreport-core')()
