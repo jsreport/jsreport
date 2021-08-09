@@ -1,5 +1,5 @@
 const sql = require('mssql')
-const Store = require('@jsreport/jsreport-sql-store')
+const Store = require('@jsreport/sql-store')
 const Semaphore = require('semaphore-async-await').default
 
 module.exports = async (reporter, definition) => {

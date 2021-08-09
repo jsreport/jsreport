@@ -4,7 +4,7 @@ const pg = require('pg-promise')({ promiseLib: Promise })
 // how to configure type parsing per instance
 // https://github.com/brianc/node-postgres/issues/1838
 const TypeOverrides = require('pg/lib/type-overrides')
-const Store = require('@jsreport/jsreport-sql-store')
+const Store = require('@jsreport/sql-store')
 
 module.exports = function (reporter, definition) {
   if (reporter.options.store.provider !== 'postgres' && reporter.options.blobStorage.provider !== 'postgres') {
