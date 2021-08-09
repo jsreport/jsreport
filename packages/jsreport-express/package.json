@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-express",
-  "version": "2.8.1",
+  "name": "@jsreport/jsreport-express",
+  "version": "3.0.0-beta.1",
   "description": "jsreport extension adding API",
   "keywords": [
     "jsreport"
@@ -45,10 +45,10 @@
   "devDependencies": {
     "axios": "0.21.1",
     "cross-env": "5.2.0",
-    "jsreport-core": "2.10.1",
-    "jsreport-jsrender": "2.1.1",
-    "jsreport-scripts": "2.6.0",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
+    "@jsreport/jsreport-scripts": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "12.0.1",

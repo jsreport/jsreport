@@ -1,5 +1,5 @@
 const should = require('should')
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 
 describe('scripts', () => {
   let reporter
@@ -11,8 +11,8 @@ describe('scripts', () => {
         allowedModules: ['bluebird', 'helperA']
       }
     })
-      .use(require('jsreport-assets')())
-      .use(require('jsreport-jsrender')())
+      .use(require('@jsreport/jsreport-assets')())
+      .use(require('@jsreport/jsreport-jsrender')())
       .use(require('../')())
       .use(JsReport.tests.listeners())
     return reporter.init()
@@ -823,7 +823,7 @@ describe('scripts', () => {
         sandbox: {
           allowedModules: '*'
         }
-      }).use(require('jsreport-jsrender')()).use(require('../')())
+      }).use(require('@jsreport/jsreport-jsrender')()).use(require('../')())
 
       await reporter.init()
       const res = await reporter.render({

@@ -185,7 +185,7 @@ module.exports = (reporter, definition) => {
     })
 
     if (process.env.NODE_ENV === 'jsreport-development') {
-      const webpack = require('jsreport-studio-dev').deps.webpack
+      const webpack = require('@jsreport/jsreport-studio-dev').deps.webpack
 
       const webpackConfig = require('../webpack/dev.config')(
         reporter.extensionsManager.extensions,

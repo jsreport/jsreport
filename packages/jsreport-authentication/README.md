@@ -1,19 +1,12 @@
-# jsreport-authentication
-[![NPM Version](http://img.shields.io/npm/v/jsreport-authentication.svg?style=flat-square)](https://npmjs.com/package/jsreport-authentication)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-authentication.png?branch=master)](https://travis-ci.org/jsreport/jsreport-authentication)
+# @jsreport/jsreport-authentication
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-authentication.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-authentication)
 
 > Add login screen to jsreport and user management forms
 
 See https://jsreport.net/learn/authentication
 
-## Installation
+## Changelog
 
-> **npm install jsreport-authentication**
+### 3.0.0-beta.1
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
-
-```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-authentication')({})
-```
+Adaptations for the v3 APIs

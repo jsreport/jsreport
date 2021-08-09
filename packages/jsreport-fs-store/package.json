@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-fs-store",
-  "version": "2.9.2",
+  "name": "@jsreport/jsreport-fs-store",
+  "version": "3.0.0-beta.1",
   "description": "File system based templates store",
   "keywords": [
     "jsreport",
@@ -46,9 +46,9 @@
   "devDependencies": {
     "babel-eslint": "10.0.3",
     "in-publish": "2.0.1",
-    "jsreport-core": "2.10.1",
-    "jsreport-express": "2.8.1",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-express": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "lodash.once": "4.1.1",
     "mocha": "8.2.1",
     "ncp": "2.0.0",

@@ -1,4 +1,4 @@
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 const parsePdf = require('../lib/utils/parsePdf')
 const fs = require('fs')
 const path = require('path')
@@ -17,17 +17,17 @@ describe('pdf utils', () => {
       }
     })
 
-    jsreport.use(require('jsreport-chrome-pdf')({
+    jsreport.use(require('@jsreport/jsreport-chrome-pdf')({
       launchOptions: {
         args: ['--no-sandbox']
       }
     }))
-    jsreport.use(require('jsreport-assets')())
-    jsreport.use(require('jsreport-handlebars')())
-    jsreport.use(require('jsreport-jsrender')())
-    jsreport.use(require('jsreport-scripts')())
+    jsreport.use(require('@jsreport/jsreport-assets')())
+    jsreport.use(require('@jsreport/jsreport-handlebars')())
+    jsreport.use(require('@jsreport/jsreport-jsrender')())
+    jsreport.use(require('@jsreport/jsreport-scripts')())
     jsreport.use(require('../')())
-    jsreport.use(require('jsreport-child-templates')())
+    jsreport.use(require('@jsreport/jsreport-child-templates')())
     jsreport.use(JsReport.tests.listeners())
 
     return jsreport.init()
@@ -1953,7 +1953,7 @@ describe('pdf utils', () => {
         .use(require('../')({
           maxSignaturePlaceholderLength: 16384
         }))
-        .use(require('jsreport-chrome-pdf')())
+        .use(require('@jsreport/jsreport-chrome-pdf')())
         .init()
     })
     afterEach(() => jsreport && jsreport.close())

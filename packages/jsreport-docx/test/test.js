@@ -1,11 +1,11 @@
 const should = require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
 const { DOMParser } = require('xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
-const { decompress } = require('jsreport-office')
+const { decompress } = require('@jsreport/jsreport-office')
 const sizeOf = require('image-size')
 const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
 const WordExtractor = require('word-extractor')
@@ -63,8 +63,8 @@ describe('docx', () => {
       }
     })
       .use(require('../')())
-      .use(require('jsreport-handlebars')())
-      .use(require('jsreport-assets')())
+      .use(require('@jsreport/jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-assets')())
       .use(jsreport.tests.listeners())
     return reporter.init()
   })
@@ -4421,8 +4421,8 @@ describe('docx with extensions.docx.previewInWordOnline === false', () => {
   beforeEach(() => {
     reporter = jsreport()
       .use(require('../')({ preview: { enabled: false } }))
-      .use(require('jsreport-handlebars')())
-      .use(require('jsreport-assets')())
+      .use(require('@jsreport/jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-assets')())
     return reporter.init()
   })
 

@@ -15,9 +15,9 @@ See the docs https://jsreport.net/learn/xlsx
 
 ```js
 var fs = require('fs')
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-xlsx')())
-jsreport.use(require('jsreport-handlebars')())
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-xlsx')())
+jsreport.use(require('@jsreport/jsreport-handlebars')())
 
 jsreport.init().then(function () {
   return jsreport.render({

@@ -1,19 +1,25 @@
-# jsreport-assets
+# @jsreport/jsreport-assets
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-assets.svg?style=flat-square)](https://npmjs.com/package/jsreport-assets)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-assets.png?branch=master)](https://travis-ci.org/jsreport/jsreport-assets)
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-assets.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-assets)
 
 > jsreport extension embedding static assets like fonts or helpers into the templates
 
 See https://jsreport.net/learn/assets
 
-## Installation
-> npm install jsreport-assets --production
+## Changelog
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+### 3.0.0-beta.1
 
-```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-assets')({}))
+Initial release for jsreport v3
+New templating engine helpers introduced
 ```
+{{#asset pathOrName}}
+```
+jsreport proxy extended with additional functions
+```
+const jsreport = require('jsreport-proxy')
+jsreport.assets.read(path)
+jsreport.assets.require(path)
+jsreport.assets.registerHelpers(path)
+```
+

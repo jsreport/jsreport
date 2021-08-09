@@ -1,7 +1,6 @@
 
-# jsreport-azure-storage
-[![NPM Version](http://img.shields.io/npm/v/jsreport-azure-storage.svg?style=flat-square)](https://npmjs.com/package/jsreport-azure-storage)
-[![Build Status](https://travis-ci.com/jsreport/jsreport-azure-storage.png?branch=master)](https://travis-ci.org/jsreport/jsreport-azure-storage)
+# @jsreport/jsreport-azure-storage
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-azure-storage.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-azure-storage)
 
 > jsreport extension adding support for storing blobs in azure storage
 
@@ -15,7 +14,7 @@ https://jsreport.net/learn/reports
 
 ## Installation
 
-> npm install jsreport-azure-storage
+> npm install @jsreport/jsreport-azure-storage
 
 ## Configuration
 
@@ -49,6 +48,12 @@ You can pass the options into jsreport in the following ways:
 
 - Pass options directly when using jsreport-core manually
 ```js
-var jsreport = require('jsreport-core')({ blobStorage: { provider: 'azure-storage' } })
-jsreport.use(require('jsreport-azure-storage')({}))
+var jsreport = require('@jsreport/jsreport-core')({ blobStorage: { provider: 'azure-storage' } })
+jsreport.use(require('@jsreport/jsreport-azure-storage')({}))
 ```
+
+## Changelog
+
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs

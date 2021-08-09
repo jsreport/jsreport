@@ -1,5 +1,5 @@
 
-const { extendSchema } = require('jsreport-office')
+const { extendSchema } = require('@jsreport/jsreport-office')
 
 module.exports = {
   name: 'html-to-xlsx',

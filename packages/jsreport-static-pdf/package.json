@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-static-pdf",
-  "version": "0.4.0",
+  "name": "@jsreport/jsreport-static-pdf",
+  "version": "3.0.0-beta.1",
   "description": "jsreport recipe which loads pdf from static source",
   "keywords": [
     "jsreport",
@@ -49,10 +49,10 @@
   },
   "devDependencies": {
     "babel-eslint": "10.0.1",
-    "jsreport-assets": "1.7.0",
-    "jsreport-chrome-pdf": "1.10.0",
-    "jsreport-core": "2.10.1",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-assets": "3.0.0-beta.1",
+    "@jsreport/jsreport-chrome-pdf": "3.0.0-beta.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "6.1.4",
     "puppeteer": "1.19.0",
     "should": "13.2.3",

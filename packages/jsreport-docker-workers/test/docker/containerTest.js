@@ -1,5 +1,5 @@
 const Container = require('../../lib/docker/container.js')
-const reporter = require('jsreport-core')()
+const reporter = require('@jsreport/jsreport-core')()
 const axios = require('axios')
 const os = require('os')
 const path = require('path')

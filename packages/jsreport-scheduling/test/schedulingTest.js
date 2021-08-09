@@ -1,5 +1,5 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 describe('with scheduling extension', function () {
   let reporter
@@ -13,7 +13,7 @@ describe('with scheduling extension', function () {
         }
       }
     })
-    reporter.use(require('jsreport-reports')())
+    reporter.use(require('@jsreport/jsreport-reports')())
     reporter.use(require('../')())
 
     await reporter.init()
@@ -189,7 +189,7 @@ describe('with scheduling extension and minimal schedule interval limit', () => 
       }
     })
     reporter.use(require('../')())
-    reporter.use(require('jsreport-reports')())
+    reporter.use(require('@jsreport/jsreport-reports')())
 
     await reporter.init()
     template = await reporter.documentStore.collection('templates').insert({
@@ -240,7 +240,7 @@ describe('with scheduling extension and history clean enabled', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-reports')())
+    reporter.use(require('@jsreport/jsreport-reports')())
 
     await reporter.init()
 

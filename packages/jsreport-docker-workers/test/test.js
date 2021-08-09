@@ -1,4 +1,4 @@
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const os = require('os')
 const path = require('path')
 const Koa = require('koa')
@@ -61,7 +61,7 @@ describe.only('docker manager', () => {
         customContainersPoolFactory: () => pool,
         discriminatorPath: 'context.tenant'
       }))
-      .use(require('jsreport-express')())
+      .use(require('@jsreport/jsreport-express')())
       .use(jsreport.tests.listeners())
 
     return reporter.init()
@@ -459,7 +459,7 @@ describe.only('docker manager', () => {
           customContainersPoolFactory: () => pool,
           discriminatorPath: 'context.tenant'
         }))
-        .use(require('jsreport-express')())
+        .use(require('@jsreport/jsreport-express')())
         .use(jsreport.tests.listeners())
 
       await remoteReporter.init()

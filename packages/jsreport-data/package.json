@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-data",
-  "version": "2.4.0",
+  "name": "@jsreport/jsreport-data",
+  "version": "3.0.0-beta.1",
   "description": "jsreport extension adding support for using sample data for previewing templates",
   "keywords": [
     "jsreport",
@@ -35,9 +35,9 @@
     "babel-eslint": "10.0.3",
     "handlebars": "4.7.7",
     "in-publish": "2.0.1",
-    "jsreport-core": "2.10.1",
-    "jsreport-handlebars": "2.1.0",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "12.0.1"

@@ -16,6 +16,6 @@ npm install jsreport-pdf-utils
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-pdf-utils')())
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-pdf-utils')())
 ```

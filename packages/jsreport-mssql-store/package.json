@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-mssql-store",
-  "version": "1.5.0",
+  "name": "@jsreport/jsreport-mssql-store",
+  "version": "3.0.0-beta.1",
   "description": "Extension allowing to store template in Microsoft SQL Server",
   "homepage": "https://github.com/jsreport/jsreport-mssql-store#readme",
   "bugs": {
@@ -26,7 +26,7 @@
     "semaphore-async-await": "1.5.1"
   },
   "devDependencies": {
-    "jsreport-core": "2.10.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
     "mocha": "8.3.2",
     "should": "13.2.3",
     "standard": "16.0.3"

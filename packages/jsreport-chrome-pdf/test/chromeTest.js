@@ -1,7 +1,7 @@
 process.env.debug = 'jsreport'
 const path = require('path')
 const fs = require('fs')
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 const should = require('should')
 const parsePdf = require('parse-pdf')
 const psList = require('ps-list')
@@ -53,7 +53,7 @@ function common (strategy, imageExecution) {
   beforeEach(() => {
     reporter = JsReport()
 
-    reporter.use(require('jsreport-handlebars')())
+    reporter.use(require('@jsreport/jsreport-handlebars')())
 
     reporter.use(require('../')({
       strategy,

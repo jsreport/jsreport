@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-azure-storage",
-  "version": "1.2.0",
+  "name": "@jsreport/jsreport-azure-storage",
+  "version": "3.0.0-beta.1",
   "description": "jsreport extension adding support for storing blobs in azure storage",
   "keywords": [
     "jsreport",
@@ -23,7 +23,7 @@
   "dependencies": {
     "@azure/identity": "1.2.4",
     "@azure/storage-blob": "12.5.0",
-    "jsreport-core": "2.10.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
     "mocha": "8.3.2",
     "should": "13.2.3"
   },

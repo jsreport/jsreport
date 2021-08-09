@@ -1,6 +1,6 @@
 process.env.debug = 'jsreport'
 const supertest = require('supertest')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 require('should')
 
 const authOptions = {
@@ -24,9 +24,9 @@ describe('public-templates', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-express')())
-    reporter.use(require('jsreport-authentication')())
-    reporter.use(require('jsreport-authorization')())
+    reporter.use(require('@jsreport/jsreport-express')())
+    reporter.use(require('@jsreport/jsreport-authentication')())
+    reporter.use(require('@jsreport/jsreport-authorization')())
 
     return reporter.init()
   })

@@ -1,4 +1,4 @@
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 const http = require('http')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')

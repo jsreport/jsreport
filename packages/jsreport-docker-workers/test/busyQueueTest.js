@@ -1,5 +1,5 @@
 const BusyQueue = require('../lib/busyQueue.js')
-const reporter = require('jsreport-core')()
+const reporter = require('@jsreport/jsreport-core')()
 const Promise = require('bluebird')
 require('should')
 

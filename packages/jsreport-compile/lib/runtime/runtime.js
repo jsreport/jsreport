@@ -62,7 +62,7 @@ function startCLI (getJsreport, customTempDirectory, options) {
     customTempDirectory
   )
 
-  const cliExtension = require('jsreport-cli')
+  const cliExtension = require('@jsreport/jsreport-cli')
 
   execution.ensureTmpResources().then(() => {
     const cli = cliExtension.commander(process.cwd(), {

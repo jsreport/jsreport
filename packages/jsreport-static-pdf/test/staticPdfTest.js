@@ -1,5 +1,5 @@
 const should = require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
 
@@ -12,8 +12,8 @@ describe('static-pdf', () => {
         strategy: 'in-process'
       }
     }).use(require('../')())
-      .use(require('jsreport-chrome-pdf')())
-      .use(require('jsreport-assets')())
+      .use(require('@jsreport/jsreport-chrome-pdf')())
+      .use(require('@jsreport/jsreport-assets')())
 
     return reporter.init()
   })

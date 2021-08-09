@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-handlebars",
-  "version": "2.1.0",
+  "name": "@jsreport/jsreport-handlebars",
+  "version": "3.0.0-beta.1",
   "description": "jsreport handlebars templating engine",
   "keywords": [
     "jsreport",
@@ -24,8 +24,8 @@
   },
   "devDependencies": {
     "handlebars": "4.7.7",
-    "jsreport-core": "2.10.1",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "5.0.1",
     "should": "13.2.3",
     "standard": "11.0.0"

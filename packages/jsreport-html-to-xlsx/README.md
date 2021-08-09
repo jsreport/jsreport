@@ -22,6 +22,6 @@ To use `recipe` in for template rendering set `template.recipe=html-to-xlsx` in 
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-html-to-xlsx')())
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-html-to-xlsx')())
 ```

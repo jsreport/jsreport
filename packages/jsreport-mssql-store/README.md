@@ -54,6 +54,6 @@ If you do changes to the database schema by enabling additional extensions you n
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-mssql-store')({ server: '...'}))
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-mssql-store')({ server: '...'}))
 ```

@@ -1,6 +1,6 @@
 require('should')
 process.env.DEBUG = 'jsreport'
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 describe('common store tests', () => {
   let reporter

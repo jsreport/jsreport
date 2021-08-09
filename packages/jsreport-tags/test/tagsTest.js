@@ -1,5 +1,5 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const reservedTagNamesExport = require('../shared/reservedTagNames')
 const reservedTagNames = reservedTagNamesExport.default
 const tagsGroupName = reservedTagNamesExport.tagsGroupName

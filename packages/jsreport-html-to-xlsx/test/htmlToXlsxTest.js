@@ -3,14 +3,14 @@ const util = require('util')
 const path = require('path')
 const fs = require('fs')
 const XlsxPopulate = require('xlsx-populate')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const readFileAsync = util.promisify(fs.readFile)
 
 describe('html to xlsx', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport().use(require('../')()).use(require('jsreport-handlebars')())
+    reporter = jsreport().use(require('../')()).use(require('@jsreport/jsreport-handlebars')())
     return reporter.init()
   })
 

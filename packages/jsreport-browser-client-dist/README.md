@@ -1,4 +1,4 @@
-# jsreport-browser-client-dist
+# @jsreport/jsreport-browser-client-dist
 
 **Standalone distributable jsreport browser sdk**
 

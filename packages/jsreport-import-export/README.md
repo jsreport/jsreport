@@ -14,6 +14,6 @@ See http://jsreport.net/learn/import-export
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-import-export')({}))
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-import-export')({}))
 ```

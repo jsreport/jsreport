@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-fs-store-azure-storage-persistence",
-  "version": "1.2.2",
+  "name": "@jsreport/jsreport-fs-store-azure-storage-persistence",
+  "version": "3.0.0-beta.1",
   "description": "Make jsreport fs store persist entities into azure blob storage",
   "keywords": [
     "jsreport",

@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-licensing",
-  "version": "2.2.3",
+  "name": "@jsreport/jsreport-licensing",
+  "version": "3.0.0-beta.1",
   "description": "jsreport extension for enterprise license verification ",
   "keywords": [
     "jsreport"
@@ -34,8 +34,8 @@
   "devDependencies": {
     "babel-eslint": "8.2.2",
     "in-publish": "2.0.1",
-    "jsreport-core": "2.10.1",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "7.2.0",
     "should": "13.2.3",
     "standard": "11.0.1",

@@ -1,19 +1,19 @@
 process.env.debug = 'jsreport'
 
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const util = require('util')
 const path = require('path')
 const omit = require('lodash.omit')
 const writeFileAsync = util.promisify(require('fs').writeFile)
 
-const xlsx = require('jsreport-xlsx')
-const data = require('jsreport-data')
-const pdfUtils = require('jsreport-pdf-utils')
-const scripts = require('jsreport-scripts')
-const assets = require('jsreport-assets')
-const handlebars = require('jsreport-handlebars')
-const chromePdf = require('jsreport-chrome-pdf')
-const fsStore = require('jsreport-fs-store')
+const xlsx = require('@jsreport/jsreport-xlsx')
+const data = require('@jsreport/jsreport-data')
+const pdfUtils = require('@jsreport/jsreport-pdf-utils')
+const scripts = require('@jsreport/jsreport-scripts')
+const assets = require('@jsreport/jsreport-assets')
+const handlebars = require('@jsreport/jsreport-handlebars')
+const chromePdf = require('@jsreport/jsreport-chrome-pdf')
+const fsStore = require('@jsreport/jsreport-fs-store')
 
 const reporter = jsreport({ migrateEntitySetsToFolders: false, store: { provider: 'fs' } })
 

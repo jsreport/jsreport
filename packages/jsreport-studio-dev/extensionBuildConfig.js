@@ -117,13 +117,13 @@ module.exports = (customExtName) => {
     resolve: {
       modules: [
         'node_modules',
-        'node_modules/jsreport-studio-dev/node_modules'
+        'node_modules/@jsreport/jsreport-studio-dev/node_modules'
       ]
     },
     resolveLoader: {
       modules: [
         'node_modules',
-        'node_modules/jsreport-studio-dev/node_modules'
+        'node_modules/@jsreport/jsreport-studio-dev/node_modules'
       ]
     },
     plugins: [

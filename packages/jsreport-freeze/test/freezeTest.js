@@ -1,5 +1,5 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 describe('freeze', () => {
   let reporter

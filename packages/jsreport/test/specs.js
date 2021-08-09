@@ -4,7 +4,7 @@ const packageJson = require('../package.json')
 const path = require('path')
 
 const jsreportExtensions = Object.keys(packageJson.dependencies).filter((extName) => {
-  return extName !== 'jsreport-core' && extName.startsWith('jsreport-')
+  return extName !== '@jsreport/jsreport-core' && extName.startsWith('@jsreport')
 })
 
 describe('all extensions', function () {

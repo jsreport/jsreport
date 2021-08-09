@@ -1,5 +1,5 @@
 const supertest = require('supertest')
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 const axios = require('axios')
 const { unzipFiles } = require('../lib/helpers')
 const fs = require('fs')
@@ -12,8 +12,8 @@ describe('express', () => {
   beforeEach(() => {
     jsreport = JsReport()
       .use(require('../')())
-      .use(require('jsreport-jsrender')())
-      .use(require('jsreport-scripts')())
+      .use(require('@jsreport/jsreport-jsrender')())
+      .use(require('@jsreport/jsreport-scripts')())
       .use(JsReport.tests.listeners())
       .use(require('./testExtension')({
         publicProp: 'I am public',
@@ -267,7 +267,7 @@ describe('express with appPath and mountOnAppPath config', () => {
   beforeEach(() => {
     jsreport = JsReport({ appPath: '/test', mountOnAppPath: true })
       .use(require('../')())
-      .use(require('jsreport-jsrender')())
+      .use(require('@jsreport/jsreport-jsrender')())
 
     return jsreport.init()
   })

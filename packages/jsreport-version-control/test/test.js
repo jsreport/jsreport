@@ -1,5 +1,5 @@
 const Promise = require('bluebird')
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 const common = require('./common')
 const should = require('should')
 
@@ -8,9 +8,9 @@ describe.only('version control', () => {
 
   beforeEach(async () => {
     jsreport = JsReport()
-    jsreport.use(require('jsreport-data')())
-    jsreport.use(require('jsreport-chrome-pdf')())
-    jsreport.use(require('jsreport-assets')())
+    jsreport.use(require('@jsreport/jsreport-data')())
+    jsreport.use(require('@jsreport/jsreport-chrome-pdf')())
+    jsreport.use(require('@jsreport/jsreport-assets')())
     jsreport.use(require('../')())
     await jsreport.init()
 

@@ -1,5 +1,5 @@
 const path = require('path')
-const core = require('jsreport-core')
+const core = require('@jsreport/jsreport-core')
 const packageJson = require('../package.json')
 const extendConfig = require('./extendConfig')
 

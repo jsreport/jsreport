@@ -1,9 +1,9 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
-const { decompress } = require('jsreport-office')
+const { decompress } = require('@jsreport/jsreport-office')
 const textract = util.promisify(require('textract').fromBufferWithName)
 const { DOMParser } = require('xmldom')
 const { nodeListToArray } = require('../lib/utils')
@@ -13,8 +13,8 @@ describe('pptx', () => {
 
   beforeEach(() => {
     reporter = jsreport().use(require('../')())
-      .use(require('jsreport-handlebars')())
-      .use(require('jsreport-assets')())
+      .use(require('@jsreport/jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-assets')())
     return reporter.init()
   })
 

@@ -2,7 +2,7 @@ const should = require('should')
 const path = require('path')
 const fs = require('fs')
 
-const { getTempDir, setup, init, exec } = require('jsreport-cli/test/testUtils')({
+const { getTempDir, setup, init, exec } = require('@jsreport/jsreport-cli/test/testUtils')({
   baseDir: path.join(__dirname, 'temp'),
   rootDirectory: path.join(__dirname, '../'),
   defaultExtensions: [

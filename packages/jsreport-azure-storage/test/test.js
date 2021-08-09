@@ -1,4 +1,4 @@
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 require('should')
 
 describe('azure storage', () => {

@@ -4,7 +4,7 @@ const crypto = require('crypto')
 const request = require('supertest')
 const should = require('should')
 const cloneDeep = require('lodash.clonedeep')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const createAuthServer = require('./authServer')
 
 const CUSTOM_USER = { username: 'jsreport', password: 'jsreport' }
@@ -25,7 +25,7 @@ describe('authentication', () => {
       }
     })
     reporter.use(require('../')())
-    reporter.use(require('jsreport-express')())
+    reporter.use(require('@jsreport/jsreport-express')())
 
     await reporter.init()
 
@@ -877,7 +877,7 @@ describe('authentication with external authorization server', () => {
       reporter = jsreport(jsreportConfig)
 
       reporter.use(require('../')())
-      reporter.use(require('jsreport-express')())
+      reporter.use(require('@jsreport/jsreport-express')())
 
       await reporter.init()
       return {
@@ -893,7 +893,7 @@ describe('authentication with external authorization server', () => {
     reporter = jsreport(jsreportConfig)
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-express')())
+    reporter.use(require('@jsreport/jsreport-express')())
 
     await reporter.init()
     return {

@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-chrome-pdf",
-  "version": "1.10.0",
+  "name": "@jsreport/jsreport-chrome-pdf",
+  "version": "3.0.0-beta.1",
   "description": "jsreport recipe which is rendering pdf from html using headless chrome",
   "keywords": [
     "jsreport",
@@ -34,9 +34,9 @@
     "eslint-plugin-babel": "5.3.1",
     "handlebars": "4.7.7",
     "in-publish": "2.0.1",
-    "jsreport-core": "2.10.1",
-    "jsreport-handlebars": "2.1.0",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "6.1.4",
     "parse-pdf": "1.0.0",
     "ps-list": "7.2.0",

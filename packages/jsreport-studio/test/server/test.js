@@ -2,14 +2,14 @@ const path = require('path')
 const fs = require('fs')
 const should = require('should')
 const request = require('supertest')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const studio = require('../../')
 
 describe('studio', () => {
   let reporter
 
   async function prepareReporter (studioOptions = {}, customExt) {
-    let instance = jsreport().use(require('jsreport-express')()).use(studio(studioOptions))
+    let instance = jsreport().use(require('@jsreport/jsreport-express')()).use(studio(studioOptions))
 
     if (customExt) {
       instance = instance.use(customExt)

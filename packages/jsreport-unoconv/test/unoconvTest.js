@@ -1,5 +1,5 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const path = require('path')
 
 describe('unoconv', () => {
@@ -10,7 +10,7 @@ describe('unoconv', () => {
       .use(require('../')({
         command: `python ${path.join(__dirname, 'unoconv.py')}`
       }))
-      .use(require('jsreport-html-to-xlsx')())
+      .use(require('@jsreport/jsreport-html-to-xlsx')())
     return reporter.init()
   })
 

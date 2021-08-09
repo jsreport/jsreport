@@ -1,5 +1,5 @@
 const oracledb = require('oracledb')
-const Store = require('jsreport-sql-store')
+const Store = require('@jsreport/jsreport-sql-store')
 
 module.exports = async (reporter, definition) => {
   if (reporter.options.store.provider !== 'oracle') {

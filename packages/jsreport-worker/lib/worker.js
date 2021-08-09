@@ -112,7 +112,7 @@ module.exports = (options = {}) => {
           recursive: true
         })
         const workerSystemOptions = reqBody.workerSystemOptions
-        workerSystemOptions.workerModule = require.resolve('jsreport-core/lib/worker/workerHandler.js')
+        workerSystemOptions.workerModule = require.resolve('@jsreport/jsreport-core/lib/worker/workerHandler.js')
         workersManager = WorkersManager(workerOptions, workerSystemOptions)
         await workersManager.init()
         ctx.body = '{}'

@@ -1,13 +1,13 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 describe('localization', () => {
   let reporter
 
   beforeEach(() => {
     reporter = jsreport()
-      .use(require('jsreport-assets')())
-      .use(require('jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-assets')())
+      .use(require('@jsreport/jsreport-handlebars')())
       .use(require('../')())
 
     return reporter.init()

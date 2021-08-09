@@ -1,6 +1,6 @@
 const serialize = require('./serialize.js')
 const extend = require('node.extend.without.arrays')
-const { response } = require('jsreport-office')
+const { response } = require('@jsreport/jsreport-office')
 
 module.exports = (reporter, definition) => {
   if (reporter.options.xlsx) {

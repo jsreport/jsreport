@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-core",
-  "version": "2.10.1",
+  "name": "@jsreport/jsreport-core",
+  "version": "3.0.0-beta.1",
   "description": "javascript based business reporting",
   "keywords": [
     "report",

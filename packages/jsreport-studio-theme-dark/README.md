@@ -15,7 +15,7 @@ See http://jsreport.net/learn/studio#themes
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-studio')({}))
-jsreport.use(require('jsreport-studio-theme-dark')({}))
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-studio')({}))
+jsreport.use(require('@jsreport/jsreport-studio-theme-dark')({}))
 ```

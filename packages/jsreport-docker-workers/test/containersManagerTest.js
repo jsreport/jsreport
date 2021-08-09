@@ -1,5 +1,5 @@
 const createContainersManager = require('../lib/containersManager')
-const reporter = require('jsreport-core')()
+const reporter = require('@jsreport/jsreport-core')()
 
 describe('containers manager', () => {
   let containersManager

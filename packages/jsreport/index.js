@@ -19,7 +19,7 @@ if (!semver.satisfies(process.versions.node, packageJson.engines.node)) {
 
 const extend = require('node.extend.without.arrays')
 const path = require('path')
-const core = require('jsreport-core')
+const core = require('@jsreport/jsreport-core')
 const main = require('./lib/main')
 
 const renderDefaults = {

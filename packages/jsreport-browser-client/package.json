@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-browser-client",
-  "version": "2.2.2",
+  "name": "@jsreport/jsreport-browser-client",
+  "version": "3.0.0-beta.1",
   "description": "jsreport browser client",
   "keywords": [
     "jsreport"
@@ -31,14 +31,14 @@
     "test": "standard"
   },
   "dependencies": {
-    "jsreport-browser-client-dist": "1.3.0"
+    "@jsreport/jsreport-browser-client-dist": "3.0.0-beta.1"
   },
   "devDependencies": {
     "babel-eslint": "8.2.1",
     "eslint": "4.17.0",
     "eslint-config-standard-jsx": "4.0.2",
     "eslint-plugin-babel": "4.1.2",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "standard": "10.0.3"
   },
   "engines": {

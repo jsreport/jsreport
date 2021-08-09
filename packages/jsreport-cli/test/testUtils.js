@@ -98,7 +98,7 @@ module.exports = ({
 
         module.exports = (initOpts) => {
           return (
-            require('jsreport-core')(initOpts != null ? initOpts : defaultOpts)
+            require('@jsreport/jsreport-core')(initOpts != null ? initOpts : defaultOpts)
               .use(require(\`${escapePath(cliModuleName)}\`)())
               ${defaultExtensions && defaultExtensions.length > 0 ? defaultExtensions.map((e) => `.use(require(\`${escapePath(e)}\`)())`).join('') : ''}
               ${extensions && extensions.length > 0 ? extensions.map((e) => `.use(require(\`${escapePath(e)}\`)())`).join('') : ''}

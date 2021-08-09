@@ -1,10 +1,10 @@
 /* globals describe, it, beforeEach, afterEach */
 
 const should = require('should')
-const Jsreport = require('jsreport-core')
-const jsreportJsrender = require('jsreport-jsrender')
-const jsreportAuthentication = require('jsreport-authentication')
-const jsreportExpress = require('jsreport-express')
+const Jsreport = require('@jsreport/jsreport-core')
+const jsreportJsrender = require('@jsreport/jsreport-jsrender')
+const jsreportAuthentication = require('@jsreport/jsreport-authentication')
+const jsreportExpress = require('@jsreport/jsreport-express')
 const client = require('../lib/client.js')
 
 describe('testing client', () => {

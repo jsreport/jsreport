@@ -22,7 +22,7 @@ Note that `jsreport-core` by default auto discovers installed extensions and app
 > npm install puppeteer jsreport-chrome-pdf
 
 ```js
-const jsreport = require('jsreport-core')()
+const jsreport = require('@jsreport/jsreport-core')()
 
 jsreport.init().then(() => {
 	return jsreport.render({
@@ -98,13 +98,13 @@ The convention is that jsreport repository extension  starts with `jsreport-xxx`
 jsreport by default runs helpers in the sandbox where is the `require` function blocked. To unblock particular modules or local scripts you need to configure `sandbox.allowedModules` option.
 
 ```js
-const jsreport = require('jsreport-core')({
+const jsreport = require('@jsreport/jsreport-core')({
 	sandbox: { allowedModules: ['moment'] }
 })
 
 // or unblock everything
 
-const jsreport = require('jsreport-core')({
+const jsreport = require('@jsreport/jsreport-core')({
 	sandbox: { allowedModules: '*' }
 })
 ```
@@ -112,7 +112,7 @@ const jsreport = require('jsreport-core')({
 Additionally jsreport provides global variables which can be used to build the local script path and read it.
 
 ```js
-const jsreport = require('jsreport-core')({
+const jsreport = require('@jsreport/jsreport-core')({
 	sandbox: { allowedModules: '*' }
 })
 
@@ -156,9 +156,9 @@ jsreport by default auto discovers extensions in the application's directory tre
 jsreport extensions auto discovery slows down the startup and can be explicitly overrided using `use` function.
 
 ```js
-const jsreport = require('jsreport-core')({...})
-jsreport.use(require('jsreport-phantom-pdf')())
-jsreport.use(require('jsreport-jsrender')())
+const jsreport = require('@jsreport/jsreport-core')({...})
+jsreport.use(require('@jsreport/jsreport-phantom-pdf')())
+jsreport.use(require('@jsreport/jsreport-jsrender')())
 jsreport.init()
 ```
 
@@ -166,7 +166,7 @@ jsreport.init()
 jsreport accepts options as the first parameter. The core options are the following:
 
 ```js
-require('jsreport-core')({
+require('@jsreport/jsreport-core')({
 	// optionally specifies where's the application root and where jsreport searches for extensions
 	rootDirectory: path.join(__dirname, '../../'),
 	// optionally specifies where the application stores temporary files used by the conversion pipeline
@@ -196,12 +196,12 @@ require('jsreport-core')({
 1. configuration file jsreport.config.json or the one specified in `configFile` environment variable
 2. command line arguments
 3. process environment variables
-4. options passed directly to `require('jsreport-core')({})`
+4. options passed directly to `require('@jsreport/jsreport-core')({})`
 
 Each extension (recipe, store...) usually provides some options you can apply and adapt its behavior. These options can be typically set through standard configuration under the top level `extensions` property, options in there with the name corresponding to the extension's name are forwarded to the particular extension. This is the common way how to globally configure all extensions at one place.
 
 ```js
-require('jsreport-core')({
+require('@jsreport/jsreport-core')({
 	...
 	"extensions": {
 		"scripts": {
@@ -232,7 +232,7 @@ jsreport also exposes `logger` property which can be used to adapt the logging a
 
 ```js
 const winston = require('winston')
-const jsreport = require('jsreport-core')()
+const jsreport = require('@jsreport/jsreport-core')()
 jsreport.logger.add(winston.transports.Console, { level: 'info' })
 ```
 

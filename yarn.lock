@@ -9066,6 +9066,15 @@ jsrender@1.0.4:
   dependencies:
     through2 "^2.0.0"
 
+jsreport-client@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/jsreport-client/-/jsreport-client-1.2.1.tgz#13dd29707fef4b801f532aede5ec3a4ad2a848b0"
+  integrity sha512-qwoBXKBxcjjczhKXvufS2MBq5DV1419xjvpCXtIE00UxQq1vqYETTs6OyInmn2MTNaTTmOwFt2mgIyibl45kaA==
+  dependencies:
+    axios "0.21.1"
+    concat-stream "2.0.0"
+    mimic-response "2.1.0"
+
 jsreport-exceljs@jsreport/exceljs:
   version "3.7.1"
   resolved "https://codeload.github.com/jsreport/exceljs/tar.gz/d1a116225a94ca015b8a4d38692ca9ae2645da47"
@@ -9101,6 +9110,15 @@ jsreport-sql-2@0.0.1:
   dependencies:
     lodash "^4.17.5"
     sliced "0.0.x"
+
+jsreport-sql-store@1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/jsreport-sql-store/-/jsreport-sql-store-1.4.2.tgz#9eb173c9cb72bd8488619a71a0619658a6754482"
+  integrity sha512-OuJUEgqklWjryfXrV9Jbg/GeVS2MJcXs7I4dC+63asi0V2Eohmwu5MEIEYzSsE+2ekPfIdMj8tfBNLkAs43v7A==
+  dependencies:
+    bluebird "3.5.3"
+    odata-to-sql "0.10.2"
+    uuid "3.3.2"
 
 jsx-ast-utils@^1.3.4:
   version "1.4.1"

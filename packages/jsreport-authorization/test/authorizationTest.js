@@ -1,5 +1,5 @@
 const should = require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 describe('authorization', () => {
   let reporter
@@ -812,7 +812,7 @@ describe('authorization migration', () => {
       }
     })
     reporter.use(require('../')())
-    reporter.use(require('jsreport-fs-store')({ dataDirectory: path.join(__dirname, 'datatmp') }))
+    reporter.use(require('@jsreport/jsreport-fs-store')({ dataDirectory: path.join(__dirname, 'datatmp') }))
     reporter.use((reporter, definition) => {
       // auth fake
       reporter.authentication = {}

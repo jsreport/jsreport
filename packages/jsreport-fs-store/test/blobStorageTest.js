@@ -1,6 +1,6 @@
 const path = require('path')
 const fs = require('fs')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const tmpData = path.join(__dirname, 'tmpData')
 
 describe('fileSystemBlobStorage', () => {

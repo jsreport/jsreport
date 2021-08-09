@@ -1,5 +1,5 @@
 require('should')
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 
 describe('jsrender', () => {
   let jsreport

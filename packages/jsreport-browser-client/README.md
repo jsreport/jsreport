@@ -1,12 +1,12 @@
-# jsreport-browser-client
+# @jsreport/jsreport-browser-client
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-browser-client.svg?style=flat-square)](https://npmjs.com/package/jsreport-browser-client)
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-browser-client.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-browser-client)
 
-**Adds recipe html-with-browser-client which creates html output with attached [jsreport browser client script](https://github.com/jsreport/jsreport-browser-client-dist).**
+**Adds recipe html-with-browser-client which creates html output with attached [jsreport browser client script](http://jsreport.net/learn/browser-client).**
 
-The html output is then extended with [jsreport](https://github.com/jsreport/jsreport-browser-client-dist) global object. That can be used to invoke jsreport server rendering directly from the output report.
+The html output is then extended with [jsreport](http://jsreport.net/learn/browser-client) global object. That can be used to invoke jsreport server rendering directly from the output report.
 
-See the [jsreport-browser-client-dist](https://github.com/jsreport/jsreport-browser-client-dist) for API documentation.
+See the [jsreport-browser-client-dist](http://jsreport.net/learn/browser-client) for API documentation.
 
 
 ## Export part of the report to PDF
@@ -68,7 +68,7 @@ jsreport.renderAsync({ template: { name: 'master'} }).then(function(r) {
 
 
 ## Editable templates
-The last example shows how to use the [jsreport borwser client](https://github.com/jsreport/jsreport-browser-client-dist) to edit and preview the template in third party WYSIWYG editor.
+The last example shows how to use the [jsreport borwser client](http://jsreport.net/learn/browser-client) to edit and preview the template in third party WYSIWYG editor.
 
 ```html
 <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>

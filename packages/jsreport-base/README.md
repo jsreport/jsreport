@@ -1,19 +1,14 @@
-# jsreport-base
+# @jsreport/jsreport-base
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-base.svg?style=flat-square)](https://npmjs.com/package/jsreport-base)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-base.png?branch=master)](https://travis-ci.org/jsreport/jsreport-base)
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-base.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-base)
+
 
 jsreport extension automatically injecting [html base tag](https://www.tutorialspoint.com/html/html_base_tag.htm) to allow relative referencing of local files
 
 See https://jsreport.net/learn/base
 
-## Installation
-> npm install jsreport-base
+## Changelog
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+### 3.0.0-beta.1
 
-```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-base')({ url: __dirname }))
-```
+Adaptations for the v3 APIs

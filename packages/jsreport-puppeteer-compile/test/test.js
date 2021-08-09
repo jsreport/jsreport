@@ -1,4 +1,4 @@
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 require('should')
 
 describe('single executable', () => {
@@ -9,7 +9,7 @@ describe('single executable', () => {
       }
     })
       .use(require('../'))
-      .use(require('jsreport-chrome-pdf')({
+      .use(require('@jsreport/jsreport-chrome-pdf')({
         launchOptions: {
           args: ['--no-sandbox']
         }

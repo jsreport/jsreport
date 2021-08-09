@@ -72,7 +72,7 @@ class MainReporter extends Reporter {
   /**
    * Manual registration of the extension. Once calling `use` the auto discovery of extensions is turned off if not explicitly
    * turned on.
-   * jsreport.use(require('jsreport-jsrender')())
+   * jsreport.use(require('@jsreport/jsreport-jsrender')())
    * @param {Object || Function} extensions
    * @return {Reporter} for chaining
    * @public

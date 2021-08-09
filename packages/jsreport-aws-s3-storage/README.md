@@ -1,8 +1,5 @@
-
-
-# jsreport-aws-s3-storage
-[![NPM Version](http://img.shields.io/npm/v/jsreport-aws-s3-storage.svg?style=flat-square)](https://npmjs.com/package/jsreport-aws-s3-storage)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-aws-s3-storage.png?branch=master)](https://travis-ci.org/jsreport/jsreport-aws-s3-storage)
+# @jsreport/jsreport-aws-s3-storage
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-aws-s3-storage.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-aws-s3-storage)
 
 > jsreport extension adding support for storing blobs in aws s3
 
@@ -17,7 +14,7 @@ https://jsreport.net/learn/reports
 
 ## Installation
 
-> npm install jsreport-aws-s3-storage
+> npm install @jsreport/jsreport-aws-s3-storage
 
 ## Configuration
 
@@ -44,8 +41,15 @@ Optionally you can set
 	}
 }
 ```
+
 ## jsreport-core
 ```js
-var jsreport = require('jsreport-core')({ blobStorage: { provider: 'aws-s3-storage' } })
-jsreport.use(require('jsreport-aws-s3-storage')({...}))
+var jsreport = require('@jsreport/jsreport-core')({ blobStorage: { provider: 'aws-s3-storage' } })
+jsreport.use(require('@jsreport/jsreport-aws-s3-storage')({...}))
 ```
+
+## Changelog
+
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs

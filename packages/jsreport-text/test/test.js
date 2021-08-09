@@ -1,4 +1,4 @@
-const JsReport = require('jsreport-core')
+const JsReport = require('@jsreport/jsreport-core')
 require('should')
 
 describe('text', () => {

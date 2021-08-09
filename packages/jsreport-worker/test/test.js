@@ -1,7 +1,7 @@
 const path = require('path')
 const Worker = require('../')
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const axios = require('axios')
 const serializator = require('serializator')
 
@@ -14,9 +14,9 @@ describe('worker', () => {
 
   beforeEach(async () => {
     reporter = await jsreport()
-      .use(require('jsreport-handlebars')())
-      .use(require('jsreport-chrome-pdf')())
-      .use(require('jsreport-docker-workers')({
+      .use(require('@jsreport/jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-chrome-pdf')())
+      .use(require('@jsreport/jsreport-docker-workers')({
         customContainersPoolFactory: () => {
           return {
             containers: [{
@@ -120,7 +120,7 @@ describe('worker with small timeout', () => {
       reportTimeout: 500
     })
       .use(jsreport.tests.listeners())
-      .use(require('jsreport-docker-workers')({
+      .use(require('@jsreport/jsreport-docker-workers')({
         customContainersPoolFactory: () => {
           return {
             containers: [{

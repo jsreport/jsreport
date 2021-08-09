@@ -1,5 +1,5 @@
 require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const helpers = require('../static/helpers')
 
 describe('childTemplates', () => {
@@ -8,8 +8,8 @@ describe('childTemplates', () => {
   beforeEach(() => {
     reporter = jsreport()
     reporter.use(require('../')())
-    reporter.use(require('jsreport-jsrender')())
-    reporter.use(require('jsreport-handlebars')())
+    reporter.use(require('@jsreport/jsreport-jsrender')())
+    reporter.use(require('@jsreport/jsreport-handlebars')())
 
     return reporter.init()
   })

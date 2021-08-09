@@ -1,6 +1,6 @@
 {
-  "name": "jsreport-studio-theme-dark",
-  "version": "0.3.0",
+  "name": "@jsreport/jsreport-studio-theme-dark",
+  "version": "3.0.0-beta.1",
   "description": "dark theme for jsreport studio",
   "keywords": [
     "jsreport",
@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "babel-eslint": "10.0.2",
-    "jsreport-studio-dev": "1.6.0",
+    "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "standard": "13.1.0"
   },
   "engines": {

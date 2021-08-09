@@ -1,7 +1,7 @@
 process.env.DEBUG = 'jsreport'
 const should = require('should')
 const request = require('supertest')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
 const conflictsTest = require('./conflictsTest')
@@ -42,7 +42,7 @@ describe('rest api', () => {
       workers: { numberOfWorkers: 1 }
     })
       .use(require('../')())
-      .use(require('jsreport-express')())
+      .use(require('@jsreport/jsreport-express')())
 
     return reporter.init()
   })
@@ -101,15 +101,15 @@ describe('import-export', () => {
   })
 
   describe('fs store', () => {
-    common(fsStore, (reporter) => reporter.use(require('jsreport-fs-store')()))
+    common(fsStore, (reporter) => reporter.use(require('@jsreport/jsreport-fs-store')()))
   })
 
   describe.only('mongodb store', () => {
-    common(mongo, (reporter) => reporter.use(require('jsreport-mongodb-store')()))
+    common(mongo, (reporter) => reporter.use(require('@jsreport/jsreport-mongodb-store')()))
   })
 
   describe('postgres store', function () {
-    common(postgres, (reporter) => reporter.use(require('jsreport-postgres-store')()))
+    common(postgres, (reporter) => reporter.use(require('@jsreport/jsreport-postgres-store')()))
   })
 
   function common (options = {}, cfg = () => {}) {
@@ -119,8 +119,8 @@ describe('import-export', () => {
           workers: { numberOfWorkers: 1 },
           ...options
         })
-          .use(require('jsreport-data')())
-          .use(require('jsreport-assets')())
+          .use(require('@jsreport/jsreport-data')())
+          .use(require('@jsreport/jsreport-assets')())
           .use((reporter) => {
             reporter.documentStore.registerComplexType('SecureTestingType', {
               valueRaw: { type: 'Edm.String' },
@@ -724,15 +724,15 @@ describe('exports across stores', function () {
 
     beforeEach(function () {
       reporter1 = new Reporter(options)
-        .use(Object.assign({}, require('jsreport-fs-store')()))
-        .use(Object.assign({}, require('jsreport-mongodb-store')()))
-        .use(Object.assign({}, require('jsreport-postgres-store')()))
+        .use(Object.assign({}, require('@jsreport/jsreport-fs-store')()))
+        .use(Object.assign({}, require('@jsreport/jsreport-mongodb-store')()))
+        .use(Object.assign({}, require('@jsreport/jsreport-postgres-store')()))
         .use(require('../')())
 
       reporter2 = new Reporter(options2)
-        .use(Object.assign({}, require('jsreport-fs-store')()))
-        .use(Object.assign({}, require('jsreport-mongodb-store')()))
-        .use(Object.assign({}, require('jsreport-postgres-store')()))
+        .use(Object.assign({}, require('@jsreport/jsreport-fs-store')()))
+        .use(Object.assign({}, require('@jsreport/jsreport-mongodb-store')()))
+        .use(Object.assign({}, require('@jsreport/jsreport-postgres-store')()))
         .use(require('../')())
 
       return reporter1.init().then(function () {

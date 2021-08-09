@@ -14,6 +14,6 @@ See https://jsreport.net/learn/scheduling
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-scheduling)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-scheduling')({}))
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-scheduling')({}))
 ```

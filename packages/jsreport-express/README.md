@@ -16,8 +16,8 @@ And many others. Where some of them are working also without `jsreport-express` 
 ## jsreport-core
 The following example shows how to start jsreport studio through express extension.
 ```js
-var jsreport = require('jsreport-core')();
-jsreport.use(require('jsreport-express')({ httpPort: 2000}));
+var jsreport = require('@jsreport/jsreport-core')();
+jsreport.use(require('@jsreport/jsreport-express')({ httpPort: 2000}));
 
 jsreport.init();
 ```
@@ -36,8 +36,8 @@ app.get('/', function (req, res) {
 var reportingApp = express();
 app.use('/reporting', reportingApp);
 
-var jsreport = require('jsreport-core')();
-jsreport.use(require('jsreport-express')({ app: reportingApp }));
+var jsreport = require('@jsreport/jsreport-core')();
+jsreport.use(require('@jsreport/jsreport-express')({ app: reportingApp }));
 
 jsreport.init();
 app.listen(3000);

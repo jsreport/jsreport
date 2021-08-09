@@ -21,6 +21,6 @@ To use `handlebars` in for template rendering set `template.engine=handlebars` i
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-handlebars')())
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-handlebars')())
 ```

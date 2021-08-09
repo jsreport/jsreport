@@ -1,5 +1,5 @@
 require('should')
-const Reporter = require('jsreport-core')
+const Reporter = require('@jsreport/jsreport-core')
 const isAssetPathValid = require('../lib/assetsShared').isAssetPathValid
 const request = require('supertest')
 
@@ -10,10 +10,10 @@ describe('assets', function () {
     reporter = Reporter({
       rootDirectory: process.cwd()
     })
-      .use(require('jsreport-express')())
-      .use(require('jsreport-jsrender')())
-      .use(require('jsreport-handlebars')())
-      .use(require('jsreport-scripts')())
+      .use(require('@jsreport/jsreport-express')())
+      .use(require('@jsreport/jsreport-jsrender')())
+      .use(require('@jsreport/jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-scripts')())
       .use(require('../')())
       .use(Reporter.tests.listeners())
 
@@ -1298,7 +1298,7 @@ describe('assets with allowLocalFilesAccess', () => {
       rootDirectory: process.cwd(),
       allowLocalFilesAccess: true
     })
-      .use(require('jsreport-jsrender')())
+      .use(require('@jsreport/jsreport-jsrender')())
       .use(require('../')())
 
     return reporter.init()
@@ -1339,7 +1339,7 @@ describe('assets with express', function () {
     reporter = Reporter({
       rootDirectory: require('process').cwd()
     })
-      .use(require('jsreport-express')())
+      .use(require('@jsreport/jsreport-express')())
       .use(require('../')())
       .use(Reporter.tests.listeners())
 

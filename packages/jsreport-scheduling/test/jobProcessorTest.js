@@ -1,6 +1,6 @@
 require('should')
 const JobProcessor = require('../lib/jobProcessor')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 describe('for jobProcessor', () => {
   let reporter
@@ -16,7 +16,7 @@ describe('for jobProcessor', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-reports')())
+    reporter.use(require('@jsreport/jsreport-reports')())
 
     await reporter.init()
 
@@ -345,7 +345,7 @@ describe('for jobProcessor with auth enabled', () => {
     })
 
     reporter.use(require('../')())
-    reporter.use(require('jsreport-authentication')({
+    reporter.use(require('@jsreport/jsreport-authentication')({
       admin: {
         username: 'admin',
         password: 'password'
@@ -354,8 +354,8 @@ describe('for jobProcessor with auth enabled', () => {
         secret: 'foo'
       }
     }))
-    reporter.use(require('jsreport-authorization')())
-    reporter.use(require('jsreport-reports')())
+    reporter.use(require('@jsreport/jsreport-authorization')())
+    reporter.use(require('@jsreport/jsreport-reports')())
 
     await reporter.init()
 

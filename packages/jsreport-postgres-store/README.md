@@ -38,6 +38,6 @@ You can apply this extension also manually to [jsreport-core](https://github.com
 
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-postgres-store')({ host: '...'}))
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-postgres-store')({ host: '...'}))
 ```

@@ -1,5 +1,5 @@
 const should = require('should')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 
 const RUN_TRANSACTIONS_TESTS = process.env.RUN_TRANSACTIONS_TESTS != null
 

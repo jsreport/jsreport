@@ -1,5 +1,5 @@
 const supertest = require('supertest')
-const jsreport = require('jsreport-core')
+const jsreport = require('@jsreport/jsreport-core')
 const should = require('should')
 
 describe('with reports extension', () => {
@@ -8,8 +8,8 @@ describe('with reports extension', () => {
   beforeEach(() => {
     reporter = jsreport()
     reporter.use(require('../')())
-    reporter.use(require('jsreport-express')())
-    reporter.use(require('jsreport-scripts')())
+    reporter.use(require('@jsreport/jsreport-express')())
+    reporter.use(require('@jsreport/jsreport-scripts')())
     reporter.use(jsreport.tests.listeners())
 
     return reporter.init()

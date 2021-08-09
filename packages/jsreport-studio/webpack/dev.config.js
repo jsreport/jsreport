@@ -3,7 +3,7 @@ require('babel-polyfill')
 // Webpack config for development
 const fs = require('fs')
 const path = require('path')
-const jsreportStudioDev = require('jsreport-studio-dev')
+const jsreportStudioDev = require('@jsreport/jsreport-studio-dev')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
@@ -91,7 +91,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
     devtool: 'eval-source-map',
     context: path.resolve(__dirname, '..'),
     entry: {
-      'main': [
+      main: [
         './src/client.js',
         'webpack-hot-middleware/client',
         // we use a forked font-awesome-webpack (named: font-awesome-webpack-4)
@@ -253,7 +253,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
                   const modulePath = context.resource
                   let devExtension
 
-                  for (let key in extensionsInDevMode) {
+                  for (const key in extensionsInDevMode) {
                     const currentExtension = extensionsInDevMode[key]
 
                     if (currentExtension.name === 'studio') {
@@ -359,13 +359,13 @@ module.exports = (extensions, extensionsInNormalMode) => {
         'src',
         'node_modules',
         path.join(__dirname, '../node_modules'),
-        path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules')
+        path.join(__dirname, '../node_modules/@jsreport/jsreport-studio-dev/node_modules')
       ]
     },
     resolveLoader: {
       modules: [
         path.join(__dirname, '../node_modules'),
-        path.join(__dirname, '../node_modules/jsreport-studio-dev/node_modules'),
+        path.join(__dirname, '../node_modules/@jsreport/jsreport-studio-dev/node_modules'),
         'node_modules'
       ]
     },
@@ -379,7 +379,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
       new MiniCssExtractPlugin({
         // Options similar to the same options in webpackOptions.output
         // both options are optional
-        filename:  '[name].dev.css', // '[name].[hash].css'
+        filename: '[name].dev.css', // '[name].[hash].css'
         chunkFilename: '[name].client.dev.css' // '[id].[hash].css'
       }),
       new MonacoWebpackPlugin({

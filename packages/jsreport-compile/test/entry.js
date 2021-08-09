@@ -1,6 +1,6 @@
-const jsreportInstance = require('jsreport-core')({
+const jsreportInstance = require('@jsreport/jsreport-core')({
   discover: false
-}).use(require('jsreport-express')())
+}).use(require('@jsreport/jsreport-express')())
 
 if (require.main !== module) {
   module.exports = jsreportInstance

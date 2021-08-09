@@ -1,4 +1,4 @@
-const office = require('jsreport-office')
+const office = require('@jsreport/jsreport-office')
 
 module.exports = {
   name: 'pptx',

@@ -1,6 +1,3 @@
-
-module.exports = function (Handlebars) {
-    Handlebars.registerHelper('nowLocalStr', function () {
-        return new Date().toLocaleDateString()
-    })
+function nowLocalStr () {
+  return new Date().toLocaleDateString()
 }

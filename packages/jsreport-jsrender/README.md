@@ -21,6 +21,6 @@ To use `jsrender` in for template rendering set `template.engine=jsrender` in th
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
 
 ```js
-var jsreport = require('jsreport-core')()
-jsreport.use(require('jsreport-jsrender')())
+var jsreport = require('@jsreport/jsreport-core')()
+jsreport.use(require('@jsreport/jsreport-jsrender')())
 ```

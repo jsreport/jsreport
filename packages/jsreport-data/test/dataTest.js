@@ -1,7 +1,7 @@
 require('should')
 const data = require('../')
-const handlebars = require('jsreport-handlebars')
-const jsreport = require('jsreport-core')
+const handlebars = require('@jsreport/jsreport-handlebars')
+const jsreport = require('@jsreport/jsreport-core')
 const Request = jsreport.Request
 
 describe('data', () => {
