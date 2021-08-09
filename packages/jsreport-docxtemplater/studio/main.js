@@ -127,18 +127,6 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
   }
 });
 
-_jsreportStudio2.default.addApiSpec({
-  template: {
-    docxtemplater: {
-      templateAsset: {
-        encoding: '...',
-        content: '...'
-      },
-      templateAssetShortid: '...'
-    }
-  }
-});
-
 _jsreportStudio2.default.previewListeners.push(function (request, entities) {
   if (request.template.recipe !== 'docxtemplater') {
     return;
@@ -165,8 +153,7 @@ _jsreportStudio2.default.previewListeners.push(function (request, entities) {
       'We need to upload your docx report to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see ',
       React.createElement(
         'a',
-        {
-          href: 'https://jsreport.net/learn/docxtemplater', target: '_blank' },
+        { href: 'https://jsreport.net/learn/docxtemplater', target: '_blank', rel: 'noreferrer' },
         'https://jsreport.net/learn/docxtemplater'
       ),
       ' for details.'
@@ -261,7 +248,8 @@ var Properties = function (_Component) {
               value: entity.docxtemplater ? entity.docxtemplater.templateAssetShortid : '',
               onChange: function onChange(v) {
                 return _onChange({ _id: entity._id, docxtemplater: v.target.value !== 'empty' ? { templateAssetShortid: v.target.value } : null });
-              } },
+              }
+            },
             _react2.default.createElement(
               'option',
               { key: 'empty', value: 'empty' },
