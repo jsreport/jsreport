@@ -1,4 +1,4 @@
-# jsreport-docxtemplater
+# @jsreport/jsreport-docxtemplater
 [![NPM Version](http://img.shields.io/npm/v/jsreport-docxtemplater.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-docxtemplater)
 jsreport recipe for creating docx word document using [docxtemplater](https://docxtemplater.readthedocs.io/en/latest/)
 

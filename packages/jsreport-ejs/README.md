@@ -1,4 +1,4 @@
-# jsreport-ejs
+# @jsreport/jsreport-ejs
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-ejs.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-ejs)
 
 [EJS](http://www.embeddedjs.com/) templating engine for jsreport.
