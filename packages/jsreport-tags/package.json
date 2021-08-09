@@ -6,13 +6,10 @@
     "jsreport",
     "tags"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-tags",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-tags/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-tags",
   "repository": {
     "type": "git",
-    "url": "git+https://bjrmatos@github.com/jsreport/jsreport-tags.git"
+    "url": "git+https://bjrmatos@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

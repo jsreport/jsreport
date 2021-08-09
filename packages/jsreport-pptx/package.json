@@ -6,10 +6,10 @@
     "jsreport",
     "pptx"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-pptx",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-pptx",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-pptx.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

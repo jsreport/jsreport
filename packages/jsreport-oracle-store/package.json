@@ -2,13 +2,10 @@
   "name": "@jsreport/jsreport-oracle-store",
   "version": "3.0.0-beta.1",
   "description": "Extension allowing to store template in Oracle Database",
-  "homepage": "https://github.com/jsreport/jsreport-oracle-store#readme",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-oracle-store/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-oracle-store#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-oracle-store.git"
+    "url": "git+https://github.com/jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "main": "index.js",

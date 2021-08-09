@@ -5,13 +5,10 @@
   "keywords": [
     "jsreport"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-freeze",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-freeze/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-freeze",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-freeze.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

@@ -6,10 +6,10 @@
     "jsreport",
     "docx"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-docxtemplater",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-docxtemplater",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-docxtemplater.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

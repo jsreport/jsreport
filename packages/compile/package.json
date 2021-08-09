@@ -5,13 +5,10 @@
   "keywords": [
     "jsreport"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-compile",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-compile/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jsreport/jsreport-compile.git"
+    "url": "https://github.com/jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "main": "index.js",

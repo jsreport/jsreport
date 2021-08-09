@@ -6,13 +6,10 @@
     "jsreport",
     "pdf"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-fs-store",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-fs-store/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-fs-store",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-fs-store.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

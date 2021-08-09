@@ -6,10 +6,10 @@
     "jsreport",
     "office"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-unoconv",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages//jsreport-unoconv",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-unoconv.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

@@ -7,10 +7,10 @@
     "export",
     "import"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-import-export",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-import-export",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-import-export.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "files": [

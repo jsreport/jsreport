@@ -6,10 +6,10 @@
     "jsreport",
     "pdf"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-chrome-pdf",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-chrome-pdf",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-chrome-pdf.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": "Jan Blaha",

@@ -6,10 +6,10 @@
     "jsreport",
     "aws"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-fs-store-aws-s3-persistence",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-fs-store-aws-s3-persistence",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-fs-store-aws-s3-persistence.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": "Jan Blaha",

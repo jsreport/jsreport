@@ -6,13 +6,10 @@
     "jsreport",
     "base"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-base",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-base/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-base",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-base.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

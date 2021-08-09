@@ -6,13 +6,10 @@
     "jsreport",
     "authentication"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-authentication",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-authentication/issues"
-  },
+  "homepage": "https://jsreport.net/learn/authentication",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-authentication.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": {

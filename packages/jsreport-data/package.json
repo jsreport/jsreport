@@ -6,13 +6,10 @@
     "jsreport",
     "data"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-data",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-data/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-data",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-data.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": {

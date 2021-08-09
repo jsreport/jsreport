@@ -5,13 +5,10 @@
   "keywords": [
     "jsreport"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-browser-client",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-browser-client/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-browser-client",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-browser-client.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

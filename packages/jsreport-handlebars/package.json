@@ -6,10 +6,10 @@
     "jsreport",
     "handlebars"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-handlebars",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-handlebars",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-handlebars.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": "Jan Blaha",

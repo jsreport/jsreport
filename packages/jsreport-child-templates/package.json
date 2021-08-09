@@ -6,13 +6,10 @@
     "jsreport",
     "sub-reports"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-child-templates",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-child-templates/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-child-templates",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-child-templates.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": {

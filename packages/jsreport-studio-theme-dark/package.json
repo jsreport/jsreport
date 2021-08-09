@@ -6,13 +6,10 @@
     "jsreport",
     "jsreport-studio"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-studio-theme-dark",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-studio-theme-dark/issues"
-  },
+  "homepage": "httpshttps://github.com/jsreport/jsreport/tree/master/packages/jsreport-studio-theme-dark",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-studio-theme-dark.git"
+    "url": "git+https://github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

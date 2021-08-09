@@ -8,13 +8,10 @@
     "commands",
     "jsreport commands"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-cli",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-cli/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-cli",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-cli.git"
+    "url": "git+https://github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

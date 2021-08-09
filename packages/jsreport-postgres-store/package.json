@@ -4,11 +4,11 @@
   "description": "Extension allowing to store template in Postgres SQL database",
   "homepage": "https://github.com/jsreport/jsreport-postgres-store#readme",
   "bugs": {
-    "url": "https://github.com/jsreport/jsreport-postgres-store/issues"
+    "url": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-postgres-store/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-postgres-store.git"
+    "url": "git+https://github.com/jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "main": "index.js",

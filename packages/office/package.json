@@ -11,14 +11,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jsreport/jsreport-office.git"
+    "url": "git+https://github.com/jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-office/issues"
-  },
-  "homepage": "https://github.com/jsreport/jsreport-office#readme",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/office#readme",
   "dependencies": {
     "archiver": "5.3.0",
     "axios": "0.19.2",

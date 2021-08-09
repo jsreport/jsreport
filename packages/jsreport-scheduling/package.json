@@ -6,13 +6,10 @@
     "jsreport",
     "scheduling"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-scheduling",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-scheduling/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-scheduling",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-scheduling.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": {

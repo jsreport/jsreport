@@ -5,10 +5,10 @@
   "keywords": [
     "jsreport"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-scripts",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-scripts",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-scripts.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": "Jan Blaha",

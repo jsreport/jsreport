@@ -6,10 +6,10 @@
     "jsreport",
     "aws"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-aws-s3-storage",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-aws-s3-storage",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-aws-s3-storage.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "author": {
     "name": "Jan Blaha"

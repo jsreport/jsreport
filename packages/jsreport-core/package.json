@@ -7,13 +7,10 @@
     "business",
     "javascript"
   ],
-  "homepage": "http://jsreport.net",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-core/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-core.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": {

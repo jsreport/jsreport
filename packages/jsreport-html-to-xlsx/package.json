@@ -6,10 +6,10 @@
     "jsreport",
     "xlsx"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-html-to-xlsx",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-html-to-xlsx",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-html-to-xlsx.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "LGPL",
   "author": {

@@ -2,13 +2,10 @@
   "name": "@jsreport/client",
   "version": "3.0.0-beta.1",
   "description": "jsreport node.js client",
-  "homepage": "https://github.com/jsreport/nodejs-client",
-  "bugs": {
-    "url": "https://github.com/jsreport/nodejs-client/issues"
-  },
+  "homepage": "https://jsreport.net/learn/nodejs-client",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/nodejs-client.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "author": {
     "name": "Jan Blaha",

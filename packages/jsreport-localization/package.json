@@ -6,13 +6,10 @@
     "jsreport",
     "localization"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-localization",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-localization/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-localization",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-localization.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

@@ -5,13 +5,10 @@
   "keywords": [
     "jsreport"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-studio-dev",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-studio-dev/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/studio-dev",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-studio-dev.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

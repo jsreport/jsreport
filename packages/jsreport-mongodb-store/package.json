@@ -6,10 +6,10 @@
     "jsreport",
     "mongodb"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-mongodb-store",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-mongodb-store",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-mongodb-store.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "main": "index.js",

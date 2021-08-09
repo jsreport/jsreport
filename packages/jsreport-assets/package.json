@@ -6,10 +6,10 @@
     "jsreport",
     "assets"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-assets",
+  "homepage": "https://jsreport.net/learn/assets",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-assets.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": "Jan Blaha",

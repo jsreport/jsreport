@@ -6,10 +6,10 @@
     "jsreport",
     "azure"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-azure-storage",
+  "homepage": "hhttps://github.com/jsreport/jsreport/tree/master/packages/jsreport-azure-storage",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-azure-storage.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "author": "Jan Blaha",
   "files": [

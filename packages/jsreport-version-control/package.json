@@ -6,10 +6,10 @@
     "jsreport",
     "pdf"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-version-control",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-version-control",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-version-control.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": "Jan Blaha",

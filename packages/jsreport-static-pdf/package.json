@@ -6,13 +6,10 @@
     "jsreport",
     "pdf"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-static-pdf",
-  "bugs": {
-    "url": "https://github.com/jsreport/jsreport-static-pdf/issues"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-static-pdf",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/jsreport/jsreport-static-pdf.git"
+    "url": "git+ssh://git@github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": {

@@ -6,10 +6,10 @@
     "jsreport",
     "compile"
   ],
-  "homepage": "https://github.com/jsreport/jsreport-puppeteer-compile",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-puppeteer-compile",
   "repository": {
     "type": "git",
-    "url": "git@github.com:jsreport/jsreport-puppeteer-compile.git"
+    "url": "git@github.com:jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": "Jan Blaha",
