@@ -1,13 +1,12 @@
-# jsreport-mssql-store
-[![NPM Version](http://img.shields.io/npm/v/jsreport-mssql-store.svg?style=flat-square)](https://npmjs.com/package/jsreport-mssql-store)
-[![Build Status](https://travis-ci.com/jsreport/jsreport-mssql-store.png?branch=master)](https://travis-ci.org/jsreport/jsreport-mssql-store)
+# @jsreport/jsreport-mssql-store
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-mssql-store.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-mssql-store)
 
 **[jsreport](https://github.com/jsreport/jsreport) template store extension allowing to persist data in [Microsoft SQL Server](https://www.microsoft.com/en/server-cloud/products/sql-server/)**
 
 
 ## Installation
 
-> npm install jsreport-mssql-store
+> npm install @jsreport/jsreport-mssql-store
 
 Then alter jsreport configuration
 ```js
@@ -50,10 +49,8 @@ After jsreport initializes you should see tables like `jsreport.TemplateType` an
 ## Schema changes
 If you do changes to the database schema by enabling additional extensions you need to drop the affected tables and let jsreport to reinitialize them.
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+## Changelog
 
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-mssql-store')({ server: '...'}))
-```
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs

@@ -1,18 +1,12 @@
-# jsreport-scripts
-[![NPM Version](http://img.shields.io/npm/v/jsreport-scripts.svg?style=flat-square)](https://npmjs.com/package/jsreport-scripts)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-scripts.png?branch=master)](https://travis-ci.org/jsreport/jsreport-scripts)
+# @jsreport/jsreport-scripts
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-scripts.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-scripts)
 
-> jsreport extension capable of running custom javascript functions during the rendering process
+**jsreport extension capable of running custom javascript functions during the rendering process**
 
 See https://jsreport.net/learn/scripts
 
-## Installation
-> npm install jsreport-scripts
+## Changelog
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+### 3.0.0-beta.1
 
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-scripts')({}))
-```
+Adaptations for the v3 APIs

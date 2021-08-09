@@ -1,19 +1,12 @@
-# jsreport-reports
-[![NPM Version](http://img.shields.io/npm/v/jsreport-reports.svg?style=flat-square)](https://npmjs.com/package/jsreport-reports)
-[![Build Status](https://travis-ci.com/jsreport/jsreport-reports.png?branch=master)](https://travis-ci.com/jsreport/jsreport-reports)
+# @jsreport/jsreport-reports
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-reports.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-reports)
 
-> jsreport extension adding support for storing rendering outputs for later use
+**jsreport extension adding support for storing rendering outputs for later use**
 
 See https://jsreport.net/learn/reports
 
+## Changelog
 
-## Installation
-> npm install jsreport-reports
+### 3.0.0-beta.1
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
-
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-reports')())
-```
+Adaptations for the v3 APIs

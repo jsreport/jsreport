@@ -1,8 +1,7 @@
-# jsreport-fs-store
-[![NPM Version](http://img.shields.io/npm/v/jsreport-fs-store.svg?style=flat-square)](https://npmjs.com/package/jsreport-fs-store)
-[![Build Status](https://travis-ci.com/jsreport/jsreport-fs-store.png?branch=master)](https://travis-ci.com/jsreport/jsreport-fs-store)
+# @jsreport/jsreport-fs-store
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-fs-store.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-fs-store)
 
-**[jsreport](https://github.com/jsreport/jsreport) template store extension. Supports editing templates in the external editors and browsers live reload and preview!**
+**[jsreport](https://github.com/jsreport/jsreport) template store extension. Supports editing templates in the external editors and browser's live reload and preview!**
 
 See the docs https://jsreport.net/learn/fs-store
 
@@ -16,6 +15,12 @@ Then alter jsreport configuration
 	'store': { 'provider': 'fs' }
 }
 ```
+
+## Changelog
+
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs
 
 ## Development
 (This section is intended to jsreport extension developers audience.)

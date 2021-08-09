@@ -1,36 +1,12 @@
-# jsreport-xlsx
+# @jsreport/jsreport-xlsx
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-xlsx.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-xlsx)
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-xlsx.svg?style=flat-square)](https://npmjs.com/package/jsreport-xlsx)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-xlsx.png?branch=master)](https://travis-ci.org/jsreport/jsreport-xlsx)
-
-> jsreport recipe which renders excel reports based on uploaded excel templates by modifying the xlsx source using predefined templating engine helpers
+**jsreport recipe which renders excel reports based on uploaded excel templates by modifying the xlsx source using predefined templating engine helpers**
 
 See the docs https://jsreport.net/learn/xlsx
 
-## Installation
+## Changelog
 
->npm install jsreport-xlsx
+### 3.0.0-beta.1
 
-## jsreport-core
-
-```js
-var fs = require('fs')
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-xlsx')())
-jsreport.use(require('@jsreport/jsreport-handlebars')())
-
-jsreport.init().then(function () {
-  return jsreport.render({
-    template: {
-      recipe: 'xlsx',
-      engine: 'handlebars',
-      content: '{{{xlsxPrint}}}',
-      xlsxTemplate: {
-        content: fs.readFileSync('Book1.xlsx').toString('base64')
-      }
-    }
-  }).then(function (report) {
-    report.stream.pipe(fs.createWriteStream('out.xlsx'))
-  })
-})
-```
+Adaptations for the v3 APIs

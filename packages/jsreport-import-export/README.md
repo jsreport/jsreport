@@ -1,19 +1,12 @@
-# jsreport-import-export
+# @jsreport/jsreport-import-export
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-import-export.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-import-export)
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-import-export.svg?style=flat-square)](https://npmjs.com/package/jsreport-import-export)
-[![Build Status](https://travis-ci.com/jsreport/jsreport-import-export.png?branch=master)](https://travis-ci.com/jsreport/jsreport-import-export)
-
-> jsreport extension adding support for exporting and importing jsreport objects
+**jsreport extension adding support for exporting and importing jsreport objects**
 
 See http://jsreport.net/learn/import-export
 
-## Installation
-> npm install jsreport-import-export --production
+## Changelog
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
+### 3.0.0-beta.1
 
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-import-export')({}))
-```
+Adaptations for the v3 APIs

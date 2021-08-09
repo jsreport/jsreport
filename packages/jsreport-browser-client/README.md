@@ -1,5 +1,4 @@
 # @jsreport/jsreport-browser-client
-
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-browser-client.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-browser-client)
 
 **Adds recipe html-with-browser-client which creates html output with attached [jsreport browser client script](http://jsreport.net/learn/browser-client).**

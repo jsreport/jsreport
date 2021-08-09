@@ -1,30 +1,12 @@
-# jsreport-freeze
-[![NPM Version](http://img.shields.io/npm/v/jsreport-freeze.svg?style=flat-square)](https://npmjs.com/package/jsreport-freeze)
+# @jsreport/jsreport-freeze
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-freeze.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-freeze)
 
-**jsreport extension allowing to freeze editing of templates**
+**jsreport extension allowing to freeze editing of entities**
 
-# Installation
-> **npm install jsreport-freeze**
+See the documentation https://jsreport.net/learn/freeze
 
-# Hard freeze in config
+## Changelog
 
-You can avoid jsreport templates editing through config file:
-```js
-{
-	"extensions" {
-		"freeze": {
-			"hardFreeze": true
-		}
-	}
-}
-```
+### 3.0.0-beta.1
 
-# Freeze in studio
-Second option is to freeze editing in jsreport studio. This can be found in menu `Actions->Freeze Editing`. Note this options is available only for the jsreport administrator. The editing can be also afterwards enabled again using menu `Actions->Release Freeze`.
-
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
-
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-freeze')({})
+Adaptations for the v3 APIs

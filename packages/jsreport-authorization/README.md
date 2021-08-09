@@ -1,7 +1,7 @@
 # @jsreport/jsreport-authorization
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-authorization.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-authorization)
 
-> Manage and delegate user permissions on jsreport objects. 
+**Manage and delegate user permissions on jsreport objects. **
 
 See https://jsreport.net/learn/authorization
 

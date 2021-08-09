@@ -2,7 +2,7 @@
 
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-assets.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-assets)
 
-> jsreport extension embedding static assets like fonts or helpers into the templates
+**jsreport extension embedding static assets like fonts or helpers into the templates**
 
 See https://jsreport.net/learn/assets
 

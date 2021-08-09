@@ -1,11 +1,14 @@
-# jsreport-pptx
-[![NPM Version](http://img.shields.io/npm/v/jsreport-pptx.svg?style=flat-square)](https://npmjs.com/package/jsreport-pptx)
-[![Build Status](https://travis-ci.com/jsreport/jsreport-pptx.png?branch=master)](https://travis-ci.com/jsreport/jsreport-pptx)
-jsreport recipe for creating pptx reports
+# @jsreport/jsreport-pptx
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-pptx.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-pptx)
+
+**jsreport recipe for creating pptx reports**
 
 See https://jsreport.net/learn/pptx
 
-## Installation
+## Changelog
 
-> **npm install jsreport-pptx**
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs
+
 

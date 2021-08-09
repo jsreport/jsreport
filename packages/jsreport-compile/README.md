@@ -1,7 +1,7 @@
 # @jsreport/jsreport-compile
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-compile.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-compile)
 
-> Compile jsreport into single executable
+**Compile jsreport into single executable**
 
 ## Usage
 

@@ -1,14 +1,11 @@
-# jsreport-fs-store-azure-storage-persistence
-[![NPM Version](http://img.shields.io/npm/v/jsreport-fs-store-azure-storage-persistence.svg?style=flat-square)](https://npmjs.com/package/jsreport-fs-store-azure-storage-persistence)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-fs-store-azure-storage-persistence.png?branch=master)](https://travis-ci.org/jsreport/jsreport-fs-store-azure-storage-persistence)
+# @jsreport/jsreport-fs-store-azure-storage-persistence
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-fs-store-azure-storage-persistence.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-fs-store-azure-storage-persistence)
 
-**Make jsreport [fs store](https://github.com/jsreport/jsreport-fs-store) persisting entities into azure blob storage.**
-
+**Make jsreport [fs store](https://jsreport.net/learn/fs-store) persisting entities into azure blob storage.**
 
 ## Installation
-
-> npm install jsreport-fs-store    
-> npm install jsreport-fs-store-azure-storage-persistence
+  
+> npm install @jsreport/jsreport-fs-store-azure-storage-persistence
 
 Create an azure storage account and copy account name and access key.  Then alter jsreport configuration:
 ```js
@@ -34,3 +31,9 @@ Create an azure storage account and copy account name and access key.  Then alte
   }
 }
 ```
+
+## Changelog
+
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs

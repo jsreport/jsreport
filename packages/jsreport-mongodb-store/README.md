@@ -1,12 +1,11 @@
-# jsreport-mongodb-store
+# @jsreport/jsreport-mongodb-store
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-mongodb-store.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-mongodb-store)
 
-[![Build Status](https://travis-ci.org/jsreport/jsreport-mongodb-store.png?branch=master)](https://travis-ci.org/jsreport/jsreport-mongodb-store)
-
-[jsreport](http://jsreport.net/) extension adding support for storing templates and reports inside [mongodb](https://www.mongodb.org/).
+**[jsreport](http://jsreport.net/) extension adding support for storing templates and reports inside [mongodb](https://www.mongodb.org/).**
 
 ## Installation
 
-> npm install jsreport-mongodb-store
+> npm install @jsreport/jsreport-mongodb-store
 
 Then alter jsreport configuration with:
 
@@ -47,3 +46,8 @@ You can also pass connection uri like this
 }
 ```
 
+## Changelog
+
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs

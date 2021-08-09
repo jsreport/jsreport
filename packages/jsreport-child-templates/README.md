@@ -1,7 +1,7 @@
 # @jsreport/jsreport-child-templates
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-child-templates.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-child-templates)
 
-> jsreport extension adding support to combine one template from multiple sub templates
+**jsreport extension adding support to combine one template from multiple sub templates**
 
 See https://jsreport.net/learn/child-templates
 

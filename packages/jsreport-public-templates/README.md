@@ -1,19 +1,12 @@
-# jsreport-public-templates
-[![NPM Version](http://img.shields.io/npm/v/jsreport-public-templates.svg?style=flat-square)](https://npmjs.com/package/jsreport-public-templates)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-public-templates.png?branch=master)](https://travis-ci.org/jsreport/jsreport-public-templates)
+# @jsreport/jsreport-public-templates
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-public-templates.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-public-templates)
 
-jsreport extension for granting public access to particular templates
+**jsreport extension for granting public access to particular templates**
 
 See http://jsreport.net/learn/public-templates
 
+## Changelog
 
-## Installation
-> npm install jsreport-public-templates
+### 3.0.0-beta.1
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
-
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-public-templates')())
-```
+Adaptations for the v3 APIs

@@ -1,19 +1,13 @@
-# jsreport-scheduling
-[![NPM Version](http://img.shields.io/npm/v/jsreport-scheduling.svg?style=flat-square)](https://npmjs.com/package/jsreport-scheduling)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-scheduling.png?branch=master)](https://travis-ci.org/jsreport/jsreport-scheduling)
+# @jsreport/jsreport-scheduling
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-scheduling.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-scheduling)
 
-> jsreport extension for scheduling background rendering jobs
+**jsreport extension for scheduling background rendering jobs**
 
 See https://jsreport.net/learn/scheduling
 
+## Changelog
 
-## Installation
-> npm install jsreport-resources
+### 3.0.0-beta.1
 
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-scheduling)
+Adaptations for the v3 APIs
 
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-scheduling')({}))
-```

@@ -1,26 +1,12 @@
-# jsreport-jsrender
-[![NPM Version](http://img.shields.io/npm/v/jsreport-jsrender.svg?style=flat-square)](https://npmjs.com/package/jsreport-jsrender)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-jsrender.png?branch=master)](https://travis-ci.org/jsreport/jsreport-jsrender)
+# @jsreport/jsreport-jsrender
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-jsrender.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-jsrender)
 
-[jsrender](https://github.com/borismoore/jsrender) templating engine for jsreport.
+**[jsrender](https://github.com/borismoore/jsrender) templating engine for jsreport.**
+
 See the docs https://jsreport.net/learn/jsrender
 
-## Installation
-> npm install jsreport-jsrender
+## Changelog
 
-## Usage
-To use `jsrender` in for template rendering set `template.engine=jsrender` in the rendering request.
+### 3.0.0-beta.1
 
-```js
-{
-  template: { content: '...', recipe: '...', engine: 'jsrender' }
-}
-```
-
-## jsreport-core
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
-
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-jsrender')())
-```
+Adaptations for the v3 APIs

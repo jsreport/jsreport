@@ -1,15 +1,12 @@
-# jsreport-static-pdf
+# @jsreport/jsreport-static-pdf
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-static-pdf.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-static-pdf)
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-static-pdf.svg?style=flat-square)](https://npmjs.com/package/jsreport-static-pdf)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-static-pdf.png?branch=master)](https://travis-ci.org/jsreport/jsreport-static-pdf)
-
-jsreport recipe which loads pdf from static source.
+**jsreport recipe which loads pdf from static source.**
 
 See the docs http://jsreport.net/learn/static-pdf
 
-## Installation
+## Changelog
 
-```
-npm i jsreport-assets
-npm i jsreport-static-pdf
-```
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs

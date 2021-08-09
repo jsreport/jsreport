@@ -1,8 +1,8 @@
-# jsreport-studio-dev
+# @jsreport/jsreport-studio-dev
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-studio-dev.svg?style=flat-square)](https://npmjs.com/package/jsreport-studio-dev)
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-studio-dev.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-studio-dev)
 
-> **Utils for developing jsreport studio extensions**
+**Utils for developing jsreport studio extensions**
 
 ## jsreport-studio-start
 `jsreport-studio-start` starts the jsreport studio in the development mode with hot reloading used for developing custom extensions.
@@ -16,5 +16,12 @@
     "prepublish": "in-publish && jsreport-studio-build || not-in-publish"
 }
 ```
+
+## Changelog
+
+### 3.0.0-beta.1
+
+Adaptations for the v3 APIs
+
 
 

@@ -1,20 +1,12 @@
-# jsreport-tags
+# @jsreport/jsreport-tags
+[![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-tags.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-tags)
 
-[![NPM Version](http://img.shields.io/npm/v/jsreport-tags.svg?style=flat-square)](https://npmjs.com/package/jsreport-tags)
-[![Build Status](https://travis-ci.org/jsreport/jsreport-tags.png?branch=master)](https://travis-ci.org/jsreport/jsreport-tags)
-
-> Manage, Filter, Group jsreport objects with tag information
+**Manage, Filter, Group jsreport objects with tag information**
 
 See http://jsreport.net/learn/tags
 
-## Installation
-> npm install jsreport-tags --production
+## Changelog
 
-## jsreport-core
+### 3.0.0-beta.1
 
-You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport-core)
-
-```js
-var jsreport = require('@jsreport/jsreport-core')()
-jsreport.use(require('@jsreport/jsreport-tags')({}))
-```
+Adaptations for the v3 APIs

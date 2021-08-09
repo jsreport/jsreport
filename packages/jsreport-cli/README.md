@@ -1,8 +1,7 @@
 # @jsreport/jsreport-cli
-
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-cli.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-cli)
 
-> Command line interface for jsreport
+**Command line interface for jsreport**
 
 See http://jsreport.net/learn/cli for documentation
 

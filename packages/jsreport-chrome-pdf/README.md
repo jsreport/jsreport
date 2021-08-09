@@ -1,7 +1,7 @@
 # @jsreport/jsreport-chrome-pdf
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/jsreport-chrome-pdf.svg?style=flat-square)](https://npmjs.com/package/@jsreport/jsreport-chrome-pdf)
 
-> jsreport recipe which is rendering pdf and images from html using headless chrome
+**jsreport recipe which is rendering pdf and images from html using headless chrome**
 
 See the docs
 
