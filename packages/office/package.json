@@ -1,5 +1,5 @@
 {
-  "name": "@jsreport/jsreport-office",
+  "name": "@jsreport/office",
   "version": "3.0.0-beta.1",
   "description": "Some helpers for office based jsreport recipes",
   "main": "index.js",

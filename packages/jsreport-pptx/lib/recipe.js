@@ -1,5 +1,5 @@
 const fs = require('fs')
-const { response } = require('@jsreport/jsreport-office')
+const { response } = require('@jsreport/office')
 const pptxProcessing = require('./pptxProcessing')
 
 module.exports = (reporter, definition) => async (req, res) => {

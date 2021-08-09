@@ -1,4 +1,4 @@
-const { decompress } = require('@jsreport/jsreport-office')
+const { decompress } = require('@jsreport/office')
 const Promise = require('bluebird')
 const xml2js = require('xml2js-preserve-spaces')
 

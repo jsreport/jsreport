@@ -4,7 +4,7 @@ const jsonToXml = require('./jsonToXml.js')
 const stream = require('stream')
 const zlib = require('zlib')
 const merge = require('merge2')
-const { response, serializeOfficeXmls } = require('@jsreport/jsreport-office')
+const { response, serializeOfficeXmls } = require('@jsreport/office')
 
 const stringToStream = (str) => {
   const s = new stream.Readable()

@@ -1,6 +1,6 @@
 const Docxtemplater = require('docxtemplater')
 const JSZip = require('jszip')
-const { response } = require('@jsreport/jsreport-office')
+const { response } = require('@jsreport/office')
 
 module.exports = (reporter, definition) => async (req, res) => {
   if (!req.template.docxtemplater || (!req.template.docxtemplater.templateAsset && !req.template.docxtemplater.templateAssetShortid)) {

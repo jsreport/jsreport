@@ -1,4 +1,4 @@
-const office = require('@jsreport/jsreport-office')
+const office = require('@jsreport/office')
 
 const schema = {
   type: 'object',

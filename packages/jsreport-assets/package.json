@@ -34,7 +34,7 @@
     "bluebird": "3.5.4",
     "etag": "1.8.1",
     "js-string-escape": "1.0.1",
-    "@jsreport/jsreport-office": "3.0.0-beta.1",
+    "@jsreport/office": "3.0.0-beta.1",
     "mime": "2.4.4",
     "minimatch": "3.0.4",
     "react-copy-to-clipboard": "5.0.2",

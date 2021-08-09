@@ -3,7 +3,7 @@ const Promise = require('bluebird')
 const fs = require('fs')
 const path = require('path')
 const excelbuilder = require('msexcel-builder-extended')
-const { response } = require('@jsreport/jsreport-office')
+const { response } = require('@jsreport/office')
 
 module.exports = async (reporter, definition, req, res) => {
   const generationId = uuidv4()

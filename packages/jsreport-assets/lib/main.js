@@ -4,7 +4,7 @@ const FS = Promise.promisifyAll(fs)
 const path = require('path')
 const etag = require('etag')
 const mime = require('mime')
-const { response } = require('@jsreport/jsreport-office')
+const { response } = require('@jsreport/office')
 const { readFile, linkPath, readAsset } = require('./assetsShared')
 
 module.exports = function (reporter, definition) {

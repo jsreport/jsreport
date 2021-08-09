@@ -32,7 +32,7 @@
     "test": "mocha test --timeout 8000 && standard"
   },
   "dependencies": {
-    "@jsreport/jsreport-office": "3.0.0-beta.1",
+    "@jsreport/office": "3.0.0-beta.1",
     "docxtemplater": "3.16.11",
     "jszip": "2.6.1"
   },
