@@ -1,4 +1,4 @@
-const { loggerFormat, createDefaultLoggerFormat } = require('jsreport-core')
+const { loggerFormat, createDefaultLoggerFormat } = require('@jsreport/jsreport-core')
 const defaultLoggerFormatWithTimestamp = createDefaultLoggerFormat({ timestamp: true })
 
 function addTransports (reporter) {
