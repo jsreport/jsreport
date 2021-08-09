@@ -39,7 +39,7 @@ function execute (reporter) {
         pdfAsset = req.template.staticPdf.pdfAsset.content
       } else {
         if (!req.template.staticPdf.pdfAsset.encoding) {
-          throw reporter.createError(`Missing value for req.template.staticPdf.pdfAsset.encoding, encoding is required`, {
+          throw reporter.createError('Missing value for req.template.staticPdf.pdfAsset.encoding, encoding is required', {
             statusCode: 400
           })
         }
@@ -47,11 +47,11 @@ function execute (reporter) {
         pdfAsset = Buffer.from(req.template.staticPdf.pdfAsset.content, req.template.staticPdf.pdfAsset.encoding)
       }
 
-      reporter.logger.debug(`static-pdf is using inline content`, req)
+      reporter.logger.debug('static-pdf is using inline content', req)
     }
 
     if (!pdfAsset) {
-      throw reporter.createError(`Source PDF asset was not specified, specify either req.template.staticPdf.pdfAssetShortid or req.template.staticPdf.pdfAsset`, {
+      throw reporter.createError('Source PDF asset was not specified, specify either req.template.staticPdf.pdfAssetShortid or req.template.staticPdf.pdfAsset', {
         statusCode: 400
       })
     }

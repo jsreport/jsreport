@@ -7,7 +7,7 @@ export default class TagProperties extends Component {
     return (
       <span>
         <span>
-          tag (color: {<ShowColor color={entity.color} width={15} height={15} />})
+          tag (color: <ShowColor color={entity.color} width={15} height={15} />)
         </span>
       </span>
     )

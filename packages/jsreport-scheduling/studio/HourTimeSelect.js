@@ -6,10 +6,10 @@ class HourTimeSelectItem extends Component {
   constructor (props) {
     super(props)
 
-    this.onClick = this.onClick.bind(this)
+    this.handleClick = this.handleClick.bind(this)
   }
 
-  onClick () {
+  handleClick () {
     this.props.onClick(this.props.value)
   }
 
@@ -22,7 +22,7 @@ class HourTimeSelectItem extends Component {
     return (
       <div
         className={style.item + ' ' + (active ? style.itemSelected : '')}
-        onClick={this.onClick}
+        onClick={this.handleClick}
       >
         {value}
       </div>
@@ -34,14 +34,14 @@ class HourTimeSelect extends Component {
   constructor (props) {
     super(props)
 
-    this.onItemClick = this.onItemClick.bind(this)
+    this.handleItemClick = this.handleItemClick.bind(this)
   }
 
   componentDidMount () {
     this.itemsContainer.focus()
   }
 
-  onItemClick (value) {
+  handleItemClick (value) {
     this.props.onSelect(value)
   }
 
@@ -49,10 +49,9 @@ class HourTimeSelect extends Component {
     const { type = 'hour' } = this.props
     const title = `Time: ${type[0].toUpperCase() + type.slice(1)}`
     let maxItems
-    let columnLimit = 6
+    const columnLimit = 6
     let rowCount = 0
     let items = []
-    let maxRowCount
 
     if (type === 'hour') {
       maxItems = 24
@@ -60,25 +59,25 @@ class HourTimeSelect extends Component {
       maxItems = 60
     }
 
-    maxRowCount = maxItems / columnLimit
+    const maxRowCount = maxItems / columnLimit
 
     while (rowCount < maxRowCount) {
-      let value = rowCount
-      let cols = []
+      const value = rowCount
+      const cols = []
 
       for (let i = 0; i < columnLimit; i++) {
         cols.push(value + (maxRowCount * i))
       }
 
       items = items.concat(cols.map((colValue) => {
-        let valueItem = String(colValue).length === 1 ? `0${colValue}` : String(colValue)
+        const valueItem = String(colValue).length === 1 ? `0${colValue}` : String(colValue)
 
         return (
           <HourTimeSelectItem
             key={colValue}
             active={this.props.value === valueItem}
             value={valueItem}
-            onClick={this.onItemClick}
+            onClick={this.handleItemClick}
           />
         )
       }))

@@ -23,7 +23,7 @@ const { getTempDir, createTempDir, setup, exec } = require('../testUtils')({
 })
 
 describe('kill command', () => {
-  let dirName = 'kill-project'
+  const dirName = 'kill-project'
 
   describe('when there is no daemon instance running', () => {
     beforeEach(async () => {
@@ -55,7 +55,7 @@ describe('kill command', () => {
 
       localPathToSocketDir = createTempDir(`${dirName}/sock`)
 
-      const localPathToWorkerSocketDir = createTempDir(`${dirName}/workerSock`)
+      const localPathToWorkerSocketDir = createTempDir(`${dirName}/wSock`)
 
       // needed for launching instance that read deps from jsreport-cli/node_modules
       // and if not found continue searching node_modules to top level folders

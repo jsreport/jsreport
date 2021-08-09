@@ -29,7 +29,7 @@ describe('jsrender', () => {
         content: '{{>~a()}}',
         engine: 'jsrender',
         recipe: 'html',
-        helpers: `function a() { return 'Hey' }`
+        helpers: 'function a() { return "Hey" }'
       }
     })
     res.content.toString().should.be.eql('Hey')
@@ -79,7 +79,7 @@ describe('jsrender', () => {
     }).should.be.rejected()
   })
 
-  it('should be able to parse and use sub tempates', async () => {
+  it('should be able to parse and use sub templates', async () => {
     const childTemplate = '<script id="inner" type="text/x-jsrender">{{:#data}}</script>'
     const template = '{{for items tmpl="inner"}}{{/for}}'
     const res = await jsreport.render({
@@ -95,7 +95,7 @@ describe('jsrender', () => {
     res.content.toString().should.be.eql('123')
   })
 
-  it('should be able to parse and use multiple sub tempates', async () => {
+  it('should be able to parse and use multiple sub templates', async () => {
     const childTemplate = '<script id="inner" type="text/x-jsrender">{{:#data}}</script>\n<script id="inner2" type="text/x-jsrender">a{{:#data}}</script>'
     const template = '{{for items tmpl="inner"}}{{/for}}{{for items tmpl="inner2"}}{{/for}}'
     const res = await jsreport.render({

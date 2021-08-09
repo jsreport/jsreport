@@ -6,7 +6,7 @@ module.exports = async function processImage (files, drawingEl, newRelIdCounterM
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const types = contentTypesFile.doc.getElementsByTagName('Types')[0]
 
-  let pngDefault = nodeListToArray(types.getElementsByTagName('Default')).find(
+  const pngDefault = nodeListToArray(types.getElementsByTagName('Default')).find(
     d => d.getAttribute('Extension') === 'png'
   )
 

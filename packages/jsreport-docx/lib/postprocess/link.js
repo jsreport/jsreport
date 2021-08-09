@@ -52,7 +52,7 @@ function processEndnotes (files, currentFile) {
 }
 
 function processHyperlinks (files, currentFile) {
-  let docRels = files.find(f => f.path === `word/_rels/${path.basename(currentFile.path)}.rels`)
+  const docRels = files.find(f => f.path === `word/_rels/${path.basename(currentFile.path)}.rels`)
 
   if (!docRels) {
     return

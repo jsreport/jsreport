@@ -50,7 +50,7 @@ exports.handler = (argv) => {
 
 function getExamples (command) {
   return [
-    [`${command}`, `Repairs and install the latest jsreport if not found`],
-    [`${command} 2.5.0`, `Repairs and install jsreport version 2.5.0 if not found`]
+    [`${command}`, 'Repairs and install the latest jsreport if not found'],
+    [`${command} 2.5.0`, 'Repairs and install jsreport version 2.5.0 if not found']
   ]
 }

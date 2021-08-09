@@ -46,7 +46,7 @@ describe('with scheduling extension', function () {
       cron: '*/1 * * * * *',
       templateShortid: template.shortid
     })
-    await reporter.documentStore.collection('schedules').update({shortid: schedule.shortid}, {
+    await reporter.documentStore.collection('schedules').update({ shortid: schedule.shortid }, {
       $set: {
         name: 'foo',
         state: 'planned',
@@ -96,7 +96,7 @@ describe('with scheduling extension', function () {
     reporter.beforeRenderListeners.insert(0, 'test init', this, () => counter++)
 
     const task = await reporter.documentStore.collection('tasks').insert({})
-    await reporter.scheduling.renderReport({templateShortid: template.shortid}, task)
+    await reporter.scheduling.renderReport({ templateShortid: template.shortid }, task)
     counter.should.be.exactly(1)
   })
 
@@ -107,7 +107,7 @@ describe('with scheduling extension', function () {
       templateShortid: template.shortid
     })
 
-    return reporter.documentStore.collection('schedules').update({shortid: schedule.shortid}, {
+    return reporter.documentStore.collection('schedules').update({ shortid: schedule.shortid }, {
       $set: {
         name: 'foo2',
         cron: '*/1 * * * * *',
@@ -125,7 +125,7 @@ describe('with scheduling extension', function () {
       enabled: false
     })
 
-    await reporter.documentStore.collection('schedules').update({shortid: schedule.shortid}, {
+    await reporter.documentStore.collection('schedules').update({ shortid: schedule.shortid }, {
       $set: {
         name: 'foo2',
         cron: '*/1 * * * * *',
@@ -148,7 +148,7 @@ describe('with scheduling extension', function () {
       templateShortid: template.shortid
     })
 
-    return reporter.documentStore.collection('schedules').update({shortid: schedule.shortid}, {
+    return reporter.documentStore.collection('schedules').update({ shortid: schedule.shortid }, {
       $set: {
         name: 'foo2',
         cron: null,
@@ -165,7 +165,7 @@ describe('with scheduling extension', function () {
       templateShortid: template.shortid
     })
 
-    return reporter.documentStore.collection('schedules').update({shortid: schedule.shortid}, {
+    return reporter.documentStore.collection('schedules').update({ shortid: schedule.shortid }, {
       $set: {
         name: 'foo2',
         cron: 'dsdsd',

@@ -150,7 +150,7 @@ exports.find = function find (cwd) {
         ))
       }
     } catch (e) {
-      let errorToReject = new Error('An error has occurred when trying to find a jsreport instance')
+      const errorToReject = new Error('An error has occurred when trying to find a jsreport instance')
       errorToReject.originalError = e
 
       return reject(errorToReject)
@@ -259,7 +259,7 @@ function getJsreportModuleInstalled (cwd, existsPackageJson) {
     const userPkg = require(path.join(cwd, './package.json'))
     const userDependencies = userPkg.dependencies || {}
 
-    if (userDependencies['jsreport']) {
+    if (userDependencies.jsreport) {
       detectedJsreport = 'jsreport'
     } else if (userDependencies['jsreport-core']) {
       detectedJsreport = 'jsreport-core'

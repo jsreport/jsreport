@@ -32,7 +32,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "babel-eslint": "10.0.3",
     "handlebars": "4.7.7",
     "in-publish": "2.0.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
@@ -40,7 +39,7 @@
     "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "6.1.4",
     "should": "13.2.3",
-    "standard": "12.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -53,7 +52,6 @@
       "node": true,
       "mocha": true,
       "browser": true
-    },
-    "parser": "babel-eslint"
+    }
   }
 }

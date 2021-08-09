@@ -98,7 +98,7 @@ describe('init command', function () {
       }, null, 2)
     )
 
-    const { stdout } = await exec(dirName, `init`, {
+    const { stdout } = await exec(dirName, 'init', {
       cwd: fullPathToTempProject
     })
 
@@ -142,7 +142,7 @@ describe('init command', function () {
       'require("jsreport")().init()'
     )
 
-    const { stdout } = await exec(dirName, `init`, {
+    const { stdout } = await exec(dirName, 'init', {
       cwd: fullPathToTempProject
     })
 
@@ -185,7 +185,7 @@ describe('init command', function () {
       '{"store": { "provider": "fs" }}'
     )
 
-    const { stdout } = await exec(dirName, `init`, {
+    const { stdout } = await exec(dirName, 'init', {
       cwd: fullPathToTempProject
     })
 

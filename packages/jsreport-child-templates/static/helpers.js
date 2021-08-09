@@ -27,14 +27,16 @@ async function childTemplate (templateNameOrObject, data, options, opts) {
 
   const jsreport = require('jsreport-proxy')
   const res = await jsreport.render({
-    template: typeof templateNameOrObject === 'string' ? {
-      name: templateNameOrObject
-    } : templateNameOrObject,
+    template: typeof templateNameOrObject === 'string'
+      ? {
+          name: templateNameOrObject
+        }
+      : templateNameOrObject,
     data: dataFromParam || currentContext,
     options
   })
   if (res.meta.contentType && !res.meta.contentType.includes('text')) {
-    throw new Error(`Child template result needs to be a text. Consider changing recipe to a text based recipe like html.`)
+    throw new Error('Child template result needs to be a text. Consider changing recipe to a text based recipe like html.')
   }
   return res.content.toString()
 }

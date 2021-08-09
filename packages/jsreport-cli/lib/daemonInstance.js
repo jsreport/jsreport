@@ -16,6 +16,7 @@ function start (customInstance, socketFile) {
   const socketToMaster = new nssocket.NsSocket()
   let parentSocketFile
   let processInfo
+  let reporterInstance
 
   console.log('PID of daemon instance:', PID)
 
@@ -60,7 +61,8 @@ function start (customInstance, socketFile) {
           let hostname
           let protocol
           let appPath
-          let urlToServer
+
+          reporterInstance = instance
 
           if (
             instance.options.extensions &&
@@ -108,13 +110,13 @@ function start (customInstance, socketFile) {
             protocol = 'http'
           }
 
-          urlToServer = `${protocol}://${hostname}:${address.port}/${appPath}`
+          const urlToServer = `${protocol}://${hostname}:${address.port}/${appPath}`
 
           // starting a server in a new socket to allow the monitoring
           // and query of this process from the CLI
           socketServer = startSocketServer({
             socketPath: sockPath,
-            socketPrefix: 'monitor',
+            socketPrefix: 'm',
             // Create 'symbolic' file on the system, so it can be later
             // found, since the `\\.pipe\\*` "files" can't
             // be enumerated because ... Windows.
@@ -145,7 +147,7 @@ function start (customInstance, socketFile) {
           })
         })
         .catch((err) => {
-          let meta = {}
+          const meta = {}
 
           if (err.code != null) {
             meta.code = err.code
@@ -205,7 +207,13 @@ function start (customInstance, socketFile) {
         socketServer.close()
       }
 
-      process.exit()
+      const exit = () => process.exit()
+
+      if (reporterInstance) {
+        reporterInstance.close().then(exit, exit)
+      } else {
+        exit()
+      }
     })
   }
 }

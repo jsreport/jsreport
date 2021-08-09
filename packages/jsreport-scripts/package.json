@@ -29,7 +29,6 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.3",
     "bluebird": "3.5.4",
     "in-publish": "2.0.1",
     "@jsreport/jsreport-assets": "3.0.0-beta.1",
@@ -38,7 +37,7 @@
     "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "5.2.0",
     "should": "13.2.3",
-    "standard": "11.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -47,7 +46,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

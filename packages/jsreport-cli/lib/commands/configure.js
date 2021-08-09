@@ -34,7 +34,6 @@ exports.handler = async (argv) => {
   const context = argv.context
   const cwd = context.cwd
   const logger = context.logger
-  const appInfo = context.appInfo
   const localConfigPath = path.join(cwd, 'jsreport.config.json')
 
   let answers
@@ -209,7 +208,7 @@ exports.handler = async (argv) => {
         }, {
           name: 'Yes, but without log files.',
           value: 'fs-without-log',
-          short: `Yes, but logs won't be written on disk`
+          short: 'Yes, but logs won\'t be written on disk'
         }, {
           name: 'No, objects will live in memory until process is finished',
           value: 'memory',

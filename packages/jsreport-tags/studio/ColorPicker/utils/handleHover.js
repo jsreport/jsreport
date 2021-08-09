@@ -14,14 +14,17 @@ const handleHover = (Component, Span = 'span') => {
     handleMouseOver () {
       this.setState({ hover: true })
     }
+
     handleMouseOut () {
       this.setState({ hover: false })
     }
 
     render () {
-      return <Span onMouseOver={this.handleMouseOver} onMouseOut={this.handleMouseOut}>
-        <Component {...this.props} {...this.state} />
-      </Span>
+      return (
+        <Span onMouseOver={this.handleMouseOver} onMouseOut={this.handleMouseOut}>
+          <Component {...this.props} {...this.state} />
+        </Span>
+      )
     }
   }
 }

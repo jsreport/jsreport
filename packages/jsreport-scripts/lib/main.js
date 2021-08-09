@@ -13,17 +13,17 @@ module.exports = function (reporter, definition) {
   reporter.options.scripts = definition.options
 
   reporter.documentStore.registerEntityType('ScriptType', {
-    content: {type: 'Edm.String', document: {extension: 'js'}},
-    name: {type: 'Edm.String'},
-    isGlobal: {type: 'Edm.Boolean'}
+    content: { type: 'Edm.String', document: { extension: 'js' } },
+    name: { type: 'Edm.String' },
+    isGlobal: { type: 'Edm.Boolean' }
   })
 
   reporter.documentStore.registerComplexType('ScriptRefType', {
-    content: {type: 'Edm.String'},
-    shortid: {type: 'Edm.String', referenceTo: 'scripts'}
+    content: { type: 'Edm.String' },
+    shortid: { type: 'Edm.String', referenceTo: 'scripts' }
   })
 
-  reporter.documentStore.model.entityTypes['TemplateType'].scripts = {type: 'Collection(jsreport.ScriptRefType)'}
+  reporter.documentStore.model.entityTypes.TemplateType.scripts = { type: 'Collection(jsreport.ScriptRefType)' }
 
   reporter.documentStore.registerEntitySet('scripts', {
     entityType: 'jsreport.ScriptType',

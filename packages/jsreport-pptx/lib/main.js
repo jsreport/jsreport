@@ -11,7 +11,7 @@ module.exports = (reporter, definition) => {
     templateAssetShortid: { type: 'Edm.String', referenceTo: 'assets' }
   })
 
-  reporter.documentStore.model.entityTypes['TemplateType'].pptx = { type: 'jsreport.PptxType', schema: { type: 'null' } }
+  reporter.documentStore.model.entityTypes.TemplateType.pptx = { type: 'jsreport.PptxType', schema: { type: 'null' } }
 
   reporter.initializeListeners.add('pptx', () => {
     if (reporter.express) {

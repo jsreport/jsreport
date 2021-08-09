@@ -8,7 +8,7 @@ module.exports = (files) => {
       const el = elements[i]
 
       if (el.textContent.includes('{{pptxSlides')) {
-        let pptxSlidesCall = el.textContent.match(regexp)[0]
+        const pptxSlidesCall = el.textContent.match(regexp)[0]
         el.textContent = el.textContent.replace(regexp, '')
 
         const startFake = doc.createElement('pptxRemove')

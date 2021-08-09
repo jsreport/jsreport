@@ -78,7 +78,7 @@ describe('testing client', () => {
   it('should have infinite body size limit', async () => {
     const data = { foo: 'foo', people: [] }
 
-    for (var i = 0; i < 2000000; i++) {
+    for (let i = 0; i < 2000000; i++) {
       data.people.push(i)
     }
 
@@ -94,15 +94,15 @@ describe('testing client', () => {
 })
 
 describe('testing client with authentication', () => {
-  var url = 'http://localhost:3000'
-  var jsreport
+  const url = 'http://localhost:3000'
+  let jsreport
 
   beforeEach(async () => {
     jsreport = Jsreport({ httpPort: 3000 })
     jsreport.use(jsreportExpress())
     jsreport.use(jsreportAuthentication({
-      'cookieSession': {
-        'secret': 'dasd321as56d1sd5s61vdv32'
+      cookieSession: {
+        secret: 'dasd321as56d1sd5s61vdv32'
       },
       admin: {
         username: 'test',

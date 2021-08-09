@@ -439,9 +439,7 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
             return VCToolbar;
           }(_react.Component);
 
-          _jsreportStudio2.default.addToolbarComponent(function (props) {
-            return _react2.default.createElement(VCToolbar, null);
-          });
+          _jsreportStudio2.default.addToolbarComponent(VCToolbar);
 
         case 6:
         case 'end':
@@ -597,7 +595,7 @@ var HistoryEditor = function (_Component) {
                 }
 
                 this.setState({ inExecution: false });
-                return _context2.abrupt('return', this.setState({ error: 'You have uncommited changes. You need to commit or revert them before checkout.' }));
+                return _context2.abrupt('return', this.setState({ error: 'You have uncommitted changes. You need to commit or revert them before checkout.' }));
 
               case 10:
                 if (!confirm('This will change the state of all entities to the state stored with selected commit. Are you sure?')) {
@@ -730,7 +728,7 @@ var HistoryEditor = function (_Component) {
   }, {
     key: 'localChanges',
     value: function localChanges() {
-      _jsreportStudio2.default.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommited changes' });
+      _jsreportStudio2.default.openTab({ key: 'versionControlLocalChanges', editorComponentKey: 'versionControlLocalChanges', title: 'Uncommitted changes' });
     }
   }, {
     key: 'render',
@@ -750,7 +748,7 @@ var HistoryEditor = function (_Component) {
             { className: 'button confirmation', onClick: function onClick() {
                 return _this3.localChanges();
               } },
-            'Uncommited changes'
+            'Uncommitted changes'
           )
         ),
         _react2.default.createElement(
@@ -1188,7 +1186,7 @@ var LocalChangesEditor = function (_Component) {
 
                 _context3.prev = 3;
 
-                if (!confirm('This will delete all your uncommited files and revert changes. Are you sure?')) {
+                if (!confirm('This will delete all your uncommitted files and revert changes. Are you sure?')) {
                   _context3.next = 11;
                   break;
                 }
@@ -1247,7 +1245,7 @@ var LocalChangesEditor = function (_Component) {
           'h1',
           null,
           _react2.default.createElement('i', { className: 'fa fa-history' }),
-          ' uncommited changes',
+          ' uncommitted changes',
           _react2.default.createElement(
             'button',
             { className: 'button confirmation', onClick: function onClick() {

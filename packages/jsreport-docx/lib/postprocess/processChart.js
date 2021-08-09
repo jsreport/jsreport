@@ -651,7 +651,7 @@ function addChartexItem (docNode, nodeInfo, targetNode) {
 
   switch (nodeInfo.name) {
     case 'cx:strDim':
-    case 'cx:numDim':
+    case 'cx:numDim': {
       let empty = false
       const isHierarchyType = nodeInfo.type === 'treemap' || nodeInfo.type === 'sunburst'
       const isNum = nodeInfo.name === 'cx:numDim'
@@ -731,7 +731,8 @@ function addChartexItem (docNode, nodeInfo, targetNode) {
       }
 
       break
-    case 'cx:tx':
+    }
+    case 'cx:tx': {
       const txDataNode = findOrCreateChildNode(docNode, 'cx:txData', newNode)
 
       removeChildNodes('cx:f', txDataNode)
@@ -741,9 +742,11 @@ function addChartexItem (docNode, nodeInfo, targetNode) {
       txValueNode.textContent = nodeInfo.data
 
       break
-    case 'cx:dataId':
+    }
+    case 'cx:dataId': {
       newNode.setAttribute('val', nodeInfo.data)
       break
+    }
     default:
       throw new Error(`node chartex item "${nodeInfo.name}" not supported`)
   }
@@ -784,7 +787,7 @@ function addChartSerieItem (docNode, nodeInfo, targetNode) {
     case 'c:val':
     case 'c:xVal':
     case 'c:yVal':
-    case 'c:bubbleSize':
+    case 'c:bubbleSize': {
       const shouldBeDateType = nodeInfo.name === 'c:cat' && nodeInfo.type === 'stockChart'
       let isNum = nodeInfo.name === 'c:val' || nodeInfo.name === 'c:xVal' || nodeInfo.name === 'c:yVal' || nodeInfo.name === 'c:bubbleSize'
 
@@ -801,7 +804,8 @@ function addChartSerieItem (docNode, nodeInfo, targetNode) {
       })
 
       break
-    case 'c:dLbls':
+    }
+    case 'c:dLbls': {
       const existingDataLabelsNodes = findChildNode('c:dLbl', newNode, true)
 
       for (const [idx, dataLabelEl] of existingDataLabelsNodes.entries()) {
@@ -852,7 +856,8 @@ function addChartSerieItem (docNode, nodeInfo, targetNode) {
       }
 
       break
-    case 'c:errBars':
+    }
+    case 'c:errBars': {
       const plusNode = findOrCreateChildNode(docNode, 'c:plus', newNode)
 
       addValueNodes(docNode, plusNode, {
@@ -870,6 +875,7 @@ function addChartSerieItem (docNode, nodeInfo, targetNode) {
       })
 
       break
+    }
     default:
       throw new Error(`node chart item "${nodeInfo.name}" not supported`)
   }
@@ -960,7 +966,7 @@ function findOrCreateChildNode (docNode, nodeName, targetNode) {
 }
 
 function findChildNode (nodeName, targetNode, allNodes = false) {
-  let result = []
+  const result = []
 
   for (let i = 0; i < targetNode.childNodes.length; i++) {
     let found = false

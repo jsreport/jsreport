@@ -234,12 +234,14 @@ class ImportModal extends Component {
               </div>
             </div>
             <div className='form-group'>
-              <div style={{
-                display: !this.state.fullImport ? 'block' : 'none',
-                border: '1px dashed black',
-                padding: '0.6rem',
-                opacity: (this.state.processing === true || this.state.validated) ? 0.7 : 1
-              }}>
+              <div
+                style={{
+                  display: !this.state.fullImport ? 'block' : 'none',
+                  border: '1px dashed black',
+                  padding: '0.6rem',
+                  opacity: (this.state.processing === true || this.state.validated) ? 0.7 : 1
+                }}
+              >
                 <label style={{ display: 'inline-block', marginBottom: '5px' }}>
                   <b>Optionally</b> you can select a folder in which the entities  will be inserted
                 </label>
@@ -289,7 +291,7 @@ class ImportModal extends Component {
               <div>
                 <i>Log of changes with the import:</i>
               </div>
-              <textarea style={{width: '100%', boxSizing: 'border-box'}} rows='10' readOnly value={this.state.log} />
+              <textarea style={{ width: '100%', boxSizing: 'border-box' }} rows='10' readOnly value={this.state.log} />
             </div>
           )}
           {this.state.validated && (

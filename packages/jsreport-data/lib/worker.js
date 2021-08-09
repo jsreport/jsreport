@@ -51,7 +51,7 @@ module.exports = (reporter, definition) => {
       di = di.dataJson || di
       request.data = JSON.parse(di)
     } catch (e) {
-      throw reporter.createError(`Failed to parse data json`, {
+      throw reporter.createError('Failed to parse data json', {
         weak: true,
         statusCode: 400,
         original: e

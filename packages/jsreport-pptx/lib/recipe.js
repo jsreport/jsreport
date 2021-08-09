@@ -4,13 +4,13 @@ const pptxProcessing = require('./pptxProcessing')
 
 module.exports = (reporter, definition) => async (req, res) => {
   if (!req.template.pptx || (!req.template.pptx.templateAsset && !req.template.pptx.templateAssetShortid)) {
-    throw reporter.createError(`pptx requires template.pptx.templateAsset or template.pptx.templateAssetShortid to be set`, {
+    throw reporter.createError('pptx requires template.pptx.templateAsset or template.pptx.templateAssetShortid to be set', {
       statusCode: 400
     })
   }
 
   if (req.template.engine !== 'handlebars') {
-    throw reporter.createError(`pptx recipe can run only with handlebars`, {
+    throw reporter.createError('pptx recipe can run only with handlebars', {
       statusCode: 400
     })
   }

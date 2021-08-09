@@ -1,5 +1,5 @@
 const util = require('util')
-const getLogMeta = require('../shared/getLogMeta')
+const normalizeMetaFromLogs = require('../shared/normalizeMetaFromLogs')
 
 module.exports = function createLogger (profiler) {
   return {
@@ -35,7 +35,7 @@ function logFn (level, profiler, ...args) {
     message: util.format.apply(util, msgArgs)
   }
 
-  const meta = getLogMeta(level, log.message, lastArg)
+  const meta = normalizeMetaFromLogs(level, log.message, lastArg)
 
   if (meta != null) {
     log.meta = meta

@@ -34,12 +34,8 @@
     "@jsreport/jsreport-browser-client-dist": "3.0.0-beta.1"
   },
   "devDependencies": {
-    "babel-eslint": "8.2.1",
-    "eslint": "4.17.0",
-    "eslint-config-standard-jsx": "4.0.2",
-    "eslint-plugin-babel": "4.1.2",
     "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
-    "standard": "10.0.3"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -54,7 +50,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

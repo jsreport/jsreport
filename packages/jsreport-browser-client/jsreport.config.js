@@ -1,9 +1,9 @@
 
 module.exports = {
-  'name': 'browser-client',
-  'main': 'lib/main.js',
-  'worker': 'lib/worker.js',
-  'optionsSchema': {
+  name: 'browser-client',
+  main: 'lib/main.js',
+  worker: 'lib/worker.js',
+  optionsSchema: {
     extensions: {
       'browser-client': {
         type: 'object',
@@ -13,7 +13,7 @@ module.exports = {
       }
     }
   },
-  'dependencies': ['templates'],
+  dependencies: ['templates'],
   requires: {
     core: '2.x.x',
     studio: '2.x.x'

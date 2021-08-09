@@ -75,9 +75,9 @@ function common (strategy, imageExecution) {
   it('should block file requests', async () => {
     const request = {
       template: {
-        content: `          
+        content: `
           <script>
-            document.write(window.location='${__filename.replace(/\\/g, '/')}')             
+            document.write(window.location='${__filename.replace(/\\/g, '/')}')
           </script>
           `,
         recipe,
@@ -89,12 +89,12 @@ function common (strategy, imageExecution) {
     JSON.stringify(res.meta.logs).should.containEql('ERR_ACCESS_DENIED')
   })
 
-  it('should block file requests with file protocl', async () => {
+  it('should block file requests with file protocol', async () => {
     const request = {
       template: {
-        content: `          
+        content: `
           <script>
-            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')             
+            document.write(window.location='file:///${__filename.replace(/\\/g, '/')}')
           </script>
           `,
         recipe,
@@ -173,7 +173,7 @@ function common (strategy, imageExecution) {
           recipe,
           engine: 'handlebars',
           chrome: { displayHeaderFooter: true, marginTop: '80px', marginBottom: '80px', headerTemplate: '{{printNumber 1}}<br/>', footerTemplate: '{{printNumber 2}}<br/>' },
-          helpers: `function printNumber (num) { return num  }`
+          helpers: 'function printNumber (num) { return num  }'
         }
       }
 
@@ -265,17 +265,20 @@ function common (strategy, imageExecution) {
         content: `
           content
           <script>
-            ${imageExecution ? `
-              window.JSREPORT_CHROME_IMAGE_OPTIONS = {
-                type: 'jpeg'
-              }
-            ` : `
-              window.JSREPORT_CHROME_PDF_OPTIONS = {
-                displayHeaderFooter: true,
-                marginTop: '80px',
-                headerTemplate: '{{foo}}'
-              }
-            `}
+            ${imageExecution
+              ? `
+                  window.JSREPORT_CHROME_IMAGE_OPTIONS = {
+                    type: 'jpeg'
+                  }
+                `
+              : `
+                  window.JSREPORT_CHROME_PDF_OPTIONS = {
+                    displayHeaderFooter: true,
+                    marginTop: '80px',
+                    headerTemplate: '{{foo}}'
+                  }
+                `
+            }
           </script>
         `,
         recipe,
@@ -306,18 +309,21 @@ function common (strategy, imageExecution) {
         content: `
           content
           <script>
-            ${imageExecution ? `
-              window.JSREPORT_CHROME_IMAGE_OPTIONS = {
-                path: '${distPath}'
-              }
-            ` : `
-              window.JSREPORT_CHROME_PDF_OPTIONS = {
-                path: '${distPath}',
-                displayHeaderFooter: true,
-                marginTop: '80px',
-                headerTemplate: '{{foo}}'
-              }
-            `}
+            ${imageExecution
+              ? `
+                  window.JSREPORT_CHROME_IMAGE_OPTIONS = {
+                    path: '${distPath}'
+                  }
+                `
+              : `
+                  window.JSREPORT_CHROME_PDF_OPTIONS = {
+                    path: '${distPath}',
+                    displayHeaderFooter: true,
+                    marginTop: '80px',
+                    headerTemplate: '{{foo}}'
+                  }
+                `
+            }
           </script>
         `,
         recipe,
@@ -425,7 +431,8 @@ function common (strategy, imageExecution) {
         content: 'content',
         recipe,
         [imageExecution ? 'chromeImage' : 'chrome']: { url: 'chrome://crash' },
-        engine: 'none' }
+        engine: 'none'
+      }
     }).catch(() => done())
   })
 }

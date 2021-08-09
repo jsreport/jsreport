@@ -27,6 +27,7 @@ async function verifyLicenseKey (reporter, definition, key) {
       maskedKey = maskedKey.substring(0, 3) + ''.padEnd(maskedKey.length - 6, 'X') + maskedKey.substring(maskedKey.length - 3)
     }
   }
+
   reporter.logger.info('Verifying license key ' + maskedKey)
   definition.options.licenseKey = trimmedKey
   const count = await reporter.documentStore.collection('templates').count({})
@@ -102,7 +103,7 @@ async function processVerification (reporter, definition, m) {
 }
 
 async function verifyInService (reporter, definition, m, licenseInfoPath) {
-  // developers often keeps jsreport instances to auto restart inifinitely
+  // developers often keeps jsreport instances to auto restart indefinitely
   // in case of invalid license key this bombards constantly our validation server
   // for this case we cache the invalid license keys for short time to avoid this
   const cachedNegativeResponse = await isLicenseKeyStoredInNegativeCache(reporter, m.licenseKey)
@@ -113,6 +114,7 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
     throw new Error(cachedNegativeResponse)
   }
 
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     let isDone = false
 
@@ -134,7 +136,7 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
     }
 
     // to avoid startup delays we have quite small timeout to perform remote validation
-    // in some networks it takes long time to find out that the remote server is actually not reacheble
+    // in some networks it takes long time to find out that the remote server is actually not reachable
     const timeout = setTimeout(handleFailedVerification, 3000).unref()
 
     async function handleResponse (response) {
@@ -214,7 +216,7 @@ async function isLicenseKeyStoredInNegativeCache (reporter, licenseKey) {
   try {
     await fs.mkdir(path.join(reporter.options.tempDirectory, 'licensing'), { recursive: true })
     const t = await fs.readFile(licenseCacheFile, 'utf8')
-    var info = JSON.parse(t)
+    const info = JSON.parse(t)
 
     if (info.version !== reporter.version) {
       return null
@@ -233,7 +235,7 @@ async function isLicenseKeyStoredInNegativeCache (reporter, licenseKey) {
 }
 
 function writeLicenseKeyToNegativeCache (reporter, licenseKey, message) {
-  var info = JSON.stringify({
+  const info = JSON.stringify({
     message: message,
     version: reporter.version,
     lastVerification: new Date()
@@ -320,7 +322,7 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.initializeListeners.add('licensing', async () => {
-    const licenseKeyFromOption = reporter.options['license-key'] || reporter.options['licenseKey'] || definition.options.licenseKey
+    const licenseKeyFromOption = reporter.options['license-key'] || reporter.options.licenseKey || definition.options.licenseKey
 
     if (licenseKeyFromOption) {
       await verifyLicenseKey(reporter, definition, licenseKeyFromOption)

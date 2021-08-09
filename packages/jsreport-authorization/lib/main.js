@@ -15,9 +15,9 @@ module.exports = function (reporter, definition) {
     return
   }
 
-  reporter.documentStore.model.entityTypes['UserType'].editAllPermissions = { type: 'Edm.Boolean' }
-  reporter.documentStore.model.entityTypes['UserType'].readAllPermissions = { type: 'Edm.Boolean' }
-  reporter.documentStore.model.entityTypes['FolderType'].visibilityPermissions = { type: 'Collection(Edm.String)' }
+  reporter.documentStore.model.entityTypes.UserType.editAllPermissions = { type: 'Edm.Boolean' }
+  reporter.documentStore.model.entityTypes.UserType.readAllPermissions = { type: 'Edm.Boolean' }
+  reporter.documentStore.model.entityTypes.FolderType.visibilityPermissions = { type: 'Collection(Edm.String)' }
 
   reporter.documentStore.on('before-init', (documentStore) => {
     for (const key in documentStore.model.entitySets) {

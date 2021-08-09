@@ -10,7 +10,7 @@ class TagEditor extends Component {
     if (entity.description) {
       description = entity.description
     } else {
-      description = <i>{'(no description for this tag)'}</i>
+      description = <i>(no description for this tag)</i>
     }
 
     return (

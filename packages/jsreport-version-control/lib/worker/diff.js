@@ -30,7 +30,8 @@ function createPatch (name, older, newer, context) {
   gdiff.diff_charsToLines_(cdiff, lineArray)
 
   const diff = cdiff.map(([op, data]) => {
-    let r = { value: data }
+    const r = { value: data }
+
     if (op === 1) {
       r.added = true
     }
@@ -46,7 +47,7 @@ function createPatch (name, older, newer, context) {
     return lines.map(function (entry) { return ' ' + entry })
   }
 
-  let hunks = []
+  const hunks = []
   let oldRangeStart = 0
   let newRangeStart = 0
   let curRange = []
@@ -92,21 +93,22 @@ function createPatch (name, older, newer, context) {
           curRange.push(...contextLines(lines))
         } else {
           // end the range and output
-          let contextSize = Math.min(lines.length, context)
+          const contextSize = Math.min(lines.length, context)
           curRange.push(...contextLines(lines.slice(0, contextSize)))
 
-          let hunk = {
+          const hunk = {
             oldStart: oldRangeStart,
             oldLines: (oldLine - oldRangeStart + contextSize),
             newStart: newRangeStart,
             newLines: (newLine - newRangeStart + contextSize),
             lines: curRange
           }
+
           if (i >= diff.length - 2 && lines.length <= context) {
             // EOF is inside this hunk
-            let oldEOFNewline = (/\n$/.test(older))
-            let newEOFNewline = (/\n$/.test(newer))
-            let noNlBeforeAdds = lines.length === 0 && curRange.length > hunk.oldLines
+            const oldEOFNewline = (/\n$/.test(older))
+            const newEOFNewline = (/\n$/.test(newer))
+            const noNlBeforeAdds = lines.length === 0 && curRange.length > hunk.oldLines
             if (!oldEOFNewline && noNlBeforeAdds) {
               // special case: old has no eol and no trailing context; no-nl can end up before adds
               curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file')

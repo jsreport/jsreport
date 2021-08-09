@@ -70,7 +70,7 @@ describe('tags', function () {
       name: 'tag1'
     })
 
-    await reporter.documentStore.collection('tags').remove({name: 'tag1'})
+    await reporter.documentStore.collection('tags').remove({ name: 'tag1' })
     const list = await reporter.documentStore.collection('tags').find({})
     list.should.have.length(0)
   })

@@ -154,8 +154,8 @@ class FormData extends MultiStream {
 
     let header
 
-    for (let prop in headers) {
-      if (!headers.hasOwnProperty(prop)) {
+    for (const prop in headers) {
+      if (!Object.prototype.hasOwnProperty.call(headers, prop)) {
         continue
       }
 
@@ -301,7 +301,7 @@ function getContentDisposition (value, options) {
     // formidable and the browser add a name property
     // fs- and request- streams have path property
     filename = path.basename(options.filename || value.name || value.path)
-  } else if (value.readable && value.hasOwnProperty('httpVersion')) {
+  } else if (value.readable && Object.prototype.hasOwnProperty.call(value, 'httpVersion')) {
     // or try http response
     filename = path.basename(value.client._httpMessage.path || '')
   }
@@ -327,8 +327,8 @@ function getContentType (value, options) {
     contentType = mime.lookup(value.path)
   }
 
-  // or if it's http-reponse
-  if (!contentType && value.readable && value.hasOwnProperty('httpVersion')) {
+  // or if it's http-response
+  if (!contentType && value.readable && Object.prototype.hasOwnProperty.call(value, 'httpVersion')) {
     contentType = value.headers['content-type']
   }
 

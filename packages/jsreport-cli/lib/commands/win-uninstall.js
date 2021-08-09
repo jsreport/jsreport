@@ -86,7 +86,7 @@ exports.handler = (argv) => {
       stop: true
     }, (err) => {
       if (err) {
-        const error = `Error while trying to uninstall windows service`
+        const error = 'Error while trying to uninstall windows service'
         error.originalError = err
         return reject(error)
       }

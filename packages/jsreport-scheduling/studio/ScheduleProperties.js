@@ -266,7 +266,7 @@ export default class ScheduleProperties extends Component {
   }
 
   onUseExpressionChange (checked) {
-    let { entity } = this.props
+    const { entity } = this.props
     let resetCron = false
     let uiCronInfo
 
@@ -290,7 +290,7 @@ export default class ScheduleProperties extends Component {
   onCronBuilderChange (stateToSet, resetCron) {
     const cronExp = new CronBuilder()
 
-    let {
+    const {
       onChange,
       entity
     } = this.props
@@ -366,7 +366,7 @@ export default class ScheduleProperties extends Component {
   }
 
   onPeriodChange (period, returnState) {
-    var newState = {
+    const newState = {
       selectedPeriod: period
     }
 
@@ -537,7 +537,10 @@ export default class ScheduleProperties extends Component {
             </label>
             {useExpression && (
               <input
-                type='text' value={entity.cron || ''} onChange={(v) => onChange({_id: entity._id, cron: v.target.value})} />
+                type='text'
+                value={entity.cron || ''}
+                onChange={(v) => onChange({ _id: entity._id, cron: v.target.value })}
+              />
             )}
           </div>
           {!useExpression && (
@@ -627,7 +630,7 @@ export default class ScheduleProperties extends Component {
         </div>
         <div className='form-group'>
           <label>Enabled</label>
-          <input type='checkbox' checked={entity.enabled !== false} onChange={(v) => onChange({_id: entity._id, enabled: v.target.checked})} />
+          <input type='checkbox' checked={entity.enabled !== false} onChange={(v) => onChange({ _id: entity._id, enabled: v.target.checked })} />
         </div>
       </div>
     )

@@ -77,7 +77,7 @@ exports.handler = async (argv) => {
 
     logger.info(`daemon process (pid: ${processInfo.pid}) killed successfully`)
   } catch (e) {
-    const error = new Error(`Error while trying to kill daemon process`)
+    const error = new Error('Error while trying to kill daemon process')
     error.originalError = e
     throw error
   }

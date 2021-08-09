@@ -48,7 +48,7 @@ function execute (reporter, puppeteer, definition, strategyCall, imageExecution)
 
       // remove trailing slashes and change windows path separator to slash
       // use pathToFileURL in v3 and node 14
-      htmlUrl = `file:///` + htmlPath.replace(/^\/+/, '').replace(/\\/g, '/')
+      htmlUrl = 'file:///' + htmlPath.replace(/^\/+/, '').replace(/\\/g, '/')
     }
 
     if (!imageExecution) {

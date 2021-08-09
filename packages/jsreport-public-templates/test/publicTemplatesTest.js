@@ -4,12 +4,12 @@ const jsreport = require('@jsreport/jsreport-core')
 require('should')
 
 const authOptions = {
-  'cookieSession': {
-    'secret': 'dasd321as56d1sd5s61vdv32'
+  cookieSession: {
+    secret: 'dasd321as56d1sd5s61vdv32'
   },
-  'admin': {
-    'username': 'admin',
-    'password': 'password'
+  admin: {
+    username: 'admin',
+    password: 'password'
   }
 }
 
@@ -64,7 +64,7 @@ describe('public-templates', () => {
     })
 
     await supertest(reporter.express.app)
-      .post(`/api/templates/sharing/foo/access/read`)
+      .post('/api/templates/sharing/foo/access/read')
       .set('Authorization', 'Basic ' + Buffer.from('admin:password').toString('base64'))
       .expect(200)
 

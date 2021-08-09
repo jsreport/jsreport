@@ -11,10 +11,10 @@ class HourTimePicker extends Component {
       editing: false
     }
 
-    this.onSelect = this.onSelect.bind(this)
+    this.handleSelect = this.handleSelect.bind(this)
   }
 
-  onSelect (val) {
+  handleSelect (val) {
     this.setState({ editing: false })
     this.props.onChange(val)
   }
@@ -40,7 +40,7 @@ class HourTimePicker extends Component {
           <HourTimeSelect
             type={type}
             value={value}
-            onSelect={this.onSelect}
+            onSelect={this.handleSelect}
           />
         </Popover>
       </div>

@@ -25,11 +25,11 @@ const postgres = {
   },
   extensions: {
     'postgres-store': {
-      'host': 'localhost',
-      'port': 5432,
-      'database': 'jsreport',
-      'user': 'postgres',
-      'password': 'password'
+      host: 'localhost',
+      port: 5432,
+      database: 'jsreport',
+      user: 'postgres',
+      password: 'password'
     }
   }
 }
@@ -424,7 +424,7 @@ describe('import-export', () => {
       templatesRes[0].folder.shortid.should.be.eql(targetFolder.shortid)
     })
 
-    it('should be able to import into target folder (root entity explicetly contains folder: null)', async () => {
+    it('should be able to import into target folder (root entity explicitly contains folder: null)', async () => {
       const e1 = await reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html', folder: null })
       const req = reporter.Request({})
       const { stream } = await reporter.export([e1._id.toString()], req)

@@ -29,6 +29,7 @@
     "jsreport.config.js"
   ],
   "scripts": {
+    "lint": "standard",
     "build": "npm run build-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
     "build-eslint-browser": "jsreport-studio-build --config webpack/eslint-browser.config.js --stats.modules=false",
     "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js && not-in-publish || npm run build-eslint-browser",
@@ -52,7 +53,6 @@
   },
   "devDependencies": {
     "@seznam/compose-react-refs": "1.0.4",
-    "babel-eslint": "8.2.1",
     "chart.js": "2.9.4",
     "classnames": "2.2.6",
     "connected-react-router": "6.8.0",
@@ -129,7 +129,6 @@
       "mocha": true,
       "node": true,
       "browser": true
-    },
-    "parser": "babel-eslint"
+    }
   }
 }

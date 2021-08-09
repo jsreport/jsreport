@@ -936,12 +936,14 @@ var ImportModal = function (_Component2) {
               { className: 'form-group' },
               _react2.default.createElement(
                 'div',
-                { style: {
+                {
+                  style: {
                     display: !this.state.fullImport ? 'block' : 'none',
                     border: '1px dashed black',
                     padding: '0.6rem',
                     opacity: this.state.processing === true || this.state.validated ? 0.7 : 1
-                  } },
+                  }
+                },
                 _react2.default.createElement(
                   'label',
                   { style: { display: 'inline-block', marginBottom: '5px' } },

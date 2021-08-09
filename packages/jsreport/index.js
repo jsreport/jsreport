@@ -17,35 +17,9 @@ if (!semver.satisfies(process.versions.node, packageJson.engines.node)) {
   process.exit(1)
 }
 
-const extend = require('node.extend.without.arrays')
 const path = require('path')
 const core = require('@jsreport/jsreport-core')
 const main = require('./lib/main')
-
-const renderDefaults = {
-  store: { provider: 'memory' },
-  blobStorage: { provider: 'memory' },
-  rootDirectory: path.join(__dirname, '../../'),
-  logger: {
-    console: { silent: true },
-    file: { silent: true },
-    error: { silent: true }
-  },
-  extensions: {
-    express: { enabled: false },
-    scheduling: { enabled: false },
-    authentication: { enabled: false },
-    authorization: { enabled: false },
-    studio: { enabled: false },
-    'sample-template': { enabled: false },
-    'version-control': { enabled: false },
-    'public-templates': { enabled: false }
-  }
-}
-
-function extendDefaults (config) {
-  return extend(true, renderDefaults, config)
-}
 
 module.exports = function (options, defaults) {
   options = options || {}
@@ -56,6 +30,4 @@ module.exports = function (options, defaults) {
 }
 
 module.exports.Reporter = core.Reporter
-module.exports.renderDefaults = renderDefaults
-module.exports.extendDefaults = extendDefaults
 module.exports.core = core

@@ -309,7 +309,7 @@ describe('cli import/export', () => {
       const remoteDirName = 'import-remote-auth-instance'
       const remotePort = 3900
 
-      let adminUser = {
+      const adminUser = {
         user: 'admin',
         password: 'xxxx'
       }
@@ -445,7 +445,7 @@ describe('cli import/export', () => {
 
     it('should export selected entities (--entities=entityId)', async () => {
       const fullDir = getTempDir(dirName)
-      let cmd = `export export.jsrexport --entities=foo`
+      let cmd = 'export export.jsrexport --entities=foo'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -470,9 +470,9 @@ describe('cli import/export', () => {
     it('should export selected entities from file (--entitiesPath=entities.json)', async () => {
       const fullDir = getTempDir(dirName)
 
-      fs.writeFileSync(path.join(fullDir, 'entities.json'), `["foo"]`)
+      fs.writeFileSync(path.join(fullDir, 'entities.json'), '["foo"]')
 
-      let cmd = `export export.jsrexport --entitiesPath=entities.json`
+      let cmd = 'export export.jsrexport --entitiesPath=entities.json'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -591,7 +591,7 @@ describe('cli import/export', () => {
     })
 
     it('should import at target folder (--targetFolder)', async () => {
-      let cmd = `import export.jsrexport --targetFolder=target`
+      let cmd = 'import export.jsrexport --targetFolder=target'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -630,7 +630,7 @@ describe('cli import/export', () => {
     })
 
     it('should be able to do a full import (--fullImport)', async () => {
-      let cmd = `import export.jsrexport --fullImport`
+      let cmd = 'import export.jsrexport --fullImport'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)
@@ -664,7 +664,7 @@ describe('cli import/export', () => {
     })
 
     it('should be able to do an import validation (--validation)', async () => {
-      let cmd = `import export.jsrexport --validation`
+      let cmd = 'import export.jsrexport --validation'
 
       if (remote) {
         cmd = addRemoteArgs(cmd)

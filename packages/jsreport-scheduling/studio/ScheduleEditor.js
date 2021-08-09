@@ -123,7 +123,7 @@ class ScheduleEditor extends Component {
     })
 
     try {
-      await Studio.api.post(`/api/scheduling/runNow`, {
+      await Studio.api.post('/api/scheduling/runNow', {
         data: {
           scheduleId: this.props.entity._id
         }
@@ -143,43 +143,53 @@ class ScheduleEditor extends Component {
     if (!task) {
       this.pending = Math.max(this.pending, index)
       this.lazyFetch()
-      return <tr key={index}>
-        <td><i className='fa fa-spinner fa-spin fa-fw' /></td>
-      </tr>
+      return (
+        <tr key={index}>
+          <td><i className='fa fa-spinner fa-spin fa-fw' /></td>
+        </tr>
+      )
     }
 
     return this.renderItem(task, index)
   }
 
   renderItem (task, index) {
-    return <tr
-      key={index} className={(this.state.active === task._id) ? 'active' : ''}
-      onClick={() => this.openReport(task)}>
-      <td>
-        <span
-          className={style.state + ' ' + (task.state === 'error' ? style.error : (task.state === 'success' ? style.success : style.canceled))}>
-          {task.state}</span>
-      </td>
-      <td>
-        <span className={style.value}>{task.creationDate ? task.creationDate.toLocaleString() : ''}</span>
-      </td>
-      <td>
-        <div className={style.value}>{task.finishDate ? task.finishDate.toLocaleString() : ''}</div>
-      </td>
-    </tr>
+    return (
+      <tr
+        key={index}
+        className={(this.state.active === task._id) ? 'active' : ''}
+        onClick={() => this.openReport(task)}
+      >
+        <td>
+          <span
+            className={style.state + ' ' + (task.state === 'error' ? style.error : (task.state === 'success' ? style.success : style.canceled))}
+          >
+            {task.state}
+          </span>
+        </td>
+        <td>
+          <span className={style.value}>{task.creationDate ? task.creationDate.toLocaleString() : ''}</span>
+        </td>
+        <td>
+          <div className={style.value}>{task.finishDate ? task.finishDate.toLocaleString() : ''}</div>
+        </td>
+      </tr>
+    )
   }
 
   renderItems (items, ref) {
-    return <table className='table' ref={ref}>
-      <thead>
-        <tr>
-          <th>state</th>
-          <th>start</th>
-          <th>finish</th>
-        </tr>
-      </thead>
-      <tbody>{items}</tbody>
-    </table>
+    return (
+      <table className='table' ref={ref}>
+        <thead>
+          <tr>
+            <th>state</th>
+            <th>start</th>
+            <th>finish</th>
+          </tr>
+        </thead>
+        <tbody>{items}</tbody>
+      </table>
+    )
   }
 
   render () {
@@ -191,24 +201,26 @@ class ScheduleEditor extends Component {
       <div className='block custom-editor'>
         <div>
           <h1><i className='fa fa-calendar' /> {entity.name}</h1>
-          {nextRun ? (
-            <div>
-              <span>next run&nbsp;&nbsp;</span>
-              <small>{nextRun.toLocaleString()}</small>
-              {!this.props.entity.__isNew && (
-                <button
-                  disabled={this.state.running}
-                  style={this.state.running ? { color: '#c6c6c6' } : {}}
-                  className='button confirmation'
-                  onClick={() => this.runNow()}
-                >
-                  <i className='fa fa-play' />
-                  {' '}
-                  <span>{this.state.running ? 'Running..' : 'Run now'}</span>
-                </button>
-              )}
-            </div>
-          ) : <div>Not planned yet. Fill CRON expression and report template in the properties.</div>}
+          {nextRun
+            ? (
+              <div>
+                <span>next run&nbsp;&nbsp;</span>
+                <small>{nextRun.toLocaleString()}</small>
+                {!this.props.entity.__isNew && (
+                  <button
+                    disabled={this.state.running}
+                    style={this.state.running ? { color: '#c6c6c6' } : {}}
+                    className='button confirmation'
+                    onClick={() => this.runNow()}
+                  >
+                    <i className='fa fa-play' />
+                    {' '}
+                    <span>{this.state.running ? 'Running..' : 'Run now'}</span>
+                  </button>
+                )}
+              </div>
+              )
+            : <div>Not planned yet. Fill CRON expression and report template in the properties.</div>}
         </div>
         <div className={style.listContainer + ' block-item'}>
           <ReactList

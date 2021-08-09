@@ -3,9 +3,9 @@
 // the problematic part is docxStyle crossing multiple paragraphs and ending in the middle
 // and also the performance
 
-// the solution is that we mark the paragraphs which contains styles, such paragraps will ma loaded in dom during postprocessing
+// the solution is that we mark the paragraphs which contains styles, such paragraphs will ma loaded in dom during postprocessing
 // the mark is represented by <docxStyles> element before paragraph starts and <docxStyleEnd> after paragraph ends
-// at the place of the {{#docxStyle}} call we just add mark $docxStyleStart[id] so we can find exact position of the start during prostprocess
+// at the place of the {{#docxStyle}} call we just add mark $docxStyleStart[id] so we can find exact position of the start during post-process
 // the <docxStyle> node will then include the handlebars generated values for color
 
 const regexp = /{{#docxStyle [^{}]{0,500}}}/
@@ -13,7 +13,7 @@ const regexp = /{{#docxStyle [^{}]{0,500}}}/
 let styleIdCounter = 1
 
 function processClosingTag (doc, openingEl, el, stylesEl) {
-  let styleId = styleIdCounter++
+  const styleId = styleIdCounter++
   const helperCall = openingEl.textContent.match(regexp)[0]
 
   const fakeElement = doc.createElement('docxRemove')

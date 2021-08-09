@@ -95,6 +95,10 @@ var _jsreportStudio = __webpack_require__(1);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
+var _style = __webpack_require__(2);
+
+var _style2 = _interopRequireDefault(_style);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
@@ -177,7 +181,7 @@ function PaymentNote(_ref) {
       'You can find further information about payments in the ',
       React.createElement(
         'a',
-        { href: 'https://gumroad.com/library', target: '_blank' },
+        { href: 'https://gumroad.com/library', target: '_blank', rel: 'noreferrer' },
         'gumroad library'
       ),
       '.`'
@@ -205,7 +209,7 @@ function PaymentNote(_ref) {
       'You can find further information about payments in the ',
       React.createElement(
         'a',
-        { href: 'https://jsreport.net/payments/customer', target: '_blank' },
+        { href: 'https://jsreport.net/payments/customer', target: '_blank', rel: 'noreferrer' },
         'customer portal'
       ),
       '.'
@@ -221,7 +225,36 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          licensingInfo = _jsreportStudio2.default.extensions['licensing'].options;
+          licensingInfo = _jsreportStudio2.default.extensions.licensing.options;
+
+          if (licensingInfo.development) {
+            _jsreportStudio2.default.addStartupComponent(function (props) {
+              return React.createElement(
+                'div',
+                { className: _style2.default.developmentLicense },
+                'Development only license applied'
+              );
+            });
+          }
+
+          if (licensingInfo.usageCheckFailureInfo) {
+            _jsreportStudio2.default.openModal(function () {
+              return React.createElement(
+                'div',
+                null,
+                React.createElement(
+                  'p',
+                  null,
+                  licensingInfo.usageCheckFailureInfo.message
+                ),
+                React.createElement(
+                  'p',
+                  null,
+                  'The development instances should use config license.development=true and every production instance should have its own enterprise license key. The deployment with several production jsreport instances should use enterprise scale license which doesn\'t limit the license key usage.'
+                )
+              );
+            });
+          }
 
           trialModal = function trialModal() {
             return _jsreportStudio2.default.openModal(function () {
@@ -239,7 +272,7 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
                   'The instructions for buying enterprise license can be found ',
                   React.createElement(
                     'a',
-                    { href: 'http://jsreport.net/buy', target: '_blank' },
+                    { href: 'http://jsreport.net/buy', target: '_blank', rel: 'noreferrer' },
                     'here'
                   ),
                   '.'
@@ -257,7 +290,8 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
                   'h2',
                   null,
                   licensingInfo.license,
-                  ' license'
+                  ' license',
+                  licensingInfo.development ? ' (development)' : ''
                 ),
                 renderLicenseType(licensingInfo),
                 React.createElement(
@@ -266,7 +300,7 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
                   'More information about licensing and pricing can be found ',
                   React.createElement(
                     'a',
-                    { href: 'http://jsreport.net/buy', target: '_blank' },
+                    { href: 'http://jsreport.net/buy', target: '_blank', rel: 'noreferrer' },
                     'here'
                   ),
                   '.'
@@ -354,7 +388,7 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
             );
           }, 'settings');
 
-        case 8:
+        case 10:
         case 'end':
           return _context.stop();
       }
@@ -367,6 +401,13 @@ _jsreportStudio2.default.readyListeners.push(_asyncToGenerator( /*#__PURE__*/reg
 /***/ (function(module, exports) {
 
 module.exports = Studio;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// extracted by mini-css-extract-plugin
+module.exports = {"developmentLicense":"x-licensing-style-developmentLicense"};
 
 /***/ })
 /******/ ]);

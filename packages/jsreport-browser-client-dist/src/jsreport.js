@@ -1,5 +1,6 @@
 /* globals jsreportInit define saveAs */
 /* eslint-env browser */
+/* eslint-disable no-var */
 
 ;
 (function (global, factory) {
@@ -337,7 +338,7 @@
           var source = arguments[index]
           if (source !== undefined && source !== null) {
             for (var nextKey in source) {
-              if (source.hasOwnProperty(nextKey)) {
+              if (Object.prototype.hasOwnProperty.call(source, nextKey)) {
                 output[nextKey] = source[nextKey]
               }
             }

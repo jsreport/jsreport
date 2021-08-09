@@ -98,7 +98,7 @@ describe('repair command', function () {
       }, null, 2)
     )
 
-    const { stdout } = await exec(dirName, `repair`, {
+    const { stdout } = await exec(dirName, 'repair', {
       cwd: fullPathToTempProject
     })
 
@@ -142,7 +142,7 @@ describe('repair command', function () {
       'require("jsreport")().init()'
     )
 
-    const { stdout } = await exec(dirName, `repair`, {
+    const { stdout } = await exec(dirName, 'repair', {
       cwd: fullPathToTempProject
     })
 
@@ -192,7 +192,7 @@ describe('repair command', function () {
       '{"store": { "provider": "fs" }, "encryption": { "secretKey": "' + sampleSecretKey + '" }}'
     )
 
-    const { stdout } = await exec(dirName, `repair`, {
+    const { stdout } = await exec(dirName, 'repair', {
       cwd: fullPathToTempProject
     })
 

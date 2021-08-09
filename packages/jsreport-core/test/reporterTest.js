@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const fsAsync = require('fs/promises')
-const winston = require('winston')
 const stdMocks = require('std-mocks')
 const should = require('should')
 const core = require('../index')
@@ -40,12 +39,6 @@ describe('reporter', () => {
     }
 
     Object.keys(process.env).filter(e => e.startsWith('extensions')).forEach((e) => (process.env[e] = null))
-    // cleaning transports for each each test
-    if (winston.loggers.has('jsreport')) {
-      Object.keys(winston.loggers.get('jsreport').transports).forEach((transpName) => {
-        winston.loggers.get('jsreport').remove(transpName)
-      })
-    }
 
     await clean()
   })
@@ -108,7 +101,9 @@ describe('reporter', () => {
     reporter = core({ discover: false })
 
     await reporter.init()
-    reporter.logger.transports.debug.should.be.not.Undefined()
+
+    const t = reporter.logger.transports.find((t) => t.name === 'debug')
+    should(t).not.be.Undefined()
   })
 
   it('should fail to configure custom transport that do not have minimal options', () => {
@@ -129,13 +124,31 @@ describe('reporter', () => {
       discover: false,
       logger: {
         console: { transport: 'console', level: 'debug' },
-        memory: { transport: 'memory', level: 'debug', enabled: false }
+        file: { transport: 'file', level: 'info', enabled: false }
       }
     })
 
     await reporter.init()
-    reporter.logger.transports.console.should.be.not.Undefined()
-    should(reporter.logger.transports.memory).be.Undefined()
+
+    const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
+    should(consoleT).not.be.Undefined()
+    const fileT = reporter.logger.transports.find((t) => t.name === 'file')
+    should(fileT).be.Undefined()
+  })
+
+  it('should load debug transport even if enabled is false', async () => {
+    reporter = core({
+      discover: false,
+      logger: {
+        debug: { transport: 'debug', level: 'debug', enabled: false }
+      }
+    })
+
+    await reporter.init()
+
+    const debugT = reporter.logger.transports.find((t) => t.name === 'debug')
+    should(debugT).not.be.Undefined()
+    debugT.enabled.should.be.False()
   })
 
   it('should configure custom transports for logs correctly', async () => {
@@ -143,13 +156,16 @@ describe('reporter', () => {
       discover: false,
       logger: {
         console: { transport: 'console', level: 'debug' },
-        memory: { transport: 'memory', level: 'debug' }
+        debug: { transport: 'debug', level: 'debug' }
       }
     })
 
     await reporter.init()
-    reporter.logger.transports.console.should.be.not.Undefined()
-    reporter.logger.transports.memory.should.be.not.Undefined()
+
+    const consoleT = reporter.logger.transports.find((t) => t.name === 'console')
+    should(consoleT).not.be.Undefined()
+    const debugT = reporter.logger.transports.find((t) => t.name === 'debug')
+    should(debugT).not.be.Undefined()
   })
 
   it('should configure custom transport that uses external module for logs correctly', async () => {
@@ -157,12 +173,12 @@ describe('reporter', () => {
       discover: false,
       logger: {
         loggly: {
-          module: 'winston-loggly',
+          module: 'winston-loggly-bulk',
           transport: 'Loggly',
           level: 'info',
           silent: true,
           subdomain: 'test',
-          inputToken: 'really-long-token-you-got-from-loggly',
+          token: 'really-long-token-you-got-from-loggly',
           auth: {
             username: 'your-username',
             password: 'your-password'
@@ -172,7 +188,9 @@ describe('reporter', () => {
     })
 
     await reporter.init()
-    reporter.logger.transports.loggly.should.be.not.Undefined()
+
+    const logglyT = reporter.logger.transports.find((t) => t.name === 'loggly')
+    should(logglyT).not.be.Undefined()
   })
 
   it('should create custom error', async () => {

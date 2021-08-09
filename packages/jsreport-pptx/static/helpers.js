@@ -1,7 +1,7 @@
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
-
+// eslint-disable-next-line prefer-const
 let Handlebars = require('handlebars')
 
 function pptxList (data, options) {

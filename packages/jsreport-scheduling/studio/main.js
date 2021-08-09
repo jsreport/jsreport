@@ -434,17 +434,20 @@ var ScheduleEditor = function (_Component) {
       return _react2.default.createElement(
         'tr',
         {
-          key: index, className: this.state.active === task._id ? 'active' : '',
+          key: index,
+          className: this.state.active === task._id ? 'active' : '',
           onClick: function onClick() {
             return _this3.openReport(task);
-          } },
+          }
+        },
         _react2.default.createElement(
           'td',
           null,
           _react2.default.createElement(
             'span',
             {
-              className: _ScheduleEditor2.default.state + ' ' + (task.state === 'error' ? _ScheduleEditor2.default.error : task.state === 'success' ? _ScheduleEditor2.default.success : _ScheduleEditor2.default.canceled) },
+              className: _ScheduleEditor2.default.state + ' ' + (task.state === 'error' ? _ScheduleEditor2.default.error : task.state === 'success' ? _ScheduleEditor2.default.success : _ScheduleEditor2.default.canceled)
+            },
             task.state
           )
         ),
@@ -1810,9 +1813,12 @@ var ScheduleProperties = function (_Component) {
               'Use expression'
             ),
             useExpression && _react2.default.createElement('input', {
-              type: 'text', value: entity.cron || '', onChange: function onChange(v) {
+              type: 'text',
+              value: entity.cron || '',
+              onChange: function onChange(v) {
                 return _onChange({ _id: entity._id, cron: v.target.value });
-              } })
+              }
+            })
           ),
           !useExpression && _react2.default.createElement(
             'div',
@@ -2417,13 +2423,13 @@ var HourTimePicker = function (_Component) {
       editing: false
     };
 
-    _this.onSelect = _this.onSelect.bind(_this);
+    _this.handleSelect = _this.handleSelect.bind(_this);
     return _this;
   }
 
   _createClass(HourTimePicker, [{
-    key: 'onSelect',
-    value: function onSelect(val) {
+    key: 'handleSelect',
+    value: function handleSelect(val) {
       this.setState({ editing: false });
       this.props.onChange(val);
     }
@@ -2462,7 +2468,7 @@ var HourTimePicker = function (_Component) {
           _react2.default.createElement(_HourTimeSelect2.default, {
             type: type,
             value: value,
-            onSelect: this.onSelect
+            onSelect: this.handleSelect
           })
         )
       );
@@ -2511,13 +2517,13 @@ var HourTimeSelectItem = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, (HourTimeSelectItem.__proto__ || Object.getPrototypeOf(HourTimeSelectItem)).call(this, props));
 
-    _this.onClick = _this.onClick.bind(_this);
+    _this.handleClick = _this.handleClick.bind(_this);
     return _this;
   }
 
   _createClass(HourTimeSelectItem, [{
-    key: 'onClick',
-    value: function onClick() {
+    key: 'handleClick',
+    value: function handleClick() {
       this.props.onClick(this.props.value);
     }
   }, {
@@ -2532,7 +2538,7 @@ var HourTimeSelectItem = function (_Component) {
         'div',
         {
           className: _HourTimeSelect2.default.item + ' ' + (active ? _HourTimeSelect2.default.itemSelected : ''),
-          onClick: this.onClick
+          onClick: this.handleClick
         },
         value
       );
@@ -2550,7 +2556,7 @@ var HourTimeSelect = function (_Component2) {
 
     var _this2 = _possibleConstructorReturn(this, (HourTimeSelect.__proto__ || Object.getPrototypeOf(HourTimeSelect)).call(this, props));
 
-    _this2.onItemClick = _this2.onItemClick.bind(_this2);
+    _this2.handleItemClick = _this2.handleItemClick.bind(_this2);
     return _this2;
   }
 
@@ -2560,8 +2566,8 @@ var HourTimeSelect = function (_Component2) {
       this.itemsContainer.focus();
     }
   }, {
-    key: 'onItemClick',
-    value: function onItemClick(value) {
+    key: 'handleItemClick',
+    value: function handleItemClick(value) {
       this.props.onSelect(value);
     }
   }, {
@@ -2577,7 +2583,6 @@ var HourTimeSelect = function (_Component2) {
       var columnLimit = 6;
       var rowCount = 0;
       var items = [];
-      var maxRowCount = void 0;
 
       if (type === 'hour') {
         maxItems = 24;
@@ -2585,7 +2590,7 @@ var HourTimeSelect = function (_Component2) {
         maxItems = 60;
       }
 
-      maxRowCount = maxItems / columnLimit;
+      var maxRowCount = maxItems / columnLimit;
 
       while (rowCount < maxRowCount) {
         var value = rowCount;
@@ -2602,7 +2607,7 @@ var HourTimeSelect = function (_Component2) {
             key: colValue,
             active: _this3.props.value === valueItem,
             value: valueItem,
-            onClick: _this3.onItemClick
+            onClick: _this3.handleItemClick
           });
         }));
 

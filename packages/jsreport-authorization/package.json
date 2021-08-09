@@ -36,7 +36,6 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "babel-eslint": "10.0.1",
     "in-publish": "2.0.0",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/jsreport-fs-store": "3.0.0-beta.1",
@@ -45,7 +44,7 @@
     "ncp": "2.0.0",
     "rimraf": "2.6.3",
     "should": "13.2.3",
-    "standard": "12.0.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -59,7 +58,6 @@
       "node": true,
       "mocha": true,
       "browser": true
-    },
-    "parser": "babel-eslint"
+    }
   }
 }

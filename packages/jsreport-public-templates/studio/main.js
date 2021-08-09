@@ -259,7 +259,7 @@ var ShareModal = function (_Component) {
           null,
           _react2.default.createElement(
             'a',
-            { target: '_blank', href: _jsreportStudio2.default.rootUrl + ('/public-templates?access_token=' + entity.readSharingToken) },
+            { target: '_blank', rel: 'noreferrer', href: _jsreportStudio2.default.rootUrl + ('/public-templates?access_token=' + entity.readSharingToken) },
             _jsreportStudio2.default.rootUrl + ('/public-templates?access_token=' + entity.readSharingToken)
           )
         ) : _react2.default.createElement(

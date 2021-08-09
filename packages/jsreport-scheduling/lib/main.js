@@ -38,7 +38,7 @@ class Scheduling {
       splitIntoDirectories: true
     })
 
-    this.reporter.documentStore.model.entityTypes['ReportType'].taskId = { type: 'Edm.String' }
+    this.reporter.documentStore.model.entityTypes.ReportType.taskId = { type: 'Edm.String' }
 
     this.reporter.documentStore.registerEntitySet('tasks', {
       entityType: 'jsreport.TaskType',
@@ -146,11 +146,11 @@ class Scheduling {
 
     // like if it comes from studio
     const isFullUpdate = (
-      entity.hasOwnProperty('name') &&
-      entity.hasOwnProperty('cron') &&
-      entity.hasOwnProperty('state') &&
-      entity.hasOwnProperty('enabled') &&
-      entity.hasOwnProperty('templateShortid')
+      Object.prototype.hasOwnProperty.call(entity, 'name') &&
+      Object.prototype.hasOwnProperty.call(entity, 'cron') &&
+      Object.prototype.hasOwnProperty.call(entity, 'state') &&
+      Object.prototype.hasOwnProperty.call(entity, 'enabled') &&
+      Object.prototype.hasOwnProperty.call(entity, 'templateShortid')
     )
 
     let schedsCache
@@ -182,7 +182,7 @@ class Scheduling {
       }
     }
 
-    if (!isFullUpdate && entity.hasOwnProperty('cron')) {
+    if (!isFullUpdate && Object.prototype.hasOwnProperty.call(entity, 'cron')) {
       if (!entity.cron) {
         throw this.reporter.createError('cron expression must be set', {
           statusCode: 400
@@ -193,7 +193,7 @@ class Scheduling {
       entity.state = entity.state || 'planned'
     }
 
-    if (!isFullUpdate && entity.hasOwnProperty('templateShortid')) {
+    if (!isFullUpdate && Object.prototype.hasOwnProperty.call(entity, 'templateShortid')) {
       const scheds = await getMatchedScheds()
 
       scheds.forEach((sched) => {

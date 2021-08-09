@@ -33,14 +33,13 @@
   "dependencies": {
     "mime": "2.4.4"
   },
-  "devDependencies": {
-    "babel-eslint": "10.0.3",
+  "devDependencies": {   
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/jsreport-html-to-xlsx": "3.0.0-beta.1",
     "@jsreport/jsreport-studio-dev": "3.0.0-beta.1",
     "mocha": "6.2.2",
     "should": "13.2.3",
-    "standard": "14.3.1"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
@@ -49,7 +48,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true,

@@ -27,22 +27,20 @@
     "concat-stream": "2.0.0",
     "mimic-response": "2.1.0"
   },
-  "devDependencies": {
-    "babel-eslint": "8.0.2",
+  "devDependencies": {   
     "@jsreport/jsreport-authentication": "3.0.0-beta.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/jsreport-express": "3.0.0-beta.1",
     "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
     "mocha": "5.0.1",
     "should": "13.2.3",
-    "standard": "11.0.0"
+    "standard": "16.0.3"
   },
   "engines": {
     "node": ">=8.9"
   },
   "licence": "MIT",
   "standard": {
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true

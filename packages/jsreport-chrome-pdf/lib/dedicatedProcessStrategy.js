@@ -29,7 +29,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
     } finally {
       if (browser) {
         try {
-          let pages = await browser.pages()
+          const pages = await browser.pages()
           await Promise.all(pages.map(page => page.close()))
           await browser.close()
         } finally {
@@ -40,9 +40,9 @@ module.exports = ({ reporter, puppeteer, options }) => {
   }
 
   execute.kill = async () => {
-    for (let browser of openedBrowsers) {
+    for (const browser of openedBrowsers) {
       try {
-        let pages = await browser.pages()
+        const pages = await browser.pages()
         await Promise.all(pages.map(page => page.close()))
         await browser.close()
       } catch (e) {

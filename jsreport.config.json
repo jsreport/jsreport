@@ -36,7 +36,6 @@
     "assets",
     "base",
     "data",
-    "docker-workers",
     "docx",
     "express",
     "freeze",

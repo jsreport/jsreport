@@ -43,7 +43,6 @@
     "phantom-page-eval": "1.2.0"
   },
   "devDependencies": {
-    "babel-eslint": "10.1.0",
     "handlebars": "4.7.7",
     "in-publish": "2.0.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
@@ -52,7 +51,7 @@
     "mocha": "5.2.0",
     "puppeteer": "9.1.1",
     "should": "13.2.3",
-    "standard": "14.3.4",
+    "standard": "16.0.3",
     "xlsx-populate": "1.20.1"
   },
   "engines": {
@@ -62,7 +61,6 @@
     "ignore": [
       "studio/main.js"
     ],
-    "parser": "babel-eslint",
     "env": {
       "node": true,
       "mocha": true

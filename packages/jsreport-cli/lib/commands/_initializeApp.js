@@ -11,7 +11,7 @@ function initializeApp (cwd, logger, force, selectedVersion, customInstall) {
 
     checkOrInstallJsreport(cwd, logger, existsPackageJson, selectedVersion, customInstall, (err, jsreportPkgInfo) => {
       if (err) {
-        const error = new Error(`Unexpected error happened while checking jsreport installation`)
+        const error = new Error('Unexpected error happened while checking jsreport installation')
 
         error.originalError = err
 
@@ -34,21 +34,23 @@ function initializeApp (cwd, logger, force, selectedVersion, customInstall) {
         logger.info('Creating package.json')
 
         const serverPackageJson = {
-          'name': 'jsreport-server',
-          'main': 'server.js',
-          'scripts': {
-            'start': 'node server'
+          name: 'jsreport-server',
+          main: 'server.js',
+          scripts: {
+            start: 'node server'
           },
-          'jsreport': {
-            'entryPoint': 'server.js'
+          jsreport: {
+            entryPoint: 'server.js'
           },
-          'dependencies': {
+          dependencies: {
           }
         }
 
-        serverPackageJson.dependencies[jsreportPkgInfo.name] = jsreportPkgInfo.versionMeta != null ? (
-          jsreportPkgInfo.versionMeta
-        ) : jsreportPkgInfo.version
+        serverPackageJson.dependencies[jsreportPkgInfo.name] = jsreportPkgInfo.versionMeta != null
+          ? (
+              jsreportPkgInfo.versionMeta
+            )
+          : jsreportPkgInfo.version
 
         if (isMainJsreport) {
           serverPackageJson.scripts.jsreport = 'jsreport'
@@ -83,9 +85,9 @@ function checkOrInstallJsreport (cwd, logger, existsPackageJson, version, custom
     const userPkg = require(path.join(cwd, './package.json'))
     const userDependencies = userPkg.dependencies || {}
 
-    if (userDependencies['jsreport']) {
+    if (userDependencies.jsreport) {
       detectedJsreport = 'jsreport'
-      detectedVersion = userDependencies['jsreport']
+      detectedVersion = userDependencies.jsreport
     } else if (userDependencies['jsreport-core']) {
       detectedJsreport = 'jsreport-core'
       detectedVersion = userDependencies['jsreport-core']

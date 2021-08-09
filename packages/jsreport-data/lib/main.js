@@ -19,7 +19,7 @@ module.exports = function (reporter, definition) {
     splitIntoDirectories: true
   })
 
-  reporter.documentStore.model.entityTypes['TemplateType'].data = {
+  reporter.documentStore.model.entityTypes.TemplateType.data = {
     // this makes the reference to accept null also when validating with json schema
     type: 'jsreport.DataItemRefType', schema: { type: 'null' }
   }

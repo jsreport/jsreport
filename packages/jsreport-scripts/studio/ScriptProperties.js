@@ -13,7 +13,8 @@ export default class ScriptProperties extends Component {
           <label>run every time</label>
           <input
             type='checkbox' checked={entity.isGlobal === true}
-            onChange={(v) => onChange({_id: entity._id, isGlobal: v.target.checked})} />
+            onChange={(v) => onChange({ _id: entity._id, isGlobal: v.target.checked })}
+          />
         </div>
       </div>
     )

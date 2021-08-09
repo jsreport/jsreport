@@ -57,6 +57,7 @@ const __xlsx = (function () {
   }
 
   function ensureWorksheetOrder (data) {
+    // eslint-disable-next-line no-unused-vars
     for (const key in data) {
       if (key.indexOf('xl/worksheets/') !== 0) {
         continue
@@ -97,9 +98,9 @@ const __xlsx = (function () {
   function replace (filePath, path) {
     if (typeof path === 'string') {
       const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
-      const pathWithoutLastFragemnt = path.substring(0, lastFragmentIndex)
+      const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
       const pathOfLastFragment = path.substring(lastFragmentIndex)
-      const holder = evalGet(this.ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragemnt)
+      const holder = evalGet(this.ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
       this.$replacedValue = evalGet(holder, pathOfLastFragment)
       let contentToReplace = this.tagCtx.render(this.ctx.data)
       try {

@@ -13,12 +13,8 @@ export default function createStore (history) {
   const middleware = [thunk, reduxRouterMiddleware, groupUpdate]
 
   let finalCreateStore
-  if (__DEVELOPMENT__) {
-    const invariant = require('redux-immutable-state-invariant').default()
-    finalCreateStore = applyMiddleware(invariant, ...middleware, logger)(_createStore)
-  } else {
-    finalCreateStore = applyMiddleware(...middleware)(_createStore)
-  }
+
+  finalCreateStore = applyMiddleware(...middleware)(_createStore)
 
   const reducer = require('./reducer')(history)
   const store = finalCreateStore(enableBatching(reducer))

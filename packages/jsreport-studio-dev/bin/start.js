@@ -87,9 +87,9 @@ function installStudioIfRequired (p) {
     return
   }
 
-  for (let k in packageJson.devDependencies) {
+  for (const k in packageJson.devDependencies) {
     if (!tryRequire(path.join(p, 'node_modules', k))) {
-      // somehow npm install failes on EBUSY error if this field is not deleted
+      // somehow npm install failed on EBUSY error if this field is not deleted
       delete packageJson._requiredBy
       fs.writeFileSync(path.join(p, 'package.json'), JSON.stringify(packageJson, null, 2), 'utf8')
       return installStudio(p)

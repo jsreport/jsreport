@@ -101,9 +101,11 @@ export default class ReportEditor extends Component {
     if (!task) {
       this.pending = Math.max(this.pending, index)
       this.lazyFetch()
-      return <tr key={index}>
-        <td><i className='fa fa-spinner fa-spin fa-fw' /></td>
-      </tr>
+      return (
+        <tr key={index}>
+          <td><i className='fa fa-spinner fa-spin fa-fw' /></td>
+        </tr>
+      )
     }
 
     return this.renderItem(task, index)
@@ -171,15 +173,20 @@ export default class ReportEditor extends Component {
   render () {
     const { count } = this.state
 
-    return <div className='block custom-editor'>
-      <div>
-        <h1><i className='fa fa-folder-open-o' /> Reports</h1>
+    return (
+      <div className='block custom-editor'>
+        <div>
+          <h1><i className='fa fa-folder-open-o' /> Reports</h1>
+        </div>
+        <div className={style.listContainer + ' block-item'}>
+          <ReactList
+            type='uniform'
+            itemsRenderer={this.renderItems}
+            itemRenderer={(index) => this.tryRenderItem(index)}
+            length={count}
+          />
+        </div>
       </div>
-      <div className={style.listContainer + ' block-item'}>
-        <ReactList
-          type='uniform' itemsRenderer={this.renderItems} itemRenderer={(index) => this.tryRenderItem(index)}
-          length={count} />
-      </div>
-    </div>
+    )
   }
 }

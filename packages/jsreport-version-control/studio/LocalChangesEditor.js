@@ -21,7 +21,7 @@ export default class LocalChangesEditor extends Component {
     this.fetchRequested = true
 
     try {
-      const res = await Studio.api.get(`/api/version-control/local-changes`)
+      const res = await Studio.api.get('/api/version-control/local-changes')
       this.setState({ diff: res })
     } catch (e) {
       alert(e)
@@ -42,7 +42,7 @@ export default class LocalChangesEditor extends Component {
     this.setState({ inExecution: true })
 
     try {
-      await Studio.api.post(`/api/version-control/commit`, {
+      await Studio.api.post('/api/version-control/commit', {
         data: {
           message: this.state.message
         }
@@ -63,8 +63,8 @@ export default class LocalChangesEditor extends Component {
     this.setState({ inExecution: true })
 
     try {
-      if (confirm('This will delete all your uncommited files and revert changes. Are you sure?')) {
-        await Studio.api.post(`/api/version-control/revert`)
+      if (confirm('This will delete all your uncommitted files and revert changes. Are you sure?')) {
+        await Studio.api.post('/api/version-control/revert')
         this.setState({ inExecution: false })
         return Studio.reset().catch((e) => console.error(e))
       } else {
@@ -84,7 +84,7 @@ export default class LocalChangesEditor extends Component {
     return (
       <div className='block custom-editor'>
         <h1>
-          <i className='fa fa-history' /> uncommited changes
+          <i className='fa fa-history' /> uncommitted changes
           <button className='button confirmation' onClick={() => this.history()}>Commits history</button>
         </h1>
         <div className='form-group'>

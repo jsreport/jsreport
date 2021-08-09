@@ -37,7 +37,7 @@ async function run () {
 
     const allInOne = {}
 
-    for (var i = 0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
       console.log(entitySets[i] + ':' + results[i].length)
       allInOne[entitySets[i]] = results[i].map((e) => omit(e, ['_id', 'modificationDate', 'creationDate']))
 

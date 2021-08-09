@@ -53,7 +53,7 @@ class Scripts {
 
   async handleAfterRender (req, res) {
     let scriptsProfilerEvent
-    if (req.context.scriptsCache.find(s => s.shouldRunAfteRender)) {
+    if (req.context.scriptsCache.find(s => s.shouldRunAfterRender)) {
       scriptsProfilerEvent = this.reporter.profiler.emit({
         type: 'operationStart',
         subtype: 'scriptsAfterRender',
@@ -62,7 +62,7 @@ class Scripts {
     }
 
     for (const script of req.context.scriptsCache) {
-      if (script.shouldRunAfteRender) {
+      if (script.shouldRunAfterRender) {
         await this._runScript(req, res, script, 'afterRender', scriptsProfilerEvent)
       }
     }
@@ -77,7 +77,7 @@ class Scripts {
   }
 
   async _runScript (req, res, script, method, scriptsProfilerEvent) {
-    let scriptProfilerEvent = this.reporter.profiler.emit({
+    const scriptProfilerEvent = this.reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'script',
       name: `scripts ${script.name || 'anonymous'}`,
@@ -91,7 +91,7 @@ class Scripts {
     const scriptExecResult = await executeScript(this.reporter, script, method, req, res)
 
     if (scriptExecResult.shouldRunAfterRender) {
-      script.shouldRunAfteRender = true
+      script.shouldRunAfterRender = true
     }
 
     if (scriptExecResult.requestCancel) {

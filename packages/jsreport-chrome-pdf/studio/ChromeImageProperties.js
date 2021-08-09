@@ -32,7 +32,9 @@ export default class ImageProperties extends Component {
         {chrome.type === 'jpeg' && (
           <div className='form-group'><label>quality</label>
             <input
-              type='text' placeholder='0 - 100' value={chrome.quality != null ? chrome.quality : ''}
+              type='text'
+              placeholder='0 - 100'
+              value={chrome.quality != null ? chrome.quality : ''}
               onChange={(v) => {
                 let qualityValue = v.target.value
 
@@ -41,19 +43,23 @@ export default class ImageProperties extends Component {
                 }
 
                 changeChrome(this.props, { quality: qualityValue })
-              }} />
+              }}
+            />
           </div>
         )}
         <div className='form-group'>
           <label>full page</label>
           <input
-            type='checkbox' checked={chrome.fullPage === true}
+            type='checkbox'
+            checked={chrome.fullPage === true}
             title='Specifies whether to take a screenshot of the full scrollable page or not'
-            onChange={(v) => changeChrome(this.props, { fullPage: v.target.checked })} />
+            onChange={(v) => changeChrome(this.props, { fullPage: v.target.checked })}
+          />
         </div>
         <div className='form-group'><label>clip X</label>
           <input
-            type='text' value={chrome.clipX != null ? chrome.clipX : ''}
+            type='text'
+            value={chrome.clipX != null ? chrome.clipX : ''}
             title='Specifies the x-coordinate of top-left corner of clipping region of the page'
             onChange={(v) => {
               let clipXValue = v.target.value
@@ -63,11 +69,13 @@ export default class ImageProperties extends Component {
               }
 
               changeChrome(this.props, { clipX: clipXValue })
-            }} />
+            }}
+          />
         </div>
         <div className='form-group'><label>clip Y</label>
           <input
-            type='text' value={chrome.clipY != null ? chrome.clipY : ''}
+            type='text'
+            value={chrome.clipY != null ? chrome.clipY : ''}
             title='Specifies the y-coordinate of top-left corner of clipping region of the page'
             onChange={(v) => {
               let clipYValue = v.target.value
@@ -77,11 +85,13 @@ export default class ImageProperties extends Component {
               }
 
               changeChrome(this.props, { clipY: clipYValue })
-            }} />
+            }}
+          />
         </div>
         <div className='form-group'><label>clip width</label>
           <input
-            type='text' value={chrome.clipWidth != null ? chrome.clipWidth : ''}
+            type='text'
+            value={chrome.clipWidth != null ? chrome.clipWidth : ''}
             title='Specifies the width of clipping region of the page'
             onChange={(v) => {
               let clipWidthValue = v.target.value
@@ -91,7 +101,8 @@ export default class ImageProperties extends Component {
               }
 
               changeChrome(this.props, { clipWidth: clipWidthValue })
-            }} />
+            }}
+          />
         </div>
         <div className='form-group'><label>clip height</label>
           <input
@@ -105,14 +116,16 @@ export default class ImageProperties extends Component {
               }
 
               changeChrome(this.props, { clipHeight: clipHeightValue })
-            }} />
+            }}
+          />
         </div>
         <div className='form-group'>
           <label>omit background</label>
           <input
             type='checkbox' checked={chrome.omitBackground === true}
             title='Specifies if the background should be hidden, therefore allowing capturing screenshots with transparency'
-            onChange={(v) => changeChrome(this.props, { omitBackground: v.target.checked })} />
+            onChange={(v) => changeChrome(this.props, { omitBackground: v.target.checked })}
+          />
         </div>
         <div className='form-group'><label>media type</label>
           <select value={chrome.mediaType || 'print'} onChange={(v) => changeChrome(this.props, { mediaType: v.target.value })}>
@@ -124,13 +137,15 @@ export default class ImageProperties extends Component {
           <label>wait for network iddle</label>
           <input
             type='checkbox' checked={chrome.waitForNetworkIddle === true}
-            onChange={(v) => changeChrome(this.props, { waitForNetworkIddle: v.target.checked })} />
+            onChange={(v) => changeChrome(this.props, { waitForNetworkIddle: v.target.checked })}
+          />
         </div>
         <div className='form-group'>
           <label title='window.JSREPORT_READY_TO_START=true;'>wait for printing trigger</label>
           <input
             type='checkbox' title='window.JSREPORT_READY_TO_START=true;' checked={chrome.waitForJS === true}
-            onChange={(v) => changeChrome(this.props, { waitForJS: v.target.checked })} />
+            onChange={(v) => changeChrome(this.props, { waitForJS: v.target.checked })}
+          />
         </div>
       </div>
     )

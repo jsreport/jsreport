@@ -2,7 +2,7 @@ const ObjectId = require('mongodb').ObjectID
 const hexTest = /^[0-9A-Fa-f]{24}$/
 
 function _convertStringsToObjectIds (o) {
-  for (let i in o) {
+  for (const i in o) {
     if (i === '_id' && (typeof o[i] === 'string' || o[i] instanceof String) && hexTest.test(o[i])) {
       o[i] = new ObjectId(o[i])
     }
@@ -23,7 +23,7 @@ function _convertStringsToObjectIds (o) {
 
 function _convertBufferAndIds (obj) {
   for (const p in obj) {
-    if (!obj[p] || !obj.hasOwnProperty(p)) {
+    if (!obj[p] || !Object.prototype.hasOwnProperty.call(obj, p)) {
       continue
     }
 
@@ -105,7 +105,7 @@ module.exports = (client, options, db) => {
     async load (model) {
       const collections = await db.listCollections().toArray()
 
-      for (let entitySetName of Object.keys(model.entitySets)) {
+      for (const entitySetName of Object.keys(model.entitySets)) {
         const collectionName = getCollectionName(options.prefix, entitySetName)
         if (!collections.find(c => c.name === collectionName)) {
           await db.createCollection(collectionName)

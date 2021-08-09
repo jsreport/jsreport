@@ -37,7 +37,7 @@ class ChromePdfProperties extends Component {
         <br />
         <b>
           The chrome native implementation is also very limited and we recommend to use jsreport
-          <a href='https://jsreport.net/learn/pdf-utils' target='_blank'> pdf utils extension</a> in more complex use cases.
+          <a href='https://jsreport.net/learn/pdf-utils' target='_blank' rel='noreferrer'> pdf utils extension</a> in more complex use cases.
         </b>
       </div>
     ))
@@ -92,7 +92,9 @@ class ChromePdfProperties extends Component {
       <div className='properties-section'>
         <div className='form-group'><label>scale</label>
           <input
-            type='text' placeholder='1' value={chrome.scale || ''}
+            type='text'
+            placeholder='1'
+            value={chrome.scale || ''}
             onChange={(v) => {
               let scaleValue = v.target.value
 
@@ -101,65 +103,96 @@ class ChromePdfProperties extends Component {
               }
 
               changeChrome(this.props, { scale: scaleValue })
-            }} />
+            }}
+          />
         </div>
         <div className='form-group'>
           <label>print background</label>
           <input
-            type='checkbox' checked={chrome.printBackground === true}
-            onChange={(v) => changeChrome(this.props, { printBackground: v.target.checked })} />
+            type='checkbox'
+            checked={chrome.printBackground === true}
+            onChange={(v) => changeChrome(this.props, { printBackground: v.target.checked })}
+          />
         </div>
         <div className='form-group'>
           <label>landscape</label>
           <input
-            type='checkbox' checked={chrome.landscape === true}
-            onChange={(v) => changeChrome(this.props, { landscape: v.target.checked })} />
+            type='checkbox'
+            checked={chrome.landscape === true}
+            onChange={(v) => changeChrome(this.props, { landscape: v.target.checked })}
+          />
         </div>
         <div className='form-group'><label>pageRanges</label>
           <input
-            type='text' placeholder='1-5, 8, 11-13' value={chrome.pageRanges || ''}
-            onChange={(v) => changeChrome(this.props, { pageRanges: v.target.value })} />
+            type='text'
+            placeholder='1-5, 8, 11-13'
+            value={chrome.pageRanges || ''}
+            onChange={(v) => changeChrome(this.props, { pageRanges: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>format</label>
           <input
-            type='text' placeholder='Letter' value={chrome.format || ''}
-            onChange={(v) => changeChrome(this.props, { format: v.target.value })} />
+            type='text'
+            placeholder='Letter'
+            value={chrome.format || ''}
+            onChange={(v) => changeChrome(this.props, { format: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>width</label>
           <input
-            type='text' placeholder='10cm' value={chrome.width || ''}
-            onChange={(v) => changeChrome(this.props, { width: v.target.value })} />
+            type='text'
+            placeholder='10cm'
+            value={chrome.width || ''}
+            onChange={(v) => changeChrome(this.props, { width: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>height</label>
           <input
-            type='text' placeholder='10cm' value={chrome.height || ''}
-            onChange={(v) => changeChrome(this.props, { height: v.target.value })} />
+            type='text'
+            placeholder='10cm'
+            value={chrome.height || ''}
+            onChange={(v) => changeChrome(this.props, { height: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>margin top</label>
           <input
-            type='text' placeholder='10cm' value={chrome.marginTop || ''}
-            onChange={(v) => changeChrome(this.props, { marginTop: v.target.value })} />
+            type='text'
+            placeholder='10cm'
+            value={chrome.marginTop || ''}
+            onChange={(v) => changeChrome(this.props, { marginTop: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>margin right</label>
           <input
-            type='text' placeholder='10cm' value={chrome.marginRight || ''}
-            onChange={(v) => changeChrome(this.props, { marginRight: v.target.value })} />
+            type='text'
+            placeholder='10cm'
+            value={chrome.marginRight || ''}
+            onChange={(v) => changeChrome(this.props, { marginRight: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>margin bottom</label>
           <input
-            type='text' placeholder='10cm' value={chrome.marginBottom || ''}
-            onChange={(v) => changeChrome(this.props, { marginBottom: v.target.value })} />
+            type='text'
+            placeholder='10cm'
+            value={chrome.marginBottom || ''}
+            onChange={(v) => changeChrome(this.props, { marginBottom: v.target.value })}
+          />
         </div>
         <div className='form-group'><label>margin left</label>
           <input
-            type='text' placeholder='10cm' value={chrome.marginLeft || ''}
-            onChange={(v) => changeChrome(this.props, { marginLeft: v.target.value })} />
+            type='text'
+            placeholder='10cm'
+            value={chrome.marginLeft || ''}
+            onChange={(v) => changeChrome(this.props, { marginLeft: v.target.value })}
+          />
         </div>
         <div className='form-group'>
           <label>display header/footer</label>
           <input
-            type='checkbox' checked={chrome.displayHeaderFooter === true}
-            onChange={(v) => changeChrome(this.props, { displayHeaderFooter: v.target.checked })} />
+            type='checkbox'
+            checked={chrome.displayHeaderFooter === true}
+            onChange={(v) => changeChrome(this.props, { displayHeaderFooter: v.target.checked })}
+          />
         </div>
         <div className='form-group'>
           <label>header</label>
@@ -178,14 +211,18 @@ class ChromePdfProperties extends Component {
         <div className='form-group'>
           <label>wait for network iddle</label>
           <input
-            type='checkbox' checked={chrome.waitForNetworkIddle === true}
-            onChange={(v) => changeChrome(this.props, { waitForNetworkIddle: v.target.checked })} />
+            type='checkbox'
+            checked={chrome.waitForNetworkIddle === true}
+            onChange={(v) => changeChrome(this.props, { waitForNetworkIddle: v.target.checked })}
+          />
         </div>
         <div className='form-group'>
           <label title='window.JSREPORT_READY_TO_START=true;'>wait for printing trigger</label>
           <input
-            type='checkbox' title='window.JSREPORT_READY_TO_START=true;' checked={chrome.waitForJS === true}
-            onChange={(v) => changeChrome(this.props, { waitForJS: v.target.checked })} />
+            type='checkbox'
+            title='window.JSREPORT_READY_TO_START=true;' checked={chrome.waitForJS === true}
+            onChange={(v) => changeChrome(this.props, { waitForJS: v.target.checked })}
+          />
         </div>
       </div>
     )

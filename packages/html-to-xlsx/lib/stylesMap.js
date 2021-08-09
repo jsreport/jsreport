@@ -89,7 +89,7 @@ module.exports = {
 
     props.push({
       key: 'name',
-      value: cellInfo.fontFamily != null ? cellInfo.fontFamily : `Calibri`
+      value: cellInfo.fontFamily != null ? cellInfo.fontFamily : 'Calibri'
     })
 
     props.push({

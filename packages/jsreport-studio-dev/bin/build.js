@@ -13,7 +13,7 @@ const argv = argsParser(process.argv.slice(2), {
   },
   coerce: {
     stats: function (arg) {
-      let newArg = {}
+      const newArg = {}
 
       if (arg != null && typeof arg === 'object') {
         Object.entries(arg).forEach(([key, value]) => {
@@ -23,9 +23,9 @@ const argv = argsParser(process.argv.slice(2), {
 
           if (typeof value === 'boolean') {
             newArg[key] = value
-          } else if (value === 'true' || value === 1 || value === '1') {
+          } else if (value === 'true' || value === 1 || value === '1') {
             newArg[key] = true
-          } else if (value === 'false' || value === 0 || value === '0') {
+          } else if (value === 'false' || value === 0 || value === '0') {
             newArg[key] = false
           } else if (value === 'undefined') {
             newArg[key] = undefined
@@ -74,13 +74,15 @@ webpack(config, (err, stats) => {
     // by default we show all modules included except for the ones that are
     // from node_modules
     maxModules: hasProp(statsOpts, 'maxModules') ? statsOpts.maxModules : Infinity,
-    excludeModules: hasProp(statsOpts, 'excludeModules') ? statsOpts.excludeModules : (moduleSource) => {
-      if (moduleSource == null) {
-        return false
-      }
+    excludeModules: hasProp(statsOpts, 'excludeModules')
+      ? statsOpts.excludeModules
+      : (moduleSource) => {
+          if (moduleSource == null) {
+            return false
+          }
 
-      return moduleSource.includes('node_modules')
-    }
+          return moduleSource.includes('node_modules')
+        }
   }
 
   if (argv.verbose) {
@@ -101,5 +103,5 @@ webpack(config, (err, stats) => {
 })
 
 function hasProp (statsOpts, propName) {
-  return statsOpts.hasOwnProperty(propName)
+  return Object.prototype.hasOwnProperty.call(statsOpts, propName)
 }

@@ -149,10 +149,13 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
                     null,
                     'Allow read all entities'
                   ),
-                  React.createElement('input', { type: 'checkbox', checked: user.readAllPermissions === true,
+                  React.createElement('input', {
+                    type: 'checkbox',
+                    checked: user.readAllPermissions === true,
                     onChange: function onChange(v) {
                       return _jsreportStudio2.default.updateEntity(_extends({}, user, { readAllPermissions: v.target.checked }));
-                    } })
+                    }
+                  })
                 ),
                 React.createElement(
                   'div',
@@ -162,10 +165,13 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
                     null,
                     'Allow edit all entities'
                   ),
-                  React.createElement('input', { type: 'checkbox', checked: user.editAllPermissions === true,
+                  React.createElement('input', {
+                    type: 'checkbox',
+                    checked: user.editAllPermissions === true,
                     onChange: function onChange(v) {
                       return _jsreportStudio2.default.updateEntity(_extends({}, user, { editAllPermissions: v.target.checked }));
-                    } })
+                    }
+                  })
                 )
               )
             );

@@ -12,9 +12,9 @@ exports.description = description
 
 function getExamples (command) {
   return [
-    [`${command} render`, `Print information about the render command`],
-    [`${command} start`, `Print information about the start command`],
-    [`${command} config`, `Print information about jsreport configuration input format`]
+    [`${command} render`, 'Print information about the render command'],
+    [`${command} start`, 'Print information about the start command'],
+    [`${command} config`, 'Print information about jsreport configuration input format']
   ]
 }
 
@@ -30,8 +30,8 @@ exports.builder = (yargs) => {
       .usage([
         `${description}\n`,
         `Usage:\n\njsreport ${command} <commandOrTopic>\n`,
-        `Topics Available:\n`,
-        `config -> print details about the configuration shape and types that the current jsreport instance in project supports\n`
+        'Topics Available:\n',
+        'config -> print details about the configuration shape and types that the current jsreport instance in project supports\n'
       ].join('\n'))
       // we just define positional argument here to describe it for help usage,
       // but in order to have the property "argv.commandOrTopic" with sanitized value we will need to put the
@@ -91,7 +91,7 @@ exports.handler = async (argv) => {
       try {
         _instance = await getInstance(cwd)
       } catch (e) {
-        const error = new Error(`Couldn't find a jsreport installation necessary to check the configuration options`)
+        const error = new Error('Couldn\'t find a jsreport installation necessary to check the configuration options')
 
         error.originalError = e
 
@@ -188,9 +188,9 @@ function schemaToConfigFormat (instance, rootSchema) {
 
   toConvert.forEach((ui, idx) => {
     if (idx === 0) {
-      results['raw'] = convert(ui, false)
+      results.raw = convert(ui, false)
     } else {
-      results['output'] = convert(ui)
+      results.output = convert(ui)
     }
   })
 
@@ -204,7 +204,7 @@ function printProperties (ui, props, {
   printRestProps = false,
   addStyles = true
 }) {
-  let baseLeftPadding = level === 1 ? 2 : 3
+  const baseLeftPadding = level === 1 ? 2 : 3
 
   const knowProps = [
     'type', 'required', 'properties', 'items', 'not', 'anyOf', 'allOf', 'oneOf',
@@ -379,7 +379,7 @@ function printProperties (ui, props, {
       schema.properties != null &&
       Object.keys(schema.properties).length > 0
     ) {
-      content.text += ` {`
+      content.text += ' {'
     } else if (
       schema.type === 'array' &&
       (Array.isArray(schema.items) ||
@@ -389,9 +389,9 @@ function printProperties (ui, props, {
       schema.items.properties != null &&
       Object.keys(schema.items.properties).length > 0))
     ) {
-      content.text += ` [`
+      content.text += ' ['
     } else if (!isLastKey && propName !== '') {
-      content.text += `,`
+      content.text += ','
     }
 
     ui.div(content)
@@ -415,14 +415,16 @@ function printProperties (ui, props, {
       schema.properties != null &&
       Object.keys(schema.properties).length > 0
     ) {
+      const hasDefault = (
+        defaults &&
+        typeof defaults === 'object' &&
+        typeof defaults[propName] === 'object'
+      )
+
       printProperties(ui, schema.properties, {
         level: level + 1,
         required: schema.required,
-        defaults: (
-          defaults &&
-          typeof defaults === 'object' &&
-          typeof defaults[propName] === 'object'
-        ) ? defaults[propName] : undefined
+        defaults: hasDefault ? defaults[propName] : undefined
       })
 
       ui.div({ text: `}${!isLastKey ? ',' : ''}`, padding: content.padding })
@@ -433,14 +435,14 @@ function printProperties (ui, props, {
       schema.items.properties != null &&
       Object.keys(schema.items.properties).length > 0
     ) {
-      ui.div({ text: `{`, padding: getPadding(level + 1) })
+      ui.div({ text: '{', padding: getPadding(level + 1) })
 
       printProperties(ui, schema.items.properties, {
         level: level + 2,
         required: schema.items.required
       })
 
-      ui.div({ text: `{`, padding: getPadding(level + 1) })
+      ui.div({ text: '{', padding: getPadding(level + 1) })
       ui.div({ text: `]${!isLastKey ? ',' : ''}`, padding: content.padding })
     } else if (schema.type === 'array' && Array.isArray(schema.items)) {
       printProperties(ui, schema.items.map((s, idx) => {

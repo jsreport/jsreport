@@ -246,7 +246,7 @@ var ChromePdfProperties = function (_Component) {
             'The chrome native implementation is also very limited and we recommend to use jsreport',
             _react2.default.createElement(
               'a',
-              { href: 'https://jsreport.net/learn/pdf-utils', target: '_blank' },
+              { href: 'https://jsreport.net/learn/pdf-utils', target: '_blank', rel: 'noreferrer' },
               ' pdf utils extension'
             ),
             ' in more complex use cases.'
@@ -318,7 +318,9 @@ var ChromePdfProperties = function (_Component) {
             'scale'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1', value: chrome.scale || '',
+            type: 'text',
+            placeholder: '1',
+            value: chrome.scale || '',
             onChange: function onChange(v) {
               var scaleValue = v.target.value;
 
@@ -327,7 +329,8 @@ var ChromePdfProperties = function (_Component) {
               }
 
               changeChrome(_this2.props, { scale: scaleValue });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -338,10 +341,12 @@ var ChromePdfProperties = function (_Component) {
             'print background'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.printBackground === true,
+            type: 'checkbox',
+            checked: chrome.printBackground === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { printBackground: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -352,10 +357,12 @@ var ChromePdfProperties = function (_Component) {
             'landscape'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.landscape === true,
+            type: 'checkbox',
+            checked: chrome.landscape === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { landscape: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -366,10 +373,13 @@ var ChromePdfProperties = function (_Component) {
             'pageRanges'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1-5, 8, 11-13', value: chrome.pageRanges || '',
+            type: 'text',
+            placeholder: '1-5, 8, 11-13',
+            value: chrome.pageRanges || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { pageRanges: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -380,10 +390,13 @@ var ChromePdfProperties = function (_Component) {
             'format'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: 'Letter', value: chrome.format || '',
+            type: 'text',
+            placeholder: 'Letter',
+            value: chrome.format || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { format: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -394,10 +407,13 @@ var ChromePdfProperties = function (_Component) {
             'width'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '10cm', value: chrome.width || '',
+            type: 'text',
+            placeholder: '10cm',
+            value: chrome.width || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { width: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -408,10 +424,13 @@ var ChromePdfProperties = function (_Component) {
             'height'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '10cm', value: chrome.height || '',
+            type: 'text',
+            placeholder: '10cm',
+            value: chrome.height || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { height: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -422,10 +441,13 @@ var ChromePdfProperties = function (_Component) {
             'margin top'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '10cm', value: chrome.marginTop || '',
+            type: 'text',
+            placeholder: '10cm',
+            value: chrome.marginTop || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { marginTop: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -436,10 +458,13 @@ var ChromePdfProperties = function (_Component) {
             'margin right'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '10cm', value: chrome.marginRight || '',
+            type: 'text',
+            placeholder: '10cm',
+            value: chrome.marginRight || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { marginRight: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -450,10 +475,13 @@ var ChromePdfProperties = function (_Component) {
             'margin bottom'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '10cm', value: chrome.marginBottom || '',
+            type: 'text',
+            placeholder: '10cm',
+            value: chrome.marginBottom || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { marginBottom: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -464,10 +492,13 @@ var ChromePdfProperties = function (_Component) {
             'margin left'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '10cm', value: chrome.marginLeft || '',
+            type: 'text',
+            placeholder: '10cm',
+            value: chrome.marginLeft || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { marginLeft: v.target.value });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -478,10 +509,12 @@ var ChromePdfProperties = function (_Component) {
             'display header/footer'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.displayHeaderFooter === true,
+            type: 'checkbox',
+            checked: chrome.displayHeaderFooter === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { displayHeaderFooter: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -549,10 +582,12 @@ var ChromePdfProperties = function (_Component) {
             'wait for network iddle'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.waitForNetworkIddle === true,
+            type: 'checkbox',
+            checked: chrome.waitForNetworkIddle === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { waitForNetworkIddle: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -563,10 +598,12 @@ var ChromePdfProperties = function (_Component) {
             'wait for printing trigger'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', title: 'window.JSREPORT_READY_TO_START=true;', checked: chrome.waitForJS === true,
+            type: 'checkbox',
+            title: 'window.JSREPORT_READY_TO_START=true;', checked: chrome.waitForJS === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { waitForJS: v.target.checked });
-            } })
+            }
+          })
         )
       );
     }
@@ -675,7 +712,9 @@ var ImageProperties = function (_Component) {
             'quality'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '0 - 100', value: chrome.quality != null ? chrome.quality : '',
+            type: 'text',
+            placeholder: '0 - 100',
+            value: chrome.quality != null ? chrome.quality : '',
             onChange: function onChange(v) {
               var qualityValue = v.target.value;
 
@@ -684,7 +723,8 @@ var ImageProperties = function (_Component) {
               }
 
               changeChrome(_this2.props, { quality: qualityValue });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -695,11 +735,13 @@ var ImageProperties = function (_Component) {
             'full page'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.fullPage === true,
+            type: 'checkbox',
+            checked: chrome.fullPage === true,
             title: 'Specifies whether to take a screenshot of the full scrollable page or not',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { fullPage: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -710,7 +752,8 @@ var ImageProperties = function (_Component) {
             'clip X'
           ),
           _react2.default.createElement('input', {
-            type: 'text', value: chrome.clipX != null ? chrome.clipX : '',
+            type: 'text',
+            value: chrome.clipX != null ? chrome.clipX : '',
             title: 'Specifies the x-coordinate of top-left corner of clipping region of the page',
             onChange: function onChange(v) {
               var clipXValue = v.target.value;
@@ -720,7 +763,8 @@ var ImageProperties = function (_Component) {
               }
 
               changeChrome(_this2.props, { clipX: clipXValue });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -731,7 +775,8 @@ var ImageProperties = function (_Component) {
             'clip Y'
           ),
           _react2.default.createElement('input', {
-            type: 'text', value: chrome.clipY != null ? chrome.clipY : '',
+            type: 'text',
+            value: chrome.clipY != null ? chrome.clipY : '',
             title: 'Specifies the y-coordinate of top-left corner of clipping region of the page',
             onChange: function onChange(v) {
               var clipYValue = v.target.value;
@@ -741,7 +786,8 @@ var ImageProperties = function (_Component) {
               }
 
               changeChrome(_this2.props, { clipY: clipYValue });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -752,7 +798,8 @@ var ImageProperties = function (_Component) {
             'clip width'
           ),
           _react2.default.createElement('input', {
-            type: 'text', value: chrome.clipWidth != null ? chrome.clipWidth : '',
+            type: 'text',
+            value: chrome.clipWidth != null ? chrome.clipWidth : '',
             title: 'Specifies the width of clipping region of the page',
             onChange: function onChange(v) {
               var clipWidthValue = v.target.value;
@@ -762,7 +809,8 @@ var ImageProperties = function (_Component) {
               }
 
               changeChrome(_this2.props, { clipWidth: clipWidthValue });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -783,7 +831,8 @@ var ImageProperties = function (_Component) {
               }
 
               changeChrome(_this2.props, { clipHeight: clipHeightValue });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -798,7 +847,8 @@ var ImageProperties = function (_Component) {
             title: 'Specifies if the background should be hidden, therefore allowing capturing screenshots with transparency',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { omitBackground: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -837,7 +887,8 @@ var ImageProperties = function (_Component) {
             type: 'checkbox', checked: chrome.waitForNetworkIddle === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { waitForNetworkIddle: v.target.checked });
-            } })
+            }
+          })
         ),
         _react2.default.createElement(
           'div',
@@ -851,7 +902,8 @@ var ImageProperties = function (_Component) {
             type: 'checkbox', title: 'window.JSREPORT_READY_TO_START=true;', checked: chrome.waitForJS === true,
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { waitForJS: v.target.checked });
-            } })
+            }
+          })
         )
       );
     }

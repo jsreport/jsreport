@@ -9,14 +9,14 @@ module.exports.unzipFiles = (buf) => {
 
     // using lazyEntries: true to keep memory usage under control with zip files with
     // a lot of files inside
-    yauzl.fromBuffer(buf, { lazyEntries: true, autoClose: true }, (openZipErr, zipFileHanler) => {
+    yauzl.fromBuffer(buf, { lazyEntries: true, autoClose: true }, (openZipErr, zipFileHandler) => {
       if (openZipErr) {
         return reject(openZipErr)
       }
 
       let hasError = false
 
-      zipFile = zipFileHanler
+      zipFile = zipFileHandler
 
       zipFile.readEntry()
 
@@ -90,8 +90,8 @@ module.exports.parseMultipart = (multer) => (req, res) => {
       }
 
       function findFirstFile () {
-        for (let f in req.files) {
-          if (req.files.hasOwnProperty(f)) {
+        for (const f in req.files) {
+          if (Object.prototype.hasOwnProperty.call(req.files, f)) {
             return req.files[f]
           }
         }

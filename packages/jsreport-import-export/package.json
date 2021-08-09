@@ -57,7 +57,7 @@
     "node.extend.without.arrays": "1.1.6",
     "rimraf": "2.6.3",
     "should": "13.2.3",
-    "standard": "11.0.0",
+    "standard": "16.0.3",
     "supertest": "3.4.2"
   },
   "engines": {

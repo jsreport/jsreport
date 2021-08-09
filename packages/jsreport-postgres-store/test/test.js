@@ -9,11 +9,11 @@ describe('common store tests', () => {
     const instance = jsreport({
       store: { provider: 'postgres' }
     }).use(require('../')({
-      'host': 'localhost',
-      'port': 5432,
-      'database': 'jsreport',
-      'user': 'jsreport',
-      'password': 'foo'
+      host: 'localhost',
+      port: 5432,
+      database: 'jsreport',
+      user: 'jsreport',
+      password: 'foo'
     })).use(() => {
       instance.documentStore.registerEntityType('InstanceCustomType', {
         name: { type: 'Edm.String' },

@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import Studio, { EntityTree } from 'jsreport-studio'
 import fileSaver from 'filesaver.js-npm'
 
@@ -59,7 +59,7 @@ export default class ExportModal extends Component {
     })
 
     try {
-      let response = await Studio.api.post('api/export', {
+      const response = await Studio.api.post('api/export', {
         data: {
           selection: Object.keys(this.state.selected).filter((k) => this.state.selected[k] === true)
         },
@@ -95,7 +95,7 @@ export default class ExportModal extends Component {
         <div>
           <h1><i className='fa fa-download' /> Export objects</h1>
         </div>
-        <div style={{height: '30rem', overflow: 'auto'}}>
+        <div style={{ height: '30rem', overflow: 'auto' }}>
           <EntityTree
             entities={references}
             selectable

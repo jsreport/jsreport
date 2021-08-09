@@ -1,2 +1,6 @@
+.git
+jsreport.config.json
 node_modules
 **/node_modules
+test/temp
+**/test/temp

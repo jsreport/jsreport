@@ -6,7 +6,7 @@ const chromeSchema = {
     strategy: { type: 'string', defaultNotInitialized: 'dedicated-process' },
     numberOfWorkers: { type: 'number', defaultNotInitialized: '<The number of CPU cores in the machine>' },
     puppeteerInstance: {
-      description: `Specifies a custom instance of puppeteer to use. you can pass here the export of require('puppeteer')`
+      description: 'Specifies a custom instance of puppeteer to use. you can pass here the export of require("puppeteer")'
     },
     launchOptions: {
       type: 'object',

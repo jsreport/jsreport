@@ -6,9 +6,10 @@ async function collectEntitiesInHierarchy (reporter, items, sourceEntity, req) {
   if (sourceEntity.__entitySet === 'folders') {
     items.push(sourceEntity)
 
-    let oneLevelItems = []
+    const oneLevelItems = []
+
     for (const es in reporter.documentStore.model.entitySets) {
-      let entities = await reporter.documentStore.collection(es).find(
+      const entities = await reporter.documentStore.collection(es).find(
         {
           folder: {
             shortid: sourceEntity.shortid
@@ -47,7 +48,7 @@ async function collectEntitiesAtSameLevel (reporter, folder, req) {
       localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
     }
 
-    let entities = await reporter.documentStore.collection(es).find(
+    const entities = await reporter.documentStore.collection(es).find(
       {
         folder: {
           shortid: folder.shortid

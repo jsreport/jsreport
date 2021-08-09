@@ -87,8 +87,8 @@ module.exports = function (reporter, definition) {
     waitForNetworkIddle: { type: 'Edm.Boolean' }
   })
 
-  if (reporter.documentStore.model.entityTypes['TemplateType']) {
-    reporter.documentStore.model.entityTypes['TemplateType'].chrome = { type: 'jsreport.ChromeType' }
-    reporter.documentStore.model.entityTypes['TemplateType'].chromeImage = { type: 'jsreport.ChromeImageType' }
+  if (reporter.documentStore.model.entityTypes.TemplateType) {
+    reporter.documentStore.model.entityTypes.TemplateType.chrome = { type: 'jsreport.ChromeType' }
+    reporter.documentStore.model.entityTypes.TemplateType.chromeImage = { type: 'jsreport.ChromeImageType' }
   }
 }

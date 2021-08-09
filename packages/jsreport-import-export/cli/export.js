@@ -186,8 +186,10 @@ async function startExport (jsreportInstance, { remote, exportOptions, output, l
 
   if (remote) {
     try {
+      const baseUrl = new URL(remote.url)
+
       const reqOpts = {
-        url: path.posix.join(remote.url, 'api/export'),
+        url: new URL(path.posix.join(baseUrl.pathname, 'api/export'), baseUrl).toString(),
         method: 'POST',
         data: exportOptions,
         responseType: 'stream'
@@ -316,7 +318,7 @@ function onExportError (error, logger) {
 }
 
 function getOptions (argv) {
-  let exportOpts = {}
+  const exportOpts = {}
   let remote = null
 
   if (argv.entities) {
@@ -347,7 +349,7 @@ function getOptions (argv) {
 
 function getUsage (command) {
   return [
-    `Usage:\n`,
+    'Usage:\n',
     `${command} <exportFile>`,
     `${command} <exportFile> --serverUrl=<url>`,
     `${command} <exportFile> --serverUrl=<url> --user=<user> --password=<password>`,
@@ -358,10 +360,10 @@ function getUsage (command) {
 
 function getExamples (command) {
   return [
-    [`${command} export.jsrexport`, `Export all the entities of the local instance into an export file`],
-    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com`, `Export all the entities of the jsreport instance at http://jsreport-host.com into an export file`],
-    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com --user admin --password xxxx`, `Export all the entities of the authenticated jsreport instance at http://jsreport-host.com into an export file`],
-    [`${command} export.jsrexport --entities entity1Id --entities entity2Id`, `Export just the selected entities of the local instance into an export file`],
-    [`${command} export.jsrexport --entitiesPath entities.json`, `Export just the selected entities (specified in a json file) of the local instance into an export file`]
+    [`${command} export.jsrexport`, 'Export all the entities of the local instance into an export file'],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com`, 'Export all the entities of the jsreport instance at http://jsreport-host.com into an export file'],
+    [`${command} export.jsrexport --serverUrl=http://jsreport-host.com --user admin --password xxxx`, 'Export all the entities of the authenticated jsreport instance at http://jsreport-host.com into an export file'],
+    [`${command} export.jsrexport --entities entity1Id --entities entity2Id`, 'Export just the selected entities of the local instance into an export file'],
+    [`${command} export.jsrexport --entitiesPath entities.json`, 'Export just the selected entities (specified in a json file) of the local instance into an export file']
   ]
 }

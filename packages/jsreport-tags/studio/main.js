@@ -140,7 +140,8 @@ var ShowColor = function ShowColor(props) {
     borderColor = (0, _colorLuminance2.default)(currentColor, -0.35);
   }
 
-  return _react2.default.createElement('span', { style: {
+  return _react2.default.createElement('span', {
+    style: {
       backgroundColor: currentColor,
       borderWidth: '1px',
       borderStyle: 'solid',
@@ -149,7 +150,8 @@ var ShowColor = function ShowColor(props) {
       height: height,
       verticalAlign: 'middle',
       width: width
-    } });
+    }
+  });
 };
 
 exports.default = ShowColor;
@@ -481,9 +483,11 @@ _jsreportStudio2.default.initializeListeners.push(function () {
   });
 });
 
+// eslint-disable-next-line no-import-assign
 _emitter2.default.on('organizationModeByTagsChanged', function (organizationMode) {
   organizeState.current = organizationMode;
 });
+// eslint-disable-next-line no-import-assign
 _emitter2.default.on('filterByTagsChanged', function (selectedTags) {
   organizeState.filterTags = selectedTags;
 });
@@ -737,7 +741,8 @@ var NewTagModal = function (_Component) {
           _react2.default.createElement(
             'span',
             {
-              style: { color: 'red', display: error ? 'block' : 'none' } },
+              style: { color: 'red', display: error ? 'block' : 'none' }
+            },
             error
           )
         ),
@@ -755,7 +760,7 @@ var NewTagModal = function (_Component) {
             'See the ',
             _react2.default.createElement(
               'a',
-              { target: '_blank', title: 'Help', href: 'http://jsreport.net/learn/tags' },
+              { target: '_blank', rel: 'noreferrer', title: 'Help', href: 'http://jsreport.net/learn/tags' },
               'documentation'
             ),
             ' for details.'
@@ -1963,7 +1968,7 @@ var EntityTreeTagOrganizer = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, (EntityTreeTagOrganizer.__proto__ || Object.getPrototypeOf(EntityTreeTagOrganizer)).call(this));
 
-    var organizeByDefault = _jsreportStudio2.default.extensions['tags'].options.organizeByDefault;
+    var organizeByDefault = _jsreportStudio2.default.extensions.tags.options.organizeByDefault;
 
     if (organizeByDefault == null) {
       organizeByDefault = false;
@@ -2019,7 +2024,6 @@ var EntityTreeTagOrganizer = function (_Component) {
           }
 
           var entities = entitiesByType[type];
-          var typeItem = void 0;
 
           if (!tagItem) {
             tagItem = {
@@ -2042,7 +2046,7 @@ var EntityTreeTagOrganizer = function (_Component) {
             return;
           }
 
-          typeItem = {
+          var typeItem = {
             name: type,
             isEntitySet: true,
             items: []
@@ -2469,21 +2473,21 @@ var TagEntityTreeFilterButtonToolbar = function (_Component) {
       selectedTags: organizeState.filterTags || []
     };
 
-    _this.openFilter = _this.openFilter.bind(_this);
-    _this.closeFilter = _this.closeFilter.bind(_this);
+    _this.handleFilterClick = _this.handleFilterClick.bind(_this);
+    _this.handleCloseFilter = _this.handleCloseFilter.bind(_this);
     _this.handleTagSelectChange = _this.handleTagSelectChange.bind(_this);
     return _this;
   }
 
   _createClass(TagEntityTreeFilterButtonToolbar, [{
-    key: 'openFilter',
-    value: function openFilter(ev) {
+    key: 'handleFilterClick',
+    value: function handleFilterClick(ev) {
       ev.stopPropagation();
       this.setState({ showFilter: true });
     }
   }, {
-    key: 'closeFilter',
-    value: function closeFilter() {
+    key: 'handleCloseFilter',
+    value: function handleCloseFilter() {
       this.setState({ showFilter: false });
       this.props.closeMenu();
     }
@@ -2518,7 +2522,7 @@ var TagEntityTreeFilterButtonToolbar = function (_Component) {
         {
           title: 'Filter entities tree by tag',
           style: { display: 'inline-block' },
-          onClick: this.openFilter
+          onClick: this.handleFilterClick
         },
         _react2.default.createElement(
           'span',
@@ -2543,13 +2547,13 @@ var TagEntityTreeFilterButtonToolbar = function (_Component) {
           _jsreportStudio.Popover,
           {
             open: showFilter,
-            onClose: this.closeFilter
+            onClose: this.handleCloseFilter
           },
           _react2.default.createElement(_TagEntityTreeFilterByTags2.default, {
             tags: allTags,
             selectedTags: selectedTags,
             onTagSelectChange: this.handleTagSelectChange,
-            onFilterClose: this.closeFilter
+            onFilterClose: this.handleCloseFilter
           })
         )
       );
@@ -2627,9 +2631,9 @@ var TagEntityTreeFilterByTags = function (_Component) {
 
     _this.createRenderer = _this.createRenderer.bind(_this);
     _this.addSelectedTag = _this.addSelectedTag.bind(_this);
-    _this.onTagSelectionClick = _this.onTagSelectionClick.bind(_this);
-    _this.onChangeInputTag = _this.onChangeInputTag.bind(_this);
-    _this.onKeyDownInputTag = _this.onKeyDownInputTag.bind(_this);
+    _this.handleTagSelectionClick = _this.handleTagSelectionClick.bind(_this);
+    _this.handleChangeInputTag = _this.handleChangeInputTag.bind(_this);
+    _this.handleKeyDownInputTag = _this.handleKeyDownInputTag.bind(_this);
     _this.onRemoveTagItem = _this.onRemoveTagItem.bind(_this);
     return _this;
   }
@@ -2691,8 +2695,8 @@ var TagEntityTreeFilterByTags = function (_Component) {
       });
     }
   }, {
-    key: 'onTagSelectionClick',
-    value: function onTagSelectionClick(ev) {
+    key: 'handleTagSelectionClick',
+    value: function handleTagSelectionClick(ev) {
       // if the tag selection area is directly clicked
       // focus the input
       if (ev.target === this.tagSelectionRef.current) {
@@ -2700,15 +2704,15 @@ var TagEntityTreeFilterByTags = function (_Component) {
       }
     }
   }, {
-    key: 'onChangeInputTag',
-    value: function onChangeInputTag(ev) {
+    key: 'handleChangeInputTag',
+    value: function handleChangeInputTag(ev) {
       this.setState({
         filterText: ev.target.value
       });
     }
   }, {
-    key: 'onKeyDownInputTag',
-    value: function onKeyDownInputTag(ev) {
+    key: 'handleKeyDownInputTag',
+    value: function handleKeyDownInputTag(ev) {
       if (ev.defaultPrevented) {
         return;
       }
@@ -2807,7 +2811,7 @@ var TagEntityTreeFilterByTags = function (_Component) {
           { className: _TagEntityTreeFilterByTags2.default.searchTagsInputBox },
           _react2.default.createElement(
             'div',
-            { ref: this.tagSelectionRef, className: _TagEntityTreeFilterByTags2.default.tagsSelect, onClick: this.onTagSelectionClick },
+            { ref: this.tagSelectionRef, className: _TagEntityTreeFilterByTags2.default.tagsSelect, onClick: this.handleTagSelectionClick },
             _react2.default.createElement(
               'span',
               null,
@@ -2833,8 +2837,8 @@ var TagEntityTreeFilterByTags = function (_Component) {
                 placeholder: selectedTags.length === 0 ? 'select a tag' : '',
                 className: _TagEntityTreeFilterByTags2.default.searchTags,
                 style: stylesForInputTag,
-                onChange: this.onChangeInputTag,
-                onKeyDown: this.onKeyDownInputTag
+                onChange: this.handleChangeInputTag,
+                onKeyDown: this.handleKeyDownInputTag
               })
             )
           )
@@ -2898,16 +2902,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 exports.default = function (hex) {
   var rgb = (0, _hexToRgb2.default)(hex);
 
-  var RsRGB = void 0,
-      GsRGB = void 0,
-      BsRGB = void 0,
-      R = void 0,
+  var R = void 0,
       G = void 0,
       B = void 0;
 
-  RsRGB = rgb.r / 255;
-  GsRGB = rgb.g / 255;
-  BsRGB = rgb.b / 255;
+  var RsRGB = rgb.r / 255;
+  var GsRGB = rgb.g / 255;
+  var BsRGB = rgb.b / 255;
 
   if (RsRGB <= 0.03928) {
     R = RsRGB / 12.92;
@@ -3120,7 +3121,7 @@ var TagEntityTreeTagGroupItem = function (_Component) {
         { style: { display: 'inline-block', marginLeft: '0.2rem', marginRight: '0.2rem' } },
         tags.map(function (tag, tagIndex) {
           if (!tag) {
-            return;
+            return null;
           }
 
           return _react2.default.createElement(

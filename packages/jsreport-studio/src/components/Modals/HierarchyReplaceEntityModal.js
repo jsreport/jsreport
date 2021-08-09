@@ -7,11 +7,6 @@ import storeMethods from '../../redux/methods'
 import { createGetByIdSelector, createGetByShortidSelector } from '../../redux/entities/selectors'
 
 class HierarchyReplaceEntityModal extends Component {
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-
   replace () {
     const { sourceEntity, targetEntity, options, hierarchyMove, close } = this.props
     const { existingEntity } = options
@@ -75,6 +70,11 @@ class HierarchyReplaceEntityModal extends Component {
       </div>
     )
   }
+}
+
+HierarchyReplaceEntityModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 function makeMapStateToProps () {

@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-unused-vars
 function addRows (placeholderRowId, rowsStr) {
-  var placeholderRowNode = document.getElementById(placeholderRowId)
-  var templateNode = document.createElement('template')
+  const placeholderRowNode = document.getElementById(placeholderRowId)
+  const templateNode = document.createElement('template')
 
-  var findParentTableNode = function (node) {
-    var currentNode = node
+  const findParentTableNode = function (node) {
+    let currentNode = node
 
     while (currentNode.tagName !== 'TABLE') {
       currentNode = currentNode.parentNode
@@ -15,18 +15,18 @@ function addRows (placeholderRowId, rowsStr) {
 
   templateNode.innerHTML = rowsStr
 
-  var tableNode = findParentTableNode(placeholderRowNode)
-  var commentRef = document.createComment('row-placeholder-end')
+  const tableNode = findParentTableNode(placeholderRowNode)
+  const commentRef = document.createComment('row-placeholder-end')
 
   placeholderRowNode.parentNode.insertBefore(commentRef, placeholderRowNode.nextSibling)
   placeholderRowNode.parentNode.insertBefore(templateNode.content, commentRef)
 
-  var rowRef = placeholderRowNode.nextElementSibling
-  var rows = []
+  const rowRef = placeholderRowNode.nextElementSibling
+  const rows = []
 
   placeholderRowNode.parentNode.removeChild(placeholderRowNode)
 
-  var currentNode = rowRef
+  let currentNode = rowRef
 
   // is comment
   while (currentNode && currentNode.nodeType !== 8 && currentNode.data !== 'row-placeholder-end') {
