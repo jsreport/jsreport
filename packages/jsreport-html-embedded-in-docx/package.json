@@ -1,0 +1,52 @@
+{
+  "name": "@jsreport/jsreport-html-embedded-in-docx",
+  "version": "3.0.0-beta.1",
+  "description": "jsreport recipe embedding output html into the docx",
+  "keywords": [
+    "jsreport",
+    "docx"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-html-embedded-in-docx",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "test": "mocha test --timeout 15000 && standard"
+  },
+  "dependencies": {
+    "@jsreport/office": "3.0.0-beta.1",
+    "html-docx-js": "0.3.1",
+    "juice": "5.2.0",
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "devDependencies": {
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
+    "mocha": "6.1.4",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    },
+    "ignore": [
+      "studio/main.js"
+    ]
+  }
+}

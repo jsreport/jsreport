@@ -13,7 +13,7 @@ See https://jsreport.net/learn/docxtemplater
 You can apply this extension also manually to [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core)
 
 ```js
-var jsreport = require('@jsreport/jsreport-core')()
+const jsreport = require('@jsreport/jsreport-core')()
 jsreport.use(require('@jsreport/jsreport-docxtemplater')())
 
 const result = await reporter.render({
