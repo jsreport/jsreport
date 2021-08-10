@@ -5,7 +5,7 @@
 [![NPM Version](http://img.shields.io/npm/v/jsreport.svg?style=flat-square)](https://npmjs.com/package/jsreport)
 [![NPM Downloads](https://img.shields.io/npm/dt/jsreport.svg?style=flat-square)](https://npmjs.com/package/jsreport)
 [![Docker Pulls](https://img.shields.io/docker/pulls/jsreport/jsreport)](https://hub.docker.com/r/jsreport/jsreport)
-![build status](https://github.com/jsreport/jsreport/actions/workflows/main.yml/badge.svg)
+[![build status](https://github.com/jsreport/jsreport/actions/workflows/main.yml/badge.svg)](https://github.com/jsreport/jsreport/actions)
 
 *An open-source platform for designing and rendering various reports.*
 
@@ -18,10 +18,12 @@ You can find more information on the official project website https://jsreport.n
 ## Installation
 
 Basic installation from the npm
-> **npm install -g @jsreport/jsreport-cli**<br/>
-> **jsreport init**<br/>
-> **jsreport configure**<br/>
-> **jsreport start**
+```sh            
+npm install -g @jsreport/jsreport-cli
+jsreport init
+jsreport configure
+jsreport start
+```
 
 You can also download compiled binary or pull from the official docker images. See [https://jsreport.net/on-prem](http://jsreport.net/on-prem) for the details.
 
@@ -38,10 +40,11 @@ You are also not limited to extensions we provide to you. You can implement your
 
 You can find documentation for adapting this jsreport distribution using nodejs and also information for integrating it into an existing nodejs application in the article [adapting jsreport](https://jsreport.net/learn/adapting-jsreport).
 
-This distribution includes many extensions like jsreport studio you may not need. To start from the ground see repository [jsreport-core](https://github.com/jsreport/jsreport-core).
+The official jsreport distribution wires the most popular extensions into the ready-to-use package.
+However, if you are skilled, you are free to start from the ground using [jsreport-core](https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core).
 
-## Development with monorepo
-We use [yarn](https://yarnpkg.com/) to manage the monorepo.  The basic workflow is the following
+## Development
+We use [yarn](https://yarnpkg.com/) to manage the monorepo. The basic workflow is the following
 ```sh
 git clone https://github.com/jsreport/jsreport
 yarn install
@@ -51,6 +54,11 @@ The tests for the individual package runs the following way
 
 ```
 yarn workspace @jsreport/jsreport-scripts test
+```
+
+The studio extensions development with the hot reload can be started using
+```
+set NODE_ENV=jsreport-development&&yarn start
 ```
 
 ## Roadmap
