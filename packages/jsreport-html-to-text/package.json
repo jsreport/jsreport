@@ -1,0 +1,55 @@
+{
+  "name": "@jsreport/jsreport-html-to-text",
+  "version": "3.0.0-beta.1",
+  "description": "jsreport recipe converting html into text",
+  "keywords": [
+    "jsreport",
+    "recipe"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-html-to-text",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jan Blaha",
+    "email": "jan.blaha@hotmail.com"
+  },
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test && standard"
+  },
+  "dependencies": {
+    "html-to-text": "6.0.0",
+    "node.extend.without.arrays": "1.1.6"
+  },
+  "devDependencies": {
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
+    "mocha": "8.2.1",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  }
+}
