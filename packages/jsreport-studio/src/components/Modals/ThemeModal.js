@@ -115,7 +115,7 @@ class ThemeModal extends Component {
                   type='radio'
                   value={themeName}
                   onChange={(ev) => {
-                    ev.target.checked && this.changeTheme(themeName)
+                    ev.target.checked && this.changeEditorTheme(themeName)
                   }}
                   checked={selectedEditorTheme === themeName}
                 />
