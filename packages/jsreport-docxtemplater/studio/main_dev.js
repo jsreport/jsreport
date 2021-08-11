@@ -25,7 +25,7 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
   }
 })
 
-Studio.previewListeners.push((request, entities) => {
+Studio.runListeners.push((request, entities) => {
   if (request.template.recipe !== 'docxtemplater') {
     return
   }

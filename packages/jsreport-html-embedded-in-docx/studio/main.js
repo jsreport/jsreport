@@ -97,7 +97,7 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'html-embedded-in-docx') {
     return;
   }

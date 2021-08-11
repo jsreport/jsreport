@@ -1,6 +1,6 @@
 import Studio from 'jsreport-studio'
 
-Studio.previewListeners.push((request, entities) => {
+Studio.runListeners.push((request, entities) => {
   if (request.template.recipe !== 'html-embedded-in-docx') {
     return
   }

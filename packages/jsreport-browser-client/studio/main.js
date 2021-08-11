@@ -105,15 +105,6 @@ _jsreportStudio2.default.addPropertiesComponent('browser client', _Properties2.d
   return entity.__entitySet === 'templates' && entity.recipe === 'html-with-browser-client';
 });
 
-// TODO
-/*
-Studio.previewListeners.push((request) => {
-  if (request.template && request.template.recipe === 'html-with-browser-client') {
-    return { disableTheming: true }
-  }
-})
-*/
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {

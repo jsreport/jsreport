@@ -127,7 +127,7 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
   }
 });
 
-_jsreportStudio2.default.previewListeners.push(function (request, entities) {
+_jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'docxtemplater') {
     return;
   }
