@@ -52,6 +52,10 @@ module.exports = function (reporter, definition) {
     reporter.logger.info('html-to-xlsx detected phantom as available html engine')
   }
 
+  if (htmlEngines.cheerio) {
+    reporter.logger.info('html-to-xlsx detected cheerio as available html engine')
+  }
+
   reporter.extensionsManager.recipes.push({
     name: 'html-to-xlsx'
   })
