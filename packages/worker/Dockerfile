@@ -44,8 +44,8 @@ WORKDIR /app
 # the chrome was already installed from apt-get
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-COPY --chown=jsreport:jsreport packages/jsreport-worker /app
-COPY --chown=jsreport:jsreport packages/jsreport-worker/build/package.build.json /app/package.json
+COPY --chown=jsreport:jsreport packages/worker /app
+COPY --chown=jsreport:jsreport packages/worker/build/package.build.json /app/package.json
 RUN npm install --production
 RUN npm cache clean -f && rm -rf /tmp/*
 
