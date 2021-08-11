@@ -57,9 +57,7 @@ module.exports = (reporter) => {
 
     reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
-    const engineRes = await executeEngine({
-      engine
-    }, request)
+    const engineRes = await executeEngine(engine, request)
 
     response.content = Buffer.from(engineRes.content != null ? engineRes.content : '')
 

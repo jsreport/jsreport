@@ -10,8 +10,9 @@ const { nanoid } = require('nanoid')
 
 module.exports = (reporter) => {
   const cache = LRU(reporter.options.sandbox.cache || { max: 100 })
+  reporter.templatingEngines = { cache }
 
-  return async ({ engine }, req) => {
+  return async (engine, req) => {
     const asyncResultMap = new Map()
 
     if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
@@ -23,18 +24,27 @@ module.exports = (reporter) => {
     req.data.__parentModuleDirectory = reporter.options.parentModuleDirectory
 
     const executionFn = async ({ require, console, topLevelFunctions }) => {
+      const proxy = require('jsreport-proxy')
+
+      proxy.templatingEngines = {
+        evaluate: (content, data) => {
+          const key = `evaluate:${content}:${engine.name}`
+          if (!cache.has(key)) {
+            cache.set(key, engine.compile(content, { require }))
+          }
+          return engine.execute(cache.get(key), {}, data, { require })
+        }
+      }
+
       const key = `template:${req.template.content}:${engine.name}`
 
       if (!cache.has(key)) {
-        console.log('Compiled template not found in the cache, compiling')
         try {
           cache.set(key, engine.compile(req.template.content, { require }))
         } catch (e) {
           e.property = 'content'
           throw e
         }
-      } else {
-        console.log('Taking compiled template from engine cache')
       }
 
       const compiledTemplate = cache.get(key)
@@ -43,19 +53,24 @@ module.exports = (reporter) => {
         topLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
       }
 
-      const content = await engine.execute(compiledTemplate, topLevelFunctions, req.data, { require })
+      let content = await engine.execute(compiledTemplate, topLevelFunctions, req.data, { require })
+      const resolvedResultsMap = new Map()
+      while (asyncResultMap.size > 0) {
+        await Promise.all([...asyncResultMap.keys()].map(async (k) => {
+          resolvedResultsMap.set(k, `${await asyncResultMap.get(k)}`)
+          asyncResultMap.delete(k)
+        }))
+      }
 
-      await Promise.all([...asyncResultMap.keys()].map(async (k) => {
-        asyncResultMap.set(k, `${await asyncResultMap.get(k)}`)
-      }))
-
-      const finalContent = content.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
-        const asyncResultId = p1
-        return `${asyncResultMap.get(asyncResultId)}`
-      })
+      while (content.includes('{#asyncHelperResult')) {
+        content = content.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
+          const asyncResultId = p1
+          return `${resolvedResultsMap.get(asyncResultId)}`
+        })
+      }
 
       return {
-        content: finalContent
+        content
       }
     }
 
@@ -91,6 +106,11 @@ module.exports = (reporter) => {
 
       if (!nestedErrorWithEntity && e.property !== 'content') {
         e.property = 'helpers'
+      }
+
+      if (nestedErrorWithEntity) {
+        // errors from nested assets evals needs an unwrap for some reason
+        e.entity = { ...e.entity }
       }
 
       throw e

@@ -45,6 +45,12 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
       })
     }
   } else {
+    if (!name) {
+      throw reporter.createError('Asset path is required', {
+        statusCode: 400,
+        weak: true
+      })
+    }
     const assetNameIsPath = name.indexOf('/') !== -1
     const pathParts = name.split('/').filter((p) => p)
     let assetName

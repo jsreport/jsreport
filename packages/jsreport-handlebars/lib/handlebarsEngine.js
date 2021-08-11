@@ -57,26 +57,17 @@ module.exports = (opts = {}) => {
       const handlebarsInstance = require('handlebars')
       const template = handlebarsInstance.template(templateSpec)
 
-      try {
-        for (const h in helpers) {
-          if (Object.prototype.hasOwnProperty.call(helpers, h)) {
-            handlebarsInstance.registerHelper(h, helpers[h])
-          }
-        }
-
-        let result = template(data)
-
-        result = result.replace(pattern, '}')
-
-        return result
-      } finally {
-        // unregister the helpers to hide them from other executions
-        for (const ah in helpers) {
-          if (Object.prototype.hasOwnProperty.call(helpers, ah)) {
-            handlebarsInstance.unregisterHelper(ah, helpers[ah])
-          }
+      for (const h in helpers) {
+        if (Object.prototype.hasOwnProperty.call(helpers, h)) {
+          handlebarsInstance.registerHelper(h, helpers[h])
         }
       }
+
+      let result = template(data)
+
+      result = result.replace(pattern, '}')
+
+      return result
     }
   }
 }

@@ -7,6 +7,7 @@ describe('engine', () => {
 
   beforeEach(async () => {
     reporter = createReporter()
+    reporter.use(core.tests.listeners())
     await reporter.init()
   })
 
@@ -448,8 +449,12 @@ describe('engine', () => {
     })).be.rejectedWith(/threw with non-Error/)
   })
 
-  it('second hit should go from cache', async () => {
+  it('should cache the templating engines', async () => {
     const templateContent = 'content'
+
+    reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      res.content = Buffer.from(JSON.stringify(reporter.templatingEngines.cache.keys()))
+    })
 
     const res = await reporter.render({
       template: {
@@ -459,21 +464,7 @@ describe('engine', () => {
       }
     })
 
-    should(res.content.toString()).be.eql(templateContent)
-
-    const res2 = await reporter.render({
-      template: {
-        content: templateContent,
-        engine: 'none',
-        recipe: 'html'
-      }
-    })
-
-    should(res2.content.toString()).be.eql(templateContent)
-
-    should(res2.meta.logs).matchAny((l) => {
-      should(l.message).containEql('Taking compiled template from engine cache')
-    })
+    JSON.parse(res.content.toString()).should.have.length(1)
   })
 
   it('should return logs from console also on the cache hit', async () => {
