@@ -46,6 +46,7 @@
     "child-templates",
     "chrome-pdf",
     "jsrender",
+    "localization",
     "pdf-utils",
     "reports",
     "pptx",
