@@ -65,6 +65,7 @@ ENV extensions_express /app/packages/jsreport-express
 ENV extensions_handlebars /app/packages/jsreport-handlebars
 ENV extensions_htmlToXlsx /app/packages/jsreport-html-to-xlsx
 ENV extensions_jsrender /app/packages/jsreport-jsrender
+ENV extensions_localization /app/packages/jsreport-localization
 ENV extensions_pdfUtils /app/packages/jsreport-pdf-utils
 ENV extensions_pptx /app/packages/jsreport-pptx
 ENV extensions_reports /app/packages/jsreport-reports
