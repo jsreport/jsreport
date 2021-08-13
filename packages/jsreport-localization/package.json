@@ -47,6 +47,9 @@
   "standard": {
     "env": {
       "mocha": true
-    }
+    },
+    "ignore": [
+      "studio/main.js"
+    ]
   }
 }

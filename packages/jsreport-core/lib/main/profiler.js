@@ -1,4 +1,5 @@
 const EventEmitter = require('events')
+const extend = require('node.extend.without.arrays')
 const generateRequestId = require('../shared/generateRequestId')
 
 module.exports = (reporter) => {
@@ -70,7 +71,8 @@ module.exports = (reporter) => {
     if (template && template._id) {
       const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
       blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
-      req.context.resolvedTemplate = template
+      // store a copy to prevent side-effects
+      req.context.resolvedTemplate = extend(true, {}, template)
     }
 
     if (!req.context.profiling.isAttached) {

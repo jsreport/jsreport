@@ -245,6 +245,47 @@ describe('scripts', () => {
       res.content.toString().should.be.eql('xxx')
     })
 
+    it('should be able to render with template content set in script', async () => {
+      const res = await reporter.render({
+        template: {
+          content: '',
+          recipe: 'html',
+          engine: 'none',
+          scripts: [{
+            content: `
+              function beforeRender(req, res) {  req.template.content = 'xxx' }
+            `
+          }]
+        }
+      })
+
+      res.content.toString().should.be.eql('xxx')
+    })
+
+    it('should be able to render with template resolved and custom content set in script', async () => {
+      const t1 = await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        engine: 'none',
+        recipe: 'html'
+      })
+
+      const res = await reporter.render({
+        template: {
+          shortid: t1.shortid,
+          content: '',
+          recipe: 'html',
+          engine: 'none',
+          scripts: [{
+            content: `
+              function beforeRender(req, res) {  req.template.content = 'xxx' }
+            `
+          }]
+        }
+      })
+
+      res.content.toString().should.be.eql('xxx')
+    })
+
     it('should be able to cancel request', async () => {
       try {
         await reporter.render({
