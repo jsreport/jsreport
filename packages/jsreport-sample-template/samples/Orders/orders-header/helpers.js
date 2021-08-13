@@ -1,8 +1,6 @@
 const jsreport = require('jsreport-proxy')
 const Handlebars = require('handlebars')
-const commonHelpers = await jsreport.assets.require('../shared/common helpers.js')
-
-commonHelpers(Handlebars)
+await jsreport.assets.registerHelpers('../shared/common helpers.js')
 
 function getPageNumber (pageIndex) {
     if (pageIndex == null) {
