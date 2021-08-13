@@ -17,7 +17,7 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.afterRenderListeners.add('express', (req, res) => {
-    res.meta.headers.contentType = res.meta.contentType
+    res.meta.headers['Content-Type'] = res.meta.contentType
 
     if (!res.meta.headers['Content-Disposition']) {
       res.meta.reportName = isInvalidASCII(res.meta.reportName) ? 'report' : res.meta.reportName
