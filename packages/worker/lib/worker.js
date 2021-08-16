@@ -153,6 +153,15 @@ module.exports = (options = {}) => {
               try {
                 await callbackLock.acquire()
                 const r = await workerRequest.callback(data)
+
+                if (r && r.error) {
+                  const { message, stack, ...rest } = r.error
+                  const callbackErr = new Error(message)
+                  callbackErr.stack = stack
+                  Object.assign(callbackErr, rest)
+                  throw callbackErr
+                }
+
                 return r
               } catch (e) {
                 console.error('Error when invoking callback', e)

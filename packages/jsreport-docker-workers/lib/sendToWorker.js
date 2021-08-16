@@ -59,11 +59,23 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
           return reject(new Error('Unexpected response from worker: ' + res.data))
         }
 
+        let mainDataResponse = {}
+
+        try {
+          mainDataResponse = await executeMain(serializator.parse(res.data))
+        } catch (err) {
+          mainDataResponse.error = {
+            ...err,
+            message: err.message,
+            stack: err.stack
+          }
+        }
+
         data = {
           systemAction: 'callback-response',
           // we need just the request identification in the worker
           req: { context: { rootId: data.req.context.rootId } },
-          data: await executeMain(serializator.parse(res.data))
+          data: mainDataResponse
         }
       }
     })().catch((e) => {
