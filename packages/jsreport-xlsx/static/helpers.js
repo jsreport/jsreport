@@ -2,14 +2,16 @@
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
 const __xlsx = (function () {
+  const contextMap = new Map()
   const fsproxy = this.fsproxy || require('fsproxy.js')
 
   function print () {
-    ensureWorksheetOrder(this.ctx.root.$xlsxTemplate)
-    bufferedFlush(this.ctx.root)
+    const ctx = contextMap.get(this).ctx
+    ensureWorksheetOrder(ctx.root.$xlsxTemplate)
+    bufferedFlush(ctx.root)
     return JSON.stringify({
-      $xlsxTemplate: this.ctx.root.$xlsxTemplate,
-      $files: this.ctx.root.$files || []
+      $xlsxTemplate: ctx.root.$xlsxTemplate,
+      $files: ctx.root.$files || []
     })
   }
 
@@ -96,13 +98,16 @@ const __xlsx = (function () {
   }
 
   function replace (filePath, path) {
+    const ctx = contextMap.get(this).ctx
+    const tagCtx = contextMap.get(this).tagCtx
+
     if (typeof path === 'string') {
       const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
       const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
       const pathOfLastFragment = path.substring(lastFragmentIndex)
-      const holder = evalGet(this.ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
+      const holder = evalGet(ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
       this.$replacedValue = evalGet(holder, pathOfLastFragment)
-      let contentToReplace = this.tagCtx.render(this.ctx.data)
+      let contentToReplace = tagCtx.render(ctx.data)
       try {
         contentToReplace = xml2jsonUnwrap(contentToReplace)
       } catch (e) {
@@ -111,24 +116,27 @@ const __xlsx = (function () {
 
       evalSet(holder, pathOfLastFragment, contentToReplace)
     } else {
-      this.ctx.root.$xlsxTemplate[filePath] = xml2json(this.tagCtx.render(this.ctx.data))
+      ctx.root.$xlsxTemplate[filePath] = xml2json(tagCtx.render(ctx.data))
     }
 
     return ''
   }
 
   function remove (filePath, path, index) {
-    const obj = this.ctx.root.$xlsxTemplate[filePath]
+    const ctx = contextMap.get(this).ctx
+    const obj = ctx.root.$xlsxTemplate[filePath]
     const collection = evalGet(obj, path)
-    this.ctx.root.$removedItem = collection[index]
+    ctx.root.$removedItem = collection[index]
     collection.splice(index, 1)
     return ''
   }
 
   function merge (filePath, path) {
-    const json = xml2jsonUnwrap(escape(this.tagCtx.render(this.ctx.data), this.ctx.root))
+    const ctx = contextMap.get(this).ctx
+    const tagCtx = contextMap.get(this).tagCtx
+    const json = xml2jsonUnwrap(escape(tagCtx.render(ctx.data), ctx.root))
 
-    const mergeTarget = evalGet(this.ctx.root.$xlsxTemplate[filePath], path)
+    const mergeTarget = evalGet(ctx.root.$xlsxTemplate[filePath], path)
 
     _.merge(mergeTarget, json)
     return ''
@@ -176,22 +184,24 @@ const __xlsx = (function () {
   }
 
   function add (filePath, xmlPath) {
-    const obj = this.ctx.root.$xlsxTemplate[filePath]
+    const ctx = contextMap.get(this).ctx
+    const tagCtx = contextMap.get(this).tagCtx
+    const obj = ctx.root.$xlsxTemplate[filePath]
     const collection = safeGet(obj, xmlPath)
 
-    const xml = escape(this.tagCtx.render(this.ctx.data).trim(), this.ctx.root)
-    if (collection.length < this.ctx.root.$numberOfParsedAddIterations) {
+    const xml = escape(tagCtx.render(ctx.data).trim(), ctx.root)
+    if (collection.length < ctx.root.$numberOfParsedAddIterations) {
       collection.push(xml2jsonUnwrap(xml))
       return ''
     }
 
-    bufferedAppend(filePath, xmlPath, this.ctx.root, collection, xml)
+    bufferedAppend(filePath, xmlPath, ctx.root, collection, xml)
     return ''
   }
 
   /**
    * Safely go through object path and create the missing object parts with
-   * empty array or object to be compatible with xml -> json represantation
+   * empty array or object to be compatible with xml -> json representation
    */
   function safeGet (obj, path) {
     // split ['c:chart'].row[0] into ['c:chart', 'row', 0]
@@ -215,43 +225,47 @@ const __xlsx = (function () {
   }
 
   function addSheet (name) {
-    const id = this.ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
+    const ctx = contextMap.get(this).ctx
+    const tagCtx = contextMap.get(this).tagCtx
+    const id = ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
     const fileName = 'sheet' + id
     const fileFullName = fileName + '.xml'
     const path = 'xl/worksheets/' + fileFullName
 
-    this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
+    ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
       $: {
         PartName: '/' + path,
         ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
       }
     })
-    this.ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets[0].sheet.push({
+    ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets[0].sheet.push({
       $: {
         name: name,
         sheetId: id + '',
         'r:id': fileName
       }
     })
-    this.ctx.root.$xlsxTemplate['xl/_rels/workbook.xml.rels'].Relationships.Relationship.push({
+    ctx.root.$xlsxTemplate['xl/_rels/workbook.xml.rels'].Relationships.Relationship.push({
       $: {
         Id: fileName,
         Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
         Target: 'worksheets/' + fileFullName
       }
     })
-    this.ctx.root.$xlsxTemplate[path] = { worksheet: xml2jsonUnwrap(this.tagCtx.render(this.ctx.data)) }
+    ctx.root.$xlsxTemplate[path] = { worksheet: xml2jsonUnwrap(tagCtx.render(ctx.data)) }
   }
 
   function ensureDrawingOnSheet (sheetFullName) {
+    const ctx = contextMap.get(this).ctx
     let drawingFullName
-    const worksheet = this.ctx.root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
+
+    const worksheet = ctx.root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
     if (worksheet.drawing) {
       const drawings = Array.isArray(worksheet.drawing) ? worksheet.drawing : [worksheet.drawing]
 
       for (const drawing of drawings) {
         const rid = drawing.$['r:id']
-        this.ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.forEach(function (r) {
+        ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.forEach(function (r) {
           if (r.$.Id === rid) {
             drawingFullName = r.$.Target.replace('../drawings/', '')
           }
@@ -259,7 +273,7 @@ const __xlsx = (function () {
       }
     } else {
       let numberOfDrawings = 0
-      this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.forEach(function (o) {
+      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.forEach(function (o) {
         numberOfDrawings += o.$.PartName.indexOf('/xl/drawings') === -1 ? 0 : 1
       })
 
@@ -272,7 +286,7 @@ const __xlsx = (function () {
         }
       }
 
-      this.ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.push({
+      ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.push({
         $: {
           Id: drawingName,
           Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing',
@@ -280,14 +294,14 @@ const __xlsx = (function () {
         }
       })
 
-      this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
+      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
         $: {
           PartName: '/xl/drawings/' + drawingFullName,
           ContentType: 'application/vnd.openxmlformats-officedocument.drawing+xml'
         }
       })
 
-      this.ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName] = {
+      ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName] = {
         'xdr:wsDr': xml2jsonUnwrap(
           '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ' +
           'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"></xdr:wsDr>')
@@ -298,8 +312,10 @@ const __xlsx = (function () {
   }
 
   function ensureRelOnSheet (sheetFullName) {
-    this.ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] =
-      this.ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] || {
+    const ctx = contextMap.get(this).ctx
+
+    ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] =
+      ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] || {
         Relationships: {
           $: {
             xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships'
@@ -310,14 +326,16 @@ const __xlsx = (function () {
   }
 
   function addImage (imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
+    const ctx = contextMap.get(this).ctx
+    const tagCtx = contextMap.get(this).tagCtx
     const name = imageName + '.png'
 
-    if (!this.ctx.root.$xlsxTemplate['xl/media/' + name]) {
-      this.ctx.root.$xlsxTemplate['xl/media/' + name] = this.tagCtx.render(this.ctx.data)
+    if (!ctx.root.$xlsxTemplate['xl/media/' + name]) {
+      ctx.root.$xlsxTemplate['xl/media/' + name] = tagCtx.render(ctx.data)
     }
 
-    if (!this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
-      this.ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.push({
+    if (!ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
+      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.push({
         $: {
           Extension: 'png',
           ContentType: 'image/png'
@@ -329,19 +347,19 @@ const __xlsx = (function () {
     const drawingFullName = ensureDrawingOnSheet.call(this, sheetFullName)
 
     const drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
-    this.ctx.root.$xlsxTemplate[drawingRelPath] =
-      this.ctx.root.$xlsxTemplate[drawingRelPath] || {
+    ctx.root.$xlsxTemplate[drawingRelPath] =
+      ctx.root.$xlsxTemplate[drawingRelPath] || {
         Relationships: {
           $: { xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships' },
           Relationship: []
         }
       }
 
-    const relNumber = this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
+    const relNumber = ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
     const relName = 'rId' + relNumber
 
-    if (!this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
-      this.ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
+    if (!ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
+      ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
         $: {
           Id: relName,
           Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
@@ -350,7 +368,7 @@ const __xlsx = (function () {
       })
     }
 
-    const drawing = this.ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
+    const drawing = ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
     drawing['xdr:wsDr']['xdr:twoCellAnchor'] = drawing['xdr:wsDr']['xdr:twoCellAnchor'] || []
 
     drawing['xdr:wsDr']['xdr:twoCellAnchor'].push(xml2jsonUnwrap(
@@ -393,21 +411,31 @@ const __xlsx = (function () {
       if (arguments.length && arguments[arguments.length - 1].name && arguments[arguments.length - 1].hash) {
         // handlebars
         const options = arguments[arguments.length - 1]
-
-        this.ctx = {
-          root: options.data.root,
-          data: this
+        const extraInfo = {
+          ctx: {
+            root: options.data.root,
+            data: this
+          }
         }
 
         if (options.fn) {
-          this.tagCtx = {
+          extraInfo.tagCtx = {
             render: options.fn
           }
         }
+
+        contextMap.set(this, extraInfo)
       } else {
-        if (this.tagCtx) {
-          this.ctx.data = this.tagCtx.view.data
+        const extraInfo = {
+          ctx: this.ctx,
+          tagCtx: this.tagCtx
         }
+
+        if (this.tagCtx) {
+          extraInfo.ctx.data = this.tagCtx.view.data
+        }
+
+        contextMap.set(this, extraInfo)
       }
 
       return fn.apply(this, arguments)
