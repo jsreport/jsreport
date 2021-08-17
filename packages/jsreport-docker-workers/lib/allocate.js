@@ -61,7 +61,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     }
   }
 
-  return async (req) => {
+  return async (req, opts = {}) => {
     const discriminator = get(req, discriminatorPath)
 
     if (discriminator == null) {
@@ -80,7 +80,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
         }
       }, {
         systemAction: 'allocate',
-        timeout: req.timeout
+        timeout: opts.timeout
       })
     } catch (e) {
       await containersManager.release(container)

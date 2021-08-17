@@ -312,9 +312,8 @@ class MainReporter extends Reporter {
     req.context.rootId = req.context.rootId || generateRequestId()
     req.context.id = req.context.rootId
 
-    const worker = await this._workersManager.allocate({
-      timeout: this.options.reportTimeout,
-      ...req
+    const worker = await this._workersManager.allocate(req, {
+      timeout: this.options.reportTimeout
     })
 
     let workerAborted
@@ -482,8 +481,12 @@ class MainReporter extends Reporter {
   async executeWorkerAction (actionName, data, options = {}, req) {
     req.context.rootId = req.context.rootId || generateRequestId()
     const timeout = options.timeout || 60000
-    req.timeout = timeout
-    const worker = options.worker ? options.worker : await this._workersManager.allocate(req)
+
+    const worker = options.worker
+      ? options.worker
+      : await this._workersManager.allocate(req, {
+        timeout
+      })
 
     try {
       const result = await worker.execute({
