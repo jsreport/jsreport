@@ -45,29 +45,7 @@ WORKDIR /app
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 COPY --chown=jsreport:jsreport packages/worker /app
-COPY --chown=jsreport:jsreport packages/worker/build/package.build.json /app/package.json
 RUN npm install --production
 RUN npm cache clean -f && rm -rf /tmp/*
-
-ENV extensions_assets /app/node_modules/jsreport-assets
-ENV extensions_base /app/node_modules/jsreport-base
-ENV extensions_browserClient /app/node_modules/jsreport-browser-client
-ENV extensions_childTemplates /app/node_modules/jsreport-child-templates
-ENV extensions_chromePdf /app/node_modules/jsreport-chrome-pdf
-ENV extensions_data /app/node_modules/jsreport-data
-ENV extensions_docx /app/node_modules/jsreport-docx
-ENV extensions_express /app/node_modules/jsreport-express
-ENV extensions_handlebars /app/node_modules/jsreport-handlebars
-ENV extensions_htmlToXlsx /app/node_modules/jsreport-html-to-xlsx
-ENV extensions_jsrender /app/node_modules/jsreport-jsrender
-ENV extensions_localization /app/packages/jsreport-localization
-ENV extensions_pdfUtils /app/node_modules/jsreport-pdf-utils
-ENV extensions_pptx /app/node_modules/jsreport-pptx
-ENV extensions_reports /app/node_modules/jsreport-reports
-ENV extensions_scripts /app/node_modules/jsreport-scripts
-ENV extensions_staticPdf /app/node_modules/jsreport-static-pdf
-ENV extensions_text /app/node_modules/jsreport-text
-ENV extensions_versionControl /app/node_modules/jsreport-version-control
-ENV extensions_xlsx /app/node_modules/jsreport-xlsx
 
 CMD ["node", "server.js"]

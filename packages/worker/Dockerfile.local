@@ -45,34 +45,17 @@ WORKDIR /app
 
 # the chrome was already installed from apt-get
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV WORKSPACE_PACKAGES_BUILD true
 
-RUN npm i -g yarn
+RUN npm i -g yarn json-merger
 
 COPY --chown=jsreport:jsreport packages /app/packages
 COPY --chown=jsreport:jsreport packages/worker /app
-COPY --chown=jsreport:jsreport packages/worker/build/package.build.json /app/package.json
+
+RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
+
 RUN yarn install --cache-folder /tmp/yarn-cache
 RUN yarn cache clean --all && rm -rf /tmp/*
 
-ENV extensions_assets /app/packages/jsreport-assets
-ENV extensions_base /app/packages/jsreport-base
-ENV extensions_browserClient /app/packages/jsreport-browser-client
-ENV extensions_childTemplates /app/packages/jsreport-child-templates
-ENV extensions_chromePdf /app/packages/jsreport-chrome-pdf
-ENV extensions_data /app/packages/jsreport-data
-ENV extensions_docx /app/packages/jsreport-docx
-ENV extensions_express /app/packages/jsreport-express
-ENV extensions_handlebars /app/packages/jsreport-handlebars
-ENV extensions_htmlToXlsx /app/packages/jsreport-html-to-xlsx
-ENV extensions_jsrender /app/packages/jsreport-jsrender
-ENV extensions_localization /app/packages/jsreport-localization
-ENV extensions_pdfUtils /app/packages/jsreport-pdf-utils
-ENV extensions_pptx /app/packages/jsreport-pptx
-ENV extensions_reports /app/packages/jsreport-reports
-ENV extensions_scripts /app/packages/jsreport-scripts
-ENV extensions_staticPdf /app/packages/jsreport-static-pdf
-ENV extensions_text /app/packages/jsreport-text
-ENV extensions_versionControl /app/packages/jsreport-version-control
-ENV extensions_xlsx /app/packages/jsreport-xlsx
 
 CMD ["node", "server.js"]
