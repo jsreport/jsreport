@@ -67,7 +67,7 @@ module.exports = function (reporter, definition) {
     if (!helpersScript) {
       helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
     }
-    req.template.helpers = (req.template.helpers || '') + '\n' + helpersScript
+    req.context.systemHelpers += helpersScript + '\n'
   })
 
   reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (request, response) => {

@@ -392,6 +392,14 @@ class Studio {
   }
 
   /**
+   * Array of registeresd engines
+   * @returns {Array<string>}
+   */
+  get engines () {
+    return configuration.engines
+  }
+
+  /**
    * Opens modal dialog.
    *
    * @param {ReactComponent|String}componentOrText
@@ -451,6 +459,19 @@ class Studio {
    */
   openTab (tab) {
     return this.store.dispatch(editor.actions.openTab(tab))
+  }
+
+  /**
+   * Open tab for a new entity
+   *
+   * @example
+   * // open entity editor
+   * Studio.openTab({ entitySet, entity, name })
+   *
+   * @param {Object} tab
+   */
+  openNewTab (tab) {
+    return this.store.dispatch(editor.actions.openNewTab(tab))
   }
 
   /**

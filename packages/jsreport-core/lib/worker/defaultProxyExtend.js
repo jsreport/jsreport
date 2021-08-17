@@ -36,8 +36,11 @@ module.exports = (reporter) => (proxy, req) => {
   }
 
   proxy.folders = {
-    resolveEntityFromPath: (path, es) => {
-      return reporter.folders.resolveEntityFromPath(path, es, req)
+    resolveEntityFromPath: (path, es, options) => {
+      return reporter.folders.resolveEntityFromPath(path, es, options || {}, req)
+    },
+    resolveEntityPath: (entity, es) => {
+      return reporter.folders.resolveEntityPath(entity, es, req)
     }
   }
 }

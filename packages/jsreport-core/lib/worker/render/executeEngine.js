@@ -13,34 +13,69 @@ module.exports = (reporter) => {
   reporter.templatingEngines = { cache }
 
   return async (engine, req) => {
-    const asyncResultMap = new Map()
+    const executionFnParsedParamsMap = new Map()
 
-    if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
-      cache.reset()
-    }
+    reporter.extendProxy((proxy, req, {
+      runInSandbox,
+      context,
+      getTopLevelFunctions
+    }) => {
+      proxy.templatingEngines = {
+        evaluate: async ({ engine, content, helpers, data }, { entity, entitySet }) => {
+          const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
+
+          if (!engine) {
+            throw reporter.createError(`Engine '${engine}' not found. If this is a custom engine make sure it's properly installed from npm`, {
+              statusCode: 400
+            })
+          }
+
+          const res = await executeEngine({
+            engine: engineImpl,
+            content,
+            helpers: helpers + '\n' + req.context.systemHelpers,
+            data
+          }, { executionFnParsedParamsMap, handleErrors: false, entity, entitySet }, req)
+          return res.content
+        }
+      }
+    })
 
     req.data.__appDirectory = reporter.options.appDirectory
     req.data.__rootDirectory = reporter.options.rootDirectory
     req.data.__parentModuleDirectory = reporter.options.parentModuleDirectory
 
-    const executionFn = async ({ require, console, topLevelFunctions }) => {
-      const proxy = require('jsreport-proxy')
+    return executeEngine({
+      engine,
+      content: req.template.content,
+      helpers: req.template.helpers + '\n' + req.context.systemHelpers,
+      data: req.data
+    }, {
+      executionFnParsedParamsMap,
+      handleErrors: true,
+      entity: req.template,
+      entitySet: 'templates'
+    }, req)
+  }
 
-      proxy.templatingEngines = {
-        evaluate: (content, data) => {
-          const key = `evaluate:${content}:${engine.name}`
-          if (!cache.has(key)) {
-            cache.set(key, engine.compile(content, { require }))
-          }
-          return engine.execute(cache.get(key), {}, data, { require })
-        }
+  async function executeEngine ({ engine, content, helpers, data }, { executionFnParsedParamsMap, handleErrors, entity, entitySet }, req) {
+    const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${helpers}`
+
+    const executionFn = async ({ require, console, topLevelFunctions }) => {
+      if (entitySet !== 'templates') {
+        const jsreport = require('jsreport-proxy')
+        const entityPath = await jsreport.folders.resolveEntityPath(entity, entitySet)
+        jsreport.currentPath = entityPath.substring(0, entityPath.lastIndexOf('/'))
       }
 
-      const key = `template:${req.template.content}:${engine.name}`
+      const asyncResultMap = new Map()
+      executionFnParsedParamsMap.set(executionFnParsedParamsKey, { require, console, topLevelFunctions })
+
+      const key = `template:${content}:${engine.name}`
 
       if (!cache.has(key)) {
         try {
-          cache.set(key, engine.compile(req.template.content, { require }))
+          cache.set(key, engine.compile(content, { require }))
         } catch (e) {
           e.property = 'content'
           throw e
@@ -49,11 +84,12 @@ module.exports = (reporter) => {
 
       const compiledTemplate = cache.get(key)
 
+      const wrappedTopLevelFunctions = {}
       for (const h of Object.keys(topLevelFunctions)) {
-        topLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
+        wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
       }
 
-      let content = await engine.execute(compiledTemplate, topLevelFunctions, req.data, { require })
+      let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
       const resolvedResultsMap = new Map()
       while (asyncResultMap.size > 0) {
         await Promise.all([...asyncResultMap.keys()].map(async (k) => {
@@ -62,16 +98,26 @@ module.exports = (reporter) => {
         }))
       }
 
-      while (content.includes('{#asyncHelperResult')) {
-        content = content.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
+      while (contentResult.includes('{#asyncHelperResult')) {
+        contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
           const asyncResultId = p1
           return `${resolvedResultsMap.get(asyncResultId)}`
         })
       }
 
       return {
-        content
+        content: contentResult
       }
+    }
+
+    if (executionFnParsedParamsMap.has(executionFnParsedParamsKey)) {
+      const { require, console, topLevelFunctions } = executionFnParsedParamsMap.get(executionFnParsedParamsKey)
+
+      return executionFn({ require, console, topLevelFunctions })
+    }
+
+    if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
+      cache.reset()
     }
 
     try {
@@ -79,7 +125,7 @@ module.exports = (reporter) => {
         context: {
           ...(engine.createContext ? engine.createContext() : {})
         },
-        userCode: req.template.helpers,
+        userCode: helpers,
         executionFn,
         onRequire: (moduleName, { context }) => {
           if (engine.onRequire) {
@@ -88,6 +134,10 @@ module.exports = (reporter) => {
         }
       }, req)
     } catch (e) {
+      if (!handleErrors) {
+        throw e
+      }
+
       const nestedErrorWithEntity = e.entity != null
 
       const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
@@ -97,7 +147,7 @@ module.exports = (reporter) => {
           e.entity = {
             shortid: templateFound.entity.shortid,
             name: templateFound.entity.name,
-            content: req.template.content
+            content
           }
         }
       }

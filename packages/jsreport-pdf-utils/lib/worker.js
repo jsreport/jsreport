@@ -79,17 +79,6 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.beforeRenderListeners.insert({ after: 'data' }, 'pdf-utils', async (req, res) => {
-    // avoid helpers duplication
-    if (typeof req.template.helpers === 'object') {
-      if (req.template.helpers.pdfAddPageItem) {
-        return
-      }
-    } else {
-      if (req.template.helpers && req.template.helpers.includes('function pdfAddPageItem')) {
-        return
-      }
-    }
-
     function pdfFormField (el) {
       // handlebars
       if (el && el.hash) {
@@ -199,13 +188,7 @@ module.exports = (reporter, definition) => {
       return result
     }
 
-    if (req.template.helpers && typeof req.template.helpers === 'object') {
-      req.template.helpers.pdfFormField = pdfFormField
-      req.template.helpers.pdfCreatePagesGroup = pdfCreatePagesGroup
-      req.template.helpers.pdfAddPageItem = pdfAddPageItem
-    } else {
-      req.template.helpers = (req.template.helpers || '') + '\n;' + pdfFormField + '\n' + pdfCreatePagesGroup + '\n' + pdfAddPageItem
-    }
+    req.context.systemHelpers += pdfFormField + '\n' + pdfCreatePagesGroup + '\n' + pdfAddPageItem + '\n'
   })
 
   // we insert to the front so we can run before reports or scripts

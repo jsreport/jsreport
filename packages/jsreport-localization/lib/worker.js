@@ -8,7 +8,7 @@ module.exports = async (reporter, definition) => {
   })
 
   reporter.beforeRenderListeners.add(definition.name, this, (req, res) => {
-    req.template.helpers += '\n' + helpers
+    req.context.systemHelpers += helpers + '\n'
   })
 
   reporter.extendProxy((proxy, req) => {

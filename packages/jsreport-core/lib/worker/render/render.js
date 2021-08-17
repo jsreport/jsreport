@@ -12,6 +12,8 @@ const resolveReferences = require('./resolveReferences.js')
 let reportCounter = 0
 
 module.exports = (reporter) => {
+  reporter.addRequestContextMetaConfig('systemHelpers', { sandboxHidden: true })
+
   const executeEngine = ExecuteEngine(reporter)
   async function beforeRender (reporter, request, response) {
     if (!request.template) {
@@ -108,6 +110,7 @@ module.exports = (reporter) => {
 
   return async (req, parentReq) => {
     const request = Request(req, parentReq)
+    request.context.systemHelpers = ''
     const response = { meta: {} }
     let renderStartProfilerEvent
     try {

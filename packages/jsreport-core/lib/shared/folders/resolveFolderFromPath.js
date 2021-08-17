@@ -1,7 +1,7 @@
 const normalizeEntityPath = require('./normalizeEntityPath')
 
 module.exports = (reporter) => async (entityPathParam, req) => {
-  const entityPath = normalizeEntityPath(entityPathParam, req)
+  const entityPath = normalizeEntityPath(entityPathParam, {}, req)
   const fragments = entityPath.split('/').filter(s => s)
   let found = false
   let currentFolder = null

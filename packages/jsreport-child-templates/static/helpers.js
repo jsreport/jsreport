@@ -10,7 +10,7 @@ function childTemplateParseData (dataStr) {
   return JSON.parse(Buffer.from(dataStr, 'base64').toString())
 }
 
-async function childTemplate (templateNameOrObject, data, options, opts) {
+async function childTemplate (templateNameOrObject, opts) {
   const isHandlebars = typeof arguments[arguments.length - 1].lookupProperty === 'function'
   const isJsRender = this.tmpl && this.tmpl && typeof this.tmpl.fn === 'function'
 
@@ -23,8 +23,6 @@ async function childTemplate (templateNameOrObject, data, options, opts) {
     currentContext = this.data
   }
 
-  const dataFromParam = (data && typeof data.lookupProperty === 'function') ? null : data
-
   const jsreport = require('jsreport-proxy')
   const res = await jsreport.render({
     template: typeof templateNameOrObject === 'string'
@@ -32,8 +30,7 @@ async function childTemplate (templateNameOrObject, data, options, opts) {
           name: templateNameOrObject
         }
       : templateNameOrObject,
-    data: dataFromParam || currentContext,
-    options
+    data: currentContext
   })
   if (res.meta.contentType && !res.meta.contentType.includes('text')) {
     throw new Error('Child template result needs to be a text. Consider changing recipe to a text based recipe like html.')

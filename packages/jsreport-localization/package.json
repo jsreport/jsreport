@@ -47,6 +47,11 @@
   "standard": {
     "env": {
       "mocha": true
-    }
+    },
+    "ignore": [
+      "studio/main.js",
+      "static/helpers.js",
+      "test/helpers.js"
+    ]
   }
 }

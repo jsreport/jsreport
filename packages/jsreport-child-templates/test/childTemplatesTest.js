@@ -917,7 +917,7 @@ describe('childTemplates', () => {
 
   it('childTemplate call in templating engine', async () => {
     await reporter.documentStore.collection('templates').insert({
-      content: '{{foo}}',
+      content: '{{someProp.foo}}',
       engine: 'handlebars',
       recipe: 'html',
       name: 't1'
@@ -925,7 +925,7 @@ describe('childTemplates', () => {
 
     const request = {
       template: {
-        content: '{{childTemplate "t1" someProp}}',
+        content: '{{childTemplate "t1"}}',
         engine: 'handlebars',
         recipe: 'html'
       },
@@ -942,7 +942,7 @@ describe('childTemplates', () => {
 
   it('childTemplate call in templating engine recipe override', async () => {
     await reporter.documentStore.collection('templates').insert({
-      content: '{{foo}}',
+      content: '{{someProp.foo}}',
       engine: 'handlebars',
       recipe: 'invalid',
       name: 't1'
@@ -950,7 +950,7 @@ describe('childTemplates', () => {
 
     const request = {
       template: {
-        content: '{{childTemplate (template) someProp}}',
+        content: '{{childTemplate (template)}}',
         engine: 'handlebars',
         recipe: 'html',
         helpers: `

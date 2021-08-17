@@ -75,7 +75,7 @@ module.exports = (reporter, definition) => {
   let assetHelpers
 
   reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
-    req.template.helpers += '\n' + assetHelpers
+    req.context.systemHelpers += assetHelpers + '\n'
 
     req.template.content = await evaluateAssets(reporter, definition, req.template.content, req)
 
@@ -122,7 +122,10 @@ module.exports = (reporter, definition) => {
           await runInSandbox(userCode, {
             filename: a.name,
             source: userCode,
-            entity: a
+            entity: {
+              ...a,
+              content: a.content.toString()
+            }
           })
         }
       },
@@ -137,7 +140,10 @@ module.exports = (reporter, definition) => {
         await runInSandbox(userCode, {
           filename: asset.filename,
           source: userCode,
-          entity: asset.entity
+          entity: {
+            ...asset.entity,
+            content: asset.entity.content.toString()
+          }
         })
       },
 

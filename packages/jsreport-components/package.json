@@ -1,0 +1,61 @@
+{
+  "name": "@jsreport/jsreport-components",
+  "version": "3.0.0-beta.1",
+  "description": "jsreport extension for dynamic creating dynamic templating engine components",
+  "keywords": [
+    "jsreport",
+    "components"
+  ],
+  "homepage": "https://jsreport.net/learn/components",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "files": [
+    "lib",
+    "static",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --run-only",
+    "start": "jsreport-studio-start",
+    "lint": "standard",
+    "test": "mocha test --timeout 5000 --exit && standard",
+    "test:watch": "mocha test --watch"
+  },
+  "dependencies": {
+    "react-copy-to-clipboard": "5.0.2"
+  },
+  "devDependencies": {
+    "in-publish": "2.0.1",
+    "@jsreport/jsreport-assets": "3.0.0-beta.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
+    "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
+    "mocha": "9.0.3",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=14.17.5"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js",
+      "static/helpers.js",
+      "test/helpers.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}
