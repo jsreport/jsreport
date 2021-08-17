@@ -30,7 +30,7 @@ RUN rm -rf /tmp/*
 USER jsreport:jsreport
 
 ENV NVM_DIR /home/jsreport/.nvm
-ENV NODE_VERSION 14.16.1
+ENV NODE_VERSION 14.17.4
 
 # node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && \
