@@ -481,14 +481,15 @@ class MainReporter extends Reporter {
 
   async executeWorkerAction (actionName, data, options = {}, req) {
     req.context.rootId = req.context.rootId || generateRequestId()
-
+    const timeout = options.timeout || 60000
+    req.timeout = timeout
     const worker = options.worker ? options.worker : await this._workersManager.allocate(req)
 
     try {
       const result = await worker.execute({
         actionName,
         data,
-        // we set just known props, to avoid clonning failures on express req properties
+        // we set just known props, to avoid cloning failures on express req properties
         req: {
           context: req.context,
           template: req.template,
@@ -497,7 +498,7 @@ class MainReporter extends Reporter {
         }
       }, {
       // TODO add worker timeout
-        timeout: options.timeout || 60000,
+        timeout,
         timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
         executeMain: async (data) => {
           return this._invokeMainAction(data, req)

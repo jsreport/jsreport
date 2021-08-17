@@ -5,14 +5,17 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
   data = { ...data, timeout, systemAction }
   return new Promise((resolve, reject) => {
     let isDone = false
-    setTimeout(() => {
-      if (isDone) {
-        return
-      }
 
-      isDone = true
-      reject(new Error('Timeout when communicating with worker'))
-    }, timeout)
+    if (timeout) {
+      setTimeout(() => {
+        if (isDone) {
+          return
+        }
+
+        isDone = true
+        reject(new Error('Timeout when communicating with worker'))
+      }, timeout)
+    }
 
     ;(async () => {
       while (true && !isDone) {
