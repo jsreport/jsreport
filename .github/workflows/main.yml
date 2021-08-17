@@ -64,7 +64,7 @@ jobs:
           path: |
             node_modules
             **/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}d-${{ hashFiles('**/yarn.lock') }}
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn install --no-progress --non-interactive    
