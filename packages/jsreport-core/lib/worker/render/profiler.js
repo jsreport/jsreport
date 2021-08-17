@@ -1,3 +1,4 @@
+const extend = require('node.extend.without.arrays')
 const isbinaryfile = require('isbinaryfile').isBinaryFileSync
 const omit = require('lodash.omit')
 const { createPatch } = require('./diff')
@@ -16,7 +17,7 @@ class Profiler {
     })
 
     this.profiledRequestsMap = new Map()
-    const profileEventsFushInterval = setInterval(async () => {
+    const profileEventsFlushInterval = setInterval(async () => {
       for (const id of [...this.profiledRequestsMap.keys()]) {
         const profilingInfo = this.profiledRequestsMap.get(id)
         if (profilingInfo) {
@@ -26,17 +27,17 @@ class Profiler {
         }
       }
     }, 100)
-    profileEventsFushInterval.unref()
+    profileEventsFlushInterval.unref()
 
     this.reporter.closeListeners.add('profiler', this, () => {
-      if (profileEventsFushInterval) {
-        clearInterval(profileEventsFushInterval)
+      if (profileEventsFlushInterval) {
+        clearInterval(profileEventsFlushInterval)
       }
     })
   }
 
   emit (m, req, res) {
-    m.timestamp = m.timpestamp || new Date().getTime()
+    m.timestamp = m.timestamp || new Date().getTime()
 
     if (m.type === 'log' && !req.context.profiling) {
       // this means there is an action running, but not the render, and it is logging...
@@ -106,7 +107,8 @@ class Profiler {
 
     if (parentReq) {
       template = await this.reporter.templates.resolveTemplate(req)
-      req.context.resolvedTemplate = template
+      // store a copy to prevent side-effects
+      req.context.resolvedTemplate = extend(true, {}, template)
     } else {
       template = req.context.resolvedTemplate
     }

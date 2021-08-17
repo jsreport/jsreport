@@ -15,7 +15,7 @@ module.exports = async (reporter, definition) => {
     proxy.localization = {
       localize: async function (key, folder) {
         if (key == null) {
-          throw new Error('localize expects key paramenter')
+          throw new Error('localize expects key parameter')
         }
 
         if (folder == null) {

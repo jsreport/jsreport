@@ -180,7 +180,7 @@ class Toolbar extends Component {
 
   renderButton (onClick, enabled, text, imageClass, tooltip) {
     if (toolbarVisibilityResolver(text) === false) {
-      return false
+      return null
     }
 
     return (

@@ -1,0 +1,56 @@
+{
+  "name": "@jsreport/jsreport-electron-pdf",
+  "version": "4.0.0-beta.1",
+  "description": "jsreport recipe which renders pdf from html using electron",
+  "keywords": [
+    "jsreport",
+    "electron",
+    "pdf"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-electron-pdf",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "BJR Matos",
+    "email": "bjrmatos@gmail.com"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "install-electron-prebuilt": "npm install electron-prebuilt@0.35.x",
+    "prepublish": "in-publish && npm run build || not-in-publish",
+    "run": "npm run build && jsreport-studio-start --httPort 5488 --run-only",
+    "start": "jsreport-studio-start --httpPort 5488",
+    "test": "mocha test/test.js --timeout 7000 && standard"
+  },
+  "dependencies": {
+    "electron-html-to": "2.6.0",
+    "lodash.pickby": "4.6.0",
+    "stream-to-array": "2.3.0"
+  },
+  "devDependencies": {
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
+    "electron": "1.6.6",
+    "in-publish": "2.0.1",
+    "mocha": "8.3.2",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

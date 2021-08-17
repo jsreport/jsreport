@@ -42,7 +42,8 @@ module.exports = (reporter) => {
       req.context.renderHierarchy.push(template._id)
     }
 
-    req.template = template ? extend(true, template, req.template) : req.template
+    // store a copy to prevent side-effects
+    req.template = template ? extend(true, {}, template, req.template) : req.template
     req.template.content = req.template.content || ''
 
     reporter.logger.info(

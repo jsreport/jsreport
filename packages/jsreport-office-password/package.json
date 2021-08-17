@@ -1,0 +1,65 @@
+{
+  "name": "@jsreport/jsreport-office-password",
+  "version": "3.0.0-beta.1",
+  "description": "jsreport extension adding password protection to office reports",
+  "keywords": [
+    "jsreport",
+    "office",
+    "office protection",
+    "office password"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-office-password",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+    "Jan Blaha <jan.blaha@hotmail.com>"
+  ],
+  "main": "index.js",
+  "files": [
+    "lib",
+    "studio",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "build": "jsreport-studio-build",
+    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "start": "jsreport-studio-start --httpPort 4800",
+    "test": "mocha test --timeout 5000 && standard"
+  },
+  "dependencies": {
+    "@jsreport/office": "3.0.0-beta.1",
+    "xlsx-populate": "1.20.1"
+  },
+  "devDependencies": {
+    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-html-to-xlsx": "3.0.0-beta.1",
+    "@jsreport/studio-dev": "3.0.0-beta.1",
+    "in-publish": "2.0.1",
+    "mocha": "7.0.0",
+    "puppeteer": "2.0.0",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "ignore": [
+      "studio/main.js"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

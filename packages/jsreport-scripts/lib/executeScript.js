@@ -5,15 +5,23 @@ const promisify = require('util').promisify
 module.exports = async function executeScript (reporter, script, method, req, res) {
   const requestContextMetaConfig = reporter.getRequestContextMetaConfig() || {}
 
+  const originalData = req.data
+  const originalSharedContext = req.context.shared
+  const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
+
   const initialContext = {
     __request: {
-      ..._omit(extend(true, req), 'data'),
+      ...reqCloneWithNoData,
       data: {
-        ...req.data
+        ...originalData
       }
     },
     __response: res
   }
+
+  // keep the reference to the shared context so it is always update to date
+  // between script executions
+  initialContext.__request.context.shared = originalSharedContext
 
   initialContext.__request.cancel = (messageOrOptions = {}) => {
     const data = {}
