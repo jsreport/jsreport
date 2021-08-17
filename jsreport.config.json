@@ -36,6 +36,7 @@
     "assets",
     "base",
     "browser-client",
+    "components",
     "child-templates",
     "chrome-pdf",
     "data",
