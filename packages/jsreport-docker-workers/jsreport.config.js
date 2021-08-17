@@ -37,7 +37,6 @@ module.exports = {
               startTimeout: 10000,
               restartPolicy: true,
               warmupPolicy: true,
-              delegateTimeout: 50000,
               debuggingSession: false,
               memorySwap: '512m',
               memory: '420m',
@@ -70,11 +69,6 @@ module.exports = {
                 type: ['string', 'number'],
                 '$jsreport-acceptsDuration': true,
                 default: 5000
-              },
-              delegateTimeout: {
-                type: ['string', 'number'],
-                '$jsreport-acceptsDuration': true,
-                default: 50000
               },
               debuggingSession: { type: 'boolean', default: false },
               memorySwap: { type: 'string', default: '512m' },
