@@ -33,11 +33,12 @@ RUN set -eux; \
 RUN addgroup -S jsreport && adduser --shell /bin/bash -S -G jsreport jsreport
 
 RUN apk update --no-cache && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.14/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=92.0.4515.107-r0 \
+    chromium@edge=91.0.4472.164-r0 \
     nss@edge \
     freetype@edge \
     harfbuzz@edge \

@@ -1,4 +1,4 @@
-FROM node:14.17.0-alpine3.13
+FROM node:14.17.4-alpine3.14
 EXPOSE 5488
 USER root
 
@@ -33,11 +33,12 @@ RUN set -eux; \
 RUN addgroup -S jsreport && adduser --shell /bin/bash -S -G jsreport jsreport
 
 RUN apk update --no-cache && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.14/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=90.0.4430.93-r0 \
+    chromium@edge=91.0.4472.164-r0 \
     nss@edge \
     freetype@edge \
     harfbuzz@edge \

@@ -22,45 +22,11 @@
             "filename": "logs/error.log"
         }
     },
-    "allowLocalFilesAccess": false,
+    "allowLocalFilesAccess": true,
     "reportTimeout": 60000,
     "workers": {
         "numberOfWorkers": 3
     },
-    "extensionsList": [
-        "authentication",
-        "authorization",
-        "assets",
-        "base",
-        "browser-client",
-        "components",
-        "child-templates",
-        "chrome-pdf",
-        "data",
-        "docx",
-        "express",
-        "freeze",
-        "fs-store",
-        "handlebars",
-        "html-to-xlsx",
-        "import-export",
-        "jsrender",
-        "localization",
-        "pdf-utils",
-        "pptx",
-        "public-templates",
-        "reports",
-        "sample-template",
-        "scheduling",
-        "scripts",
-        "static-pdf",
-        "studio",
-        "studio-theme-dark",
-        "tags",
-        "text",
-        "version-control",
-        "xlsx"
-    ],
     "extensions": {
         "authentication": {
             "cookieSession": {},
