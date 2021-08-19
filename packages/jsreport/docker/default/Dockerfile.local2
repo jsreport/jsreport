@@ -33,11 +33,13 @@ RUN set -eux; \
 RUN addgroup -S jsreport && adduser --shell /bin/bash -S -G jsreport jsreport
 
 RUN apk update --no-cache && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.14/community >> /etc/apk/repositories && \
+    echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=92.0.4515.107-r0 \
+    chromium@edge=91.0.4472.164-r0 \
     nss@edge \
     freetype@edge \
     harfbuzz@edge \
@@ -49,44 +51,5 @@ RUN apk update --no-cache && \
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 
-RUN mkdir -p /app
 
-# we need to create the volume and give it expected owner
-# before the VOLUME step in order for the volume to be created with non-root user
-RUN mkdir /jsreport
-RUN chown jsreport:jsreport /jsreport
-RUN chmod g+s /jsreport
-
-VOLUME ["/jsreport"]
-
-
-ENV NPM_CONFIG_PREFIX /home/jsreport/.npm-global
-ENV PATH $PATH:/home/jsreport/.npm-global/bin
-
-WORKDIR /app
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-
-RUN npm i -g yarn json-merger
-COPY ./packages/jsreport/server.js server.js
-COPY ./packages/jsreport/index.js index.js
-COPY ./packages/jsreport/package.json package.json
-COPY packages packages
-COPY ./packages/jsreport/lib lib
-COPY ./packages/jsreport/build build
-
-RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
-
-RUN yarn install --production
-
-COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
-COPY ./packages/jsreport/docker/default/run.sh run.sh
-
-RUN yarn cache clean --all && rm -rf /tmp/*
-RUN chown -R jsreport:jsreport /app
-
-ENV chrome:launchOptions:executablePath /usr/lib/chromium/chrome
-ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
-
-
-CMD ["bash", "run.sh"]
+CMD ["bash"]
