@@ -29,7 +29,7 @@
     "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
   },
   "dependencies": {
-    "axios": "0.19.2",
+    "axios": "0.21.1",
     "body-parser": "1.19.0",
     "client-sessions": "0.8.0",
     "ejs": "2.6.2",

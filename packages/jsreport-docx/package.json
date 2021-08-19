@@ -33,7 +33,7 @@
     "test": "mocha test --timeout 20000 && standard"
   },
   "dependencies": {
-    "axios": "0.19.2",
+    "axios": "0.21.1",
     "image-size": "0.7.4",
     "js-excel-date-convert": "1.0.2",
     "@jsreport/office": "3.0.0-beta.1",
@@ -41,7 +41,7 @@
     "semaphore-async-await": "1.5.1",
     "string-replace-async": "2.0.0",
     "unescape": "1.0.1",
-    "xmldom": "0.1.27"
+    "xmldom": "0.6.0"
   },
   "devDependencies": {
     "handlebars": "4.7.7",

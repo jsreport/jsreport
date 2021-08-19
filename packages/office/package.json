@@ -18,7 +18,7 @@
   "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/office#readme",
   "dependencies": {
     "archiver": "5.3.0",
-    "axios": "0.19.2",
+    "axios": "0.21.1",
     "form-data": "2.5.0",
     "get-stream": "5.1.0",
     "node.extend.without.arrays": "1.1.6",

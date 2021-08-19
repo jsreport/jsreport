@@ -43,7 +43,7 @@
     "bluebird": "3.5.4",
     "compression": "1.7.4",
     "diff2html": "2.5.0",
-    "lodash": "4.17.19",
+    "lodash": "4.17.21",
     "semaphore-async-await": "1.5.1",
     "serve-favicon": "2.5.0",
     "serve-static": "1.14.1"

@@ -22,7 +22,7 @@
     "test": "mocha test && standard"
   },
   "dependencies": {
-    "jsrender": "1.0.4"
+    "jsrender": "1.0.11"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.0-beta.1",
