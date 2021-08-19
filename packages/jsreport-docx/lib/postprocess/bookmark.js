@@ -1,4 +1,4 @@
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 const stringReplaceAsync = require('../stringReplaceAsync')
 const { serializeXml, getNewIdFromBaseId } = require('../utils')
 

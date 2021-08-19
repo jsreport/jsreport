@@ -1,4 +1,4 @@
-const { XMLSerializer } = require('xmldom')
+const { XMLSerializer } = require('@xmldom/xmldom')
 
 function nodeListToArray (nodes) {
   const arr = []

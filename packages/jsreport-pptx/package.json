@@ -35,7 +35,7 @@
   "dependencies": {
     "image-size": "0.7.4",
     "@jsreport/office": "3.0.0-beta.1",
-    "xmldom": "0.6.0"
+    "@xmldom/xmldom": "0.7.0"
   },
   "devDependencies": {
     "handlebars": "4.7.7",

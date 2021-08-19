@@ -1,4 +1,4 @@
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 const { serializeXml, nodeListToArray } = require('../utils')
 
 function processCheckbox (sdtEl) {

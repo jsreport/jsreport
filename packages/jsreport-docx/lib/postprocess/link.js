@@ -1,5 +1,5 @@
 const path = require('path')
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 const { nodeListToArray, serializeXml } = require('../utils')
 
 module.exports = (files) => {

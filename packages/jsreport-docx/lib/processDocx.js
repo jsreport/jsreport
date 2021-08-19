@@ -1,4 +1,4 @@
-const { DOMParser, XMLSerializer } = require('xmldom')
+const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const decodeXML = require('unescape')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const preprocess = require('./preprocess/preprocess.js')

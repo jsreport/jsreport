@@ -1,5 +1,5 @@
 const { nodeListToArray } = require('../utils')
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 
 module.exports = (files) => {
   const contentTypeDoc = files.find(f => f.path === '[Content_Types].xml').doc

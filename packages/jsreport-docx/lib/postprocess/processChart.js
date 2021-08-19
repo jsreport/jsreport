@@ -1,4 +1,4 @@
-const { DOMParser, XMLSerializer } = require('xmldom')
+const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId } = require('../utils')

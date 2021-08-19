@@ -1,4 +1,4 @@
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 const { nodeListToArray, serializeXml } = require('../utils')
 
 // see the preprocess/styles.js for some explanation

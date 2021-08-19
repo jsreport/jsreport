@@ -1,4 +1,4 @@
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const { serializeXml } = require('../utils')
 

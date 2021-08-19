@@ -41,7 +41,7 @@
     "semaphore-async-await": "1.5.1",
     "string-replace-async": "2.0.0",
     "unescape": "1.0.1",
-    "xmldom": "0.6.0"
+    "@xmldom/xmldom": "0.7.0"
   },
   "devDependencies": {
     "handlebars": "4.7.7",

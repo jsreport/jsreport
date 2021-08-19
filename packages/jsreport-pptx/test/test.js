@@ -5,7 +5,7 @@ const path = require('path')
 const util = require('util')
 const { decompress } = require('@jsreport/office')
 const textract = util.promisify(require('textract').fromBufferWithName)
-const { DOMParser } = require('xmldom')
+const { DOMParser } = require('@xmldom/xmldom')
 const { nodeListToArray } = require('../lib/utils')
 
 describe('pptx', () => {
