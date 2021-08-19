@@ -2,7 +2,7 @@
 #!/bin/sh
 
 if [ "$(ls -A /jsreport)" ]; then
-  echo "linking config files and data with mounted /jsreport volume"  
+  echo "linking config files and data with mounted /jsreport volume"
 
   if [ ! -d "/jsreport/data" ]; then
     mkdir "/jsreport/data"

@@ -45,7 +45,7 @@
     "@jsreport/studio-dev": "3.0.0-beta.1",
     "in-publish": "2.0.1",
     "mocha": "7.0.0",
-    "puppeteer": "2.0.0",
+    "puppeteer": "9.1.1",
     "should": "13.2.3",
     "standard": "16.0.3"
   },

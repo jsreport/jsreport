@@ -2,7 +2,7 @@
 #!/bin/sh
 
 if [ "$(ls -A /jsreport)" ]; then
-  echo "linking config files and data with mounted /jsreport volume"  
+  echo "linking config files and data with mounted /jsreport volume"
 
   if [ ! -d "/jsreport/data" ]; then
     mkdir "/jsreport/data"
@@ -14,7 +14,7 @@ if [ "$(ls -A /jsreport)" ]; then
   if [ ! -f "/jsreport/jsreport.config.json" ]; then
     cp "/app/jsreport.config.json" "/jsreport/jsreport.config.json"
   fi
- 
+
   ln -s "/jsreport/license-key.txt" "/app/license-key.txt"
   ln -s "/jsreport/jsreport.license.json" "/app/jsreport.license.json"
 
@@ -24,4 +24,11 @@ if [ "$(ls -A /jsreport)" ]; then
   chown -R jsreport:jsreport /jsreport
 fi
 
-exec gosu jsreport node "server.js"
+echo Trying to remove the lock on display 99
+rm /tmp/.X99-lock > /dev/null 2>&1
+
+echo Running display 99
+Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+
+echo Starting node.js
+export DISPLAY=:99 && exec gosu jsreport node "server.js"
