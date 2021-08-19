@@ -21,7 +21,10 @@ describe('common store tests', () => {
       user: 'jsreport',
       password: 'password',
       server: 'localhost',
-      database: 'jsreport'
+      database: 'jsreport',
+      options: {
+        trustServerCertificate: true
+      }
     }
 
     // we can start the container with:
@@ -32,7 +35,10 @@ describe('common store tests', () => {
       user: 'sa',
       password: 'reallyStrongPwd123',
       server: 'localhost',
-      database: 'jsreport'
+      database: 'jsreport',
+      options: {
+        trustServerCertificate: true
+      }
     }
 
     const extOpts = USE_DOCKER_CONNECTION ? dockerOpts : localOpts

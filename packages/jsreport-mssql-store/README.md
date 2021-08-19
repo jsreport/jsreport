@@ -20,10 +20,12 @@ Then alter jsreport configuration
 			"password": "password",
 			"server": "janblaha-PC\\SQLEXPRESS",
 			"database": "jsreport",
-			"schema": "mycustomschema",
-			/* required for sql azure */
+			"schema": "mycustomschema",			
 			"options": {
-				"encrypt": true
+				/* required for sql azure */
+				"encrypt": true,
+				/* required for local dev instances */
+				"trustServerCertificate": true
 			}
 		}
 	}
