@@ -1,5 +1,7 @@
 const packageJson = require('./package.json')
-let jsreport = require('./')()
+let jsreport = require('./')({
+  rootDirectory: __dirname
+})
 
 const jsreportExtensions = Object.keys(packageJson.dependencies).filter((extName) => {
   return extName !== '@jsreport/jsreport-core' && extName.startsWith('@jsreport')

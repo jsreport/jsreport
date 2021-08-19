@@ -68,6 +68,7 @@ RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
 
 RUN yarn install --production
 
+COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
 COPY ./packages/jsreport/docker/default/run.sh run.sh
 
