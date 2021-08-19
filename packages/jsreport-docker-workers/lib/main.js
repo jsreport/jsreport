@@ -43,9 +43,11 @@ module.exports = (reporter, definition) => {
 
           if (reqBody.systemAction === 'allocate') {
             const worker = await reporter.dockerManager.allocate({
-              context: reqBody.req.context,
+              context: reqBody.req.context
+            }, {
               timeout: reqBody.timeout
             })
+
             workerRequestMap.set(reqBody.req.context.rootId, worker)
             res.status(201).send('{}')
             return
