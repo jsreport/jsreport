@@ -7,6 +7,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-browser-client-dist',
   '@jsreport/jsreport-browser-client',
   '@jsreport/jsreport-chrome-pdf',
+  '@jsreport/jsreport-components',
   '@jsreport/jsreport-data',
   '@jsreport/jsreport-docx',
   '@jsreport/jsreport-freeze',
