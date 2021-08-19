@@ -1,14 +1,14 @@
 {
-  "name": "odata-to-sql",
-  "version": "0.10.2",
+  "name": "@jsreport/odata-to-sql",
+  "version": "0.11.0",
   "description": "Generate SQL from OData in node.js",
-  "homepage": "https://github.com/pofider/node-odata-to-sql#readme",
+  "homepage": "https://github.com/jsreport/jsreport",
   "bugs": {
-    "url": "https://github.com/pofider/node-odata-to-sql/issues"
+    "url": "https://github.com/jsreport/jsreport/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pofider/node-odata-to-sql.git"
+    "url": "git+https://github.com/jsreport/jsreport.git"
   },
   "license": "MIT",
   "author": "",

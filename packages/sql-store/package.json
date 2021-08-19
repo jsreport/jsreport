@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "bluebird": "3.5.3",
-    "odata-to-sql": "0.10.2",
+    "@jsreport/odata-to-sql": "0.11.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {

@@ -1443,6 +1443,19 @@ archiver@5.3.0:
     tar-stream "^2.2.0"
     zip-stream "^4.1.0"
 
+archiver@^3.0.0:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/archiver/-/archiver-3.1.1.tgz#9db7819d4daf60aec10fe86b16cb9258ced66ea0"
+  integrity sha512-5Hxxcig7gw5Jod/8Gq0OneVgLYET+oNHcxgWItq4TbhOzRLKNAFUb9edAftiMKXvXfCB0vbGrJdZDNq0dWMsxg==
+  dependencies:
+    archiver-utils "^2.1.0"
+    async "^2.6.3"
+    buffer-crc32 "^0.2.1"
+    glob "^7.1.4"
+    readable-stream "^3.4.0"
+    tar-stream "^2.1.0"
+    zip-stream "^2.1.2"
+
 are-we-there-yet@~1.1.2:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/are-we-there-yet/-/are-we-there-yet-1.1.5.tgz#4b35c2944f062a8bfcda66410760350fe9ddfc21"
@@ -3259,14 +3272,6 @@ cfb@~0.11.0:
   dependencies:
     commander ""
 
-cfb@~1.0.5:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/cfb/-/cfb-1.0.8.tgz#77f213493d697d754fd9c0f5511eab5ad72d02cf"
-  integrity sha1-d/ITST1pfXVP2cD1UR6rWtctAs8=
-  dependencies:
-    commander "^2.14.1"
-    printj "~1.1.2"
-
 chainsaw@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/chainsaw/-/chainsaw-0.1.0.tgz#5eab50b28afe58074d0d58291388828b5e5fbc98"
@@ -3651,14 +3656,6 @@ codepage@, codepage@~1.14.0:
     commander "~2.14.1"
     exit-on-epipe "~1.0.1"
 
-codepage@~1.12.1:
-  version "1.12.2"
-  resolved "https://registry.yarnpkg.com/codepage/-/codepage-1.12.2.tgz#fd4424448c8bf1db5d7e01f9ecf9e8346582a195"
-  integrity sha512-FAN+oPs/ocaPLFvIt4vEOHgWA6UJ6t+fVbbVBoXDpTpC+4JYasomYZEEjR/Miph3qQrVnIShRwwmwu4P35JW1w==
-  dependencies:
-    commander "~2.14.1"
-    exit-on-epipe "~1.0.1"
-
 codepage@~1.3.6:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/codepage/-/codepage-1.3.8.tgz#4f2e5d7c0975de28f88498058dcb5afcab6a5f71"
@@ -3790,7 +3787,7 @@ commander@2.9.0:
   dependencies:
     graceful-readlink ">= 1.0.0"
 
-commander@^2.14.1, commander@^2.15.1, commander@^2.19.0, commander@^2.20.0, commander@^2.9.0, commander@~2.20.0:
+commander@^2.15.1, commander@^2.19.0, commander@^2.20.0, commander@^2.9.0, commander@~2.20.0:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
@@ -6895,6 +6892,16 @@ html-to-text@6.0.0:
     lodash "^4.17.20"
     minimist "^1.2.5"
 
+html-to-xlsx@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/html-to-xlsx/-/html-to-xlsx-2.0.3.tgz#a6b31e05eb97a011e75050c3e061cea9b45e8ae8"
+  integrity sha512-V9uEh6OqbCzT0XLvidk1g0pBkke9+iqlKpJaShS2Y9VIEP+QmJoou3+mQwkXKgYNbXHZLQsroFx57ae/2Fdu/Q==
+  dependencies:
+    jsreport-exceljs "3.7.1"
+    moment "2.22.1"
+    tinycolor2 "1.4.1"
+    uuid "3.2.1"
+
 html-webpack-plugin@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/html-webpack-plugin/-/html-webpack-plugin-3.2.0.tgz#b01abbd723acaaa7b37b6af4492ebda03d9dd37b"
@@ -8032,18 +8039,19 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jsrender@1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.4.tgz#99de5bf13341f46af677248361a8e126c164ceb7"
-  integrity sha512-4QKxxbqY2nFmH59Z8/nXV4zm7S8KP+T7z0WWiIU4dHkRd8gE5RQ8hgt8HD9aEg0g/NWYJsA2Y7VkSATCa2zkGQ==
+jsrender@1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.11.tgz#96b95f0b15c95742b398b2e018e913c51cf94516"
+  integrity sha512-1BFRSKCgO8T1o3QB16/CYqnxLVxgIdXnXBmZcyLQOlEwxVfktCHXcC7n2o9lziI//pKEc5QzI92vglvBnoddRw==
   dependencies:
-    through2 "^2.0.0"
+    through2 "^3.0.1"
 
-jsreport-exceljs@jsreport/exceljs:
+jsreport-exceljs@3.7.1:
   version "3.7.1"
-  resolved "https://codeload.github.com/jsreport/exceljs/tar.gz/d1a116225a94ca015b8a4d38692ca9ae2645da47"
+  resolved "https://registry.yarnpkg.com/jsreport-exceljs/-/jsreport-exceljs-3.7.1.tgz#8becfd87f1b501abcaa5289fcaf57f95e983de6d"
+  integrity sha512-N6wJSv/Z3TplExatVQBSesxRXCbt0PDwqAy7uDGjtOwa46LQM0GJRLb4NHcXHL0kzsIJKQhrE0PHqsE5QUMUXQ==
   dependencies:
-    archiver "5.3.0"
+    archiver "^3.0.0"
     dayjs "^1.8.15"
     fast-csv "^3.4.0"
     jszip "^3.1.5"
@@ -9445,22 +9453,6 @@ mocha@5.0.1:
     mkdirp "0.5.1"
     supports-color "4.4.0"
 
-mocha@5.0.2:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/mocha/-/mocha-5.0.2.tgz#caab0b813575141c5690c37d53c894b605ae60b5"
-  integrity sha512-nmlYKMRpJZLxgzk0bRhcvlpjSisbi0x1JiRl7kctadOMPmecUie7WwCZmcyth+PzX5txKbpcMIvDZCAlx9ISxg==
-  dependencies:
-    browser-stdout "1.3.1"
-    commander "2.11.0"
-    debug "3.1.0"
-    diff "3.3.1"
-    escape-string-regexp "1.0.5"
-    glob "7.1.2"
-    growl "1.10.3"
-    he "1.1.1"
-    mkdirp "0.5.1"
-    supports-color "4.4.0"
-
 mocha@5.0.5:
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-5.0.5.tgz#e228e3386b9387a4710007a641f127b00be44b52"
@@ -9787,6 +9779,11 @@ moment-timezone@^0.5.23:
   integrity sha512-PTc2vcT8K9J5/9rDEPe5czSIKgLoGsH8UNpA4qZTVw0Vd/Uz19geE9abbIOQKaAQFcnQ3v5YEXrbSc5BpshH+w==
   dependencies:
     moment ">= 2.9.0"
+
+moment@2.22.1:
+  version "2.22.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.22.1.tgz#529a2e9bf973f259c9643d237fda84de3a26e8ad"
+  integrity sha512-shJkRTSebXvsVqk56I+lkb2latjBs8I+pc2TzWc545y2iFnSjm7Wg0QMh+ZWcdSLQyGEau5jI8ocnmkyTgr9YQ==
 
 moment@2.29.1, "moment@>= 2.9.0", moment@^2.10.2, moment@^2.18.1:
   version "2.29.1"
@@ -10506,6 +10503,14 @@ odata-parser@1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/odata-parser/-/odata-parser-1.4.1.tgz#a2224bc749e76a6205bd47f47acd50eb1e71ed99"
   integrity sha1-oiJLx0nnamIFvUf0es1Q6x5x7Zk=
+
+odata-to-sql@0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/odata-to-sql/-/odata-to-sql-0.10.2.tgz#11d37f98d2c9f42f402bbf6d12188ed1b002e0f6"
+  integrity sha512-AYsS8FF+0YIbKBMGXWGkobwsfj1FdA703f1Gc7ctB79nsy7rbVRe0qHzaxOWQBSNkEdthBW7cKLdYLt3V555RQ==
+  dependencies:
+    jsreport-sql-2 "0.0.1"
+    lodash "4.17.15"
 
 ok-file@1.5.2:
   version "1.5.2"
@@ -12176,7 +12181,7 @@ readable-stream@1.1.x, readable-stream@~1.1.9:
     isarray "0.0.1"
     string_decoder "~0.10.x"
 
-readable-stream@^3.0.0, readable-stream@^3.0.2, readable-stream@^3.1.1, readable-stream@^3.4.0, readable-stream@^3.6.0:
+"readable-stream@2 || 3", readable-stream@^3.0.0, readable-stream@^3.0.2, readable-stream@^3.1.1, readable-stream@^3.4.0, readable-stream@^3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.6.0.tgz#337bbda3adc0706bd3e024426a286d4b4b2c9198"
   integrity sha512-BViHy7LKeTz4oNnkcLJ+lVSL6vpiFeX6/d3oSH8zCW7UxP2onchk+vTGB143xuFjHS3deTgkKoXXymXqymiIdA==
@@ -13941,7 +13946,7 @@ tar-stream@^1.5.0:
     to-buffer "^1.1.1"
     xtend "^4.0.0"
 
-tar-stream@^2.1.4, tar-stream@^2.2.0:
+tar-stream@^2.1.0, tar-stream@^2.1.4, tar-stream@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-2.2.0.tgz#acad84c284136b060dc3faa64474aa9aebd77287"
   integrity sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==
@@ -14043,6 +14048,14 @@ through2@^2.0.0:
   dependencies:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
+
+through2@^3.0.1:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.2.tgz#99f88931cfc761ec7678b41d5d7336b5b6a07bf4"
+  integrity sha512-enaDQ4MUyP2W6ZyT6EsMzqBPZaM/avg8iuo+l2d3QCs0J+6RaqkHV/2/lOwDTueBHeJ/2LG9lrLW3d5rWPucuQ==
+  dependencies:
+    inherits "^2.0.4"
+    readable-stream "2 || 3"
 
 through2@~0.2.3:
   version "0.2.3"
@@ -14585,6 +14598,11 @@ uuid@3.0.1:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.0.1.tgz#6544bba2dfda8c1cf17e629a3a305e2bb1fee6c1"
   integrity sha1-ZUS7ot/ajBzxfmKaOjBeK7H+5sE=
 
+uuid@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
+  integrity sha512-jZnMwlb9Iku/O3smGWvZhauCf6cvvpKi4BKRiliS3cxnI+Gz9j5MEpTz2UFuXiKPJocb7gnsLHwiS05ige5BEA==
+
 uuid@3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
@@ -15093,19 +15111,6 @@ xlsx-populate@1.21.0:
     lodash "^4.17.15"
     sax "^1.2.4"
 
-xlsx@0.12.4:
-  version "0.12.4"
-  resolved "https://registry.yarnpkg.com/xlsx/-/xlsx-0.12.4.tgz#047ba115c0500b42dc1ea984cd09879c4141a1a0"
-  integrity sha512-51EcZb0CxpZZxs4BBTmhoo6Eg8pv4YVf9FTnEAu4O8OxR+i82Jk38346EREaD7T6bXW4sQTBkiH0+tHl7YhP2A==
-  dependencies:
-    adler-32 "~1.2.0"
-    cfb "~1.0.5"
-    codepage "~1.12.1"
-    commander "~2.14.1"
-    crc-32 "~1.2.0"
-    exit-on-epipe "~1.0.1"
-    ssf "~0.10.2"
-
 xlsx@0.15.4:
   version "0.15.4"
   resolved "https://registry.yarnpkg.com/xlsx/-/xlsx-0.15.4.tgz#42ef1807829c4f9e98e8fce2641d53df5b5bde3e"
@@ -15501,7 +15506,7 @@ zip-stream@^1.2.0:
     lodash "^4.8.0"
     readable-stream "^2.0.0"
 
-zip-stream@^2.0.1:
+zip-stream@^2.0.1, zip-stream@^2.1.2:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/zip-stream/-/zip-stream-2.1.3.tgz#26cc4bdb93641a8590dd07112e1f77af1758865b"
   integrity sha512-EkXc2JGcKhO5N5aZ7TmuNo45budRaFGHOmz24wtJR7znbNqDPmdZtUauKX6et8KAVseAMBOyWJqEpXcHTBsh7Q==
