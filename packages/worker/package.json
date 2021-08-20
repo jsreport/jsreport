@@ -31,7 +31,7 @@
     "@jsreport/jsreport-text": "3.0.0-beta.1",
     "@jsreport/jsreport-version-control": "3.0.0-beta.1",
     "@jsreport/jsreport-xlsx": "3.0.0-beta.1",
-    "advanced-workers": "1.0.0",
+    "@jsreport/advanced-workers": "1.0.0",
     "bluebird": "3.7.2",
     "camelcase": "6.2.0",
     "handlebars": "4.7.7",
