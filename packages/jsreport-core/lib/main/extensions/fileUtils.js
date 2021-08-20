@@ -26,7 +26,7 @@ exports.walkSync = (rootPath, fileName, exclude) => {
     list.forEach((i) => {
       const item = path.join(next, i)
 
-      if (item.indexOf(exclude) > -1 || item.indexOf('node_modules') > -1) {
+      if (item.indexOf(exclude) > -1) {
         return
       }
 
