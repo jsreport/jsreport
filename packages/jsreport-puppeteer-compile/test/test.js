@@ -3,11 +3,7 @@ require('should')
 
 describe('single executable', () => {
   function createReporter () {
-    return JsReport({
-      templatingEngines: {
-        strategy: 'in-process'
-      }
-    })
+    return JsReport()
       .use(require('../'))
       .use(require('@jsreport/jsreport-chrome-pdf')({
         launchOptions: {

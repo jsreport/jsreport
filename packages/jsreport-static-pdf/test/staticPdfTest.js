@@ -7,11 +7,7 @@ describe('static-pdf', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport({
-      templatingEngines: {
-        strategy: 'in-process'
-      }
-    }).use(require('../')())
+    reporter = jsreport().use(require('../')())
       .use(require('@jsreport/jsreport-chrome-pdf')())
       .use(require('@jsreport/jsreport-assets')())
 

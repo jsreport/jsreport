@@ -4,7 +4,6 @@ module.exports = (reporter) => {
     name: { type: 'Edm.String' },
     content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     recipe: { type: 'Edm.String' },
-    // helper accepts both string, and an object when using in-process
     helpers: { type: 'Edm.String', document: { extension: 'js' }, schema: { type: 'object' } },
     engine: { type: 'Edm.String' }
   }, true)

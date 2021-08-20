@@ -19,9 +19,6 @@ module.exports = (options) => {
   const jsreport = options.getJsreport()
 
   jsreport.defaults = Object.assign(jsreport.defaults, {
-    templatingEngines: {
-      strategy: 'in-process'
-    },
     // we put it as defaults to be able to override with config later
     discover: false
   })
