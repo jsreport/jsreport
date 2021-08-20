@@ -37,7 +37,7 @@ module.exports = {
   },
   dependencies: ['puppeteer-compile'],
   requires: {
-    core: '2.x.x',
-    studio: '2.x.x'
+    core: '3.x.x',
+    studio: '3.x.x'
   }
 }

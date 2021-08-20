@@ -35,9 +35,9 @@ module.exports = {
   },
   dependencies: ['reports'],
   requires: {
-    core: '2.x.x',
-    studio: '2.x.x',
-    reports: '2.x.x'
+    core: '3.x.x',
+    studio: '3.x.x',
+    reports: '3.x.x'
   },
   skipInExeRender: true
 }

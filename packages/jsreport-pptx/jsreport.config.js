@@ -17,8 +17,8 @@ module.exports = {
   }),
   dependencies: ['assets'],
   requires: {
-    core: '2.x.x',
-    studio: '2.x.x',
-    assets: '1.x.x'
+    core: '3.x.x',
+    studio: '3.x.x',
+    assets: '3.x.x'
   }
 }

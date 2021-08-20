@@ -7,7 +7,7 @@ module.exports = {
   dependencies: [],
   optionsSchema: office.extendSchema('html-embedded-in-docx', {}),
   requires: {
-    core: '2.x.x',
-    studio: '2.x.x'
+    core: '3.x.x',
+    studio: '3.x.x'
   }
 }

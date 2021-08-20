@@ -17,13 +17,13 @@ module.exports = {
     licenseKey: { type: 'string' },
     ...schema,
     extensions: {
-      'licensing': schema
+      licensing: schema
     }
   },
   dependencies: [],
   requires: {
-    core: '2.x.x',
-    studio: '2.x.x'
+    core: '3.x.x',
+    studio: '3.x.x'
   },
   skipInExeRender: true
 }

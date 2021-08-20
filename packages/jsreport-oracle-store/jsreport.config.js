@@ -2,7 +2,7 @@ module.exports = {
   name: 'oracle-store',
   main: './lib/main.js',
   requires: {
-    core: '2.x.x'
+    core: '3.x.x'
   },
   optionsSchema: {
     store: {

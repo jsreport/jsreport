@@ -4,8 +4,8 @@ module.exports = {
   main: 'lib/main.js',
   dependencies: ['express'],
   requires: {
-    core: '2.x.x',
-    express: '2.x.x'
+    core: '3.x.x',
+    express: '3.x.x'
   },
   optionsSchema: {
     ip: { type: 'string' },

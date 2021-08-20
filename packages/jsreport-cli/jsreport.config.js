@@ -3,6 +3,6 @@ module.exports = {
   main: './lib/cliExtension.js',
   dependencies: [],
   requires: {
-    core: '2.x.x'
+    core: '3.x.x'
   }
 }

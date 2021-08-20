@@ -4,7 +4,7 @@ module.exports = {
   main: './lib/main.js',
   dependencies: [],
   requires: {
-    core: '2.x.x'
+    core: '3.x.x'
   },
   optionsSchema: {
     blobStorage: {

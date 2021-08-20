@@ -5,7 +5,7 @@ module.exports = {
   worker: 'lib/worker.js',
   optionsSchema: {},
   requires: {
-    core: '2.x.x',
-    studio: '2.x.x'
+    core: '3.x.x',
+    studio: '3.x.x'
   }
 }
