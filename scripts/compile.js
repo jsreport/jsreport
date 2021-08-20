@@ -17,6 +17,7 @@ async function run () {
 
   const packageJsonContent = await fsAsync.readFile('./package.json')
   const originalPackageJson = JSON.parse(packageJsonContent)
+  const originalYarnLock = await fsAsync.readFile('./yarn.lock')
 
   originalPackageJson.resolutions = getResolutionsForDuplicatedPackages()
 
@@ -43,7 +44,7 @@ async function run () {
 
   console.log('running compilation "npx jsreport-compile"..')
 
-  childProcess.execSync('npx jsreport-compile -d', {
+  childProcess.execSync('npx jsreport-compile', {
     stdio: 'inherit',
     env: {
       ...process.env,
@@ -102,6 +103,7 @@ async function run () {
   console.log('compilation finished')
 
   await fsAsync.writeFile('./package.json', packageJsonContent)
+  await fsAsync.writeFile('./yarn.lock', originalYarnLock)
 
   console.log(`running ${packageManager} install again to ensure deps are left as original before compilation..`)
 
