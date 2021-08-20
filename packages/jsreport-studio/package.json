@@ -64,7 +64,7 @@
     "js-beautify-jsreport": "1.6.19",
     "js-cookie": "2.2.1",
     "jsdom": "15.0.0",
-    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.2",
     "@jsreport/jsreport-express": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.1",
     "mini-css-extract-plugin": "0.9.0",

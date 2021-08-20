@@ -37,7 +37,7 @@
     "cronstrue": "1.64.0",
     "@jsreport/jsreport-authentication": "3.0.0-beta.1",
     "@jsreport/jsreport-authorization": "3.0.0-beta.1",
-    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.2",
     "@jsreport/jsreport-reports": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.1",
     "lodash": "4.17.15",

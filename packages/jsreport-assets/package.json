@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "binary-extensions": "1.12.0",
-    "@jsreport/jsreport-core": "3.0.0-beta.1",
+    "@jsreport/jsreport-core": "3.0.0-beta.2",
     "@jsreport/jsreport-express": "3.0.0-beta.1",
     "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
     "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
