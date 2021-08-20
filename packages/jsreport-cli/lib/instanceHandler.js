@@ -261,6 +261,8 @@ function getJsreportModuleInstalled (cwd, existsPackageJson) {
 
     if (userDependencies.jsreport) {
       detectedJsreport = 'jsreport'
+    } else if (userDependencies['@jsreport/jsreport-core']) {
+      detectedJsreport = '@jsreport/jsreport-core'
     } else if (userDependencies['jsreport-core']) {
       detectedJsreport = 'jsreport-core'
     }
@@ -269,6 +271,8 @@ function getJsreportModuleInstalled (cwd, existsPackageJson) {
   if (!detectedJsreport) {
     if (fs.existsSync(path.join(cwd, 'node_modules/jsreport'))) {
       detectedJsreport = 'jsreport'
+    } else if (fs.existsSync(path.join(cwd, 'node_modules/@jsreport/jsreport-core'))) {
+      detectedJsreport = '@jsreport/jsreport-core'
     } else if (fs.existsSync(path.join(cwd, 'node_modules/jsreport-core'))) {
       detectedJsreport = 'jsreport-core'
     }

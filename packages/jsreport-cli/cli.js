@@ -28,7 +28,7 @@ const render = require('./lib/commands/render')
 
 const cli = new Liftoff({
   processTitle: 'jsreport',
-  moduleName: 'jsreport-cli',
+  moduleName: '@jsreport/jsreport-cli',
   configName: '.jsreport'
 })
 
