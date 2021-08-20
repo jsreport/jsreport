@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-core",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.2",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -75,7 +75,7 @@
     "winston-loggly-bulk": "3.2.1"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "maintainers": [
     {

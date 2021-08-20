@@ -23,7 +23,7 @@
   "scripts": {
     "build": "jsreport-studio-build",
     "prepublishOnly": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 5488",
     "test": "mocha test --timeout 15000 --exit && standard",
     "test:watch": "mocha test --watch"
@@ -40,7 +40,6 @@
   },
   "devDependencies": {
     "execa": "1.0.0",
-    "in-publish": "2.0.1",
     "@jsreport/jsreport-assets": "3.0.0-beta.1",
     "@jsreport/jsreport-authentication": "3.0.0-beta.1",
     "@jsreport/jsreport-authorization": "3.0.0-beta.1",
@@ -61,7 +60,7 @@
     "supertest": "3.4.2"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

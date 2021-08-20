@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 5488",
     "test": "mocha test --timeout 5000 && standard"
   },
@@ -39,7 +39,7 @@
     "standard": "16.0.3"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

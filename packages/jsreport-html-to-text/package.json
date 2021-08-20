@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 5488",
     "test": "mocha test && standard"
   },

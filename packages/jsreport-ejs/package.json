@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start",
     "test": "mocha test && standard"
   },
@@ -36,13 +36,12 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.1",
-    "in-publish": "2.0.0",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "16.0.3"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

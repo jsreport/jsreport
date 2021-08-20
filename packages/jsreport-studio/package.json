@@ -29,9 +29,9 @@
     "lint": "standard",
     "build": "npm run build-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
     "build-eslint-browser": "jsreport-studio-build --config webpack/eslint-browser.config.js --stats.modules=false",
-    "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js && not-in-publish || npm run build-eslint-browser",
+    "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js || npm run build-eslint-browser",
     "docs": "jsdoc2md src/Studio.js > static/Studio.md",
-    "prepublish": "in-publish && npm run build || not-in-publish",
+    "prepublish": "npm run build",
     "run": "npm run build && jsreport-studio-start --run-only",
     "server-test": "mocha test/server",
     "start": "npm run check-build-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
@@ -61,7 +61,6 @@
     "font-awesome": "4.7.0",
     "font-awesome-webpack-4": "1.0.0",
     "ignore-styles": "5.0.1",
-    "in-publish": "2.0.1",
     "js-beautify-jsreport": "1.6.19",
     "js-cookie": "2.2.1",
     "jsdom": "15.0.0",
@@ -110,7 +109,7 @@
     "worker-loader": "2.0.0"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

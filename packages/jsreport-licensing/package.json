@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 4300",
     "test": "mocha --timeout 10000 --recursive test --exit && standard"
   },
@@ -29,7 +29,6 @@
     "axios": "0.21.1"
   },
   "devDependencies": {
-    "in-publish": "2.0.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.1",
     "mocha": "7.2.0",
@@ -38,7 +37,7 @@
     "uuid": "8.3.2"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

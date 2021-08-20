@@ -34,7 +34,7 @@
     "handlebars": "4.x.x"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "env": {

@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && npm run build || not-in-publish",
+    "prepublish": "npm run build",
     "run": "npm run build && jsreport-studio-start --httpPort 5488 --run-only",
     "start": "jsreport-studio-start --httpPort 5488",
     "test": "standard"
@@ -35,7 +35,7 @@
     "standard": "16.0.3"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "maintainers": [
     {

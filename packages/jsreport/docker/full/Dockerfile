@@ -49,8 +49,8 @@ WORKDIR /app
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN npm i -g @jsreport/jsreport-cli
-RUN jsreport init
+RUN npm i -g @jsreport/jsreport-cli@beta
+RUN jsreport init beta
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0-beta.1 \
     @jsreport/jsreport-pug@4.0.0-beta.1 \
@@ -64,11 +64,11 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0-beta.1 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0-beta.1 \
     @jsreport/jsreport-electron-pdf@4.0.0-beta.1
 
-RUN npm uninstall -g @jsreport/jsreport-cli && \
+RUN npm uninstall -g @jsreport/jsreport-cli@beta && \
     npm cache clean -f && rm -rf /tmp/*
 
-COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
-COPY ./packages/jsreport/docker/default/run.sh run.sh
+COPY ./packages/jsreport/docker/full/editConfig.js editConfig.js
+COPY ./packages/jsreport/docker/full/run.sh run.sh
 
 RUN chown -R jsreport:jsreport /app
 

@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 5488",
     "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard"
   },
@@ -39,7 +39,6 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "in-publish": "2.0.1",
     "@jsreport/jsreport-assets": "3.0.0-beta.1",
     "@jsreport/jsreport-authentication": "3.0.0-beta.1",
     "@jsreport/jsreport-chrome-pdf": "3.0.0-beta.1",
@@ -55,7 +54,7 @@
     "supertest": "3.4.2"
   },
   "engines": {
-    "node": ">=14.x.x"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

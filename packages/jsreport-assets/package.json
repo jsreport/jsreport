@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
-    "prepublish": "in-publish && jsreport-studio-build || not-in-publish",
+    "prepublish": "jsreport-studio-build",
     "run": "npm run build && jsreport-studio-start --run-only",
     "start": "jsreport-studio-start",
     "lint": "standard",
@@ -42,7 +42,6 @@
   },
   "devDependencies": {
     "binary-extensions": "1.12.0",
-    "in-publish": "2.0.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
     "@jsreport/jsreport-express": "3.0.0-beta.1",
     "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
@@ -56,7 +55,7 @@
     "supertest": "3.3.0"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [

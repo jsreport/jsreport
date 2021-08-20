@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "node lib/prepublish.js && jsreport-studio-build",
-    "prepublish": "in-publish && npm run build || not-in-publish",
+    "prepublish": "npm run build",
     "start": "jsreport-studio-start --httpPort 4300",
     "test": "npm run build && mocha test --timeout 20000 && standard"
   },
@@ -32,7 +32,6 @@
   },
   "devDependencies": {
     "handlebars": "4.7.7",
-    "in-publish": "2.0.1",
     "@jsreport/jsreport-assets": "3.0.0-beta.1",
     "@jsreport/jsreport-chrome-pdf": "3.0.0-beta.1",
     "@jsreport/jsreport-core": "3.0.0-beta.1",
@@ -51,7 +50,7 @@
     "standard": "16.0.3"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17.4"
   },
   "standard": {
     "ignore": [
