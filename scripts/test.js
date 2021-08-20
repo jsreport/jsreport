@@ -1,6 +1,9 @@
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
+  '@jsreport/advanced-workers',
+  '@jsreport/odata-to-sql',
+  '@jsreport/client',
   '@jsreport/jsreport-assets',
   '@jsreport/jsreport-authentication',
   '@jsreport/jsreport-authorization',
