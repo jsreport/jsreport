@@ -52,7 +52,7 @@ module.exports = async (reporter, definition) => {
       const request = new sql.Request(connection)
 
       for (let i = 0; i < q.values.length; i++) {
-        request.input(i + 1, q.values[i])
+        request.input(i + 1 + '', q.values[i])
       }
 
       const res = await request.query(q.text)
