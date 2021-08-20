@@ -73,7 +73,7 @@ RUN jsreport init beta
 RUN npm uninstall -g @jsreport/jsreport-cli@beta && \
     npm cache clean -f && rm -rf /tmp/*
 
-COPY ./packages/jsreport/docker/kdefault/editConfig.js editConfig.js
+COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
 COPY ./packages/jsreport/docker/default/run.sh run.sh
 
 RUN chown -R jsreport:jsreport /app
