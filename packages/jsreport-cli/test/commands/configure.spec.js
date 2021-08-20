@@ -7,7 +7,7 @@ const { getTempDir, setup, exec } = require('../testUtils')({
   baseDir: path.join(__dirname, '../temp'),
   rootDirectory: path.join(__dirname, '../../'),
   defaultExtensions: [
-    'jsreport-fs-store'
+    '@jsreport/jsreport-fs-store'
   ],
   defaultOpts: {
     store: {
@@ -57,6 +57,9 @@ describe('configure command', () => {
         console: { transport: 'console', level: 'debug' }
       },
       reportTimeout: 60000,
+      workers: {
+        numberOfWorkers: 2
+      },
       extensions: {
         express: {
           enabled: false
@@ -97,6 +100,9 @@ describe('configure command', () => {
         console: { transport: 'console', level: 'debug' }
       },
       reportTimeout: 60000,
+      workers: {
+        numberOfWorkers: 2
+      },
       extensions: {
         express: {
           enabled: false
@@ -158,6 +164,9 @@ describe('configure command', () => {
       },
       blobStorage: {
         provider: 'fs'
+      },
+      workers: {
+        numberOfWorkers: 2
       },
       logger: {
         console: { transport: 'console', level: 'debug' },

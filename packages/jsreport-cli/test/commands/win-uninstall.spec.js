@@ -11,7 +11,7 @@ const { getTempDir, createTempDir, setup, exec } = require('../testUtils')({
   baseDir: path.join(__dirname, '../temp'),
   rootDirectory: path.join(__dirname, '../../'),
   defaultExtensions: [
-    'jsreport-fs-store'
+    '@jsreport/jsreport-fs-store'
   ],
   defaultOpts: {
     store: {

@@ -3,7 +3,7 @@ const JsReport = require('@jsreport/jsreport-core')
 const common = require('./common')
 const should = require('should')
 
-describe.only('version control', () => {
+describe('version control', () => {
   let jsreport
 
   beforeEach(async () => {

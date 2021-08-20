@@ -7,7 +7,7 @@ const { getTempDir, createTempDir, setup, exec } = require('../testUtils')({
   baseDir: path.join(__dirname, '../temp'),
   rootDirectory: path.join(__dirname, '../../'),
   defaultExtensions: [
-    'jsreport-fs-store'
+    '@jsreport/jsreport-fs-store'
   ],
   defaultOpts: {
     store: {
@@ -45,7 +45,7 @@ describe('kill command', () => {
     let child
 
     beforeEach(async () => {
-      await setup(dirName, ['jsreport-express'], undefined, {
+      await setup(dirName, ['@jsreport/jsreport-express'], undefined, {
         httpPort: 9487
       })
 

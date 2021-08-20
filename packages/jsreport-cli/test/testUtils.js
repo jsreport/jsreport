@@ -6,7 +6,7 @@ module.exports = ({
   rootDirectory,
   defaultOpts,
   defaultExtensions = [],
-  cliModuleName = 'jsreport-cli',
+  cliModuleName = '@jsreport/jsreport-cli',
   deps
 }) => {
   const {
@@ -81,7 +81,7 @@ module.exports = ({
       JSON.stringify({
         name: dir,
         dependencies: {
-          'jsreport-core': '*'
+          '@jsreport/jsreport-core': '*'
         },
         jsreport: {
           entryPoint: 'server.js'

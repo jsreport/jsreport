@@ -6,9 +6,9 @@ const { getTempDir, setup, init, exec } = require('@jsreport/jsreport-cli/test/t
   baseDir: path.join(__dirname, 'temp'),
   rootDirectory: path.join(__dirname, '../'),
   defaultExtensions: [
-    'jsreport-fs-store',
-    'jsreport-data',
-    'jsreport-express',
+    '@jsreport/jsreport-fs-store',
+    '@jsreport/jsreport-data',
+    '@jsreport/jsreport-express',
     path.join(__dirname, '../')
   ],
   defaultOpts: {
@@ -132,7 +132,7 @@ describe('cli import/export', () => {
 
       beforeEach(async () => {
         await setup(dirName)
-        await setup(remoteDirName, ['jsreport-authentication'])
+        await setup(remoteDirName, ['@jsreport/jsreport-authentication'])
 
         reporter = await init(remoteDirName, {
           httpPort: remotePort,
@@ -240,7 +240,7 @@ describe('cli import/export', () => {
       beforeEach(async () => {
         const fullDir = getTempDir(dirName)
 
-        await setup(dirName, ['jsreport-authentication', 'jsreport-authorization'], null, {
+        await setup(dirName, ['@jsreport/jsreport-authentication', '@jsreport/jsreport-authorization'], null, {
           extensions: {
             authentication: {
               cookieSession: {
@@ -319,7 +319,7 @@ describe('cli import/export', () => {
       beforeEach(async () => {
         const fullDir = getTempDir(dirName)
         await setup(dirName)
-        await setup(remoteDirName, ['jsreport-authentication'])
+        await setup(remoteDirName, ['@jsreport/jsreport-authentication'])
 
         fs.copyFileSync(path.join(__dirname, 'export-test.jsrexport'), path.join(fullDir, 'export.jsrexport'))
 

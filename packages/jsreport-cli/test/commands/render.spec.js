@@ -9,10 +9,10 @@ const { getTempDir, createTempDir, setup, init, exec } = require('../testUtils')
   baseDir: path.join(__dirname, '../temp'),
   rootDirectory: path.join(__dirname, '../../'),
   defaultExtensions: [
-    'jsreport-fs-store',
-    'jsreport-handlebars',
-    'jsreport-express',
-    'jsreport-authentication'
+    '@jsreport/jsreport-fs-store',
+    '@jsreport/jsreport-handlebars',
+    '@jsreport/jsreport-express',
+    '@jsreport/jsreport-authentication'
   ],
   defaultOpts: {
     loadConfig: true,

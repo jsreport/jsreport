@@ -91,7 +91,7 @@ async function writeStartup (config, options) {
 
   debug('Writing startup code into %s', startupFilePath)
 
-  // append static require of the extensions detected: jsreport.use(require('jsreport-templates')())
+  // append static require of the extensions detected: jsreport.use(require('@jsreport/jsreport-templates')())
   const extensions = `function requireExtensions() { return [\n${
     config.extensions.length === 0
     ? ''
