@@ -67,6 +67,6 @@ jobs:
       #    key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
       - name: Install dependencies
       #  if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: rm yarn.lock && yarn install --no-progress --non-interactive --network-concurrency 1"  
+        run: rm yarn.lock && yarn install --no-progress --non-interactive --network-concurrency 1  
       
       - run: yarn test
