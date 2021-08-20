@@ -198,6 +198,7 @@ function getExtensionsList () {
     'authentication',
     'authorization',
     'base',
+    'components',
     'child-templates',
     'chrome-pdf',
     'cli',
