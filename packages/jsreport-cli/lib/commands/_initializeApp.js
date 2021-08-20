@@ -88,6 +88,9 @@ function checkOrInstallJsreport (cwd, logger, existsPackageJson, version, custom
     if (userDependencies.jsreport) {
       detectedJsreport = 'jsreport'
       detectedVersion = userDependencies.jsreport
+    } else if (userDependencies['@jsreport/jsreport-core']) {
+      detectedJsreport = '@jsreport/jsreport-core'
+      detectedVersion = userDependencies['@jsreport/jsreport-core']
     } else if (userDependencies['jsreport-core']) {
       detectedJsreport = 'jsreport-core'
       detectedVersion = userDependencies['jsreport-core']
@@ -97,6 +100,8 @@ function checkOrInstallJsreport (cwd, logger, existsPackageJson, version, custom
   if (!detectedJsreport) {
     if (fs.existsSync(path.join(cwd, 'node_modules/jsreport'))) {
       detectedJsreport = 'jsreport'
+    } else if (fs.existsSync(path.join(cwd, 'node_modules/@jsreport/jsreport-core'))) {
+      detectedJsreport = '@jsreport/jsreport-core'
     } else if (fs.existsSync(path.join(cwd, 'node_modules/jsreport-core'))) {
       detectedJsreport = 'jsreport-core'
     }

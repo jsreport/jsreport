@@ -1,5 +1,7 @@
 'use strict'
 
+const path = require('path')
+const fs = require('fs')
 const initializeApp = require('./_initializeApp')
 
 const description = 'Initializes the current working directory to start a jsreport application (server.js, *.config.json and package.json)'
@@ -15,6 +17,16 @@ exports.builder = (yargs) => {
     yargs.example(examp[0], examp[1])
   })
 
+  const commandOptions = {
+    target: {
+      alias: 't',
+      description: 'Target path in which the init is going to execute',
+      type: 'string'
+    }
+  }
+
+  const options = Object.keys(commandOptions)
+
   return (
     yargs
       .usage(
@@ -29,16 +41,23 @@ exports.builder = (yargs) => {
         type: 'string',
         description: 'Specific jsreport version to install'
       })
+      .group(options, 'Command options:')
+      .options(commandOptions)
   )
 }
 
 exports.handler = (argv) => {
   const logger = argv.context.logger
-  const cwd = argv.context.cwd
+  let cwd = argv.context.cwd
   let versionToInstall
 
   if (argv._ && argv._[1]) {
     versionToInstall = argv._[1]
+  }
+
+  if (argv.target != null) {
+    cwd = path.resolve(cwd, argv.target)
+    fs.mkdirSync(cwd, { recursive: true })
   }
 
   return initializeApp(
