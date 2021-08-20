@@ -43,7 +43,7 @@
     "puppeteer": ">=9.1.x"
   },
   "engines": {
-    "node": ">=8.9"
+    "node": ">=14.17"
   },
   "standard": {
     "ignore": [

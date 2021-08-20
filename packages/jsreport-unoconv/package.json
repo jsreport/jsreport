@@ -42,7 +42,7 @@
     "standard": "16.0.3"
   },
   "engines": {
-    "node": ">=14.17.4"
+    "node": ">=14.17"
   },
   "standard": {
     "ignore": [
