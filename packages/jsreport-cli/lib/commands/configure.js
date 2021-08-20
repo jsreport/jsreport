@@ -362,6 +362,10 @@ exports.handler = async (argv) => {
 
   config.reportTimeout = answers.reportTimeout
 
+  config.workers = {
+    numberOfWorkers: 2
+  }
+
   config.extensions = extensionsConf
 
   if (shouldJustPrint) {
