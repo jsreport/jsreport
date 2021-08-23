@@ -1,5 +1,3 @@
-'use strict'
-
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
@@ -36,7 +34,7 @@ class Execution {
     this.resources = resources
 
     // path where are stored resources like phantomjs.exe
-    this.tmpPath = path.join(tempDirectory != null ? tempDirectory : defaultTmpDir, `compile`, `jsreport-${version}-${shortid}`)
+    this.tmpPath = path.join(tempDirectory != null ? tempDirectory : defaultTmpDir, 'compile', `jsreport-${version}-${shortid}`)
   }
 
   resourcePath (name) {

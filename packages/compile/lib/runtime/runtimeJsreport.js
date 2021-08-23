@@ -1,7 +1,3 @@
-'use strict'
-
-const path = require('path')
-const mkdirp = require('mkdirp')
 
 module.exports = (options) => {
   const coreOptions = {
@@ -24,43 +20,6 @@ module.exports = (options) => {
   })
 
   jsreport.options = Object.assign(jsreport.options, coreOptions)
-
-  // executable defaults to send logs the same way than jsreport-core
-  jsreport.afterConfigLoaded((reporter) => {
-    // winston doesn't create the directories for logs automatically
-    // we don't want to do it for developers as well, but also we want to make jsreport with default config running
-    // without errors, so we break the consistency here and precreate the logs directory if the config equals to default
-    if (jsreport.options.logger.file && jsreport.options.logger.file.filename === 'logs/reporter.log') {
-      mkdirp.sync(path.dirname(jsreport.options.logger.file.filename))
-    }
-
-    jsreport.options.logger.console = Object.assign({
-      transport: 'console',
-      level: 'debug',
-      timestamp: true,
-      colorize: true
-    }, jsreport.options.logger.console)
-
-    if (jsreport.options.logger.file) {
-      jsreport.options.logger.file = Object.assign({
-        transport: 'file',
-        level: 'debug',
-        filename: 'logs/reporter.log',
-        maxsize: 10485760,
-        json: false
-      }, jsreport.options.logger.file)
-    }
-
-    if (jsreport.options.logger.error) {
-      jsreport.options.logger.error = Object.assign({
-        transport: 'file',
-        level: 'error',
-        filename: 'logs/error.log',
-        handleExceptions: true,
-        json: false
-      }, jsreport.options.logger.error)
-    }
-  })
 
   const Execution = require('./execution')
 
