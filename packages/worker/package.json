@@ -15,6 +15,7 @@
     "@jsreport/jsreport-browser-client": "3.0.0-beta.1",
     "@jsreport/jsreport-child-templates": "3.0.0-beta.1",
     "@jsreport/jsreport-chrome-pdf": "3.0.0-beta.1",
+    "@jsreport/jsreport-components": "3.0.0-beta.1",
     "@jsreport/jsreport-core": "3.0.0-beta.2",
     "@jsreport/jsreport-data": "3.0.0-beta.1",
     "@jsreport/jsreport-docx": "3.0.0-beta.1",
