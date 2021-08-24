@@ -111,9 +111,11 @@ const start = async () => {
   )
 
   ReactDOM.render(
-    <Provider store={store} key='provider'>
-      {component}
-    </Provider>,
+    <React.StrictMode>
+      <Provider store={store} key='provider'>
+        {component}
+      </Provider>
+    </React.StrictMode>,
     getAppElement()
   )
 
