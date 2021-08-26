@@ -173,9 +173,16 @@ module.exports = (reporter) => {
     profilesCleanupInterval.unref()
   })
 
-  reporter.closeListeners.add('profiler', () => {
+  reporter.closeListeners.add('profiler', async () => {
     if (profilesCleanupInterval) {
       clearInterval(profilesCleanupInterval)
+    }
+
+    for (const key of profilerAppendChain.keys()) {
+      const profileAppendPromise = profilerAppendChain.get(key)
+      if (profileAppendPromise) {
+        await profileAppendPromise
+      }
     }
   })
 
