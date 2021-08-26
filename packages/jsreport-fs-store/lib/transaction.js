@@ -56,8 +56,8 @@ module.exports = ({ queue, persistence, fs, logger }) => {
         })
       }
 
-      return queue.push(() => lock(fs, () => {
-        this.journal.sync()
+      return queue.push(() => lock(fs, async () => {
+        await this.journal.sync()
         return fn(commitedDocuments, persistence)
       }))
     },

@@ -126,7 +126,7 @@ module.exports = ({
     },
 
     sync () {
-      return this.journal.sync()
+      return this.journal.waitAndSync()
     },
 
     async rollbackTransaction (tran) {
