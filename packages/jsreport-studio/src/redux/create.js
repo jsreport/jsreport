@@ -15,7 +15,12 @@ export default function createStore (history) {
   let finalCreateStore
 
   // eslint-disable-next-line no-undef
-  finalCreateStore = applyMiddleware(...middleware)(_createStore)
+  if (__DEVELOPMENT__) {
+    const invariant = require('redux-immutable-state-invariant').default()
+    finalCreateStore = applyMiddleware(invariant, ...middleware, logger)(_createStore)
+  } else {
+    finalCreateStore = applyMiddleware(...middleware)(_createStore)
+  }
 
   const reducer = require('./reducer')(history)
   const store = finalCreateStore(enableBatching(reducer))

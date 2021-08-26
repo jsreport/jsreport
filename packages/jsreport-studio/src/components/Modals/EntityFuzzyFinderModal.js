@@ -1,32 +1,23 @@
-/* import PropTypes from 'prop-types' */
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-// TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
-// import fuzzyFilterFactory from 'react-fuzzy-filter'
+import fuzzyFilterFactory from 'react-fuzzy-filter'
 import { createGetNormalizedEntitiesSelector } from '../../redux/entities/selectors'
 import { actions as editorActions } from '../../redux/editor'
 import { resolveEntityTreeIconStyle } from '../EntityTree/utils'
 import { entitySets } from '../../lib/configuration'
 import styles from './EntityFuzzyFinderModal.css'
 
-// TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
-// const { InputFilter, FilterResults } = fuzzyFilterFactory()
-/*
+const { InputFilter, FilterResults } = fuzzyFilterFactory()
+
 const fuseConfig = {
   shouldSort: true,
   includeScore: true,
   includeMatches: true,
   keys: ['path', 'name']
 }
-*/
 
 class EntityFuzzyFinderModal extends Component {
-  /* TODO
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  } */
-
   constructor (props) {
     super(props)
 
@@ -37,7 +28,7 @@ class EntityFuzzyFinderModal extends Component {
     this.lastResults = null
 
     this.setInputNode = this.setInputNode.bind(this)
-    this.setResulItemNode = this.setResulItemNode.bind(this)
+    this.setResultItemNode = this.setResultItemNode.bind(this)
     this.getItem = this.getItem.bind(this)
     this.handleInputFilterChange = this.handleInputFilterChange.bind(this)
     this.handleKeyDown = this.handleKeyDown.bind(this)
@@ -52,7 +43,7 @@ class EntityFuzzyFinderModal extends Component {
     this.inputNode = el
   }
 
-  setResulItemNode (el, idx) {
+  setResultItemNode (el, idx) {
     this[`resultItemNode${idx}`] = el
   }
 
@@ -148,7 +139,7 @@ class EntityFuzzyFinderModal extends Component {
         )
 
         if (inRangeOfName) {
-          // we substract "- nameStartIndex" here because the indices must be relative
+          // we subtract "- nameStartIndex" here because the indices must be relative
           // to item.name string
           nameIndices.push([
             (ind[0] <= nameStartIndex ? nameStartIndex : ind[0]) - nameStartIndex,
@@ -280,7 +271,7 @@ class EntityFuzzyFinderModal extends Component {
             key={item.path}
             className={`${styles.resultsItem} ${isActive ? styles.active : ''}`}
             title={item.path}
-            ref={(el) => this.setResulItemNode(el, idx)}
+            ref={(el) => this.setResultItemNode(el, idx)}
             onClick={() => this.openEntity(item.entity)}
           >
             {iconStyle && (
@@ -306,11 +297,8 @@ class EntityFuzzyFinderModal extends Component {
   }
 
   render () {
-    return 'CONTENT IS DISABLED FOR NOW'
+    const { entities } = this.props
 
-    // TODO: uncomment this when we want to test the fuzzy finder (it is disabled because yarn problems with windows)
-    /*
-     const { entities } = this.props
     return (
       <div className={styles.container}>
         <div onKeyDown={this.handleKeyDown}>
@@ -332,8 +320,12 @@ class EntityFuzzyFinderModal extends Component {
         </div>
       </div>
     )
-    */
   }
+}
+
+EntityFuzzyFinderModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 function makeMapStateToProps () {

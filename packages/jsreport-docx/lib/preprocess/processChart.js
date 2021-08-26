@@ -14,17 +14,51 @@ module.exports = function processChart (files, drawingEl) {
   const chartFilename = `word/${chartREl.getAttribute('Target')}`
   const chartFile = files.find(f => f.path === chartFilename)
   const chartDoc = chartFile.doc
-  const chartTitleEl = chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`)[0]
+  const chartTitles = nodeListToArray(chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`))
+  const chartMainTitleEl = chartTitles[0]
 
-  if (!chartTitleEl) {
+  if (!chartMainTitleEl) {
     return
   }
 
-  const chartTitleElClone = chartTitleEl.cloneNode(true)
+  let chartCatAxTitleEl
+  let chartValAxTitleEl
 
-  drawingEl.insertBefore(chartTitleElClone, drawingEl.firstChild)
+  for (const titleEl of chartTitles.slice(1)) {
+    if (titleEl.parentNode.localName === 'catAx') {
+      chartCatAxTitleEl = titleEl
+    } else if (titleEl.parentNode.localName === 'valAx') {
+      chartValAxTitleEl = titleEl
+    }
+  }
 
-  while (chartTitleEl.firstChild) {
-    chartTitleEl.removeChild(chartTitleEl.firstChild)
+  const chartMainReplaceEl = chartDoc.createElement('docxChartMainReplace')
+
+  chartMainReplaceEl.appendChild(chartMainTitleEl.cloneNode(true))
+
+  if (chartCatAxTitleEl) {
+    chartMainReplaceEl.appendChild(chartCatAxTitleEl.cloneNode(true))
+  }
+
+  if (chartValAxTitleEl) {
+    chartMainReplaceEl.appendChild(chartValAxTitleEl.cloneNode(true))
+  }
+
+  drawingEl.insertBefore(chartMainReplaceEl, drawingEl.firstChild)
+
+  while (chartMainTitleEl.firstChild) {
+    chartMainTitleEl.removeChild(chartMainTitleEl.firstChild)
+  }
+
+  if (chartCatAxTitleEl) {
+    while (chartCatAxTitleEl.firstChild) {
+      chartCatAxTitleEl.removeChild(chartCatAxTitleEl.firstChild)
+    }
+  }
+
+  if (chartValAxTitleEl) {
+    while (chartValAxTitleEl.firstChild) {
+      chartValAxTitleEl.removeChild(chartValAxTitleEl.firstChild)
+    }
   }
 }

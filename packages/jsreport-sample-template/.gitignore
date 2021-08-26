@@ -31,5 +31,5 @@ node_modules
 
 .idea
 
-samples.json
+# samples.json
 samples/settings

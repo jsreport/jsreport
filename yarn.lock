@@ -4450,6 +4450,11 @@ dayjs@^1.8.15:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.6.tgz#288b2aa82f2d8418a6c9d4df5898c0737ad02a63"
   integrity sha512-AztC/IOW4L1Q41A86phW5Thhcrco3xuAA+YX/BLpLWWjRcTj5TOt/QImBLmCKlrF7u7k47arTnOyL6GnbG8Hvw==
 
+debounce@^1.0.2:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.1.tgz#38881d8f4166a5c5848020c11827b834bcb3e0a5"
+  integrity sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==
+
 debug@*, debug@4, debug@4.3.2, debug@^4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz#f0a49c18ac8779e31d4a0c6029dfb76873c7428b"
@@ -6290,6 +6295,11 @@ functions-have-names@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.2.tgz#98d93991c39da9361f8e50b337c4f6e41f120e21"
   integrity sha512-bLgc3asbWdwPbx2mNk2S49kmJCuQeu0nfmaOgbs8WIyzzkw3r4htszdIi9Q9EMezDPTYuJx2wvjZ/EwgAthpnA==
+
+fuse.js@^3.1.0:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-3.6.1.tgz#7de85fdd6e1b3377c23ce010892656385fd9b10c"
+  integrity sha512-hT9yh/tiinkmirKrlv4KWOjztdoZo1mx9Qh4KvWqC7isoXwdUY3PNWUxceF4/qO9R6riA2C29jdTOeQOIROjgw==
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -11877,6 +11887,16 @@ react-flow-renderer@9.6.1:
     react-redux "^7.2.4"
     redux "^4.1.0"
 
+react-fuzzy-filter@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/react-fuzzy-filter/-/react-fuzzy-filter-5.0.1.tgz#30daaca78171b9e60c0f2365f43618f6b82284c1"
+  integrity sha512-D8Vd1724TMyYljdmqzmiV1dTLYT/ZNahVbk1hLdtXNFldfOQPFeKmesPIsohRMn4KetBIuePjeVXkNd/TEWCVg==
+  dependencies:
+    debounce "^1.0.2"
+    fuse.js "^3.1.0"
+    tslib "^1.9.3"
+    valoo "^2.1.0"
+
 react-is@^16.12.0, react-is@^16.13.1, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.6:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
@@ -14552,6 +14572,11 @@ validator@~9.4.1:
   version "9.4.1"
   resolved "https://registry.yarnpkg.com/validator/-/validator-9.4.1.tgz#abf466d398b561cd243050112c6ff1de6cc12663"
   integrity sha512-YV5KjzvRmSyJ1ee/Dm5UED0G+1L4GZnLN3w6/T+zZm8scVua4sOhYKWTUrKa0H/tMiJyO9QLHMPN+9mB/aMunA==
+
+valoo@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/valoo/-/valoo-2.1.0.tgz#06d3d8f1245b22b307fc5181c57b5912853c4d46"
+  integrity sha512-4JyQxbB/57AlRJzpYnalW90qpjBNjFWNUreOkpe0fF0olPgoZ7Z/vwwTiZJUF4zwQjRC4WYhnqzYG+7oIo0ijQ==
 
 value-equal@^1.0.1:
   version "1.0.1"

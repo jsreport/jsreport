@@ -30,6 +30,7 @@
     "build": "jsreport-studio-build",
     "prepublishOnly": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 4000",
+    "file": "node docxFile.js",
     "test": "mocha test --timeout 20000 && standard"
   },
   "dependencies": {

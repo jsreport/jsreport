@@ -43,6 +43,14 @@
   cursor: pointer;
 }
 
+.resultsItem strong {
+  color: $primary-color;
+}
+
+.resultsItem.active strong {
+  color: $primary-selection-color;
+}
+
 .resultsItem::after {
   content: "";
   clear: both;
