@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import fuzzyFilterFactory from 'react-fuzzy-filter'
+import fuzzyFilterFactory from 'react-fuzzy-filter-yarn-fix'
 import { createGetNormalizedEntitiesSelector } from '../../redux/entities/selectors'
 import { actions as editorActions } from '../../redux/editor'
 import { resolveEntityTreeIconStyle } from '../EntityTree/utils'
