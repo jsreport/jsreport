@@ -197,6 +197,9 @@ module.exports = (reporter) => {
       const profilesToRemove = profiles.slice(reporter.options.profiler.maxProfilesHistory)
 
       for (const profile of profilesToRemove) {
+        if (reporter.closed || reporter.closing) {
+          return
+        }
         await reporter.documentStore.collection('profiles').remove({
           _id: profile._id
         })

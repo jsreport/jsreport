@@ -4,12 +4,11 @@ const jsreport = require('@jsreport/jsreport-core')
 const Request = require('@jsreport/jsreport-core/lib/shared/request')
 const Provider = require('../lib/provider')
 const path = require('path')
-const Promise = require('bluebird')
+const utils = require('util')
 const fs = require('fs')
-const ncpAsync = Promise.promisify(require('ncp').ncp)
+const ncpAsync = utils.promisify(require('ncp').ncp)
 const sinon = require('sinon')
-Promise.promisifyAll(fs)
-const rimrafAsync = Promise.promisify(require('rimraf'))
+const fsPromises = require('fs').promises
 const should = require('should')
 const once = require('lodash.once')
 const { serialize, parse } = require('../lib/customUtils')
@@ -50,10 +49,7 @@ describe('common core tests', () => {
   const tmpData = path.join(__dirname, 'tmpData')
 
   beforeEach(async () => {
-    try {
-      await rimrafAsync(tmpData)
-    } catch (e) {
-    }
+    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
 
     reporter = jsreport({
       store: { provider: 'fs' }
@@ -73,7 +69,7 @@ describe('common core tests', () => {
       await reporter.close()
     }
 
-    await rimrafAsync(tmpData)
+    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
   })
 
   it('render should cause journal sync', () => {
@@ -100,7 +96,7 @@ describe('provider', () => {
 
   beforeEach(async () => {
     resolveFileExtension = () => null
-    await rimrafAsync(tmpData)
+    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
 
     store = createDefaultStore()
 
@@ -127,7 +123,7 @@ describe('provider', () => {
 
   afterEach(async () => {
     await store.provider.close()
-    return rimrafAsync(tmpData)
+    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
   })
 
   describe('basic', () => {
@@ -249,20 +245,20 @@ describe('provider', () => {
   describe('document properties', () => {
     it('should be persisted into dedicated files', async () => {
       await store.collection('templates').insert({ name: 'test', content: 'foo' })
-      const content = (await fs.readFileAsync(path.join(tmpData, 'test', 'content.html'))).toString()
+      const content = (await fsPromises.readFile(path.join(tmpData, 'test', 'content.html'))).toString()
       content.should.be.eql('foo')
     })
 
     it('should be persisted with file extension gathered from resolveFileExtension', async () => {
       resolveFileExtension = () => 'txt'
       await store.collection('templates').insert({ name: 'test', content: 'foo' })
-      const content = (await fs.readFileAsync(path.join(tmpData, 'test', 'content.txt'))).toString()
+      const content = (await fsPromises.readFile(path.join(tmpData, 'test', 'content.txt'))).toString()
       content.should.be.eql('foo')
     })
 
     it('should not be duplicated in the config file', async () => {
       await store.collection('templates').insert({ name: 'test', content: 'foo' })
-      const config = JSON.parse((await fs.readFileAsync(path.join(tmpData, 'test', 'config.json'))).toString())
+      const config = JSON.parse((await fsPromises.readFile(path.join(tmpData, 'test', 'config.json'))).toString())
       should(config.content).not.be.ok()
     })
 
@@ -338,9 +334,8 @@ describe('provider', () => {
       await store.collection('templates').update({ name: 'test' }, { $set: { content: 'changed' } })
       await store.collection('templates').remove({ name: 'test' })
 
-      return Promise.delay(1000).then(() => {
-        should(notified).be.null()
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      should(notified).be.null()
     })
 
     it('should not fire reload for update', async () => {
@@ -352,9 +347,8 @@ describe('provider', () => {
       await store.collection('templates').insert({ name: 'test', recipe: 'foo', content: 'a' })
       await store.collection('templates').update({ name: 'test' }, { $set: { content: 'changed' } })
 
-      return Promise.delay(1000).then(() => {
-        should(notified).be.null()
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      should(notified).be.null()
     })
 
     it('should debounce reload events', async () => {
@@ -367,9 +361,8 @@ describe('provider', () => {
       fs.writeFileSync(path.join(tmpData, 'a.ff'), 'changing')
       fs.writeFileSync(path.join(tmpData, 'b.ff'), 'changing')
       fs.writeFileSync(path.join(tmpData, 'c.ff'), 'changing')
-      return Promise.delay(1000).then(() => {
-        reloadCount.should.be.eql(1)
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      reloadCount.should.be.eql(1)
     })
 
     it('should not fire reload for changes in pressure', async () => {
@@ -387,9 +380,8 @@ describe('provider', () => {
       }
       await Promise.all(promises)
 
-      return Promise.delay(1000).then(() => {
-        should(notified).be.null()
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      should(notified).be.null()
     })
 
     it('should not fire reload for settings changes', async () => {
@@ -401,9 +393,8 @@ describe('provider', () => {
       await store.collection('settings').insert({ key: 'a', value: 'b' })
       await store.collection('settings').update({ key: 'a' }, { $set: { value: 'c' } })
 
-      return Promise.delay(1000).then(() => {
-        should(notified).be.null()
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      should(notified).be.null()
     })
 
     it('should fire reload when a custom folder added', async () => {
@@ -420,9 +411,8 @@ describe('provider', () => {
       })
 
       fs.writeFileSync(path.join(blobStorageDirectory, 'file.txt'), 'aaa')
-      return Promise.delay(1000).then(() => {
-        should(notified).be.null()
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      should(notified).be.null()
     })
 
     it('should not fire reload for flat files compaction', async () => {
@@ -435,9 +425,8 @@ describe('provider', () => {
       await store.collection('settings').update({ key: 'a' }, { $set: { value: 'c' } })
       await store.provider.persistence.compact(store.provider.transaction.getCurrentDocuments())
 
-      return Promise.delay(1000).then(() => {
-        should(notified).be.null()
-      })
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      should(notified).be.null()
     })
 
     it('should not fire reload for ignored specific files', (done) => {
@@ -606,7 +595,7 @@ describe('load cleanup', () => {
   let store
   let startTime
   beforeEach(async () => {
-    await rimrafAsync(path.join(__dirname, 'dataToCleanupCopy'))
+    await fsPromises.rmdir(path.join(__dirname, 'dataToCleanupCopy'), { recursive: true, maxRetries: 5 })
     await ncpAsync(path.join(__dirname, 'dataToCleanup'), path.join(__dirname, 'dataToCleanupCopy'))
     startTime = new Date()
     store = createDefaultStore()
@@ -629,7 +618,7 @@ describe('load cleanup', () => {
   })
 
   afterEach(async () => {
-    await rimrafAsync(path.join(__dirname, 'dataToCleanupCopy'))
+    await fsPromises.rmdir(path.join(__dirname, 'dataToCleanupCopy'), { recursive: true, maxRetries: 5 })
     await store.provider.close()
   })
 
@@ -662,7 +651,7 @@ describe('load cleanup consistent transaction', () => {
   let store
 
   beforeEach(async () => {
-    await rimrafAsync(path.join(__dirname, 'tranDataToCleanupCopy'))
+    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
     await ncpAsync(path.join(__dirname, 'tranConsistentDataToCleanup'), path.join(__dirname, 'tranDataToCleanupCopy'))
 
     store = createDefaultStore()
@@ -683,7 +672,7 @@ describe('load cleanup consistent transaction', () => {
   })
 
   afterEach(async () => {
-    await rimrafAsync(path.join(__dirname, 'tranDataToCleanupCopy'))
+    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
     return store.provider.close()
   })
 
@@ -698,7 +687,7 @@ describe('load cleanup inconsistent transaction', () => {
   let store
 
   beforeEach(async () => {
-    await rimrafAsync(path.join(__dirname, 'tranDataToCleanupCopy'))
+    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
     await ncpAsync(path.join(__dirname, 'tranInconsistentDataToCleanup'), path.join(__dirname, 'tranDataToCleanupCopy'))
 
     store = createDefaultStore()
@@ -719,7 +708,7 @@ describe('load cleanup inconsistent transaction', () => {
   })
 
   afterEach(async () => {
-    await rimrafAsync(path.join(__dirname, 'tranDataToCleanupCopy'))
+    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
     return store.provider.close()
   })
 
@@ -735,7 +724,7 @@ describe('cluster', () => {
   const blobStorageDirectory = path.join(tmpData, 'blobs')
 
   beforeEach(async () => {
-    await rimrafAsync(tmpData)
+    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
 
     store1 = createDefaultStore('store1')
     store2 = createDefaultStore('store2')
@@ -774,7 +763,7 @@ describe('cluster', () => {
   afterEach(async () => {
     await store1.provider.close()
     await store2.provider.close()
-    return rimrafAsync(tmpData)
+    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
   })
 
   it('second server should see insert writes from the first', async () => {

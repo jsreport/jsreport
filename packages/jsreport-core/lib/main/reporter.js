@@ -149,6 +149,7 @@ class MainReporter extends Reporter {
    * @public
    */
   async init () {
+    this.closing = this.closed = false
     if (this._initialized || this._initializing) {
       throw new Error('jsreport already initialized or just initializing. Make sure init is called only once')
     }
@@ -435,6 +436,7 @@ class MainReporter extends Reporter {
    * @public
    */
   async close () {
+    this.closing = true
     this.logger.info('Closing jsreport instance')
 
     if (this.monitoring) {
@@ -456,6 +458,7 @@ class MainReporter extends Reporter {
     }
 
     this.logger.info('jsreport instance has been closed')
+    this.closed = true
 
     return this
   }
