@@ -1,4 +1,4 @@
-/* import PropTypes from 'prop-types' */
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import EntityTreeButton from '../EntityTree/EntityTreeButton'
@@ -8,99 +8,7 @@ import { actions as entitiesActions } from '../../redux/entities'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
 
-class NewFolderInline extends Component {
-  constructor (props) {
-    super(props)
-    this.setInputNameNode = this.setInputNameNode.bind(this)
-  }
-
-  componentDidUpdate (prevProps) {
-    if (
-      ((prevProps.editMode == null && this.props.editMode != null) ||
-      (prevProps.editMode && this.props.editMode && prevProps.editMode.parentShortid !== this.props.editMode.parentShortid)) &&
-      this.inputNameNode
-    ) {
-      setTimeout(() => this.inputNameNode.focus(), 0)
-    }
-
-    if (
-      prevProps.editMode &&
-      this.props.editMode &&
-      prevProps.editMode.parentShortid !== this.props.editMode.parentShortid &&
-      this.inputNameNode
-    ) {
-      this.inputNameNode.value = ''
-    }
-  }
-
-  setInputNameNode (el) {
-    this.inputNameNode = el
-  }
-
-  renderEditMode () {
-    const { editMode, onSave, onCancel } = this.props
-    let parentName
-
-    if (editMode.parentShortid != null) {
-      parentName = storeMethods.resolveEntityPath(storeMethods.getEntityByShortid(editMode.parentShortid))
-    }
-
-    return (
-      <div>
-        <div style={{ fontSize: '0.8rem', marginBottom: '5px' }}>
-          Creating new folder <b>{editMode.parentShortid != null ? `inside folder ${parentName}` : 'in the root level'}</b>
-        </div>
-        <input
-          ref={this.setInputNameNode}
-          type='text'
-          placeholder='folder name'
-          defaultValue=''
-          style={{ display: 'inline-block', width: '120px' }}
-        />
-        <div style={{ display: 'inline-block' }}>
-          <button className='button confirmation' onClick={() => onSave(this.inputNameNode.value, editMode.parentShortid)}>
-            Save
-          </button>
-          <button className='button confirmation' onClick={() => onCancel()}>Cancel</button>
-        </div>
-        {editMode.error != null && (
-          <div style={{ color: 'red', marginTop: '3px' }}>
-            Error when creating folder: {editMode.error}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  render () {
-    const { editMode, onAdd } = this.props
-
-    return (
-      <div title='Add new folder' style={{ display: 'inline-block' }}>
-        {!editMode
-          ? (
-            <EntityTreeButton onClick={onAdd}>
-              <span style={{ display: 'inline-block' }}>
-                <i className='fa fa-folder' />&nbsp;New folder
-              </span>
-            </EntityTreeButton>
-            )
-          : (
-              this.renderEditMode()
-            )}
-      </div>
-    )
-  }
-}
-
 class EntityTreeSelectionModal extends Component {
-  /* TODO
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-  */
-
   constructor (props) {
     super(props)
 
@@ -316,6 +224,96 @@ class EntityTreeSelectionModal extends Component {
           <button className='button confirmation' onClick={() => this.unselect()}>Unselect</button>
           <button className='button danger' onClick={() => this.save()}>Ok</button>
         </div>
+      </div>
+    )
+  }
+}
+
+EntityTreeSelectionModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
+}
+
+class NewFolderInline extends Component {
+  constructor (props) {
+    super(props)
+    this.setInputNameNode = this.setInputNameNode.bind(this)
+  }
+
+  componentDidUpdate (prevProps) {
+    if (
+      ((prevProps.editMode == null && this.props.editMode != null) ||
+      (prevProps.editMode && this.props.editMode && prevProps.editMode.parentShortid !== this.props.editMode.parentShortid)) &&
+      this.inputNameNode
+    ) {
+      setTimeout(() => this.inputNameNode.focus(), 0)
+    }
+
+    if (
+      prevProps.editMode &&
+      this.props.editMode &&
+      prevProps.editMode.parentShortid !== this.props.editMode.parentShortid &&
+      this.inputNameNode
+    ) {
+      this.inputNameNode.value = ''
+    }
+  }
+
+  setInputNameNode (el) {
+    this.inputNameNode = el
+  }
+
+  renderEditMode () {
+    const { editMode, onSave, onCancel } = this.props
+    let parentName
+
+    if (editMode.parentShortid != null) {
+      parentName = storeMethods.resolveEntityPath(storeMethods.getEntityByShortid(editMode.parentShortid))
+    }
+
+    return (
+      <div>
+        <div style={{ fontSize: '0.8rem', marginBottom: '5px' }}>
+          Creating new folder <b>{editMode.parentShortid != null ? `inside folder ${parentName}` : 'in the root level'}</b>
+        </div>
+        <input
+          ref={this.setInputNameNode}
+          type='text'
+          placeholder='folder name'
+          defaultValue=''
+          style={{ display: 'inline-block', width: '120px' }}
+        />
+        <div style={{ display: 'inline-block' }}>
+          <button className='button confirmation' onClick={() => onSave(this.inputNameNode.value, editMode.parentShortid)}>
+            Save
+          </button>
+          <button className='button confirmation' onClick={() => onCancel()}>Cancel</button>
+        </div>
+        {editMode.error != null && (
+          <div style={{ color: 'red', marginTop: '3px' }}>
+            Error when creating folder: {editMode.error}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  render () {
+    const { editMode, onAdd } = this.props
+
+    return (
+      <div title='Add new folder' style={{ display: 'inline-block' }}>
+        {!editMode
+          ? (
+            <EntityTreeButton onClick={onAdd}>
+              <span style={{ display: 'inline-block' }}>
+                <i className='fa fa-folder' />&nbsp;New folder
+              </span>
+            </EntityTreeButton>
+            )
+          : (
+              this.renderEditMode()
+            )}
       </div>
     )
   }

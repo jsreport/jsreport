@@ -5,34 +5,6 @@ import storeMethods from '../../../redux/methods'
 import EntityTreeSelectionModal from '../../Modals/EntityTreeSelectionModal'
 import { openModal } from '../../../helpers/openModal'
 import styles from './EntityRefSelect.css'
-
-const SelectInput = ({ textToShow, entity, handleOpenTree, openTab, disabled }) => (
-  <div
-    className={styles.selectInput} onClick={() => !disabled && handleOpenTree()}
-    style={{ opacity: disabled ? 0.7 : 1 }}
-  >
-    <i className='fa fa-pencil-square-o' />
-    <span
-      title={textToShow}
-      className={`${styles.nameLabel} ${textToShow ? styles.link : ''}`}
-      onClick={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-
-        if (entity) {
-          openTab(entity)
-        } else {
-          if (!disabled) {
-            handleOpenTree()
-          }
-        }
-      }}
-    >
-      {textToShow || 'select ...'}
-    </span>
-  </div>
-)
-
 class EntityRefSelect extends Component {
   constructor (props) {
     super(props)
@@ -116,8 +88,7 @@ class EntityRefSelect extends Component {
       return (
         <SelectInput
           textToShow={textToShow}
-          // eslint-disable-next-line
-          handleOpenTree={this.handleOpenTree}
+          onOpenTree={this.handleOpenTree}
           entity={entity}
           openTab={this.props.openTab}
           disabled={disabled}
@@ -158,8 +129,7 @@ class EntityRefSelect extends Component {
               [
                 <SelectInput
                   key='selectInput'
-                  // eslint-disable-next-line
-                  handleOpenTree={this.handleOpenTree}
+                  onOpenTree={this.handleOpenTree}
                   openTab={this.props.openTab}
                 />,
                 <ul key='selectedItems' tabIndex='0'>
@@ -170,6 +140,35 @@ class EntityRefSelect extends Component {
       </div>
     )
   }
+}
+
+function SelectInput ({ textToShow, entity, onOpenTree, openTab, disabled }) {
+  return (
+    <div
+      className={styles.selectInput} onClick={() => !disabled && onOpenTree()}
+      style={{ opacity: disabled ? 0.7 : 1 }}
+    >
+      <i className='fa fa-pencil-square-o' />
+      <span
+        title={textToShow}
+        className={`${styles.nameLabel} ${textToShow ? styles.link : ''}`}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+
+          if (entity) {
+            openTab(entity)
+          } else {
+            if (!disabled) {
+              onOpenTree()
+            }
+          }
+        }}
+      >
+        {textToShow || 'select ...'}
+      </span>
+    </div>
+  )
 }
 
 export default connect(undefined, { openTab: actions.openTab })(EntityRefSelect)

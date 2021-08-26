@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 import * as Constants from './constants.js'
 
-export default class Properties extends Component {
+class TemplatePdfUtilsProperties extends Component {
   static title (entity, entities) {
     if (
       (!entity.pdfOperations || entity.pdfOperations.length === 0) &&
@@ -130,3 +130,5 @@ export default class Properties extends Component {
     )
   }
 }
+
+export default TemplatePdfUtilsProperties
