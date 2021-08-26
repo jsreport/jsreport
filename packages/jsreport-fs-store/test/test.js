@@ -9,6 +9,7 @@ const fs = require('fs')
 const ncpAsync = utils.promisify(require('ncp').ncp)
 const sinon = require('sinon')
 const fsPromises = require('fs').promises
+const del = require('del')
 const should = require('should')
 const once = require('lodash.once')
 const { serialize, parse } = require('../lib/customUtils')
@@ -49,7 +50,7 @@ describe('common core tests', () => {
   const tmpData = path.join(__dirname, 'tmpData')
 
   beforeEach(async () => {
-    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
+    await del(tmpData)
 
     reporter = jsreport({
       store: { provider: 'fs' }
@@ -69,7 +70,7 @@ describe('common core tests', () => {
       await reporter.close()
     }
 
-    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
+    await del(tmpData)
   })
 
   it('render should cause journal sync', () => {
@@ -96,7 +97,7 @@ describe('provider', () => {
 
   beforeEach(async () => {
     resolveFileExtension = () => null
-    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
+    await del(tmpData)
 
     store = createDefaultStore()
 
@@ -123,7 +124,7 @@ describe('provider', () => {
 
   afterEach(async () => {
     await store.provider.close()
-    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
+    await del(tmpData)
   })
 
   describe('basic', () => {
@@ -595,7 +596,8 @@ describe('load cleanup', () => {
   let store
   let startTime
   beforeEach(async () => {
-    await fsPromises.rmdir(path.join(__dirname, 'dataToCleanupCopy'), { recursive: true, maxRetries: 5 })
+    await del(path.join(__dirname, 'dataToCleanupCopy'))
+    await fsPromises.mkdir(path.join(__dirname, 'dataToCleanupCopy'), { recursive: true })
     await ncpAsync(path.join(__dirname, 'dataToCleanup'), path.join(__dirname, 'dataToCleanupCopy'))
     startTime = new Date()
     store = createDefaultStore()
@@ -618,7 +620,7 @@ describe('load cleanup', () => {
   })
 
   afterEach(async () => {
-    await fsPromises.rmdir(path.join(__dirname, 'dataToCleanupCopy'), { recursive: true, maxRetries: 5 })
+    await del(path.join(__dirname, 'dataToCleanupCopy'))
     await store.provider.close()
   })
 
@@ -651,7 +653,7 @@ describe('load cleanup consistent transaction', () => {
   let store
 
   beforeEach(async () => {
-    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
+    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
     await ncpAsync(path.join(__dirname, 'tranConsistentDataToCleanup'), path.join(__dirname, 'tranDataToCleanupCopy'))
 
     store = createDefaultStore()
@@ -672,7 +674,7 @@ describe('load cleanup consistent transaction', () => {
   })
 
   afterEach(async () => {
-    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
+    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
     return store.provider.close()
   })
 
@@ -687,7 +689,7 @@ describe('load cleanup inconsistent transaction', () => {
   let store
 
   beforeEach(async () => {
-    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
+    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
     await ncpAsync(path.join(__dirname, 'tranInconsistentDataToCleanup'), path.join(__dirname, 'tranDataToCleanupCopy'))
 
     store = createDefaultStore()
@@ -708,7 +710,7 @@ describe('load cleanup inconsistent transaction', () => {
   })
 
   afterEach(async () => {
-    await fsPromises.rmdir(path.join(__dirname, 'tranDataToCleanupCopy'), { recursive: true, maxRetries: 5 })
+    await del(path.join(__dirname, 'tranDataToCleanupCopy'))
     return store.provider.close()
   })
 
@@ -724,7 +726,7 @@ describe('cluster', () => {
   const blobStorageDirectory = path.join(tmpData, 'blobs')
 
   beforeEach(async () => {
-    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
+    await del(tmpData)
 
     store1 = createDefaultStore('store1')
     store2 = createDefaultStore('store2')
@@ -763,7 +765,7 @@ describe('cluster', () => {
   afterEach(async () => {
     await store1.provider.close()
     await store2.provider.close()
-    await fsPromises.rmdir(tmpData, { recursive: true, maxRetries: 5 })
+    await del(tmpData)
   })
 
   it('second server should see insert writes from the first', async () => {
