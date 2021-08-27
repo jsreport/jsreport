@@ -19,6 +19,11 @@
 
 ## Changelog
 
+### 3.0.0-beta.2
+
+Fix jsreport-studio-start
+
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
