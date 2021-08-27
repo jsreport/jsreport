@@ -26,7 +26,9 @@ module.exports = (options) => {
 
     async remove (blobName) {
       checkPathIsInsideDirectory(options, storageDirectory, blobName)
-      return fs.promises.unlink(path.join(storageDirectory, blobName))
+      if (fs.existsSync(path.join(storageDirectory, blobName))) {
+        return fs.promises.unlink(path.join(storageDirectory, blobName))
+      }
     },
 
     async append (blobName, buffer) {

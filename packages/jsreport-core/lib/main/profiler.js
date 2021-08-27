@@ -192,6 +192,7 @@ module.exports = (reporter) => {
       return
     }
     profilesCleanupRunning = true
+    let lastRemoveError
     try {
       const profiles = await reporter.documentStore.collection('profiles').find({}).sort({ timestamp: -1 })
       const profilesToRemove = profiles.slice(reporter.options.profiler.maxProfilesHistory)
@@ -200,14 +201,23 @@ module.exports = (reporter) => {
         if (reporter.closed || reporter.closing) {
           return
         }
-        await reporter.documentStore.collection('profiles').remove({
-          _id: profile._id
-        })
+
+        try {
+          await reporter.documentStore.collection('profiles').remove({
+            _id: profile._id
+          })
+        } catch (e) {
+          lastRemoveError = e
+        }
       }
     } catch (e) {
-      reporter.logger.error('Profile cleanup failed', e)
+      reporter.logger.warn('Profile cleanup failed', e)
     } finally {
       profilesCleanupRunning = false
+    }
+
+    if (lastRemoveError) {
+      reporter.logger.warn('Profile cleanup failed for some entities, last error:', lastRemoveError)
     }
   }
 }
