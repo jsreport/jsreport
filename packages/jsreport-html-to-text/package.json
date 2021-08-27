@@ -30,7 +30,7 @@
     "test": "mocha test && standard"
   },
   "dependencies": {
-    "html-to-text": "6.0.0",
+    "html-to-text": "8.0.0",
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
