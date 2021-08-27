@@ -16,17 +16,19 @@ class EntityRefSelect extends Component {
     this.handleOpenTree = this.handleOpenTree.bind(this)
   }
 
-  getPropsForEntityTree () {
+  getPropsForEntityTreeSelection () {
     const { onChange } = this.props
 
     const props = {
       allowNewFolder: this.props.allowNewFolder,
       headingLabel: this.props.headingLabel,
+      newLabel: this.props.newLabel,
       filter: this.props.filter,
       selectableFilter: this.props.selectableFilter,
       selected: this.props.value,
       multiple: this.props.multiple === true,
       treeStyle: this.props.treeStyle,
+      renderNew: this.props.renderNew,
       onSave: (selected) => onChange(selected)
     }
 
@@ -41,7 +43,7 @@ class EntityRefSelect extends Component {
         showingTreeInline: true
       })
     } else {
-      openModal(EntityTreeSelectionModal, this.getPropsForEntityTree())
+      openModal(EntityTreeSelectionModal, this.getPropsForEntityTreeSelection())
     }
   }
 
@@ -80,7 +82,7 @@ class EntityRefSelect extends Component {
         return (
           <EntityTreeSelectionModal
             close={() => this.setState({ showingTreeInline: false })}
-            options={this.getPropsForEntityTree()}
+            options={this.getPropsForEntityTreeSelection()}
           />
         )
       }
@@ -122,7 +124,7 @@ class EntityRefSelect extends Component {
           ? (
             <EntityTreeSelectionModal
               close={() => this.setState({ showingTreeInline: false })}
-              options={this.getPropsForEntityTree()}
+              options={this.getPropsForEntityTreeSelection()}
             />
             )
           : (

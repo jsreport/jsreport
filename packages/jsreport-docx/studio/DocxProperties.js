@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const NewAssetModal = Studio.sharedComponents.NewAssetModal
 
-class Properties extends Component {
+class DocxProperties extends Component {
   static selectAssets (entities) {
     return Object.keys(entities).filter((k) => entities[k].__entitySet === 'assets').map((k) => entities[k])
   }
@@ -35,7 +36,7 @@ class Properties extends Component {
       return 'docx'
     }
 
-    const foundItems = Properties.selectAssets(entities).filter((e) => entity.docx.templateAssetShortid === e.shortid)
+    const foundItems = DocxProperties.selectAssets(entities).filter((e) => entity.docx.templateAssetShortid === e.shortid)
 
     if (!foundItems.length) {
       return 'docx'
@@ -52,9 +53,11 @@ class Properties extends Component {
         <div className='form-group'>
           <EntityRefSelect
             headingLabel='Select docx template'
+            newLabel='New docx asset for template'
             value={entity.docx ? entity.docx.templateAssetShortid : ''}
             onChange={(selected) => onChange({ _id: entity._id, docx: selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null })}
             filter={(references) => ({ data: references.assets })}
+            renderNew={(modalProps) => <NewAssetModal {...modalProps} />}
           />
         </div>
       </div>
@@ -62,4 +65,4 @@ class Properties extends Component {
   }
 }
 
-export default Properties
+export default DocxProperties

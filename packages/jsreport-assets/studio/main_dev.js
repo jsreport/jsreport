@@ -13,6 +13,7 @@ Studio.addEntitySet({
   entityTreePosition: 700
 })
 
+Studio.sharedComponents.NewAssetModal = NewAssetModal
 Studio.addEditorComponent('assets', AssetEditor)
 
 Studio.addToolbarComponent(AssetUploadButton)

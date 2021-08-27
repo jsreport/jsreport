@@ -8,17 +8,6 @@ import shortid from 'shortid'
 import fileSaver from 'filesaver.js-npm'
 import api, { methods } from './helpers/api'
 import { getCurrentTheme, setCurrentTheme } from './helpers/theme'
-import SplitPane from './components/common/SplitPane/SplitPane'
-import Popover from './components/common/Popover'
-import Popup from './components/common/Popup'
-import FileInput from './components/common/FileInput/FileInput'
-import MultiSelect from './components/common/MultiSelect/index'
-import EntityRefSelect from './components/common/EntityRefSelect/index'
-import TextEditor from './components/Editor/TextEditor'
-import EntityTree from './components/EntityTree/EntityTree'
-import EntityTreeButton from './components/EntityTree/EntityTreeButton'
-import Preview from './components/Preview/Preview'
-import FramePreview from './components/Preview/FramePreview'
 import NewEntityModal from './components/Modals/NewEntityModal'
 import storeMethods from './redux/methods'
 import * as editor from './redux/editor'
@@ -42,6 +31,14 @@ import io from 'socket.io-client'
  */
 class Studio {
   /** event listeners **/
+
+  /**
+   * Collection of shared components
+   * @returns {Object}
+   */
+  get sharedComponents () {
+    return configuration.sharedComponents
+  }
 
   /**
    * Array of async functions invoked in sequence during initialization
@@ -392,7 +389,7 @@ class Studio {
   }
 
   /**
-   * Array of registeresd engines
+   * Array of registered engines
    * @returns {Array<string>}
    */
   get engines () {
@@ -723,7 +720,7 @@ class Studio {
    * @returns {TextEditor}
    */
   get TextEditor () {
-    return TextEditor
+    return configuration.sharedComponents.TextEditor
   }
 
   /**
@@ -732,7 +729,7 @@ class Studio {
    * @returns {SplitPane}
    */
   get SplitPane () {
-    return SplitPane
+    return configuration.sharedComponents.SplitPane
   }
 
   /**
@@ -741,7 +738,7 @@ class Studio {
    * @returns {Popover}
    */
   get Popover () {
-    return Popover
+    return configuration.sharedComponents.Popover
   }
 
   /**
@@ -750,16 +747,16 @@ class Studio {
    * @returns {Popup}
    */
   get Popup () {
-    return Popup
+    return configuration.sharedComponents.Popup
   }
 
   /**
-   * Component used to visualise entities
+   * Component used to visualize entities
    *
    * @returns {EntityTree}
    */
   get EntityTree () {
-    return EntityTree
+    return configuration.sharedComponents.EntityTree
   }
 
   /**
@@ -767,7 +764,7 @@ class Studio {
    * @returns {EntityTreeButton}
    */
   get EntityTreeButton () {
-    return EntityTreeButton
+    return configuration.sharedComponents.EntityTreeButton
   }
 
   /**
@@ -775,7 +772,7 @@ class Studio {
    * @returns {MultiSelect}
    */
   get MultiSelect () {
-    return MultiSelect
+    return configuration.sharedComponents.MultiSelect
   }
 
   /**
@@ -783,7 +780,7 @@ class Studio {
    * @returns {MultiSelect}
    */
   get FileInput () {
-    return FileInput
+    return configuration.sharedComponents.FileInput
   }
 
   /**
@@ -791,15 +788,15 @@ class Studio {
    * @returns {EntityRefSelect}
    */
   get EntityRefSelect () {
-    return EntityRefSelect
+    return configuration.sharedComponents.EntityRefSelect
   }
 
   get Preview () {
-    return Preview
+    return configuration.sharedComponents.Preview
   }
 
   get FramePreview () {
-    return FramePreview
+    return configuration.sharedComponents.FramePreview
   }
 
   get dragAndDropNativeTypes () {

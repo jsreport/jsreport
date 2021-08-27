@@ -1,11 +1,21 @@
 import { useRef } from 'react'
 import { connect } from 'react-redux'
 import * as configuration from './lib/configuration'
+import TextEditor from './components/Editor/TextEditor'
+import EntityRefSelect from './components/common/EntityRefSelect'
+import EntityTree from './components/EntityTree/EntityTree'
+import SplitPane from './components/common/SplitPane/SplitPane'
+import Popover from './components/common/Popover'
+import Popup from './components/common/Popup'
+import MultiSelect from './components/common/MultiSelect'
 import FileInput from './components/common/FileInput/FileInput'
 import TemplateProperties from './components/Properties/TemplateProperties'
+import EntityTreeButton from './components/EntityTree/EntityTreeButton'
 import EntityTreeNewButton from './components/EntityTree/EntityTreeNewButton'
 import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch'
 import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton'
+import Preview from './components/Preview/Preview'
+import FramePreview from './components/Preview/FramePreview'
 import Startup from './containers/Startup/Startup'
 import Profiler from './containers/Profiler/Profiler'
 import LinkModal from './components/Modals/LinkModal'
@@ -27,6 +37,18 @@ import { openModal } from './helpers/openModal'
 import { openTab } from './redux/editor/actions'
 
 export default () => {
+  configuration.sharedComponents.TextEditor = TextEditor
+  configuration.sharedComponents.SplitPane = SplitPane
+  configuration.sharedComponents.Popover = Popover
+  configuration.sharedComponents.Popup = Popup
+  configuration.sharedComponents.EntityTree = EntityTree
+  configuration.sharedComponents.EntityTreeButton = EntityTreeButton
+  configuration.sharedComponents.MultiSelect = MultiSelect
+  configuration.sharedComponents.FileInput = FileInput
+  configuration.sharedComponents.EntityRefSelect = EntityRefSelect
+  configuration.sharedComponents.Preview = Preview
+  configuration.sharedComponents.FramePreview = FramePreview
+
   configuration.propertiesComponents.push({
     title: TemplateProperties.title,
     shouldDisplay: (entity) => entity.__entitySet === 'templates',
@@ -59,6 +81,8 @@ export default () => {
     onNew: (options) => openModal(NewTemplateModal, options)
   }
 
+  configuration.sharedComponents.NewTemplateModal = NewTemplateModal
+
   configuration.entitySets.folders = {
     name: 'folders',
     faIcon: 'fa-folder',
@@ -67,6 +91,8 @@ export default () => {
     referenceAttributes: ['name', 'shortid'],
     onNew: (options) => openModal(NewFolderModal, options)
   }
+
+  configuration.sharedComponents.NewFolderModal = NewFolderModal
 
   // default filter by name strategy
   configuration.entityTreeFilterItemResolvers.push((entity, entitySets, filterInfo) => {

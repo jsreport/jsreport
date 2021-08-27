@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import React, { Component } from 'react'
+import React, { Fragment, Component } from 'react'
 import { connect } from 'react-redux'
 import EntityTreeButton from '../EntityTree/EntityTreeButton'
 import EntityTree from '../EntityTree/EntityTree'
@@ -7,6 +7,7 @@ import { createGetReferencesSelector } from '../../redux/entities/selectors'
 import { actions as entitiesActions } from '../../redux/entities'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
+import styles from './EntityTreeSelectionModal.css'
 
 class EntityTreeSelectionModal extends Component {
   constructor (props) {
@@ -20,6 +21,7 @@ class EntityTreeSelectionModal extends Component {
 
     this.state = {
       newFolderEdit: null,
+      newMode: false,
       selected: initialSelected.reduce((acu, shortid) => {
         const entity = storeMethods.getEntityByShortid(shortid, false)
 
@@ -143,87 +145,132 @@ class EntityTreeSelectionModal extends Component {
     const {
       multiple,
       headingLabel,
+      newLabel,
       selectableFilter,
+      renderNew,
       allowNewFolder = false,
       treeStyle = {}
     } = this.props.options
 
-    const { selected, newFolderEdit } = this.state
+    const { newMode, selected, newFolderEdit } = this.state
 
     const entities = this.filterEntities(this.props.references)
+
+    let content
+
+    if (newMode) {
+      const close = () => {
+        this.setState({
+          newMode: false
+        })
+      }
+
+      content = (
+        <div>
+          <div className={styles.backSection}>
+            <span className={styles.backButton} onClick={() => close()}>
+              <i className={`fa fa-arrow-left ${styles.backLabel}`} /> <span className={styles.backLabel}>Back to selection</span>
+            </span>
+          </div>
+          {renderNew({
+            close,
+            options: {}
+          })}
+        </div>
+      )
+    } else {
+      content = (
+        // eslint-disable-next-line react/jsx-fragments
+        <Fragment>
+          {allowNewFolder && (
+            <div>
+              <NewFolderInline
+                onAdd={() => this.setState({
+                  newFolderEdit: {}
+                })}
+                /* eslint-disable-next-line */
+                onSave={this.createNewFolder}
+                onCancel={() => this.setState({ newFolderEdit: null })}
+                editMode={newFolderEdit}
+              />
+            </div>
+          )}
+          {allowNewFolder && (
+            <br />
+          )}
+          <div style={Object.assign({ minHeight: '30rem', maxHeight: '30rem', overflow: 'auto' }, treeStyle)}>
+            <EntityTree
+              entities={entities}
+              selectable
+              selectionMode={{
+                mode: multiple ? 'multiple' : 'single',
+                isSelectable: (isGroup, entity) => {
+                  if (selectableFilter) {
+                    return Boolean(selectableFilter(isGroup, entity))
+                  }
+
+                  if (isGroup) {
+                    return false
+                  }
+
+                  return true
+                }
+              }}
+              selected={selected}
+              onSelectionChanged={this.handleSelectionChange}
+              getContextMenuItems={allowNewFolder
+                ? ({ entity, isRoot }) => {
+                    if (isRoot) {
+                      return
+                    }
+
+                    return [{
+                      key: 'New Folder',
+                      title: 'New Folder',
+                      icon: 'fa-folder',
+                      onClick: () => this.setState({
+                        newFolderEdit: { parentShortid: entity.shortid }
+                      })
+                    }]
+                  }
+                : undefined}
+            />
+          </div>
+          <div className='button-bar'>
+            <button
+              ref={this.cancelRef}
+              className='button confirmation'
+              onClick={() => this.cancel()}
+            >
+              Cancel
+            </button>
+            <button className='button confirmation' onClick={() => this.unselect()}>Unselect</button>
+            {renderNew != null && (
+              <button
+                className='button confirmation'
+                onClick={() => {
+                  this.setState({ newMode: true })
+                }}
+              >
+                New
+              </button>
+            )}
+            <button className='button danger' onClick={() => this.save()}>Ok</button>
+          </div>
+        </Fragment>
+      )
+    }
 
     return (
       <div>
         <div>
           <h1>
-            <i className='fa fa-check-square-o' /> {headingLabel != null ? headingLabel : 'Select entity'}
+            <i className='fa fa-check-square-o' />
+            &nbsp;
+            {newMode ? newLabel != null ? newLabel : 'New entity' : headingLabel != null ? headingLabel : 'Select entity'}
           </h1>
         </div>
-        {allowNewFolder && (
-          <div>
-            <NewFolderInline
-              onAdd={() => this.setState({
-                newFolderEdit: {}
-              })}
-              /* eslint-disable-next-line */
-              onSave={this.createNewFolder}
-              onCancel={() => this.setState({ newFolderEdit: null })}
-              editMode={newFolderEdit}
-            />
-          </div>
-        )}
-        {allowNewFolder && (
-          <br />
-        )}
-        <div style={Object.assign({ minHeight: '30rem', maxHeight: '30rem', overflow: 'auto' }, treeStyle)}>
-          <EntityTree
-            entities={entities}
-            selectable
-            selectionMode={{
-              mode: multiple ? 'multiple' : 'single',
-              isSelectable: (isGroup, entity) => {
-                if (selectableFilter) {
-                  return Boolean(selectableFilter(isGroup, entity))
-                }
-
-                if (isGroup) {
-                  return false
-                }
-
-                return true
-              }
-            }}
-            selected={selected}
-            onSelectionChanged={this.handleSelectionChange}
-            getContextMenuItems={allowNewFolder
-              ? ({ entity, isRoot }) => {
-                  if (isRoot) {
-                    return
-                  }
-
-                  return [{
-                    key: 'New Folder',
-                    title: 'New Folder',
-                    icon: 'fa-folder',
-                    onClick: () => this.setState({
-                      newFolderEdit: { parentShortid: entity.shortid }
-                    })
-                  }]
-                }
-              : undefined}
-          />
-        </div>
-        <div className='button-bar'>
-          <button
-            ref={this.cancelRef}
-            className='button confirmation'
-            onClick={() => this.cancel()}
-          >
-            Cancel
-          </button>
-          <button className='button confirmation' onClick={() => this.unselect()}>Unselect</button>
-          <button className='button danger' onClick={() => this.save()}>Ok</button>
-        </div>
+        {content}
       </div>
     )
   }

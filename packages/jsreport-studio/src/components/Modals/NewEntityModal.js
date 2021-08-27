@@ -1,4 +1,4 @@
-/* import PropTypes from 'prop-types' */
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { actions } from '../../redux/editor'
@@ -6,13 +6,6 @@ import api from '../../helpers/api.js'
 import { entitySets } from '../../lib/configuration.js'
 
 class NewEntityModal extends Component {
-  /* TODO
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-  */
-
   constructor (props) {
     super(props)
 
@@ -107,6 +100,11 @@ class NewEntityModal extends Component {
       </div>
     )
   }
+}
+
+NewEntityModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 export default connect(
