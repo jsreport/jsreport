@@ -1,5 +1,6 @@
 const fs = require('fs')
-if (fs.existsSync('c:\\jsreport')) {
+
+if (fs.existsSync('c:\\jsreport') && fs.readdirSync('c:\\jsreport').length > 0) {
   if (!fs.existsSync('c:\\jsreport\\data')) {
     fs.mkdirSync('c:\\jsreport\\data')
   }

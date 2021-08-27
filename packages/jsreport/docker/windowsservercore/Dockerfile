@@ -1,19 +1,13 @@
 FROM mcr.microsoft.com/windows/servercore:ltsc2019
 EXPOSE 5488
 
-# Install Chocolatey
-RUN powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-
-# Install git
-RUN choco install git.install -y
-
 # install nodejs
-RUN curl https://nodejs.org/dist/v12.16.2/node-v12.16.2-x64.msi --output nodejs.msi
+ADD https://nodejs.org/dist/v14.17.4/node-v14.17.4-x64.msi nodejs.msi
 RUN msiexec.exe /q /i nodejs.msi
 RUN del /f nodejs.msi
 
 # fonts for chrome https://github.com/gantrior/docker-chrome-windows
-ADD FontsToAdd.tar /fonts/
+ADD ./packages/jsreport/docker/windowsservercore/FontsToAdd.tar /fonts/
 WORKDIR /fonts
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 RUN .\Add-Font.ps1 fonts
@@ -21,15 +15,16 @@ SHELL ["cmd", "/S", "/C"]
 
 WORKDIR /app
 
+# NOTE this can fail localy with EAI_AGAIN, in this case use docker build .... --network=xxxxx, find the working with docker network ls
 # install jsreport
-RUN npm install -g jsreport-cli && \
-    jsreport init 2.11.0 && \
-    npm cache clean -f
+RUN npm i -g @jsreport/jsreport-cli@3.0.0-beta.2
+RUN jsreport init beta
+RUN npm cache clean -f
 
 # volume for custom mount
 VOLUME c:\\jsreport
-ADD run.js /app/run.js
-COPY editConfig.js /app/editConfig.js
+COPY ./packages/jsreport/docker/windowsservercore/run.js /app/run.js
+COPY ./packages/jsreport/docker/windowsservercore/editConfig.js /app/editConfig.js
 RUN node editConfig.js
 
 
