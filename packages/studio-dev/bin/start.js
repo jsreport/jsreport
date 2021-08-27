@@ -74,7 +74,7 @@ function tryRequire (module) {
 
 function installStudio (p) {
   console.log(`Installing jsreport-studio dev dependencies at ${p}`)
-  return execSync('npm install', { stdio: [0, 1, 2], cwd: p })
+  return execSync('npm install --legacy-peer-deps', { stdio: [0, 1, 2], cwd: p })
 }
 
 function installStudioIfRequired (p) {

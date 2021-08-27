@@ -359,13 +359,15 @@ module.exports = (extensions, extensionsInNormalMode) => {
         'src',
         'node_modules',
         path.join(__dirname, '../node_modules'),
-        path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules')
+        path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules'),
+        path.join(__dirname, '../../studio-dev/node_modules')
       ]
     },
     resolveLoader: {
       modules: [
         path.join(__dirname, '../node_modules'),
         path.join(__dirname, '../node_modules/@jsreport/studio-dev/node_modules'),
+        path.join(__dirname, '../../studio-dev/node_modules'),
         'node_modules'
       ]
     },
@@ -416,17 +418,17 @@ function getBuildHelpers (extensions) {
     let extensionMatch
 
     for (const tExtension of targetExtensions) {
+      const realTExtensionDirectory = symlinkExtensionsMap.has(tExtension.name) ? symlinkExtensionsMap.get(tExtension.name) : tExtension.directory
+      const realTExtensionDirectoryPrefix = path.join(realTExtensionDirectory, path.sep)
+
       if (
+        directory === realTExtensionDirectory ||
         (
-          symlinkExtensionsMap.has(tExtension.name) &&
-          (directory === symlinkExtensionsMap.get(tExtension.name) ||
-          directory.startsWith(path.join(symlinkExtensionsMap.get(tExtension.name), path.sep)))
-        ) || (
-          directory === tExtension.directory ||
-          directory.startsWith(path.join(tExtension.directory, path.sep))
+          directory.startsWith(realTExtensionDirectoryPrefix) &&
+          !directory.replace(realTExtensionDirectoryPrefix, '').startsWith('node_modules')
         )
       ) {
-        extensionMatch = symlinkExtensionsMap.has(tExtension.name) ? symlinkExtensionsMap.get(tExtension.name) : tExtension.directory
+        extensionMatch = realTExtensionDirectory
       }
 
       if (extensionMatch != null) {
