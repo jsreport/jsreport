@@ -21,15 +21,14 @@ if (!argv.ignoreJsreportInstall) {
     fs.statSync(path.join(process.cwd(), 'node_modules', 'jsreport'))
   } catch (e) {
     console.log('Installing the latest jsreport, this takes few minutes')
-    execSync('npm install jsreport --no-save', { stdio: [0, 1, 2] })
+    execSync('npm install jsreport@beta --no-save', { stdio: [0, 1, 2] })
   }
 }
 
 if (!argv.runOnly) {
   if (!argv.ignoreJsreportStudioInstall) {
     console.log('Making sure jsreport-studio has dev dependencies installed')
-    installStudioIfRequired(path.join(process.cwd(), 'node_modules', 'jsreport', 'node_modules', 'jsreport-studio'))
-    installStudioIfRequired(path.join(process.cwd(), 'node_modules', 'jsreport-studio'))
+    installStudioIfRequired(path.join(process.cwd(), 'node_modules', '@jsreport', 'jsreport-studio'))
   }
 }
 
