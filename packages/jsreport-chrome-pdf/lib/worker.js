@@ -87,6 +87,8 @@ function execute (reporter, puppeteer, definition, strategyCall, imageExecution)
 module.exports = function (reporter, definition) {
   const puppeteer = definition.options.puppeteerInstance != null ? definition.options.puppeteerInstance : require('puppeteer')
 
+  console.log('strategy', definition.options.strategy)
+
   let strategyCall
 
   if (definition.options.strategy === 'dedicated-process') {

@@ -10,7 +10,7 @@
   "reportTimeout": 60000,
   "extensions": {
     "docker-workers": {
-      "enabled": true,
+      "enabled": false,
       "container": {
         "image": "worker",
         "memory": "520m",
