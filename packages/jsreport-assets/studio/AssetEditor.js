@@ -110,22 +110,22 @@ class AssetEditor extends Component {
     }
 
     if (this.isImage(entity)) {
-      return `<img src="{#asset ${Studio.resolveEntityPath(entity)} @encoding=dataURI}" />`
+      return `<img src="{{asset "${Studio.resolveEntityPath(entity)}" "dataURI"}}" />`
     }
 
     if (this.isFont(entity)) {
       return `@font-face {
   font-family: '${parts[0]}';
-  src: url({#asset ${Studio.resolveEntityPath(entity)} @encoding=dataURI});
+  src: url({{asset "${Studio.resolveEntityPath(entity)}" "dataURI"}});
   format('${this.getFormat(extension)}');
 }`
     }
 
     if (this.isOfficeFile(entity)) {
-      return `{#asset ${Studio.resolveEntityPath(entity)} @encoding=base64}`
+      return `{{asset "${Studio.resolveEntityPath(entity)}" "base64"}}`
     }
 
-    return `{#asset ${Studio.resolveEntityPath(entity)} @encoding=utf8}`
+    return `{{asset "${Studio.resolveEntityPath(entity)}"}}`
   }
 
   getLazyPreviewStatus (entity) {
