@@ -1,0 +1,20 @@
+
+.backSection {
+  margin-bottom: 0.8rem;
+}
+
+.backButton {
+  color: $anchors-color;
+}
+
+.backButton:hover {
+  cursor: pointer;
+}
+
+.backButton:hover span {
+  text-decoration: underline;
+}
+
+.backLabel {
+  vertical-align: middle;
+}

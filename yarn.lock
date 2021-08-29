@@ -491,42 +491,6 @@
   resolved "https://registry.yarnpkg.com/@jsreport/mingo/-/mingo-2.4.1.tgz#019ff48079a3ffeff2a5d8f1380386b921a0fc81"
   integrity sha512-6ZXpnsXoLvXf8t1aGhJ3TamVdi3tHfDGlNs5qfaIQfIlUkga6x6juQD+9twO5NHn+PKKct/FQQBScOqC0SsrmA==
 
-"@jsreport/studio-dev@3.0.0-beta.1":
-  version "3.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@jsreport/studio-dev/-/studio-dev-3.0.0-beta.1.tgz#7adb7bdf11ec1b5bb11a06306fd470b9b6ff51a3"
-  integrity sha512-pETHSeOBxfYZlyIZ1LjXvY28I/ypLt9XfVOo2X/DjvJ60PuDn0/XlGC96fHH3F1Fe1Y/BKySNpdbJHM5RxGOMw==
-  dependencies:
-    autoprefixer "9.5.1"
-    babel-core "6.26.3"
-    babel-loader "7.1.5"
-    babel-plugin-add-module-exports "0.3.3"
-    babel-plugin-react-transform "3.0.0"
-    babel-plugin-transform-decorators-legacy "1.3.5"
-    babel-plugin-transform-react-display-name "6.25.0"
-    babel-plugin-transform-runtime "6.23.0"
-    babel-plugin-typecheck "3.9.0"
-    babel-polyfill "6.26.0"
-    babel-preset-es2015 "6.24.1"
-    babel-preset-react "6.24.1"
-    babel-preset-stage-0 "6.24.1"
-    babel-register "6.26.0"
-    babel-runtime "6.26.0"
-    clean-webpack-plugin "2.0.2"
-    css-loader "2.1.1"
-    file-loader "4.3.0"
-    html-webpack-plugin "3.2.0"
-    less "3.9.0"
-    less-loader "4.1.0"
-    mini-css-extract-plugin "0.8.0"
-    nanoid "2.0.3"
-    postcss-flexbugs-fixes "4.1.0"
-    postcss-loader "3.0.0"
-    sass-loader "7.1.0"
-    style-loader "0.23.1"
-    url-loader "4.1.1"
-    webpack "4.32.0"
-    yargs-parser "13.1.2"
-
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"

@@ -5,34 +5,6 @@ import storeMethods from '../../../redux/methods'
 import EntityTreeSelectionModal from '../../Modals/EntityTreeSelectionModal'
 import { openModal } from '../../../helpers/openModal'
 import styles from './EntityRefSelect.css'
-
-const SelectInput = ({ textToShow, entity, handleOpenTree, openTab, disabled }) => (
-  <div
-    className={styles.selectInput} onClick={() => !disabled && handleOpenTree()}
-    style={{ opacity: disabled ? 0.7 : 1 }}
-  >
-    <i className='fa fa-pencil-square-o' />
-    <span
-      title={textToShow}
-      className={`${styles.nameLabel} ${textToShow ? styles.link : ''}`}
-      onClick={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-
-        if (entity) {
-          openTab(entity)
-        } else {
-          if (!disabled) {
-            handleOpenTree()
-          }
-        }
-      }}
-    >
-      {textToShow || 'select ...'}
-    </span>
-  </div>
-)
-
 class EntityRefSelect extends Component {
   constructor (props) {
     super(props)
@@ -44,17 +16,19 @@ class EntityRefSelect extends Component {
     this.handleOpenTree = this.handleOpenTree.bind(this)
   }
 
-  getPropsForEntityTree () {
+  getPropsForEntityTreeSelection () {
     const { onChange } = this.props
 
     const props = {
       allowNewFolder: this.props.allowNewFolder,
       headingLabel: this.props.headingLabel,
+      newLabel: this.props.newLabel,
       filter: this.props.filter,
       selectableFilter: this.props.selectableFilter,
       selected: this.props.value,
       multiple: this.props.multiple === true,
       treeStyle: this.props.treeStyle,
+      renderNew: this.props.renderNew,
       onSave: (selected) => onChange(selected)
     }
 
@@ -69,7 +43,7 @@ class EntityRefSelect extends Component {
         showingTreeInline: true
       })
     } else {
-      openModal(EntityTreeSelectionModal, this.getPropsForEntityTree())
+      openModal(EntityTreeSelectionModal, this.getPropsForEntityTreeSelection())
     }
   }
 
@@ -108,7 +82,7 @@ class EntityRefSelect extends Component {
         return (
           <EntityTreeSelectionModal
             close={() => this.setState({ showingTreeInline: false })}
-            options={this.getPropsForEntityTree()}
+            options={this.getPropsForEntityTreeSelection()}
           />
         )
       }
@@ -116,8 +90,7 @@ class EntityRefSelect extends Component {
       return (
         <SelectInput
           textToShow={textToShow}
-          // eslint-disable-next-line
-          handleOpenTree={this.handleOpenTree}
+          onOpenTree={this.handleOpenTree}
           entity={entity}
           openTab={this.props.openTab}
           disabled={disabled}
@@ -151,15 +124,14 @@ class EntityRefSelect extends Component {
           ? (
             <EntityTreeSelectionModal
               close={() => this.setState({ showingTreeInline: false })}
-              options={this.getPropsForEntityTree()}
+              options={this.getPropsForEntityTreeSelection()}
             />
             )
           : (
               [
                 <SelectInput
                   key='selectInput'
-                  // eslint-disable-next-line
-                  handleOpenTree={this.handleOpenTree}
+                  onOpenTree={this.handleOpenTree}
                   openTab={this.props.openTab}
                 />,
                 <ul key='selectedItems' tabIndex='0'>
@@ -170,6 +142,35 @@ class EntityRefSelect extends Component {
       </div>
     )
   }
+}
+
+function SelectInput ({ textToShow, entity, onOpenTree, openTab, disabled }) {
+  return (
+    <div
+      className={styles.selectInput} onClick={() => !disabled && onOpenTree()}
+      style={{ opacity: disabled ? 0.7 : 1 }}
+    >
+      <i className='fa fa-pencil-square-o' />
+      <span
+        title={textToShow}
+        className={`${styles.nameLabel} ${textToShow ? styles.link : ''}`}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+
+          if (entity) {
+            openTab(entity)
+          } else {
+            if (!disabled) {
+              onOpenTree()
+            }
+          }
+        }}
+      >
+        {textToShow || 'select ...'}
+      </span>
+    </div>
+  )
 }
 
 export default connect(undefined, { openTab: actions.openTab })(EntityRefSelect)
