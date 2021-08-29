@@ -6,6 +6,18 @@ const transactionConsistencyFile = '.tran'
 module.exports = ({ queue, persistence, fs, logger }) => {
   let commitedDocuments = {}
 
+  const unsafePersistence = {
+    insert: (doc, documents, rootDirectory) => persistence.insert(doc, documents, false, rootDirectory),
+    update: (doc, originalDoc, documents, rootDirectory) => persistence.update(doc, originalDoc, documents, false, rootDirectory),
+    remove: (doc, documents, rootDirectory) => persistence.remove(doc, documents, false, rootDirectory)
+  }
+
+  const safePersistence = {
+    insert: (doc, documents, rootDirectory) => persistence.insert(doc, documents, true, rootDirectory),
+    update: (doc, originalDoc, documents, rootDirectory) => persistence.update(doc, originalDoc, documents, true, rootDirectory),
+    remove: (doc, documents, rootDirectory) => persistence.remove(doc, documents, true, rootDirectory)
+  }
+
   const persistenceQueueTimeoutInterval = setInterval(() => {
     queue.rejectItemsWithTimeout()
   }, 2000).unref()
@@ -58,7 +70,7 @@ module.exports = ({ queue, persistence, fs, logger }) => {
 
       return queue.push(() => lock(fs, async () => {
         await this.journal.sync()
-        return fn(commitedDocuments, persistence)
+        return fn(commitedDocuments, safePersistence)
       }))
     },
 
@@ -74,7 +86,7 @@ module.exports = ({ queue, persistence, fs, logger }) => {
 
           // eslint-disable-next-line no-unused-vars
           for (const op of transaction.operations) {
-            await op(documentsClone, persistence, transactionDirectory)
+            await op(documentsClone, unsafePersistence, transactionDirectory)
           }
 
           // eslint-disable-next-line no-unused-vars

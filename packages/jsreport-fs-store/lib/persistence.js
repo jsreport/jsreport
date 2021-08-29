@@ -147,14 +147,53 @@ async function load (fs, directory, model, documents, { loadConcurrency, parentD
   return documents
 }
 
-async function persist (fs, resolveFileExtension, model, doc, originalDoc, documents, rootDirectory) {
+async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents, rootDirectory) {
+  if (await fs.exists(docPath)) {
+    await fs.remove(docPath)
+  }
+
+  await fs.mkdir(docPath)
+
+  const entityType = model.entitySets[doc.$entitySet].entityType
+
+  if (originalDoc && doc.$entitySet === 'folders') {
+    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
+
+    if (originalDocPath !== docPath) {
+      await copy(fs, originalDocPath, docPath)
+    }
+  }
+
+  await Promise.map(entityType.documentProperties, async (prop) => {
+    const fileExtension = resolveFileExtension(doc, doc.$entitySet, prop.path)
+    let value = deepGet(doc, prop.path)
+
+    if (value == null) {
+      deepDelete(doc, prop.path)
+      return
+    }
+
+    value = value || ''
+
+    if (prop.type.type === 'Edm.Binary' && !Buffer.isBuffer(value)) {
+      value = Buffer.from(value, 'base64')
+    }
+
+    const pathFragments = prop.path.split('.')
+    await fs.writeFile(fs.path.join(docPath, pathFragments[pathFragments.length - 1] + '.' + fileExtension), value)
+
+    deepDelete(doc, prop.path)
+  })
+
+  await fs.writeFile(fs.path.join(docPath, 'config.json'), serialize(doc))
+}
+
+async function persist (fs, resolveFileExtension, model, doc, originalDoc, documents, safeWrite, rootDirectory) {
   if (!model.entitySets[doc.$entitySet].splitIntoDirectories) {
     const docFinalPath = fs.path.join(rootDirectory, doc.$entitySet)
 
     return fs.appendFile(docFinalPath, serialize(doc, false) + '\n')
   }
-
-  const entityType = model.entitySets[doc.$entitySet].entityType
 
   if (doc.name.indexOf('/') !== -1) {
     throw new Error('Document cannot contain / in the name')
@@ -166,49 +205,29 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
     throw new Error('Duplicated entry for key ' + doc.name)
   }
 
-  const originalDocPrefix = originalDoc ? (originalDoc.name + '~') : ''
-  const docInconsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~~${originalDocPrefix}${doc.name}`)
-  const docConsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~${originalDocPrefix}${doc.name}`)
-
-  if (await fs.exists(docInconsistentPath)) {
-    await fs.remove(docInconsistentPath)
-  }
-
-  await fs.mkdir(docInconsistentPath)
-
   const docClone = extend(true, {}, doc)
 
   // don't store the folder reference, it is computed from the file system hierarchy
   deepDelete(docClone, 'folder')
 
-  if (originalDoc && docClone.$entitySet === 'folders') {
-    const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
+  const originalDocPrefix = originalDoc ? (originalDoc.name + '~') : ''
+  const docInconsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~~${originalDocPrefix}${doc.name}`)
+  const docConsistentPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, doc, documents), `~${originalDocPrefix}${doc.name}`)
 
-    await copy(fs, originalDocPath, docInconsistentPath)
+  // performance optimization, we don't need to slower safe writes when running in the transaction
+  if (safeWrite === false) {
+    await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents, rootDirectory)
+
+    if (originalDoc) {
+      const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
+      if (originalDocPath !== docFinalPath) {
+        await fs.remove(originalDocPath)
+      }
+    }
+    return
   }
 
-  await Promise.map(entityType.documentProperties, async (prop) => {
-    const fileExtension = resolveFileExtension(docClone, docClone.$entitySet, prop.path)
-    let value = deepGet(docClone, prop.path)
-
-    if (value == null) {
-      deepDelete(docClone, prop.path)
-      return
-    }
-
-    value = value || ''
-
-    if (prop.type.type === 'Edm.Binary' && !Buffer.isBuffer(value)) {
-      value = Buffer.from(value, 'base64')
-    }
-
-    const pathFragments = prop.path.split('.')
-    await fs.writeFile(fs.path.join(docInconsistentPath, pathFragments[pathFragments.length - 1] + '.' + fileExtension), value)
-
-    deepDelete(docClone, prop.path)
-  })
-
-  await fs.writeFile(fs.path.join(docInconsistentPath, 'config.json'), serialize(docClone))
+  await persistToPath(fs, resolveFileExtension, model, docInconsistentPath, docClone, originalDoc, documents, rootDirectory)
 
   if (await fs.exists(docConsistentPath)) {
     await fs.remove(docConsistentPath)
@@ -227,7 +246,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
   await retry(() => fs.rename(docConsistentPath, docFinalPath), 5)
 }
 
-async function remove (fs, model, doc, documents, rootDirectory) {
+async function remove (fs, model, doc, documents, safeWrite, rootDirectory) {
   if (!model.entitySets[doc.$entitySet].splitIntoDirectories) {
     const removal = { $$deleted: true, _id: doc._id }
     const docFinalPath = fs.path.join(rootDirectory, doc.$entitySet)
@@ -325,9 +344,9 @@ async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptA
 }
 
 module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtension, loadConcurrency = 8 }) => ({
-  update: (doc, originalDoc, documents, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, originalDoc, documents, rootDirectory),
-  insert: (doc, documents, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, null, documents, rootDirectory),
-  remove: (doc, documents, rootDirectory = '') => remove(fs, documentsModel, doc, documents, rootDirectory),
+  update: (doc, originalDoc, documents, safeWrite, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, originalDoc, documents, safeWrite, rootDirectory),
+  insert: (doc, documents, safeWrite, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, null, documents, safeWrite, rootDirectory),
+  remove: (doc, documents, safeWrite, rootDirectory = '') => remove(fs, documentsModel, doc, documents, safeWrite, rootDirectory),
   reload: async (doc, documents) => {
     const loadedDocuments = []
     const docPath = fs.path.join(getDirectoryPath(fs, documentsModel, doc, documents), doc.name)

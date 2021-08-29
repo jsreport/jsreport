@@ -87,7 +87,7 @@ describe('persistence', () => {
   it('should use crash safe approach to update doc', async () => {
     fs.rename.twice()
     fs.exists.twice()
-    await persistence.update({ $entitySet: 'templates', name: 'foo', shortid: 'a' }, { $entitySet: 'templates', name: 'foo', shortid: 'b' })
+    await persistence.update({ $entitySet: 'templates', name: 'foo', shortid: 'a' }, { $entitySet: 'templates', name: 'foo', shortid: 'b' }, {}, true)
     sinon.assert.calledWith(fs.mkdir, '~~foo~foo')
     sinon.assert.calledWith(fs.writeFile, path.join('~~foo~foo', 'config.json'), JSON.stringify({ $entitySet: 'templates', name: 'foo', shortid: 'a' }, null, 4))
     sinon.assert.calledWith(fs.rename, path.join('~foo~foo'), path.join('foo'))
