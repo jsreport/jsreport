@@ -3,6 +3,7 @@ import ShowColor from './ShowColor'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
 const selectValues = (selected) => {
   const tags = selected.map((v) => {
@@ -12,7 +13,7 @@ const selectValues = (selected) => {
   return tags
 }
 
-export default class EntityTagProperties extends Component {
+class EntityTagProperties extends Component {
   static getSelectedTags (entity, entities) {
     const getNameAndColor = (t) => {
       const foundTags = Object.keys(entities).map((k) => entities[k]).filter((tg) => tg.shortid === t.shortid)
@@ -82,9 +83,11 @@ export default class EntityTagProperties extends Component {
         <div className='form-group'>
           <EntityRefSelect
             headingLabel='Select tags'
+            newLabel='New tag for template'
             filter={(references) => ({ tags: references.tags })}
             value={entity.tags ? entity.tags.map((t) => t.shortid) : []}
             onChange={(selected) => onChange({ _id: entity._id, tags: selectValues(selected) })}
+            renderNew={(modalProps) => <sharedComponents.NewTagModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
             multiple
           />
         </div>
@@ -92,3 +95,5 @@ export default class EntityTagProperties extends Component {
     )
   }
 }
+
+export default EntityTagProperties

@@ -2,12 +2,13 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
 const selectValues = (selected) => {
   return selected.map((e) => e._id)
 }
 
-export default class PermissionProperties extends Component {
+class PermissionProperties extends Component {
   componentDidMount () {
     this.removeInvalidUserReferences()
   }
@@ -69,12 +70,14 @@ export default class PermissionProperties extends Component {
           <label>read permissions</label>
           <EntityRefSelect
             headingLabel='Select user (read permissions)'
+            newLabel='New user (read permissions)'
             filter={(references) => {
               const users = references.users.filter((e) => !e.__isNew)
               return { users: users }
             }}
             value={readPermissionsEntities.map((r) => r.shortid)}
             onChange={(selected) => onChange({ _id: entity._id, readPermissions: selectValues(selected) })}
+            renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} />}
             multiple
           />
         </div>
@@ -82,12 +85,14 @@ export default class PermissionProperties extends Component {
           <label>edit permissions</label>
           <EntityRefSelect
             headingLabel='Select user (edit permissions)'
+            newLabel='New user (edit permissions)'
             filter={(references) => {
               const users = references.users.filter((e) => !e.__isNew)
               return { users: users }
             }}
             value={editPermissionsEntities.map((e) => e.shortid)}
             onChange={(selected) => onChange({ _id: entity._id, editPermissions: selectValues(selected) })}
+            renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} />}
             multiple
           />
         </div>
@@ -95,3 +100,5 @@ export default class PermissionProperties extends Component {
     )
   }
 }
+
+export default PermissionProperties

@@ -3,6 +3,7 @@ import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
 const FileInput = Studio.FileInput
+const sharedComponents = Studio.sharedComponents
 
 class ImportFinishedModal extends Component {
   componentDidMount () {
@@ -248,9 +249,9 @@ class ImportModal extends Component {
                 <div style={{ maxHeight: '20rem', overflow: 'auto' }}>
                   <EntityRefSelect
                     noModal
-                    allowNewFolder
                     treeStyle={{ minHeight: 'auto', maxHeight: 'none' }}
                     headingLabel='Select folder'
+                    newLabel='New folder for import'
                     filter={(references) => ({ folders: references.folders })}
                     selectableFilter={(isGroup, entity) => entity.__entitySet === 'folders'}
                     value={this.state.selectedFolderShortid}
@@ -260,6 +261,7 @@ class ImportModal extends Component {
                         selectedFolderShortid: selected.length > 0 ? selected[0].shortid : null
                       })
                     }}
+                    renderNew={(modalProps) => <sharedComponents.NewFolderModal {...modalProps} options={{ ...modalProps.options, entitySet: 'folders' }} />}
                   />
                 </div>
               </div>

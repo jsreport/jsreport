@@ -6,6 +6,7 @@ import AddCoverModal from './AddCoverModal'
 import styles from './PdfUtilsEditor.css'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
 class PdfUtilsEditor extends Component {
   constructor (props) {
@@ -131,12 +132,14 @@ class PdfUtilsEditor extends Component {
         <td style={{ minWidth: '170px' }}>
           <EntityRefSelect
             headingLabel='Select template'
+            newLabel='New template'
             filter={(references) => {
               const templates = references.templates.filter((e) => e.shortid !== entity.shortid && e.recipe.includes('pdf'))
               return { templates: templates }
             }}
             value={operation.templateShortid ? operation.templateShortid : null}
             onChange={(selected) => this.updateOperation(entity, index, { templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null })}
+            renderNew={(modalProps) => <sharedComponents.NewTemplateModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </td>
         <td>
@@ -422,9 +425,11 @@ class PdfUtilsEditor extends Component {
                 <label>Select certificate (asset)</label>
                 <EntityRefSelect
                   headingLabel='Select certificate'
+                  newLabel='New certificate asset'
                   value={pdfSign.certificateAssetShortid || ''}
                   onChange={(selected) => this.updateSign(entity, { certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null })}
                   filter={(references) => ({ data: references.assets })}
+                  renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
                 />
               </div>
               <div className='form-group'>

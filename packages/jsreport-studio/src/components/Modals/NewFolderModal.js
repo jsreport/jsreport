@@ -1,4 +1,4 @@
-/* import PropTypes from 'prop-types' */
+import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { actions as editorActions } from '../../redux/editor'
@@ -6,13 +6,6 @@ import { actions as entitiesActions } from '../../redux/entities'
 import api from '../../helpers/api.js'
 
 class NewFolderModal extends Component {
-  /* TODO
-  static propTypes = {
-    close: PropTypes.func.isRequired,
-    options: PropTypes.object.isRequired
-  }
-  */
-
   constructor (props) {
     super(props)
 
@@ -137,6 +130,11 @@ class NewFolderModal extends Component {
       </div>
     )
   }
+}
+
+NewFolderModal.propTypes = {
+  close: PropTypes.func.isRequired,
+  options: PropTypes.object.isRequired
 }
 
 export default connect(

@@ -72,7 +72,7 @@ class NewEntityModal extends Component {
       entity,
       entitySet: this.props.options.entitySet,
       name
-    })
+    }, this.props.options.activateNewTab)
   }
 
   render () {

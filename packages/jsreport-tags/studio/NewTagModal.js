@@ -58,7 +58,7 @@ class NewTagModal extends Component {
       response.__entitySet = 'tags'
 
       Studio.addExistingEntity(response)
-      Studio.openTab(response)
+      Studio.openTab(response, this.props.options.activateNewTab)
       this.props.close()
     } catch (e) {
       this.setState({

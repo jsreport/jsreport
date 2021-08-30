@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
-export default class NewUserModal extends Component {
+class NewUserModal extends Component {
   constructor () {
     super()
 
@@ -100,3 +100,5 @@ export default class NewUserModal extends Component {
     )
   }
 }
+
+export default NewUserModal

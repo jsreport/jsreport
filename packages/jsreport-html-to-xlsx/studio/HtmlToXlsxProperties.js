@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
 class HtmlToXlsxProperties extends Component {
   static selectXlsxTemplates (entities) {
@@ -148,11 +149,13 @@ class HtmlToXlsxProperties extends Component {
           <label>xlsx asset</label>
           <EntityRefSelect
             headingLabel='Select xlsx template'
+            newLabel='New xlsx asset for template'
             filter={(references) => ({ data: references.assets })}
             value={entity.htmlToXlsx ? entity.htmlToXlsx.templateAssetShortid : null}
             onChange={(selected) => this.changeHtmlToXlsx(this.props, {
               templateAssetShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
             })}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </div>
         <div className='form-group'>

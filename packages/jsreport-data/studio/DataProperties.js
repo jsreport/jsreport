@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
 function selectDataItems (entities) {
   return Object.keys(entities).filter((k) => entities[k].__entitySet === 'data').map((k) => entities[k])
@@ -52,9 +53,11 @@ export default class Properties extends Component {
         <div className='form-group'>
           <EntityRefSelect
             headingLabel='Select data'
+            newLabel='New data for template'
             filter={(references) => ({ data: references.data })}
             value={entity.data ? entity.data.shortid : null}
             onChange={(selected) => onChange({ _id: entity._id, data: selected.length > 0 ? { shortid: selected[0].shortid } : null })}
+            renderNew={(modalProps) => <sharedComponents.NewEntityModal {...modalProps} options={{ ...modalProps.options, entitySet: 'data', activateNewTab: false }} />}
           />
         </div>
       </div>

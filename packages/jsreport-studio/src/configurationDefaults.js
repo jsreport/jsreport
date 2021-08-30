@@ -22,6 +22,7 @@ import LinkModal from './components/Modals/LinkModal'
 import AboutModal from './components/Modals/AboutModal'
 import ThemeModal from './components/Modals/ThemeModal'
 import ApiModal from './components/Modals/ApiModal'
+import NewEntityModal from './components/Modals/NewEntityModal'
 import NewTemplateModal from './components/Modals/NewTemplateModal'
 import NewFolderModal from './components/Modals/NewFolderModal'
 import ConcurrentUpdateErrorModal from './components/Modals/ConcurrentUpdateErrorModal'
@@ -92,6 +93,7 @@ export default () => {
     onNew: (options) => openModal(NewFolderModal, options)
   }
 
+  configuration.sharedComponents.NewEntityModal = NewEntityModal
   configuration.sharedComponents.NewFolderModal = NewFolderModal
 
   // default filter by name strategy

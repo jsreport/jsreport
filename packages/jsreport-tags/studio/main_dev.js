@@ -22,6 +22,8 @@ Studio.addEntitySet({
   entityTreePosition: 300
 })
 
+Studio.sharedComponents.NewTagModal = NewTagModal
+
 // wait for all extensions to be loaded
 Studio.initializeListeners.push(() => {
   // add tags to referenceAttributes in all entities

@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
 class StaticPdfTemplateProperties extends Component {
   static title (entity, entities) {
@@ -75,9 +76,11 @@ class StaticPdfTemplateProperties extends Component {
           <label>Select PDF asset</label>
           <EntityRefSelect
             headingLabel='Select PDF asset'
+            newLabel='New PDF asset for template'
             value={staticPdf.pdfAssetShortid || ''}
             onChange={(selected) => changeStaticPdf(this.props, { pdfAssetShortid: selected.length > 0 ? selected[0].shortid : null })}
             filter={(references) => ({ data: references.assets })}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </div>
       </div>

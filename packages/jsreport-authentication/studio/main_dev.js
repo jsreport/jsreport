@@ -5,6 +5,8 @@ import ChangePasswordButton from './ChangePasswordButton.js'
 import Studio from 'jsreport-studio'
 import NewUserModal from './NewUserModal.js'
 
+Studio.sharedComponents.NewUserModal = NewUserModal
+
 // we want to be at the front, because other extension like scheduling relies on loaded user
 Studio.initializeListeners.unshift(async () => {
   const response = await Studio.api.get('/api/settings')
@@ -24,6 +26,7 @@ Studio.initializeListeners.unshift(async () => {
       onNew: (options) => Studio.openModal(NewUserModal, options),
       entityTreePosition: 200
     })
+
     Studio.addEditorComponent('users', UserEditor)
     Studio.addToolbarComponent(ChangePasswordButton)
   }

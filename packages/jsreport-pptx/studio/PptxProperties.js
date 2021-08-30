@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
-class Properties extends Component {
+class PptxProperties extends Component {
   static selectAssets (entities) {
     return Object.keys(entities).filter((k) => entities[k].__entitySet === 'assets').map((k) => entities[k])
   }
@@ -35,7 +36,7 @@ class Properties extends Component {
       return 'pptx'
     }
 
-    const foundItems = Properties.selectAssets(entities).filter((e) => entity.pptx.templateAssetShortid === e.shortid)
+    const foundItems = PptxProperties.selectAssets(entities).filter((e) => entity.pptx.templateAssetShortid === e.shortid)
 
     if (!foundItems.length) {
       return 'pptx'
@@ -52,9 +53,11 @@ class Properties extends Component {
         <div className='form-group'>
           <EntityRefSelect
             headingLabel='Select pptx template'
+            newLabel='New pptx asset for template'
             value={entity.pptx ? entity.pptx.templateAssetShortid : ''}
             onChange={(selected) => onChange({ _id: entity._id, pptx: selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null })}
             filter={(references) => ({ data: references.assets })}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </div>
       </div>
@@ -62,4 +65,4 @@ class Properties extends Component {
   }
 }
 
-export default Properties
+export default PptxProperties

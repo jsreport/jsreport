@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
-const NewAssetModal = Studio.sharedComponents.NewAssetModal
+const sharedComponents = Studio.sharedComponents
 
 class DocxProperties extends Component {
   static selectAssets (entities) {
@@ -57,7 +57,7 @@ class DocxProperties extends Component {
             value={entity.docx ? entity.docx.templateAssetShortid : ''}
             onChange={(selected) => onChange({ _id: entity._id, docx: selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null })}
             filter={(references) => ({ data: references.assets })}
-            renderNew={(modalProps) => <NewAssetModal {...modalProps} />}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </div>
       </div>

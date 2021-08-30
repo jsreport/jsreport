@@ -20,7 +20,6 @@ class EntityRefSelect extends Component {
     const { onChange } = this.props
 
     const props = {
-      allowNewFolder: this.props.allowNewFolder,
       headingLabel: this.props.headingLabel,
       newLabel: this.props.newLabel,
       filter: this.props.filter,

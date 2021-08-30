@@ -6,8 +6,9 @@ import Studio from 'jsreport-studio'
 import HourTimePicker from './HourTimePicker'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
-export default class ScheduleProperties extends Component {
+class ScheduleProperties extends Component {
   constructor (props) {
     super(props)
 
@@ -511,9 +512,11 @@ export default class ScheduleProperties extends Component {
           <label>Template</label>
           <EntityRefSelect
             headingLabel='Select template'
+            newLabel='New template for schedule'
             filter={(references) => ({ templates: references.templates })}
             value={entity.templateShortid ? entity.templateShortid : null}
             onChange={(selected) => onChange({ _id: entity._id, templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null })}
+            renderNew={(modalProps) => <sharedComponents.NewTemplateModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </div>
         <div className='form-group'>
@@ -636,3 +639,5 @@ export default class ScheduleProperties extends Component {
     )
   }
 }
+
+export default ScheduleProperties

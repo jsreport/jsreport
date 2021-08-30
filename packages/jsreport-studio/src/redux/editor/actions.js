@@ -65,7 +65,7 @@ export function closeTab (id) {
   }
 }
 
-export function openTab (tab) {
+export function openTab (tab, activate = true) {
   return async function (dispatch, getState) {
     if (tab.shortid && !tab._id) {
       try {
@@ -89,11 +89,15 @@ export function openTab (tab) {
       tab: tab
     })
 
-    dispatch(activateTab(tab.key))
+    const shouldActivate = activate == null ? true : activate
+
+    if (shouldActivate) {
+      dispatch(activateTab(tab.key))
+    }
   }
 }
 
-export function openNewTab ({ entitySet, entity, name }) {
+export function openNewTab ({ entitySet, entity, name }, activate = true) {
   const shouldClone = entity != null && entity._id != null
 
   return async function (dispatch, getState) {
@@ -137,6 +141,8 @@ export function openNewTab ({ entitySet, entity, name }) {
 
     dispatch(entities.actions.add(newEntity))
 
+    const shouldActivate = activate == null ? true : activate
+
     dispatch({
       type: ActionTypes.OPEN_NEW_TAB,
       tab: {
@@ -144,7 +150,8 @@ export function openNewTab ({ entitySet, entity, name }) {
         key: id,
         entitySet: entitySet,
         type: 'entity'
-      }
+      },
+      activateTab: shouldActivate
     })
 
     return newEntity

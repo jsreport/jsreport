@@ -454,8 +454,8 @@ class Studio {
    *
    * @param {Object} tab
    */
-  openTab (tab) {
-    return this.store.dispatch(editor.actions.openTab(tab))
+  openTab (tab, activate = true) {
+    return this.store.dispatch(editor.actions.openTab(tab, activate))
   }
 
   /**
@@ -467,8 +467,8 @@ class Studio {
    *
    * @param {Object} tab
    */
-  openNewTab (tab) {
-    return this.store.dispatch(editor.actions.openNewTab(tab))
+  openNewTab (tab, activate = true) {
+    return this.store.dispatch(editor.actions.openNewTab(tab, activate))
   }
 
   /**

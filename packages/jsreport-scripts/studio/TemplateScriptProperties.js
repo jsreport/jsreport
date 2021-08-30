@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
-export default class TemplateScriptProperties extends Component {
+class TemplateScriptProperties extends Component {
   static getSelectedScripts (entity, entities) {
     const getName = (s) => {
       const foundScripts = Object.keys(entities).map((k) => entities[k]).filter((sc) => sc.shortid === s.shortid)
@@ -63,12 +64,14 @@ export default class TemplateScriptProperties extends Component {
         <div className='form-group'>
           <EntityRefSelect
             headingLabel='Select script'
+            newLabel='New script for template'
             filter={(references) => {
               const scripts = references.scripts.filter((e) => !e.isGlobal)
               return { scripts: scripts }
             }}
             value={entity.scripts ? entity.scripts.map((s) => s.shortid) : []}
             onChange={(selected) => onChange({ _id: entity._id, scripts: selected.map((s) => ({ shortid: s.shortid })) })}
+            renderNew={(modalProps) => <sharedComponents.NewEntityModal {...modalProps} options={{ ...modalProps.options, entitySet: 'scripts', activateNewTab: false }} />}
             multiple
           />
           {(entity.scripts && entity.scripts.length) ? <div><span>Run order:</span>{this.renderOrder()}</div> : <div />}
@@ -77,3 +80,5 @@ export default class TemplateScriptProperties extends Component {
     )
   }
 }
+
+export default TemplateScriptProperties

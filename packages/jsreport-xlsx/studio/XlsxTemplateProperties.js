@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 const EntityRefSelect = Studio.EntityRefSelect
+const sharedComponents = Studio.sharedComponents
 
-export default class XlsxTemplateProperties extends Component {
+class XlsxTemplateProperties extends Component {
   static selectItems (entities) {
     return Object.keys(entities).filter((k) => entities[k].__entitySet === 'xlsxTemplates').map((k) => entities[k])
   }
@@ -88,13 +89,15 @@ export default class XlsxTemplateProperties extends Component {
         <div className='form-group'>
           <label>xlsx asset</label>
           <EntityRefSelect
-            headingLabel='Select docx template'
+            headingLabel='Select xlsx template'
+            newLabel='New xlsx asset for template'
             value={entity.xlsx ? entity.xlsx.templateAssetShortid : ''}
             onChange={(selected) => onChange({
               _id: entity._id,
               xlsx: selected != null && selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null
             })}
             filter={(references) => ({ assets: references.assets })}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
           />
         </div>
         <div className='form-group'>
@@ -113,3 +116,5 @@ export default class XlsxTemplateProperties extends Component {
     )
   }
 }
+
+export default XlsxTemplateProperties
