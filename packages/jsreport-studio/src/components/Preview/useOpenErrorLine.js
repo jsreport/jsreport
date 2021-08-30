@@ -23,7 +23,7 @@ function useOpenErrorLine () {
         const entityEditor = findTextEditor(error.property === 'content' ? entity._id : `${entity._id}_helpers`)
 
         if (entityEditor != null && contentIsTheSame) {
-          selectLineInTextEditor(entityEditor, { lineNumber: error.lineNumber })
+          selectLineInTextEditor(entityEditor, { lineNumber: error.lineNumber, error: true })
         }
       }, 300)
     })

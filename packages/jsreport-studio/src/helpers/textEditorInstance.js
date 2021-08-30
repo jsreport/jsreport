@@ -10,17 +10,24 @@ function findTextEditor (name) {
   return found.instance
 }
 
-function selectLine (textEditor, { lineNumber }) {
+function selectLine (textEditor, { lineNumber, error }) {
   textEditor.revealLineInCenter(lineNumber)
 
   const lineContent = textEditor.getModel().getLineContent(lineNumber)
 
-  textEditor.setSelection({
+  const range = {
     startLineNumber: lineNumber,
     endLineNumber: lineNumber,
     startColumn: 1,
     endColumn: lineContent.length + 1
-  })
+  }
+  textEditor.setSelection(range)
+  if (error) {
+    const identifiers = textEditor.deltaDecorations([], [
+      { range, options: { inlineClassName: 'errorLineDecoration' } }
+    ])
+    setTimeout(() => textEditor.deltaDecorations(identifiers, []), 3100)
+  }
 }
 
 export { findTextEditor, selectLine }
