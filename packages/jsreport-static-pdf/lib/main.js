@@ -5,4 +5,8 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.documentStore.model.entityTypes.TemplateType.staticPdf = { type: 'jsreport.StaticPdfTemplateType' }
+
+  reporter.extensionsManager.recipes.push({
+    name: 'static-pdf'
+  })
 }
