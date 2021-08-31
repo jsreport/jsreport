@@ -24,7 +24,7 @@ class Profiler extends Component {
   }
 
   async loadProfiles () {
-    const response = await api.get('/odata/profiles?$orderby=timestamp desc')
+    const response = await api.get('/odata/profiles?$top=1000&$orderby=timestamp desc')
     this.setState({
       profiles: response.value.map(p => {
         let template = storeMethods.getEntityByShortid(p.templateShortid, false)
