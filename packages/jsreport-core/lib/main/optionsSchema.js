@@ -53,9 +53,10 @@ module.exports.getRootSchemaOptions = () => ({
       default: 60000
     },
     reportTimeoutMargin: {
-      type: 'number',
+      type: ['string', 'number'],
       description: 'the time to wait before the worker thread is forcibly  killed after timeout',
-      default: 1000
+      '$jsreport-acceptsDuration': true,
+      default: '1s'
     },
     enableRequestReportTimeout: { type: 'boolean', default: false, description: 'option that enables passing a custom report timeout per request using req.options.timeout. this enables that the caller of the report generation control the report timeout so enable it only when you trust the caller' },
     allowLocalFilesAccess: { type: 'boolean', default: false },
@@ -97,10 +98,22 @@ module.exports.getRootSchemaOptions = () => ({
     },
     workers: {
       type: 'object',
+      default: {},
       properties: {
-        numberOfWorkers: { type: 'number', default: 2 },
+        numberOfWorkers: {
+          type: 'number',
+          default: 2,
+          description: 'Number of workers allocated. Every worker can process a single request in parallel. This means increasing numberOfWorkers will increase the parallelization.'
+        },
+        initTimeout: {
+          type: ['string', 'number'],
+          '$jsreport-acceptsDuration': true,
+          description: 'Timeout for initializing a worker thread. This should be increased only when running at very slow HW environment.',
+          default: '30s'
+        },
         resourceLimits: {
           type: 'object',
+          description: 'Limits for the individual workers. See https://nodejs.org/api/worker_threads.html#worker_threads_worker_resourcelimits',
           properties: {
             maxOldGenerationSizeMb: { type: 'number' },
             maxYoungGenerationSizeMb: { type: 'number' },

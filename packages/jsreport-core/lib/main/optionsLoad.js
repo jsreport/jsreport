@@ -82,9 +82,6 @@ async function optionsLoad ({
   options.sandbox.modules = options.sandbox.modules || []
   options.sandbox.allowedModules = options.sandbox.allowedModules || []
 
-  options.workers = options.workers || {}
-  options.workers.numberOfWorkers = options.workers.numberOfWorkers || 2
-
   if (!fs.existsSync(options.tempDirectory)) {
     fs.mkdirSync(options.tempDirectory, { recursive: true })
   }

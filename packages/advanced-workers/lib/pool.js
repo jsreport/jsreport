@@ -13,7 +13,7 @@ module.exports = ({
       for (let i = 0; i < numberOfWorkers; i++) {
         workersCreateFn.push(async () => {
           const worker = createWorker()
-          await worker.init({ timeout: initTimeout })
+          await worker.init()
           this.workers.push(worker)
         })
       }

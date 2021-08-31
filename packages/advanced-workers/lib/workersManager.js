@@ -7,7 +7,8 @@ const pool = require('./pool')
 module.exports = (userOptions, {
   workerModule,
   numberOfWorkers,
-  resourceLimits
+  resourceLimits,
+  initTimeout
 }) => {
   function createWorker () {
     const worker = new Worker(path.join(__dirname, 'workerHandler.js'), {
@@ -21,18 +22,17 @@ module.exports = (userOptions, {
     })
 
     return ThreadWorker({
-      worker
+      worker,
+      initTimeout
     })
   }
 
   return {
-    async init ({
-      timeout = 0
-    } = { }) {
+    async init () {
       this.pool = pool({
-        createWorker: () => createWorker({ timeout: this.initTimeout }),
+        createWorker: () => createWorker(),
         numberOfWorkers,
-        initTimeout: timeout
+        initTimeout
       })
       return this.pool.init()
     },
