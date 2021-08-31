@@ -309,7 +309,8 @@ class MainReporter extends Reporter {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
     }
 
-    req.context = req.context || {}
+    req = Object.assign({}, req)
+    req.context = Object.assign({}, req.context)
     req.context.rootId = req.context.rootId || generateRequestId()
     req.context.id = req.context.rootId
 
