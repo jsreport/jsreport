@@ -57,7 +57,7 @@ class DocxProperties extends Component {
             value={entity.docx ? entity.docx.templateAssetShortid : ''}
             onChange={(selected) => onChange({ _id: entity._id, docx: selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null })}
             filter={(references) => ({ data: references.assets })}
-            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
           />
         </div>
       </div>

@@ -77,6 +77,10 @@ class NewFolderModal extends Component {
 
     this.props.addExisting(response)
 
+    if (this.props.options.onNewEntity) {
+      this.props.options.onNewEntity(response)
+    }
+
     if (isCloning) {
       try {
         await this.props.hierarchyMove({

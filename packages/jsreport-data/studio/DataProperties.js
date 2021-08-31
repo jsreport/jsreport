@@ -57,7 +57,7 @@ export default class Properties extends Component {
             filter={(references) => ({ data: references.data })}
             value={entity.data ? entity.data.shortid : null}
             onChange={(selected) => onChange({ _id: entity._id, data: selected.length > 0 ? { shortid: selected[0].shortid } : null })}
-            renderNew={(modalProps) => <sharedComponents.NewEntityModal {...modalProps} options={{ ...modalProps.options, entitySet: 'data', activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewEntityModal {...modalProps} options={{ ...modalProps.options, entitySet: 'data', defaults: { folder: entity.folder }, activateNewTab: false }} />}
           />
         </div>
       </div>

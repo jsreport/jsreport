@@ -87,7 +87,7 @@ class EntityTagProperties extends Component {
             filter={(references) => ({ tags: references.tags })}
             value={entity.tags ? entity.tags.map((t) => t.shortid) : []}
             onChange={(selected) => onChange({ _id: entity._id, tags: selectValues(selected) })}
-            renderNew={(modalProps) => <sharedComponents.NewTagModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewTagModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
             multiple
           />
         </div>

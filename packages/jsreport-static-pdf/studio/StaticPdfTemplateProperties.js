@@ -80,7 +80,7 @@ class StaticPdfTemplateProperties extends Component {
             value={staticPdf.pdfAssetShortid || ''}
             onChange={(selected) => changeStaticPdf(this.props, { pdfAssetShortid: selected.length > 0 ? selected[0].shortid : null })}
             filter={(references) => ({ data: references.assets })}
-            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
           />
         </div>
       </div>

@@ -66,13 +66,17 @@ class NewEntityModal extends Component {
       processing: false
     })
 
-    this.props.close()
-
-    this.props.openNewTab({
+    const newEntity = await this.props.openNewTab({
       entity,
       entitySet: this.props.options.entitySet,
       name
     }, this.props.options.activateNewTab)
+
+    if (this.props.options.onNewEntity) {
+      this.props.options.onNewEntity(newEntity)
+    }
+
+    this.props.close()
   }
 
   render () {

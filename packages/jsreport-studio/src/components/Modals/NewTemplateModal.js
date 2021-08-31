@@ -154,8 +154,6 @@ class NewTemplateModal extends Component {
       }
     }
 
-    this.props.close()
-
     if (creatingOfficeTemplate && newOfficeTemplate) {
       template[getOfficeAttributeForRecipe(template.recipe).attrName] = {
         [getOfficeAttributeForRecipe(template.recipe).shortidAttrName]: newOfficeTemplate.shortid
@@ -174,11 +172,17 @@ class NewTemplateModal extends Component {
       template.data = { shortid: newData.shortid }
     }
 
-    this.props.openNewTab({
+    const newEntity = await this.props.openNewTab({
       entity: template,
       entitySet: 'templates',
       name: template.name
     }, this.props.options.activateNewTab)
+
+    if (this.props.options.onNewEntity) {
+      this.props.options.onNewEntity(newEntity)
+    }
+
+    this.props.close()
   }
 
   render () {

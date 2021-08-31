@@ -53,6 +53,11 @@ class NewAssetModal extends Component {
 
       Studio.addExistingEntity(response)
       Studio.openTab(response, this.props.options.activateNewTab)
+
+      if (this.props.options.onNewEntity) {
+        this.props.options.onNewEntity(response)
+      }
+
       this.props.close()
     } catch (e) {
       this.setState({ error: e.message })
@@ -114,7 +119,13 @@ class NewAssetModal extends Component {
         <div className='button-bar'>
           <button
             className='button confirmation'
-            onClick={() => { this.props.close(); AssetUploadButton.OpenUploadNew(this.props.options.defaults, { activateNewTab: this.props.options.activateNewTab }) }}
+            onClick={() => {
+              this.props.close()
+              AssetUploadButton.OpenUploadNew(this.props.options.defaults, {
+                activateNewTab: this.props.options.activateNewTab,
+                onNewEntityCallback: this.props.options.onNewEntity
+              })
+            }}
           >Upload
           </button>
           <button onClick={() => this.createAsset()} className='button confirmation'>Ok</button>

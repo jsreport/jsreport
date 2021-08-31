@@ -71,7 +71,7 @@ class TemplateScriptProperties extends Component {
             }}
             value={entity.scripts ? entity.scripts.map((s) => s.shortid) : []}
             onChange={(selected) => onChange({ _id: entity._id, scripts: selected.map((s) => ({ shortid: s.shortid })) })}
-            renderNew={(modalProps) => <sharedComponents.NewEntityModal {...modalProps} options={{ ...modalProps.options, entitySet: 'scripts', activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewEntityModal {...modalProps} options={{ ...modalProps.options, entitySet: 'scripts', defaults: { folder: entity.folder }, activateNewTab: false }} />}
             multiple
           />
           {(entity.scripts && entity.scripts.length) ? <div><span>Run order:</span>{this.renderOrder()}</div> : <div />}
