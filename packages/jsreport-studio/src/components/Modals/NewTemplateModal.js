@@ -18,6 +18,7 @@ class NewTemplateModal extends Component {
     }
 
     this.handleTemplateWizardChange = this.handleTemplateWizardChange.bind(this)
+    this.handleTemplateWizardValidation = this.handleTemplateWizardValidation.bind(this)
     this.handleTemplateSave = this.handleTemplateSave.bind(this)
   }
 
@@ -43,31 +44,29 @@ class NewTemplateModal extends Component {
     }
   }
 
-  async handleTemplateSave (template, setProcessing) {
-    this.setState({
-      error: null
-    })
-
-    setProcessing(true)
-
-    try {
-      await api.post('/studio/validate-entity-name', {
+  handleTemplateWizardValidation (activeStep, template) {
+    if (activeStep === 'basic') {
+      return api.post('/studio/validate-entity-name', {
         data: {
           _id: this.props.options.cloning === true ? undefined : template._id,
           name: template.name,
           entitySet: 'templates',
           folderShortid: template.folder != null ? template.folder.shortid : null
         }
+      }).then(() => {
+        this.setState({
+          error: null
+        })
       })
-    } catch (e) {
-      setProcessing(false)
-
-      this.setState({
-        error: `Template validation error: ${e.message}`
-      })
-
-      return
     }
+  }
+
+  async handleTemplateSave (template, setProcessing) {
+    this.setState({
+      error: null
+    })
+
+    setProcessing(true)
 
     const creatingData = (
       template.data &&
@@ -197,6 +196,8 @@ class NewTemplateModal extends Component {
         <TemplateWizard
           defaults={this.getDefaultsForTemplate()}
           onChange={this.handleTemplateWizardChange}
+          onValidate={this.handleTemplateWizardValidation}
+          onError={(e) => this.setState({ error: `Template validation error: ${e.message}` })}
           onSave={this.handleTemplateSave}
         />
       </div>
