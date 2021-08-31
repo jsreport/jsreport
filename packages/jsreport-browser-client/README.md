@@ -5,7 +5,7 @@
 
 The html output is then extended with [jsreport](http://jsreport.net/learn/browser-client) global object. That can be used to invoke jsreport server rendering directly from the output report.
 
-See the [jsreport-browser-client-dist](http://jsreport.net/learn/browser-client) for API documentation.
+See the [browser-client](http://jsreport.net/learn/browser-client) for API documentation.
 
 
 ## Export part of the report to PDF

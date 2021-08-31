@@ -28,7 +28,7 @@
     "test": "standard"
   },
   "dependencies": {
-    "@jsreport/jsreport-browser-client-dist": "3.0.0-beta.1"
+    "@jsreport/browser-client": "3.0.0-beta.1"
   },
   "devDependencies": {
     "@jsreport/studio-dev": "3.0.0-beta.2",

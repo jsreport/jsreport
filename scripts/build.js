@@ -4,7 +4,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-assets',
   '@jsreport/jsreport-authentication',
   '@jsreport/jsreport-authorization',
-  '@jsreport/jsreport-browser-client-dist',
+  '@jsreport/browser-client',
   '@jsreport/jsreport-browser-client',
   '@jsreport/jsreport-chrome-pdf',
   '@jsreport/jsreport-components',

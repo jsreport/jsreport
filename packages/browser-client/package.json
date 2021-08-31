@@ -1,11 +1,11 @@
 {
-  "name": "@jsreport/jsreport-browser-client-dist",
+  "name": "@jsreport/browser-client",
   "version": "3.0.0-beta.1",
   "description": "jsreport browser client standalone distribution",
   "keywords": [
     "jsreport"
   ],
-  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-browser-client-dist",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/browser-client",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/jsreport/jsreport.git"
