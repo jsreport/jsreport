@@ -221,7 +221,7 @@ class MainReporter extends Reporter {
       }
 
       const workersManagerSystemOptions = {
-        numberOfWorkers: 1,
+        numberOfWorkers: this.options.workers.numberOfWorkers,
         workerModule: path.join(__dirname, '../worker', 'workerHandler.js'),
         resourceLimits: this.options.workers.resourceLimits
       }
