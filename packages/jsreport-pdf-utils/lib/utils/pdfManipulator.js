@@ -5,6 +5,7 @@ const addPages = require('./addPages')
 const { addSignaturePlaceholder, sign } = require('./sign')
 const processText = require('./processText')
 const pdfjs = require('jsreport-pdfjs')
+const PDF = require('jsreport-pdfjs/lib/object')
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
   let currentBuffer = contentBuffer
@@ -101,6 +102,12 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
         doc.info.Keywords = pdfMeta.keywords
         doc.info.Creator = pdfMeta.creator
         doc.info.Producer = pdfMeta.producer
+
+        if (pdfMeta.language) {
+          doc._finalizeCatalog.push(() => {
+            doc._catalog.prop('Lang', new PDF.String(pdfMeta.language))
+          })
+        }
       }
 
       if (outlines) {

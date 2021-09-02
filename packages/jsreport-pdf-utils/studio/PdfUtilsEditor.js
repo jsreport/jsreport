@@ -290,6 +290,10 @@ class PdfUtilsEditor extends Component {
                 <label>Producer</label>
                 <input type='text' value={pdfMeta.producer || ''} onChange={(v) => this.updateMeta(entity, { producer: v.target.value })} />
               </div>
+              <div className='form-group'>
+                <label>Language</label>
+                <input type='text' value={pdfMeta.language || ''} onChange={(v) => this.updateMeta(entity, { language: v.target.value })} />
+              </div>
             </div>
           </div>
           <div className={`${styles.tabPanel} ${activeTab === 'password' ? styles.active : ''}`}>

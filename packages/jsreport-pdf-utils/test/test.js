@@ -1463,7 +1463,8 @@ describe('pdf utils', () => {
           subject: 'Foo-subject',
           keywords: 'Foo-keywords',
           creator: 'Foo-creator',
-          producer: 'Foo-producer'
+          producer: 'Foo-producer',
+          language: 'cz-CZ'
         }
       }
     })
@@ -1475,6 +1476,7 @@ describe('pdf utils', () => {
       .and.containEql('Foo-keywords')
       .and.containEql('Foo-creator')
       .and.containEql('Foo-producer')
+      .and.containEql('cz-CZ')
   })
 
   it('pdfSign should sign output pdf', async () => {

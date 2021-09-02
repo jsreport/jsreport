@@ -284,16 +284,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Properties = function (_Component) {
-  _inherits(Properties, _Component);
+var TemplatePdfUtilsProperties = function (_Component) {
+  _inherits(TemplatePdfUtilsProperties, _Component);
 
-  function Properties() {
-    _classCallCheck(this, Properties);
+  function TemplatePdfUtilsProperties() {
+    _classCallCheck(this, TemplatePdfUtilsProperties);
 
-    return _possibleConstructorReturn(this, (Properties.__proto__ || Object.getPrototypeOf(Properties)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (TemplatePdfUtilsProperties.__proto__ || Object.getPrototypeOf(TemplatePdfUtilsProperties)).apply(this, arguments));
   }
 
-  _createClass(Properties, [{
+  _createClass(TemplatePdfUtilsProperties, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
       this.removeInvalidTemplateReferences();
@@ -450,10 +450,10 @@ var Properties = function (_Component) {
     }
   }]);
 
-  return Properties;
+  return TemplatePdfUtilsProperties;
 }(_react.Component);
 
-exports.default = Properties;
+exports.default = TemplatePdfUtilsProperties;
 
 /***/ }),
 /* 6 */
@@ -530,6 +530,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
 var PdfUtilsEditor = function (_Component) {
   _inherits(PdfUtilsEditor, _Component);
@@ -691,6 +692,7 @@ var PdfUtilsEditor = function (_Component) {
           { style: { minWidth: '170px' } },
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select template',
+            newLabel: 'New template',
             filter: function filter(references) {
               var templates = references.templates.filter(function (e) {
                 return e.shortid !== entity.shortid && e.recipe.includes('pdf');
@@ -700,6 +702,9 @@ var PdfUtilsEditor = function (_Component) {
             value: operation.templateShortid ? operation.templateShortid : null,
             onChange: function onChange(selected) {
               return _this2.updateOperation(entity, index, { templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null });
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewTemplateModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
             }
           })
         ),
@@ -1069,6 +1074,18 @@ var PdfUtilsEditor = function (_Component) {
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.producer || '', onChange: function onChange(v) {
                     return _this4.updateMeta(entity, { producer: v.target.value });
                   } })
+              ),
+              _react2.default.createElement(
+                'div',
+                { className: 'form-group' },
+                _react2.default.createElement(
+                  'label',
+                  null,
+                  'Language'
+                ),
+                _react2.default.createElement('input', { type: 'text', value: pdfMeta.language || '', onChange: function onChange(v) {
+                    return _this4.updateMeta(entity, { language: v.target.value });
+                  } })
               )
             )
           ),
@@ -1316,12 +1333,16 @@ var PdfUtilsEditor = function (_Component) {
                 ),
                 _react2.default.createElement(EntityRefSelect, {
                   headingLabel: 'Select certificate',
+                  newLabel: 'New certificate asset',
                   value: pdfSign.certificateAssetShortid || '',
                   onChange: function onChange(selected) {
                     return _this4.updateSign(entity, { certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null });
                   },
                   filter: function filter(references) {
                     return { data: references.assets };
+                  },
+                  renderNew: function renderNew(modalProps) {
+                    return _react2.default.createElement(sharedComponents.NewAssetModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
                   }
                 })
               ),

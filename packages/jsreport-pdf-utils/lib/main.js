@@ -18,7 +18,8 @@ module.exports = (reporter, definition) => {
     subject: { type: 'Edm.String' },
     keywords: { type: 'Edm.String' },
     creator: { type: 'Edm.String' },
-    producer: { type: 'Edm.String' }
+    producer: { type: 'Edm.String' },
+    language: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerComplexType('PdfPasswordType', {
