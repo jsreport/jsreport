@@ -476,19 +476,30 @@ function common (strategy, imageExecution) {
           <h1 id='data'>data:</h1>
           <h1 id='options'>options:</h1>
           <script>
-            const contextEl = document.getElementById('context')
-            contextEl.textContent += ' ' + JSON.stringify({ id: jsreport.req.context.id })
+            async function main () {
+              const req = await window.jsreport.getRequest()
 
-            const templateEl = document.getElementById('template')
-            templateEl.textContent += ' ' + JSON.stringify({ recipe: jsreport.req.template.recipe, engine: jsreport.req.template.engine })
+              const contextEl = document.getElementById('context')
+              contextEl.textContent += ' ' + JSON.stringify({ id: req.context.id })
 
-            const dataEl = document.getElementById('data')
-            dataEl.textContent += ' ' + JSON.stringify({ foo: jsreport.req.data.foo })
+              const templateEl = document.getElementById('template')
+              templateEl.textContent += ' ' + JSON.stringify({ recipe: req.template.recipe, engine: req.template.engine })
 
-            const optionsEl = document.getElementById('options')
-            optionsEl.textContent += ' ' + JSON.stringify(jsreport.req.options)
+              const dataEl = document.getElementById('data')
+              dataEl.textContent += ' ' + JSON.stringify({ foo: req.data.foo })
+
+              const optionsEl = document.getElementById('options')
+              optionsEl.textContent += ' ' + JSON.stringify(req.options)
+
+              window.JSREPORT_READY_TO_START = true
+            }
+
+            main()
           </script>
         `,
+        chrome: {
+          waitForJS: true
+        },
         recipe,
         engine: 'none'
       },
@@ -511,6 +522,60 @@ function common (strategy, imageExecution) {
       parsed.pages[0].text.should.containEql(`template: ${JSON.stringify({ recipe: request.template.recipe, engine: request.template.engine })}`)
       parsed.pages[0].text.should.containEql(`data: ${JSON.stringify({ foo: request.data.foo })}`)
       parsed.pages[0].text.should.containEql(`options: ${JSON.stringify(request.options)}`)
+    }
+  })
+
+  it('should allow read partial request information using jsreport api from browser page context', async () => {
+    const request = {
+      context: {
+        rootId: 'id'
+      },
+      template: {
+        content: `
+          <h1 id='debug'></h1>
+          <script>
+            async function main () {
+              const id = await window.jsreport.getRequest('context.id')
+              const recipe = await window.jsreport.getRequest('template.recipe')
+              const foo = await window.jsreport.getRequest('data.foo')
+              const reportName = await window.jsreport.getRequest('options.reportName')
+
+              const debugEl = document.getElementById('debug')
+              debugEl.textContent = JSON.stringify({ id, recipe, foo, reportName })
+
+              window.JSREPORT_READY_TO_START = true
+            }
+
+            main()
+          </script>
+        `,
+        chrome: {
+          waitForJS: true
+        },
+        recipe,
+        engine: 'none'
+      },
+      data: {
+        foo: 'bar'
+      },
+      options: {
+        reportName: 'testing'
+      }
+    }
+
+    const res = await reporter.render(request)
+
+    if (imageExecution) {
+      res.meta.contentType.should.be.eql('image/png')
+    } else {
+      const parsed = await parsePdf(res.content)
+
+      parsed.pages[0].text.should.containEql(`${JSON.stringify({
+        id: request.context.rootId,
+        recipe: request.template.recipe,
+        foo: request.data.foo,
+        reportName: request.options.reportName
+      })}`)
     }
   })
 }

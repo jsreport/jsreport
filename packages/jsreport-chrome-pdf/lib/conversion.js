@@ -1,3 +1,5 @@
+const get = require('lodash.get')
+const hasOwn = require('has-own-deep')
 
 module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req, imageExecution, allowLocalFilesAccess, options }) => {
   const optionsToUse = Object.assign({}, options)
@@ -132,32 +134,41 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     // but additionally setting it more generally in the page
     page.setDefaultTimeout(timeout == null ? 0 : timeout)
 
-    const getRequestContextForBrowser = ({ id, rootId, currentFolderPath, http, originalInputDataIsEmpty, renderHierarchy, reportCounter, startTimestamp }) => ({
-      id,
-      rootId,
-      currentFolderPath,
-      http,
-      originalInputDataIsEmpty,
-      renderHierarchy,
-      reportCounter,
-      startTimestamp
+    await page.exposeFunction('__getJsreportRequest__', (prop) => {
+      const getRequestContextForBrowser = ({ id, rootId, currentFolderPath, http, originalInputDataIsEmpty, renderHierarchy, reportCounter, startTimestamp }) => ({
+        id,
+        rootId,
+        currentFolderPath,
+        http,
+        originalInputDataIsEmpty,
+        renderHierarchy,
+        reportCounter,
+        startTimestamp
+      })
+
+      const exposedReq = {
+        context: getRequestContextForBrowser(req.context),
+        template: req.template,
+        data: req.data,
+        options: req.options
+      }
+
+      if (prop == null) {
+        return exposedReq
+      }
+
+      if (hasOwn(exposedReq, prop)) {
+        return get(exposedReq, prop)
+      }
+
+      return null
     })
 
     // inject jsreport-proxy browser api
-    await page.evaluateOnNewDocument(({ context, template, data, options }) => {
+    await page.evaluateOnNewDocument(() => {
       window.jsreport = {
-        req: {
-          context,
-          template,
-          data,
-          options
-        }
+        getRequest: window.__getJsreportRequest__
       }
-    }, {
-      context: getRequestContextForBrowser(req.context),
-      template: req.template,
-      data: req.data,
-      options: req.options
     })
 
     if (executionInfo.error) {
