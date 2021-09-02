@@ -7,7 +7,7 @@ import OfficeTemplateStep, { officeRecipes } from './OfficeTemplateStep'
 import { extensions } from '../../lib/configuration'
 
 function TemplateWizard (props) {
-  const { onChange, onSave } = props
+  const { onChange, onValidate, onError, onSave } = props
   const isFirstRender = useRef(true)
   const [templateAttributes, setTemplateAttributes] = useState({ ...props.defaults })
   const [activeStep, setActiveStep] = useState('basic')
@@ -61,12 +61,38 @@ function TemplateWizard (props) {
   const setNext = useCallback(() => {
     const lastStepIndex = steps.length - 1
 
-    if (activeStepIndex === lastStepIndex) {
-      return doSave()
+    const continueToNext = () => {
+      if (activeStepIndex === lastStepIndex) {
+        return doSave()
+      }
+
+      setActiveStep(steps[activeStepIndex + 1].name)
     }
 
-    setActiveStep(steps[activeStepIndex + 1].name)
-  }, [steps, activeStepIndex, doSave])
+    if (onValidate) {
+      try {
+        const validateResult = onValidate(activeStep, templateAttributes)
+
+        if (validateResult != null && typeof validateResult.then === 'function') {
+          setProcessing(true)
+
+          validateResult.then(() => {
+            setProcessing(false)
+            continueToNext()
+          }).catch((asyncValidateError) => {
+            setProcessing(false)
+            onError(asyncValidateError)
+          })
+        } else {
+          continueToNext()
+        }
+      } catch (validateError) {
+        onError(validateError)
+      }
+    } else {
+      continueToNext()
+    }
+  }, [steps, activeStep, activeStepIndex, templateAttributes, onValidate, onError, doSave])
 
   const onPrevious = useCallback(() => {
     setPrevious()

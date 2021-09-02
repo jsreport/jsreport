@@ -1,8 +1,11 @@
-import { useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import shortid from 'shortid'
 import EntityRefSelect from '../common/EntityRefSelect'
 
 function SampleDataStep (props) {
   const { template, setAttributes, setNext, processing } = props
+  const [entityRefControlKey, setEntityRefControlKey] = useState(() => shortid.generate())
+  const mountedRef = useRef(false)
   const nameInputRef = useRef(null)
 
   let activeMode = 'new'
@@ -17,9 +20,7 @@ function SampleDataStep (props) {
     }
   }, [setNext])
 
-  const onModeChange = useCallback((ev) => {
-    const newMode = ev.target.value
-
+  const updateMode = useCallback(function updateMode (newMode) {
     if (newMode === 'new') {
       setAttributes({ data: null })
     } else if (newMode === 'existing') {
@@ -27,9 +28,23 @@ function SampleDataStep (props) {
     }
   }, [setAttributes])
 
+  const onModeChange = useCallback((ev) => {
+    const newMode = ev.target.value
+    updateMode(newMode)
+  }, [updateMode])
+
   useEffect(() => {
     if (activeMode === 'new') {
       nameInputRef.current && nameInputRef.current.focus()
+    }
+
+    // reset entity ref control state
+    if (activeMode === 'new' && mountedRef.current) {
+      setEntityRefControlKey(shortid.generate())
+    }
+
+    if (!mountedRef.current) {
+      mountedRef.current = true
     }
   }, [activeMode])
 
@@ -53,8 +68,8 @@ function SampleDataStep (props) {
           type='text'
           placeholder='name...'
           value={template.data != null && template.data.name != null ? template.data.name : ''}
-          disabled={activeMode !== 'new'}
           onKeyPress={onKeyPress}
+          onFocus={() => { activeMode !== 'new' && updateMode('new') }}
           onChange={(ev) => setAttributes({ data: { name: ev.target.value } })}
         />
       </div>
@@ -71,13 +86,13 @@ function SampleDataStep (props) {
           <span style={{ verticalAlign: 'middle' }}>Select existing</span>
         </label>
         <div style={{ border: '1px dashed black', padding: '0.6rem' }}>
-          <div style={{ maxHeight: '20rem', overflow: 'auto' }}>
+          <div onClickCapture={() => { activeMode !== 'existing' && updateMode('existing') }} style={{ maxHeight: '20rem', overflow: 'auto' }}>
             <EntityRefSelect
+              key={entityRefControlKey}
               noModal
               treeStyle={{ minHeight: 'auto', maxHeight: 'none' }}
               headingLabel='Select data'
               filter={(references) => ({ data: references.data })}
-              disabled={activeMode !== 'existing'}
               value={template.data && template.data.shortid != null ? template.data.shortid : null}
               onChange={(selected) => {
                 setAttributes({ data: selected.length > 0 ? { shortid: selected[0].shortid } : {} })

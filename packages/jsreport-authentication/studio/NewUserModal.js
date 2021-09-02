@@ -48,6 +48,11 @@ class NewUserModal extends Component {
       response.__entitySet = 'users'
 
       Studio.addExistingEntity(response)
+
+      if (this.props.options.onNewEntity) {
+        this.props.options.onNewEntity(response)
+      }
+
       this.props.close()
     } catch (e) {
       this.setState({ apiError: e.message })

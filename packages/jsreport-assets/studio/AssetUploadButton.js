@@ -32,6 +32,7 @@ class AssetUploadButton extends Component {
     const assetDefaults = e.target.assetDefaults
     const targetAsset = e.target.targetAsset
     const activateNewTab = e.target.activateNewTab
+    const onNewEntityCallback = e.target.onNewEntityCallback
     const uploadCallback = e.target.uploadCallback
 
     delete e.target.assetDefaults
@@ -68,6 +69,10 @@ class AssetUploadButton extends Component {
 
         Studio.addExistingEntity(response)
         Studio.openTab(Object.assign({}, response), activateNewTab)
+
+        if (onNewEntityCallback) {
+          onNewEntityCallback(response)
+        }
       }
 
       if (this.type === 'edit') {
@@ -112,7 +117,11 @@ class AssetUploadButton extends Component {
 
     this.type = type
 
-    this.inputFileRef.current.activateNewTab = opts.activateNewTab
+    if (opts.activateNewTab != null) {
+      this.inputFileRef.current.activateNewTab = opts.activateNewTab
+    } else {
+      delete this.inputFileRef.current.activateNewTab
+    }
 
     if (defaults) {
       this.inputFileRef.current.assetDefaults = defaults
@@ -127,6 +136,12 @@ class AssetUploadButton extends Component {
         _id: this.props.tab.entity._id,
         name: this.props.tab.entity.name
       }
+    }
+
+    if (opts.onNewEntityCallback) {
+      this.inputFileRef.current.onNewEntityCallback = opts.onNewEntityCallback
+    } else {
+      delete this.inputFileRef.current.onNewEntityCallback
     }
 
     if (opts.uploadCallback) {

@@ -155,7 +155,7 @@ class HtmlToXlsxProperties extends Component {
             onChange={(selected) => this.changeHtmlToXlsx(this.props, {
               templateAssetShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
             })}
-            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
           />
         </div>
         <div className='form-group'>

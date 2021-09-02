@@ -32,6 +32,7 @@ class EntityTreeSelectionModal extends Component {
     }
 
     this.cancelRef = React.createRef()
+    this.newEntityCreatedRef = React.createRef()
 
     this.handleSelectionChange = this.handleSelectionChange.bind(this)
   }
@@ -114,7 +115,17 @@ class EntityTreeSelectionModal extends Component {
     let content
 
     if (newMode) {
+      const onNewEntity = (newEntity) => {
+        this.newEntityCreatedRef.current = true
+        this.handleSelectionChange({ [newEntity._id]: true })
+        this.save()
+      }
+
       const close = () => {
+        if (this.newEntityCreatedRef.current === true) {
+          return
+        }
+
         this.setState({
           newMode: false
         })
@@ -129,7 +140,7 @@ class EntityTreeSelectionModal extends Component {
           </div>
           {renderNew({
             close,
-            options: {}
+            options: { onNewEntity }
           })}
         </div>
       )

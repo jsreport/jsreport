@@ -77,7 +77,7 @@ class PermissionProperties extends Component {
             }}
             value={readPermissionsEntities.map((r) => r.shortid)}
             onChange={(selected) => onChange({ _id: entity._id, readPermissions: selectValues(selected) })}
-            renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} />}
+            renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder } }} />}
             multiple
           />
         </div>
@@ -92,7 +92,7 @@ class PermissionProperties extends Component {
             }}
             value={editPermissionsEntities.map((e) => e.shortid)}
             onChange={(selected) => onChange({ _id: entity._id, editPermissions: selectValues(selected) })}
-            renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} />}
+            renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder } }} />}
             multiple
           />
         </div>

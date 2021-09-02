@@ -139,7 +139,7 @@ class PdfUtilsEditor extends Component {
             }}
             value={operation.templateShortid ? operation.templateShortid : null}
             onChange={(selected) => this.updateOperation(entity, index, { templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null })}
-            renderNew={(modalProps) => <sharedComponents.NewTemplateModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
+            renderNew={(modalProps) => <sharedComponents.NewTemplateModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
           />
         </td>
         <td>
@@ -429,7 +429,7 @@ class PdfUtilsEditor extends Component {
                   value={pdfSign.certificateAssetShortid || ''}
                   onChange={(selected) => this.updateSign(entity, { certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null })}
                   filter={(references) => ({ data: references.assets })}
-                  renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, activateNewTab: false }} />}
+                  renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
                 />
               </div>
               <div className='form-group'>

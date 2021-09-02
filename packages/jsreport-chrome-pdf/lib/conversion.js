@@ -132,6 +132,38 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     // but additionally setting it more generally in the page
     page.setDefaultTimeout(timeout == null ? 0 : timeout)
 
+    const getRequestContextForBrowser = ({ id, rootId, currentFolderPath, http, originalInputDataIsEmpty, renderHierarchy, reportCounter, startTimestamp }) => ({
+      id,
+      rootId,
+      currentFolderPath,
+      http,
+      originalInputDataIsEmpty,
+      renderHierarchy,
+      reportCounter,
+      startTimestamp
+    })
+
+    // inject jsreport-proxy browser api
+    await page.evaluateOnNewDocument(({ context, template, data, options }) => {
+      window.jsreport = {
+        req: {
+          context,
+          template,
+          data,
+          options
+        }
+      }
+    }, {
+      context: getRequestContextForBrowser(req.context),
+      template: req.template,
+      data: req.data,
+      options: req.options
+    })
+
+    if (executionInfo.error) {
+      return
+    }
+
     await page.goto(
       htmlUrl,
       optionsToUse.waitForNetworkIddle === true
