@@ -1,5 +1,5 @@
 {
-  "name": "@jsreport/client",
+  "name": "@jsreport/nodejs-client",
   "version": "3.0.0-beta.1",
   "description": "jsreport node.js client",
   "homepage": "https://jsreport.net/learn/nodejs-client",
