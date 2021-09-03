@@ -64,6 +64,15 @@ module.exports = (proxy, req) => {
       const resultPdfBuf = await manipulator.toBuffer()
 
       return resultPdfBuf
+    },
+    postprocess: async (sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines } = {}) => {
+      const manipulator = PdfManipulator(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks: true })
+      await manipulator.postprocess({
+        hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
+      })
+      const resultPdfBuf = await manipulator.toBuffer()
+
+      return resultPdfBuf
     }
   }
 }

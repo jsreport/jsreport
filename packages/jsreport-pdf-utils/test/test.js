@@ -1051,6 +1051,50 @@ describe('pdf utils', () => {
     parsedPdf.pages[0].text.should.not.containEql('item')
   })
 
+  it('the hidden text for groups and items should be removed when child render from script', async () => {
+    await jsreport.documentStore.collection('templates').insert({
+      content: 'header',
+      shortid: 'header',
+      name: 'header',
+      engine: 'handlebars',
+      recipe: 'chrome-pdf'
+    })
+
+    await jsreport.documentStore.collection('templates').insert({
+      content: '{{{pdfCreatePagesGroup "SomeText"}}}{{{pdfAddPageItem "v"}}}',
+      engine: 'handlebars',
+      name: 'main',
+      recipe: 'chrome-pdf',
+      pdfOperations: [{ type: 'merge', renderForEveryPage: true, templateShortid: 'header' }]
+    })
+
+    const result = await jsreport.render({
+      template: {
+        content: 'root',
+        engine: 'handlebars',
+        recipe: 'html',
+        scripts: [{
+          content: `
+          async function afterRender(req, res) {
+            const jsreport = require('jsreport-proxy')
+            const report = await jsreport.render({
+              template: { name: 'main' }
+            })
+            res.content = report.content
+          }
+        `
+        }]
+      }
+    })
+
+    const parsedPdf = await parsePdf(result.content, {
+      includeText: true
+    })
+
+    parsedPdf.pages[0].text.should.not.containEql('group')
+    parsedPdf.pages[0].text.should.not.containEql('item')
+  })
+
   it('the hidden text for groups and items shouldnt be removed when req.options.pdfUtils.removeHiddenMarks', async () => {
     await jsreport.documentStore.collection('templates').insert({
       content: 'header',
@@ -1325,7 +1369,7 @@ describe('pdf utils', () => {
                   content: '{{{pdfAddPageItem "foo"}}}',
                   engine: 'handlebars',
                   recipe: 'chrome-pdf'
-                }
+                }                
               })
 
               const $pdf = await jsreport.pdfUtils.parse(appendRest.content)
@@ -1342,6 +1386,7 @@ describe('pdf utils', () => {
               })
 
               res.content = await jsreport.pdfUtils.merge(appendRest.content, mergeRes.content)
+              res.content = await jsreport.pdfUtils.postprocess(res.content)
             }
           `
         }]
@@ -1354,6 +1399,7 @@ describe('pdf utils', () => {
 
     parsedPdf.pages.should.have.length(1)
     parsedPdf.pages[0].text.includes('foo').should.be.ok()
+    parsedPdf.pages[0].text.includes('@@@').should.not.be.ok()
   })
 
   it('should expose jsreport-proxy pdfUtils (.remove) and remove array of page numbers', async () => {
@@ -1383,6 +1429,35 @@ describe('pdf utils', () => {
     })
 
     parsedPdf.pages.should.have.length(1)
+  })
+
+  it('should expose jsreport-proxy pdfUtils and postprocess should be able to add pasword', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'foo',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        scripts: [{
+          content: `
+            const jsreport = require('jsreport-proxy')
+
+            async function afterRender (req, res) {
+              res.content = await jsreport.pdfUtils.postprocess(res.content, {
+                pdfPassword: {
+                  password: 'password'                           
+                }
+              })
+            }
+          `
+        }]
+      }
+    })
+
+    const parsedPdf = await parsePdf(result.content, {
+      includeText: true,
+      password: 'password'
+    })
+    parsedPdf.pages[0].text.includes('foo').should.be.ok()
   })
 
   it('pdfPassword should encrypt output pdf', async () => {
