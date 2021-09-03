@@ -7,6 +7,8 @@ const WorkersManager = require('@jsreport/advanced-workers')
 const WorkerRequest = require('./workerRequest')
 const { Lock } = require('semaphore-async-await')
 const camelCase = require('camelcase')
+process.env.DEBUG = 'worker'
+const debug = require('debug')('worker')
 const bootstrapFiles = []
 const currentRequests = {}
 
@@ -15,7 +17,7 @@ const rootDir = path.join(__dirname, '../bootstrap')
 fs.readdirSync(rootDir).forEach((f) => {
   if (f.endsWith('.reporter.js')) {
     const bootstrapFile = path.join(rootDir, f)
-    console.log(`found bootstrap file ${bootstrapFile}`)
+    debug(`found bootstrap file ${bootstrapFile}`)
     bootstrapFiles.push(bootstrapFile)
   }
 })
@@ -40,7 +42,7 @@ module.exports = (options = {}) => {
   options.httpPort = options.httpPort || 2000
 
   if (options.workerDebuggingSession) {
-    console.log('Debugging session is enabled')
+    debug('Debugging session is enabled')
   }
 
   options.workerInputRequestLimit = options.workerInputRequestLimit || '20mb'
@@ -50,10 +52,10 @@ module.exports = (options = {}) => {
   const app = new Koa()
 
   app.on('error', err => {
-    console.error('server error', err)
+    debug('server error', err)
   })
 
-  console.log(`worker input request limits is configured to: ${options.workerInputRequestLimit}`)
+  debug(`worker input request limits is configured to: ${options.workerInputRequestLimit}`)
 
   app.use(require('koa-bodyparser')({
     enableTypes: ['text'],
@@ -77,6 +79,7 @@ module.exports = (options = {}) => {
       const reqBody = serializator.parse(ctx.request.rawBody)
 
       if (!workersManager) {
+        debug('initializing worker')
         const workerOptions = reqBody.workerOptions
         for (const def of workerOptions.extensionsDefs) {
           if (options.overwriteExtensionPaths !== false) {
@@ -116,6 +119,7 @@ module.exports = (options = {}) => {
         workersManager = WorkersManager(workerOptions, workerSystemOptions)
         await workersManager.init()
         ctx.body = '{}'
+        debug('worker initialized')
         return
       }
 
@@ -164,7 +168,7 @@ module.exports = (options = {}) => {
 
                 return r
               } catch (e) {
-                console.error('Error when invoking callback', e)
+                debug('Error when invoking callback', e)
                 throw e
               } finally {
                 callbackLock.release()
@@ -188,7 +192,7 @@ module.exports = (options = {}) => {
         return
       }
     } catch (e) {
-      console.error('Error when processing worker request', e)
+      debug('Error when processing worker request', e)
       ctx.status = 400
       ctx.body = { message: e.message, stack: e.stack, ...e }
     }

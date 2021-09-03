@@ -486,15 +486,6 @@
   resolved "https://registry.yarnpkg.com/@js-joda/core/-/core-3.2.0.tgz#3e61e21b7b2b8a6be746df1335cf91d70db2a273"
   integrity sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==
 
-"@jsreport/client@3.0.0-beta.1":
-  version "3.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@jsreport/client/-/client-3.0.0-beta.1.tgz#45cc2415d173c43fb936f35984d8d1e1169eaee3"
-  integrity sha512-A2R9yBtH/vwgOW7aGQnANMYqNbqL8y2MjUn1SmToa6X924rqKhYSxwyDa1GJrLGEQ0BD0qiiJlPfDqaihqlS9w==
-  dependencies:
-    axios "0.21.1"
-    concat-stream "2.0.0"
-    mimic-response "2.1.0"
-
 "@jsreport/mingo@2.4.1":
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@jsreport/mingo/-/mingo-2.4.1.tgz#019ff48079a3ffeff2a5d8f1380386b921a0fc81"

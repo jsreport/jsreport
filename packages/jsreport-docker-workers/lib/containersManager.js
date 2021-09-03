@@ -163,9 +163,15 @@ module.exports = ({
     container.tenant = undefined
     container.numberOfRestarts++
 
-    container.restartPromise = Promise.resolve(onRecycle({ container, originalTenant })).then(() => container.restart()).catch((e) => {
-      logger.error(`Restarting container ${container.id} (${container.url}) (failed) ${e.stack}`)
-      return container
+    container.restartPromise = Promise.resolve(onRecycle({ container, originalTenant })).then(async () => {
+      while (true) {
+        try {
+          await container.restart()
+          return container
+        } catch (e) {
+          logger.error(`Restarting container ${container.id} (${container.url}) (failed) ${e.stack}`)
+        }
+      }
     }).then(() => {
       logger.debug(`Restarting container ${container.id} (${container.url}) (done)`)
       container.numberOfRequests = 0
