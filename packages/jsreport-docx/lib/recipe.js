@@ -2,7 +2,7 @@ const fs = require('fs')
 const { response } = require('@jsreport/office')
 const processDocx = require('./processDocx')
 
-module.exports = (reporter, definition, req, res) => {
+module.exports = async (reporter, definition, req, res) => {
   if (!req.template.docx || (!req.template.docx.templateAsset && !req.template.docx.templateAssetShortid)) {
     throw reporter.createError('docx requires template.docx.templateAsset or template.docx.templateAssetShortid to be set', {
       statusCode: 400

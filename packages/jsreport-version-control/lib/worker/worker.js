@@ -1,6 +1,6 @@
 module.exports = (reporter, definition) => {
   reporter.registerWorkerAction('version-control-diff', (data, req) => {
-    require('./diffProcess')(data, reporter, req)
+    return require('./diffProcess')(data, reporter, req)
   })
 
   reporter.registerWorkerAction('version-control-commit', (data, req) => {
