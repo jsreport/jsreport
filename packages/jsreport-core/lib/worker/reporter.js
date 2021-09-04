@@ -10,7 +10,6 @@ const Reporter = require('../shared/reporter')
 const BlobStorage = require('./blobStorage.js')
 const Render = require('./render/render')
 const Profiler = require('./render/profiler.js')
-const debug = require('debug')('jsreport')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
@@ -37,7 +36,6 @@ class WorkerReporter extends Reporter {
   }
 
   async init () {
-    debug('reporter.init')
     if (this._initialized === true) {
       throw new Error('jsreport already initialized. Make sure init is called only once')
     }
@@ -50,9 +48,7 @@ class WorkerReporter extends Reporter {
     this.logger = createLogger(this.profiler)
 
     this._render = Render(this)
-    debug('reporter.extensionsManager.init')
     await this.extensionsManager.init()
-    debug('reporter.extensionsManager.init done')
 
     this.documentStore = DocumentStore(this._documentStoreData, this.executeMainAction.bind(this))
     this.blobStorage = BlobStorage(this.executeMainAction.bind(this))
@@ -81,9 +77,8 @@ class WorkerReporter extends Reporter {
       execute: htmlRecipe
     })
 
-    debug('reporter.initializeListeners')
     await this.initializeListeners.fire()
-    debug('reporter.initializeListeners done')
+
     this._initialized = true
   }
 

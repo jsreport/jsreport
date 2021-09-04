@@ -1,10 +1,7 @@
-process.env.DEBUG = 'jsreport'
-const debug = require('debug')('jsreport')
 const WorkerReporter = require('./reporter')
 const omit = require('lodash.omit')
 
 module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
-  debug('worker handler')
   const reporter = new WorkerReporter(userInitData, async (actionName, data, req) => {
     const actionRes = await executeMain({
       actionName,
@@ -15,10 +12,8 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
   })
   let parsedReq
   return {
-    init: async () => {
-      debug('reporter init')
-      await reporter.init()
-      debug('reporter init done')
+    init: () => {
+      return reporter.init()
     },
 
     execute: ({ actionName, data, req }) => {
