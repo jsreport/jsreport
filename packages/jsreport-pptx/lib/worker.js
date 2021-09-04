@@ -1,12 +1,11 @@
 const path = require('path')
 const fs = require('fs').promises
-const recipe = require('./recipe')
 
 module.exports = (reporter, definition) => {
   let helpersScript
   reporter.extensionsManager.recipes.push({
     name: 'pptx',
-    execute: recipe(reporter, definition)
+    execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
   reporter.beforeRenderListeners.insert({ before: 'templates' }, 'pptx', (req) => {

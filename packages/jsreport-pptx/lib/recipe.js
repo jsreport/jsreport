@@ -2,7 +2,7 @@ const fs = require('fs')
 const { response } = require('@jsreport/office')
 const pptxProcessing = require('./pptxProcessing')
 
-module.exports = (reporter, definition) => async (req, res) => {
+module.exports = async (reporter, definition, req, res) => {
   if (!req.template.pptx || (!req.template.pptx.templateAsset && !req.template.pptx.templateAssetShortid)) {
     throw reporter.createError('pptx requires template.pptx.templateAsset or template.pptx.templateAssetShortid to be set', {
       statusCode: 400

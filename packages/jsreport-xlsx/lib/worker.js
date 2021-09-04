@@ -1,6 +1,3 @@
-const recipe = require('./recipe')
-const serialize = require('./serialize.js')
-const parse = serialize.parse
 const fs = require('fs').promises
 const path = require('path')
 
@@ -28,13 +25,16 @@ module.exports = (reporter, definition) => {
 
   reporter.extensionsManager.recipes.push({
     name: 'xlsx',
-    execute: (req, res) => recipe(reporter, definition, req, res)
+    execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
   reporter.beforeRenderListeners.insert({ after: 'data' }, 'xlsxTemplates', async (req) => {
     if (req.template.recipe !== 'xlsx') {
       return
     }
+
+    const serialize = require('./serialize.js')
+    const parse = serialize.parse
 
     const findTemplate = async () => {
       if (

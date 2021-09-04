@@ -1,4 +1,3 @@
-const recipe = require('./recipe')
 const fs = require('fs').promises
 const path = require('path')
 
@@ -6,7 +5,7 @@ module.exports = (reporter, definition) => {
   let helpersScript
   reporter.extensionsManager.recipes.push({
     name: 'docx',
-    execute: recipe(reporter, definition)
+    execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
   reporter.beforeRenderListeners.insert({ before: 'templates' }, 'docx', (req) => {

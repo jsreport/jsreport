@@ -1,7 +1,43 @@
 const toArray = require('stream-to-array')
 const electronConvert = require('electron-html-to')
+const { promisify } = require('util')
+const pickBy = require('lodash.pickby')
 
-module.exports = (reporter, definition, conversion) => async (request, response) => {
+module.exports = (reporter, definition) => async (request, response) => {
+  const {
+    strategy,
+    numberOfWorkers,
+    pingTimeout,
+    tmpDir,
+    portLeftBoundary,
+    portRightBoundary,
+    host,
+    chromeCommandLineSwitches,
+    maxLogEntrySize
+  } = definition.options
+
+  let convertOptions = {
+    strategy,
+    numberOfWorkers,
+    pingTimeout,
+    tmpDir,
+    portLeftBoundary,
+    portRightBoundary,
+    host,
+    chromeCommandLineSwitches,
+    maxLogEntrySize
+  }
+
+  // filter undefined options
+  convertOptions = pickBy(convertOptions, (val) => val !== undefined)
+
+  const shouldAccessLocalFiles = Object.prototype.hasOwnProperty.call(definition.options, 'allowLocalFilesAccess') ? definition.options.allowLocalFilesAccess : false
+
+  const electronConversion = promisify(electronConvert({
+    ...convertOptions,
+    allowLocalFilesAccess: shouldAccessLocalFiles
+  }))
+
   request.template.electron = request.template.electron || {}
   request.template.electron.timeout = reporter.options.reportTimeout
 
@@ -10,7 +46,7 @@ module.exports = (reporter, definition, conversion) => async (request, response)
   const options = request.template.electron
 
   // TODO: add support for header and footer html when electron support printing header/footer
-  const result = await conversion({
+  const result = await electronConversion({
     html: response.content,
     delay: options.printDelay,
     timeout: options.timeout,

@@ -3,7 +3,7 @@ const { response } = require('@jsreport/office')
 const htmlToXlsx = require('html-to-xlsx')
 const htmlToXlsxProcess = require('./htmlToXlsxProcess')
 
-module.exports = (reporter, definition) => async (req, res) => {
+module.exports = (reporter, definition, req, res) => {
   const htmlEngines = definition.options.htmlEngines
   const htmlToXlsxOptions = req.template.htmlToXlsx || {}
   const baseXlsxTemplate = req.template.baseXlsxTemplate || {}

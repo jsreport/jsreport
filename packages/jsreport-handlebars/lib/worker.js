@@ -1,5 +1,4 @@
 const path = require('path')
-const createEngine = require('./handlebarsEngine')
 
 module.exports = (reporter, definition) => {
   const hbRawPath = definition.options.handlebarsModulePath != null ? definition.options.handlebarsModulePath : require.resolve('handlebars')
@@ -10,15 +9,22 @@ module.exports = (reporter, definition) => {
     reporter.options.sandbox.allowedModules.push('handlebars')
   }
 
-  const { compile, execute, createContext, onRequire } = createEngine({
-    handlebarsModulePath: hbPath
-  })
+  let engine
+  const lazyGetEngine = () => {
+    if (engine) {
+      return engine
+    }
+    engine = require('./handlebarsEngine')({
+      handlebarsModulePath: hbPath
+    })
+    return engine
+  }
 
   reporter.extensionsManager.engines.push({
     name: 'handlebars',
-    compile,
-    execute,
-    createContext,
-    onRequire
+    compile: (...args) => lazyGetEngine().compile(...args),
+    execute: (...args) => lazyGetEngine().execute(...args),
+    createContext: (...args) => lazyGetEngine().createContext(...args),
+    onRequire: (...args) => lazyGetEngine().onRequire(...args)
   })
 }

@@ -3,8 +3,6 @@
  *
  * Extension allowing to add custom javascript hooks into the rendering process.
  */
-const executeScript = require('./executeScript')
-
 module.exports = function (reporter, definition) {
   reporter.addRequestContextMetaConfig('scriptsCache', { sandboxHidden: true })
 
@@ -88,7 +86,7 @@ class Scripts {
 
     await this.reporter.beforeScriptListeners.fire({ script }, req)
 
-    const scriptExecResult = await executeScript(this.reporter, script, method, req, res)
+    const scriptExecResult = await (require('./executeScript')(this.reporter, script, method, req, res))
 
     if (scriptExecResult.shouldRunAfterRender) {
       script.shouldRunAfterRender = true

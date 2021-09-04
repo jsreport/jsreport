@@ -1,4 +1,3 @@
-const Encryptor = require('xlsx-populate/lib/Encryptor')
 const missingSecretMessage = require('./missingSecretMessage')
 
 module.exports = function (reporter, definition) {
@@ -41,6 +40,7 @@ module.exports = function (reporter, definition) {
 
       try {
         const officeBuf = res.content
+        const Encryptor = require('xlsx-populate/lib/Encryptor')
         const encryptor = new Encryptor()
         protectedOfficeBuf = encryptor.encrypt(officeBuf, password)
       } catch (err) {

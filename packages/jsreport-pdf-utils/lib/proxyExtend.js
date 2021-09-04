@@ -1,9 +1,7 @@
-const PdfManipulator = require('./utils/pdfManipulator')
-
 module.exports = (proxy, req) => {
   proxy.pdfUtils = {
     parse: async (sourcePdfBuf, includeText) => {
-      const manipulator = PdfManipulator(sourcePdfBuf)
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf)
 
       const parsedPdf = await manipulator.parse({
         includeText,
@@ -13,7 +11,7 @@ module.exports = (proxy, req) => {
       return parsedPdf
     },
     prepend: async (sourcePdfBuf, extraPdfBuf) => {
-      const manipulator = PdfManipulator(sourcePdfBuf)
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf)
 
       await manipulator.prepend(extraPdfBuf)
 
@@ -22,7 +20,7 @@ module.exports = (proxy, req) => {
       return resultPdfBuf
     },
     append: async (sourcePdfBuf, extraPdfBuf) => {
-      const manipulator = PdfManipulator(sourcePdfBuf)
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf)
 
       await manipulator.append(extraPdfBuf)
 
@@ -31,7 +29,7 @@ module.exports = (proxy, req) => {
       return resultPdfBuf
     },
     merge: async (sourcePdfBuf, extraPdfBufOrPages, mergeToFront) => {
-      const manipulator = PdfManipulator(sourcePdfBuf)
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf)
 
       // merge needs to have information about total of pages in source pdf
       await manipulator.parse({
@@ -45,7 +43,7 @@ module.exports = (proxy, req) => {
       return resultPdfBuf
     },
     removePages: async (sourcePdfBuf, pageNumbers) => {
-      const manipulator = PdfManipulator(sourcePdfBuf)
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf)
 
       await manipulator.parse()
       await manipulator.removePages(pageNumbers)
@@ -55,7 +53,7 @@ module.exports = (proxy, req) => {
       return resultPdfBuf
     },
     outlines: async (sourcePdfBuf, outlines) => {
-      const manipulator = PdfManipulator(sourcePdfBuf, { outlines })
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf, { outlines })
 
       await manipulator.postprocess({
         hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
@@ -66,7 +64,7 @@ module.exports = (proxy, req) => {
       return resultPdfBuf
     },
     postprocess: async (sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines } = {}) => {
-      const manipulator = PdfManipulator(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks: true })
+      const manipulator = require('./utils/pdfManipulator')(sourcePdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks: true })
       await manipulator.postprocess({
         hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })

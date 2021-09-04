@@ -1,5 +1,6 @@
 const util = require('util')
 const normalizeMetaFromLogs = require('../shared/normalizeMetaFromLogs')
+const debug = require('debug')('jsreport')
 
 module.exports = function createLogger (profiler) {
   return {
@@ -22,8 +23,10 @@ function logFn (level, profiler, ...args) {
   ) {
     req = lastArg
   }
+  console.log('log a message')
 
   if (req == null) {
+    debug(util.format.apply(util, args))
     return
   }
 
@@ -34,6 +37,8 @@ function logFn (level, profiler, ...args) {
     level: level,
     message: util.format.apply(util, msgArgs)
   }
+
+  debug(log.message)
 
   const meta = normalizeMetaFromLogs(level, log.message, lastArg)
 

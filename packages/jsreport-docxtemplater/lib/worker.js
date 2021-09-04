@@ -1,9 +1,7 @@
-const recipe = require('./recipe')
-
 module.exports = (reporter, definition) => {
   reporter.extensionsManager.recipes.push({
     name: 'docxtemplater',
-    execute: recipe(reporter, definition)
+    execute: (req, res) => require('./recipe')(reporter, definition)(req, res)
   })
 
   reporter.beforeRenderListeners.insert({ before: 'templates' }, 'docxtemplater', (req) => {

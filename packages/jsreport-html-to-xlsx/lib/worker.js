@@ -1,6 +1,4 @@
-const recipe = require('./recipe')
 const fs = require('fs').promises
-
 const path = require('path')
 
 module.exports = (reporter, definition) => {
@@ -8,7 +6,7 @@ module.exports = (reporter, definition) => {
 
   reporter.extensionsManager.recipes.push({
     name: 'html-to-xlsx',
-    execute: recipe(reporter, definition)
+    execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
   reporter.options.sandbox.modules.push({
