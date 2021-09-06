@@ -6,27 +6,6 @@ import Studio from 'jsreport-studio'
 
 Studio.addPropertiesComponent('phantom pdf', PhantomPdfProperties, (entity) => entity.__entitySet === 'templates' && entity.recipe === 'phantom-pdf')
 
-Studio.addApiSpec({
-  template: {
-    phantom: {
-      margin: '...',
-      header: '...',
-      footer: '...',
-      footerHeight: '...',
-      orientation: '...',
-      format: '...',
-      width: '...',
-      height: '...',
-      printDelay: 1000,
-      resourceTimeout: 1000,
-      customPhantomJS: true,
-      blockJavaScript: false,
-      waitForJS: false,
-      fitToPage: false
-    }
-  }
-})
-
 const reformat = (reformatter, entity, tab) => {
   const lastPhantomProperties = entity.phantom || {}
   const reformated = reformatter(lastPhantomProperties[tab.headerOrFooter], 'html')

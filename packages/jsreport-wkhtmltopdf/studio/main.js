@@ -88,13 +88,13 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = Studio.libraries['react'];
+module.exports = Studio;
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = Studio;
+module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 2 */
@@ -106,8 +106,8 @@ module.exports = Studio;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var PHANTOM_TAB_TITLE = exports.PHANTOM_TAB_TITLE = 'PHANTOM_TAB_TITLE';
-var PHANTOM_TAB_EDITOR = exports.PHANTOM_TAB_EDITOR = 'PHANTOM_TAB_EDITOR';
+var WK_TAB_TITLE = exports.WK_TAB_TITLE = 'WK_TAB_TITLE';
+var WK_TAB_EDITOR = exports.WK_TAB_EDITOR = 'WK_TAB_EDITOR';
 
 /***/ }),
 /* 3 */
@@ -116,25 +116,23 @@ var PHANTOM_TAB_EDITOR = exports.PHANTOM_TAB_EDITOR = 'PHANTOM_TAB_EDITOR';
 "use strict";
 
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+var _WKEditor = __webpack_require__(4);
 
-var _PhantomEditor = __webpack_require__(4);
+var _WKEditor2 = _interopRequireDefault(_WKEditor);
 
-var _PhantomEditor2 = _interopRequireDefault(_PhantomEditor);
+var _WKProperties = __webpack_require__(5);
 
-var _PhantomPdfProperties = __webpack_require__(5);
+var _WKProperties2 = _interopRequireDefault(_WKProperties);
 
-var _PhantomPdfProperties2 = _interopRequireDefault(_PhantomPdfProperties);
+var _WKTitle = __webpack_require__(6);
 
-var _PhantomTitle = __webpack_require__(6);
-
-var _PhantomTitle2 = _interopRequireDefault(_PhantomTitle);
+var _WKTitle2 = _interopRequireDefault(_WKTitle);
 
 var _constants = __webpack_require__(2);
 
 var Constants = _interopRequireWildcard(_constants);
 
-var _jsreportStudio = __webpack_require__(1);
+var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
@@ -144,25 +142,20 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-_jsreportStudio2.default.addPropertiesComponent('phantom pdf', _PhantomPdfProperties2.default, function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'phantom-pdf';
+_jsreportStudio2.default.addPropertiesComponent('wkhtmltopdf', _WKProperties2.default, function (entity) {
+  return entity.__entitySet === 'templates' && entity.recipe === 'wkhtmltopdf';
 });
 
 var reformat = function reformat(reformatter, entity, tab) {
-  var lastPhantomProperties = entity.phantom || {};
-  var reformated = reformatter(lastPhantomProperties[tab.headerOrFooter], 'html');
+  var reformated = reformatter(entity.wkhtmltopdf[tab.headerOrFooter], 'html');
 
   return {
-    phantom: _extends({}, lastPhantomProperties, _defineProperty({}, tab.headerOrFooter, reformated))
+    wkhtmltopdf: _defineProperty({}, tab.headerOrFooter, reformated)
   };
 };
 
-_jsreportStudio2.default.addEditorComponent(Constants.PHANTOM_TAB_EDITOR, _PhantomEditor2.default, reformat);
-_jsreportStudio2.default.addTabTitleComponent(Constants.PHANTOM_TAB_TITLE, _PhantomTitle2.default);
-
-_jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'phantom-pdf' ? 'fa-file-pdf-o' : null;
-});
+_jsreportStudio2.default.addEditorComponent(Constants.WK_TAB_EDITOR, _WKEditor2.default, reformat);
+_jsreportStudio2.default.addTabTitleComponent(Constants.WK_TAB_TITLE, _WKTitle2.default);
 
 /***/ }),
 /* 4 */
@@ -177,11 +170,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(0);
+var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _jsreportStudio = __webpack_require__(1);
+var _jsreportStudio = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -193,16 +186,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var PhantomEditor = function (_Component) {
-  _inherits(PhantomEditor, _Component);
+var WKEditor = function (_Component) {
+  _inherits(WKEditor, _Component);
 
-  function PhantomEditor() {
-    _classCallCheck(this, PhantomEditor);
+  function WKEditor() {
+    _classCallCheck(this, WKEditor);
 
-    return _possibleConstructorReturn(this, (PhantomEditor.__proto__ || Object.getPrototypeOf(PhantomEditor)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (WKEditor.__proto__ || Object.getPrototypeOf(WKEditor)).apply(this, arguments));
   }
 
-  _createClass(PhantomEditor, [{
+  _createClass(WKEditor, [{
     key: 'render',
     value: function render() {
       var _props = this.props,
@@ -212,20 +205,20 @@ var PhantomEditor = function (_Component) {
 
 
       return _react2.default.createElement(_jsreportStudio.TextEditor, {
-        name: entity._id + '_phantom' + tab.headerOrFooter,
+        name: entity._id + '_wk' + tab.headerOrFooter,
         mode: 'handlebars',
-        value: entity.phantom ? entity.phantom[tab.headerOrFooter] : '',
+        value: entity.wkhtmltopdf ? entity.wkhtmltopdf[tab.headerOrFooter] : '',
         onUpdate: function onUpdate(v) {
-          return _onUpdate(Object.assign({}, entity, { phantom: Object.assign({}, entity.phantom, _defineProperty({}, tab.headerOrFooter, v)) }));
+          return _onUpdate(Object.assign({}, entity, { wkhtmltopdf: Object.assign({}, entity.wkhtmltopdf, _defineProperty({}, tab.headerOrFooter, v)) }));
         }
       });
     }
   }]);
 
-  return PhantomEditor;
+  return WKEditor;
 }(_react.Component);
 
-exports.default = PhantomEditor;
+exports.default = WKEditor;
 
 /***/ }),
 /* 5 */
@@ -238,19 +231,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _constants = __webpack_require__(2);
 
 var Constants = _interopRequireWildcard(_constants);
 
-var _react = __webpack_require__(0);
+var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _jsreportStudio = __webpack_require__(1);
+var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
@@ -264,142 +255,24 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var PhantomPdfProperties = function (_Component) {
-  _inherits(PhantomPdfProperties, _Component);
+var Properties = function (_Component) {
+  _inherits(Properties, _Component);
 
-  function PhantomPdfProperties(props) {
-    _classCallCheck(this, PhantomPdfProperties);
+  function Properties() {
+    _classCallCheck(this, Properties);
 
-    var _this = _possibleConstructorReturn(this, (PhantomPdfProperties.__proto__ || Object.getPrototypeOf(PhantomPdfProperties)).call(this, props));
-
-    _this.state = {
-      customMargin: false,
-      marginOptions: undefined
-    };
-    return _this;
+    return _possibleConstructorReturn(this, (Properties.__proto__ || Object.getPrototypeOf(Properties)).apply(this, arguments));
   }
 
-  _createClass(PhantomPdfProperties, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      this.normalizeUIState(this.props.entity);
-    }
-  }, {
-    key: 'componentDidUpdate',
-    value: function componentDidUpdate(prevProps) {
-      // when component changes because another entity is selected
-      // or when saving a new entity
-      if (prevProps.entity._id !== this.props.entity._id) {
-        this.normalizeUIState(this.props.entity);
-      }
-    }
-  }, {
-    key: 'normalizeUIState',
-    value: function normalizeUIState(entity) {
-      var stateToSet = {};
-
-      stateToSet.customMargin = false;
-      stateToSet.marginOptions = undefined;
-
-      if (entity.phantom && entity.phantom.margin) {
-        var customMargin = void 0;
-
-        if (entity.phantom.margin.trim()[0] === '{') {
-          try {
-            customMargin = JSON.parse(entity.phantom.margin);
-          } catch (e) {}
-
-          if (customMargin) {
-            stateToSet.customMargin = true;
-
-            if (customMargin.top != null || customMargin.left != null || customMargin.right != null || customMargin.bottom != null) {
-              stateToSet.marginOptions = customMargin;
-            }
-          }
-        }
-      }
-
-      if (Object.keys(stateToSet).length > 0) {
-        this.setState(stateToSet);
-      }
-    }
-  }, {
-    key: 'changeCustomMargin',
-    value: function changeCustomMargin(_ref) {
-      var left = _ref.left,
-          right = _ref.right,
-          top = _ref.top,
-          bottom = _ref.bottom,
-          customMargin = _ref.customMargin;
-      var _state$marginOptions = this.state.marginOptions;
-      _state$marginOptions = _state$marginOptions === undefined ? {} : _state$marginOptions;
-      var marginTop = _state$marginOptions.top,
-          marginLeft = _state$marginOptions.left,
-          marginRight = _state$marginOptions.right,
-          marginBottom = _state$marginOptions.bottom;
-      var _props = this.props,
-          entity = _props.entity,
-          onChange = _props.onChange;
-
-      var stateToSet = {};
-      var margin = {};
-
-      if (customMargin === false) {
-        stateToSet.customMargin = customMargin;
-        stateToSet.marginOptions = undefined;
-
-        onChange(_extends({}, entity, { phantom: _extends({}, entity.phantom, { margin: '' }) }));
-      } else {
-        if (customMargin != null) {
-          stateToSet.customMargin = customMargin;
-        }
-
-        if (top != null) {
-          margin.top = top;
-        } else {
-          margin.top = marginTop;
-        }
-
-        if (left != null) {
-          margin.left = left;
-        } else {
-          margin.left = marginLeft;
-        }
-
-        if (right != null) {
-          margin.right = right;
-        } else {
-          margin.right = marginRight;
-        }
-
-        if (bottom != null) {
-          margin.bottom = bottom;
-        } else {
-          margin.bottom = marginBottom;
-        }
-
-        stateToSet.marginOptions = margin;
-
-        if (margin.top != null || margin.left != null || margin.right != null || margin.bottom != null) {
-          onChange(_extends({}, entity, { phantom: _extends({}, entity.phantom, { margin: JSON.stringify(margin) }) }));
-        } else {
-          onChange(_extends({}, entity, { phantom: _extends({}, entity.phantom, { margin: '' }) }));
-        }
-      }
-
-      if (Object.keys(stateToSet).length > 0) {
-        this.setState(stateToSet);
-      }
-    }
-  }, {
+  _createClass(Properties, [{
     key: 'openHeaderFooter',
     value: function openHeaderFooter(type) {
       _jsreportStudio2.default.openTab({
-        key: this.props.entity._id + '_phantom' + type,
+        key: this.props.entity._id + '_wk' + type,
         _id: this.props.entity._id,
         headerOrFooter: type,
-        editorComponentKey: Constants.PHANTOM_TAB_EDITOR,
-        titleComponentKey: Constants.PHANTOM_TAB_TITLE
+        editorComponentKey: Constants.WK_TAB_EDITOR,
+        titleComponentKey: Constants.WK_TAB_TITLE
       });
     }
   }, {
@@ -407,21 +280,17 @@ var PhantomPdfProperties = function (_Component) {
     value: function render() {
       var _this2 = this;
 
-      var _state = this.state,
-          customMargin = _state.customMargin,
-          _state$marginOptions2 = _state.marginOptions,
-          marginOptions = _state$marginOptions2 === undefined ? {} : _state$marginOptions2;
-      var _props2 = this.props,
-          entity = _props2.entity,
-          onChange = _props2.onChange;
+      var _props = this.props,
+          entity = _props.entity,
+          onChange = _props.onChange;
 
-      var phantom = entity.phantom || {};
+      var wkhtmltopdf = entity.wkhtmltopdf || {};
 
-      var changePhantom = function changePhantom(change) {
-        return onChange(_extends({}, entity, { phantom: _extends({}, entity.phantom, change) }));
+      var changeWK = function changeWK(change) {
+        return onChange(Object.assign({}, entity, { wkhtmltopdf: Object.assign({}, entity.wkhtmltopdf, change) }));
       };
 
-      var phantoms = _jsreportStudio2.default.extensions['phantom-pdf'].options.phantoms;
+      var wkhtmltopdfVersions = _jsreportStudio2.default.extensions.wkhtmltopdf.options.wkhtmltopdfVersions;
 
       return _react2.default.createElement(
         'div',
@@ -432,14 +301,14 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'phantomjs version'
+            'wkhtmltopdf version'
           ),
           _react2.default.createElement(
             'select',
-            { value: phantom.phantomjsVersion || phantoms[0].version, onChange: function onChange(v) {
-                return changePhantom({ phantomjsVersion: v.target.value });
+            { value: wkhtmltopdf.wkhtmltopdfVersion || wkhtmltopdfVersions[0].version, onChange: function onChange(v) {
+                return changeWK({ wkhtmltopdfVersion: v.target.value });
               } },
-            phantoms.map(function (p) {
+            wkhtmltopdfVersions.map(function (p) {
               return _react2.default.createElement(
                 'option',
                 { key: p.version, value: p.version },
@@ -454,102 +323,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'margin'
-          ),
-          _react2.default.createElement(
-            'label',
-            null,
-            _react2.default.createElement('input', {
-              type: 'checkbox', checked: customMargin === true,
-              onChange: function onChange(v) {
-                return _this2.changeCustomMargin({ customMargin: v.target.checked });
-              }
-            }),
-            'Use custom margin'
-          ),
-          customMargin && _react2.default.createElement(
-            'div',
-            null,
-            _react2.default.createElement(
-              'label',
-              { style: { display: 'block' } },
-              'Margin left'
-            ),
-            _react2.default.createElement('input', {
-              style: { display: 'block', width: '100%' },
-              type: 'text', placeholder: '8px', value: marginOptions.left,
-              onChange: function onChange(v) {
-                return _this2.changeCustomMargin({ left: v.target.value });
-              }
-            })
-          ),
-          customMargin && _react2.default.createElement(
-            'div',
-            null,
-            _react2.default.createElement(
-              'label',
-              { style: { display: 'block' } },
-              'Margin right'
-            ),
-            _react2.default.createElement('input', {
-              style: { display: 'block', width: '100%' },
-              type: 'text', placeholder: '8px', value: marginOptions.right,
-              onChange: function onChange(v) {
-                return _this2.changeCustomMargin({ right: v.target.value });
-              }
-            })
-          ),
-          customMargin && _react2.default.createElement(
-            'div',
-            null,
-            _react2.default.createElement(
-              'label',
-              { style: { display: 'block' } },
-              'Margin top'
-            ),
-            _react2.default.createElement('input', {
-              style: { display: 'block', width: '100%' },
-              type: 'text', placeholder: '8px', value: marginOptions.top,
-              onChange: function onChange(v) {
-                return _this2.changeCustomMargin({ top: v.target.value });
-              }
-            })
-          ),
-          customMargin && _react2.default.createElement(
-            'div',
-            null,
-            _react2.default.createElement(
-              'label',
-              { style: { display: 'block' } },
-              'Margin bottom'
-            ),
-            _react2.default.createElement('input', {
-              style: { display: 'block', width: '100%' },
-              type: 'text', placeholder: '8px', value: marginOptions.bottom,
-              onChange: function onChange(v) {
-                return _this2.changeCustomMargin({ bottom: v.target.value });
-              }
-            })
-          ),
-          !customMargin && _react2.default.createElement('input', {
-            type: 'text', placeholder: '1cm', value: phantom.margin || '',
-            onChange: function onChange(v) {
-              return changePhantom({ margin: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'header height'
+            'Metadata - title'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1cm', value: phantom.headerHeight || '',
+            type: 'text', placeholder: 'document title', value: wkhtmltopdf.title || '',
             onChange: function onChange(v) {
-              return changePhantom({ headerHeight: v.target.value });
+              return changeWK({ title: v.target.value });
             }
           })
         ),
@@ -559,59 +338,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'header'
-          ),
-          _react2.default.createElement(
-            'button',
-            { onClick: function onClick() {
-                return _this2.openHeaderFooter('header');
-              } },
-            'open in tab...'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'footer height'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text', placeholder: '1cm', value: phantom.footerHeight || '',
-            onChange: function onChange(v) {
-              return changePhantom({ footerHeight: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'footer'
-          ),
-          _react2.default.createElement(
-            'button',
-            { onClick: function onClick() {
-                return _this2.openHeaderFooter('footer');
-              } },
-            'open in tab...'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'paper format'
+            'Paper size'
           ),
           _react2.default.createElement(
             'select',
-            { value: phantom.format || '', onChange: function onChange(v) {
-                return changePhantom({ format: v.target.value });
+            { value: wkhtmltopdf.pageSize || '', onChange: function onChange(v) {
+                return changeWK({ pageSize: v.target.value });
               } },
             _react2.default.createElement(
               'option',
@@ -651,12 +383,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'paper width'
+            'Page width'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1cm', value: phantom.width || '',
+            type: 'text', placeholder: '600px', value: wkhtmltopdf.pageWidth || '',
             onChange: function onChange(v) {
-              return changePhantom({ width: v.target.value });
+              return changeWK({ pageWidth: v.target.value });
             }
           })
         ),
@@ -666,37 +398,37 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'paper height'
+            'Page height'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1cm', value: phantom.height || '',
+            type: 'text', placeholder: '600px', value: wkhtmltopdf.pageHeight || '',
             onChange: function onChange(v) {
-              return changePhantom({ height: v.target.value });
+              return changeWK({ pageHeight: v.target.value });
             }
           })
         ),
         _react2.default.createElement(
           'div',
-          { className: 'form-group' },
+          { key: 'foo', className: 'form-group' },
           _react2.default.createElement(
             'label',
             null,
-            'orientation'
+            'Orientation'
           ),
           _react2.default.createElement(
             'select',
-            { value: phantom.orientation || '', onChange: function onChange(v) {
-                return changePhantom({ orientation: v.target.value });
+            { value: wkhtmltopdf.orientation || '', onChange: function onChange(v) {
+                return changeWK({ orientation: v.target.value });
               } },
             _react2.default.createElement(
               'option',
               { key: 'portrait', value: 'portrait' },
-              'portrait'
+              'Portrait'
             ),
             _react2.default.createElement(
               'option',
               { key: 'landscape', value: 'landscape' },
-              'landscape'
+              'Landscape'
             )
           )
         ),
@@ -706,12 +438,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'print delay'
+            'Dpi'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1000', value: phantom.printDelay || '',
+            type: 'text', placeholder: '96', value: wkhtmltopdf.dpi || '',
             onChange: function onChange(v) {
-              return changePhantom({ printDelay: v.target.value });
+              return changeWK({ dpi: v.target.value });
             }
           })
         ),
@@ -721,27 +453,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'resource timeout'
+            'Margin bottom'
           ),
           _react2.default.createElement('input', {
-            type: 'text', placeholder: '1000', value: phantom.resourceTimeout || '',
+            type: 'text', placeholder: '10mm', value: wkhtmltopdf.marginBottom || '',
             onChange: function onChange(v) {
-              return changePhantom({ resourceTimeout: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            { title: 'window.JSREPORT_READY_TO_START=true;' },
-            'wait for printing trigger'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox', title: 'window.JSREPORT_READY_TO_START=true;', checked: phantom.waitForJS === true,
-            onChange: function onChange(v) {
-              return changePhantom({ waitForJS: v.target.checked });
+              return changeWK({ marginBottom: v.target.value });
             }
           })
         ),
@@ -751,12 +468,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'block javascript'
+            'Margin left'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: phantom.blockJavaScript === true,
+            type: 'text', placeholder: '10mm', value: wkhtmltopdf.marginLeft || '',
             onChange: function onChange(v) {
-              return changePhantom({ blockJavaScript: v.target.checked });
+              return changeWK({ marginLeft: v.target.value });
             }
           })
         ),
@@ -766,12 +483,12 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'fit to page'
+            'Margin right'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: phantom.fitToPage === true,
+            type: 'text', placeholder: '10mm', value: wkhtmltopdf.marginRight || '',
             onChange: function onChange(v) {
-              return changePhantom({ fitToPage: v.target.checked });
+              return changeWK({ marginRight: v.target.value });
             }
           })
         ),
@@ -781,12 +498,225 @@ var PhantomPdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'use custom phantomjs (deprecated)'
+            'Margin top'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: phantom.customPhantomJS === true,
+            type: 'text', placeholder: '10mm', value: wkhtmltopdf.marginTop || '',
             onChange: function onChange(v) {
-              return changePhantom({ customPhantomJS: v.target.checked });
+              return changeWK({ marginTop: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Header height in mm'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', placeholder: '10', value: wkhtmltopdf.headerHeight || '',
+            onChange: function onChange(v) {
+              return changeWK({ headerHeight: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Header'
+          ),
+          _react2.default.createElement(
+            'button',
+            { onClick: function onClick() {
+                return _this2.openHeaderFooter('header');
+              } },
+            'open in tab...'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Footer height in mm'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', placeholder: '10', value: wkhtmltopdf.footerHeight || '',
+            onChange: function onChange(v) {
+              return changeWK({ footerHeight: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Footer'
+          ),
+          _react2.default.createElement(
+            'button',
+            { onClick: function onClick() {
+                return _this2.openHeaderFooter('footer');
+              } },
+            'open in tab...'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Cover Page'
+          ),
+          _react2.default.createElement(
+            'button',
+            { onClick: function onClick() {
+                return _this2.openHeaderFooter('cover');
+              } },
+            'open in tab...'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Table of contents'
+          ),
+          _react2.default.createElement('input', {
+            type: 'checkbox', checked: wkhtmltopdf.toc === true,
+            onChange: function onChange(v) {
+              return changeWK({ toc: v.target.checked });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'TOC header text'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', value: wkhtmltopdf.tocHeaderText || '',
+            onChange: function onChange(v) {
+              return changeWK({ tocHeaderText: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'TOC text size shrink'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', placeholder: '10mm', value: wkhtmltopdf.tocTextSizeShrink || '',
+            onChange: function onChange(v) {
+              return changeWK({ tocTextSizeShrink: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'TOC level indentation'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', placeholder: '10mm', value: wkhtmltopdf.tocLevelIndentation || '',
+            onChange: function onChange(v) {
+              return changeWK({ tocLevelIndentation: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Keep relative links'
+          ),
+          _react2.default.createElement('input', {
+            type: 'checkbox', checked: wkhtmltopdf.keepRelativeLinks === true,
+            onChange: function onChange(v) {
+              return changeWK({ keepRelativeLinks: v.target.checked });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Disable smart shrinking'
+          ),
+          _react2.default.createElement('input', {
+            type: 'checkbox', checked: wkhtmltopdf.disableSmartShrinking === true,
+            onChange: function onChange(v) {
+              return changeWK({ disableSmartShrinking: v.target.checked });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Print media type'
+          ),
+          _react2.default.createElement('input', {
+            type: 'checkbox', checked: wkhtmltopdf.printMediaType === true,
+            onChange: function onChange(v) {
+              return changeWK({ printMediaType: v.target.checked });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Javascript Delay'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', placeholder: '200', value: wkhtmltopdf.javascriptDelay || '',
+            onChange: function onChange(v) {
+              return changeWK({ javascriptDelay: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'Window Status'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text', value: wkhtmltopdf.windowStatus || '',
+            onChange: function onChange(v) {
+              return changeWK({ windowStatus: v.target.value });
             }
           })
         )
@@ -794,10 +724,10 @@ var PhantomPdfProperties = function (_Component) {
     }
   }]);
 
-  return PhantomPdfProperties;
+  return Properties;
 }(_react.Component);
 
-exports.default = PhantomPdfProperties;
+exports.default = Properties;
 
 /***/ }),
 /* 6 */
@@ -810,17 +740,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 exports.default = function (props) {
-  return _react2.default.createElement(
+  return React.createElement(
     'span',
     null,
-    props.entity.name + ' ' + props.tab.headerOrFooter + (props.entity.__isDirty ? '*' : '')
+    props.entity.name + ' ' + props.tab.headerOrFooter
   );
 };
 
