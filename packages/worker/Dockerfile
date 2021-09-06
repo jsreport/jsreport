@@ -1,6 +1,5 @@
-FROM ubuntu:xenial-20200212
-# not using ubuntu:bionic because phantomjs 1.9.8 does not work there
-# (it contains a newer version of OpenSSL which can not be used with phantomjs)
+# using xenial for now to be able to use phantom -> with newer ubuntu phantom cannot download images over https
+FROM ubuntu:xenial
 EXPOSE 2000
 
 RUN adduser --disabled-password --gecos "" jsreport && \

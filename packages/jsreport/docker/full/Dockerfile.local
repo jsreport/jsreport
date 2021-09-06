@@ -14,17 +14,7 @@ RUN adduser --disabled-password --gecos "" jsreport
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget libgconf-2-4 gnupg git curl ca-certificates && \
-    # phantom/electron
-    apt-get install -y --no-install-recommends libgtk2.0-dev \
-        libxtst-dev \
-        libxss1 \
-        libgconf2-dev \
-        libnss3-dev \
-        libasound2-dev \
-        xvfb \
-        xfonts-75dpi \
-        xfonts-base && \
+    apt-get install -y --no-install-recommends wget libgconf-2-4 gnupg git curl ca-certificates && \   
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
     apt-get update && \
@@ -72,9 +62,8 @@ RUN json-merger -p package.json ./build/workspaces-changes.json -o package.json
 
 RUN yarn install --production
 
-RUN yarn add --ignore-workspace-root-check phantomjs-exact-2-1-1@0.1.0 \
-    cheerio-page-eval@1.0.0 \
-    electron@1.8.7
+RUN yarn add --ignore-workspace-root-check cheerio-page-eval@1.0.0
+
 
 COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js

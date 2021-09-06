@@ -1,0 +1,6 @@
+{
+  "name": "jsreport-phantom-pdf",
+  "scripts": {
+    "build": "set NODE_ENV=production&&node ../../../webpack/buildExtension.js"
+  }
+}

@@ -3,8 +3,4 @@ FROM jsreport/worker
 COPY --chown=jsreport:jsreport packages /app/packages
 COPY --chown=jsreport:jsreport packages/worker /app
 
-VOLUME [ "/jsreport-cache" ]
-
-ENV V8_COMPILE_CACHE_CACHE_DIR /jsreport-cache
-
 CMD ["node", "server.js"]

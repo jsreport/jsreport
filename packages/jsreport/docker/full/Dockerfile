@@ -15,16 +15,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget libgconf-2-4 gnupg git curl ca-certificates && \
-    # phantom/electron
-    apt-get install -y --no-install-recommends libgtk2.0-dev \
-        libxtst-dev \
-        libxss1 \
-        libgconf2-dev \
-        libnss3-dev \
-        libasound2-dev \
-        xvfb \
-        xfonts-75dpi \
-        xfonts-base && \
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
     apt-get update && \
@@ -65,17 +55,20 @@ RUN jsreport init beta
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0-beta.1 \
     @jsreport/jsreport-pug@4.0.0-beta.1 \
-    @jsreport/jsreport-azure-storage@3.0.0-beta.1 \
+    @jsreport/jsreport-aws-s3-storage@3.0.0-beta.1 \
+    @jsreport/jsreport-azure-storage@3.0.0-beta.1 \    
+    @jsreport/jsreport-docxtemplater@3.0.0-beta.1 \
     @jsreport/jsreport-mssql-store@3.0.0-beta.1 \
+    @jsreport/jsreport-oracle-store@3.0.0-beta.1 \
     @jsreport/jsreport-postgres-store@3.0.0-beta.1 \
     @jsreport/jsreport-mongodb-store@3.0.0-beta.1 \
+    @jsreport/jsreport-office-password@3.0.0-beta.1 \
     @jsreport/jsreport-html-to-text@3.0.0-beta.3 \
     @jsreport/jsreport-html-embedded-in-docx@3.0.0-beta.1 \
     @jsreport/jsreport-fs-store-aws-s3-persistence@3.0.0-beta.1 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0-beta.1 \
-    @jsreport/jsreport-electron-pdf@4.0.0-beta.1 \
-    cheerio-page-eval@1.0.0 \
-    electron@1.8.7
+    @jsreport/jsreport-unoconv@3.0.0-beta.1 \
+    cheerio-page-eval@1.0.0
 
 RUN npm uninstall -g @jsreport/jsreport-cli@beta && \
     npm cache clean -f && rm -rf /tmp/*
@@ -90,3 +83,4 @@ ENV chrome_launchOptions_executablePath google-chrome-stable
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
 CMD ["bash", "run.sh"]
+
