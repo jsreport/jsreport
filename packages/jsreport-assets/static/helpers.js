@@ -2,8 +2,16 @@
 async function asset (path, encoding) {
   encoding = typeof encoding === 'string' ? encoding : 'utf8'
 
-  const jsreport = require('jsreport-proxy')  
+  const jsreport = require('jsreport-proxy')
   const assetVal = await jsreport.assets.read(path, encoding)
+  return assetVal
+}
+
+async function assetModule (moduleName, encoding) {
+  encoding = typeof encoding === 'string' ? encoding : 'utf8'
+
+  const jsreport = require('jsreport-proxy')
+  const assetVal = await jsreport.assets.read(moduleName, encoding, true)
   return assetVal
 }
 

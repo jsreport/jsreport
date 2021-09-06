@@ -26,6 +26,10 @@ module.exports = function (reporter, definition) {
     definition.options.searchOnDiskIfNotFoundInStore = true
   }
 
+  if (reporter.options.allowLocalFilesAccess === true && definition.options.allowAssetsModules == null) {
+    definition.options.allowAssetsModules = true
+  }
+
   reporter.assets = { options: definition.options }
 
   reporter.on('express-configure', (app) => {
@@ -51,17 +55,18 @@ module.exports = function (reporter, definition) {
     }
 
     app.get('/assets/content/:path*', (req, res) => {
+      const moduleMode = req.query.module === 'true' || req.query.module === true
       const assetLink = req.params.path + req.params['0']
-      responseAsset(() => readAsset(reporter, definition, null, assetLink, 'binary', req), req, res)
+      responseAsset(() => readAsset(reporter, definition, { id: null, name: assetLink, encoding: 'binary', moduleMode }, req), req, res)
     })
 
     app.get('/assets/:id/content*', (req, res) => {
-      responseAsset(() => readAsset(reporter, definition, req.params.id, null, 'binary', req), req, res)
+      responseAsset(() => readAsset(reporter, definition, { id: req.params.id, name: null, encoding: 'binary' }, req), req, res)
     })
 
     app.get('/assets/office/:id/content', async (req, res) => {
       try {
-        const asset = await readAsset(reporter, definition, req.params.id, null, 'binary', req)
+        const asset = await readAsset(reporter, definition, { id: req.params.id, name: null, encoding: 'binary' }, req)
 
         req.options = req.options || {}
         req.options.preview = true

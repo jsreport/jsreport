@@ -2,17 +2,23 @@ const Promise = require('bluebird')
 const fs = require('fs')
 const FS = Promise.promisifyAll(fs)
 const path = require('path')
+const resolve = require('enhanced-resolve')
 const minimatch = require('minimatch')
 const jsStringEscape = require('js-string-escape')
 const mime = require('mime')
 const stripBom = require('strip-bom-buf')
+
+const moduleResolve = resolve.create({
+  extensions: ['.js', '.json']
+})
 
 module.exports.readFile = readFile
 module.exports.linkPath = linkPath
 module.exports.readAsset = readAsset
 module.exports.isAssetPathValid = isAssetPathValid
 
-async function readAsset (reporter, definition, id, name, encoding, req) {
+async function readAsset (reporter, definition, { id, name, encoding, moduleMode = false }, req) {
+  const allowAssetsModules = definition.options.allowAssetsModules === true
   const allowAssetsLinkedToFiles = definition.options.allowAssetsLinkedToFiles !== false
 
   let escape = function (val) { return val }
@@ -33,7 +39,51 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
 
   let asset
 
-  if (id) {
+  if (moduleMode) {
+    if (!name) {
+      throw reporter.createError('Asset module name is required', {
+        statusCode: 400,
+        weak: true
+      })
+    }
+
+    if (!allowAssetsModules) {
+      throw reporter.createError(`Can't not read asset module "${name}" when "allowAssetsModules" option is false`, {
+        statusCode: 400,
+        weak: true
+      })
+    }
+
+    const modulePath = await new Promise((resolve, reject) => {
+      moduleResolve(reporter.options.rootDirectory, name, (err, result) => {
+        if (err) {
+          err.message = `Asset module read error. ${err.message}`
+          return reject(err)
+        }
+
+        resolve(result)
+      })
+    })
+
+    const buf = await FS.readFileAsync(modulePath)
+    const moduleExtension = path.extname(modulePath)
+    const moduleFilename = moduleExtension !== '' && moduleExtension !== '.' ? `${name}${moduleExtension}` : name
+
+    if (encoding === 'link') {
+      return {
+        content: resolveAssetLink(reporter, definition, req, { name, module: true }),
+        filename: moduleFilename
+      }
+    }
+
+    const moduleStat = await FS.statAsync(modulePath)
+
+    return {
+      content: escape(buf.toString(encoding), name),
+      filename: moduleFilename,
+      modified: moduleStat.mtime
+    }
+  } else if (id) {
     asset = await reporter.documentStore.collection('assets').findOne({
       _id: id
     }, definition.options.publicAccessEnabled ? null : req)
@@ -105,7 +155,7 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
 
       if (encoding === 'link') {
         return {
-          content: resolveAssetLink(reporter, definition, req, name),
+          content: resolveAssetLink(reporter, definition, req, { name }),
           filename: name
         }
       }
@@ -135,14 +185,14 @@ async function readAsset (reporter, definition, id, name, encoding, req) {
 
     if (asset.link) {
       return {
-        content: resolveAssetLink(reporter, definition, req, asset.link),
+        content: resolveAssetLink(reporter, definition, req, { name: asset.link }),
         filename: name,
         entity: asset
       }
     }
 
     return {
-      content: resolveAssetLink(reporter, definition, req, name),
+      content: resolveAssetLink(reporter, definition, req, { name }),
       filename: name,
       entity: asset
     }
@@ -221,7 +271,7 @@ function combineURLs (baseURL, relativeURL) {
     : baseURL
 }
 
-function resolveAssetLink (reporter, definition, req, assetName) {
+function resolveAssetLink (reporter, definition, req, { name: assetName, module = false }) {
   if (definition.options.rootUrlForLinks) {
     return combineURLs(definition.options.rootUrlForLinks, 'assets/content/' + assetName)
   }
@@ -231,8 +281,13 @@ function resolveAssetLink (reporter, definition, req, assetName) {
   }
 
   const baseUrl = req.context.http ? req.context.http.baseUrl : reporter.express.localhostUrl
+  const url = baseUrl + '/assets/content/' + assetName
 
-  return baseUrl + '/assets/content/' + assetName
+  if (module) {
+    return `${url}?module=true`
+  }
+
+  return url
 }
 
 function isAssetPathValid (allowedFiles, link, absolutePath) {

@@ -9,6 +9,7 @@ module.exports = {
         type: 'object',
         properties: {
           allowedFiles: { type: 'string' },
+          allowAssetsModules: { type: 'boolean' },
           allowAssetsLinkedToFiles: { type: 'boolean' },
           searchOnDiskIfNotFoundInStore: { type: 'boolean' },
           rootUrlForLinks: { type: 'string' },
