@@ -78,13 +78,13 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
     pool.forEach(async (browserInfo) => {
       if (browserInfo.recycling) {
-        op.push(browserInfo.recycling.then(() => {
+        op.push(browserInfo.recycling.then(async () => {
           if (browserInfo.instance) {
-            return browserInfo.instance.close()
+            return browserInfo.instance.pages().then(pages => Promise.all(pages.map(page => page.close()))).then(() => browserInfo.instance.close())
           }
         }))
       } else if (browserInfo.instance) {
-        op.push(browserInfo.instance.close())
+        op.push(browserInfo.instance.pages().then(pages => Promise.all(pages.map(page => page.close()))).then(() => browserInfo.instance.close()))
       }
     })
 

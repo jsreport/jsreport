@@ -16,6 +16,10 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
       return reporter.init()
     },
 
+    close: () => {
+      return reporter.close()
+    },
+
     execute: ({ actionName, data, req }) => {
       // we need to convert back arrays to buffer because transfer to/from thread converts buffers to array
       convertUint8ArrayToBuffer(data)

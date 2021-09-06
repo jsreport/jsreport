@@ -98,7 +98,8 @@ parentPort.on('message', (m) => {
     return processAndResponse(m, init)
   }
   if (m.systemAction === 'close') {
-    process.exit()
+    workerModule.close()
+      .finally(() => process.exit())
   }
   if (m.systemAction === 'execute') {
     return processAndResponse(m, execute)
