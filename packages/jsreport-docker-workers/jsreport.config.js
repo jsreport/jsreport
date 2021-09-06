@@ -78,6 +78,12 @@ module.exports = {
               logOpt: { type: 'object' }
             }
           },
+          reportTimeoutMargin: {
+            type: ['string', 'number'],
+            description: 'the time to wait before the container is forcibly killed after timeout',
+            '$jsreport-acceptsDuration': true,
+            default: '2s'
+          },
           subnet: { type: 'string', default: '172.30.0.0/24' },
           network: { type: 'string', default: 'nw_jsreport_docker_workers' },
           busyQueueWaitingTimeout: {

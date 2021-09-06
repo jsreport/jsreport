@@ -56,7 +56,7 @@ module.exports.getRootSchemaOptions = () => ({
       type: ['string', 'number'],
       description: 'the time to wait before the worker thread is forcibly  killed after timeout',
       '$jsreport-acceptsDuration': true,
-      default: '1s'
+      default: '2s'
     },
     enableRequestReportTimeout: { type: 'boolean', default: false, description: 'option that enables passing a custom report timeout per request using req.options.timeout. this enables that the caller of the report generation control the report timeout so enable it only when you trust the caller' },
     allowLocalFilesAccess: { type: 'boolean', default: false },

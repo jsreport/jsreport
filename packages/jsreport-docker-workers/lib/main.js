@@ -70,7 +70,7 @@ module.exports = (reporter, definition) => {
               executeMain: async (data) => {
                 return reporter._invokeMainAction(data, reqBody.req)
               },
-              timeout: reqBody.timeout
+              timeout: reqBody.timeout + definition.options.reportTimeoutMargin
             })
             res.status(201).send(serializator.serialize(result))
             return

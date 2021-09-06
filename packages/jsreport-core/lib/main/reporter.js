@@ -227,6 +227,12 @@ class MainReporter extends Reporter {
         resourceLimits: this.options.workers.resourceLimits
       }
 
+      // adding the validation of shortid after extensions has been loaded
+      setupValidateId(this)
+      setupValidateShortid(this)
+
+      await this.initializeListeners.fire()
+
       this._workersManager = this._workersManagerFactory
         ? this._workersManagerFactory(workersManagerOptions, workersManagerSystemOptions)
         : WorkersManager(workersManagerOptions, workersManagerSystemOptions, this.logger)
@@ -240,12 +246,6 @@ class MainReporter extends Reporter {
       await this._workersManager.init(workersManagerOptions)
 
       this.logger.info(`${this.options.workers.numberOfWorkers} worker threads initialized in ${new Date().getTime() - workersStart}ms`)
-
-      // adding the validation of shortid after extensions has been loaded
-      setupValidateId(this)
-      setupValidateShortid(this)
-
-      await this.initializeListeners.fire()
 
       this._startReaper(this.getPathsToWatchForAutoCleanup())
 
