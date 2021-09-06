@@ -50,7 +50,7 @@ async function evaluateAssets (reporter, definition, stringToReplace, req) {
       encoding = paramValue
     }
 
-    readAsset(reporter, definition, null, assetName, encoding, req).then(function (res) {
+    readAsset(reporter, definition, { id: null, name: assetName, encoding }, req).then(function (res) {
       replacedAssets.push(assetName)
       done(null, res.content)
     }).catch(done)
@@ -106,15 +106,15 @@ module.exports = (reporter, definition) => {
     getTopLevelFunctions
   }) => {
     proxy.assets = {
-      read: async (path, encoding) => {
-        const r = await readAsset(reporter, definition, null, path, encoding, req)
+      read: async (path, encoding, moduleMode = false) => {
+        const r = await readAsset(reporter, definition, { id: null, name: path, encoding, moduleMode }, req)
         return r.content
       },
 
       evaluateShared: async () => {
         const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
         for (const a of sharedHelpersAssets) {
-          const asset = await readAsset(reporter, definition, a._id, null, 'utf8', req)
+          const asset = await readAsset(reporter, definition, { id: a._id, name: null, encoding: 'utf8' }, req)
           const functionNames = getTopLevelFunctions(asset.content.toString())
           const userCode = `(() => { ${asset.content.toString()};
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
@@ -131,7 +131,7 @@ module.exports = (reporter, definition) => {
       },
 
       registerHelpers: async (path) => {
-        const asset = await readAsset(reporter, definition, null, path, 'utf8', req)
+        const asset = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8' }, req)
 
         const functionNames = getTopLevelFunctions(asset.content.toString())
         const userCode = `(() => { ${asset.content.toString()};
@@ -148,7 +148,7 @@ module.exports = (reporter, definition) => {
       },
 
       require: async (path) => {
-        const r = await readAsset(reporter, definition, null, path, 'utf8', req)
+        const r = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8' }, req)
 
         const userCode = [
           `;(() => { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,
