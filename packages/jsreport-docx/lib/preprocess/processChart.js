@@ -21,14 +21,11 @@ module.exports = function processChart (files, drawingEl) {
     return
   }
 
-  let chartCatAxTitleEl
-  let chartValAxTitleEl
+  const chartAxTitleEls = []
 
   for (const titleEl of chartTitles.slice(1)) {
-    if (titleEl.parentNode.localName === 'catAx') {
-      chartCatAxTitleEl = titleEl
-    } else if (titleEl.parentNode.localName === 'valAx') {
-      chartValAxTitleEl = titleEl
+    if (titleEl.parentNode.localName === 'catAx' || titleEl.parentNode.localName === 'valAx') {
+      chartAxTitleEls.push(titleEl)
     }
   }
 
@@ -36,12 +33,8 @@ module.exports = function processChart (files, drawingEl) {
 
   chartMainReplaceEl.appendChild(chartMainTitleEl.cloneNode(true))
 
-  if (chartCatAxTitleEl) {
-    chartMainReplaceEl.appendChild(chartCatAxTitleEl.cloneNode(true))
-  }
-
-  if (chartValAxTitleEl) {
-    chartMainReplaceEl.appendChild(chartValAxTitleEl.cloneNode(true))
+  for (const chartAxTitleEl of chartAxTitleEls) {
+    chartMainReplaceEl.appendChild(chartAxTitleEl.cloneNode(true))
   }
 
   drawingEl.insertBefore(chartMainReplaceEl, drawingEl.firstChild)
@@ -50,15 +43,9 @@ module.exports = function processChart (files, drawingEl) {
     chartMainTitleEl.removeChild(chartMainTitleEl.firstChild)
   }
 
-  if (chartCatAxTitleEl) {
-    while (chartCatAxTitleEl.firstChild) {
-      chartCatAxTitleEl.removeChild(chartCatAxTitleEl.firstChild)
-    }
-  }
-
-  if (chartValAxTitleEl) {
-    while (chartValAxTitleEl.firstChild) {
-      chartValAxTitleEl.removeChild(chartValAxTitleEl.firstChild)
+  for (const chartAxTitleEl of chartAxTitleEls) {
+    while (chartAxTitleEl.firstChild) {
+      chartAxTitleEl.removeChild(chartAxTitleEl.firstChild)
     }
   }
 }

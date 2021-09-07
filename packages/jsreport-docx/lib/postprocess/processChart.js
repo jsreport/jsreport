@@ -67,8 +67,17 @@ module.exports = async function processChart (files, drawingEl, originalChartsXM
 
   if (drawingEl.firstChild.localName === 'docxChartMainReplace') {
     const newChartMainTitleEl = drawingEl.firstChild.firstChild
-    const newChartCatAxTitleEl = newChartMainTitleEl.nextSibling
-    const newChartValAxTitleEl = newChartCatAxTitleEl != null ? newChartCatAxTitleEl.nextSibling : null
+    const newChartAxTitleEls = []
+    let currentNode = newChartMainTitleEl
+
+    do {
+      currentNode = currentNode.nextSibling
+
+      if (currentNode) {
+        newChartAxTitleEls.push(currentNode)
+      }
+    } while (currentNode)
+
     const newChartRelId = getNewRelIdFromBaseId(relsDoc, newRelIdCounterMap, chartRId)
 
     if (chartRId !== newChartRelId) {
@@ -218,37 +227,30 @@ module.exports = async function processChart (files, drawingEl, originalChartsXM
 
     newChartMainTitleEl.parentNode.removeChild(newChartMainTitleEl)
 
-    if (newChartCatAxTitleEl) {
-      newChartCatAxTitleEl.parentNode.removeChild(newChartCatAxTitleEl)
-    }
-
-    if (newChartValAxTitleEl) {
-      newChartValAxTitleEl.parentNode.removeChild(newChartValAxTitleEl)
+    for (const newChartAxTitleEl of newChartAxTitleEls) {
+      newChartAxTitleEl.parentNode.removeChild(newChartAxTitleEl)
     }
 
     chartDrawingEl.setAttribute('r:id', newChartRelId)
 
     const existingChartTitles = nodeListToArray(chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`))
     const existingChartTitleEl = chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`)[0]
-    let existingChartCatAxTitleEl
-    let existingChartValAxTitleEl
+    const existingChartAxTitleEls = []
 
     for (const titleEl of existingChartTitles.slice(1)) {
-      if (titleEl.parentNode.localName === 'catAx') {
-        existingChartCatAxTitleEl = titleEl
-      } else if (titleEl.parentNode.localName === 'valAx') {
-        existingChartValAxTitleEl = titleEl
+      if (titleEl.parentNode.localName === 'catAx' || titleEl.parentNode.localName === 'valAx') {
+        existingChartAxTitleEls.push(titleEl)
       }
     }
 
     existingChartTitleEl.parentNode.replaceChild(newChartMainTitleEl, existingChartTitleEl)
 
-    if (existingChartCatAxTitleEl) {
-      existingChartCatAxTitleEl.parentNode.replaceChild(newChartCatAxTitleEl, existingChartCatAxTitleEl)
-    }
+    for (let i = 0; i < existingChartAxTitleEls.length; i++) {
+      const existingChartAxTitleEl = existingChartAxTitleEls[i]
 
-    if (existingChartValAxTitleEl) {
-      existingChartValAxTitleEl.parentNode.replaceChild(newChartValAxTitleEl, existingChartValAxTitleEl)
+      if (newChartAxTitleEls[i]) {
+        existingChartAxTitleEl.parentNode.replaceChild(newChartAxTitleEls[i], existingChartAxTitleEl)
+      }
     }
 
     drawingEl.firstChild.parentNode.removeChild(drawingEl.firstChild)

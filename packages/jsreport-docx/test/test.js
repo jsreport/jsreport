@@ -3843,6 +3843,135 @@ describe('docx', () => {
     })
   })
 
+  it('chart loop and x, y, secondary axis titles', async () => {
+    const chartList = [{
+      chart_data: {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [{
+          label: 'Apples',
+          data: [100, 50, 10, 70]
+        }, {
+          label: 'Oranges',
+          data: [20, 30, 20, 40]
+        }]
+      },
+      title: 'Fruit Chart 1',
+      x_axis: 'X VALUE 1',
+      x2_axis: 'X VALUE 1',
+      y_axis: 'Y VALUE 1',
+      y2_axis: 'Y VALUE 1'
+    }, {
+      chart_data: {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [{
+          label: 'Apples',
+          data: [60, 20, 90, 30]
+        }, {
+          label: 'Oranges',
+          data: [50, 10, 90, 100]
+        }]
+      },
+      title: 'Fruit Chart 2',
+      x_axis: 'X VALUE 2',
+      x2_axis: 'X VALUE 2',
+      y_axis: 'Y VALUE 2',
+      y2_axis: 'Y VALUE 2'
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'chart-loop-secondary-axis-titles.docx'))
+          }
+        }
+      },
+      data: {
+        chart_list: chartList
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const chartDrawningEls = nodeListToArray(doc.getElementsByTagName('c:chart'))
+
+    chartDrawningEls.length.should.be.eql(chartList.length)
+
+    const docRels = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/_rels/document.xml.rels').data.toString()
+    )
+
+    chartDrawningEls.forEach((chartDrawningEl, chartIdx) => {
+      const chartRelId = chartDrawningEl.getAttribute('r:id')
+
+      const chartRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === chartRelId
+      })
+
+      const chartDoc = new DOMParser().parseFromString(
+        files.find(f => f.path === `word/${chartRelEl.getAttribute('Target')}`).data.toString()
+      )
+
+      const chartTitles = nodeListToArray(chartDoc.getElementsByTagName('c:title'))
+
+      const chartMainTitleEl = chartTitles[0]
+
+      chartMainTitleEl.getElementsByTagName('a:t')[0].textContent.should.be.eql(`Fruit Chart ${(chartIdx + 1)}`)
+
+      const chartAxTitleEl = chartTitles[1]
+
+      chartAxTitleEl.getElementsByTagName('a:t')[0].textContent.should.be.eql(`X VALUE ${(chartIdx + 1)}`)
+
+      const chartAxTitle2El = chartTitles[2]
+
+      chartAxTitle2El.getElementsByTagName('a:t')[0].textContent.should.be.eql(`Y VALUE ${(chartIdx + 1)}`)
+
+      const chartAxTitle3El = chartTitles[3]
+
+      chartAxTitle3El.getElementsByTagName('a:t')[0].textContent.should.be.eql(`Y VALUE ${(chartIdx + 1)}`)
+
+      const chartAxTitle4El = chartTitles[4]
+
+      chartAxTitle4El.getElementsByTagName('a:t')[0].textContent.should.be.eql(`X VALUE ${(chartIdx + 1)}`)
+
+      const chartRelsDoc = new DOMParser().parseFromString(
+        files.find(f => f.path === `word/charts/_rels/${chartRelEl.getAttribute('Target').split('/').slice(-1)[0]}.rels`).data.toString()
+      )
+
+      const dataElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
+
+      dataElements.forEach((dataEl, idx) => {
+        dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(chartList[chartIdx].chart_data.datasets[idx].label)
+        nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(chartList[chartIdx].chart_data.labels)
+        nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(chartList[chartIdx].chart_data.datasets[idx].data)
+      })
+
+      const chartStyleRelEl = nodeListToArray(chartRelsDoc.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Type') === 'http://schemas.microsoft.com/office/2011/relationships/chartStyle'
+      })
+
+      const chartStyleDoc = files.find(f => f.path === `word/charts/${chartStyleRelEl.getAttribute('Target')}`)
+
+      chartStyleDoc.should.be.not.undefined()
+
+      const chartColorStyleRelEl = nodeListToArray(chartRelsDoc.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Type') === 'http://schemas.microsoft.com/office/2011/relationships/chartColorStyle'
+      })
+
+      const chartColorStyleDoc = files.find(f => f.path === `word/charts/${chartColorStyleRelEl.getAttribute('Target')}`)
+
+      chartColorStyleDoc.should.be.not.undefined()
+    })
+  })
+
   it('chart should keep style defined in serie', async () => {
     const labels = ['Q1', 'Q2', 'Q3', 'Q4']
     const datasets = [{
