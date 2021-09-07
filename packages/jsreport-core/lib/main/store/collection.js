@@ -27,7 +27,7 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
 
     const listenerPromise = this.beforeFindListeners.fire(q, p, req)
 
-    // the jsreport backcompatible API for find returns promise with the result array
+    // the jsreport back-compatible API for find returns promise with the result array
     // the new API returns a cursor like mongo uses
     // to make it working for both way of calling, we return
     // an object which is a promise and in the same time a cursor
@@ -306,6 +306,8 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
           }
         } else if (propDef.type === 'Edm.Binary') {
           newDoc[prop] = Buffer.from(newDoc[prop], 'base64')  // eslint-disable-line
+        } else if (propDef.type === 'Edm.DateTimeOffset') {
+          newDoc[prop] = new Date(newDoc[prop])
         }
 
         if (propDef.encrypted === true) {

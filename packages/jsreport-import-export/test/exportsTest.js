@@ -304,6 +304,19 @@ describe('import-export', () => {
       res[0].content.should.be.eql('x')
     })
 
+    it('should not update entity in import if there is no changes', async () => {
+      const req = reporter.Request({})
+      await reporter.documentStore.collection('templates').insert({ name: 'foo', content: 'x', engine: 'none', recipe: 'html' }, req)
+      const { stream } = await reporter.export(undefined, req)
+      const exportPath = await saveExportStream(reporter, stream)
+      const { log } = await reporter.import(exportPath, req)
+      const res = await reporter.documentStore.collection('templates').find({}, req)
+      log.should.containEql('No changes to import')
+      res.should.have.length(1)
+      res[0].name.should.be.eql('foo')
+      res[0].content.should.be.eql('x')
+    })
+
     it('should filter out entities by selection in export', async () => {
       const req = reporter.Request({})
       const e = await reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' })
@@ -626,7 +639,7 @@ describe('import-export', () => {
       templatesRes[0]._id.should.be.eql(t1._id)
     })
 
-    it('should be able to handle full import mode (folders and subfolders)', async () => {
+    it('should be able to handle full import mode (folders and sub-folders)', async () => {
       const t1 = await reporter.documentStore.collection('templates').insert({ name: 'a', engine: 'none', recipe: 'html' })
       const t2 = await reporter.documentStore.collection('templates').insert({ name: 'b', engine: 'none', recipe: 'html' })
       const f1 = await reporter.documentStore.collection('folders').insert({ name: 'level1', shortid: 'level1' })

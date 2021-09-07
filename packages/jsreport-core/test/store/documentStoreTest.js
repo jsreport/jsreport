@@ -335,6 +335,28 @@ describe('document store', () => {
       ))
     })
 
+    it('should handle date property when using collection.deserializeProperties', async () => {
+      const now = new Date()
+
+      await reporter.documentStore.collection('reports').insert({
+        name: 'testing',
+        creationDate: now
+      })
+
+      const reports = await reporter.documentStore.collection('reports').find({})
+      const serialized = await reporter.documentStore.collection('reports').serializeProperties(reports)
+
+      serialized.should.have.length(1)
+
+      const unserialized = await reporter.documentStore.collection('reports').deserializeProperties(serialized)
+      unserialized.should.have.length(1)
+
+      unserialized.should.matchAny((t) => (
+        t.name.should.be.eql('testing') &&
+        t.creationDate.toString().should.be.eql(now.toString())
+      ))
+    })
+
     it('insert should fail with invalid name', async () => {
       return store.collection('templates').insert({ name: '<test', engine: 'none', recipe: 'html' }).should.be.rejected()
     })
@@ -610,7 +632,8 @@ function init (options, customExt) {
           tags: { type: 'Collection(jsreport.TagRefType)' },
           values: { type: 'Collection(Edm.String)' },
           rawMetadata: { type: 'Edm.Binary' },
-          encryptedValue: { type: 'Edm.String', encrypted: true }
+          encryptedValue: { type: 'Edm.String', encrypted: true },
+          creationDate: { type: 'Edm.DateTimeOffset' }
         })
 
         reporter.documentStore.registerEntityType('ValidationTestType', {

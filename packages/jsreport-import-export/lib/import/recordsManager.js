@@ -1,3 +1,5 @@
+const isEqual = require('lodash.isequal')
+const omit = require('lodash.omit')
 const reqWithNoUser = require('./reqWithNoUser')
 const { getEntityDisplay, getEntityNameDisplay } = require('../helpers')
 
@@ -312,6 +314,16 @@ module.exports = function createRecordManager (reporter, req, {
         entity.folder = {
           shortid: targetFolder.shortid
         }
+      }
+
+      if (
+        record.action === 'update' &&
+        existingEntity &&
+        // omit .modificationDate for the comparison, because this field changes on each update
+        // and it is always different
+        isEqual(omit(existingEntity, ['modificationDate']), omit(entity, ['modificationDate']))
+      ) {
+        return
       }
 
       record.updateReferences = createUpdateForLazyReferences(record)

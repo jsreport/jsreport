@@ -88,6 +88,10 @@ async function processImport (reporter, exportFilePath, opts, req) {
     fullImport
   })
 
+  if (records.length === 0) {
+    logs.push('Info: No changes to import. Entities are the same than entities in export file')
+  }
+
   if (ignored.length > 0) {
     const pendingLogs = []
     const counter = {}
