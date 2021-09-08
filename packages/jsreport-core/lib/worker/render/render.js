@@ -172,10 +172,10 @@ module.exports = (reporter) => {
 
       if (
         parentReq &&
-      parentReq.context &&
-      parentReq.context.logs &&
-      request.context &&
-      request.context.logs
+        parentReq.context &&
+        parentReq.context.logs &&
+        request.context &&
+        request.context.logs
       ) {
         parentReq.context.logs = parentReq.context.logs.concat(request.context.logs)
       }
@@ -186,7 +186,9 @@ module.exports = (reporter) => {
 
       e.logged = true
 
-      await reporter.profiler.renderEnd(renderStartProfilerEvent.operationId, request, response, e)
+      if (renderStartProfilerEvent) {
+        await reporter.profiler.renderEnd(renderStartProfilerEvent.operationId, request, response, e)
+      }
 
       throw e
     } finally {
