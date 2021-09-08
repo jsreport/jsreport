@@ -34,9 +34,18 @@ module.exports = async function response ({
   }
 
   const isPreviewRequest = req.options.preview === true || req.options.preview === 'true'
-  const isOfficePreviewRequest = req.options.office != null && (req.options.office.preview === true || req.options.office.preview === 'true')
+  let isOfficePreviewRequest
 
-  if (enabled === false || (!isPreviewRequest && !isOfficePreviewRequest)) {
+  if (
+    req.options.office == null ||
+    req.options.office.preview == null
+  ) {
+    isOfficePreviewRequest = isPreviewRequest
+  } else {
+    isOfficePreviewRequest = req.options.office.preview === true || req.options.office.preview === 'true'
+  }
+
+  if (enabled === false || !isOfficePreviewRequest) {
     res.meta.fileExtension = officeDocumentType
     res.meta.contentType = officeDocuments[officeDocumentType].contentType
     res.meta.officeDocumentType = officeDocumentType
