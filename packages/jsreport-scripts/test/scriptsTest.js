@@ -18,7 +18,7 @@ describe('scripts', () => {
     return reporter.init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   common()
   commonSafe()
@@ -284,6 +284,25 @@ describe('scripts', () => {
       })
 
       res.content.toString().should.be.eql('xxx')
+    })
+
+    it('should be able to merge response in beforeRender', async () => {
+      const res = await reporter.render({
+        template: {
+          content: '',
+          recipe: 'html',
+          engine: 'none',
+          scripts: [{
+            content: `
+              function beforeRender(req, res) { res.meta.reportName = 'test' }
+              function afterRender(req, res) { res.content = res.meta.reportName }
+            `
+          }]
+        }
+      })
+
+      res.content.toString().should.be.eql('test')
+      res.meta.reportName.should.be.eql('test')
     })
 
     it('should be able to cancel request', async () => {

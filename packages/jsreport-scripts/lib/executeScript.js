@@ -8,6 +8,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
   const originalData = req.data
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
+  const resClone = extend(true, {}, res)
 
   const initialContext = {
     __request: {
@@ -16,7 +17,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
         ...originalData
       }
     },
-    __response: res
+    __response: resClone
   }
 
   // keep the reference to the shared context so it is always update to date
@@ -83,9 +84,9 @@ module.exports = async function executeScript (reporter, script, method, req, re
       // we also create new object that avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
       req: {
-        template: restoredSandbox.__request.template,
-        data: err == null ? restoredSandbox.__request.data : undefined,
-        options: restoredSandbox.__request.options,
+        template: { ...restoredSandbox.__request.template },
+        data: err == null ? { ...restoredSandbox.__request.data } : undefined,
+        options: { ...restoredSandbox.__request.options },
         context: {
           ...restoredSandbox.__request.context
         }

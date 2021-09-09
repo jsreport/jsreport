@@ -125,6 +125,7 @@ class Scripts {
       req.data = scriptExecResult.req.data
       delete scriptExecResult.req.data
       merge(req, scriptExecResult.req)
+      merge(res, scriptExecResult.res)
     }
 
     if (method === 'afterRender') {
@@ -132,6 +133,7 @@ class Scripts {
       delete scriptExecResult.res.content
       merge(res, scriptExecResult.res)
 
+      req.data = scriptExecResult.req.data
       delete scriptExecResult.req.data
       merge(req, scriptExecResult.req)
     }
