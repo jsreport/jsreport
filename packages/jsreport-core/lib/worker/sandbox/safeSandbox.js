@@ -98,8 +98,7 @@ module.exports = (_sandbox, options = {}) => {
   const customProxies = new WeakMap()
 
   // we copy the object based on config to avoid sharing same context
-  // (with getters/setters) in the rest of request pipeline when
-  // using the in-process strategy
+  // (with getters/setters) in the rest of request pipeline
   const sandbox = copyBasedOnPropertiesConfig(_sandbox, propertiesConfig)
 
   applyPropertiesConfig(sandbox, propsConfig, {
@@ -433,8 +432,19 @@ function applyPropertiesConfig (context, config, {
     isReadOnly = config ? config.sandboxReadOnly === true : false
   }
 
+  let shouldStoreOriginal = isHidden || isReadOnly
+
+  // prevent storing original value if there is config some child prop
+  if (
+    shouldStoreOriginal &&
+    isGrouped &&
+    (config.inner != null || config.standalone != null)
+  ) {
+    shouldStoreOriginal = false
+  }
+
   // saving original value
-  if ((isHidden || isReadOnly)) {
+  if (shouldStoreOriginal) {
     let exists = true
     let newValue
 
@@ -726,8 +736,6 @@ function normalizePropertiesConfigInHierarchy (configMap) {
       const currentKey = parts.slice(0, i + 1).join('.')
       const indexInHierarchy = hierarchy.indexOf(currentKey)
       let parentHierarchy = hierarchyLevels
-      // const shouldInsertToplLevel =
-      // const shouldInsertInnerLevel = indexInHierarchy !== -1 && (i + 1 === lastIndexParts)
 
       if (indexInHierarchy === -1 && i === lastIndexParts) {
         let parentExistsInTopLevel = false

@@ -112,7 +112,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
       // configure properties inside the context of sandbox
         acu[`__request.context.${prop}`] = requestContextMetaConfig[prop]
         return acu
-      }, {})
+      }, { '__request.context': { sandboxReadOnly: true } })
     }, req)
   } catch (e) {
     const nestedErrorWithEntity = e.entity != null

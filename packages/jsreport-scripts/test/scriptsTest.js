@@ -227,24 +227,6 @@ describe('scripts', () => {
       })
     })
 
-    it('should be able to add property to request context', async () => {
-      const res = await reporter.render({
-        template: {
-          content: 'content',
-          recipe: 'html',
-          engine: 'none',
-          scripts: [{
-            content: `
-              function beforeRender(req, res) {  req.context.foo = 'xxx' }
-              function afterRender(req, res) { res.content = Buffer.from(req.context.foo) }
-            `
-          }]
-        }
-      })
-
-      res.content.toString().should.be.eql('xxx')
-    })
-
     it('should be able to render with template content set in script', async () => {
       const res = await reporter.render({
         template: {
@@ -500,7 +482,6 @@ describe('scripts', () => {
               async function beforeRender (req, res) {
                 req.data = req.data || {}
                 req.data.some = true
-                req.context.another = true
               }
 
               async function afterRender(req, res) {
@@ -520,14 +501,12 @@ describe('scripts', () => {
 
       let contextChangedInsideProxyRender
       let contextUserPropChangedInsideScript
-      let contextAnotherPropChangedInsideScript
 
       reporter.tests.afterRenderListeners.add('testing', (req, res) => {
         if (req.context.isChildRequest) {
           contextChangedInsideProxyRender = req.context.user.name !== 'Boris'
         } else {
           contextUserPropChangedInsideScript = req.context.user.name !== 'Boris'
-          contextAnotherPropChangedInsideScript = req.context.another === true
         }
       })
 
@@ -536,7 +515,6 @@ describe('scripts', () => {
       response.content.toString().should.be.eql('foo')
       contextChangedInsideProxyRender.should.be.eql(false)
       contextUserPropChangedInsideScript.should.be.eql(false)
-      contextAnotherPropChangedInsideScript.should.be.eql(true)
     })
 
     it('should be able to require jsreport-proxy and find collection', async () => {
