@@ -600,7 +600,7 @@ function commonTimeout (strategy, imageExecution) {
 
   afterEach(() => reporter.close())
 
-  it('should reject', async () => {
+  it.skip('should reject', async () => {
     const processesBefore = await psList()
     const chromeCountBefore = processesBefore.filter(p => p.name.includes('chrome')).length
     const request = {
