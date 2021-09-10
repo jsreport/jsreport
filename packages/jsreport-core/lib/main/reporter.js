@@ -87,7 +87,6 @@ class MainReporter extends Reporter {
       defaults: this.defaults,
       options: this.options,
       validator: this.optionsValidator,
-      fallbackParentModuleDirectory: path.dirname(module.parent.filename),
       onConfigLoaded: async () => {
         await this._fnAfterConfigLoaded(this)
       }

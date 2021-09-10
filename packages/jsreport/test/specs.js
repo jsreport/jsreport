@@ -1,7 +1,8 @@
 require('should')
+const path = require('path')
+const childProcess = require('child_process')
 const jsreport = require('../')
 const packageJson = require('../package.json')
-const path = require('path')
 
 const jsreportExtensions = Object.keys(packageJson.dependencies).filter((extName) => {
   return extName !== '@jsreport/jsreport-core' && extName.startsWith('@jsreport')
@@ -24,7 +25,7 @@ describe('all extensions', function () {
     return reporter.init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   it('all available extensions should be loaded', () => {
     const availableExtensions = reporter.extensionsManager.availableExtensions.filter((extension) => {
@@ -135,5 +136,27 @@ describe('all extensions', function () {
     })
 
     resp.content.toString().should.be.eql('foo')
+  })
+})
+
+describe('ESM', function () {
+  it('should be able to init', async () => {
+    await new Promise((resolve, reject) => {
+      try {
+        const proc = childProcess.fork(path.join(__dirname, './fromESM.mjs'))
+
+        proc.on('error', (e) => reject(e))
+
+        proc.on('exit', (code) => {
+          if (code === 1) {
+            reject(new Error('child process exited with code 1'))
+          } else {
+            resolve()
+          }
+        })
+      } catch (error) {
+        reject(error)
+      }
+    })
   })
 })

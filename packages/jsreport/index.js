@@ -24,7 +24,13 @@ const main = require('./lib/main')
 module.exports = function (options, defaults) {
   options = options || {}
 
-  options.parentModuleDirectory = path.dirname(module.parent.filename)
+  // when jsreport is loaded from ESM, module.parent does not exists
+  if (module.parent) {
+    options.parentModuleDirectory = path.dirname(module.parent.filename)
+  } else {
+    // we set empty value to ensure jsreport-core does not override it with its custom default
+    options.parentModuleDirectory = ''
+  }
 
   return main(options, defaults)
 }
