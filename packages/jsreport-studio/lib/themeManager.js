@@ -1,5 +1,5 @@
-const Promise = require('bluebird')
-const fs = Promise.promisifyAll(require('fs'))
+const fs = require('fs')
+const fsP = require('fs/promises')
 const { Lock } = require('semaphore-async-await')
 
 module.exports = function (cacheEnabled, customLogWarnFn) {
@@ -108,7 +108,7 @@ function doRegisterTheme (THEMES, EDITOR_THEMES, def, logWarn) {
       let variables
 
       try {
-        variables = JSON.parse((await fs.readFileAsync(def.variablesPath)).toString())
+        variables = JSON.parse((await fsP.readFile(def.variablesPath)).toString())
       } catch (e) {
         logWarn(`${badVariablesExportMsg}, skipping applying variables of this theme. ${e.message}`)
         variables = {}

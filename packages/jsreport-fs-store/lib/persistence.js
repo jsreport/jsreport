@@ -1,6 +1,6 @@
-const Promise = require('bluebird')
-const { copy, deepGet, deepSet, deepDelete, serialize, parse, retry, uid } = require('./customUtils')
 const extend = require('node.extend.without.arrays')
+const pMap = require('p-map')
+const { copy, deepGet, deepSet, deepDelete, serialize, parse, retry, uid } = require('./customUtils')
 
 function getDirectoryPath (fs, model, doc, documents) {
   if (!doc.folder) {
@@ -92,7 +92,7 @@ async function parseFiles (fs, parentDirectory, documentsModel, files) {
 
 async function load (fs, directory, model, documents, { loadConcurrency, parentDirectoryEntity }) {
   const dirEntries = await fs.readdir(directory)
-  const contentStats = await Promise.map(dirEntries, async (e) => ({ name: e, stat: await fs.stat(fs.path.join(directory, e)) }), { concurrency: loadConcurrency })
+  const contentStats = await pMap(dirEntries, async (e) => ({ name: e, stat: await fs.stat(fs.path.join(directory, e)) }), { concurrency: loadConcurrency })
 
   const loadedDocuments = await parseFiles(fs, directory, model, contentStats.filter((e) => !e.stat.isDirectory()).map(e => e.name))
 
@@ -143,7 +143,7 @@ async function load (fs, directory, model, documents, { loadConcurrency, parentD
     }
   }
 
-  await Promise.map(dirNames, (n) => load(fs, fs.path.join(directory, n), model, documents, { parentDirectoryEntity, loadConcurrency }), { concurrency: loadConcurrency })
+  await pMap(dirNames, (n) => load(fs, fs.path.join(directory, n), model, documents, { parentDirectoryEntity, loadConcurrency }), { concurrency: loadConcurrency })
   return documents
 }
 
@@ -164,7 +164,7 @@ async function persistToPath (fs, resolveFileExtension, model, docPath, doc, ori
     }
   }
 
-  await Promise.map(entityType.documentProperties, async (prop) => {
+  await Promise.all(entityType.documentProperties.map(async (prop) => {
     const fileExtension = resolveFileExtension(doc, doc.$entitySet, prop.path)
     let value = deepGet(doc, prop.path)
 
@@ -183,7 +183,7 @@ async function persistToPath (fs, resolveFileExtension, model, docPath, doc, ori
     await fs.writeFile(fs.path.join(docPath, pathFragments[pathFragments.length - 1] + '.' + fileExtension), value)
 
     deepDelete(doc, prop.path)
-  })
+  }))
 
   await fs.writeFile(fs.path.join(docPath, 'config.json'), serialize(doc))
 }

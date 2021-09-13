@@ -1,10 +1,10 @@
+const util = require('util')
 const path = require('path')
 const should = require('should')
 const JsReport = require('@jsreport/jsreport-core')
 const IO = require('socket.io-client')
-const Promise = require('bluebird')
 const fs = require('fs')
-const rimrafAsync = Promise.promisify(require('rimraf'))
+const rimrafAsync = util.promisify(require('rimraf'))
 
 describe('extension use', () => {
   let jsreport

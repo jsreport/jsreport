@@ -1,5 +1,4 @@
 const OdataSql = require('@jsreport/odata-to-sql')
-const Promise = require('bluebird')
 const { v4: uuidv4 } = require('uuid')
 
 class Cursor {

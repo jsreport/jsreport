@@ -1,5 +1,4 @@
 const mongodb = require('mongodb')
-const Promise = require('bluebird')
 
 module.exports = (client, db) => ({
   write (blobName, buffer) {

@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const childProcess = require('child_process')
-const Promise = require('bluebird')
 const wkhtmltopdf = require('wkhtmltopdf-installer')
 
 module.exports = async (reporter, definition, request, response) => {

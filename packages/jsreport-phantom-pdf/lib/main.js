@@ -4,10 +4,8 @@
  * Recipe rendering pdf files using phantomjs.
  */
 
-const Promise = require('bluebird')
-const fs = require('fs')
+const fs = require('fs/promises')
 const path = require('path')
-const readdirAsync = Promise.promisify(fs.readdir)
 
 const defaultPhantomjsVersion = '1.9.8'
 
@@ -49,7 +47,7 @@ module.exports = (reporter, definition) => {
     const npm = path.join(reporter.options.rootDirectory, 'node_modules')
 
     function crawlAvailablePhantomVersions () {
-      return readdirAsync(npm).then(function (files) {
+      return fs.readdir(npm).then(function (files) {
         return files.filter(function (f) {
           return f.indexOf('phantomjs-exact-') !== -1
         }).map(function (f) {

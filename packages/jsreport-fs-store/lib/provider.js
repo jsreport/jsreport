@@ -1,16 +1,16 @@
+const util = require('util')
+const EventEmitter = require('events').EventEmitter
+const extend = require('node.extend.without.arrays')
+const omit = require('lodash.omit')
+const mingo = require('@jsreport/mingo')
+const rimrafAsync = util.promisify(require('rimraf'))
 const Transaction = require('./transaction')
 const Persistence = require('./persistence')
 const { uid, lock } = require('./customUtils')
-const mingo = require('@jsreport/mingo')
-const Promise = require('bluebird')
 const documentModel = require('./documentModel')
 const Queue = require('./queue')
-const omit = require('lodash.omit')
 const FileSystemPersistence = require('./fileSystem')
 const ExternalModificationsSync = require('./externalModificationsSync')
-const rimrafAsync = Promise.promisify(require('rimraf'))
-const EventEmitter = require('events').EventEmitter
-const extend = require('node.extend.without.arrays')
 const Journal = require('./journal')
 
 module.exports = ({

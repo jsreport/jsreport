@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "axios": "0.21.1",
-    "bluebird": "3.7.2",
     "express": "4.17.1",
     "fs-extra": "9.1.0",
     "ip": "1.1.5",

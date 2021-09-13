@@ -1,6 +1,4 @@
-const Promise = require('bluebird')
-const fs = require('fs')
-const FS = Promise.promisifyAll(fs)
+const fs = require('fs/promises')
 const path = require('path')
 const etag = require('etag')
 const mime = require('mime')
@@ -152,7 +150,7 @@ module.exports = function (reporter, definition) {
 
       if (query._id && update.$set && update.$set.forceUpdate && update.$set.link) {
         try {
-          await FS.writeFileAsync(linkPath(reporter, definition, update.$set.link), update.$set.content)
+          await fs.writeFile(linkPath(reporter, definition, update.$set.link), update.$set.content)
           delete update.$set.forceUpdate
           delete update.$set.content
         } catch (e) {

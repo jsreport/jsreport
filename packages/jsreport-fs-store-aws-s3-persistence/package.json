@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "aws-sdk": "2.437.0",
-    "bluebird": "3.5.4",
     "uuid": "8.3.2"
   },
   "devDependencies": {

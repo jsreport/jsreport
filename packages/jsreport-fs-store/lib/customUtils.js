@@ -1,5 +1,4 @@
 const crypto = require('crypto')
-const Promise = require('bluebird')
 const extend = require('node.extend.without.arrays')
 
 /**
@@ -114,7 +113,7 @@ async function retry (fn, maxCount = 10) {
       return res
     } catch (e) {
       error = e
-      await Promise.delay(i * 10)
+      await new Promise((resolve) => setTimeout(resolve, i * 10))
     }
   }
 
@@ -182,7 +181,7 @@ async function infiniteRetry (fn, log) {
     } catch (e) {
       delay = Math.min(20000, delay * 2)
       log(e, delay)
-      await Promise.delay(delay)
+      await await new Promise((resolve) => setTimeout(resolve, delay))
     }
   }
 }

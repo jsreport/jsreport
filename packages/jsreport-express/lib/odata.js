@@ -1,5 +1,4 @@
 const ODataServer = require('simple-odata-server')
-const Promise = require('bluebird')
 const omit = require('lodash.omit')
 
 module.exports = (reporter) => {
@@ -28,13 +27,13 @@ module.exports = (reporter) => {
       reporter.logger.debug('OData insert into ' + col)
       cb()
     }).update((col, query, update, req, cb) => {
-      return Promise.resolve(reporter.documentStore.collection(col).update(query, update, req)).asCallback(cb)
+      return Promise.resolve(reporter.documentStore.collection(col).update(query, update, req)).then((result) => cb(null, result), (err) => cb(err))
     })
     .insert((col, doc, req, cb) => {
-      return Promise.resolve(reporter.documentStore.collection(col).insert(doc, req)).asCallback(cb)
+      return Promise.resolve(reporter.documentStore.collection(col).insert(doc, req)).then((result) => cb(null, result), (err) => cb(err))
     })
     .remove((col, query, req, cb) => {
-      return Promise.resolve(reporter.documentStore.collection(col).remove(query, req)).asCallback(cb)
+      return Promise.resolve(reporter.documentStore.collection(col).remove(query, req)).then((result) => cb(null, result), (err) => cb(err))
     })
     .query((col, query, req, cb) => {
       const localReq = reporter.Request(req)
@@ -55,13 +54,13 @@ module.exports = (reporter) => {
       }
 
       if (query.$count) {
-        return Promise.resolve(cursor.count()).asCallback(cb)
+        return Promise.resolve(cursor.count()).then((result) => cb(null, result), (err) => cb(err))
       }
 
       if (!query.$inlinecount) {
         return Promise.resolve(cursor.toArray())
           .then((items) => items.map((i) => omit(i, hiddenProps[col])))
-          .asCallback(cb)
+          .then((result) => cb(null, result), (err) => cb(err))
       }
 
       Promise.resolve(cursor.toArray().then((res) => {
@@ -71,7 +70,7 @@ module.exports = (reporter) => {
             count: c
           }
         })
-      })).asCallback(cb)
+      })).then((result) => cb(null, result), (err) => cb(err))
     }).error((req, res, err, def) => {
       if (err.code === 'UNAUTHORIZED') {
         res.error(err)

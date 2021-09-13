@@ -1,4 +1,3 @@
-const Promise = require('bluebird')
 
 module.exports = (persistenceQueueWaitingTimeout) => {
   const items = []

@@ -1,4 +1,4 @@
-const Promise = require('bluebird')
+const util = require('util')
 const path = require('path')
 const azure = require('azure-storage')
 const stream = require('stream')
@@ -11,7 +11,7 @@ async function retry (fn, maxCount = 10) {
       return res
     } catch (e) {
       error = e
-      await Promise.delay(i * 10)
+      await new Promise((resolve) => setTimeout(resolve, i * 10))
     }
   }
 
@@ -32,12 +32,24 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
   }
 
   const blobService = azure.createBlobService(accountName, accountKey)
-  Promise.promisifyAll(blobService)
+
+  const blobServiceAsync = {
+    createContainerIfNotExists: util.promisify(blobService.createContainerIfNotExists).bind(blobService),
+    createBlockBlobFromStream: util.promisify(blobService.createBlockBlobFromStream).bind(blobService),
+    listBlobsSegmentedWithPrefix: util.promisify(blobService.listBlobsSegmentedWithPrefix).bind(blobService),
+    getBlobToStream: util.promisify(blobService.getBlobToStream).bind(blobService),
+    getBlobMetadata: util.promisify(blobService.getBlobMetadata).bind(blobService),
+    startCopyBlob: util.promisify(blobService.startCopyBlob).bind(blobService),
+    deleteBlob: util.promisify(blobService.deleteBlob).bind(blobService),
+    doesBlobExist: util.promisify(blobService.doesBlobExist).bind(blobService),
+    acquireLease: util.promisify(blobService.acquireLease).bind(blobService),
+    releaseLease: util.promisify(blobService.releaseLease).bind(blobService)
+  }
 
   return {
-    init: () => blobService.createContainerIfNotExistsAsync(container),
+    init: () => blobServiceAsync.createContainerIfNotExists(container),
     readdir: async (p) => {
-      const res = await blobService.listBlobsSegmentedWithPrefixAsync(container, p, null)
+      const res = await blobServiceAsync.listBlobsSegmentedWithPrefix(container, p, null)
       const topFilesOrDirectories = res.entries
         .filter(e =>
           e.name === p ||
@@ -55,7 +67,7 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
           next()
         }
       })
-      await blobService.getBlobToStreamAsync(container, p, writingStream)
+      await blobServiceAsync.getBlobToStream(container, p, writingStream)
       return Buffer.concat(data)
     },
     writeFile: (p, c) => {
@@ -64,7 +76,7 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
       s._read = () => {}
       s.push(buffer)
       s.push(null)
-      return blobService.createBlockBlobFromStreamAsync(container, p, s, buffer.length, {
+      return blobServiceAsync.createBlockBlobFromStream(container, p, s, buffer.length, {
         metadata: {
           mtime: new Date().getTime()
         }
@@ -84,14 +96,14 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
       s._read = () => {}
       s.push(finalBuffer)
       s.push(null)
-      return blobService.createBlockBlobFromStreamAsync(container, p, s, finalBuffer.length, {
+      return blobServiceAsync.createBlockBlobFromStream(container, p, s, finalBuffer.length, {
         metadata: {
           mtime: new Date().getTime()
         }
       })
     },
     rename: async (p, pp) => {
-      const blobsToRename = await blobService.listBlobsSegmentedWithPrefixAsync(container, p, null)
+      const blobsToRename = await blobServiceAsync.listBlobsSegmentedWithPrefix(container, p, null)
       const entriesToRename = blobsToRename.entries.filter(e =>
         e.name === p ||
         e.name.startsWith(p + '/') ||
@@ -99,17 +111,17 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
       )
       await Promise.all(entriesToRename.map(async (e) => {
         const newName = e.name.replace(p, pp)
-        await blobService.startCopyBlobAsync(blobService.getUrl(container, e.name), container, newName)
+        await blobServiceAsync.startCopyBlob(blobService.getUrl(container, e.name), container, newName)
       }))
 
-      return Promise.all(entriesToRename.map((e) => blobService.deleteBlobAsync(container, e.name)))
+      return Promise.all(entriesToRename.map((e) => blobServiceAsync.deleteBlob(container, e.name)))
     },
     exists: async (p) => {
-      const res = await blobService.doesBlobExistAsync(container, p)
+      const res = await blobServiceAsync.doesBlobExist(container, p)
       return res.exists
     },
     stat: async (p) => {
-      const res = await blobService.doesBlobExistAsync(container, p)
+      const res = await blobServiceAsync.doesBlobExist(container, p)
       // otazka je jestli je to vlastne ok, co kdyz nekdo jiny edituje ve stejne ms?
       // problem je azure ma ten modification date bez milisekund
       // mozna by stacilo po locku chvilku pockat
@@ -117,32 +129,32 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
         return { isDirectory: () => true }
       }
 
-      const metaRes = await blobService.getBlobMetadataAsync(container, p)
+      const metaRes = await blobServiceAsync.getBlobMetadata(container, p)
       const mtime = metaRes.metadata.mtime ? new Date(parseInt(metaRes.metadata.mtime)) : new Date(metaRes.lastModified)
       return { isDirectory: () => false, mtime }
     },
     mkdir: (p) => Promise.resolve(),
     remove: async (p) => {
-      const blobsToRemove = await blobService.listBlobsSegmentedWithPrefixAsync(container, p, null)
+      const blobsToRemove = await blobServiceAsync.listBlobsSegmentedWithPrefix(container, p, null)
       return Promise.all(blobsToRemove.entries
         .filter(e =>
           e.name === p ||
           e.name.startsWith(p + '/') ||
           p === ''
         )
-        .map(e => blobService.deleteBlobAsync(container, e.name)))
+        .map(e => blobServiceAsync.deleteBlob(container, e.name)))
     },
-    copyFile: (p, pp) => blobService.startCopyBlobAsync(blobService.getUrl(container, p), container, pp),
+    copyFile: (p, pp) => blobServiceAsync.startCopyBlob(blobService.getUrl(container, p), container, pp),
     path: {
       join: (...args) => args.filter(a => a).join('/'),
       sep: '/',
       basename: path.basename
     },
-    lock: () => lock.enabled !== false ? retry(() => blobService.acquireLeaseAsync(container, null, lock), lock.retry) : null,
+    lock: () => lock.enabled !== false ? retry(() => blobServiceAsync.acquireLease(container, null, lock), lock.retry) : null,
     releaseLock: async (l) => {
       if (lock.enabled !== false) {
         try {
-          await blobService.releaseLeaseAsync(container, null, l.id)
+          await blobServiceAsync.releaseLease(container, null, l.id)
         } catch (e) {
           // this throws when the lease was in the meantime acquired by another process because of timeout
         }

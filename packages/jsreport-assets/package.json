@@ -32,7 +32,6 @@
   "dependencies": {
     "@jsreport/office": "3.0.0-beta.1",
     "async-replace": "1.0.1",
-    "bluebird": "3.5.4",
     "enhanced-resolve": "5.8.2",
     "etag": "1.8.1",
     "js-string-escape": "1.0.1",

@@ -1,8 +1,7 @@
+const util = require('util')
 const path = require('path')
-const Promise = require('bluebird')
-const fs = require('fs')
-Promise.promisifyAll(fs)
-const rimraf = Promise.promisify(require('rimraf'))
+const fs = require('fs/promises')
+const rimraf = util.promisify(require('rimraf'))
 const FS = require('../lib/fileSystem')
 const should = require('should')
 
@@ -12,7 +11,7 @@ describe('fileSystem', () => {
 
   beforeEach(async () => {
     await rimraf(tmpDir)
-    await fs.mkdirAsync(tmpDir)
+    await fs.mkdir(tmpDir)
   })
 
   afterEach(async () => {

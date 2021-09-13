@@ -1,4 +1,4 @@
-const Promise = require('bluebird')
+const util = require('util')
 const path = require('path')
 const S3 = require('aws-sdk/clients/s3')
 const SQS = require('aws-sdk/clients/sqs')
@@ -11,15 +11,25 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
   }
 
   let s3
+
   if (accessKeyId != null && secretAccessKey != null) {
     s3 = new S3({ accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, ...s3Options })
   } else {
     s3 = new S3({ ...s3Options })
   }
-  Promise.promisifyAll(s3, { suffix: 'P' })
+
+  const s3Async = {
+    listObjectsV2: util.promisify(s3.listObjectsV2).bind(s3),
+    getObject: util.promisify(s3.getObject).bind(s3),
+    headObject: util.promisify(s3.headObject).bind(s3),
+    copyObject: util.promisify(s3.copyObject).bind(s3),
+    putObject: util.promisify(s3.putObject).bind(s3),
+    deleteObject: util.promisify(s3.deleteObject).bind(s3),
+    headBucket: util.promisify(s3.headBucket).bind(s3)
+  }
 
   async function listObjectKeys (p) {
-    const blobs = await s3.listObjectsV2P({
+    const blobs = await s3Async.listObjectsV2({
       Bucket: bucket,
       Prefix: p
     })
@@ -33,13 +43,13 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
   }
 
   let queueUrl
-  let sqs
+  let sqsAsync
 
   return {
     init: async () => {
       logger.info(`fs store is verifying aws s3 bucket ${bucket} exists and is accessible`)
       try {
-        await s3.headBucketP({ Bucket: bucket })
+        await s3Async.headBucket({ Bucket: bucket })
       } catch (e) {
         throw new Error(`fs store aws s3 bucket "${bucket}" doesn't exist or user doesn't have permissions to it. ` + e)
       }
@@ -56,15 +66,24 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
         lock.region = lock.region || 'us-east-1'
 
         logger.info(`fs store is verifying SQS for locking in ${lock.region} with name ${lock.queueName} `)
+
+        let sqs
+
         if (accessKeyId != null && secretAccessKey != null) {
           sqs = new SQS({ accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: lock.region })
         } else {
           sqs = new SQS({ region: lock.region })
         }
 
-        Promise.promisifyAll(sqs, { suffix: 'P' })
+        sqsAsync = {
+          createQueue: util.promisify(sqs.createQueue).bind(sqs),
+          sendMessage: util.promisify(sqs.sendMessage).bind(sqs),
+          receiveMessage: util.promisify(sqs.receiveMessage).bind(sqs),
+          changeMessageVisibility: util.promisify(sqs.changeMessageVisibility).bind(sqs),
+          deleteMessage: util.promisify(sqs.deleteMessage).bind(sqs)
+        }
 
-        const queueRes = await sqs.createQueueP({
+        const queueRes = await sqsAsync.createQueue({
           QueueName: lock.queueName,
           Attributes: lock.attributes
         })
@@ -72,7 +91,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       }
     },
     readdir: async (p) => {
-      const res = await s3.listObjectsV2P({
+      const res = await s3Async.listObjectsV2({
         Bucket: bucket,
         Prefix: p
       })
@@ -87,13 +106,13 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       return [...new Set(topFilesOrDirectories)]
     },
     readFile: async (p) => {
-      const res = await s3.getObjectP({
+      const res = await s3Async.getObject({
         Bucket: bucket,
         Key: p
       })
       return res.Body
     },
-    writeFile: (p, c) => s3.putObjectP({
+    writeFile: (p, c) => s3Async.putObject({
       Bucket: bucket,
       Key: p,
       Body: c,
@@ -104,7 +123,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     appendFile: async (p, c) => {
       let existingBuffer = Buffer.from([])
       try {
-        const res = await s3.getObjectP({
+        const res = await s3Async.getObject({
           Bucket: bucket,
           Key: p
         })
@@ -113,7 +132,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
         // doesn't exists yet
       }
 
-      return s3.putObjectP({
+      return s3Async.putObject({
         Bucket: bucket,
         Key: p,
         Body: Buffer.concat([existingBuffer, Buffer.from(c)]),
@@ -127,18 +146,18 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
 
       await Promise.all(objectsToRename.map(async (key) => {
         const newName = key.replace(p, pp)
-        await s3.copyObjectP({
+        await s3Async.copyObject({
           Bucket: bucket,
           CopySource: `/${bucket}/${encodeURIComponent(key)}`,
           Key: newName
         })
       }))
 
-      return Promise.all(objectsToRename.map(key => s3.deleteObjectP({ Bucket: bucket, Key: key })))
+      return Promise.all(objectsToRename.map(key => s3Async.deleteObject({ Bucket: bucket, Key: key })))
     },
     exists: async (p) => {
       try {
-        await s3.headObjectP({ Bucket: bucket, Key: p })
+        await s3Async.headObject({ Bucket: bucket, Key: p })
         return true
       } catch (e) {
         return false
@@ -147,7 +166,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     stat: async (p) => {
       // directory always fail for some reason
       try {
-        const r = await s3.headObjectP({ Bucket: bucket, Key: p })
+        const r = await s3Async.headObject({ Bucket: bucket, Key: p })
         const mtime = r.Metadata.mtime ? new Date(parseInt(r.Metadata.mtime)) : new Date(r.lastModified)
         return { isDirectory: () => false, mtime }
       } catch (e) {
@@ -158,9 +177,9 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     remove: async (p) => {
       const blobsToRemove = await listObjectKeys(p)
 
-      return Promise.all(blobsToRemove.map(e => s3.deleteObjectP({ Bucket: bucket, Key: e })))
+      return Promise.all(blobsToRemove.map(e => s3Async.deleteObject({ Bucket: bucket, Key: e })))
     },
-    copyFile: (p, pp) => s3.copyObjectP({
+    copyFile: (p, pp) => s3Async.copyObject({
       Bucket: bucket,
       CopySource: `/${bucket}/${encodeURIComponent(p)}`,
       Key: pp
@@ -183,7 +202,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
           return this.lock()
         }
 
-        const res = await sqs.receiveMessageP({
+        const res = await sqsAsync.receiveMessage({
           QueueUrl: queueUrl,
           WaitTimeSeconds: 1
         })
@@ -194,14 +213,14 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
           if (message.instanceId !== instanceId || message.lockId !== lockId) {
             if (message.sentOn && (message.sentOn + 10000 < Date.now())) {
               try {
-                await sqs.deleteMessageP({ QueueUrl: queueUrl, ReceiptHandle: res.Messages[0].ReceiptHandle })
+                await sqsAsync.deleteMessage({ QueueUrl: queueUrl, ReceiptHandle: res.Messages[0].ReceiptHandle })
               } catch (e) {
               }
             } else {
               // we have event that the original locker is waiting for
               // unblock the message for other receivers
               try {
-                await sqs.changeMessageVisibilityP({
+                await sqsAsync.changeMessageVisibility({
                   QueueUrl: queueUrl,
                   ReceiptHandle: res.Messages[0].ReceiptHandle,
                   VisibilityTimeout: 0
@@ -219,7 +238,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
         return waitForMessage()
       }
 
-      await sqs.sendMessageP({
+      await sqsAsync.sendMessage({
         QueueUrl: queueUrl,
         MessageBody: JSON.stringify({ instanceId, lockId, sentOn: Date.now() }),
         MessageGroupId: 'default',
@@ -234,7 +253,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       }
 
       try {
-        await sqs.deleteMessageP({ QueueUrl: queueUrl, ReceiptHandle: l.Messages[0].ReceiptHandle })
+        await sqsAsync.deleteMessage({ QueueUrl: queueUrl, ReceiptHandle: l.Messages[0].ReceiptHandle })
       } catch (e) {
 
       }

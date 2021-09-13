@@ -5,11 +5,11 @@
  * Syntax is {#child [template name]}
  */
 
+const util = require('util')
 const path = require('path')
-const fs = require('fs').promises
+const fs = require('fs/promises')
 const extend = require('node.extend.without.arrays')
-const Promise = require('bluebird')
-const asyncReplace = Promise.promisify(require('async-replace-with-limit'))
+const asyncReplace = util.promisify(require('async-replace-with-limit'))
 const staticHelpers = require('../static/helpers')
 
 function applyParameters (p1, templateName, req) {
@@ -161,7 +161,9 @@ module.exports = function (reporter, definition) {
     const result = await asyncReplace({
       string: strToReplace,
       parallelLimit
-    }, childTemplateRegexp, (str, p1, offset, s, done) => Promise.resolve(convert(str, p1, offset, s)).asCallback(done))
+    }, childTemplateRegexp, (str, p1, offset, s, done) => {
+      Promise.resolve(convert(str, p1, offset, s)).then((result) => done(null, result), (err) => done(err))
+    })
 
     if (evaluateInTemplateContent) {
       request.template.content = result

@@ -1,5 +1,5 @@
-const Promise = require('bluebird')
-const asyncReplace = Promise.promisify(require('async-replace'))
+const util = require('util')
+const asyncReplace = util.promisify(require('async-replace'))
 const { readAsset } = require('./assetsShared')
 const test = /{#asset ([^{}]{0,500})}/g
 const imageTest = /\.(jpeg|jpg|gif|png|svg)$/

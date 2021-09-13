@@ -9,7 +9,7 @@ describe('fileSystemBlobStorage', () => {
 
     beforeEach(async () => {
       if (fs.existsSync(tmpData)) {
-        await fs.rmdirSync(tmpData, { recursive: true })
+        fs.rmSync(tmpData, { recursive: true })
       }
 
       reporter = jsreport({
@@ -24,7 +24,7 @@ describe('fileSystemBlobStorage', () => {
 
     afterEach(async () => {
       await reporter.close()
-      await fs.rmdirSync(tmpData, { recursive: true })
+      fs.rmSync(tmpData, { recursive: true })
     })
 
     jsreport.tests.blobStorage()(() => reporter.blobStorage)
@@ -50,7 +50,7 @@ describe('fileSystemBlobStorage', () => {
 
     beforeEach(async () => {
       if (fs.existsSync(tmpData)) {
-        await fs.rmdirSync(tmpData, { recursive: true })
+        fs.rmSync(tmpData, { recursive: true })
       }
 
       reporter = jsreport({
@@ -65,7 +65,7 @@ describe('fileSystemBlobStorage', () => {
 
     afterEach(async () => {
       await reporter.close()
-      await fs.rmdirSync(tmpData, { recursive: true })
+      fs.rmSync(tmpData, { recursive: true })
     })
 
     describe('should work with correct blobName', () => {
