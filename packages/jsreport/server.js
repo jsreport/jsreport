@@ -18,6 +18,7 @@ if (process.env.FULL_BUILD != null) {
     '@jsreport/jsreport-pug',
     '@jsreport/jsreport-azure-storage',
     // '@jsreport/jsreport-phantom-pdf',
+    // '@jsreport/jsreport-phantom-image',
     '@jsreport/jsreport-mssql-store',
     '@jsreport/jsreport-postgres-store',
     '@jsreport/jsreport-mongodb-store',
@@ -26,7 +27,8 @@ if (process.env.FULL_BUILD != null) {
     '@jsreport/jsreport-html-embedded-in-docx',
     '@jsreport/jsreport-fs-store-aws-s3-persistence',
     '@jsreport/jsreport-fs-store-azure-storage-persistence',
-    '@jsreport/jsreport-electron-pdf'
+    '@jsreport/jsreport-electron-pdf',
+    '@jsreport/jsreport-unoconv'
   ]
 
   for (const extName of fullExtensions) {

@@ -10,6 +10,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-components',
   '@jsreport/jsreport-data',
   '@jsreport/jsreport-docx',
+  '@jsreport/jsreport-docxtemplater',
   '@jsreport/jsreport-ejs',
   '@jsreport/jsreport-electron-pdf',
   '@jsreport/jsreport-freeze',
@@ -20,6 +21,9 @@ const jsreportPackages = [
   '@jsreport/jsreport-import-export',
   '@jsreport/jsreport-licensing',
   '@jsreport/jsreport-localization',
+  '@jsreport/jsreport-office-password',
+  '@jsreport/jsreport-phantom-pdf',
+  '@jsreport/jsreport-phantom-image',
   '@jsreport/jsreport-pdf-utils',
   '@jsreport/jsreport-pptx',
   '@jsreport/jsreport-public-templates',
@@ -34,6 +38,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-text',
   '@jsreport/jsreport-unoconv',
   '@jsreport/jsreport-version-control',
+  '@jsreport/jsreport-wkhtmltopdf',
   '@jsreport/jsreport-xlsx'
 ]
 

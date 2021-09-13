@@ -466,6 +466,8 @@ _jsreportStudio2.default.addEntitySet({
   entityTreePosition: 300
 });
 
+_jsreportStudio2.default.sharedComponents.NewTagModal = _NewTagModal2.default;
+
 // wait for all extensions to be loaded
 _jsreportStudio2.default.initializeListeners.push(function () {
   // add tags to referenceAttributes in all entities
@@ -636,25 +638,30 @@ var NewTagModal = function (_Component) {
                 response.__entitySet = 'tags';
 
                 _jsreportStudio2.default.addExistingEntity(response);
-                _jsreportStudio2.default.openTab(response);
+                _jsreportStudio2.default.openTab(response, this.props.options.activateNewTab);
+
+                if (this.props.options.onNewEntity) {
+                  this.props.options.onNewEntity(response);
+                }
+
                 this.props.close();
-                _context.next = 22;
+                _context.next = 23;
                 break;
 
-              case 19:
-                _context.prev = 19;
+              case 20:
+                _context.prev = 20;
                 _context.t0 = _context['catch'](9);
 
                 this.setState({
                   error: _context.t0.message
                 });
 
-              case 22:
+              case 23:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[9, 19]]);
+        }, _callee, this, [[9, 20]]);
       }));
 
       function createTag() {
@@ -1787,6 +1794,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
 var selectValues = function selectValues(selected) {
   var tags = selected.map(function (v) {
@@ -1854,6 +1862,7 @@ var EntityTagProperties = function (_Component) {
           { className: 'form-group' },
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select tags',
+            newLabel: 'New tag for template',
             filter: function filter(references) {
               return { tags: references.tags };
             },
@@ -1862,6 +1871,9 @@ var EntityTagProperties = function (_Component) {
             }) : [],
             onChange: function onChange(selected) {
               return _onChange({ _id: entity._id, tags: selectValues(selected) });
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewTagModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
             },
             multiple: true
           })

@@ -311,6 +311,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+_jsreportStudio2.default.sharedComponents.NewUserModal = _NewUserModal2.default;
+
 // we want to be at the front, because other extension like scheduling relies on loaded user
 _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
   var response;
@@ -345,6 +347,7 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
               },
               entityTreePosition: 200
             });
+
             _jsreportStudio2.default.addEditorComponent('users', _UserEditor2.default);
             _jsreportStudio2.default.addToolbarComponent(_ChangePasswordButton2.default);
           }
@@ -769,22 +772,27 @@ var NewUserModal = function (_Component) {
                 response.__entitySet = 'users';
 
                 _jsreportStudio2.default.addExistingEntity(response);
+
+                if (this.props.options.onNewEntity) {
+                  this.props.options.onNewEntity(response);
+                }
+
                 this.props.close();
-                _context.next = 20;
+                _context.next = 21;
                 break;
 
-              case 17:
-                _context.prev = 17;
+              case 18:
+                _context.prev = 18;
                 _context.t0 = _context['catch'](8);
 
                 this.setState({ apiError: _context.t0.message });
 
-              case 20:
+              case 21:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[8, 17]]);
+        }, _callee, this, [[8, 18]]);
       }));
 
       function createUser() {

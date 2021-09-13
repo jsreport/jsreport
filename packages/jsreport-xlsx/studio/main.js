@@ -667,6 +667,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
 var XlsxTemplateProperties = function (_Component) {
   _inherits(XlsxTemplateProperties, _Component);
@@ -751,7 +752,8 @@ var XlsxTemplateProperties = function (_Component) {
             'xlsx asset'
           ),
           _react2.default.createElement(EntityRefSelect, {
-            headingLabel: 'Select docx template',
+            headingLabel: 'Select xlsx template',
+            newLabel: 'New xlsx asset for template',
             value: entity.xlsx ? entity.xlsx.templateAssetShortid : '',
             onChange: function onChange(selected) {
               return _onChange({
@@ -761,6 +763,9 @@ var XlsxTemplateProperties = function (_Component) {
             },
             filter: function filter(references) {
               return { assets: references.assets };
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewAssetModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
             }
           })
         ),

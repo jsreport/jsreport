@@ -196,6 +196,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(3);
@@ -215,6 +217,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
 var selectValues = function selectValues(selected) {
   return selected.map(function (e) {
@@ -314,6 +317,7 @@ var PermissionProperties = function (_Component) {
           ),
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select user (read permissions)',
+            newLabel: 'New user (read permissions)',
             filter: function filter(references) {
               var users = references.users.filter(function (e) {
                 return !e.__isNew;
@@ -325,6 +329,9 @@ var PermissionProperties = function (_Component) {
             }),
             onChange: function onChange(selected) {
               return _onChange({ _id: entity._id, readPermissions: selectValues(selected) });
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewUserModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder } }) }));
             },
             multiple: true
           })
@@ -339,6 +346,7 @@ var PermissionProperties = function (_Component) {
           ),
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select user (edit permissions)',
+            newLabel: 'New user (edit permissions)',
             filter: function filter(references) {
               var users = references.users.filter(function (e) {
                 return !e.__isNew;
@@ -350,6 +358,9 @@ var PermissionProperties = function (_Component) {
             }),
             onChange: function onChange(selected) {
               return _onChange({ _id: entity._id, editPermissions: selectValues(selected) });
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewUserModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder } }) }));
             },
             multiple: true
           })

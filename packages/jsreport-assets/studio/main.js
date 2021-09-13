@@ -161,6 +161,8 @@ var AssetUploadButton = function (_Component) {
 
       var assetDefaults = e.target.assetDefaults;
       var targetAsset = e.target.targetAsset;
+      var activateNewTab = e.target.activateNewTab;
+      var onNewEntityCallback = e.target.onNewEntityCallback;
       var uploadCallback = e.target.uploadCallback;
 
       delete e.target.assetDefaults;
@@ -179,7 +181,7 @@ var AssetUploadButton = function (_Component) {
                 _this2.inputFileRef.current.value = '';
 
                 if (!(_this2.type === 'new')) {
-                  _context.next = 14;
+                  _context.next = 15;
                   break;
                 }
 
@@ -216,16 +218,20 @@ var AssetUploadButton = function (_Component) {
                 response.__entitySet = 'assets';
 
                 _jsreportStudio2.default.addExistingEntity(response);
-                _jsreportStudio2.default.openTab(Object.assign({}, response));
+                _jsreportStudio2.default.openTab(Object.assign({}, response), activateNewTab);
 
-              case 14:
+                if (onNewEntityCallback) {
+                  onNewEntityCallback(response);
+                }
+
+              case 15:
                 if (!(_this2.type === 'edit')) {
-                  _context.next = 24;
+                  _context.next = 25;
                   break;
                 }
 
                 if (!_jsreportStudio2.default.workspaces) {
-                  _context.next = 21;
+                  _context.next = 22;
                   break;
                 }
 
@@ -234,15 +240,15 @@ var AssetUploadButton = function (_Component) {
                   content: reader.result.substring(reader.result.indexOf('base64,') + 'base64,'.length)
                 });
 
-                _context.next = 19;
+                _context.next = 20;
                 return _jsreportStudio2.default.workspaces.save();
 
-              case 19:
-                _context.next = 24;
+              case 20:
+                _context.next = 25;
                 break;
 
-              case 21:
-                _context.next = 23;
+              case 22:
+                _context.next = 24;
                 return _jsreportStudio2.default.api.patch('/odata/assets(' + targetAsset._id + ')', {
                   data: {
                     content: reader.result.substring(reader.result.indexOf('base64,') + 'base64,'.length),
@@ -250,16 +256,16 @@ var AssetUploadButton = function (_Component) {
                   }
                 });
 
-              case 23:
+              case 24:
                 _jsreportStudio2.default.loadEntity(targetAsset._id, true);
 
-              case 24:
+              case 25:
 
                 if (uploadCallback) {
                   uploadCallback();
                 }
 
-              case 25:
+              case 26:
               case 'end':
                 return _context.stop();
             }
@@ -288,6 +294,12 @@ var AssetUploadButton = function (_Component) {
 
       this.type = type;
 
+      if (opts.activateNewTab != null) {
+        this.inputFileRef.current.activateNewTab = opts.activateNewTab;
+      } else {
+        delete this.inputFileRef.current.activateNewTab;
+      }
+
       if (defaults) {
         this.inputFileRef.current.assetDefaults = defaults;
       } else {
@@ -301,6 +313,12 @@ var AssetUploadButton = function (_Component) {
           _id: this.props.tab.entity._id,
           name: this.props.tab.entity.name
         };
+      }
+
+      if (opts.onNewEntityCallback) {
+        this.inputFileRef.current.onNewEntityCallback = opts.onNewEntityCallback;
+      } else {
+        delete this.inputFileRef.current.onNewEntityCallback;
       }
 
       if (opts.uploadCallback) {
@@ -394,6 +412,7 @@ _jsreportStudio2.default.addEntitySet({
   entityTreePosition: 700
 });
 
+_jsreportStudio2.default.sharedComponents.NewAssetModal = _NewAssetModal2.default;
 _jsreportStudio2.default.addEditorComponent('assets', _AssetEditor2.default);
 
 _jsreportStudio2.default.addToolbarComponent(_AssetUploadButton2.default);
@@ -900,18 +919,18 @@ var AssetEditor = function (_Component) {
       }
 
       if (this.isImage(entity)) {
-        return '<img src="{#asset ' + _jsreportStudio2.default.resolveEntityPath(entity) + ' @encoding=dataURI}" />';
+        return '<img src="{{asset "' + _jsreportStudio2.default.resolveEntityPath(entity) + '" "dataURI"}}" />';
       }
 
       if (this.isFont(entity)) {
-        return '@font-face {\n  font-family: \'' + parts[0] + '\';\n  src: url({#asset ' + _jsreportStudio2.default.resolveEntityPath(entity) + ' @encoding=dataURI});\n  format(\'' + this.getFormat(extension) + '\');\n}';
+        return '@font-face {\n  font-family: \'' + parts[0] + '\';\n  src: url({{asset "' + _jsreportStudio2.default.resolveEntityPath(entity) + '" "dataURI"}});\n  format(\'' + this.getFormat(extension) + '\');\n}';
       }
 
       if (this.isOfficeFile(entity)) {
-        return '{#asset ' + _jsreportStudio2.default.resolveEntityPath(entity) + ' @encoding=base64}';
+        return '{{asset "' + _jsreportStudio2.default.resolveEntityPath(entity) + '" "base64"}}';
       }
 
-      return '{#asset ' + _jsreportStudio2.default.resolveEntityPath(entity) + ' @encoding=utf8}';
+      return '{{asset "' + _jsreportStudio2.default.resolveEntityPath(entity) + '"}}';
     }
   }, {
     key: 'getLazyPreviewStatus',
@@ -1850,23 +1869,28 @@ var NewAssetModal = function (_Component) {
                 response.__entitySet = 'assets';
 
                 _jsreportStudio2.default.addExistingEntity(response);
-                _jsreportStudio2.default.openTab(response);
+                _jsreportStudio2.default.openTab(response, this.props.options.activateNewTab);
+
+                if (this.props.options.onNewEntity) {
+                  this.props.options.onNewEntity(response);
+                }
+
                 this.props.close();
-                _context.next = 21;
+                _context.next = 22;
                 break;
 
-              case 18:
-                _context.prev = 18;
+              case 19:
+                _context.prev = 19;
                 _context.t0 = _context['catch'](5);
 
                 this.setState({ error: _context.t0.message });
 
-              case 21:
+              case 22:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[5, 18]]);
+        }, _callee, this, [[5, 19]]);
       }));
 
       function createAsset(_x) {
@@ -1973,7 +1997,11 @@ var NewAssetModal = function (_Component) {
             {
               className: 'button confirmation',
               onClick: function onClick() {
-                _this3.props.close();_AssetUploadButton2.default.OpenUploadNew(_this3.props.options.defaults);
+                _this3.props.close();
+                _AssetUploadButton2.default.OpenUploadNew(_this3.props.options.defaults, {
+                  activateNewTab: _this3.props.options.activateNewTab,
+                  onNewEntityCallback: _this3.props.options.onNewEntity
+                });
               }
             },
             'Upload'

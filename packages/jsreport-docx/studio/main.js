@@ -238,6 +238,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(3);
@@ -257,17 +259,18 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
-var Properties = function (_Component) {
-  _inherits(Properties, _Component);
+var DocxProperties = function (_Component) {
+  _inherits(DocxProperties, _Component);
 
-  function Properties() {
-    _classCallCheck(this, Properties);
+  function DocxProperties() {
+    _classCallCheck(this, DocxProperties);
 
-    return _possibleConstructorReturn(this, (Properties.__proto__ || Object.getPrototypeOf(Properties)).apply(this, arguments));
+    return _possibleConstructorReturn(this, (DocxProperties.__proto__ || Object.getPrototypeOf(DocxProperties)).apply(this, arguments));
   }
 
-  _createClass(Properties, [{
+  _createClass(DocxProperties, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
       this.removeInvalidReferences();
@@ -314,12 +317,16 @@ var Properties = function (_Component) {
           { className: 'form-group' },
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select docx template',
+            newLabel: 'New docx asset for template',
             value: entity.docx ? entity.docx.templateAssetShortid : '',
             onChange: function onChange(selected) {
               return _onChange({ _id: entity._id, docx: selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null });
             },
             filter: function filter(references) {
               return { data: references.assets };
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewAssetModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
             }
           })
         )
@@ -341,7 +348,7 @@ var Properties = function (_Component) {
         return 'docx';
       }
 
-      var foundItems = Properties.selectAssets(entities).filter(function (e) {
+      var foundItems = DocxProperties.selectAssets(entities).filter(function (e) {
         return entity.docx.templateAssetShortid === e.shortid;
       });
 
@@ -353,10 +360,10 @@ var Properties = function (_Component) {
     }
   }]);
 
-  return Properties;
+  return DocxProperties;
 }(_react.Component);
 
-exports.default = Properties;
+exports.default = DocxProperties;
 
 /***/ }),
 /* 3 */

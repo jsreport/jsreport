@@ -287,6 +287,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
 var TemplateScriptProperties = function (_Component) {
   _inherits(TemplateScriptProperties, _Component);
@@ -363,6 +364,7 @@ var TemplateScriptProperties = function (_Component) {
           { className: 'form-group' },
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select script',
+            newLabel: 'New script for template',
             filter: function filter(references) {
               var scripts = references.scripts.filter(function (e) {
                 return !e.isGlobal;
@@ -376,6 +378,9 @@ var TemplateScriptProperties = function (_Component) {
               return _onChange({ _id: entity._id, scripts: selected.map(function (s) {
                   return { shortid: s.shortid };
                 }) });
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewEntityModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { entitySet: 'scripts', defaults: { folder: entity.folder }, activateNewTab: false }) }));
             },
             multiple: true
           }),

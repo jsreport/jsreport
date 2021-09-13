@@ -1299,6 +1299,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
+var sharedComponents = _jsreportStudio2.default.sharedComponents;
 
 var ScheduleProperties = function (_Component) {
   _inherits(ScheduleProperties, _Component);
@@ -1760,12 +1761,16 @@ var ScheduleProperties = function (_Component) {
           ),
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select template',
+            newLabel: 'New template for schedule',
             filter: function filter(references) {
               return { templates: references.templates };
             },
             value: entity.templateShortid ? entity.templateShortid : null,
             onChange: function onChange(selected) {
               return _onChange({ _id: entity._id, templateShortid: selected != null && selected.length > 0 ? selected[0].shortid : null });
+            },
+            renderNew: function renderNew(modalProps) {
+              return _react2.default.createElement(sharedComponents.NewTemplateModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
             }
           })
         ),
