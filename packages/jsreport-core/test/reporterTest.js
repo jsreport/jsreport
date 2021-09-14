@@ -24,7 +24,7 @@ describe('reporter', () => {
     safeUnlink(path.join(__dirname, 'custom.config.json'))
 
     if (fs.existsSync(path.join(__dirname, 'tmp'))) {
-      await fsAsync.rmdir(path.join(__dirname, 'tmp'), { recursive: true })
+      await fsAsync.rm(path.join(__dirname, 'tmp'), { recursive: true })
     }
 
     fs.mkdirSync(path.join(__dirname, 'tmp'))
@@ -905,7 +905,7 @@ describe('reporter', () => {
 
     await reporter.init()
 
-    fs.rmdirSync(tempDirectory, { recursive: true })
+    fs.rmSync(tempDirectory, { recursive: true })
 
     const { directoryPath } = await reporter.ensureTempDirectoryExists()
 
@@ -961,7 +961,7 @@ describe('reporter', () => {
 
     await reporter.init()
 
-    fs.rmdirSync(tempDirectory, { recursive: true })
+    fs.rmSync(tempDirectory, { recursive: true })
 
     const result = await reporter.writeTempFile((uuid) => `something-${uuid}.txt`, 'testing')
 
@@ -1016,7 +1016,7 @@ describe('reporter', () => {
 
     await reporter.init()
 
-    fs.rmdirSync(tempDirectory, { recursive: true })
+    fs.rmSync(tempDirectory, { recursive: true })
 
     const result = await reporter.writeTempFileStream((uuid) => `something-${uuid}.txt`)
 

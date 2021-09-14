@@ -5,7 +5,7 @@ const fs = require('fs')
  */
 function deleteFiles (path) {
   try {
-    fs.rmdirSync(path, { recursive: true })
+    fs.rmSync(path, { recursive: true })
   } catch (e) {
   }
 }

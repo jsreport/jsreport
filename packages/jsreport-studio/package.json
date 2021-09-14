@@ -14,7 +14,7 @@
   "author": {
     "name": "Jan Blaha"
   },
-  "main": "src/server.js",
+  "main": "index.js",
   "files": [
     "lib",
     "shared",

@@ -8,6 +8,7 @@ class Profiler {
   constructor (reporter) {
     this.reporter = reporter
 
+    this.reporter.addRequestContextMetaConfig('profiling', { sandboxReadOnly: true })
     this.reporter.addRequestContextMetaConfig('resolvedTemplate', { sandboxHidden: true })
 
     this.reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
