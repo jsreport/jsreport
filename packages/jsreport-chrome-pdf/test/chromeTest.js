@@ -235,6 +235,21 @@ function common (strategy, imageExecution) {
     JSON.stringify(res.meta.logs).should.match(/Page request finished: GET \(image\) 200/)
   })
 
+  it('should provide logs for js objects', async () => {
+    const objStr = JSON.stringify({ foo: 'bar', x: { a: true } })
+
+    const request = {
+      template: { content: `Hey <script>console.log(${objStr})</script>`, recipe, engine: 'none' },
+      options: { debug: { logsToResponseHeader: true } }
+    }
+
+    const res = await reporter.render(request)
+
+    res.meta.logs.should.matchAny((log) => {
+      log.message.should.be.eql(objStr)
+    })
+  })
+
   it('should trim logs for longs base64 encoded images', async () => {
     let img = 'start'
 
@@ -465,6 +480,32 @@ function common (strategy, imageExecution) {
 
       parsed.pages[0].text.should.containEql('jsreport api exists: true')
     }
+  })
+
+  it('should be able to log browser\'s jsreport api request object', async () => {
+    const request = {
+      template: {
+        content: `
+          Hello
+          <script>
+            async function main () {
+              const req = await window.jsreport.getRequest()
+              console.log(req)
+            }
+
+            main()
+          </script>
+        `,
+        recipe,
+        engine: 'none'
+      }
+    }
+
+    const res = await reporter.render(request)
+
+    res.meta.logs.should.matchAny((log) => {
+      log.message.should.containEql('{"context":{"id":')
+    })
   })
 
   it('should read request information using jsreport api from browser page context', async () => {
