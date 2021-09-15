@@ -153,7 +153,7 @@ class Reports {
           return res.send(`Report generation failed.${' ' + (report.error || '')}`)
         }
 
-        const baseLink = `${req.protocol}://req.headers.host`
+        const baseLink = `${req.protocol}://${req.headers.host}`
         const link = baseLink + new url.URL(req.originalUrl, baseLink).pathname.replace('/status', '/content')
 
         res.setHeader('Report-State', report.state)
