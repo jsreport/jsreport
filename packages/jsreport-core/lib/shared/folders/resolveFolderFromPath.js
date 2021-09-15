@@ -13,7 +13,7 @@ module.exports = (reporter) => async (entityPathParam, req) => {
     }
 
     const query = {
-      name: decodeURIComponent(f)
+      name: f
     }
 
     if (currentFolder) {
