@@ -36,8 +36,10 @@ module.exports = ({
               this.workers = this.workers.filter(w => w !== worker)
               worker.close()
               const newWorker = createWorker()
+              newWorker.isBusy = true
               this.workers.push(newWorker)
               await newWorker.init({ timeout: initTimeout })
+              newWorker.isBusy = false
             } else {
               worker.isBusy = false
             }
