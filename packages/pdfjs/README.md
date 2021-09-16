@@ -1,0 +1,1 @@
+Just a temporary fork of [pdfjs](https://github.com/rkusa/pdfjs) lib until we are able to merge in our changes.

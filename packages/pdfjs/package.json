@@ -1,0 +1,41 @@
+{
+  "name": "@jsreport/pdfjs",
+  "author": "Markus Ast <npm.m@rkusa.st>",
+  "version": "0.5.4",
+  "description": "A Portable Document Format (PDF) generation library targeting both the server- and client-side.",
+  "keywords": [
+    "pdf",
+    "generator"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/rkusa/pdfjs",
+  "bugs": "https://github.com/rkusa/pdfjs/issues",
+  "main": "lib/",
+  "scripts": {
+    "test": "npm run test:pdfs && npm run test:types",
+    "test:pdfs": "node test/index.js",
+    "test:types": "tsc --project ./types"
+  },
+  "dependencies": {
+    "@rkusa/linebreak": "^1.0.0",
+    "crypto-js": "4.0.0",
+    "opentype.js": "^0.8.0",
+    "pako": "^1.0.6",
+    "readable-stream": "^2.3.6",
+    "unorm": "^1.4.1",
+    "uuid": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^9.6.6",
+    "tape": "^4.6.3",
+    "typescript": "^2.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rkusa/pdfjs.git"
+  },
+  "engines": {
+    "node": ">=7"
+  },
+  "types": "./types/main.d.ts"
+}
