@@ -7,7 +7,10 @@ const Request = require('./lib/shared/request')
 module.exports = function (options, defaults) {
   options = options || {}
 
-  options.parentModuleDirectory = options.parentModuleDirectory || path.dirname(module.parent.filename)
+  // when jsreport-core is loaded from ESM, module.parent does not exists
+  if (options.parentModuleDirectory == null && module.parent) {
+    options.parentModuleDirectory = path.dirname(module.parent.filename)
+  }
 
   return new MainReporter(options, defaults)
 }

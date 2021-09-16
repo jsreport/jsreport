@@ -19,7 +19,6 @@ async function optionsLoad ({
   defaults,
   options,
   validator,
-  fallbackParentModuleDirectory,
   onConfigLoaded
 }) {
   let shouldLoadExternalConfig = defaults.loadConfig
@@ -57,7 +56,12 @@ async function optionsLoad ({
   }
 
   options.appDirectory = options.appDirectory || appRoot.toString()
-  options.parentModuleDirectory = options.parentModuleDirectory || fallbackParentModuleDirectory
+
+  // if parentModuleDirectory is empty or null here we proceed with the fallback value to rootDirectory
+  if (!options.parentModuleDirectory) {
+    options.parentModuleDirectory = options.rootDirectory
+  }
+
   options.extensions = options.extensions || {}
   options.logger = options.logger || {}
 
