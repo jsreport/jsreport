@@ -4,7 +4,7 @@ const PDF = require('./object')
 const Parser = require('./parser/parser')
 
 module.exports = class ExternalDocument {
-  constructor(src) {
+  constructor (src) {
     const parser = new Parser(src)
     parser.parse()
 
@@ -14,10 +14,10 @@ module.exports = class ExternalDocument {
     this.pages = this.catalog.get('Pages').object.properties
     this.pageCount = 0
     this.objects = []
-    this.dests = this.catalog.get('Dests')  
-    const acroFormRef = this.catalog.get('AcroForm')    
+    this.dests = this.catalog.get('Dests')
+    const acroFormRef = this.catalog.get('AcroForm')
     if (acroFormRef) {
-      this.acroFormObj = acroFormRef.object     
+      this.acroFormObj = acroFormRef.object
     }
 
     const parsePages = (pages) => {
@@ -42,13 +42,13 @@ module.exports = class ExternalDocument {
   }
 
   // TODO: add mutex to not write concurrently (because of document specific _registerObject)
-  async write(doc, page) { 
+  async write (doc, page) {
     await doc._endPage()
 
     const kids = this.pages.get('Kids')
     const pages = page ? [kids[page - 1]] : kids
 
-    for (let i = page ? page - 1 : 0, len = page ? page : kids.length; i < len; ++i) {
+    for (let i = page ? page - 1 : 0, len = page || kids.length; i < len; ++i) {
       const page = kids[i].object
       page.prop('Parent', doc._pagesObj.toReference())
 
@@ -67,15 +67,15 @@ module.exports = class ExternalDocument {
       for (const obj of objects) {
         await doc._writeObject(obj)
       }
-      
+
       await doc._writeObject(page)
 
       doc._pages.push(page.toReference())
     }
 
     // merge in the acroform object
-    if (!page && this.acroFormObj) {         
-      // union dields from both, fields are just refs already registered in the page->annotation so don't need registration      
+    if (!page && this.acroFormObj) {
+      // union dields from both, fields are just refs already registered in the page->annotation so don't need registration
       doc._acroFormObj.prop('Fields', new PDF.Array([...doc._acroFormObj.properties.get('Fields'), ...this.acroFormObj.properties.get('Fields')]))
 
       // merge the DR -> these are font refs, without DR the fields doesn't display text when lost focus
@@ -83,7 +83,7 @@ module.exports = class ExternalDocument {
         let docDR = doc._acroFormObj.properties.get('DR')
         if (docDR == null) {
           docDR = new PDF.Dictionary({
-            'Font': new PDF.Dictionary()
+            Font: new PDF.Dictionary()
           })
           doc._acroFormObj.properties.set('DR', docDR)
         }
@@ -96,12 +96,12 @@ module.exports = class ExternalDocument {
             const font = extFontDict.get(fontName)
             const fontObjects = []
             Parser.addObjectsRecursive(fontObjects, font)
-            for (let o of fontObjects) {
-              doc._registerObject(o, true)       
-            }           
+            for (const o of fontObjects) {
+              doc._registerObject(o, true)
+            }
 
             docFontDict.set(fontName, font)
-          }            
+          }
         }
       }
       if (this.acroFormObj.properties.has('NeedAppearances')) {
@@ -109,7 +109,7 @@ module.exports = class ExternalDocument {
       }
       if (this.acroFormObj.properties.has('SigFlags')) {
         doc._acroFormObj.properties.set('SigFlags', this.acroFormObj.properties.get('SigFlags'))
-      }           
+      }
     }
 
     if (this.dests) {
@@ -117,7 +117,7 @@ module.exports = class ExternalDocument {
     }
   }
 
-  async setAsTemplate(doc) {
+  async setAsTemplate (doc) {
     await doc._endPage()
 
     const kids = this.pages.get('Kids')
@@ -151,7 +151,7 @@ module.exports = class ExternalDocument {
       contents: contents.map(c => c.toString()),
       colorSpaces: {},
       fonts: {},
-      xobjects: {},
+      xobjects: {}
     }
 
     const colorSpaces = resources.get('ColorSpace')

@@ -16,14 +16,14 @@ const Parser = require('./parser/parser')
 const RESOLVE = Promise.resolve()
 
 class Document extends Readable {
-  constructor(opts) {
+  constructor (opts) {
     if (!opts) {
       opts = {}
-    }  
+    }
 
     // readable stream options
     super({
-      highWaterMark: opts.highWaterMark || 16384, // 16kB
+      highWaterMark: opts.highWaterMark || 16384 // 16kB
     })
 
     this.version = '1.6'
@@ -39,11 +39,11 @@ class Document extends Readable {
     this._length = 0 // keeps track of the total document length (in byte)
 
     // header
-    const header = `%PDF-${this.version}\n`
+    const header = `%PDF-${this.version}\n` +
       // The PDF format mandates that we add at least 4 commented binary characters
       // (ASCII value >= 128), so that generic tools have a chance to detect
       // that it's a binary file
-      + '%\xFF\xFF\xFF\xFF\n\n'
+      '%\xFF\xFF\xFF\xFF\n\n'
 
     // a backlog of pending operations
     this._pending = [
@@ -85,7 +85,6 @@ class Document extends Readable {
 
     // pofider change, this is the same as finalize, but it is called after the catalog instance is ready
     this._finalizeCatalog = []
-
 
     this._header = this._footer = this._template = null
 
@@ -138,13 +137,13 @@ class Document extends Readable {
         ownerPassword: opts.encryption.ownerPassword,
         pdfVersion: '1.4',
         permissions: opts.encryption.permissions
-      })     
+      })
     }
 
     // start to work the _pending queue
     this._next()
 
-    Fragment.prototype._init.call(this, this, this);
+    Fragment.prototype._init.call(this, this, this)
 
     this._acroFormObj = new PDF.Object()
     this._acroFormObj.prop('Fields', new PDF.Array())
@@ -152,7 +151,7 @@ class Document extends Readable {
 
   /// private API
 
-  _next() {
+  _next () {
     // return if there is already an operation worked on
     if (this._pending.current) {
       return this._pending.current
@@ -203,14 +202,14 @@ class Document extends Readable {
   // reading from the resoruce and pushing data until `this.push()` return `false`. Only when it
   // is called again aft it has stopped should it resume pushing additional data onto the
   // read queue.
-  _read(/* size */) {
+  _read (/* size */) {
     this._reading = true
     this.emit('read')
   }
 
   // This method is used to push data onto the read queue. If the Readable stream is currently
   // not read from, the writing is postponed.
-  _write(chunk) {
+  _write (chunk) {
     if (this._reading) {
       if (!this.push(chunk, 'binary')) {
         this._reading = false
@@ -226,7 +225,7 @@ class Document extends Readable {
     }
   }
 
-  _useFont(font) {
+  _useFont (font) {
     let alias
     if (this._mapping.has(font)) {
       alias = this._mapping.get(font)
@@ -254,15 +253,15 @@ class Document extends Readable {
     return alias
   }
 
-  _fontAlias(instance) {
+  _fontAlias (instance) {
     return this._useFont(instance.parent)
   }
 
-  _fontInstance(font) {
+  _fontInstance (font) {
     return this._fonts[this._useFont(font)].f
   }
 
-  _useXObject(xobj) {
+  _useXObject (xobj) {
     let alias
     if (this._mapping.has(xobj)) {
       alias = this._mapping.get(xobj)
@@ -300,7 +299,7 @@ class Document extends Readable {
     return aliases
   }
 
-  async _startPage() {
+  async _startPage () {
     if (this._currentPage) {
       throw new Error('There is already a started page')
     }
@@ -360,7 +359,7 @@ class Document extends Readable {
     }
   }
 
-  async _endPage() {
+  async _endPage () {
     if (!this._currentPage) {
       return
     }
@@ -429,7 +428,7 @@ class Document extends Readable {
     this._contents.length = 0
   }
 
-  async _pageBreak(/* level */) {
+  async _pageBreak (/* level */) {
     if (!this._currentPage) {
       await this._startPage()
     }
@@ -440,7 +439,7 @@ class Document extends Readable {
     await this._startPage()
   }
 
-  async _startContentObject(obj, force) {
+  async _startContentObject (obj, force) {
     // do not create new content object, if current content object is still empty
     // 16 = /CS1 CS
     //      /CS1 cs
@@ -461,12 +460,12 @@ class Document extends Readable {
 
     this._xref.add(content._object.id, {
       offset: this._length,
-      obj: content._object,
+      obj: content._object
     })
 
-    let chunk = content._object.id + ' ' + content._object.rev + ' obj\n'
-      + content._object.properties.toString() + '\n'
-      + 'stream\n'
+    let chunk = content._object.id + ' ' + content._object.rev + ' obj\n' +
+      content._object.properties.toString() + '\n' +
+      'stream\n'
 
     this._contentStart = this._length + chunk.length
 
@@ -477,7 +476,7 @@ class Document extends Readable {
     return content
   }
 
-  async _endContentObject() {
+  async _endContentObject () {
     if (!this._currentContent) {
       return
     }
@@ -494,7 +493,7 @@ class Document extends Readable {
     this._currentContent = null
   }
 
-  _registerObject(object, force) {
+  _registerObject (object, force) {
     if (object instanceof PDF.Stream) {
       object = object.object
     }
@@ -507,7 +506,7 @@ class Document extends Readable {
     this._nextObjectId++
   }
 
-  _writeObject(object, encrypt = true) {
+  _writeObject (object, encrypt = true) {
     if (object instanceof PDF.Stream) {
       object = object.object
     }
@@ -523,27 +522,26 @@ class Document extends Readable {
 
     this._xref.add(object.id, {
       offset: this._length,
-      obj: object,
+      obj: object
     })
     return this._write(object.toString((this.security != null && encrypt === true) ? this.security.getEncryptFn(object.id) : null) + '\n\n')
   }
 
-  _updateOutlinesCount(id) {
+  _updateOutlinesCount (id) {
     if (this._outlines[id].data.count < 1) {
       this._outlines[id].data.count -= 1
       this._outlines[id].prop('Count', this._outlines[id].data.count)
     } else {
       this._outlines[id].data.count = -1
       this._outlines[id].prop('Count', this._outlines[id].data.count)
-    }    
+    }
   }
 
   // public API
 
-  async end() {
-
+  async end () {
     try {
-      await Fragment.prototype.end.call(this);
+      await Fragment.prototype.end.call(this)
 
       await this._next()
       await this._endPage()
@@ -568,9 +566,9 @@ class Document extends Readable {
         await xobj.x.write(this, xobj.o)
       }
 
-      if (this.security) {        
+      if (this.security) {
         // pofider the security class is preparing these values to pass
-        this.securityObject = new PDF.Object()        
+        this.securityObject = new PDF.Object()
         this.securityObject.properties = new PDF.Dictionary()
         this.securityObject.properties.set('Length', this.security.dictionary.Length)
         this.securityObject.properties.set('Filter', this.security.dictionary.Filter)
@@ -585,25 +583,25 @@ class Document extends Readable {
 
       const catalog = new PDF.Object('Catalog')
       // pofider change, make catalog availible to the hooks
-      this._catalog = catalog 
+      this._catalog = catalog
 
       catalog.prop('Pages', this._pagesObj.toReference())
       if (this._destinations.length > 0) {
         const destsObj = new PDF.Object()
-        destsObj.prop("Dests", this._destinations)
+        destsObj.prop('Dests', this._destinations)
         await this._writeObject(destsObj)
         catalog.prop('Names', destsObj.toReference())
       }
 
       if (this._destsObject) {
         await this._writeObject(this._destsObject)
-        catalog.prop("Dests", this._destsObject.toReference())
+        catalog.prop('Dests', this._destsObject.toReference())
       }
 
-      //Write outlines hierarchy if there are outlines
+      // Write outlines hierarchy if there are outlines
       if (this._outlines.length > 0 && this._destsObject) {
         for (let i = 0; i < this._outlines.length; i += 1) {
-          // pofider change, our pdfs from chrome doesn't use Names object. 
+          // pofider change, our pdfs from chrome doesn't use Names object.
           // we cant reference outlines using names and need to use references
           if (i !== 0) {
             this._outlines[i].properties.get('A').set('D', this._destsObject.properties.get(this._outlines[i].properties.get('A').get('D').str))
@@ -618,27 +616,27 @@ class Document extends Readable {
       for (const fn of this._finalizeCatalog) {
         await fn()
       }
-      
-      const acroFormObjects = []      
+
+      const acroFormObjects = []
       Parser.addObjectsRecursive(acroFormObjects, this._acroFormObj)
-      for (let o of acroFormObjects) {
-        this._writeObject(o)       
-      }      
+      for (const o of acroFormObjects) {
+        this._writeObject(o)
+      }
 
       this._writeObject(this._acroFormObj)
-      catalog.prop("AcroForm", this._acroFormObj.toReference())
+      catalog.prop('AcroForm', this._acroFormObj.toReference())
       await this._writeObject(catalog)
 
-      // pofider change, based on pdf spec the Info needs to be a reference and not direct object      
+      // pofider change, based on pdf spec the Info needs to be a reference and not direct object
       this.info.CreationDate = formatDate(new Date())
       this.info.Producer = this.info.Producer || 'jsreport'
       this.info.Creator = this.info.Creator || 'jsreport'
       this.info.creationDate = null
       const infoObject = new PDF.Object()
       for (const key in this.info) {
-        if (this.info[key] != null) { 
+        if (this.info[key] != null) {
           infoObject.properties.set(key, new PDF.String(this.info[key]))
-        }   
+        }
       }
       await this._writeObject(infoObject)
 
@@ -652,7 +650,7 @@ class Document extends Readable {
       const objectsCount = this._nextObjectId - 1
       const trailer = new PDF.Trailer(objectsCount + 1, catalog, infoObject)
       if (this.security) {
-        trailer.set('Encrypt', this.securityObject.toReference())      
+        trailer.set('Encrypt', this.securityObject.toReference())
         trailer.set('ID', new PDF.Array([new PDF.String(this._id), new PDF.String(this._id)]))
       }
       await this._write(trailer.toString() + '\n')
@@ -667,7 +665,7 @@ class Document extends Readable {
     }
   }
 
-  asBuffer(callback) {
+  asBuffer (callback) {
     let p = new Promise((resolve, reject) => {
       const chunks = []
       this.on('data', chunk => chunks.push(chunk))
@@ -681,8 +679,7 @@ class Document extends Readable {
     return p
   }
 
-
-  header() {
+  header () {
     const Header = require('./header')
     const ctx = new Header(this, this)
     this._begin(ctx)
@@ -695,7 +692,7 @@ class Document extends Readable {
     return ctx
   }
 
-  footer() {
+  footer () {
     const Footer = require('./footer')
     const ctx = new Footer(this, this)
     this._begin(ctx)
@@ -708,7 +705,7 @@ class Document extends Readable {
     return ctx
   }
 
-  addPagesOf(external) {
+  addPagesOf (external) {
     if (!(external instanceof ExternalDocument)) {
       throw new TypeError('argument must be of type ExternalDocument')
     }
@@ -717,7 +714,7 @@ class Document extends Readable {
     this._pending.push(() => external.write(this))
   }
 
-  addPageOf(page, external) {
+  addPageOf (page, external) {
     if (!(external instanceof ExternalDocument)) {
       throw new TypeError('argument must be of type ExternalDocument')
     }
@@ -730,7 +727,7 @@ class Document extends Readable {
     this._pending.push(() => external.write(this, page))
   }
 
-  setTemplate(external) {
+  setTemplate (external) {
     if (!(external instanceof ExternalDocument)) {
       throw new TypeError('argument must be of type ExternalDocument')
     }
@@ -739,7 +736,7 @@ class Document extends Readable {
     this._pending.push(() => external.setAsTemplate(this))
   }
 
-  outline(title, destination, parent) {
+  outline (title, destination, parent) {
     // Skip empty titles and/or destination
     if (title === undefined || destination === undefined) return
 
@@ -768,7 +765,7 @@ class Document extends Readable {
     }
 
     // Find siblings
-    let siblingsIndexes = this._outlines.reduce((result, item, index) => {
+    const siblingsIndexes = this._outlines.reduce((result, item, index) => {
       if (index !== 0 && item.data.parentIndex === parentIndex) result.push(index)
       return result
     }, [])
@@ -780,7 +777,7 @@ class Document extends Readable {
     outline.prop('Parent', this._outlines[parentIndex].toReference())
     outline.prop('A', new PDF.Dictionary({
       S: 'GoTo',
-      D: new PDF.String(destination),
+      D: new PDF.String(destination)
     }))
     this._registerObject(outline)
     const outlineIndex = this._outlines.push(outline) - 1
@@ -824,16 +821,16 @@ Object.assign(Document.prototype, {
   image: Fragment.prototype.image,
   pageBreak: Fragment.prototype.pageBreak,
   op: Fragment.prototype.op,
-  destination: Fragment.prototype.destination,
+  destination: Fragment.prototype.destination
 })
 
 class AliasGenerator {
-  constructor() {
+  constructor () {
     this.nextId = {}
     this.blocked = new Set()
   }
 
-  next(prefix) {
+  next (prefix) {
     if (!(prefix in this.nextId)) {
       this.nextId[prefix] = 1
     }
@@ -846,7 +843,7 @@ class AliasGenerator {
     return next
   }
 
-  block(alias) {
+  block (alias) {
     alias = String(alias)
     if (alias[0] === '/') {
       alias = alias.slice(1)
@@ -855,7 +852,7 @@ class AliasGenerator {
     this.blocked.add(alias)
   }
 
-  isBlocked(alias) {
+  isBlocked (alias) {
     alias = String(alias)
     if (alias[0] === '/') {
       alias = alias.slice(1)
@@ -864,20 +861,19 @@ class AliasGenerator {
     return this.blocked.has(alias)
   }
 
-  reset(prefix) {
+  reset (prefix) {
     this.nextId[prefix] = 1
   }
 }
 
-
-function formatDate(date) {
-  let str = 'D:'
-    + date.getFullYear()
-    + ('00' + (date.getMonth() + 1)).slice(-2)
-    + ('00' + date.getDate()).slice(-2)
-    + ('00' + date.getHours()).slice(-2)
-    + ('00' + date.getMinutes()).slice(-2)
-    + ('00' + date.getSeconds()).slice(-2)
+function formatDate (date) {
+  let str = 'D:' +
+    date.getFullYear() +
+    ('00' + (date.getMonth() + 1)).slice(-2) +
+    ('00' + date.getDate()).slice(-2) +
+    ('00' + date.getHours()).slice(-2) +
+    ('00' + date.getMinutes()).slice(-2) +
+    ('00' + date.getSeconds()).slice(-2)
 
   let offset = date.getTimezoneOffset()
   const rel = offset === 0 ? 'Z' : (offset > 0 ? '-' : '+')
@@ -885,15 +881,15 @@ function formatDate(date) {
   const hoursOffset = Math.floor(offset / 60)
   const minutesOffset = offset - hoursOffset * 60
 
-  str += rel
-    + ('00' + hoursOffset).slice(-2) + '\''
-    + ('00' + minutesOffset).slice(-2) + '\''
+  str += rel +
+    ('00' + hoursOffset).slice(-2) + '\'' +
+    ('00' + minutesOffset).slice(-2) + '\''
 
   return str
 }
 
 // taken from https://github.com/foliojs/pdfkit
-const escapableRe = /[\n\r\t\b\f\(\)\\]/g;
+const escapableRe = /[\n\r\t\b\f\(\)\\]/g
 const escapable = {
   '\n': '\\n',
   '\r': '\\r',
@@ -903,6 +899,6 @@ const escapable = {
   '\\': '\\\\',
   '(': '\\(',
   ')': '\\)'
-}; // Convert little endian UTF-16 to big endian
+} // Convert little endian UTF-16 to big endian
 
 module.exports = Document
