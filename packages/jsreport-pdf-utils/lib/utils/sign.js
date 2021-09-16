@@ -17,9 +17,7 @@ const DEFAULT_BYTE_RANGE_PLACEHOLDER = '**********'
 // the code take from node-signpdf tests and rewriten from pdfkit to the pdfjs
 module.exports.addSignaturePlaceholder = (pdfBuffer, reason, maxSignaturePlaceholderLength) => {
   const extContent = new pdfjs.ExternalDocument(pdfBuffer)
-  const doc = new pdfjs.Document({
-    external: extContent
-  })
+  const doc = new pdfjs.Document()
 
   const sig = new PDF.Object('Sig')
   sig.prop('Filter', 'Adobe.PPKLite')

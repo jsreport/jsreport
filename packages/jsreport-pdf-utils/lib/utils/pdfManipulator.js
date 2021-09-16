@@ -74,9 +74,7 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
 
       const ext = new pdfjs.ExternalDocument(currentBuffer)
 
-      const newDocOpts = {
-        external: ext
-      }
+      const newDocOpts = {}
       if (pdfPassword) {
         newDocOpts.encryption = {
           password: pdfPassword.password,
