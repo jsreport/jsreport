@@ -4,8 +4,8 @@ const parsePdf = require('./parsePdf')
 const addPages = require('./addPages')
 const { addSignaturePlaceholder, sign } = require('./sign')
 const processText = require('./processText')
-const pdfjs = require('jsreport-pdfjs')
-const PDF = require('jsreport-pdfjs/lib/object')
+const pdfjs = require('@jsreport/pdfjs')
+const PDF = require('@jsreport/pdfjs/lib/object')
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
   let currentBuffer = contentBuffer

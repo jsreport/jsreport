@@ -1,5 +1,5 @@
-const pdfjs = require('jsreport-pdfjs')
-const PDF = require('jsreport-pdfjs/lib/object')
+const pdfjs = require('@jsreport/pdfjs')
+const PDF = require('@jsreport/pdfjs/lib/object')
 const { SignPdf } = require('node-signpdf')
 
 class PDFHexString {

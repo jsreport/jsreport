@@ -1,4 +1,4 @@
-const PDF = require('jsreport-pdfjs/lib/object')
+const PDF = require('@jsreport/pdfjs/lib/object')
 const parseColor = require('parse-color')
 
 module.exports = (doc, ext) => {

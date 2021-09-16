@@ -2,7 +2,7 @@ const JsReport = require('@jsreport/jsreport-core')
 const parsePdf = require('../lib/utils/parsePdf')
 const fs = require('fs')
 const path = require('path')
-const pdfjs = require('jsreport-pdfjs')
+const pdfjs = require('@jsreport/pdfjs')
 const { extractSignature } = require('node-signpdf/dist/helpers')
 const processText = require('../lib/utils/processText.js')
 const should = require('should')
@@ -1543,6 +1543,48 @@ describe('pdf utils', () => {
         }
       }
     })
+
+    result.content.toString().should
+      .containEql('Foo-title')
+      .and.containEql('Foo-author')
+      .and.containEql('Foo-subject')
+      .and.containEql('Foo-keywords')
+      .and.containEql('Foo-creator')
+      .and.containEql('Foo-producer')
+      .and.containEql('cz-CZ')
+  })
+
+  it('pdfMeta should work also when another pdf appended using script', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'foo',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfMeta: {
+          title: 'Foo-title',
+          author: 'Foo-author',
+          subject: 'Foo-subject',
+          keywords: 'Foo-keywords',
+          creator: 'Foo-creator',
+          producer: 'Foo-producer',
+          language: 'cz-CZ'
+        },
+        scripts: [{
+          content: `
+            const jsreport = require('jsreport-proxy')
+            async function afterRender(req, res) {
+              const r = await jsreport.render({
+                template: { content: 'page2', recipe: 'chrome-pdf', engine: 'none' }
+              })
+              res.content = await jsreport.pdfUtils.append(res.content, r.content)
+            }
+          `
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
 
     result.content.toString().should
       .containEql('Foo-title')

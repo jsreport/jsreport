@@ -1,8 +1,8 @@
-const pdfjs = require('jsreport-pdfjs')
-const PDFDictionary = require('jsreport-pdfjs/lib/object/dictionary')
+const pdfjs = require('@jsreport/pdfjs')
+const PDFDictionary = require('@jsreport/pdfjs/lib/object/dictionary')
 const zlib = require('zlib')
 const EmbeddedPage = require('./EmbeddedPage')
-const Parser = require('jsreport-pdfjs/lib/parser/parser')
+const Parser = require('@jsreport/pdfjs/lib/parser/parser')
 
 function uint8ToString (u8a) {
   const CHUNK_SZ = 0x8000

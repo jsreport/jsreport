@@ -1,5 +1,5 @@
-const PDF = require('jsreport-pdfjs/lib/object')
-const Parser = require('jsreport-pdfjs/lib/parser/parser')
+const PDF = require('@jsreport/pdfjs/lib/object')
+const Parser = require('@jsreport/pdfjs/lib/parser/parser')
 
 /*
  * pdfjs object which holds another pdf buffer

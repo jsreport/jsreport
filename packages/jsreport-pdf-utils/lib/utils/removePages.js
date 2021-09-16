@@ -1,4 +1,4 @@
-const pdfjs = require('jsreport-pdfjs')
+const pdfjs = require('@jsreport/pdfjs')
 module.exports = (contentBuffer, pageNumbers) => {
   const contentExtDoc = new pdfjs.ExternalDocument(contentBuffer)
 

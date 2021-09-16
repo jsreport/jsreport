@@ -9080,19 +9080,6 @@ jsreport-exceljs@3.8.0:
     unzipper "0.10.11"
     uuid "^3.3.3"
 
-jsreport-pdfjs@0.5.4:
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/jsreport-pdfjs/-/jsreport-pdfjs-0.5.4.tgz#123a4aad75b0b84ad395264a0f4754c4c9a3662e"
-  integrity sha512-GBPMlHvv8DzMuNySy1F9ZFI9hCw/i7JZ1MslD2CoMlTRxC3uychhd/na19MY9O1TvxFkHLTIlE7WchY1GzizxQ==
-  dependencies:
-    "@rkusa/linebreak" "^1.0.0"
-    crypto-js "4.0.0"
-    opentype.js "^0.8.0"
-    pako "^1.0.6"
-    readable-stream "^2.3.6"
-    unorm "^1.4.1"
-    uuid "^3.0.1"
-
 jsreport-sql-2@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/jsreport-sql-2/-/jsreport-sql-2-0.0.1.tgz#1d73f5aed07cea45d71eb40a62e7de1a8960a8f9"

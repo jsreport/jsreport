@@ -20,6 +20,13 @@ module.exports = class ExternalDocument {
       this.acroFormObj = acroFormRef.object
     }
 
+    const info = parser.trailer.get('Info')
+    if (info) {
+      this.infoObj = info.object
+    }
+
+    this.lang = this.catalog.get('Lang')
+
     const parsePages = (pages) => {
       for (const kid of pages.get('Kids')) {
         if (kid.object.properties instanceof PDF.Dictionary && kid.object.properties.get('Type').name === 'Pages') {
@@ -46,7 +53,6 @@ module.exports = class ExternalDocument {
     await doc._endPage()
 
     const kids = this.pages.get('Kids')
-    const pages = page ? [kids[page - 1]] : kids
 
     for (let i = page ? page - 1 : 0, len = page || kids.length; i < len; ++i) {
       const page = kids[i].object
@@ -110,6 +116,31 @@ module.exports = class ExternalDocument {
       if (this.acroFormObj.properties.has('SigFlags')) {
         doc._acroFormObj.properties.set('SigFlags', this.acroFormObj.properties.get('SigFlags'))
       }
+    }
+
+    if (!page && this.infoObj) {
+      for (let key in this.infoObj.properties.dictionary) {
+        key = key.substring(1)
+        if (doc.info[key] == null) {
+          const v = this.infoObj.properties.get(key)
+          if (v == null || v.str == null) {
+            continue
+          }
+          if (v.str.startsWith('D:')) {
+            // skip dates
+            continue
+          }
+          doc.info[key] = v.str
+        }
+      }
+    }
+
+    if (!page && this.lang) {
+      doc._finalizeCatalog.push(() => {
+        if (doc._catalog.properties.get('Lang') == null) {
+          doc._catalog.prop('Lang', this.lang)
+        }
+      })
     }
 
     if (this.dests) {

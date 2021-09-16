@@ -27,12 +27,12 @@
     "lint": "standard",
     "prepublishOnly": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 5488",
-    "test": "set DEBUG=jsreport&& mocha test --timeout=20000 && standard",
+    "test": "set DEBUG=jsreport&&mocha test --timeout=20000 && standard",
     "test-full": "set DEBUG=jsreport&&set TEST_FULL=true&& mocha test --timeout=20000 && standard"
   },
   "dependencies": {
     "cheerio": "0.22.0",
-    "jsreport-pdfjs": "0.5.4",
+    "@jsreport/pdfjs": "0.5.4",
     "lodash.omit": "4.5.0",
     "nanoid": "3.1.12",
     "node-forge": "0.10.0",
@@ -51,7 +51,7 @@
     "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
     "@jsreport/jsreport-scripts": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.2",
-    "mocha": "5.2.0",
+    "mocha": "8.2.1",
     "puppeteer": "9.1.1",
     "rimraf": "2.6.3",
     "should": "13.2.3",
