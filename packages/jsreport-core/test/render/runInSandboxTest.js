@@ -182,6 +182,34 @@ describe('sandbox', () => {
     res.content.toString().should.be.eql('undefined')
   })
 
+  it('should make top level prop readonly', async () => {
+    reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      const r = await reporter.runInSandbox({
+        context: {
+          a: { b: { c: 'foo' } }
+        },
+        userCode: 'a.b.d = "add"',
+        executionFn: ({ context, restore }) => {
+          return JSON.stringify(context.a.b)
+        },
+        propertiesConfig: {
+          'a.b': {
+            sandboxReadOnly: true
+          }
+        }
+      }, req)
+      res.content = Buffer.from(r)
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: ' ',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/Can't add/)
+  })
+
   it('should make simple props readonly', async () => {
     reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
       const r = await reporter.runInSandbox({
@@ -223,6 +251,74 @@ describe('sandbox', () => {
         propertiesConfig: {
           'a.b': {
             sandboxReadOnly: true
+          }
+        }
+      }, req)
+      res.content = Buffer.from(r)
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: ' ',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/Can't add or modify/)
+  })
+
+  it('should make props readonly deeply', async () => {
+    reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      const r = await reporter.runInSandbox({
+        context: {
+          a: { b: { c: 'foo' } }
+        },
+        userCode: 'a.b.bar = "change"',
+        executionFn: ({ context, restore }) => {
+          return JSON.stringify(context.a.b)
+        },
+        propertiesConfig: {
+          a: {
+            sandboxReadOnly: true
+          },
+          'a.b': {
+            sandboxReadOnly: true
+          },
+          'a.b.c': {
+            sandboxHidden: true
+          }
+        }
+      }, req)
+      res.content = Buffer.from(r)
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: ' ',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/Can't add or modify/)
+  })
+
+  it('should make props readonly deeply #2', async () => {
+    reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      const r = await reporter.runInSandbox({
+        context: {
+          a: { b: { c: { d: 'foo' } } }
+        },
+        userCode: 'a.b.bar = "change"',
+        executionFn: ({ context, restore }) => {
+          return JSON.stringify(context.a.b)
+        },
+        propertiesConfig: {
+          'a.b': {
+            sandboxReadOnly: true
+          },
+          'a.b.c': {
+            sandboxReadOnly: true
+          },
+          'a.b.c.d': {
+            sandboxHidden: true
           }
         }
       }, req)
@@ -297,6 +393,42 @@ describe('sandbox', () => {
         recipe: 'html'
       }
     }).should.be.rejectedWith(/Can't add or modify/)
+  })
+
+  it('should allow configure top level as read only and inner level as hidden deeply at the same time', async () => {
+    reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      const r = await reporter.runInSandbox({
+        context: {
+          a: { b: { c: 'foo' } }
+        },
+        userCode: 'b = typeof a.b.c',
+        executionFn: ({ context }) => {
+          return context.b
+        },
+        propertiesConfig: {
+          a: {
+            sandboxReadOnly: true
+          },
+          'a.b': {
+            sandboxReadOnly: true
+          },
+          'a.b.c': {
+            sandboxHidden: true
+          }
+        }
+      }, req)
+
+      res.content = Buffer.from(r)
+    })
+
+    const res = await reporter.render({
+      template: {
+        engine: 'none',
+        content: ' ',
+        recipe: 'html'
+      }
+    })
+    res.content.toString().should.be.eql('undefined')
   })
 
   it('should not fail when configuring top level and inner level properties but parent value is empty', async () => {

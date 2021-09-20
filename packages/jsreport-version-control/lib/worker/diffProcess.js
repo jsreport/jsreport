@@ -1,4 +1,4 @@
-const Promise = require('bluebird')
+const pReduce = require('p-reduce')
 const { createPatch, applyPatches } = require('./patches')
 const sortVersions = require('../shared/sortVersions')
 const { parse } = require('./customUtils')
@@ -16,9 +16,9 @@ module.exports = async function scriptDiffProcessing ({ commitToDiff, versions, 
   // This custom implementation stores whole entity patch in single object
   // with additional information like entity id. This is something git based implementation
   // cannot simply provide because it works only with files. There are no document properties
-  // or entity ids availible in git. I wanted to keep the API same for both, so we return here
+  // or entity ids available in git. I wanted to keep the API same for both, so we return here
   // document properties as extra items (files) in array and omit some information
-  const diff = await Promise.reduce(commitToDiff.changes, async (res, c) => {
+  const diff = await pReduce(commitToDiff.changes, async (res, c) => {
     let state
 
     const change = {

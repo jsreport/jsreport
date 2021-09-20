@@ -61,7 +61,27 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     })
 
     page.on('console', (m) => {
-      pageLog('debug', m.text())
+      const text = m.text()
+
+      if (text.includes('JSHandle@object')) {
+        const args = m.args()
+
+        const argPromises = args.map((argHandle) => {
+          return argHandle.jsonValue()
+        })
+
+        Promise.all(argPromises).then((results) => {
+          pageLog('debug', results.map((r) => {
+            if (typeof r === 'object') {
+              return JSON.stringify(r)
+            }
+
+            return r
+          }).join(' '))
+        }).catch(() => pageLog('debug', text))
+      } else {
+        pageLog('debug', text)
+      }
     })
 
     page.on('request', (r) => {

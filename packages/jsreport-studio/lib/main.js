@@ -1,9 +1,9 @@
 const path = require('path')
-const Promise = require('bluebird')
 const url = require('url')
 const _ = require('lodash')
 const crypto = require('crypto')
-const fs = Promise.promisifyAll(require('fs'))
+const fs = require('fs')
+const fsP = require('fs/promises')
 const serveStatic = require('serve-static')
 const favicon = require('serve-favicon')
 const { Diff2Html } = require('diff2html')
@@ -268,7 +268,7 @@ module.exports = (reporter, definition) => {
           if (customCssContent != null) {
             content = customCssContent
           } else {
-            content = (await fs.readFileAsync(customCssFile)).toString()
+            content = (await fsP.readFile(customCssFile)).toString()
           }
 
           return content

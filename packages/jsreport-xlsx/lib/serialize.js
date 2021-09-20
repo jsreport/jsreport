@@ -1,8 +1,8 @@
+const util = require('util')
 const { decompress } = require('@jsreport/office')
-const Promise = require('bluebird')
 const xml2js = require('xml2js-preserve-spaces')
 
-const parseString = Promise.promisify(xml2js.parseString)
+const parseString = util.promisify(xml2js.parseString)
 
 async function parseXlsx (base64contentOrBuffer) {
   const buf = Buffer.isBuffer(base64contentOrBuffer) ? base64contentOrBuffer : Buffer.from(base64contentOrBuffer, 'base64')

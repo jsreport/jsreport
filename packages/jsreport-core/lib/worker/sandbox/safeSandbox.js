@@ -405,6 +405,7 @@ function applyPropertiesConfig (context, config, {
   let isHidden
   let isReadOnly
   let standalonePropertiesHandled = false
+  let innerPropertiesHandled = false
 
   if (isRoot) {
     return Object.keys(config).forEach((key) => {
@@ -470,36 +471,51 @@ function applyPropertiesConfig (context, config, {
     }
   }
 
-  if (isHidden) {
-    if (parentOpts && parentOpts.sandboxReadOnly === true) {
-      // this error is throw as a signal, a condition that should never happen but if it happens
-      // it means that there is a configuration hierarchy that we don't support yet
-      throw new Error(`Can't configure property "${prop}" as hidden when parent was configured as readOnly`)
-    }
+  const processStandAloneProperties = (c) => {
+    Object.keys(c.standalone).forEach((skey) => {
+      const sconfig = c.standalone[skey]
 
+      applyPropertiesConfig(context, sconfig, {
+        original,
+        customProxies,
+        prop: skey,
+        isRoot: false,
+        isGrouped: false,
+        onlyReadOnlyTopLevel,
+        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
+      }, readOnlyConfigured)
+    })
+  }
+
+  const processInnerProperties = (c) => {
+    Object.keys(c.inner).forEach((ikey) => {
+      const iconfig = c.inner[ikey]
+
+      applyPropertiesConfig(context, iconfig, {
+        original,
+        customProxies,
+        prop: ikey,
+        isRoot: false,
+        isGrouped: true,
+        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
+      }, readOnlyConfigured)
+    })
+  }
+
+  if (isHidden) {
     omitProp(context, prop)
-  } else if (isReadOnly && parentOpts && parentOpts.sandboxReadOnly !== true) {
+  } else if (isReadOnly) {
     readOnlyProp(context, prop, readOnlyConfigured, customProxies, {
       onlyTopLevel: false,
       onBeforeProxy: () => {
-        if (isGrouped && config.standalone) {
-          Object.keys(config.standalone).forEach((skey) => {
-            const sconfig = config.standalone[skey]
-
-            applyPropertiesConfig(context, sconfig, {
-              original,
-              customProxies,
-              prop: skey,
-              isRoot: false,
-              isGrouped: false,
-              onlyReadOnlyTopLevel,
-              // we pass that parent was not "readOnly" to allow processing
-              // hidden properties configurations without error
-              parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: false }
-            }, readOnlyConfigured)
-          })
-
+        if (isGrouped && config.standalone != null) {
+          processStandAloneProperties(config)
           standalonePropertiesHandled = true
+        }
+
+        if (isGrouped && config.inner != null) {
+          processInnerProperties(config)
+          innerPropertiesHandled = true
         }
       }
     })
@@ -515,34 +531,11 @@ function applyPropertiesConfig (context, config, {
   }
 
   if (!standalonePropertiesHandled && config.standalone != null) {
-    Object.keys(config.standalone).forEach((skey) => {
-      const sconfig = config.standalone[skey]
-
-      applyPropertiesConfig(context, sconfig, {
-        original,
-        customProxies,
-        prop: skey,
-        isRoot: false,
-        isGrouped: false,
-        onlyReadOnlyTopLevel,
-        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
-      }, readOnlyConfigured)
-    })
+    processStandAloneProperties(config)
   }
 
-  if (config.inner != null) {
-    Object.keys(config.inner).forEach((ikey) => {
-      const iconfig = config.inner[ikey]
-
-      applyPropertiesConfig(context, iconfig, {
-        original,
-        customProxies,
-        prop: ikey,
-        isRoot: false,
-        isGrouped: true,
-        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
-      }, readOnlyConfigured)
-    })
+  if (!innerPropertiesHandled && config.inner != null) {
+    processInnerProperties(config)
   }
 }
 
@@ -677,7 +670,9 @@ function readOnlyProp (context, prop, configured, customProxies, { onlyTopLevel 
       // this prevents getting errors about proxy traps and descriptors differences
       // when calling `JSON.stringify(req.context)` from a script
       if (Object.prototype.hasOwnProperty.call(currentContext, propName)) {
-        configured.push(fullPropName)
+        if (!configured.includes(fullPropName)) {
+          configured.push(fullPropName)
+        }
 
         Object.defineProperty(currentContext, propName, {
           get: () => value,

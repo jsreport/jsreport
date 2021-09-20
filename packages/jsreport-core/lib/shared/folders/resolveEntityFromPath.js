@@ -75,7 +75,7 @@ module.exports = (reporter) => async (entityPathParam, targetEntitySet, options,
 
 function getSearchQuery (name, currentFolder) {
   const query = {
-    name: decodeURIComponent(name)
+    name
   }
 
   if (currentFolder) {

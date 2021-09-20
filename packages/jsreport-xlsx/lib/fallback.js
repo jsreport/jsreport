@@ -1,6 +1,6 @@
-const { v4: uuidv4 } = require('uuid')
-const Promise = require('bluebird')
+const util = require('util')
 const fs = require('fs')
+const { v4: uuidv4 } = require('uuid')
 const path = require('path')
 const excelbuilder = require('msexcel-builder-extended')
 const { response } = require('@jsreport/office')
@@ -42,7 +42,7 @@ module.exports = async (reporter, definition, req, res) => {
     workbook.st.raw(stylesheet)
   }
 
-  return Promise.promisify(workbook.save).call(workbook).then(() => {
+  return util.promisify(workbook.save).call(workbook).then(() => {
     res.stream = fs.createReadStream(path.join(reporter.options.tempAutoCleanupDirectory, generationId + '.xlsx'))
     return response({
       previewOptions: definition.options.preview,

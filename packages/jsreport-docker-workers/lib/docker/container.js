@@ -1,6 +1,6 @@
+const util = require('util')
 const axios = require('axios')
-const Promise = require('bluebird')
-const execAsync = Promise.promisify(require('child_process').exec)
+const execAsync = util.promisify(require('child_process').exec)
 const serializator = require('serializator')
 
 module.exports = class Container {
@@ -96,7 +96,9 @@ module.exports = class Container {
         await axios.get(this.url)
         finished = true
       } catch (e) {
-        await Promise.delay(50)
+        await new Promise((resolve) => {
+          setTimeout(resolve, 50)
+        })
       }
 
       if (start + this.startTimeout < new Date().getTime()) {

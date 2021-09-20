@@ -21,7 +21,6 @@
     "test": "mocha test/test.js --timeout=5000 && standard"
   },
   "dependencies": {
-    "bluebird": "3.5.4",
     "@jsreport/sql-store": "3.0.0-beta.1",
     "pg-promise": "10.8.1"
   },

@@ -1,4 +1,3 @@
-const Promise = require('bluebird')
 const JsReport = require('@jsreport/jsreport-core')
 const common = require('./common')
 const should = require('should')
@@ -16,7 +15,7 @@ describe('version control', () => {
 
     // postpone the commit to avoid having two commits in same ms
     const old = jsreport.versionControl.commit.bind(jsreport.versionControl)
-    jsreport.versionControl.commit = (...args) => Promise.delay(3).then(() => old(...args))
+    jsreport.versionControl.commit = (...args) => new Promise((resolve) => setTimeout(resolve, 3)).then(() => old(...args))
   })
 
   afterEach(() => jsreport.close())

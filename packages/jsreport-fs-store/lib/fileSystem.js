@@ -1,22 +1,22 @@
-const Promise = require('bluebird')
+const util = require('util')
 const path = require('path')
-const fs = require('fs')
-Promise.promisifyAll(require('fs'))
-const mkdirpAsync = Promise.promisify(require('mkdirp'))
-const rimraf = Promise.promisify(require('rimraf'))
+const fs = require('fs/promises')
+const mkdirpAsync = util.promisify(require('mkdirp'))
+const rimraf = util.promisify(require('rimraf'))
 const lockFile = require('lockfile')
-Promise.promisifyAll(lockFile)
+const callLock = util.promisify(lockFile.lock)
+const callUnlock = util.promisify(lockFile.unlock)
 
 module.exports = ({ dataDirectory, lock }) => ({
   memoryState: {},
   lockOptions: Object.assign({ stale: 10000, retries: 100, retryWait: 100 }, lock),
   init: () => mkdirpAsync(dataDirectory),
   readdir: async (p) => {
-    const dirs = await fs.readdirAsync(path.join(dataDirectory, p))
+    const dirs = await fs.readdir(path.join(dataDirectory, p))
     return dirs.filter(d => d !== '.git')
   },
   async readFile (p) {
-    const res = await fs.readFileAsync(path.join(dataDirectory, p))
+    const res = await fs.readFile(path.join(dataDirectory, p))
     if (!p.includes('~')) {
       this.memoryState[path.join(dataDirectory, p)] = { content: res, isDirectory: false }
     }
@@ -27,7 +27,7 @@ module.exports = ({ dataDirectory, lock }) => ({
       this.memoryState[path.join(dataDirectory, p)] = { content: Buffer.from(c), isDirectory: false }
     }
 
-    return fs.writeFileAsync(path.join(dataDirectory, p), c)
+    return fs.writeFile(path.join(dataDirectory, p), c)
   },
   appendFile (p, c) {
     const fpath = path.join(dataDirectory, p)
@@ -36,45 +36,45 @@ module.exports = ({ dataDirectory, lock }) => ({
       this.memoryState[fpath].content = Buffer.concat([this.memoryState[fpath].content, Buffer.from(c)])
     }
 
-    return fs.appendFileAsync(fpath, c)
+    return fs.appendFile(fpath, c)
   },
   async rename (p, pp) {
     if (p.includes('~') && !pp.includes('~')) {
       const readDirMemoryState = async (sp, dp) => {
         this.memoryState[dp] = { isDirectory: true }
-        const contents = await fs.readdirAsync(sp)
+        const contents = await fs.readdir(sp)
         // eslint-disable-next-line no-unused-vars
         for (const c of contents) {
-          const stat = await fs.statAsync(path.join(sp, c))
+          const stat = await fs.stat(path.join(sp, c))
           if (stat.isDirectory()) {
             await readDirMemoryState(path.join(sp, c), path.join(dp, c))
           } else {
-            const fcontent = await fs.readFileAsync(path.join(sp, c))
+            const fcontent = await fs.readFile(path.join(sp, c))
             this.memoryState[path.join(dp, c)] = { content: fcontent, isDirectory: false }
           }
         }
       }
-      const rstat = await fs.statAsync(path.join(dataDirectory, p))
+      const rstat = await fs.stat(path.join(dataDirectory, p))
       if (rstat.isDirectory()) {
         await readDirMemoryState(path.join(dataDirectory, p), path.join(dataDirectory, pp))
       } else {
-        const fcontent = await fs.readFileAsync(path.join(dataDirectory, p))
+        const fcontent = await fs.readFile(path.join(dataDirectory, p))
         this.memoryState[path.join(dataDirectory, pp)] = { content: fcontent, isDirectory: false }
       }
     }
 
-    return fs.renameAsync(path.join(dataDirectory, p), path.join(dataDirectory, pp))
+    return fs.rename(path.join(dataDirectory, p), path.join(dataDirectory, pp))
   },
   exists: async p => {
     try {
-      await fs.statAsync(path.join(dataDirectory, p))
+      await fs.stat(path.join(dataDirectory, p))
       return true
     } catch (e) {
       return false
     }
   },
   async stat (p) {
-    const stat = await fs.statAsync(path.join(dataDirectory, p))
+    const stat = await fs.stat(path.join(dataDirectory, p))
     if (!p.includes('~') && stat.isDirectory()) {
       this.memoryState[path.join(dataDirectory, p)] = { isDirectory: true }
     }
@@ -108,9 +108,9 @@ module.exports = ({ dataDirectory, lock }) => ({
   },
   async lock () {
     await mkdirpAsync(dataDirectory)
-    return lockFile.lockAsync(path.join(dataDirectory, 'fs.lock'), Object.assign({}, this.lockOptions))
+    return callLock(path.join(dataDirectory, 'fs.lock'), Object.assign({}, this.lockOptions))
   },
   releaseLock () {
-    return lockFile.unlockAsync(path.join(dataDirectory, 'fs.lock'))
+    return callUnlock(path.join(dataDirectory, 'fs.lock'))
   }
 })

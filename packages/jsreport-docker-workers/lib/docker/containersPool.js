@@ -1,6 +1,5 @@
-
-const Promise = require('bluebird')
-const execAsync = Promise.promisify(require('child_process').exec)
+const util = require('util')
+const execAsync = util.promisify(require('child_process').exec)
 const Container = require('./container')
 
 module.exports = ({

@@ -1,5 +1,4 @@
 const Queue = require('../lib/queue')
-const Promise = require('bluebird')
 require('should')
 
 describe('queue', () => {
@@ -36,13 +35,13 @@ describe('queue', () => {
   })
 
   it('rejectItemsWithTimeout should reject old items', async () => {
-    // block queue with somethig
+    // block queue with something
     let resolveBlockingPromise
     const blockingPromise = new Promise((resolve) => (resolveBlockingPromise = resolve))
     queue.push(() => blockingPromise)
     // this will wait longer than timeout 10ms
     const promise = queue.push(() => {})
-    await Promise.delay(60)
+    await new Promise((resolve) => setTimeout(resolve, 60))
     queue.rejectItemsWithTimeout()
     await promise.should.be.rejectedWith(/Timeout during waiting/)
     resolveBlockingPromise()

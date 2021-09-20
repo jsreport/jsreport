@@ -14,7 +14,7 @@
   "author": {
     "name": "Jan Blaha"
   },
-  "main": "src/server.js",
+  "main": "index.js",
   "files": [
     "lib",
     "shared",
@@ -40,7 +40,7 @@
     "ui-test": "mocha test/ui/.setup.js test/ui --recursive --exit --require babel-core/register --require mocha-clean --require ignore-styles"
   },
   "dependencies": {
-    "bluebird": "3.5.4",
+    "bluebird": "3.7.2",
     "compression": "1.7.4",
     "diff2html": "2.5.0",
     "lodash": "4.17.21",

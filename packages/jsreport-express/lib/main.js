@@ -2,7 +2,6 @@
  * Copyright(c) 2018 Jan Blaha
  */
 const path = require('path')
-const Promise = require('bluebird')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const fs = require('fs')

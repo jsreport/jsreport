@@ -28,7 +28,6 @@
     "test": "set DEBUG=jsreport && mocha test --timeout 5000 && standard"
   },
   "dependencies": {
-    "bluebird": "3.5.4",
     "bytes": "3.0.0",
     "diff": "3.5.0",
     "diff-match-patch": "1.0.5",
@@ -36,7 +35,9 @@
     "lodash.omit": "4.5.0",
     "mime-types": "2.1.27",
     "nanoid": "3.1.22",
-    "node.extend.without.arrays": "1.1.6"
+    "node.extend.without.arrays": "1.1.6",
+    "p-each-series": "2.2.0",
+    "p-reduce": "2.1.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.0.0-beta.1",

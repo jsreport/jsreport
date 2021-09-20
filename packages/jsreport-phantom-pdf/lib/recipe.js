@@ -1,6 +1,6 @@
-const Promise = require('bluebird')
+const util = require('util')
 const Conversion = require('phantom-html-to-pdf')
-const toArrayAsync = Promise.promisify(require('stream-to-array'))
+const toArrayAsync = util.promisify(require('stream-to-array'))
 let conversion
 
 const defaultPhantomjsVersion = '1.9.8'
@@ -96,7 +96,7 @@ module.exports = (reporter, definition, request, response) => {
   return processPart(request.template.phantom, request, 'header').then(function () {
     return processPart(request.template.phantom, request, 'footer')
   }).then(function () {
-    return Promise.promisify(conversion)(request.template.phantom)
+    return util.promisify(conversion)(request.template.phantom)
   }).then(function (res) {
     res.logs.forEach(function (m) {
       reporter.logger[m.level](m.message, { timestamp: m.timestamp.getTime(), ...request })

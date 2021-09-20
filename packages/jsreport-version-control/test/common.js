@@ -285,7 +285,6 @@ module.exports = (jsreport, reload = () => {}) => {
     await jsreport().documentStore.collection('templates').remove({}, req)
     const commit2 = await jsreport().versionControl.commit('2', undefined, req)
     const diff = await jsreport().versionControl.diff(commit2._id, req)
-    console.log(diff)
     diff.find((p) => p.path.includes('a/content')).patch.should.containEql('hello')
   })
 

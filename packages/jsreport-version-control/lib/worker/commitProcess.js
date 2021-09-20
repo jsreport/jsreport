@@ -1,5 +1,6 @@
-const Promise = require('bluebird')
 const omit = require('lodash.omit')
+const pEach = require('p-each-series')
+const pReduce = require('p-reduce')
 const { applyPatches, createPatch } = require('./patches')
 const { serialize, deepEqual } = require('./customUtils')
 
@@ -7,7 +8,7 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
   const newCommit = { message: commitMessage, creationDate: new Date(), changes: [] }
   const lastState = await applyPatches(versions, documentModel, reporter, req)
 
-  newCommit.changes = await Promise.reduce(lastState, async (res, s) => {
+  newCommit.changes = await pReduce(lastState, async (res, s) => {
     const entity = currentEntities[s.entitySet].find((e) => e._id === s.entityId)
 
     if (!entity) {
@@ -68,8 +69,8 @@ module.exports = async function scriptCommitProcessing ({ commitMessage, version
   }, [])
 
   // the entities that exist in store and are not in the last state gets insert change operation
-  await Promise.each(Object.keys(currentEntities), (es) => {
-    return Promise.each(currentEntities[es], async (e) => {
+  await pEach(Object.keys(currentEntities), (es) => {
+    return pEach(currentEntities[es], async (e) => {
       const foundById = lastState.find((s) => s.entityId === e._id && s.entitySet === es)
       const foundByPath = lastState.find((s) => s.path === e.__entityPath && s.entitySet === es)
 

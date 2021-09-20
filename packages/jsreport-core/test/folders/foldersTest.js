@@ -336,6 +336,25 @@ describe('folders', function () {
       folder.shortid.should.be.eql('a')
     })
 
+    it('resolveFolderFromPath should resolve folder from absolute path with %', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a%a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const folder = await reporter.folders.resolveFolderFromPath('/a%a/b')
+      folder.shortid.should.be.eql('a')
+    })
+
     it('resolveFolderFromPath should return null for root objects', async () => {
       await reporter.documentStore.collection('templates').insert({
         name: 'b',
@@ -452,6 +471,26 @@ describe('folders', function () {
       entity.name.should.be.eql('b')
     })
 
+    it('resolveEntityFromPath should resolve entity from absolute path with %', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a%a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a%a/b')
+      entitySet.should.be.eql('templates')
+      entity.name.should.be.eql('b')
+    })
+
     it('resolveEntityFromPath should resolve entity from absolute path with spaces (target entitySet)', async () => {
       await reporter.documentStore.collection('folders').insert({
         name: 'a a',
@@ -468,6 +507,26 @@ describe('folders', function () {
       })
 
       const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a a/b', 'templates')
+      entitySet.should.be.eql('templates')
+      entity.name.should.be.eql('b')
+    })
+
+    it('resolveEntityFromPath should resolve entity from absolute path with % (target entitySet)', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'a%a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 'b',
+        shortid: 'b',
+        engine: 'none',
+        recipe: 'html',
+        folder: {
+          shortid: 'a'
+        }
+      })
+
+      const { entitySet, entity } = await reporter.folders.resolveEntityFromPath('/a%a/b', 'templates')
       entitySet.should.be.eql('templates')
       entity.name.should.be.eql('b')
     })

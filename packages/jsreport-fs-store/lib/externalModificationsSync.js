@@ -1,12 +1,10 @@
+const nfs = require('fs/promises')
 const chokidar = require('chokidar')
-const Promise = require('bluebird')
 const debounce = require('lodash.debounce')
-const nfs = require('fs')
-Promise.promisifyAll(nfs)
 
 async function exists (p) {
   try {
-    await nfs.statAsync(p)
+    await nfs.stat(p)
     return true
   } catch (e) {
     return false
@@ -84,7 +82,7 @@ module.exports = ({
               return reload(filePath)
             }
 
-            const content = await nfs.readFileAsync(filePath)
+            const content = await nfs.readFile(filePath)
 
             if (!fs.memoryState[filePath] || !content.equals(Buffer.from(fs.memoryState[filePath].content))) {
               reload(filePath)
@@ -100,7 +98,7 @@ module.exports = ({
     if (this.watcher) {
       await this.watcher.close()
 
-      // in some cases chokidar still tries to emmit an event, even after close,
+      // in some cases chokidar still tries to emit an event, even after close,
       // so we add an error handler to prevent having an uncaught exception
       this.watcher.once('error', () => {})
     }

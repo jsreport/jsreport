@@ -1,6 +1,4 @@
-const Promise = require('bluebird')
-const fs = require('fs')
-const FS = Promise.promisifyAll(fs)
+const fs = require('fs/promises')
 const path = require('path')
 const resolve = require('enhanced-resolve')
 const minimatch = require('minimatch')
@@ -65,7 +63,7 @@ async function readAsset (reporter, definition, { id, name, encoding, moduleMode
       })
     })
 
-    const buf = await FS.readFileAsync(modulePath)
+    const buf = await fs.readFile(modulePath)
     const moduleExtension = path.extname(modulePath)
     const moduleFilename = moduleExtension !== '' && moduleExtension !== '.' ? `${name}${moduleExtension}` : name
 
@@ -76,7 +74,7 @@ async function readAsset (reporter, definition, { id, name, encoding, moduleMode
       }
     }
 
-    const moduleStat = await FS.statAsync(modulePath)
+    const moduleStat = await fs.stat(modulePath)
 
     return {
       content: escape(buf.toString(encoding), name),
@@ -231,8 +229,8 @@ async function readFile (reporter, definition, link) {
   const pathToLinkedFile = linkPath(reporter, definition, link)
 
   try {
-    const content = await FS.readFileAsync(pathToLinkedFile)
-    const stat = await FS.statAsync(pathToLinkedFile)
+    const content = await fs.readFile(pathToLinkedFile)
+    const stat = await fs.stat(pathToLinkedFile)
 
     return {
       content: stripBom(content),

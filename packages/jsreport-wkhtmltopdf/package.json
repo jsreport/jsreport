@@ -18,7 +18,7 @@
     "email": "jan.blaha@hotmail.com",
     "url": "http://janblaha.net"
   },
-  "main": "lib/index.js",
+  "main": "index.js",
   "scripts": {
     "start": "jsreport-studio-start --httpPort 5488",
     "test": "mocha --timeout=10000 --reporter spec test && standard",
@@ -40,7 +40,6 @@
     }
   },
   "dependencies": {
-    "bluebird": "3.5.3",
     "mkdirp": "0.5.1",
     "node.extend.without.arrays": "1.1.6",
     "wkhtmltopdf-installer": "0.3.2"
