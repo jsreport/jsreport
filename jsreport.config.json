@@ -48,6 +48,7 @@
     "html-to-xlsx",
     "import-export",
     "jsrender",
+    "licensing",
     "localization",
     "pdf-utils",
     "pptx",

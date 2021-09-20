@@ -39,6 +39,8 @@ async function run () {
     path: path.join(__dirname, '../', 'license.txt')
   }
 
+  const extensionsList = ['puppeteer-compile', ...JSON.parse(fs.readFileSync(path.join(__dirname, '../jsreport.config.json')).toString()).extensionsList]
+
   fs.copyFileSync(path.join(__dirname, '../', `${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json`), configFile.path)
   fs.copyFileSync(path.join(__dirname, '../', 'executable-license.txt'), licenseFile.path)
 
@@ -49,7 +51,7 @@ async function run () {
     env: {
       ...process.env,
       configFile: configFile.path,
-      extensionsList: getExtensionsList().join(',')
+      extensionsList
     }
   })
 
