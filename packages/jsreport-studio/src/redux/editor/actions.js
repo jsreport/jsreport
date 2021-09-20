@@ -26,6 +26,8 @@ import {
   concurrentUpdateModal
 } from '../../lib/configuration'
 
+const runningControllers = {}
+
 export function closeTab (id) {
   return (dispatch, getState) => {
     const entity = entities.selectors.getById(getState().entities, id, false)
@@ -415,8 +417,8 @@ export function remove () {
   }
 }
 
-export function preview ({ type, data = null, activeTab, completed = false }) {
-  const previewId = uid()
+export function preview ({ id, type, data = null, activeTab, completed = false }) {
+  const previewId = id || uid()
 
   return (dispatch) => {
     dispatch({
@@ -521,12 +523,18 @@ export function run (params = {}, opts = {}) {
       previewData.profileLogs = []
     }
 
-    dispatch({ type: ActionTypes.RUN })
+    const runId = uid()
+
+    dispatch({ type: ActionTypes.RUN_STARTED, id: runId })
+
+    const renderController = new AbortController()
+    runningControllers[runId] = renderController
 
     if (targetType === 'preview') {
       storedPreviewData = previewData
 
       previewId = dispatch(preview({
+        id: runId,
         type: profiling ? 'report-profile' : 'report',
         data: previewData
       }))
@@ -536,6 +544,7 @@ export function run (params = {}, opts = {}) {
 
     try {
       await executeTemplateRender(request, {
+        signal: renderController.signal,
         onStart: () => {
           if (targetType === 'window') {
             previewWindow.focus()
@@ -634,7 +643,22 @@ export function run (params = {}, opts = {}) {
       if (targetType === 'preview') {
         dispatch(updatePreview(previewId, { data: previewData, completed: true }))
       }
+    } finally {
+      delete runningControllers[runId]
+      dispatch({ type: ActionTypes.RUN_ENDED, id: runId })
     }
+  }
+}
+
+export function stopRun (runId) {
+  if (runningControllers[runId] != null) {
+    const controller = runningControllers[runId]
+    delete runningControllers[runId]
+    controller.abort()
+  }
+
+  return {
+    type: ActionTypes.RUN_STOPPED
   }
 }
 

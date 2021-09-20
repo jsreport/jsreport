@@ -2,17 +2,17 @@ import parseStreamingMultipart from './parseStreamingMultipart'
 import resolveUrl from './resolveUrl'
 import processItemsInInterval from './processItemsInInterval'
 
-export default async function (request, target) {
+export default async function (request, options) {
   delete request.template._id
   request.template.content = request.template.content || ' '
 
   request.options = request.options || {}
   request.options.preview = true
 
-  await streamRender(request, target)
+  await streamRender(request, options)
 }
 
-async function streamRender (request, { onStart, onFiles } = {}) {
+async function streamRender (request, { signal, onStart, onFiles } = {}) {
   const templateName = request.template.name
 
   let url = templateName ? resolveUrl(`/api/report/${encodeURIComponent(templateName)}`) : resolveUrl('/api/report')
@@ -46,7 +46,8 @@ async function streamRender (request, { onStart, onFiles } = {}) {
         template,
         options: request.options,
         data: request.data
-      })
+      }),
+      signal
     })
 
     let contentType = ''
@@ -127,7 +128,11 @@ async function streamRender (request, { onStart, onFiles } = {}) {
           files.push(fileInfo)
         })
       } catch (err) {
-        parseErr = err
+        if (err.name === 'AbortError') {
+          parseErr = new Error('User stopped the template rendering')
+        } else {
+          parseErr = err
+        }
       }
 
       parsing = false

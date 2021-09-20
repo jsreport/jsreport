@@ -1,6 +1,6 @@
 import { getById, getByShortid, resolveEntityPath as resolveEPath } from './entities/selectors'
 import { getCanSaveAll, getActiveTabWithEntity, getLastActiveTemplate } from './editor/selectors'
-import { clearPreview, openTab, preview, run, updatePreview } from './editor/actions'
+import { clearPreview, openTab, preview, run, stopRun, updatePreview } from './editor/actions'
 import { start as progressStart, stop as progressStop } from './progress/actions'
 import { getValueByKey } from './settings/selectors'
 
@@ -42,6 +42,9 @@ const methods = {
   },
   run (...args) {
     return store.dispatch(run(...args))
+  },
+  stopRun (...args) {
+    return store.dispatch(stopRun(...args))
   },
   preview (...args) {
     return store.dispatch(preview(...args))

@@ -1,4 +1,4 @@
-/* TODO import PropTypes from 'prop-types' */
+import PropTypes from 'prop-types'
 import React, { Component, Fragment } from 'react'
 import { connect } from 'react-redux'
 import Popup from '../common/Popup'
@@ -16,26 +16,12 @@ import logo from './js-logo.png'
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
 class Toolbar extends Component {
-  /* TODO
-  static propTypes = {
-    openStartup: PropTypes.func.isRequired,
-    onUpdate: PropTypes.func.isRequired,
-    onRun: PropTypes.func.isRequired,
-    canRun: PropTypes.bool.isRequired,
-    onSave: PropTypes.func.isRequired,
-    canSave: PropTypes.bool.isRequired,
-    onSaveAll: PropTypes.func.isRequired,
-    canSaveAll: PropTypes.bool.isRequired,
-    isPending: PropTypes.bool.isRequired,
-    activeTab: PropTypes.object
-  }
-  */
-
   constructor () {
     super()
     this.state = {}
     this.handleUpdate = this.handleUpdate.bind(this)
     this.handleRun = this.handleRun.bind(this)
+    this.handleStopRun = this.handleStopRun.bind(this)
     this.handleShortcut = this.handleShortcut.bind(this)
     this.handleEarlyShortcut = this.handleEarlyShortcut.bind(this)
     this.handleRunMenuTrigger = this.handleRunMenuTrigger.bind(this)
@@ -70,6 +56,12 @@ class Toolbar extends Component {
     runLastActiveTemplate(profiling)
   }
 
+  handleStopRun () {
+    if (this.props.templateRunning != null) {
+      this.props.stopRun(this.props.templateRunning)
+    }
+  }
+
   // this place captures key events very early (capture phase) so it can work
   // across other contexts that are using keybindings too (like the Ace editor)
   handleEarlyShortcut (e) {
@@ -87,7 +79,13 @@ class Toolbar extends Component {
     if (e.which === 119 && this.props.canRun) {
       e.preventDefault()
       e.stopPropagation()
-      this.handleRun()
+
+      if (this.props.templateRunning != null) {
+        this.handleStopRun()
+      } else {
+        this.handleRun()
+      }
+
       return false
     }
   }
@@ -140,6 +138,10 @@ class Toolbar extends Component {
 
   handleRunMenuTrigger (e) {
     e.stopPropagation()
+
+    if (this.props.templateRunning != null) {
+      return
+    }
 
     if (
       this.runMenuTriggerRef.current == null ||
@@ -195,7 +197,7 @@ class Toolbar extends Component {
   }
 
   renderRun () {
-    const { canRun } = this.props
+    const { templateRunning, canRun } = this.props
 
     return (
       <div
@@ -207,11 +209,16 @@ class Toolbar extends Component {
             return
           }
 
-          this.handleRun()
+          if (templateRunning != null) {
+            this.handleStopRun()
+          } else {
+            this.handleRun()
+          }
+
           this.setState({ expandedRun: false })
         }}
       >
-        <i className='fa fa-play' />Run
+        <i className={`fa fa-${templateRunning != null ? 'stop' : 'play'}`} />{templateRunning != null ? 'Stop' : 'Run'}
         <span
           className={style.runCaret}
           onClick={this.handleRunMenuTrigger}
@@ -312,6 +319,19 @@ class Toolbar extends Component {
   }
 }
 
+Toolbar.propTypes = {
+  openStartup: PropTypes.func.isRequired,
+  onUpdate: PropTypes.func.isRequired,
+  onRun: PropTypes.func.isRequired,
+  canRun: PropTypes.bool.isRequired,
+  onSave: PropTypes.func.isRequired,
+  canSave: PropTypes.bool.isRequired,
+  onSaveAll: PropTypes.func.isRequired,
+  canSaveAll: PropTypes.bool.isRequired,
+  isPending: PropTypes.bool.isRequired,
+  activeTab: PropTypes.object
+}
+
 function makeMapStateToProps () {
   const getActiveTab = createGetActiveTabSelector()
   const getActiveTabWithEntity = createGetActiveTabWithEntitySelector()
@@ -320,6 +340,7 @@ function makeMapStateToProps () {
   const getCanSaveAll = createGetCanSaveAllSelector()
 
   return (state) => ({
+    templateRunning: state.editor.running,
     isPending: state.progress.isPending,
     canRun: getCanRun(state),
     canSave: getCanSave(state),
@@ -330,6 +351,7 @@ function makeMapStateToProps () {
 }
 
 export default connect(makeMapStateToProps, {
+  stopRun: editorActions.stopRun,
   save: editorActions.save,
   saveAll: editorActions.saveAll,
   update: editorActions.update

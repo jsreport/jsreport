@@ -8,6 +8,7 @@ const reducer = createReducer({
   tabs: [],
   activeTabKey: null,
   lastActiveTemplateKey: null,
+  running: null,
   undockMode: false,
   preview: {
     id: uid(),
@@ -159,6 +160,24 @@ reducer.handleAction(EntityActionTypes.REPLACE, (state, action) => {
     activeTabKey: newActiveTabKey,
     lastActiveTemplateKey: state.lastActiveTemplateKey === action.oldId ? action.entity._id : state.lastActiveTemplateKey
   }
+})
+
+reducer.handleAction(ActionTypes.RUN_STARTED, (state, action) => {
+  return {
+    ...state,
+    running: action.id
+  }
+})
+
+reducer.handleAction(ActionTypes.RUN_ENDED, (state, action) => {
+  if (state.running != null && state.running === action.id) {
+    return {
+      ...state,
+      running: null
+    }
+  }
+
+  return state
 })
 
 reducer.handleAction(ActionTypes.PREVIEW, (state, action) => {
