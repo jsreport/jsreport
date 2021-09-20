@@ -314,16 +314,10 @@ module.exports.authenticateToken = ({ authorizationServerAuth, logger, admin, us
       }
 
       if (typeof scopeResponse === 'string') {
-        if (authorizationServerAuth.scope.valid.indexOf(scopeResponse) === -1) {
-          logger.error(
-            'Authorization server has responded with an invalid scope type: "' +
-            scopeResponse +
-            '" in scope field "' + authorizationServerAuth.scope.field +
-            '", valid scopes are: ' + authorizationServerAuth.scope.valid.join(', ')
-          )
-          return done(null, false)
-        }
-      } else if (Array.isArray(scopeResponse)) {
+        scopeResponse = scopeResponse.split(' ').map((s) => s.trim())
+      }
+
+      if (Array.isArray(scopeResponse)) {
         scopeValid = scopeResponse.some(function (scope) {
           return authorizationServerAuth.scope.valid.indexOf(scope) !== -1
         })
