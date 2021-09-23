@@ -24,28 +24,7 @@ class FormData extends MultiStream {
     this._fields = []
     this._queue = []
     this._ended = false
-    this._consumed = false
     this._multiStreamFactoryCallback = factoryCallback
-
-    this.once('error', () => {
-      clearImmediate(self._flushTimerRef)
-    })
-
-    this.once('end', () => {
-      this._consumed = true
-    })
-
-    const self = this
-
-    this._flushTimerRef = setImmediate(function checkIfEnded () {
-      if (self._consumed) {
-        return
-      }
-
-      self._flushQueue()
-
-      self._flushTimerRef = setImmediate(checkIfEnded)
-    })
   }
 
   getBoundary () {
@@ -91,6 +70,13 @@ class FormData extends MultiStream {
       options.contentLength = new TextEncoder().encode(value).length
     }
 
+    if (this._queue.length === 0) {
+      // if the queue was empty we queue a flush, so we can flush the new items appended here
+      this._nextFlushTimerRef = setImmediate(() => {
+        this._flushQueue()
+      })
+    }
+
     if (this._fields.length === 0) {
       this._addToReadableQueue(FormData.LINE_BREAK)
     }
@@ -110,8 +96,8 @@ class FormData extends MultiStream {
     this._ended = true
     this._addToReadableQueue(this._lastBoundary())
 
-    // don't continue flushing in timer
-    clearImmediate(this._flushTimerRef)
+    // if a flush was queued, cancel it, because we want the bellow flush to be the last
+    clearImmediate(this._nextFlushTimerRef)
 
     this._flushQueue(() => {
       this.push(null)
@@ -193,7 +179,7 @@ class FormData extends MultiStream {
     if (this._current != null) {
       // and the end signal has not been received
       // then we just skip this flush, the flushing will continue
-      // and check as normal in the next timer tick
+      // and check as normal when the current stream finishes
       if (!this._ended) {
         return
       }
@@ -203,7 +189,10 @@ class FormData extends MultiStream {
       // so we schedule a new flush in the next timer tick
       // this will continue to be called until the current stream
       // processing ends
-      setImmediate(() => this._flushQueue(endCb))
+      this._current.once('end', () => {
+        setImmediate(() => this._flushQueue(endCb))
+      })
+
       return
     }
 
@@ -225,9 +214,15 @@ class FormData extends MultiStream {
     if (streams.length > 0) {
       const combined = new MultiStream(streams)
 
-      if (endCb) {
-        combined.on('end', () => endCb())
-      }
+      combined.once('end', () => {
+        if (endCb) {
+          endCb()
+        } else if (!this._ended) {
+          // when the current stream ends, and the end signal has not been received
+          // we queue a flush
+          setImmediate(() => this._flushQueue())
+        }
+      })
 
       this._multiStreamFactoryCallback(null, combined)
     } else {
