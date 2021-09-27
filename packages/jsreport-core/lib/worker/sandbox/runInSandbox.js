@@ -24,7 +24,7 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { run, restore, sandbox } = safeSandbox(context, {
+    const { run, restore, sandbox, safeRequire } = safeSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
@@ -57,7 +57,7 @@ module.exports = (reporter) => {
       }
     })
 
-    jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions })
+    jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions, safeRequire })
 
     sandbox.__restore = restore
 

@@ -43,6 +43,7 @@
     "deepmerge": "2.1.0",
     "diff": "3.5.0",
     "diff-match-patch": "1.0.5",
+    "enhanced-resolve": "5.8.3",
     "has-own-deep": "1.1.0",
     "isbinaryfile": "4.0.0",
     "listener-collection": "1.2.0",

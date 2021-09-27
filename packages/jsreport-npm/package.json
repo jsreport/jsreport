@@ -1,0 +1,46 @@
+{
+  "name": "@jsreport/jsreport-npm",
+  "version": "3.0.0-beta.1",
+  "description": "jsreport extension allowing to install modules from npm during runtime",
+  "keywords": [
+    "jsreport",
+    "npm"
+  ],
+  "homepage": "https://jsreport.net/learn/npm",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": "Jan Blaha",
+  "files": [
+    "lib",
+    "index.js",
+    "jsreport.config.js"
+  ],
+  "scripts": {
+    "test": "set DEBUG=jsreport&&mocha test --timeout 20000 --exit && standard"
+  },
+  "dependencies": {
+    "semaphore-async-await": "1.5.1",
+    "enhanced-resolve": "5.8.3"
+  },
+  "devDependencies": {
+    "@jsreport/jsreport-core": "3.0.0-beta.2",
+    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
+    "mocha": "9.0.3",
+    "moment": "2.29.1",
+    "should": "13.2.3",
+    "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=14.17"
+  },
+  "standard": {
+    "env": {
+      "node": true,
+      "mocha": true,
+      "browser": true
+    }
+  }
+}

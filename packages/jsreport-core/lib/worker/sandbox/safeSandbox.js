@@ -56,7 +56,7 @@ module.exports = (_sandbox, options = {}) => {
   addConsoleMethod('warn', 'warn')
   addConsoleMethod('error', 'error')
 
-  const _require = function (moduleName, { context }) {
+  const _require = function (moduleName, { context, allowAllModules = false } = {}) {
     if (requireMap) {
       const mapResult = requireMap(moduleName, { context })
 
@@ -65,7 +65,7 @@ module.exports = (_sandbox, options = {}) => {
       }
     }
 
-    if (allowedModules === '*') {
+    if (allowAllModules || allowedModules === '*') {
       return doRequire(moduleName, requirePaths, modulesCache)
     }
 
@@ -162,6 +162,7 @@ module.exports = (_sandbox, options = {}) => {
     unproxyValue: (value) => {
       return getOriginalFromProxy(proxiesInVM, customProxies, value)
     },
+    safeRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
     run: async (code, { filename, source, entity } = {}) => {
       const script = new VMScript(code, filename)
 

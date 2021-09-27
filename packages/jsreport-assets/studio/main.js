@@ -385,11 +385,11 @@ var _AssetUploadButton = __webpack_require__(2);
 
 var _AssetUploadButton2 = _interopRequireDefault(_AssetUploadButton);
 
-var _NewAssetModal = __webpack_require__(13);
+var _NewAssetModal = __webpack_require__(12);
 
 var _NewAssetModal2 = _interopRequireDefault(_NewAssetModal);
 
-var _AssetProperties = __webpack_require__(14);
+var _AssetProperties = __webpack_require__(13);
 
 var _AssetProperties2 = _interopRequireDefault(_AssetProperties);
 
@@ -685,23 +685,19 @@ var _superagent = __webpack_require__(5);
 
 var _superagent2 = _interopRequireDefault(_superagent);
 
-var _bluebird = __webpack_require__(6);
+var _reactCopyToClipboard = __webpack_require__(6);
 
-var _bluebird2 = _interopRequireDefault(_bluebird);
-
-var _reactCopyToClipboard = __webpack_require__(7);
-
-var _binaryExtensions = __webpack_require__(11);
+var _binaryExtensions = __webpack_require__(10);
 
 var _binaryExtensions2 = _interopRequireDefault(_binaryExtensions);
 
-var _AssetEditor = __webpack_require__(12);
+var _AssetEditor = __webpack_require__(11);
 
 var _AssetEditor2 = _interopRequireDefault(_AssetEditor);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new _bluebird2.default(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return _bluebird2.default.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -713,7 +709,7 @@ _binaryExtensions2.default.push('p12');
 
 // Studio.api currently always open dialogs on failures and that is what we don't want, so arbitrary implementaiton here
 var getTextFromApi = function getTextFromApi(path) {
-  return new _bluebird2.default(function (resolve, reject) {
+  return new Promise(function (resolve, reject) {
     var request = _superagent2.default.get(_jsreportStudio2.default.resolveUrl(path));
     request.end(function (err) {
       var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
@@ -1435,25 +1431,19 @@ module.exports = Studio.libraries['superagent'];
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
-
-module.exports = Studio.libraries['bluebird'];
-
-/***/ }),
-/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _require = __webpack_require__(8),
+var _require = __webpack_require__(7),
     CopyToClipboard = _require.CopyToClipboard;
 
 CopyToClipboard.CopyToClipboard = CopyToClipboard;
 module.exports = CopyToClipboard;
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1466,7 +1456,7 @@ exports.CopyToClipboard = void 0;
 
 var _react = _interopRequireDefault(__webpack_require__(0));
 
-var _copyToClipboard = _interopRequireDefault(__webpack_require__(9));
+var _copyToClipboard = _interopRequireDefault(__webpack_require__(8));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -1569,13 +1559,13 @@ _defineProperty(CopyToClipboard, "defaultProps", {
 });
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var deselectCurrent = __webpack_require__(10);
+var deselectCurrent = __webpack_require__(9);
 
 var clipboardToIE11Formatting = {
   "text/plain": "Text",
@@ -1689,7 +1679,7 @@ module.exports = copy;
 
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, exports) {
 
 
@@ -1734,20 +1724,20 @@ module.exports = function () {
 
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module) {
 
 module.exports = ["3dm","3ds","3g2","3gp","7z","a","aac","adp","ai","aif","aiff","alz","ape","apk","ar","arj","asf","au","avi","bak","baml","bh","bin","bk","bmp","btif","bz2","bzip2","cab","caf","cgm","class","cmx","cpio","cr2","csv","cur","dat","dcm","deb","dex","djvu","dll","dmg","dng","doc","docm","docx","dot","dotm","dra","DS_Store","dsk","dts","dtshd","dvb","dwg","dxf","ecelp4800","ecelp7470","ecelp9600","egg","eol","eot","epub","exe","f4v","fbs","fh","fla","flac","fli","flv","fpx","fst","fvt","g3","gh","gif","graffle","gz","gzip","h261","h263","h264","icns","ico","ief","img","ipa","iso","jar","jpeg","jpg","jpgv","jpm","jxr","key","ktx","lha","lib","lvp","lz","lzh","lzma","lzo","m3u","m4a","m4v","mar","mdi","mht","mid","midi","mj2","mka","mkv","mmr","mng","mobi","mov","movie","mp3","mp4","mp4a","mpeg","mpg","mpga","mxu","nef","npx","numbers","o","oga","ogg","ogv","otf","pages","pbm","pcx","pdb","pdf","pea","pgm","pic","png","pnm","pot","potm","potx","ppa","ppam","ppm","pps","ppsm","ppsx","ppt","pptm","pptx","psd","pya","pyc","pyo","pyv","qt","rar","ras","raw","resources","rgb","rip","rlc","rmf","rmvb","rtf","rz","s3m","s7z","scpt","sgi","shar","sil","sketch","slk","smv","so","stl","sub","swf","tar","tbz","tbz2","tga","tgz","thmx","tif","tiff","tlz","ttc","ttf","txz","udf","uvh","uvi","uvm","uvp","uvs","uvu","viv","vob","war","wav","wax","wbmp","wdp","weba","webm","webp","whl","wim","wm","wma","wmv","wmx","woff","woff2","wrm","wvx","xbm","xif","xla","xlam","xls","xlsb","xlsm","xlsx","xlt","xltm","xltx","xm","xmind","xpi","xpm","xwd","xz","z","zip","zipx"];
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
 module.exports = {"toolbarContainer":"x-assets-AssetEditor-toolbarContainer","toolbarRow":"x-assets-AssetEditor-toolbarRow","toolbarAssetName":"x-assets-AssetEditor-toolbarAssetName"};
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2024,7 +2014,7 @@ var NewAssetModal = function (_Component) {
 exports.default = NewAssetModal;
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

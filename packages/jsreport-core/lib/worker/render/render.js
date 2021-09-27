@@ -9,9 +9,11 @@ const ExecuteEngine = require('./executeEngine')
 const Request = require('../../shared/request')
 const generateRequestId = require('../../shared/generateRequestId')
 const resolveReferences = require('./resolveReferences.js')
+const moduleHelper = require('./moduleHelper')
 let reportCounter = 0
 
 module.exports = (reporter) => {
+  moduleHelper(reporter)
   reporter.addRequestContextMetaConfig('systemHelpers', { sandboxHidden: true })
 
   const executeEngine = ExecuteEngine(reporter)

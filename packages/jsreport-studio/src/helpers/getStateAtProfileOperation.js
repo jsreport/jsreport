@@ -9,11 +9,13 @@ function getStateAtProfileOperation (operations, operationId, completed = false)
 
   const allEvents = operations.map(op => [op.startEvent, op.endEvent]).flat().filter(e => e)
   let currentEvent = completed ? operation.endEvent : operation.startEvent
-  const eventsToDiff = [currentEvent]
+  const eventsToDiff = currentEvent.doDiffs === false ? [] : [currentEvent]
 
   while (currentEvent.previousEventId != null) {
     currentEvent = allEvents.find((e) => e.id === currentEvent.previousEventId)
-    eventsToDiff.push(currentEvent)
+    if (currentEvent.doDiffs !== false) {
+      eventsToDiff.push(currentEvent)
+    }
   }
   eventsToDiff.reverse()
 

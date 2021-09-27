@@ -64,7 +64,7 @@ class Profiler {
       req.context.profiling.lastOperationId = m.operationId
     }
 
-    if (req.context.profiling.isAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
+    if (m.doDiffs !== false && req.context.profiling.isAttached && (m.type === 'operationStart' || m.type === 'operationEnd')) {
       let content = res.content
 
       if (content != null) {

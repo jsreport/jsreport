@@ -56,7 +56,7 @@ module.exports = class Container {
     }
 
     // the .config .local .cache are needed for unoconv, I wasn't able to find different way to configure libre office to use different location for temps
-    runCMD += ` --network=${this.network} --tmpfs=/tmp --tmpfs=/root/.config --tmpfs=/root/.local --tmpfs=/root/.cache --name ${this.id} --read-only`
+    runCMD += ` --network=${this.network} --tmpfs=/tmp --tmpfs=/root/.npm --tmpfs=/root/.config --tmpfs=/root/.local --tmpfs=/root/.cache --name ${this.id} --read-only`
 
     runCMD += ` --memory="${this.memory}" --memory-swap="${this.memorySwap}" --cpus="${this.cpus}"`
 
