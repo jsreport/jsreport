@@ -4,7 +4,6 @@
  * Reports extension allows to store rendering output into storage for later use.
  */
 
-const url = require('url')
 const extend = require('node.extend.without.arrays')
 const _omit = require('lodash.omit')
 
@@ -154,7 +153,7 @@ class Reports {
         }
 
         const baseLink = `${req.protocol}://${req.headers.host}`
-        const link = baseLink + new url.URL(req.originalUrl, baseLink).pathname.replace('/status', '/content')
+        const link = baseLink + new URL(req.originalUrl, baseLink).pathname.replace('/status', '/content')
 
         res.setHeader('Report-State', report.state)
         res.setHeader('Location', link)

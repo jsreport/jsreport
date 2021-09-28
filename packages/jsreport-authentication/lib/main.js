@@ -14,6 +14,7 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const BasicStrategy = require('passport-http').BasicStrategy
 const BearerStrategy = require('passport-http-bearer').Strategy
+const { Issuer, Strategy: OpenIdStrategy, custom: openidCustom } = require('openid-client')
 const sessions = require('client-sessions')
 const url = require('url')
 const bodyParser = require('body-parser')
@@ -31,10 +32,14 @@ function addPassport (reporter, app, admin, definition) {
   }
 
   const authorizationServerAuth = shouldDelegateTokenAuth(definition)
-  const supportsTokenAuth = (authorizationServerAuth !== false)
+  const supportsAuthorizationServer = (authorizationServerAuth !== false)
 
-  if (supportsTokenAuth) {
-    reporter.logger.info('Token based authentication against custom authorization server is enabled')
+  if (supportsAuthorizationServer) {
+    reporter.logger.info('Authentication against custom authorization server is enabled')
+
+    openidCustom.setHttpOptionsDefaults({
+      timeout: authorizationServerAuth.timeout
+    })
   }
 
   const cookieOpts = definition.options.cookieSession && definition.options.cookieSession.cookie ? definition.options.cookieSession.cookie : undefined
@@ -68,25 +73,101 @@ function addPassport (reporter, app, admin, definition) {
 
   passport.use(new BasicStrategy(authenticate))
 
-  if (supportsTokenAuth) {
+  if (supportsAuthorizationServer) {
+    const authServerIssuer = new Issuer({
+      issuer: authorizationServerAuth.issuer,
+      authorization_endpoint: authorizationServerAuth.endpoints.authorization,
+      token_endpoint: authorizationServerAuth.endpoints.token,
+      jwks_uri: authorizationServerAuth.endpoints.jwks,
+      userinfo_endpoint: authorizationServerAuth.endpoints.userinfo,
+      introspection_endpoint: authorizationServerAuth.endpoints.introspection
+    })
+
+    let studioClientAuthType = 'client_secret_basic'
+
+    if (authorizationServerAuth.studioClient.authType === 'post') {
+      studioClientAuthType = 'client_secret_post'
+    } else if (authorizationServerAuth.studioClient.authType === 'basic') {
+      studioClientAuthType = 'client_secret_basic'
+    }
+
+    const studioClient = new authServerIssuer.Client({
+      client_id: authorizationServerAuth.studioClient.clientId,
+      client_secret: authorizationServerAuth.studioClient.clientSecret,
+      token_endpoint_auth_method: studioClientAuthType,
+      response_types: ['code']
+    })
+
+    let apiResourceClientAuthType = 'client_secret_basic'
+
+    if (authorizationServerAuth.apiResource.authType === 'post') {
+      apiResourceClientAuthType = 'client_secret_post'
+    } else if (authorizationServerAuth.apiResource.authType === 'basic') {
+      apiResourceClientAuthType = 'client_secret_basic'
+    }
+
+    const apiResourceClient = new authServerIssuer.Client({
+      client_id: authorizationServerAuth.apiResource.clientId,
+      client_secret: authorizationServerAuth.apiResource.clientSecret,
+      token_endpoint_auth_method: apiResourceClientAuthType
+    })
+
     passport.use(new BearerStrategy(
       { passReqToCallback: true },
       authenticateToken({
         authorizationServerAuth,
+        client: apiResourceClient,
         logger: reporter.logger,
         usersRepository: reporter.authentication.usersRepository,
         admin
       })
     ))
+
+    const scopesForAuthorize = [...authorizationServerAuth.authorizationRequest.scope]
+
+    if (!scopesForAuthorize.includes('openid')) {
+      scopesForAuthorize.push('openid')
+    }
+
+    passport.use('oidc', new OpenIdStrategy({
+      client: studioClient,
+      usePKCE: false,
+      params: {
+        scope: scopesForAuthorize.join(' ')
+      }
+    }, (tokenset, userinfo, done) => {
+      const username = userinfo[authorizationServerAuth.usernameField]
+
+      if (username == null) {
+        done(new Error(`Information returned by the authorization server does not contain "${authorizationServerAuth.usernameField}" field. Authentication cancelled`))
+      } else {
+        if (username === admin.name) {
+          return done(null, { name: username })
+        }
+
+        reporter.authentication.usersRepository.find(username)
+          .then((u) => {
+            if (u == null) {
+              throw new Error(`No jsreport user "${username}" found linked to this authenticated session`)
+            }
+
+            done(null, { name: username })
+          })
+          .catch((err) => {
+            done(new Error(`Error while verifying user. Authentication cancelled. Reason: ${err.message}`))
+          })
+      }
+    }))
   }
 
   passport.serializeUser((user, done) => done(null, user.name))
-  passport.deserializeUser((id, done) => {
-    if (id === admin.name) {
+
+  passport.deserializeUser((username, done) => {
+    if (username === admin.name) {
       return done(null, admin)
     }
 
-    reporter.authentication.usersRepository.find(id)
+    reporter.authentication.usersRepository.find(username)
       .then((u) => done(null, u))
       .catch(done)
   })
@@ -102,6 +183,9 @@ function addPassport (reporter, app, admin, definition) {
       req.session.viewModel = null
       return res.render(path.join(viewsPath, 'login.html'), {
         viewModel: viewModel,
+        authServer: supportsAuthorizationServer
+          ? { name: authorizationServerAuth.name, autoConnect: req.query.authServerConnect != null }
+          : null,
         options: reporter.options
       })
     } else {
@@ -134,9 +218,9 @@ function addPassport (reporter, app, admin, definition) {
         }
 
         req.context.user = req.user = user
-        reporter.logger.info('Logging in user ' + user.name)
+        reporter.logger.info(`Logging in user ${user.name}`)
 
-        return res.redirect(decodeURIComponent(req.query.returnUrl) || '/')
+        return res.redirect(decodeURIComponent(req.query.returnUrl) || reporter.options.appPath)
       })
     })(req, res, next)
   })
@@ -158,7 +242,7 @@ function addPassport (reporter, app, admin, definition) {
       return next()
     }
 
-    if (supportsTokenAuth) {
+    if (supportsAuthorizationServer) {
       apiAuthStrategies.push('bearer')
     }
 
@@ -182,7 +266,7 @@ function addPassport (reporter, app, admin, definition) {
           ) {
             // if authorization header is "Basic" or if it is a unknown schema, defaults to ask for "Basic" auth
             authSchema = 'Basic'
-          } else if (supportsTokenAuth && hasBearerSchema(info)) {
+          } else if (supportsAuthorizationServer && hasBearerSchema(info)) {
             // when user auth fails, passport pass information about the Bearer strategy in `info`
             authSchema = 'Bearer'
             req.authSchema = authSchema
@@ -218,7 +302,64 @@ function addPassport (reporter, app, admin, definition) {
     })(req, res, next)
   })
 
-  if (supportsTokenAuth) {
+  if (supportsAuthorizationServer) {
+    app.get('/auth-server/login', (req, res, next) => {
+      if (req.query.returnUrl && absoluteUrlReg.test(req.query.returnUrl)) {
+        return res.status(400).end('Unsecure returnUrl')
+      }
+
+      const baseLink = `${req.protocol}://${req.headers.host}`
+
+      if (req.query.returnUrl != null && req.query.returnUrl !== '') {
+        try {
+          const returnUrlParsed = new URL(req.query.returnUrl, baseLink)
+
+          if (returnUrlParsed.searchParams.has('authServerConnect')) {
+            returnUrlParsed.searchParams.delete('authServerConnect')
+          }
+
+          req.session.authServerReturnUrl = `${returnUrlParsed.pathname}${returnUrlParsed.search}`
+        } catch (urlParseError) {
+          return next(new Error('Invalid returnUrl query'))
+        }
+      }
+
+      const callbackLink = baseLink + new URL(req.originalUrl, baseLink).pathname.replace('/auth-server/login', '/auth-server/callback')
+
+      passport.authenticate('oidc', {
+        redirect_uri: callbackLink
+      })(req, res, next)
+    })
+
+    app.get('/auth-server/callback', (req, res, next) => {
+      let returnUrl
+
+      if (req.session.authServerReturnUrl != null) {
+        returnUrl = req.session.authServerReturnUrl
+        delete req.session.authServerReturnUrl
+      }
+
+      const baseLink = `${req.protocol}://${req.headers.host}`
+      const callbackLink = baseLink + new URL(req.originalUrl, baseLink).pathname.replace('/auth-server/login', '/auth-server/callback')
+
+      passport.authenticate('oidc', {
+        redirect_uri: callbackLink
+      }, (err, user) => {
+        if (err) {
+          return next(err)
+        }
+
+        req.logIn(user, (loginErr) => {
+          if (loginErr) {
+            return next(loginErr)
+          }
+
+          req.context.user = req.user = user
+          return res.redirect(returnUrl || reporter.options.appPath)
+        })
+      })(req, res, next)
+    })
+
     app.post('/api/auth-server/token', (req, res) => {
       reporter.logger.debug('Request for token information (returned from auth server)')
 
@@ -232,6 +373,9 @@ function addPassport (reporter, app, admin, definition) {
 }
 
 function configureRoutes (reporter, app, admin, definition) {
+  const authorizationServerAuth = shouldDelegateTokenAuth(definition)
+  const supportsAuthorizationServer = (authorizationServerAuth !== false)
+
   app.use((req, res, next) => {
     const publicRoute = reporter.authentication.publicRoutes.find((r) => req.url.startsWith(r))
     const pathname = new url.URL(req.url, `${req.protocol}://${req.hostname}`).pathname
@@ -251,6 +395,9 @@ function configureRoutes (reporter, app, admin, definition) {
 
     return res.render(path.join(viewsPath, 'login.html'), {
       viewModel: viewModel,
+      authServer: supportsAuthorizationServer
+        ? { name: authorizationServerAuth.name, autoConnect: req.query.authServerConnect != null }
+        : null,
       options: reporter.options
     })
   })

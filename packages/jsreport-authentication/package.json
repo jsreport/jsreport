@@ -26,13 +26,14 @@
     "build": "jsreport-studio-build",
     "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 5488",
+    "start-auth-server": "node ./authServerTest",
     "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
   },
   "dependencies": {
-    "axios": "0.21.1",
     "body-parser": "1.19.0",
     "client-sessions": "0.8.0",
     "ejs": "2.6.2",
+    "openid-client": "4.9.0",
     "passport": "0.4.0",
     "passport-http": "0.3.0",
     "passport-http-bearer": "1.0.1",
@@ -40,10 +41,10 @@
     "password-hash": "1.2.2"
   },
   "devDependencies": {
-    "express": "4.17.1",
     "@jsreport/jsreport-core": "3.0.0-beta.2",
     "@jsreport/jsreport-express": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.2",
+    "express": "4.17.1",
     "lodash.clonedeep": "4.5.0",
     "mocha": "5.2.0",
     "should": "13.2.3",
