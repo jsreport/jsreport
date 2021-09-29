@@ -209,11 +209,11 @@ class ChromePdfProperties extends Component {
           </select>
         </div>
         <div className='form-group'>
-          <label>wait for network iddle</label>
+          <label>wait for network idle</label>
           <input
             type='checkbox'
-            checked={chrome.waitForNetworkIddle === true}
-            onChange={(v) => changeChrome(this.props, { waitForNetworkIddle: v.target.checked })}
+            checked={chrome.waitForNetworkIdle === true}
+            onChange={(v) => changeChrome(this.props, { waitForNetworkIdle: v.target.checked })}
           />
         </div>
         <div className='form-group'>

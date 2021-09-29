@@ -3,6 +3,9 @@ const hasOwn = require('has-own-deep')
 
 module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req, imageExecution, allowLocalFilesAccess, options }) => {
   const optionsToUse = Object.assign({}, options)
+  if (optionsToUse.waitForNetworkIdle == null && optionsToUse.waitForNetworkIddle != null) {
+    optionsToUse.waitForNetworkIdle = optionsToUse.waitForNetworkIddle
+  }
   const browser = await getBrowser()
 
   function pageLog (level, message) {
@@ -146,7 +149,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       pageLog('warn', `Page request failed: ${r.method()} (${r.resourceType()}) ${trimUrl(r.url())}, failure: ${r.failure().errorText}`)
     })
 
-    if (optionsToUse.waitForNetworkIddle === true) {
+    if (optionsToUse.waitForNetworkIdle === true) {
       reporter.logger.debug('Chrome will wait for network iddle before printing', req)
     }
 
@@ -197,7 +200,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
 
     await page.goto(
       htmlUrl,
-      optionsToUse.waitForNetworkIddle === true
+      optionsToUse.waitForNetworkIdle === true
         ? { waitUntil: 'networkidle0' }
         : { }
     )

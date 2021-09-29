@@ -7,6 +7,33 @@
 const os = require('os')
 const numCPUs = os.cpus().length
 
+async function ensureMigrated (reporter) {
+  const migrated = await reporter.settings.findValue('chrome-network-idle-migrated')
+
+  if (migrated) {
+    return
+  }
+
+  const templates = await reporter.documentStore.collection('templates').find({})
+  for (const template of templates) {
+    let doUpdate = false
+    if (template.chrome && template.chrome.waitForNetworkIddle != null) {
+      template.chrome.waitForNetworkIdle = template.chrome.waitForNetworkIddle
+      doUpdate = true
+    }
+    if (template.chromeImage && template.chromeImage.waitForNetworkIddle != null) {
+      template.chromeImage.waitForNetworkIdle = template.chromeImage.waitForNetworkIddle
+      doUpdate = true
+    }
+
+    if (doUpdate) {
+      await reporter.documentStore.collection('templates').update({ _id: template._id }, { $set: template })
+    }
+  }
+
+  await reporter.settings.addOrSet('chrome-network-idle-migrated', true)
+}
+
 module.exports = function (reporter, definition) {
   definition.options = Object.assign({}, reporter.options.chrome, definition.options)
 
@@ -68,6 +95,7 @@ module.exports = function (reporter, definition) {
     mediaType: { type: 'Edm.String' },
     waitForJS: { type: 'Edm.Boolean' },
     waitForNetworkIddle: { type: 'Edm.Boolean' },
+    waitForNetworkIdle: { type: 'Edm.Boolean' },
     headerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     footerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } }
   })
@@ -84,7 +112,30 @@ module.exports = function (reporter, definition) {
     omitBackground: { type: 'Edm.Boolean' },
     mediaType: { type: 'Edm.String' },
     waitForJS: { type: 'Edm.Boolean' },
-    waitForNetworkIddle: { type: 'Edm.Boolean' }
+    waitForNetworkIddle: { type: 'Edm.Boolean' },
+    waitForNetworkIdle: { type: 'Edm.Boolean' }
+  })
+
+  reporter.initializeListeners.add('chrome-pdf', async () => {
+    await ensureMigrated(reporter)
+
+    reporter.documentStore.collection('templates').beforeInsertListeners.add('chrome network idle rename', (doc, req) => {
+      if (doc.chrome && doc.chrome.waitForNetworkIddle != null) {
+        doc.chrome.waitForNetworkIdle = doc.chrome.waitForNetworkIddle
+      }
+      if (doc.chromeImage && doc.chromeImage.waitForNetworkIddle != null) {
+        doc.chromeImage.waitForNetworkIdle = doc.chromeImage.waitForNetworkIddle
+      }
+    })
+
+    reporter.documentStore.collection('templates').beforeUpdateListeners.add('chrome network idle rename', (q, u, req) => {
+      if (u.$set && u.$set.chrome && u.$set.chrome.waitForNetworkIddle != null) {
+        u.$set.chrome.waitForNetworkIdle = u.$set.chrome.waitForNetworkIddle
+      }
+      if (u.$set && u.$set.chromeImage && u.$set.chromeImage.waitForNetworkIddle != null) {
+        u.$set.chromeImage.waitForNetworkIdle = u.$set.chromeImage.waitForNetworkIddle
+      }
+    })
   })
 
   if (reporter.documentStore.model.entityTypes.TemplateType) {

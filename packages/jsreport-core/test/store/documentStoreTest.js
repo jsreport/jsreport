@@ -444,7 +444,7 @@ describe('document store', () => {
             marginBottom: { type: 'Edm.String' },
             marginLeft: { type: 'Edm.String' },
             waitForJS: { type: 'Edm.Boolean' },
-            waitForNetworkIddle: { type: 'Edm.Boolean' },
+            waitForNetworkIdle: { type: 'Edm.Boolean' },
             headerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } },
             footerTemplate: { type: 'Edm.String', document: { extension: 'html', engine: true } }
           })
@@ -503,7 +503,7 @@ describe('document store', () => {
                   marginBottom: { type: 'string' },
                   marginLeft: { type: 'string' },
                   waitForJS: { type: 'boolean' },
-                  waitForNetworkIddle: { type: 'boolean' },
+                  waitForNetworkIdle: { type: 'boolean' },
                   headerTemplate: { type: 'string' },
                   footerTemplate: { type: 'string' }
                 }

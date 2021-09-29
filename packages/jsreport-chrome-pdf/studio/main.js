@@ -579,13 +579,13 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'wait for network iddle'
+            'wait for network idle'
           ),
           _react2.default.createElement('input', {
             type: 'checkbox',
-            checked: chrome.waitForNetworkIddle === true,
+            checked: chrome.waitForNetworkIdle === true,
             onChange: function onChange(v) {
-              return changeChrome(_this2.props, { waitForNetworkIddle: v.target.checked });
+              return changeChrome(_this2.props, { waitForNetworkIdle: v.target.checked });
             }
           })
         ),
@@ -881,12 +881,12 @@ var ImageProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'wait for network iddle'
+            'wait for network idle'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.waitForNetworkIddle === true,
+            type: 'checkbox', checked: chrome.waitForNetworkIdle === true,
             onChange: function onChange(v) {
-              return changeChrome(_this2.props, { waitForNetworkIddle: v.target.checked });
+              return changeChrome(_this2.props, { waitForNetworkIdle: v.target.checked });
             }
           })
         ),
