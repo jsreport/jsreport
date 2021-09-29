@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, useState } from 'react'
 import Studio from 'jsreport-studio'
 import AddHeaderFooterModal from './AddHeaderFooterModal'
 import AddTOCModal from './AddTOCModal'
@@ -7,6 +7,46 @@ import styles from './PdfUtilsEditor.css'
 
 const EntityRefSelect = Studio.EntityRefSelect
 const sharedComponents = Studio.sharedComponents
+
+const AdvancedMergeModal = (props) => {
+  const { operation: initialOperation, update } = props.options
+  const [operation, setOperation] = useState(initialOperation)
+
+  const updateOperation = (op) => {
+    update(op)
+    setOperation({ ...operation, ...op })
+  }
+  return (
+    <div>
+      <h2>advanced merge configuration</h2>
+      <div className='form-group'>
+        <h3>Merge whole document</h3>
+        <p>
+          render specified template and merge the result into the current pdf.
+          The first page of the template output will be merged into the first page of the current pdf, the second page to the second one and so on.
+          When the option is deselected, the first page of the template output will be merged to all pages of the current pdf.
+        </p>
+        <input type='checkbox' disabled={operation.renderForEveryPage} checked={operation.mergeWholeDocument === true} onChange={(v) => updateOperation({ mergeWholeDocument: v.target.checked, renderForEveryPage: false })} />
+      </div>
+
+      <div style={{ marginTop: '1rem' }} className='form-group'>
+        <h3>Render for every page (deprecated)</h3>
+        <p>if true, the operation invokes rendering of the specified template for every pdf page (slow), otherwise it is invoked just once and the single output is merged</p>
+        <input type='checkbox' disabled={operation.mergeWholeDocument} checked={operation.renderForEveryPage === true} onChange={(v) => updateOperation({ renderForEveryPage: v.target.checked, mergeWholeDocument: false })} />
+      </div>
+
+      <div style={{ marginTop: '1rem' }} className='form-group'>
+        <h3>Merge to front</h3>
+        <p>if true, the pdf produced by the operation is merged to the front layer, otherwise it is merged to the background</p>
+        <input type='checkbox' checked={operation.mergeToFront === true} onChange={(v) => updateOperation({ mergeToFront: v.target.checked })} />
+      </div>
+
+      <div className='button-bar'>
+        <button className='button confirmation' onClick={() => props.close()}>ok</button>
+      </div>
+    </div>
+  )
+}
 
 class PdfUtilsEditor extends Component {
   constructor (props) {
@@ -33,7 +73,7 @@ class PdfUtilsEditor extends Component {
   }
 
   addOperation (entity) {
-    Studio.updateEntity(Object.assign({}, entity, { pdfOperations: [...entity.pdfOperations || [], { type: 'merge' }] }))
+    Studio.updateEntity(Object.assign({}, entity, { pdfOperations: [...entity.pdfOperations || [], { type: 'merge', mergeWholeDocument: true }] }))
   }
 
   updateOperation (entity, index, update) {
@@ -153,13 +193,7 @@ class PdfUtilsEditor extends Component {
           </select>
         </td>
         <td>
-          <input type='checkbox' disabled={operation.type !== 'merge'} checked={operation.mergeToFront === true} onChange={(v) => this.updateOperation(entity, index, { mergeToFront: v.target.checked })} />
-        </td>
-        <td>
-          <input type='checkbox' disabled={operation.type !== 'merge' || operation.mergeWholeDocument} checked={operation.renderForEveryPage === true} onChange={(v) => this.updateOperation(entity, index, { renderForEveryPage: v.target.checked, mergeWholeDocument: false })} />
-        </td>
-        <td>
-          <input type='checkbox' disabled={operation.type !== 'merge' || operation.renderForEveryPage} checked={operation.mergeWholeDocument === true} onChange={(v) => this.updateOperation(entity, index, { mergeWholeDocument: v.target.checked, renderForEveryPage: false })} />
+          {operation.type === 'merge' && <button onClick={() => Studio.openModal(AdvancedMergeModal, { operation: entity.pdfOperations[index], update: (o) => this.updateOperation(entity, index, o) })}>advanced</button>}
         </td>
         <td>
           <input type='checkbox' checked={operation.enabled !== false} onChange={(v) => this.updateOperation(entity, index, { enabled: v.target.checked })} />
@@ -184,9 +218,7 @@ class PdfUtilsEditor extends Component {
           <tr>
             <th>Template</th>
             <th>Operation</th>
-            <th>Merge to front</th>
-            <th>Render for every page</th>
-            <th>Merge whole document</th>
+            <th>Advanced</th>
             <th>Enabled</th>
             <th />
             <th />
