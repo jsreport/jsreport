@@ -250,18 +250,26 @@ async function verifyLicenseUsage (reporter, definition) {
       return
     }
 
-    const response = await axios({
-      method: 'post',
-      url: (process.env.LICENSING_SERVER || 'https://jsreportonline.net') + '/license-usage',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      data: {
-        licenseKey: definition.options.licenseKey,
-        hostId,
-        checkInterval: licensingUsageCheckInterval
-      }
-    })
+    let response
+
+    try {
+      response = await axios({
+        method: 'post',
+        url: (process.env.LICENSING_SERVER || 'https://jsreportonline.net') + '/license-usage',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          licenseKey: definition.options.licenseKey,
+          hostId,
+          checkInterval: licensingUsageCheckInterval
+        }
+      })
+    } catch (e) {
+      definition.options.usageCheckFailureInfo = null
+      exposeOptions(reporter, definition)
+      return
+    }
 
     if (response == null || response.status !== 200 || response.data == null || !Number.isInteger(response.data.status)) {
       definition.options.usageCheckFailureInfo = null
