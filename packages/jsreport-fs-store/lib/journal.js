@@ -25,12 +25,12 @@ module.exports = ({
     async init () {
       this.lastVersion = await loadVersion()
       this.lastSync = new Date()
-      this.cleanInterval = setInterval(() => queue.push(() => lock(fs, () => this.clean().catch((e) => logger.warn('Error when cleaning fs journal', e)))), 60000)
+      this.cleanInterval = setInterval(() => queue.push(() => lock(fs, () => this.clean())).catch((e) => logger.warn('Error when cleaning fs journal, no worry, we will run again', e)), 60000)
       this.cleanInterval.unref()
 
       this.waitAndSync = () => queue.push(() => lock(fs, () => this.sync()))
 
-      this.syncInterval = setInterval(this.waitAndSync, 10000)
+      this.syncInterval = setInterval(() => this.waitAndSync().catch((e) => logger.warn('Error when syncing fs journal, no worry, we will run again', e)), 10000)
       this.syncInterval.unref()
     },
 

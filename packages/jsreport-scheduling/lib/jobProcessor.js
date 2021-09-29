@@ -105,7 +105,7 @@ module.exports = class JobProcessor {
         await processPromise
       }
     } catch (e) {
-      this.logger.error('unable to load planned schedules ' + e.stack)
+      this.logger.warn('unable to load planned schedules, but no need to worry, we will retry, details:' + e.stack)
     }
   }
 
