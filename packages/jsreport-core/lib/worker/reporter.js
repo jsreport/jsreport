@@ -137,14 +137,16 @@ class WorkerReporter extends Reporter {
     userCode,
     executionFn,
     onRequire,
-    propertiesConfig
+    propertiesConfig,
+    errorLineNumberOffset
   }, req) {
     return this._runInSandbox({
       context,
       userCode,
       executionFn,
       onRequire,
-      propertiesConfig
+      propertiesConfig,
+      errorLineNumberOffset
     }, req)
   }
 

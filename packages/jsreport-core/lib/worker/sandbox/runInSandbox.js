@@ -9,7 +9,8 @@ module.exports = (reporter) => {
     userCode,
     executionFn,
     onRequire,
-    propertiesConfig
+    propertiesConfig,
+    errorLineNumberOffset = 0
   }, req) => {
     let jsreportProxy = null
 
@@ -62,7 +63,6 @@ module.exports = (reporter) => {
     sandbox.__restore = restore
 
     const functionNames = getTopLevelFunctions(userCode)
-
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
         .then((topLevelFunctions) => ${executionFnName}({
@@ -78,7 +78,8 @@ module.exports = (reporter) => {
 
     return run(executionCode, {
       filename: 'sandbox.js',
-      source: userCode
+      source: userCode,
+      errorLineNumberOffset
     })
   }
 }

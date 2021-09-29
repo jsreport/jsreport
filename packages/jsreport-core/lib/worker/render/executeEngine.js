@@ -33,7 +33,8 @@ module.exports = (reporter) => {
           const res = await executeEngine({
             engine: engineImpl,
             content,
-            helpers: helpers + '\n' + req.context.systemHelpers,
+            helpers,
+            systemHelpers: req.context.systemHelpers,
             data
           }, { executionFnParsedParamsMap, handleErrors: false, entity, entitySet }, req)
           return res.content
@@ -48,7 +49,8 @@ module.exports = (reporter) => {
     return executeEngine({
       engine,
       content: req.template.content,
-      helpers: req.template.helpers + '\n' + req.context.systemHelpers,
+      helpers: req.template.helpers,
+      systemHelpers: req.context.systemHelpers,
       data: req.data
     }, {
       executionFnParsedParamsMap,
@@ -58,8 +60,9 @@ module.exports = (reporter) => {
     }, req)
   }
 
-  async function executeEngine ({ engine, content, helpers, data }, { executionFnParsedParamsMap, handleErrors, entity, entitySet }, req) {
-    const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${helpers}`
+  async function executeEngine ({ engine, content, helpers, systemHelpers, data }, { executionFnParsedParamsMap, handleErrors, entity, entitySet }, req) {
+    const joinedHelpers = systemHelpers + '\n' + helpers
+    const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
     const executionFn = async ({ require, console, topLevelFunctions }) => {
       if (entitySet !== 'templates') {
@@ -85,6 +88,7 @@ module.exports = (reporter) => {
       const compiledTemplate = cache.get(key)
 
       const wrappedTopLevelFunctions = {}
+
       for (const h of Object.keys(topLevelFunctions)) {
         wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
       }
@@ -125,8 +129,9 @@ module.exports = (reporter) => {
         context: {
           ...(engine.createContext ? engine.createContext() : {})
         },
-        userCode: helpers,
+        userCode: joinedHelpers,
         executionFn,
+        errorLineNumberOffset: systemHelpers.split('\n').length,
         onRequire: (moduleName, { context }) => {
           if (engine.onRequire) {
             return engine.onRequire(moduleName, { context })

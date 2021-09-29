@@ -163,11 +163,11 @@ module.exports = (_sandbox, options = {}) => {
       return getOriginalFromProxy(proxiesInVM, customProxies, value)
     },
     safeRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
-    run: async (code, { filename, source, entity } = {}) => {
+    run: async (code, { filename, errorLineNumberOffset = 0, source, entity } = {}) => {
       const script = new VMScript(code, filename)
 
       if (filename != null && source != null) {
-        sourceFilesInfo.set(filename, { filename, source, entity })
+        sourceFilesInfo.set(filename, { filename, source, entity, errorLineNumberOffset })
       }
 
       // NOTE: if we need to upgrade vm2 we will need to check the source of this function
@@ -292,9 +292,9 @@ function decorateErrorMessage (e, sourceFilesInfo) {
         sourceFilesInfo.has(current.getFileName()) &&
         current.getLineNumber() != null
       ) {
+        const { entity: entityAtFile, errorLineNumberOffset: errorLineNumberOffsetForFile } = sourceFilesInfo.get(current.getFileName())
+        const ln = current.getLineNumber() - errorLineNumberOffsetForFile
         if (i === 0) {
-          const entityAtFile = sourceFilesInfo.get(current.getFileName()).entity
-
           if (entityAtFile != null) {
             e.entity = {
               shortid: entityAtFile.shortid,
@@ -305,9 +305,13 @@ function decorateErrorMessage (e, sourceFilesInfo) {
             e.property = 'content'
           }
 
-          e.lineNumber = current.getLineNumber()
+          e.lineNumber = ln < 0 ? null : ln
         }
-        suffix += `(${current.getFileName()} line ${current.getLineNumber()}:${current.getColumnNumber()})`
+        if (ln < 0) {
+          suffix += `(${current.getFileName()})`
+        } else {
+          suffix += `(${current.getFileName()} line ${ln}:${current.getColumnNumber()})`
+        }
       }
 
       if (
