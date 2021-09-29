@@ -491,9 +491,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _react = __webpack_require__(0);
 
@@ -531,6 +533,93 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
 var sharedComponents = _jsreportStudio2.default.sharedComponents;
+
+var AdvancedMergeModal = function AdvancedMergeModal(props) {
+  var _props$options = props.options,
+      initialOperation = _props$options.operation,
+      update = _props$options.update;
+
+  var _useState = (0, _react.useState)(initialOperation),
+      _useState2 = _slicedToArray(_useState, 2),
+      operation = _useState2[0],
+      setOperation = _useState2[1];
+
+  var updateOperation = function updateOperation(op) {
+    update(op);
+    setOperation(_extends({}, operation, op));
+  };
+  return _react2.default.createElement(
+    'div',
+    null,
+    _react2.default.createElement(
+      'h2',
+      null,
+      'advanced merge configuration'
+    ),
+    _react2.default.createElement(
+      'div',
+      { className: 'form-group' },
+      _react2.default.createElement(
+        'h3',
+        null,
+        'Merge whole document'
+      ),
+      _react2.default.createElement(
+        'p',
+        null,
+        'render specified template and merge the result into the current pdf. The first page of the template output will be merged into the first page of the current pdf, the second page to the second one and so on. When the option is deselected, the first page of the template output will be merged to all pages of the current pdf.'
+      ),
+      _react2.default.createElement('input', { type: 'checkbox', disabled: operation.renderForEveryPage, checked: operation.mergeWholeDocument === true, onChange: function onChange(v) {
+          return updateOperation({ mergeWholeDocument: v.target.checked, renderForEveryPage: false });
+        } })
+    ),
+    _react2.default.createElement(
+      'div',
+      { style: { marginTop: '1rem' }, className: 'form-group' },
+      _react2.default.createElement(
+        'h3',
+        null,
+        'Render for every page (deprecated)'
+      ),
+      _react2.default.createElement(
+        'p',
+        null,
+        'if true, the operation invokes rendering of the specified template for every pdf page (slow), otherwise it is invoked just once and the single output is merged'
+      ),
+      _react2.default.createElement('input', { type: 'checkbox', disabled: operation.mergeWholeDocument, checked: operation.renderForEveryPage === true, onChange: function onChange(v) {
+          return updateOperation({ renderForEveryPage: v.target.checked, mergeWholeDocument: false });
+        } })
+    ),
+    _react2.default.createElement(
+      'div',
+      { style: { marginTop: '1rem' }, className: 'form-group' },
+      _react2.default.createElement(
+        'h3',
+        null,
+        'Merge to front'
+      ),
+      _react2.default.createElement(
+        'p',
+        null,
+        'if true, the pdf produced by the operation is merged to the front layer, otherwise it is merged to the background'
+      ),
+      _react2.default.createElement('input', { type: 'checkbox', checked: operation.mergeToFront === true, onChange: function onChange(v) {
+          return updateOperation({ mergeToFront: v.target.checked });
+        } })
+    ),
+    _react2.default.createElement(
+      'div',
+      { className: 'button-bar' },
+      _react2.default.createElement(
+        'button',
+        { className: 'button confirmation', onClick: function onClick() {
+            return props.close();
+          } },
+        'ok'
+      )
+    )
+  );
+};
 
 var PdfUtilsEditor = function (_Component) {
   _inherits(PdfUtilsEditor, _Component);
@@ -570,7 +659,7 @@ var PdfUtilsEditor = function (_Component) {
   }, {
     key: 'addOperation',
     value: function addOperation(entity) {
-      _jsreportStudio2.default.updateEntity(Object.assign({}, entity, { pdfOperations: [].concat(_toConsumableArray(entity.pdfOperations || []), [{ type: 'merge' }]) }));
+      _jsreportStudio2.default.updateEntity(Object.assign({}, entity, { pdfOperations: [].concat(_toConsumableArray(entity.pdfOperations || []), [{ type: 'merge', mergeWholeDocument: true }]) }));
     }
   }, {
     key: 'updateOperation',
@@ -739,23 +828,15 @@ var PdfUtilsEditor = function (_Component) {
         _react2.default.createElement(
           'td',
           null,
-          _react2.default.createElement('input', { type: 'checkbox', disabled: operation.type !== 'merge', checked: operation.mergeToFront === true, onChange: function onChange(v) {
-              return _this2.updateOperation(entity, index, { mergeToFront: v.target.checked });
-            } })
-        ),
-        _react2.default.createElement(
-          'td',
-          null,
-          _react2.default.createElement('input', { type: 'checkbox', disabled: operation.type !== 'merge' || operation.mergeWholeDocument, checked: operation.renderForEveryPage === true, onChange: function onChange(v) {
-              return _this2.updateOperation(entity, index, { renderForEveryPage: v.target.checked, mergeWholeDocument: false });
-            } })
-        ),
-        _react2.default.createElement(
-          'td',
-          null,
-          _react2.default.createElement('input', { type: 'checkbox', disabled: operation.type !== 'merge' || operation.renderForEveryPage, checked: operation.mergeWholeDocument === true, onChange: function onChange(v) {
-              return _this2.updateOperation(entity, index, { mergeWholeDocument: v.target.checked, renderForEveryPage: false });
-            } })
+          operation.type === 'merge' && _react2.default.createElement(
+            'button',
+            { onClick: function onClick() {
+                return _jsreportStudio2.default.openModal(AdvancedMergeModal, { operation: entity.pdfOperations[index], update: function update(o) {
+                    return _this2.updateOperation(entity, index, o);
+                  } });
+              } },
+            'advanced'
+          )
         ),
         _react2.default.createElement(
           'td',
@@ -826,17 +907,7 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'th',
               null,
-              'Merge to front'
-            ),
-            _react2.default.createElement(
-              'th',
-              null,
-              'Render for every page'
-            ),
-            _react2.default.createElement(
-              'th',
-              null,
-              'Merge whole document'
+              'Advanced'
             ),
             _react2.default.createElement(
               'th',
