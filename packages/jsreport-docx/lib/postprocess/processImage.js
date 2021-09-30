@@ -119,7 +119,7 @@ module.exports = async function processImage (files, drawingEl, newRelIdCounterM
       throw new Error(`Empty content-type for remote image at "${imageConfig.src}"`)
     }
 
-    const extensionsParts = contentType.split('/').filter((p) => p)
+    const extensionsParts = contentType.split(';')[0].split('/').filter((p) => p)
 
     if (extensionsParts.length === 0 || extensionsParts.length > 2) {
       throw new Error(`Invalid content-type "${contentType}" for remote image at "${imageConfig.src}"`)

@@ -1533,6 +1533,39 @@ describe('docx', () => {
       }).should.not.be.rejectedWith(/src parameter to be set/)
   })
 
+  it('image can render from url with returning parametrized content type', async () => {
+    const url = 'https://some-server.com/some-image.png'
+
+    reporter.tests.beforeRenderEval((req, res, { require }) => {
+      require('nock')('https://some-server.com')
+        .get('/some-image.png')
+        .replyWithFile(200, req.data.imagePath, {
+          'content-type': 'image/png; qs=0.7'
+        })
+    })
+
+    const result = await reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(__dirname, 'image.docx'))
+            }
+          }
+        },
+        data: {
+          src: url,
+          imagePath: path.join(__dirname, 'image.png')
+        }
+      })
+
+    const files = await decompress()(result.content)
+    const contentTypes = files.find(f => f.path === '[Content_Types].xml').data.toString()
+    contentTypes.should.not.containEql('image/png; qs=0.7')
+  })
+
   it('image error message when src not valid param', async () => {
     return reporter
       .render({
