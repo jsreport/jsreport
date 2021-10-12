@@ -3,7 +3,7 @@ import SplitPane from '../../../common/SplitPane/SplitPane'
 import OperationsDisplay from './OperationsDisplay'
 import LogsDisplay from './LogsDisplay'
 import ProfileInspectModal from '../../../Modals/ProfileInspectModal'
-import ProfileErrorModal from '../../../Modals/ProfileErrorModal'
+import ErrorModal from '../../../Modals/ErrorModal'
 import usePrevious from '../../../../hooks/usePrevious'
 import useOpenErrorLine from '../../useOpenErrorLine'
 import useRenderErrorModal from '../../useRenderErrorModal'
@@ -27,7 +27,7 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
   const handleElementClick = useCallback((meta) => {
     if (!meta.isEdge) {
       if (meta.data.error != null && meta.data.operation == null) {
-        openModal(ProfileErrorModal, { error: meta.data.error })
+        openModal(ErrorModal, { error: meta.data.error })
       } else if (meta.data.error != null && meta.data.operation != null) {
         if (
           meta.data.error.entity != null &&
@@ -36,7 +36,7 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
         ) {
           openErrorLine(meta.data.error)
         } else {
-          openModal(ProfileErrorModal, { error: meta.data.error })
+          openModal(ErrorModal, { error: meta.data.error })
         }
       }
 

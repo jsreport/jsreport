@@ -52,8 +52,8 @@ class Toolbar extends Component {
     return this.props.update(...params)
   }
 
-  handleRun (profiling = true) {
-    runLastActiveTemplate(profiling)
+  handleRun (targetOrProfiling) {
+    runLastActiveTemplate(targetOrProfiling)
   }
 
   handleStopRun () {
@@ -234,11 +234,20 @@ class Toolbar extends Component {
               return
             }
 
-            return this.renderButton((e) => {
-              e.stopPropagation()
-              itemProps.closeMenu()
-              this.handleRun(false)
-            }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')
+            return (
+              <Fragment>
+                {this.renderButton((e) => {
+                  e.stopPropagation()
+                  itemProps.closeMenu()
+                  this.handleRun(false)
+                }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')}
+                {this.renderButton((e) => {
+                  e.stopPropagation()
+                  itemProps.closeMenu()
+                  this.handleRun('download')
+                }, canRun, 'Download', 'fa fa-download', 'Download output')}
+              </Fragment>
+            )
           }}
         </Popup>
       </div>

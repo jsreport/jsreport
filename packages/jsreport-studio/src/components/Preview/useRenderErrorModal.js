@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import ProfileErrorModal from '../Modals/ProfileErrorModal'
+import ErrorModal from '../Modals/ErrorModal'
 import styles from './Preview.css'
 
 function useRenderErrorModal (openErrorLine) {
@@ -21,7 +21,7 @@ function useRenderErrorModal (openErrorLine) {
     return (
       <div className={styles.errorModal}>
         <div className={styles.errorModalContent}>
-          <ProfileErrorModal
+          <ErrorModal
             close={() => setShowErrorModal(false)}
             options={{
               title: errorTitle,

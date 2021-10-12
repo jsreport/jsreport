@@ -1,3 +1,4 @@
+import fileSaver from 'filesaver.js-npm'
 import * as entities from '../entities'
 import * as progress from '../progress'
 import * as ActionTypes from './constants'
@@ -6,6 +7,7 @@ import api from '../../helpers/api'
 import * as selectors from './selectors'
 import { push } from 'connected-react-router'
 import shortid from 'shortid'
+import ErrorModal from '../../components/Modals/ErrorModal'
 import { openModal } from '../../helpers/openModal'
 import reformatter from '../../helpers/reformatter'
 import { openPreviewWindow, getPreviewWindowOptions } from '../../helpers/previewWindow'
@@ -468,7 +470,7 @@ export function clearPreview () {
 
 export function run (params = {}, opts = {}) {
   return async function (dispatch, getState) {
-    const supportedTargets = ['preview', 'window']
+    const supportedTargets = ['preview', 'download', 'window']
     const template = params.template != null ? params.template : Object.assign({}, selectors.getLastActiveTemplate(getState().editor.lastActiveTemplateKey, getState().entities))
     const templateName = template.name
 
@@ -578,6 +580,11 @@ export function run (params = {}, opts = {}) {
             previewData = addProfileEvent(previewData, operation)
           },
           onError: (errorInfo) => {
+            if (targetType === 'download') {
+              openModal(ErrorModal, { title: 'Download Error', error: errorInfo })
+              return
+            }
+
             if (profiling) {
               previewData = addProfileEvent(previewData, errorInfo)
             }
@@ -598,6 +605,13 @@ export function run (params = {}, opts = {}) {
             }
           },
           onReport: (reportFileInfo) => {
+            if (targetType === 'download') {
+              fileSaver.saveAs(new Blob([reportFileInfo.rawData.buffer], {
+                type: reportFileInfo.contentType
+              }), reportFileInfo.filename)
+              return
+            }
+
             const reportSrc = URL.createObjectURL(
               new window.File([reportFileInfo.rawData.buffer], reportFileInfo.filename, {
                 type: reportFileInfo.contentType
@@ -621,27 +635,31 @@ export function run (params = {}, opts = {}) {
         })
       })
     } catch (error) {
-      if (targetType === 'preview' && profiling) {
-        previewData = addProfileEvent(previewData, {
-          type: 'error',
-          message: error.message,
-          stack: error.stack
-        })
-      }
-
-      const errorURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
-
-      if (targetType === 'window') {
-        previewWindow.location.href = errorURLBlob
+      if (targetType === 'download') {
+        openModal(ErrorModal, { title: 'Download Error', error })
       } else {
-        previewData = {
-          ...previewData,
-          reportSrc: errorURLBlob
+        if (targetType === 'preview' && profiling) {
+          previewData = addProfileEvent(previewData, {
+            type: 'error',
+            message: error.message,
+            stack: error.stack
+          })
         }
-      }
 
-      if (targetType === 'preview') {
-        dispatch(updatePreview(previewId, { data: previewData, completed: true }))
+        const errorURLBlob = URL.createObjectURL(new Blob([`${error.message}\n\n${error.stack}`], { type: 'text/plain' }))
+
+        if (targetType === 'window') {
+          previewWindow.location.href = errorURLBlob
+        } else {
+          previewData = {
+            ...previewData,
+            reportSrc: errorURLBlob
+          }
+        }
+
+        if (targetType === 'preview') {
+          dispatch(updatePreview(previewId, { data: previewData, completed: true }))
+        }
       }
     } finally {
       delete runningControllers[runId]

@@ -7,7 +7,7 @@ export default async function (request, options) {
   request.template.content = request.template.content || ' '
 
   request.options = request.options || {}
-  request.options.preview = true
+  request.options.preview = request.options.preview != null ? request.options.preview :  true
 
   await streamRender(request, options)
 }
