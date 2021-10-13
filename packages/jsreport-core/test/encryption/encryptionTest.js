@@ -4,7 +4,7 @@ const core = require('../../index')
 const SECRET_KEY = 'demo123456789278'
 
 async function init (options) {
-  const reporter = core({ discover: false, migrateEntitySetsToFolders: false, ...options })
+  const reporter = core({ discover: false, ...options })
 
   await reporter.init()
 

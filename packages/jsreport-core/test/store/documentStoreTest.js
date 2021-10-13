@@ -607,7 +607,6 @@ describe('document store', () => {
 function init (options, customExt) {
   const reporter = core({
     discover: false,
-    migrateEntitySetsToFolders: false,
     ...options
   })
 

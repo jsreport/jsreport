@@ -3,7 +3,6 @@ const cascadeFolderRemove = require('./cascadeFolderRemove')
 const validateDuplicatedName = require('./validateDuplicatedName')
 const getEntitiesInFolder = require('./getEntitiesInFolder')
 const moveBetweenFolders = require('./moveBetweenFolders')
-const migrateEntitySetsToFolders = require('./migrateEntitySetsToFolders')
 
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('FolderType', {
@@ -35,8 +34,6 @@ module.exports = (reporter) => {
   reporter.documentStore.internalAfterInitListeners.add('core-validate-reserved-name', () => validateReservedName(reporter))
   reporter.documentStore.internalAfterInitListeners.add('core-cascade-remove', () => cascadeFolderRemove(reporter))
   reporter.documentStore.internalAfterInitListeners.add('core-validate-duplicated-name', () => validateDuplicatedName(reporter))
-
-  reporter.initializeListeners.insert(0, 'core-folders-migration', () => migrateEntitySetsToFolders(reporter))
 
   return {
     move: moveBetweenFolders(reporter),

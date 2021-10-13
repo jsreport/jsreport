@@ -151,10 +151,6 @@ module.exports.getRootSchemaOptions = () => ({
         }
       ]
     },
-    migrateEntitySetsToFolders: {
-      type: 'boolean',
-      default: true
-    },
     profiler: {
       type: 'object',
       default: {},

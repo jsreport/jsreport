@@ -3,7 +3,7 @@ const core = require('../../index')
 const RenderRequest = core.Request
 
 function init (options) {
-  const reporter = core({ discover: false, migrateEntitySetsToFolders: false, ...options })
+  const reporter = core({ discover: false, ...options })
 
   reporter.use({
     name: 'testing',
@@ -1877,20 +1877,5 @@ describe('folders', function () {
         shouldReplace: true
       })).be.rejectedWith({ code: 'DUPLICATED_ENTITY' })
     })
-  })
-})
-
-describe('folders migration', () => {
-  let reporter
-
-  beforeEach(async () => {
-    reporter = await init({ migrateEntitySetsToFolders: true })
-  })
-
-  afterEach(() => reporter.close())
-
-  it('should not create es folders on empty project', async () => {
-    const folders = await reporter.documentStore.collection('folders').find({})
-    folders.should.have.length(0)
   })
 })

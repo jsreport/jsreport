@@ -61,7 +61,6 @@ module.exports = ({
 
     let optionsToUse = extend(true, {
       rootDirectory,
-      migrateEntitySetsToFolders: false,
       store: {
         provider: 'memory'
       },

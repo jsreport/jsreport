@@ -15,7 +15,7 @@ const handlebars = require('@jsreport/jsreport-handlebars')
 const chromePdf = require('@jsreport/jsreport-chrome-pdf')
 const fsStore = require('@jsreport/jsreport-fs-store')
 
-const reporter = jsreport({ migrateEntitySetsToFolders: false, store: { provider: 'fs' } })
+const reporter = jsreport({ store: { provider: 'fs' } })
 
 reporter.use(data())
 reporter.use(xlsx())
