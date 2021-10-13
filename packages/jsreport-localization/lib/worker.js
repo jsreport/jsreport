@@ -35,7 +35,7 @@ module.exports = async (reporter, definition) => {
           throw new Error('Can\'t call localize without specified language')
         }
 
-        const localizationDataPath = `${folder}/${language || 'en'}.json`
+        const localizationDataPath = path.posix.join(folder, `${language || 'en'}.json`)
         const resolvedValue = await proxy.folders.resolveEntityFromPath(localizationDataPath, 'assets')
 
         if (!resolvedValue) {
