@@ -151,6 +151,10 @@ module.exports.getRootSchemaOptions = () => ({
         }
       ]
     },
+    migrateXlsxTemplatesToAssets: {
+      type: 'boolean',
+      default: true
+    },
     profiler: {
       type: 'object',
       default: {},

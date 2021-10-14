@@ -6,7 +6,6 @@ const htmlToXlsxProcess = require('./htmlToXlsxProcess')
 module.exports = async (reporter, definition, req, res) => {
   const htmlEngines = definition.options.htmlEngines
   const htmlToXlsxOptions = req.template.htmlToXlsx || {}
-  const baseXlsxTemplate = req.template.baseXlsxTemplate || {}
 
   if (htmlToXlsxOptions.htmlEngine == null) {
     if (htmlEngines.includes('chrome')) {
@@ -79,27 +78,20 @@ module.exports = async (reporter, definition, req, res) => {
 
   if (
     htmlToXlsxOptions.templateAssetShortid ||
-    (htmlToXlsxOptions.templateAsset && htmlToXlsxOptions.templateAsset.content) ||
-    baseXlsxTemplate.content ||
-    baseXlsxTemplate.shortid
+    (htmlToXlsxOptions.templateAsset && htmlToXlsxOptions.templateAsset.content)
   ) {
     reporter.logger.info('html-to-xlsx is going to insert table generation into base xlsx template', req)
 
     if (htmlToXlsxOptions.templateAsset && htmlToXlsxOptions.templateAsset.content) {
       xlsxTemplateBuf = Buffer.from(htmlToXlsxOptions.templateAsset.content, htmlToXlsxOptions.templateAsset.encoding || 'utf8')
-    } else if (baseXlsxTemplate.content) {
-      xlsxTemplateBuf = Buffer.from(req.template.baseXlsxTemplate.content, 'base64')
     } else {
-      if (
-        !baseXlsxTemplate.shortid &&
-        !htmlToXlsxOptions.templateAssetShortid
-      ) {
+      if (!htmlToXlsxOptions.templateAssetShortid) {
         throw reporter.createError('No valid base xlsx template specified, make sure to set a correct one', {
           weak: true
         })
       }
 
-      let docs
+      let docs = []
       let xlsxTemplateShortid
 
       if (htmlToXlsxOptions.templateAssetShortid) {
@@ -107,24 +99,21 @@ module.exports = async (reporter, definition, req, res) => {
         docs = await reporter.documentStore.collection('assets').find({
           shortid: xlsxTemplateShortid
         }, req)
-      } else {
-        xlsxTemplateShortid = baseXlsxTemplate.shortid
-        docs = await reporter.documentStore.collection('xlsxTemplates').find({
-          shortid: xlsxTemplateShortid
-        }, req)
       }
 
       if (!docs.length) {
+        if (!xlsxTemplateShortid) {
+          throw reporter.createError('Unable to find xlsx template. xlsx template not specified', {
+            statusCode: 404
+          })
+        }
+
         throw reporter.createError(`Unable to find xlsx template with shortid ${xlsxTemplateShortid}`, {
           statusCode: 404
         })
       }
 
-      if (htmlToXlsxOptions.templateAssetShortid) {
-        xlsxTemplateBuf = docs[0].content
-      } else {
-        xlsxTemplateBuf = docs[0].contentRaw
-      }
+      xlsxTemplateBuf = docs[0].content
     }
   }
 

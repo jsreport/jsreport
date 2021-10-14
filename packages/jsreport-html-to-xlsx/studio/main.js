@@ -187,15 +187,6 @@ var HtmlToXlsxProperties = function (_Component) {
   _inherits(HtmlToXlsxProperties, _Component);
 
   _createClass(HtmlToXlsxProperties, null, [{
-    key: 'selectXlsxTemplates',
-    value: function selectXlsxTemplates(entities) {
-      return Object.keys(entities).filter(function (k) {
-        return entities[k].__entitySet === 'xlsxTemplates';
-      }).map(function (k) {
-        return entities[k];
-      });
-    }
-  }, {
     key: 'selectAssets',
     value: function selectAssets(entities) {
       return Object.keys(entities).filter(function (k) {
@@ -207,28 +198,19 @@ var HtmlToXlsxProperties = function (_Component) {
   }, {
     key: 'title',
     value: function title(entity, entities) {
-      if ((!entity.baseXlsxTemplate || !entity.baseXlsxTemplate.shortid) && (!entity.htmlToXlsx || !entity.htmlToXlsx.templateAssetShortid)) {
+      if (!entity.htmlToXlsx || !entity.htmlToXlsx.templateAssetShortid) {
         return 'xlsx template';
       }
 
-      var foundItems = HtmlToXlsxProperties.selectXlsxTemplates(entities).filter(function (e) {
-        return entity.baseXlsxTemplate != null && entity.baseXlsxTemplate.shortid === e.shortid;
-      });
       var foundAssets = HtmlToXlsxProperties.selectAssets(entities).filter(function (e) {
         return entity.htmlToXlsx != null && entity.htmlToXlsx.templateAssetShortid === e.shortid;
       });
 
-      if (!foundItems.length && !foundAssets.length) {
+      if (!foundAssets.length) {
         return 'xlsx template';
       }
 
-      var name = void 0;
-
-      if (foundAssets.length) {
-        name = foundAssets[0].name;
-      } else {
-        name = foundItems[0].name;
-      }
+      var name = foundAssets[0].name;
 
       return 'xlsx template: ' + name;
     }
@@ -267,17 +249,13 @@ var HtmlToXlsxProperties = function (_Component) {
     value: function removeInvalidXlsxTemplateReferences() {
       var _props = this.props,
           entity = _props.entity,
-          entities = _props.entities,
-          onChange = _props.onChange;
+          entities = _props.entities;
 
 
-      if (!entity.baseXlsxTemplate && !entity.htmlToXlsx) {
+      if (!entity.htmlToXlsx) {
         return;
       }
 
-      var updatedXlsxTemplates = Object.keys(entities).filter(function (k) {
-        return entities[k].__entitySet === 'xlsxTemplates' && entity.baseXlsxTemplate != null && entities[k].shortid === entity.baseXlsxTemplate.shortid;
-      });
       var updatedXlsxAssets = Object.keys(entities).filter(function (k) {
         return entities[k].__entitySet === 'assets' && entity.htmlToXlsx != null && entities[k].shortid === entity.htmlToXlsx.templateAssetShortid;
       });
@@ -286,10 +264,6 @@ var HtmlToXlsxProperties = function (_Component) {
         this.changeHtmlToXlsx(this.props, {
           templateAssetShortid: null
         });
-      }
-
-      if (entity.baseXlsxTemplate && entity.baseXlsxTemplate.shortid && updatedXlsxTemplates.length === 0) {
-        onChange({ _id: entity._id, baseXlsxTemplate: null });
       }
     }
   }, {
@@ -344,9 +318,7 @@ var HtmlToXlsxProperties = function (_Component) {
     value: function render() {
       var _this2 = this;
 
-      var _props2 = this.props,
-          entity = _props2.entity,
-          _onChange = _props2.onChange;
+      var entity = this.props.entity;
 
       var htmlToXlsx = entity.htmlToXlsx || {};
       var htmlEngines = _jsreportStudio2.default.extensions['html-to-xlsx'].options.htmlEngines;
@@ -401,25 +373,6 @@ var HtmlToXlsxProperties = function (_Component) {
             },
             renderNew: function renderNew(modalProps) {
               return _react2.default.createElement(sharedComponents.NewAssetModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'xlsx template (deprecated)'
-          ),
-          _react2.default.createElement(EntityRefSelect, {
-            headingLabel: 'Select xlsx template',
-            filter: function filter(references) {
-              return { xlsxTemplates: references.xlsxTemplates };
-            },
-            value: entity.baseXlsxTemplate ? entity.baseXlsxTemplate.shortid : null,
-            onChange: function onChange(selected) {
-              return _onChange({ _id: entity._id, baseXlsxTemplate: selected != null && selected.length > 0 ? { shortid: selected[0].shortid } : null });
             }
           })
         ),

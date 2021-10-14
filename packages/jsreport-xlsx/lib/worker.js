@@ -28,7 +28,7 @@ module.exports = (reporter, definition) => {
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
-  reporter.beforeRenderListeners.insert({ after: 'data' }, 'xlsxTemplates', async (req) => {
+  reporter.beforeRenderListeners.insert({ after: 'data' }, 'xlsx', async (req) => {
     if (req.template.recipe !== 'xlsx') {
       return
     }
@@ -38,7 +38,6 @@ module.exports = (reporter, definition) => {
 
     const findTemplate = async () => {
       if (
-        (!req.template.xlsxTemplate || (!req.template.xlsxTemplate.shortid && !req.template.xlsxTemplate.content)) &&
         (!req.template.xlsx || (!req.template.xlsx.templateAssetShortid && !req.template.xlsx.templateAsset))
       ) {
         if (defaultXlsxTemplate) {
@@ -50,32 +49,29 @@ module.exports = (reporter, definition) => {
 
       if (req.template.xlsx && req.template.xlsx.templateAsset && req.template.xlsx.templateAsset.content) {
         return parse(Buffer.from(req.template.xlsx.templateAsset.content, req.template.xlsx.templateAsset.encoding || 'utf8'))
-      } else if (req.template.xlsxTemplate && req.template.xlsxTemplate.content) {
-        return parse(req.template.xlsxTemplate.content)
       }
 
-      let docs
+      let docs = []
       let xlsxTemplateShortid
 
       if (req.template.xlsx && req.template.xlsx.templateAssetShortid) {
         xlsxTemplateShortid = req.template.xlsx.templateAssetShortid
         docs = await reporter.documentStore.collection('assets').find({ shortid: xlsxTemplateShortid }, req)
-      } else {
-        xlsxTemplateShortid = req.template.xlsxTemplate.shortid
-        docs = await reporter.documentStore.collection('xlsxTemplates').find({ shortid: xlsxTemplateShortid }, req)
       }
 
       if (!docs.length) {
+        if (!xlsxTemplateShortid) {
+          throw reporter.createError('Unable to find xlsx template. xlsx template not specified', {
+            statusCode: 404
+          })
+        }
+
         throw reporter.createError(`Unable to find xlsx template with shortid ${xlsxTemplateShortid}`, {
           statusCode: 404
         })
       }
 
-      if (req.template.xlsx && req.template.xlsx.templateAssetShortid) {
-        return parse(docs[0].content)
-      } else {
-        return JSON.parse(docs[0].content)
-      }
+      return parse(docs[0].content)
     }
 
     const template = await findTemplate()

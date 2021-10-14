@@ -10,8 +10,6 @@ const handlebars = require('@jsreport/jsreport-handlebars')
 const xlsxRecipe = require('../index')
 const jsonToXml = require('../lib/jsonToXml')
 
-process.env.DEBUG = ''
-
 describe.only('excel recipe', () => {
   let reporter
 
@@ -120,9 +118,10 @@ describe.only('excel recipe', () => {
   }))
 
   it('should be able to use uploaded xlsx template', async () => {
-    const templateContent = fs.readFileSync(path.join(__dirname, 'Book1.xlsx')).toString('base64')
-    await reporter.documentStore.collection('xlsxTemplates').insert({
-      contentRaw: templateContent,
+    const templateContent = fs.readFileSync(path.join(__dirname, 'Book1.xlsx'))
+
+    await reporter.documentStore.collection('assets').insert({
+      content: templateContent,
       shortid: 'foo',
       name: 'foo'
     })
@@ -131,8 +130,8 @@ describe.only('excel recipe', () => {
       template: {
         recipe: 'xlsx',
         engine: 'handlebars',
-        xlsxTemplate: {
-          shortid: 'foo'
+        xlsx: {
+          templateAssetShortid: 'foo'
         },
         content: '{{{xlsxPrint}}}'
       }
@@ -143,14 +142,16 @@ describe.only('excel recipe', () => {
   })
 
   it('should be able to use xlsx template content from request', async () => {
-    const templateContent = fs.readFileSync(path.join(__dirname, 'Book1.xlsx')).toString('base64')
+    const templateContent = fs.readFileSync(path.join(__dirname, 'Book1.xlsx'))
 
     const res = await reporter.render({
       template: {
         recipe: 'xlsx',
         engine: 'handlebars',
-        xlsxTemplate: {
-          content: templateContent
+        xlsx: {
+          templateAsset: {
+            content: templateContent
+          }
         },
         content: '{{{xlsxPrint}}}'
       }

@@ -29,6 +29,7 @@ const Request = require('../shared/request')
 const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
 const Monitoring = require('./monitoring')
+const migrateXlsxTemplatesToAssets = require('./migration/xlsxTemplatesToAssets')
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
@@ -229,6 +230,8 @@ class MainReporter extends Reporter {
       // adding the validation of shortid after extensions has been loaded
       setupValidateId(this)
       setupValidateShortid(this)
+
+      this.initializeListeners.insert(0, 'core-xlsxTemplates-migration', () => migrateXlsxTemplatesToAssets(this))
 
       await this.initializeListeners.fire()
 

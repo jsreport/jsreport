@@ -5,36 +5,24 @@ const EntityRefSelect = Studio.EntityRefSelect
 const sharedComponents = Studio.sharedComponents
 
 class HtmlToXlsxProperties extends Component {
-  static selectXlsxTemplates (entities) {
-    return Object.keys(entities).filter((k) => entities[k].__entitySet === 'xlsxTemplates').map((k) => entities[k])
-  }
-
   static selectAssets (entities) {
     return Object.keys(entities).filter((k) => entities[k].__entitySet === 'assets').map((k) => entities[k])
   }
 
   static title (entity, entities) {
     if (
-      (!entity.baseXlsxTemplate || !entity.baseXlsxTemplate.shortid) &&
       (!entity.htmlToXlsx || !entity.htmlToXlsx.templateAssetShortid)
     ) {
       return 'xlsx template'
     }
 
-    const foundItems = HtmlToXlsxProperties.selectXlsxTemplates(entities).filter((e) => entity.baseXlsxTemplate != null && entity.baseXlsxTemplate.shortid === e.shortid)
     const foundAssets = HtmlToXlsxProperties.selectAssets(entities).filter((e) => entity.htmlToXlsx != null && entity.htmlToXlsx.templateAssetShortid === e.shortid)
 
-    if (!foundItems.length && !foundAssets.length) {
+    if (!foundAssets.length) {
       return 'xlsx template'
     }
 
-    let name
-
-    if (foundAssets.length) {
-      name = foundAssets[0].name
-    } else {
-      name = foundItems[0].name
-    }
+    const name = foundAssets[0].name
 
     return 'xlsx template: ' + name
   }
@@ -63,23 +51,18 @@ class HtmlToXlsxProperties extends Component {
   }
 
   removeInvalidXlsxTemplateReferences () {
-    const { entity, entities, onChange } = this.props
+    const { entity, entities } = this.props
 
-    if (!entity.baseXlsxTemplate && !entity.htmlToXlsx) {
+    if (!entity.htmlToXlsx) {
       return
     }
 
-    const updatedXlsxTemplates = Object.keys(entities).filter((k) => entities[k].__entitySet === 'xlsxTemplates' && entity.baseXlsxTemplate != null && entities[k].shortid === entity.baseXlsxTemplate.shortid)
     const updatedXlsxAssets = Object.keys(entities).filter((k) => entities[k].__entitySet === 'assets' && entity.htmlToXlsx != null && entities[k].shortid === entity.htmlToXlsx.templateAssetShortid)
 
     if (entity.htmlToXlsx && entity.htmlToXlsx.templateAssetShortid && updatedXlsxAssets.length === 0) {
       this.changeHtmlToXlsx(this.props, {
         templateAssetShortid: null
       })
-    }
-
-    if (entity.baseXlsxTemplate && entity.baseXlsxTemplate.shortid && updatedXlsxTemplates.length === 0) {
-      onChange({ _id: entity._id, baseXlsxTemplate: null })
     }
   }
 
@@ -128,7 +111,7 @@ class HtmlToXlsxProperties extends Component {
   }
 
   render () {
-    const { entity, onChange } = this.props
+    const { entity } = this.props
     const htmlToXlsx = entity.htmlToXlsx || {}
     const htmlEngines = Studio.extensions['html-to-xlsx'].options.htmlEngines
 
@@ -156,15 +139,6 @@ class HtmlToXlsxProperties extends Component {
               templateAssetShortid: selected != null && selected.length > 0 ? selected[0].shortid : null
             })}
             renderNew={(modalProps) => <sharedComponents.NewAssetModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder }, activateNewTab: false }} />}
-          />
-        </div>
-        <div className='form-group'>
-          <label>xlsx template (deprecated)</label>
-          <EntityRefSelect
-            headingLabel='Select xlsx template'
-            filter={(references) => ({ xlsxTemplates: references.xlsxTemplates })}
-            value={entity.baseXlsxTemplate ? entity.baseXlsxTemplate.shortid : null}
-            onChange={(selected) => onChange({ _id: entity._id, baseXlsxTemplate: selected != null && selected.length > 0 ? { shortid: selected[0].shortid } : null })}
           />
         </div>
         {htmlToXlsx.htmlEngine !== 'cheerio' && (

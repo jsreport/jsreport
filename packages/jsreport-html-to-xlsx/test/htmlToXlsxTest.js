@@ -100,8 +100,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }
@@ -133,8 +135,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }
@@ -161,8 +165,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }
@@ -196,8 +202,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }
@@ -275,8 +283,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }
@@ -306,8 +316,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }
@@ -345,8 +357,10 @@ describe('html to xlsx', () => {
         `,
         recipe: 'html-to-xlsx',
         engine: 'none',
-        baseXlsxTemplate: {
-          content: xlsxTemplateBuf.toString('base64')
+        htmlToXlsx: {
+          templateAsset: {
+            content: xlsxTemplateBuf
+          }
         }
       }
     }

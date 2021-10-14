@@ -1,6 +1,5 @@
-const serialize = require('./serialize.js')
 const extend = require('node.extend.without.arrays')
-const { response } = require('@jsreport/office')
+const serialize = require('./serialize')
 
 module.exports = (reporter, definition) => {
   if (reporter.options.xlsx) {
@@ -35,13 +34,12 @@ module.exports = (reporter, definition) => {
     content: { type: 'Edm.String', document: { extension: 'txt' } }
   })
 
+  // NOTE: xlsxTemplates are deprecated, we will remove it in jsreport v4
   reporter.documentStore.registerEntitySet('xlsxTemplates', {
     entityType: 'jsreport.XlsxTemplateType',
-    splitIntoDirectories: true
-  })
-
-  reporter.documentStore.registerComplexType('XlsxTemplateRefType', {
-    shortid: { type: 'Edm.String', referenceTo: 'xlsxTemplates', schema: { type: 'null' } }
+    splitIntoDirectories: true,
+    // since it is deprecated we don't want that imports process xlsxTemplates
+    exportable: false
   })
 
   reporter.documentStore.registerComplexType('XlsxRefType', {
@@ -49,20 +47,10 @@ module.exports = (reporter, definition) => {
   })
 
   if (reporter.documentStore.model.entityTypes.TemplateType) {
-    reporter.documentStore.model.entityTypes.TemplateType.xlsxTemplate = { type: 'jsreport.XlsxTemplateRefType', schema: { type: 'null' } }
     reporter.documentStore.model.entityTypes.TemplateType.xlsx = { type: 'jsreport.XlsxRefType', schema: { type: 'null' } }
   }
 
-  reporter.initializeListeners.add('xlsxTemplates', () => {
-    if (reporter.express) {
-      reporter.express.exposeOptionsToApi(definition.name, {
-        preview: {
-          enabled: definition.options.preview.enabled,
-          showWarning: definition.options.preview.showWarning
-        }
-      })
-    }
-
+  reporter.documentStore.on('after-init', () => {
     reporter.documentStore.collection('xlsxTemplates').beforeInsertListeners.add('xlsxTemplates', (doc) => {
       return serialize(doc.contentRaw).then((serialized) => (doc.content = serialized))
     })
@@ -74,35 +62,14 @@ module.exports = (reporter, definition) => {
     })
   })
 
-  reporter.on('express-configure', (app) => {
-    app.get('/xlsxTemplates/office/:id/content', async (req, res) => {
-      try {
-        const xlsxTemplate = await reporter.documentStore.collection('xlsxTemplates').findOne({
-          _id: req.params.id
-        })
-
-        if (!xlsxTemplate) {
-          return res.status(404).end(`xlsxTemplate with _id "${req.params.id}" does not exists`)
+  reporter.initializeListeners.add('xlsx', () => {
+    if (reporter.express) {
+      reporter.express.exposeOptionsToApi(definition.name, {
+        preview: {
+          enabled: definition.options.preview.enabled,
+          showWarning: definition.options.preview.showWarning
         }
-
-        req.options = req.options || {}
-        req.options.preview = true
-
-        res.meta = res.meta || {}
-
-        await response({
-          previewOptions: definition.options.preview,
-          officeDocumentType: 'xlsx',
-          buffer: xlsxTemplate.contentRaw
-        }, req, res)
-
-        res.setHeader('Content-Type', res.meta.contentType)
-
-        res.end(res.content)
-      } catch (e) {
-        reporter.logger.warn(`Unable to get xlsxTemplate content ${e.stack}`)
-        res.status(500).end(e.message)
-      }
-    })
+      })
+    }
   })
 }

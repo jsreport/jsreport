@@ -33,13 +33,8 @@ module.exports = function (reporter, definition) {
     waitForJS: { type: 'Edm.Boolean' }
   })
 
-  reporter.documentStore.registerComplexType('BaseXlsxTemplateRefType', {
-    shortid: { type: 'Edm.String', referenceTo: 'xlsxTemplates', schema: { type: 'null' } }
-  })
-
   if (reporter.documentStore.model.entityTypes.TemplateType) {
     reporter.documentStore.model.entityTypes.TemplateType.htmlToXlsx = { type: 'jsreport.HtmlToXlsxType' }
-    reporter.documentStore.model.entityTypes.TemplateType.baseXlsxTemplate = { type: 'jsreport.BaseXlsxTemplateRefType', schema: { type: 'null' } }
   }
 
   definition.options.htmlEngines = Object.keys(htmlEngines)

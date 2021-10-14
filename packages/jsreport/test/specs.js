@@ -1,4 +1,4 @@
-require('should')
+const should = require('should')
 const path = require('path')
 const childProcess = require('child_process')
 const jsreport = require('../')
@@ -158,5 +158,66 @@ describe('ESM', function () {
         reject(error)
       }
     })
+  })
+})
+
+describe('xlsx templates to assets migration', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      discover: false,
+      rootDirectory: path.join(__dirname, '../'),
+      loadConfig: false
+    })
+
+    for (const extName of jsreportExtensions) {
+      reporter = reporter.use(require(extName)())
+    }
+
+    reporter = reporter.use({
+      name: 'xlsx-templates-to-assets-migration',
+      directory: __dirname,
+      main: './xlsxTemplatesToAssetsMigration.js',
+      options: {}
+    })
+
+    return reporter.init()
+  })
+
+  afterEach(() => reporter && reporter.close())
+
+  it('should convert xlsxTemplates to assets', async () => {
+    const xlsxTemplates = await reporter.documentStore.collection('xlsxTemplates').find({})
+
+    xlsxTemplates.length.should.be.eql(0)
+
+    const assets = await reporter.documentStore.collection('assets').find({})
+
+    assets.length.should.be.eql(1)
+
+    assets[0].name.should.be.eql('table-chart.xlsx')
+  })
+
+  it('should convert templates with .xlsxTemplate information', async () => {
+    const t1 = await reporter.documentStore.collection('templates').findOne({ name: 'test' })
+
+    should(t1.xlsxTemplates).be.not.ok()
+
+    const assets = await reporter.documentStore.collection('assets').find({})
+    assets.length.should.be.eql(1)
+
+    t1.xlsx.templateAssetShortid.should.be.eql(assets[0].shortid)
+  })
+
+  it('should convert templates with .baseXlsxTemplate information', async () => {
+    const t1 = await reporter.documentStore.collection('templates').findOne({ name: 'test2' })
+
+    should(t1.baseXlsxTemplate).be.not.ok()
+
+    const assets = await reporter.documentStore.collection('assets').find({})
+    assets.length.should.be.eql(1)
+
+    t1.htmlToXlsx.templateAssetShortid.should.be.eql(assets[0].shortid)
   })
 })
