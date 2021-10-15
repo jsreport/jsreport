@@ -30,6 +30,7 @@ const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
 const Monitoring = require('./monitoring')
 const migrateXlsxTemplatesToAssets = require('./migration/xlsxTemplatesToAssets')
+const migrateResourcesToAssets = require('./migration/resourcesToAssets')
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
@@ -231,6 +232,7 @@ class MainReporter extends Reporter {
       setupValidateId(this)
       setupValidateShortid(this)
 
+      this.initializeListeners.insert(0, 'core-resources-migration', () => migrateResourcesToAssets(this))
       this.initializeListeners.insert(0, 'core-xlsxTemplates-migration', () => migrateXlsxTemplatesToAssets(this))
 
       await this.initializeListeners.fire()

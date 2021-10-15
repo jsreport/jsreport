@@ -155,6 +155,10 @@ module.exports.getRootSchemaOptions = () => ({
       type: 'boolean',
       default: true
     },
+    migrateResourcesToAssets: {
+      type: 'boolean',
+      default: true
+    },
     profiler: {
       type: 'object',
       default: {},

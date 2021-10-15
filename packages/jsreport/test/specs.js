@@ -221,3 +221,94 @@ describe('xlsx templates to assets migration', () => {
     t1.htmlToXlsx.templateAssetShortid.should.be.eql(assets[0].shortid)
   })
 })
+
+describe('resources to assets migration', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      discover: false,
+      rootDirectory: path.join(__dirname, '../'),
+      loadConfig: false
+    })
+
+    for (const extName of jsreportExtensions) {
+      reporter = reporter.use(require(extName)())
+    }
+
+    reporter = reporter.use({
+      name: 'resources-to-assets-migration',
+      directory: __dirname,
+      main: './resourcesToAssetsMigration.js',
+      options: {}
+    })
+
+    return reporter.init()
+  })
+
+  afterEach(() => reporter && reporter.close())
+
+  it('should convert select data resources to assets', async () => {
+    const dataEntities = await reporter.documentStore.collection('data').find({})
+
+    dataEntities.length.should.be.eql(0)
+
+    const assets = await reporter.documentStore.collection('assets').find({})
+
+    assets.length.should.be.eql(2)
+
+    assets.should.matchEach((a) => a.name.should.endWith('.json'))
+  })
+
+  it('should remove resource information from template', async () => {
+    const t1 = await reporter.documentStore.collection('templates').findOne({ name: 'main' })
+    should(t1.resources).be.not.ok()
+  })
+
+  it('should contain script in template', async () => {
+    const t1 = await reporter.documentStore.collection('templates').findOne({ name: 'main' })
+    t1.scripts.should.have.length(1)
+  })
+
+  it('should expose resource information for back-compatibility', async () => {
+    const res = await reporter.render({
+      template: {
+        name: 'debug'
+      }
+    })
+
+    const parsed = JSON.parse(res.content.toString())
+
+    parsed.$resources.should.be.ok()
+    parsed.$resource.should.be.ok()
+    parsed.$localizedResources.should.be.ok()
+    parsed.$localizedResource.should.be.ok()
+  })
+
+  it('should continue to work when using options.language', async () => {
+    const res = await reporter.render({
+      template: {
+        name: 'main'
+      },
+      options: {
+        language: 'en'
+      }
+    })
+
+    const result = res.content.toString()
+    result.should.be.eql('Hello World')
+  })
+
+  it('should considered stored default language for back-compatibility', async () => {
+    // when no explicit language passed the script should contain the default language
+    // which in this case should match "de"
+    const res = await reporter.render({
+      template: {
+        name: 'main'
+      }
+    })
+
+    const result = res.content.toString()
+    result.should.be.eql('Hallo Welt')
+  })
+})

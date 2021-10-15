@@ -24,32 +24,32 @@ module.exports = async (reporter) => {
     const xlsxTemplateToAssetMap = new Map()
 
     for (const xlsxTemplate of xlsxTemplates) {
-      let newAsset
-      let tryCount = 0
+      if (!xlsxTemplateToAssetMap.has(xlsxTemplate.shortid)) {
+        let newAsset
+        let tryCount = 0
 
-      while (newAsset == null) {
-        try {
-          const assetName = `${'_'.repeat(tryCount) + xlsxTemplate.name}.xlsx`
+        while (newAsset == null) {
+          try {
+            const assetName = `${'_'.repeat(tryCount) + xlsxTemplate.name}.xlsx`
 
-          newAsset = await reporter.documentStore.collection('assets').insert({
-            name: assetName,
-            content: xlsxTemplate.contentRaw,
-            folder: xlsxTemplate.folder || null
-          }, req)
-        } catch (insertError) {
-          tryCount++
+            newAsset = await reporter.documentStore.collection('assets').insert({
+              name: assetName,
+              content: xlsxTemplate.contentRaw,
+              folder: xlsxTemplate.folder || null
+            }, req)
+          } catch (insertError) {
+            tryCount++
 
-          if (insertError.code === 'DUPLICATED_ENTITY') {
-            continue
-          } else {
-            throw insertError
+            if (insertError.code === 'DUPLICATED_ENTITY') {
+              continue
+            } else {
+              throw insertError
+            }
           }
         }
+
+        xlsxTemplateToAssetMap.set(xlsxTemplate.shortid, newAsset)
       }
-
-      xlsxTemplateToAssetMap.set(xlsxTemplate.shortid, newAsset.shortid)
-
-      await reporter.documentStore.collection('xlsxTemplates').remove({ _id: xlsxTemplate._id }, req)
     }
 
     const templates = await reporter.documentStore.collection('templates').find({}, req)
@@ -67,7 +67,7 @@ module.exports = async (reporter) => {
 
         if (xlsxTemplateRef.shortid != null && xlsxTemplateToAssetMap.has(xlsxTemplateRef.shortid)) {
           template.xlsx = template.xlsx || {}
-          template.xlsx.templateAssetShortid = xlsxTemplateToAssetMap.get(xlsxTemplateRef.shortid)
+          template.xlsx.templateAssetShortid = xlsxTemplateToAssetMap.get(xlsxTemplateRef.shortid).shortid
         }
       }
 
@@ -81,13 +81,17 @@ module.exports = async (reporter) => {
 
         if (baseXlsxTemplateRef.shortid != null && xlsxTemplateToAssetMap.has(baseXlsxTemplateRef.shortid)) {
           template.htmlToXlsx = template.htmlToXlsx || {}
-          template.htmlToXlsx.templateAssetShortid = xlsxTemplateToAssetMap.get(baseXlsxTemplateRef.shortid)
+          template.htmlToXlsx.templateAssetShortid = xlsxTemplateToAssetMap.get(baseXlsxTemplateRef.shortid).shortid
         }
       }
 
       if (continueUpdate) {
         await reporter.documentStore.collection('templates').update({ _id: template._id }, { $set: template }, req)
       }
+    }
+
+    for (const xlsxTemplate of xlsxTemplates) {
+      await reporter.documentStore.collection('xlsxTemplates').remove({ _id: xlsxTemplate._id }, req)
     }
 
     if (xlsxTemplates.length !== 0) {
