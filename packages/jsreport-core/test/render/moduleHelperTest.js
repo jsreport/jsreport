@@ -1,7 +1,7 @@
 require('should')
 const core = require('../../index')
 
-describe.only('moduleHelper test with allowLocalFileAccess true', () => {
+describe('moduleHelper test with allowLocalFileAccess true', () => {
   let reporter
 
   beforeEach(async () => {
@@ -38,7 +38,7 @@ describe.only('moduleHelper test with allowLocalFileAccess true', () => {
   })
 })
 
-describe.only('moduleHelper test with allow local files access false', () => {
+describe('moduleHelper test with allow local files access false', () => {
   let reporter
 
   beforeEach(async () => {
