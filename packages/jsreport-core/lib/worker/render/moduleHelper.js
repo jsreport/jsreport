@@ -12,6 +12,12 @@ module.exports = (reporter) => {
 
   reporter.extendProxy((proxy, req, { safeRequire }) => {
     proxy.module = async (module) => {
+      if (!reporter.options.allowLocalFilesAccess && reporter.options.sandbox.allowedModules !== '*') {
+        if (reporter.options.sandbox.allowedModules.indexOf(module) === -1) {
+          throw reporter.createError(`require of module ${module} was rejected. Either set allowLocalFilesAccess=true or sandbox.allowLocalModules='*' or sandbox.allowLocalModules=['${module}'] `, { status: 400 })
+        }
+      }
+
       const resolve = require('enhanced-resolve')
 
       const moduleResolve = resolve.create({
