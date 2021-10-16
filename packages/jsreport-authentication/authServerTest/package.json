@@ -1,0 +1,10 @@
+{
+  "name": "auth-server-test",
+  "version": "0.0.0",
+  "description": "Authorization Server used to test the OpenID integration in jsreport",
+  "private": true,
+  "main": "startAuthServer.js",
+  "dependencies": {
+    "oidc-provider": "7.7.0"
+  }
+}

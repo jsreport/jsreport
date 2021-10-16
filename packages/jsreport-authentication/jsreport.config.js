@@ -24,49 +24,73 @@ module.exports = {
           authorizationServer: {
             type: 'object',
             properties: {
-              tokenValidation: {
+              name: { type: 'string' },
+              issuer: { type: 'string' },
+              endpoints: {
                 type: 'object',
                 properties: {
-                  endpoint: { type: 'string' },
-                  timeout: { type: 'number' },
-                  sendAsJSON: { type: 'boolean' },
-                  hint: {
-                    oneOf: [{
-                      type: 'string'
-                    }, {
-                      type: 'object'
-                    }, {
-                      type: 'array',
-                      items: { type: 'object' }
-                    }]
-                  },
-                  usernameField: { type: 'string' },
-                  activeField: { type: 'string' },
+                  jwks: { type: 'string' },
+                  authorization: { type: 'string' },
+                  token: { type: 'string' },
+                  introspection: { type: 'string' },
+                  userinfo: { type: 'string' }
+                }
+              },
+              studioClient: {
+                clientId: { type: 'string' },
+                clientSecret: { type: 'string' },
+                authType: {
+                  type: 'string',
+                  enum: ['basic', 'post'],
+                  default: 'basic'
+                }
+              },
+              apiResource: {
+                clientId: { type: 'string' },
+                clientSecret: { type: 'string' },
+                authType: {
+                  type: 'string',
+                  enum: ['basic', 'post'],
+                  default: 'basic'
+                }
+              },
+              usernameField: { type: 'string', default: 'username' },
+              timeout: { type: 'number', default: 3500 },
+              authorizationRequest: {
+                type: 'object',
+                properties: {
                   scope: {
-                    type: 'object',
-                    properties: {
-                      field: { type: 'string' },
-                      valid: { type: 'array', items: { type: 'string' } }
-                    }
-                  },
-                  auth: {
-                    anyOf: [{
-                      type: 'boolean'
-                    }, {
-                      type: 'object',
-                      properties: {
-                        type: { type: 'string', enum: ['basic', 'bearer'] },
-                        basic: {
-                          type: 'object',
-                          properties: {
-                            clientId: { type: 'string' },
-                            clientSecret: { type: 'string' }
-                          }
-                        },
-                        bearer: { type: 'string' }
+                    anyOf: [
+                      {
+                        type: 'string',
+                        '$jsreport-constantOrArray': []
+                      },
+                      {
+                        type: 'array',
+                        items: { type: 'string' }
                       }
-                    }]
+                    ],
+                    default: ['openid', 'profile']
                   }
+                },
+                default: {}
+              },
+              introspectionRequest: {
+                type: 'object',
+                properties: {
+                  tokenValidScopes: {
+                    anyOf: [
+                      {
+                        type: 'string',
+                        '$jsreport-constantOrArray': []
+                      },
+                      {
+                        type: 'array',
+                        items: { type: 'string' }
+                      }
+                    ]
+                  },
+                  extraBody: { type: 'object' }
                 }
               }
             }
