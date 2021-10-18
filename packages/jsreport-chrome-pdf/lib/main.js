@@ -17,7 +17,7 @@ async function ensureMigrated (reporter) {
   reporter.logger.info('Migrating templates chrome settings (waitForNetworkIddle -> waitForNetworkIdle)')
   const templateIds = await reporter.documentStore.collection('templates').find({}, { _id: 1 })
   for (const id of templateIds) {
-    const template = await reporter.documentStore.collection('templates').find({ _id: id })
+    const template = await reporter.documentStore.collection('templates').findOne({ _id: id._id })
     let doUpdate = false
     if (template.chrome && template.chrome.waitForNetworkIddle != null) {
       template.chrome.waitForNetworkIdle = template.chrome.waitForNetworkIddle
