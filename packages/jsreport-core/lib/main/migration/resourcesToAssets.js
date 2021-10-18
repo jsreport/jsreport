@@ -1,7 +1,11 @@
 const Request = require('../../shared/request')
 
 module.exports = async (reporter) => {
-  if (reporter.options.migrateResourcesToAssets === false) {
+  if (
+    reporter.options.migrateResourcesToAssets === false ||
+    reporter.documentStore.collection('scripts') == null ||
+    reporter.documentStore.collection('data') == null
+  ) {
     return
   }
 

@@ -1,7 +1,11 @@
 const Request = require('../../shared/request')
 
 module.exports = async (reporter) => {
-  if (reporter.options.migrateXlsxTemplatesToAssets === false) {
+  if (
+    reporter.options.migrateXlsxTemplatesToAssets === false ||
+    reporter.documentStore.collection('xlsxTemplates') == null ||
+    reporter.documentStore.collection('assets') == null
+  ) {
     return
   }
 
