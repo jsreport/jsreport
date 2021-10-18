@@ -15,15 +15,17 @@ module.exports = async (reporter) => {
   await reporter.documentStore.beginTransaction(req)
 
   try {
-    const xlsxTemplates = await reporter.documentStore.collection('xlsxTemplates').find({}, req)
+    const xlsxTemplateIds = await reporter.documentStore.collection('xlsxTemplates').find({}, { _id: 1 }, req)
 
-    if (xlsxTemplates.length !== 0) {
+    if (xlsxTemplateIds.length !== 0) {
       reporter.logger.debug('Running migration "xlsxTemplatesToAssets"')
     }
 
     const xlsxTemplateToAssetMap = new Map()
 
-    for (const xlsxTemplate of xlsxTemplates) {
+    for (const xlsxTemplateId of xlsxTemplateIds) {
+      const xlsxTemplate = await reporter.documentStore.collection('xlsxTemplates').findOne({ _id: xlsxTemplateId._id }, req)
+
       if (!xlsxTemplateToAssetMap.has(xlsxTemplate.shortid)) {
         let newAsset
         let tryCount = 0
@@ -52,9 +54,10 @@ module.exports = async (reporter) => {
       }
     }
 
-    const templates = await reporter.documentStore.collection('templates').find({}, req)
+    const templateIds = await reporter.documentStore.collection('templates').find({}, { _id: 1 }, req)
 
-    for (const template of templates) {
+    for (const templateId of templateIds) {
+      const template = await reporter.documentStore.collection('templates').findOne({ _id: templateId._id }, req)
       let continueUpdate = false
 
       // handle jsreport-xlsx migration
@@ -90,11 +93,11 @@ module.exports = async (reporter) => {
       }
     }
 
-    for (const xlsxTemplate of xlsxTemplates) {
-      await reporter.documentStore.collection('xlsxTemplates').remove({ _id: xlsxTemplate._id }, req)
+    for (const xlsxTemplateId of xlsxTemplateIds) {
+      await reporter.documentStore.collection('xlsxTemplates').remove({ _id: xlsxTemplateId._id }, req)
     }
 
-    if (xlsxTemplates.length !== 0) {
+    if (xlsxTemplateIds.length !== 0) {
       reporter.logger.debug('Migration "xlsxTemplatesToAssets" finished')
     }
 

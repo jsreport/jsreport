@@ -15,9 +15,9 @@ module.exports = async (reporter) => {
   await reporter.documentStore.beginTransaction(req)
 
   try {
-    const templates = (await reporter.documentStore.collection('templates').find({}, req)).filter(t => t.resources != null)
+    const templateIds = await reporter.documentStore.collection('templates').find({}, { _id: 1 }, req)
 
-    if (templates.length !== 0) {
+    if (templateIds.length !== 0) {
       reporter.logger.debug('Running migration "resourcesToAssets"')
     }
 
@@ -25,7 +25,13 @@ module.exports = async (reporter) => {
     const dataToAssetMap = new Map()
     const dataEntitiesToRemove = []
 
-    for (const template of templates) {
+    for (const templateId of templateIds) {
+      const template = await reporter.documentStore.collection('templates').findOne({ _id: templateId._id }, req)
+
+      if (template.resources == null) {
+        continue
+      }
+
       if (Array.isArray(template.resources.items)) {
         for (const dataItem of template.resources.items) {
           const dataEntity = await reporter.documentStore.collection('data').findOne({ shortid: dataItem.shortid }, req)
@@ -156,7 +162,7 @@ async function beforeRender (req, res) {
       await reporter.documentStore.collection('data').remove({ _id: dataEntityId }, req)
     }
 
-    if (templates.length !== 0) {
+    if (templateIds.length !== 0) {
       reporter.logger.debug('Migration "resourcesToAssets" finished')
     }
 
