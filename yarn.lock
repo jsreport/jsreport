@@ -9436,10 +9436,10 @@ html-to-text@8.0.0:
     minimist "^1.2.5"
     selderee "^0.6.0"
 
-html-to-xlsx@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/html-to-xlsx/-/html-to-xlsx-2.1.0.tgz#0bce91a015807ee03d7ba435f68672cda58b669c"
-  integrity sha512-wF3zFzfSCLta7Qd6lu6nteqUC9x2dCIC3sRGdgK+cUXTRMwpQQ2CVzw0Os8aJTKAGir3pbhokFuK8juiOR0fPw==
+html-to-xlsx@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/html-to-xlsx/-/html-to-xlsx-2.2.0.tgz#000b68a3238082df4cc1b6657ed6eeae8f9d1d7b"
+  integrity sha512-16Wkw4ewxS2uY8kiPalyciU9Srub4JJytTrxTnKlZFx3c0Uy4+fZIaItDtnvGPPVCp6mPcEwZrh44FbquOUf5w==
   dependencies:
     jsreport-exceljs "3.8.0"
     moment "2.29.1"
