@@ -1,5 +1,4 @@
 require('should')
-const fs = require('fs/promises')
 const Reporter = require('@jsreport/jsreport-core')
 const isAssetPathValid = require('../lib/assetsShared').isAssetPathValid
 const request = require('supertest')
@@ -1332,46 +1331,6 @@ describe('assets with allowLocalFilesAccess', () => {
     })
     res.content.toString().should.be.eql('function')
   })
-
-  it('should expose handlebars assetModule helper and support encoding params', async () => {
-    const res = await reporter.render({
-      template: {
-        content: '{{assetModule "lodash" "base64"}}',
-        recipe: 'html',
-        engine: 'handlebars'
-      }
-    })
-
-    const lodashContent = await fs.readFile(require.resolve('lodash'))
-
-    res.content.toString().should.be.eql(lodashContent.toString('base64'))
-  })
-
-  it('should expose handlebars assetModule helper and have default utf8 encoding', async () => {
-    const res = await reporter.render({
-      template: {
-        content: '{{assetModule "lodash"}}',
-        recipe: 'html',
-        engine: 'handlebars'
-      }
-    })
-
-    const lodashContent = await fs.readFile(require.resolve('lodash'))
-
-    res.content.toString().should.be.eql(lodashContent.toString())
-  })
-
-  it('should throw error when assetModule can not find module', async () => {
-    const renderPromise = reporter.render({
-      template: {
-        content: '{{assetModule "lodash2"}}',
-        recipe: 'html',
-        engine: 'handlebars'
-      }
-    })
-
-    renderPromise.should.be.rejectedWith(/Asset module read error/)
-  })
 })
 
 describe('assets with express', function () {
@@ -1541,36 +1500,5 @@ describe('assets with express', function () {
       .expect(200)
 
     response.text.should.be.eql('http://localhost/reporting/assets/content/foo.html')
-  })
-})
-
-describe('assets with express with allowLocalFilesAccess', function () {
-  let reporter
-
-  beforeEach(() => {
-    reporter = Reporter({
-      rootDirectory: process.cwd(),
-      allowLocalFilesAccess: true
-    })
-      .use(require('@jsreport/jsreport-express')())
-      .use(require('../')())
-      .use(Reporter.tests.listeners())
-
-    return reporter.init()
-  })
-
-  afterEach(() => reporter.close())
-
-  it('/assets/content/lodash?module=true should return content with correct headers', async () => {
-    const lodashContent = await fs.readFile(require.resolve('lodash'))
-
-    return request(reporter.express.app)
-      .get('/assets/content/lodash?module=true')
-      .expect(200)
-      .expect('Content-Type', 'application/javascript')
-      .expect('Cache-Control', 'public, max-age=0')
-      .expect('Last-Modified', /.+/)
-      .expect('ETag', /.+/)
-      .expect(lodashContent.toString())
   })
 })

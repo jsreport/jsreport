@@ -7,12 +7,4 @@ async function asset (path, encoding) {
   return assetVal
 }
 
-async function assetModule (moduleName, encoding) {
-  encoding = typeof encoding === 'string' ? encoding : 'utf8'
-
-  const jsreport = require('jsreport-proxy')
-  const assetVal = await jsreport.assets.read(moduleName, encoding, true)
-  return assetVal
-}
-
 await require('jsreport-proxy').assets.evaluateShared()
