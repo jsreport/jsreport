@@ -14,8 +14,10 @@ async function ensureMigrated (reporter) {
     return
   }
 
-  const templates = await reporter.documentStore.collection('templates').find({})
-  for (const template of templates) {
+  reporter.logger.info('Migrating templates chrome settings (waitForNetworkIddle -> waitForNetworkIdle)')
+  const templateIds = await reporter.documentStore.collection('templates').find({}, { _id: 1 })
+  for (const id of templateIds) {
+    const template = await reporter.documentStore.collection('templates').find({ _id: id })
     let doUpdate = false
     if (template.chrome && template.chrome.waitForNetworkIddle != null) {
       template.chrome.waitForNetworkIdle = template.chrome.waitForNetworkIddle
@@ -32,6 +34,7 @@ async function ensureMigrated (reporter) {
   }
 
   await reporter.settings.addOrSet('chrome-network-idle-migrated', true)
+  reporter.logger.info('Migration successful')
 }
 
 module.exports = function (reporter, definition) {
