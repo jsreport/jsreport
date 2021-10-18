@@ -1,7 +1,6 @@
 const extend = require('node.extend.without.arrays')
 
 module.exports = (reporter) => {
-  reporter.addRequestContextMetaConfig('renderHierarchy', { sandboxHidden: true })
   reporter.addRequestContextMetaConfig('currentFolderPath', { sandboxReadOnly: true })
 
   reporter.beforeRenderListeners.add('templates', async (req, res) => {
@@ -34,12 +33,6 @@ module.exports = (reporter) => {
         weak: true,
         statusCode: 404
       })
-    }
-
-    req.context.renderHierarchy = req.context.renderHierarchy || []
-
-    if (template && template._id != null) {
-      req.context.renderHierarchy.push(template._id)
     }
 
     // store a copy to prevent side-effects

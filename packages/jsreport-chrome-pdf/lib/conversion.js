@@ -158,13 +158,12 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     page.setDefaultTimeout(timeout == null ? 0 : timeout)
 
     await page.exposeFunction('__getJsreportRequest__', (prop) => {
-      const getRequestContextForBrowser = ({ id, rootId, currentFolderPath, http, originalInputDataIsEmpty, renderHierarchy, reportCounter, startTimestamp }) => ({
+      const getRequestContextForBrowser = ({ id, rootId, currentFolderPath, http, originalInputDataIsEmpty, reportCounter, startTimestamp }) => ({
         id,
         rootId,
         currentFolderPath,
         http,
         originalInputDataIsEmpty,
-        renderHierarchy,
         reportCounter,
         startTimestamp
       })
