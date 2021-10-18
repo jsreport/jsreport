@@ -134,7 +134,7 @@ module.exports = (reporter, definition) => {
         const asset = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8' }, req)
 
         const functionNames = getTopLevelFunctions(asset.content.toString())
-        const userCode = `(() => { ${asset.content.toString()};
+        const userCode = `(async () => { ${asset.content.toString()};
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
             })()`
         await runInSandbox(userCode, {

@@ -1253,6 +1253,30 @@ describe('assets', function () {
       })
       res.content.toString().should.be.eql('foo')
     })
+
+    it('jsreport.assets.registerHelpers should support async scope inside', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.js',
+        content: `
+        const val = await new Promise((resolve) => setTimeout(() => resolve('foo'), 100))
+        function fn() {
+          return val
+        }`
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{{:~fn()}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          helpers: `
+            const jsreport = require('jsreport-proxy')
+            await jsreport.assets.registerHelpers('foo.js')
+          `
+        }
+      })
+      res.content.toString().should.be.eql('foo')
+    })
   })
 })
 
