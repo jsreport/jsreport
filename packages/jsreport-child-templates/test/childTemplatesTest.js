@@ -972,4 +972,30 @@ describe('childTemplates', () => {
     const res = await reporter.render(request)
     res.content.toString().should.be.eql('xxx')
   })
+
+  it('childTemplate call in templating engine ith relative path', async () => {
+    const folderA = await reporter.documentStore.collection('folders').insert({
+      name: 'folderA'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'child',
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 't1'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      content: '{{childTemplate "../t1"}}',
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 'main',
+      folder: {
+        shortid: folderA.shortid
+      }
+    })
+
+    const res = await reporter.render({ template: { name: 'main' } })
+    res.content.toString().should.be.eql('child')
+  })
 })

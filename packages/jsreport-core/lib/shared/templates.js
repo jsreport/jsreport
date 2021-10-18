@@ -33,7 +33,7 @@ async function resolveTemplate (reporter, req) {
     meta.field = 'name'
     meta.value = req.template.name
 
-    if (!req.template.name.startsWith('/') && nameIsPath) {
+    if (!req.template.name.startsWith('/') && nameIsPath && !req.context.currentFolderPath) {
       throw reporter.createError('Invalid template path, path should be absolute and start with "/"', {
         statusCode: 400,
         weak: true
@@ -43,7 +43,7 @@ async function resolveTemplate (reporter, req) {
     const pathParts = req.template.name.split('/').filter((p) => p)
 
     if (pathParts.length === 0) {
-      throw reporter.createError('Invalid template path, path should be absolute and target something', {
+      throw reporter.createError('Invalid template path,', {
         statusCode: 400,
         weak: true
       })
