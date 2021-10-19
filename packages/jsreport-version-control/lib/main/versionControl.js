@@ -6,9 +6,10 @@
 const bytes = require('bytes')
 const mimeTypes = require('mime-types')
 const omit = require('lodash.omit')
+const { customAlphabet } = require('nanoid')
 const DocumentModel = require('./documentModel')
 const sortVersions = require('../shared/sortVersions')
-const { customAlphabet } = require('nanoid')
+const migrateVersionControlProps = require('../migration/versionControlProps')
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter, options) => {
@@ -29,7 +30,9 @@ module.exports = (reporter, options) => {
 
   let documentModel
 
-  reporter.initializeListeners.add('version-control-get-model', () => {
+  reporter.initializeListeners.add('version-control-get-model', async () => {
+    await migrateVersionControlProps(reporter)
+
     documentModel = DocumentModel(reporter.documentStore.model)
 
     if (reporter.authorization) {

@@ -1,0 +1,17 @@
+{
+    "shortid": "N0m695T8CA",
+    "name": "a",
+    "recipe": "html",
+    "engine": "none",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1634674436648
+    },
+    "modificationDate": {
+        "$$date": 1634674498320
+    },
+    "_id": "mQCSeKzWTejDLtcJ",
+    "$entitySet": "templates"
+}

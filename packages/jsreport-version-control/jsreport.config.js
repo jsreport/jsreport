@@ -12,6 +12,10 @@ module.exports = {
   main: 'lib/main/main.js',
   worker: 'lib/worker/worker.js',
   optionsSchema: {
+    migrateVersionControlProps: {
+      type: 'boolean',
+      default: true
+    },
     versionControl: schema,
     extensions: {
       'version-control': schema

@@ -1,0 +1,17 @@
+{
+    "shortid": "fRdQxBHvuv",
+    "name": "b",
+    "recipe": "html",
+    "engine": "none",
+    "chrome": {
+        "printBackground": true
+    },
+    "creationDate": {
+        "$$date": 1634674461902
+    },
+    "modificationDate": {
+        "$$date": 1634674525425
+    },
+    "_id": "spfZahsuNUjsXYfu",
+    "$entitySet": "templates"
+}
