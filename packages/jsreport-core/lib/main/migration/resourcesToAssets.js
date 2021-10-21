@@ -47,7 +47,7 @@ module.exports = async (reporter) => {
               newAsset = dataToAssetMap.get(dataEntity._id)
             } else {
               newAsset = await insertUnique(reporter, 'assets', `${dataEntity.name}.json`, {
-                content: Buffer.from(dataEntity.dataJson),
+                content: Buffer.from(dataEntity.dataJson || ''),
                 folder: dataEntity.folder || null
               }, req)
 
@@ -81,6 +81,7 @@ module.exports = async (reporter) => {
 const jsreport = require('jsreport-proxy')
 
 async function beforeRender (req, res) {
+  req.options.language = req.options.language || req.template.localization?.language
   const defaultLanguage = ${template.resources.defaultLanguage != null ? '\'' + template.resources.defaultLanguage + '\'' : 'undefined'}
   const assetsResources = [${templateAssetResources.map(a => `{ name: '${a.originalName}', shortid: '${a.shortid}' }`).join(', ')}]
 
