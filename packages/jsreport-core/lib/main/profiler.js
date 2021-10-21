@@ -47,10 +47,11 @@ module.exports = (reporter) => {
     return emitProfiles(events, req)
   })
 
-  reporter.attachProfiler = (req) => {
+  reporter.attachProfiler = (req, profileMode) => {
     req.context = req.context || {}
     req.context.rootId = reporter.generateRequestId()
     req.context.profiling = {
+      mode: profileMode == null ? 'full' : profileMode,
       isAttached: true
     }
     const profiler = new EventEmitter()
@@ -79,7 +80,12 @@ module.exports = (reporter) => {
       const setting = await reporter.documentStore.collection('settings').findOne({ key: 'fullProfilerRunning' }, req)
       if (setting && JSON.parse(setting.value)) {
         req.context.profiling.isAttached = true
+        req.context.profiling.mode = 'full'
       }
+    }
+
+    if (req.context.profiling.mode == null) {
+      req.context.profiling.mode = 'standard'
     }
 
     const profile = await reporter.documentStore.collection('profiles').insert({
@@ -87,7 +93,7 @@ module.exports = (reporter) => {
       timestamp: new Date(),
       state: 'running',
       blobName,
-      fullRequestProfiling: req.context.profiling.isAttached
+      fullRequestProfiling: req.context.profiling.mode === 'full'
     }, req)
 
     req.context.profiling.entity = profile

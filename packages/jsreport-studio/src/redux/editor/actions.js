@@ -496,8 +496,18 @@ export function run (params = {}, opts = {}) {
       throw new Error(`Run template preview target type "${targetType}" is not supported`)
     }
 
+    let profilerMode = 'standard'
+
+    if (typeof opts.profilerMode === 'string') {
+      profilerMode = opts.profilerMode
+    }
+
+    if (profilerMode !== 'standard' && profilerMode !== 'full') {
+      throw new Error(`Run profilerMode "${profilerMode}" is not supported`)
+    }
+
     if (targetType === 'preview') {
-      profiling = opts.profiling != null ? opts.profiling : true
+      profiling = opts.profilerMode !== false
     } else {
       profiling = false
     }
@@ -547,6 +557,7 @@ export function run (params = {}, opts = {}) {
     try {
       await executeTemplateRender(request, {
         signal: renderController.signal,
+        profilerMode,
         onStart: () => {
           if (targetType === 'window') {
             previewWindow.focus()

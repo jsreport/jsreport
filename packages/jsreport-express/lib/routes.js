@@ -50,7 +50,7 @@ module.exports = (app, reporter, exposedOptions) => {
       form = new FormData()
       res.setHeader('Content-Type', `multipart/mixed; boundary=${form.getBoundary()}`)
 
-      profiler = reporter.attachProfiler(renderRequest)
+      profiler = reporter.attachProfiler(renderRequest, req.query.profilerMode)
 
       profiler.on('profile', (m) => {
         form.append(m.type, JSON.stringify(m), { contentType: 'application/json' })
@@ -122,7 +122,7 @@ module.exports = (app, reporter, exposedOptions) => {
    */
   app.post('/api/report/:name?', (req, res, next) => {
     const executeRender = () => {
-      if (req.query.profilerDebug === 'true') {
+      if (req.query.profilerMode === 'standard' || req.query.profilerMode === 'full') {
         reporter.express.streamRender(req.body, req, res, next)
       } else {
         reporter.express.render(req.body, req, res, next)

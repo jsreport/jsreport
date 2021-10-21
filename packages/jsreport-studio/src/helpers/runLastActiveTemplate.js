@@ -1,27 +1,19 @@
 import storeMethods from '../redux/methods'
 
-async function runLastActiveTemplate (targetOrProfiling) {
+async function runLastActiveTemplate (opts = {}) {
   storeMethods.progressStart()
 
   const params = {}
-  const opts = {}
+  const optsToUse = { ...opts }
 
-  if (typeof targetOrProfiling === 'string') {
-    opts.target = targetOrProfiling
-
-    if (opts.target === 'download') {
-      params.options = {
-        preview: false
-      }
+  if (optsToUse.target === 'download') {
+    params.options = {
+      preview: false
     }
-  } else if (typeof targetOrProfiling === 'boolean') {
-    opts.profiling = targetOrProfiling
-  } else {
-    opts.profiling = true
   }
 
   try {
-    await storeMethods.run(params, opts)
+    await storeMethods.run(params, optsToUse)
   } finally {
     storeMethods.progressStop()
   }

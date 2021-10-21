@@ -18,7 +18,14 @@ const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
 class Toolbar extends Component {
   constructor () {
     super()
-    this.state = {}
+
+    this.state = {
+      activeRunAction: 'run',
+      saving: false,
+      expandedRun: false,
+      expandedSettings: false
+    }
+
     this.handleUpdate = this.handleUpdate.bind(this)
     this.handleRun = this.handleRun.bind(this)
     this.handleStopRun = this.handleStopRun.bind(this)
@@ -32,6 +39,33 @@ class Toolbar extends Component {
     this.runMenuContainerRef = React.createRef()
     this.settingsMenuTriggerRef = React.createRef()
     this.settingsMenuContainerRef = React.createRef()
+
+    this.runActions = {
+      run: {
+        title: 'Run',
+        icon: 'play',
+        description: 'Run and preview report',
+        action: () => {
+          this.handleRun()
+        }
+      },
+      runFullProfile: {
+        title: 'Run (full profile)',
+        icon: 'play-circle',
+        description: 'Run with full profiling enabled',
+        action: () => {
+          this.handleRun({ profilerMode: 'full' })
+        }
+      },
+      download: {
+        title: 'Download',
+        icon: 'download',
+        description: 'Run and download output',
+        action: () => {
+          this.handleRun({ target: 'download' })
+        }
+      }
+    }
   }
 
   componentDidMount () {
@@ -52,8 +86,8 @@ class Toolbar extends Component {
     return this.props.update(...params)
   }
 
-  handleRun (targetOrProfiling) {
-    runLastActiveTemplate(targetOrProfiling)
+  handleRun (opts = {}) {
+    runLastActiveTemplate(opts)
   }
 
   handleStopRun () {
@@ -77,13 +111,16 @@ class Toolbar extends Component {
     }
 
     if (e.which === 119 && this.props.canRun) {
+      const { activeRunAction } = this.state
+      const activeRunActionInfo = this.runActions[activeRunAction]
+
       e.preventDefault()
       e.stopPropagation()
 
       if (this.props.templateRunning != null) {
         this.handleStopRun()
       } else {
-        this.handleRun()
+        activeRunActionInfo.action()
       }
 
       return false
@@ -197,12 +234,33 @@ class Toolbar extends Component {
   }
 
   renderRun () {
+    const { activeRunAction } = this.state
     const { templateRunning, canRun } = this.props
+    const activeRunActionInfo = this.runActions[activeRunAction]
+
+    const subRunActions = []
+
+    Object.keys(this.runActions).forEach((action) => {
+      if (action === activeRunAction) {
+        return
+      }
+
+      const runActionInfo = this.runActions[action]
+
+      subRunActions.push((itemProps) => (
+        this.renderButton((e) => {
+          e.stopPropagation()
+          itemProps.closeMenu()
+          this.setState({ activeRunAction: action })
+          runActionInfo.action()
+        }, canRun, runActionInfo.title, `fa fa-${runActionInfo.icon}`, runActionInfo.description)
+      ))
+    })
 
     return (
       <div
         ref={this.runMenuTriggerRef}
-        title='Preview report in the right pane (F8)'
+        title={`${activeRunActionInfo.description} (F8)`}
         className={'toolbar-button ' + (canRun ? '' : 'disabled')}
         onClick={() => {
           if (!canRun) {
@@ -212,13 +270,13 @@ class Toolbar extends Component {
           if (templateRunning != null) {
             this.handleStopRun()
           } else {
-            this.handleRun()
+            activeRunActionInfo.action()
           }
 
           this.setState({ expandedRun: false })
         }}
       >
-        <i className={`fa fa-${templateRunning != null ? 'stop' : 'play'}`} />{templateRunning != null ? 'Stop' : 'Run'}
+        <i className={`fa fa-${templateRunning != null ? 'stop' : activeRunActionInfo.icon}`} />{templateRunning != null ? 'Stop' : activeRunActionInfo.title}
         <span
           className={style.runCaret}
           onClick={this.handleRunMenuTrigger}
@@ -235,17 +293,9 @@ class Toolbar extends Component {
             }
 
             return (
+              // eslint-disable-next-line react/jsx-fragments
               <Fragment>
-                {this.renderButton((e) => {
-                  e.stopPropagation()
-                  itemProps.closeMenu()
-                  this.handleRun(false)
-                }, canRun, 'Run without profiling', 'fa fa-play-circle', 'Preview in new tab')}
-                {this.renderButton((e) => {
-                  e.stopPropagation()
-                  itemProps.closeMenu()
-                  this.handleRun('download')
-                }, canRun, 'Download', 'fa fa-download', 'Download output')}
+                {subRunActions.map((fn) => fn(itemProps))}
               </Fragment>
             )
           }}

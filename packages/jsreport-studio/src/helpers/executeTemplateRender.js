@@ -7,17 +7,17 @@ export default async function (request, options) {
   request.template.content = request.template.content || ' '
 
   request.options = request.options || {}
-  request.options.preview = request.options.preview != null ? request.options.preview :  true
+  request.options.preview = request.options.preview != null ? request.options.preview : true
 
   await streamRender(request, options)
 }
 
-async function streamRender (request, { signal, onStart, onFiles } = {}) {
+async function streamRender (request, { signal, profilerMode = 'standard', onStart, onFiles } = {}) {
   const templateName = request.template.name
 
   let url = templateName ? resolveUrl(`/api/report/${encodeURIComponent(templateName)}`) : resolveUrl('/api/report')
 
-  url = `${url}?profilerDebug=true`
+  url = `${url}?profilerMode=${profilerMode}`
 
   try {
     const template = Object.keys(request.template).reduce((acu, templateProp) => {
