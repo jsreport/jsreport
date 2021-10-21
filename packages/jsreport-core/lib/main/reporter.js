@@ -31,10 +31,15 @@ const Profiler = require('./profiler')
 const Monitoring = require('./monitoring')
 const migrateXlsxTemplatesToAssets = require('./migration/xlsxTemplatesToAssets')
 const migrateResourcesToAssets = require('./migration/resourcesToAssets')
+const semver = require('semver')
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
     super(options)
+
+    if (!semver.satisfies(process.versions.node, '>=16.11.0')) {
+      throw this.createError('jsreport needs at least node 16.11.0 to run.')
+    }
 
     this.defaults = defaults || {}
     this._fnAfterConfigLoaded = () => {}
