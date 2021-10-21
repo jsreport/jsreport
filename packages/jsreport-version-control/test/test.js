@@ -18,7 +18,7 @@ describe('version control', () => {
     jsreport.versionControl.commit = (...args) => new Promise((resolve) => setTimeout(resolve, 3)).then(() => old(...args))
   })
 
-  afterEach(() => jsreport.close())
+  afterEach(() => jsreport && jsreport.close())
 
   common(() => jsreport)
 
@@ -141,5 +141,56 @@ describe('version control', () => {
 
     const asset = await jsreport.documentStore.collection('assets').findOne({ name: 'foo' }, req)
     should(asset.content).be.null()
+  })
+})
+
+describe.only('version control props migration', () => {
+  let jsreport
+
+  beforeEach(async () => {
+    jsreport = JsReport()
+    jsreport.use(require('@jsreport/jsreport-data')())
+    jsreport.use(require('@jsreport/jsreport-chrome-pdf')())
+    jsreport.use(require('@jsreport/jsreport-assets')())
+    jsreport.use(require('../')())
+
+    jsreport.use({
+      name: 'version-control-props-migration',
+      directory: __dirname,
+      main: './versionControlPropsMigration.js',
+      options: {}
+    })
+
+    await jsreport.init()
+  })
+
+  afterEach(() => jsreport && jsreport.close())
+
+  it('should remove old props for version', async () => {
+    const versions = await jsreport.documentStore.collection('versions').find({})
+
+    versions.should.matchEach((v) => {
+      should(v.changes).be.not.ok()
+    })
+  })
+
+  it('should convert version to new props', async () => {
+    const versions = await jsreport.documentStore.collection('versions').find({})
+
+    versions.should.matchEach((v) => {
+      should(v.blobName).be.ok()
+    })
+  })
+
+  it('should create blob attached to version', async () => {
+    const versions = await jsreport.documentStore.collection('versions').find({})
+    const blobsFound = []
+
+    for (const version of versions) {
+      const blob = await jsreport.blobStorage.read(version.blobName)
+      blobsFound.push(blob != null)
+    }
+
+    blobsFound.should.matchEach((v) => should(v).be.eql(true))
   })
 })
