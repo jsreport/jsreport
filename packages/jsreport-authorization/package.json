@@ -33,7 +33,7 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.0.0-beta.2",
+    "@jsreport/jsreport-core": "3.0.0",
     "@jsreport/jsreport-fs-store": "3.0.0-beta.1",
     "@jsreport/studio-dev": "3.0.0-beta.2",
     "mocha": "5.2.0",
