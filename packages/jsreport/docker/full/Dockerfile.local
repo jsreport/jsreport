@@ -21,7 +21,7 @@ RUN apt-get update && \
     # install latest chrome just to get package deps installed
     apt-get install -y lsb-release libappindicator3-1 google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst --no-install-recommends && \
     # then replace that chrome with specific chrome version, see https://github.com/webnicer/chrome-downloads for available versions
-    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_91.0.4472.101-1_amd64.deb && \
+    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_93.0.4577.82-1_amd64.deb && \
     dpkg -i ./google-chrome*.deb && \
     rm google-chrome*.deb && \
     # unoconv
@@ -43,7 +43,7 @@ RUN chmod g+s /jsreport
 VOLUME ["/jsreport"]
 
 # node
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs
 
 WORKDIR /app

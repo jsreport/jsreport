@@ -1,4 +1,4 @@
-FROM node:14.17.4-alpine3.14
+FROM node:16.11.0-alpine3.14
 EXPOSE 5488
 USER root
 
@@ -38,7 +38,7 @@ RUN apk update --no-cache && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=91.0.4472.164-r0 \
+    chromium@edge=93.0.4577.82-r2 \
     nss@edge \
     freetype@edge \
     harfbuzz@edge \

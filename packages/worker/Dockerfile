@@ -15,7 +15,7 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     # install latest chrome just to get package deps installed
     apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst --no-install-recommends && \
     # then replace that chrome with specific chrome version, see https://github.com/webnicer/chrome-downloads for available versions
-    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_79.0.3945.130-1_amd64.deb && \
+    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_93.0.4577.82-1_amd64.deb && \
     dpkg -i ./google-chrome*.deb && \
     rm google-chrome*.deb && \
     # cleanup
@@ -29,7 +29,7 @@ RUN rm -rf /tmp/*
 USER jsreport:jsreport
 
 ENV NVM_DIR /home/jsreport/.nvm
-ENV NODE_VERSION 14.17.4
+ENV NODE_VERSION 16.11.1
 
 # node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && \

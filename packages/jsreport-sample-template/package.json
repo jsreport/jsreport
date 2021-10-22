@@ -44,7 +44,7 @@
     "@jsreport/studio-dev": "3.0.0-beta.2",
     "@jsreport/jsreport-xlsx": "3.0.0-beta.1",
     "mocha": "7.0.1",
-    "puppeteer": "9.1.1",
+    "puppeteer": "10.4.0",
     "rimraf": "^3.0.2",
     "should": "13.2.3",
     "standard": "16.0.3"

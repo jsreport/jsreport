@@ -37,7 +37,7 @@
     "@jsreport/jsreport-scripts": "3.0.0-beta.1",
     "mocha": "8.3.2",
     "parse-pdf": "1.0.0",
-    "puppeteer": "9.1.1",
+    "puppeteer": "10.4.0",
     "should": "13.2.3",
     "standard": "16.0.3"
   },
