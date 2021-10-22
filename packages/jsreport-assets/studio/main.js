@@ -1122,7 +1122,7 @@ var AssetEditor = function (_Component) {
             { text: embeddingCode },
             _react2.default.createElement(
               'a',
-              { className: 'button confirmation', title: 'Coppy the embedding code to clipboard' },
+              { className: 'button confirmation', title: 'Copy the embedding code to clipboard' },
               _react2.default.createElement('i', { className: 'fa fa-clipboard' })
             )
           ),

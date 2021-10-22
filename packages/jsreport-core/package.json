@@ -32,8 +32,8 @@
     "@babel/code-frame": "7.12.13",
     "@babel/parser": "7.14.4",
     "@babel/traverse": "7.12.9",
+    "@jsreport/advanced-workers": "1.1.0",
     "@jsreport/mingo": "2.4.1",
-    "@jsreport/advanced-workers": "1.0.0",
     "ajv": "6.12.6",
     "app-root-path": "2.0.1",
     "async-replace": "1.0.1",
@@ -64,7 +64,7 @@
     "unset-value": "1.0.0",
     "uuid": "8.3.2",
     "v8-compile-cache": "*",
-    "vm2": "3.9.2",
+    "vm2": "3.9.5",
     "winston": "3.3.3",
     "winston-transport": "4.4.0"
   },

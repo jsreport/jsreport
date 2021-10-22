@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-studio-theme-dark",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "dark theme for jsreport studio",
   "keywords": [
     "jsreport",
@@ -40,7 +40,7 @@
     "test": "standard"
   },
   "devDependencies": {
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/studio-dev": "3.0.0",
     "standard": "16.0.3"
   },
   "engines": {

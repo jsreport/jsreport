@@ -53,21 +53,21 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 RUN npm i -g @jsreport/jsreport-cli@beta
 RUN jsreport init beta
 
-RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0-beta.1 \
-    @jsreport/jsreport-pug@4.0.0-beta.1 \
-    @jsreport/jsreport-aws-s3-storage@3.0.0-beta.1 \
-    @jsreport/jsreport-azure-storage@3.0.0-beta.1 \    
-    @jsreport/jsreport-docxtemplater@3.0.0-beta.1 \
-    @jsreport/jsreport-mssql-store@3.0.0-beta.1 \
-    @jsreport/jsreport-oracle-store@3.0.0-beta.1 \
-    @jsreport/jsreport-postgres-store@3.0.0-beta.1 \
-    @jsreport/jsreport-mongodb-store@3.0.0-beta.1 \
-    @jsreport/jsreport-office-password@3.0.0-beta.1 \
-    @jsreport/jsreport-html-to-text@3.0.0-beta.3 \
-    @jsreport/jsreport-html-embedded-in-docx@3.0.0-beta.1 \
-    @jsreport/jsreport-fs-store-aws-s3-persistence@3.0.0-beta.1 \
-    @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0-beta.1 \
-    @jsreport/jsreport-unoconv@3.0.0-beta.1 \
+RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0 \
+    @jsreport/jsreport-pug@4.0.0 \
+    @jsreport/jsreport-aws-s3-storage@3.0.0 \
+    @jsreport/jsreport-azure-storage@3.0.0 \
+    @jsreport/jsreport-docxtemplater@3.0.0 \
+    @jsreport/jsreport-mssql-store@3.0.0 \
+    @jsreport/jsreport-oracle-store@3.0.0 \
+    @jsreport/jsreport-postgres-store@3.0.0 \
+    @jsreport/jsreport-mongodb-store@3.0.0 \
+    @jsreport/jsreport-office-password@3.0.0 \
+    @jsreport/jsreport-html-to-text@3.0.0 \
+    @jsreport/jsreport-html-embedded-in-docx@3.0.0 \
+    @jsreport/jsreport-fs-store-aws-s3-persistence@3.0.0 \
+    @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0 \
+    @jsreport/jsreport-unoconv@3.0.0 \
     cheerio-page-eval@1.0.0
 
 RUN npm uninstall -g @jsreport/jsreport-cli@beta && \

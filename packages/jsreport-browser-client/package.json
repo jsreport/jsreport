@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-browser-client",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport browser client",
   "keywords": [
     "jsreport"
@@ -28,13 +28,13 @@
     "test": "mocha test --timeout 5000&&standard"
   },
   "dependencies": {
-    "@jsreport/browser-client": "3.0.0-beta.1"
+    "@jsreport/browser-client": "3.0.0"
   },
   "devDependencies": {
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/studio-dev": "3.0.0",
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/jsreport-express": "3.0.0-beta.1",
-    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
+    "@jsreport/jsreport-express": "3.0.0",
+    "@jsreport/jsreport-handlebars": "3.0.0",
     "mocha": "9.1.2",
     "puppeteer": "10.4.0",
     "should": "13.2.3",

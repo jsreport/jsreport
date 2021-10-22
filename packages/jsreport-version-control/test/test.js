@@ -144,7 +144,7 @@ describe('version control', () => {
   })
 })
 
-describe.only('version control props migration', () => {
+describe('version control props migration', () => {
   let jsreport
 
   beforeEach(async () => {

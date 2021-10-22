@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-base",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport extension automatically adding html base tag",
   "keywords": [
     "jsreport",

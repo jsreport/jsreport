@@ -33,3 +33,5 @@ node_modules
 
 # samples.json
 samples/settings
+samples/fs.journal
+samples/fs.version

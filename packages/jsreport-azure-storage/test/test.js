@@ -15,7 +15,7 @@ describe('azure storage', () => {
     })).init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   jsreport.tests.blobStorage()(() => reporter.blobStorage)
 })

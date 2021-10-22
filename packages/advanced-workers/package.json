@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/advanced-workers",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "license": "MIT",
   "author": "",
@@ -24,6 +24,9 @@
     "mocha": "8.2.1",
     "should": "13.2.3",
     "standard": "16.0.3"
+  },
+  "engines": {
+    "node": ">=16.11"
   },
   "standard": {
     "env": {

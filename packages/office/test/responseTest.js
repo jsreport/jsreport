@@ -1,7 +1,7 @@
 require('should')
 const response = require('../lib/response')
 
-describe('respose', () => {
+describe('response', () => {
   it('should return iframe for preview', async () => {
     const req = {
       options: {

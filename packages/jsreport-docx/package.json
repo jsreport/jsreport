@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docx",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport recipe rendering docx files",
   "keywords": [
     "jsreport",
@@ -34,22 +34,22 @@
     "test": "mocha test --timeout 20000 && standard"
   },
   "dependencies": {
-    "axios": "0.21.1",
+    "@jsreport/office": "3.0.0",
+    "@xmldom/xmldom": "0.7.0",
+    "axios": "0.24.0",
     "image-size": "0.7.4",
     "js-excel-date-convert": "1.0.2",
-    "@jsreport/office": "3.0.0-beta.1",
     "moment": "2.29.1",
     "semaphore-async-await": "1.5.1",
     "string-replace-async": "2.0.0",
-    "unescape": "1.0.1",
-    "@xmldom/xmldom": "0.7.0"
+    "unescape": "1.0.1"
   },
   "devDependencies": {
-    "handlebars": "4.7.7",
-    "@jsreport/jsreport-assets": "3.0.0-beta.1",
+    "@jsreport/jsreport-assets": "3.0.0",
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/jsreport-handlebars": "3.0.0",
+    "@jsreport/studio-dev": "3.0.0",
+    "handlebars": "4.7.7",
     "mocha": "6.1.4",
     "nock": "11.7.2",
     "should": "13.2.3",

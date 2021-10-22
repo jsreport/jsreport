@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/browser-client",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport browser client standalone distribution",
   "keywords": [
     "jsreport"
@@ -24,17 +24,17 @@
   "scripts": {
     "build": "microbundle",
     "watch": "microbundle watch",
-    "test": "mocha test --timeout 10000",
+    "test": "mocha test --timeout 10000 && standard",
     "pretest": "npm run build"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "3.0.0-beta.1",
+    "@jsreport/jsreport-authentication": "3.0.0",
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/jsreport-chrome-pdf": "3.0.0-beta.1",
-    "@jsreport/jsreport-express": "3.0.0-beta.1",
+    "@jsreport/jsreport-chrome-pdf": "3.0.0",
+    "@jsreport/jsreport-express": "3.0.0",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-node-resolve": "13.0.5",
     "file-saver": "2.0.5",

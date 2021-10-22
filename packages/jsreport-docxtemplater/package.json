@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docxtemplater",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport recipe using docxtemplater to create docx files",
   "keywords": [
     "jsreport",
@@ -32,14 +32,14 @@
     "test": "mocha test --timeout 8000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "3.0.0-beta.1",
+    "@jsreport/office": "3.0.0",
     "docxtemplater": "3.16.11",
     "jszip": "2.6.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.0.0-beta.1",
+    "@jsreport/jsreport-assets": "3.0.0",
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/studio-dev": "3.0.0",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "16.0.3",

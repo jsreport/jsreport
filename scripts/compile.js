@@ -195,38 +195,3 @@ function getResolutionsForDuplicatedPackages () {
     'memory-fs': '0.5.0'
   }
 }
-
-function getExtensionsList () {
-  return [
-    'assets',
-    'authentication',
-    'authorization',
-    'base',
-    'components',
-    'child-templates',
-    'chrome-pdf',
-    'cli',
-    'core',
-    'data',
-    'docx',
-    'express',
-    'freeze',
-    'fs-store',
-    'handlebars',
-    'html-to-xlsx',
-    'import-export',
-    'jsrender',
-    'pdf-utils',
-    'puppeteer-compile',
-    'pptx',
-    'reports',
-    'sample-template',
-    'scheduling',
-    'scripts',
-    'studio',
-    'studio-theme-dark',
-    'text',
-    'version-control',
-    'xlsx'
-  ]
-}

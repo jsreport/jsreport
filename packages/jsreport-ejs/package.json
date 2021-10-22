@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-ejs",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport ejs templating engine",
   "keywords": [
     "jsreport",
@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/studio-dev": "3.0.0",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "16.0.3"

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-html-embedded-in-docx",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport recipe embedding output html into the docx",
   "keywords": [
     "jsreport",
@@ -24,14 +24,14 @@
     "test": "mocha test --timeout 15000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "3.0.0-beta.1",
+    "@jsreport/office": "3.0.0",
     "html-docx-js": "0.3.1",
     "juice": "5.2.0",
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/studio-dev": "3.0.0",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "16.0.3"

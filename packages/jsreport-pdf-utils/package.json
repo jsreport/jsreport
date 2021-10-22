@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pdf-utils",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "jsreport extension providing pdf operations like merge or concatenation",
   "keywords": [
     "jsreport",
@@ -31,8 +31,8 @@
     "test-full": "set DEBUG=jsreport&&set TEST_FULL=true&& mocha test --timeout=20000 && standard"
   },
   "dependencies": {
+    "@jsreport/pdfjs": "0.6.0",
     "cheerio": "0.22.0",
-    "@jsreport/pdfjs": "0.5.4",
     "lodash.omit": "4.5.0",
     "nanoid": "3.1.12",
     "node-forge": "0.10.0",
@@ -42,15 +42,15 @@
     "pdfjs-dist": "2.0.489"
   },
   "devDependencies": {
-    "handlebars": "4.7.7",
-    "@jsreport/jsreport-assets": "3.0.0-beta.1",
-    "@jsreport/jsreport-child-templates": "3.0.0-beta.1",
-    "@jsreport/jsreport-chrome-pdf": "3.0.0-beta.1",
+    "@jsreport/jsreport-assets": "3.0.0",
+    "@jsreport/jsreport-child-templates": "3.0.0",
+    "@jsreport/jsreport-chrome-pdf": "3.0.0",
     "@jsreport/jsreport-core": "3.0.0",
-    "@jsreport/jsreport-handlebars": "3.0.0-beta.1",
-    "@jsreport/jsreport-jsrender": "3.0.0-beta.1",
-    "@jsreport/jsreport-scripts": "3.0.0-beta.1",
-    "@jsreport/studio-dev": "3.0.0-beta.2",
+    "@jsreport/jsreport-handlebars": "3.0.0",
+    "@jsreport/jsreport-jsrender": "3.0.0",
+    "@jsreport/jsreport-scripts": "3.0.0",
+    "@jsreport/studio-dev": "3.0.0",
+    "handlebars": "4.7.7",
     "mocha": "8.2.1",
     "puppeteer": "10.4.0",
     "rimraf": "2.6.3",
