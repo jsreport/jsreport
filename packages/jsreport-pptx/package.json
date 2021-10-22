@@ -49,7 +49,7 @@
     "textract": "2.5.0"
   },
   "engines": {
-    "node": ">=14.17"
+    "node": ">=16.11"
   },
   "standard": {
     "ignore": [

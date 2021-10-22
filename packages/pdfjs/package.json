@@ -35,7 +35,7 @@
     "url": "git://github.com/rkusa/pdfjs.git"
   },
   "engines": {
-    "node": ">=7"
+    "node": ">=16.11"
   },
   "types": "./types/main.d.ts"
 }

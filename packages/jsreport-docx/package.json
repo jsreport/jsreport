@@ -57,7 +57,7 @@
     "word-extractor": "1.0.4"
   },
   "engines": {
-    "node": ">=14.17"
+    "node": ">=16.11"
   },
   "standard": {
     "ignore": [

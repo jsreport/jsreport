@@ -16,7 +16,7 @@
     "url": "git@github.com:jsreport/jsreport-phantom-image.git"
   },
   "engines": {
-    "node": ">=14.17"
+    "node": ">=16.11"
   },
   "standard": {
     "ignore": [
