@@ -260,7 +260,7 @@ class AssetEditor extends Component {
           </h3>
           {embeddingCode !== '' && (
             <CopyToClipboard text={embeddingCode}>
-              <a className='button confirmation' title='Coppy the embedding code to clipboard'>
+              <a className='button confirmation' title='Copy the embedding code to clipboard'>
                 <i className='fa fa-clipboard' />
               </a>
             </CopyToClipboard>
