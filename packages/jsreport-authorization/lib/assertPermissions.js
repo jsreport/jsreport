@@ -76,7 +76,7 @@ async function authorizeInsert (doc, collection, req) {
 }
 
 function defaultAuth (collection, req) {
-  if (collection.name === 'settings') {
+  if (collection.name === 'settings' || collection.name === 'profiles' || collection.name === 'monitoring') {
     return true
   }
 
