@@ -37,7 +37,7 @@ module.exports = (reporter, definition) => {
 
   reporter.initializeListeners.add(definition.name, () => {
     Object.entries(reporter.documentStore.collections).forEach(([key, col]) => {
-      if (key === 'settings' || key === 'tasks' || key === 'reports') {
+      if (key === 'settings' || key === 'tasks' || key === 'profiles' || key === 'monitoring' || key === 'reports') {
         return
       }
 

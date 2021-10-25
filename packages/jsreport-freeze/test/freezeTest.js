@@ -1,4 +1,4 @@
-require('should')
+const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 
 describe('freeze', () => {
@@ -10,7 +10,7 @@ describe('freeze', () => {
     return reporter.init()
   })
 
-  it('should allow iserts in default', async () => {
+  it('should allow inserts in default', async () => {
     return reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' })
   })
 
@@ -24,7 +24,7 @@ describe('freeze', () => {
     return reporter.documentStore.collection('templates').remove({ name: 'foo' })
   })
 
-  it('should block iserts in freeze', async () => {
+  it('should block inserts in freeze', async () => {
     await reporter.settings.addOrSet('freeze', true)
     return reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }).should.be.rejectedWith(/frozen/)
   })
@@ -40,6 +40,13 @@ describe('freeze', () => {
     await reporter.settings.addOrSet('freeze', true)
     return reporter.documentStore.collection('templates').remove({ name: 'foo' }).should.be.rejectedWith(/frozen/)
   })
+
+  it('render should continue to work when freeze is enabled', async () => {
+    await reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' })
+    await reporter.settings.addOrSet('freeze', true)
+
+    return should(reporter.render({ template: { name: 'foo' } })).not.be.rejected()
+  })
 })
 
 describe('freeze with hardFreeze', () => {
@@ -53,5 +60,9 @@ describe('freeze with hardFreeze', () => {
 
   it('should block insert', async () => {
     return reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }).should.be.rejectedWith(/frozen/)
+  })
+
+  it('render should continue to work when freeze is enabled', async () => {
+    return should(reporter.render({ template: { content: 'foo', engine: 'none', recipe: 'html' } })).not.be.rejected()
   })
 })
