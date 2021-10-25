@@ -11,56 +11,59 @@ const { nanoid } = require('nanoid')
 module.exports = (reporter) => {
   const cache = LRU(reporter.options.sandbox.cache || { max: 100 })
   reporter.templatingEngines = { cache }
+  const executionFnParsedParamsMap = new Map()
+
+  reporter.extendProxy((proxy, req, {
+    runInSandbox,
+    context,
+    getTopLevelFunctions
+  }) => {
+    proxy.templatingEngines = {
+      evaluate: async ({ engine, content, helpers, data }, { entity, entitySet }) => {
+        const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
+
+        if (!engine) {
+          throw reporter.createError(`Engine '${engine}' not found. If this is a custom engine make sure it's properly installed from npm`, {
+            statusCode: 400
+          })
+        }
+
+        const res = await executeEngine({
+          engine: engineImpl,
+          content,
+          helpers,
+          systemHelpers: req.context.systemHelpers,
+          data
+        }, { handleErrors: false, entity, entitySet }, req)
+        return res.content
+      }
+    }
+  })
 
   return async (engine, req) => {
-    const executionFnParsedParamsMap = new Map()
-
-    reporter.extendProxy((proxy, req, {
-      runInSandbox,
-      context,
-      getTopLevelFunctions
-    }) => {
-      proxy.templatingEngines = {
-        evaluate: async ({ engine, content, helpers, data }, { entity, entitySet }) => {
-          const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
-
-          if (!engine) {
-            throw reporter.createError(`Engine '${engine}' not found. If this is a custom engine make sure it's properly installed from npm`, {
-              statusCode: 400
-            })
-          }
-
-          const res = await executeEngine({
-            engine: engineImpl,
-            content,
-            helpers,
-            systemHelpers: req.context.systemHelpers,
-            data
-          }, { executionFnParsedParamsMap, handleErrors: false, entity, entitySet }, req)
-          return res.content
-        }
-      }
-    })
-
+    executionFnParsedParamsMap.set(req.context.id, new Map())
     req.data.__appDirectory = reporter.options.appDirectory
     req.data.__rootDirectory = reporter.options.rootDirectory
     req.data.__parentModuleDirectory = reporter.options.parentModuleDirectory
 
-    return executeEngine({
-      engine,
-      content: req.template.content,
-      helpers: req.template.helpers,
-      systemHelpers: req.context.systemHelpers,
-      data: req.data
-    }, {
-      executionFnParsedParamsMap,
-      handleErrors: true,
-      entity: req.template,
-      entitySet: 'templates'
-    }, req)
+    try {
+      return await executeEngine({
+        engine,
+        content: req.template.content,
+        helpers: req.template.helpers,
+        systemHelpers: req.context.systemHelpers,
+        data: req.data
+      }, {
+        handleErrors: true,
+        entity: req.template,
+        entitySet: 'templates'
+      }, req)
+    } finally {
+      executionFnParsedParamsMap.delete(req.context.id)
+    }
   }
 
-  async function executeEngine ({ engine, content, helpers, systemHelpers, data }, { executionFnParsedParamsMap, handleErrors, entity, entitySet }, req) {
+  async function executeEngine ({ engine, content, helpers, systemHelpers, data }, { handleErrors, entity, entitySet }, req) {
     const joinedHelpers = systemHelpers + '\n' + helpers
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
@@ -72,8 +75,7 @@ module.exports = (reporter) => {
       }
 
       const asyncResultMap = new Map()
-      executionFnParsedParamsMap.set(executionFnParsedParamsKey, { require, console, topLevelFunctions })
-
+      executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions })
       const key = `template:${content}:${engine.name}`
 
       if (!cache.has(key)) {
@@ -114,10 +116,18 @@ module.exports = (reporter) => {
       }
     }
 
-    if (executionFnParsedParamsMap.has(executionFnParsedParamsKey)) {
-      const { require, console, topLevelFunctions } = executionFnParsedParamsMap.get(executionFnParsedParamsKey)
+    // executionFnParsedParamsMap is there to cache parsed components helpers to speed up longer loops
+    // we store there for the particular request and component a promise and only the first component gets compiled
+    if (executionFnParsedParamsMap.get(req.context.id).has(executionFnParsedParamsKey)) {
+      const { require, console, topLevelFunctions } = await (executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).promise)
 
       return executionFn({ require, console, topLevelFunctions })
+    } else {
+      const awaiter = {}
+      awaiter.promise = new Promise((resolve) => {
+        awaiter.resolve = resolve
+      })
+      executionFnParsedParamsMap.get(req.context.id).set(executionFnParsedParamsKey, awaiter)
     }
 
     if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
