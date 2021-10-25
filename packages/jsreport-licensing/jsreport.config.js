@@ -15,7 +15,7 @@ module.exports = {
   optionsSchema: {
     'license-key': { type: 'string' },
     licenseKey: { type: 'string' },
-    ...schema,
+    license: schema,
     extensions: {
       licensing: schema
     }

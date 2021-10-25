@@ -324,6 +324,7 @@ describe('licensing', () => {
   })
 
   it('should not verify license usage when license.development', async () => {
+    jsreport.options.licenseKey = 'foo'
     jsreport.options.license = { development: true }
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
