@@ -166,7 +166,7 @@ module.exports = (reporter) => {
   })
 
   let profilesCleanupInterval
-  reporter.initializeListeners.add('profiler', () => {
+  reporter.initializeListeners.add('profiler', async () => {
     reporter.documentStore.collection('profiles').beforeRemoveListeners.add('profiles', async (query, req) => {
       const profiles = await reporter.documentStore.collection('profiles').find(query, req)
 
@@ -177,6 +177,7 @@ module.exports = (reporter) => {
 
     profilesCleanupInterval = setInterval(profilesCleanup, reporter.options.profiler.cleanupInterval)
     profilesCleanupInterval.unref()
+    await profilesCleanup()
   })
 
   reporter.closeListeners.add('profiler', async () => {

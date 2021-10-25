@@ -165,12 +165,12 @@ module.exports.getRootSchemaOptions = () => ({
       properties: {
         maxProfilesHistory: {
           type: 'number',
-          default: 500
+          default: 1000
         },
         cleanupInterval: {
           type: ['string', 'number'],
           '$jsreport-acceptsDuration': true,
-          default: '3m'
+          default: '1m'
         }
       }
     }
