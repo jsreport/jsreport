@@ -15,6 +15,7 @@
   "author": "Jan Blaha",
   "files": [
     "lib",
+    "static",
     "index.js",
     "jsreport.config.js"
   ],
