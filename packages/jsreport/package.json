@@ -62,7 +62,7 @@
     "@jsreport/jsreport-jsrender": "3.0.0",
     "@jsreport/jsreport-licensing": "3.0.1",
     "@jsreport/jsreport-localization": "3.0.0",
-    "@jsreport/jsreport-npm": "3.0.0",
+    "@jsreport/jsreport-npm": "3.0.1",
     "@jsreport/jsreport-pdf-utils": "3.0.0",
     "@jsreport/jsreport-pptx": "3.0.0",
     "@jsreport/jsreport-public-templates": "3.0.0",

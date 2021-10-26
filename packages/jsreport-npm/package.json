@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-npm",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "jsreport extension allowing to install modules from npm during runtime",
   "keywords": [
     "jsreport",
