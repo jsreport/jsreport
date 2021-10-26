@@ -50,8 +50,8 @@ WORKDIR /app
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-RUN npm i -g @jsreport/jsreport-cli@beta
-RUN jsreport init beta
+RUN npm i -g @jsreport/jsreport-cli
+RUN jsreport init
 
 RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0 \
     @jsreport/jsreport-pug@4.0.0 \
@@ -70,7 +70,7 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0 \
     @jsreport/jsreport-unoconv@3.0.0 \
     cheerio-page-eval@1.0.0
 
-RUN npm uninstall -g @jsreport/jsreport-cli@beta && \
+RUN npm uninstall -g @jsreport/jsreport-cli && \
     npm cache clean -f && rm -rf /tmp/*
 
 COPY ./packages/jsreport/docker/default/jsreport.config.json jsreport.config.json

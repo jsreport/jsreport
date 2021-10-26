@@ -17,8 +17,8 @@ WORKDIR /app
 
 # NOTE this can fail localy with EAI_AGAIN, in this case use docker build .... --network=xxxxx, find the working with docker network ls
 # install jsreport
-RUN npm i -g @jsreport/jsreport-cli@3.0.0-beta.2
-RUN jsreport init beta
+RUN npm i -g @jsreport/jsreport-cli
+RUN jsreport init
 RUN npm cache clean -f
 
 # volume for custom mount
