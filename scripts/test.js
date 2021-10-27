@@ -27,6 +27,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-localization',
   '@jsreport/jsreport-mongodb-store',
   '@jsreport/jsreport-mssql-store',
+  '@jsreport/jsreport-npm',
   '@jsreport/jsreport-oracle-store',
   '@jsreport/jsreport-pdf-utils',
   '@jsreport/jsreport-postgres-store',
