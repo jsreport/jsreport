@@ -31,14 +31,15 @@
     }
   },
   "extensionsList": [
+    "assets",
     "authentication",
     "authorization",
-    "assets",
     "base",
     "browser-client",
-    "components",
     "child-templates",
     "chrome-pdf",
+    "cli",
+    "components",
     "data",
     "docx",
     "express",
