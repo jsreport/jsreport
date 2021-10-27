@@ -175,11 +175,17 @@ module.exports = (_sandbox, options = {}) => {
       // we needed to override this method because we want "displayErrors" to be true in order
       // to show nice error when the compile of a script fails
       script._compile = function (prefix, suffix) {
-        return new originalVM.Script(prefix + this._compiler(this._prefix + this._code + this._suffix, this.filename) + suffix, {
+        return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
           filename: this.filename,
           displayErrors: true,
           lineOffset: this.lineOffset,
-          columnOffset: this.columnOffset
+          columnOffset: this.columnOffset,
+          // THIS FN WAS TAKEN FROM vm2 source, nothing special here
+          importModuleDynamically: () => {
+            // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
+            // eslint-disable-next-line no-throw-literal
+            throw 'Dynamic imports are not allowed.'
+          }
         })
       }
 

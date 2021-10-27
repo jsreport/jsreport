@@ -167,6 +167,7 @@ class MainReporter extends Reporter {
     if (this.compilation) {
       this.compilation.resource('sandbox.js', require.resolve('vm2/lib/sandbox.js'))
       this.compilation.resource('contextify.js', require.resolve('vm2/lib/contextify.js'))
+      this.compilation.resource('fixasync.js', require.resolve('vm2/lib/fixasync.js'))
     }
 
     try {
