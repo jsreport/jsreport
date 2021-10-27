@@ -1359,10 +1359,9 @@
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
 
-"@bjrmatos/pkg@5.2.2":
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/@bjrmatos/pkg/-/pkg-5.2.2.tgz#90b9de8baca0004fa3eeb81494ef95ca360fb2c3"
-  integrity sha512-HMpDo9Z8O3lhgoD2SYyGIVN4M0UUsH3Rm9l1TrKfq1g15NmqP8bBwhFE0GmD0Zuyw8KKJVNKlc8mqyRcKP9T7Q==
+"@bjrmatos/pkg@github:bjrmatos/pkg#pkg-update-from-5.4.0":
+  version "5.4.0"
+  resolved "https://codeload.github.com/bjrmatos/pkg/tar.gz/d8b52bff9fce52b063fe07d5ffabfa6d2f8e810f"
   dependencies:
     "@babel/parser" "7.13.13"
     "@babel/types" "7.13.12"
@@ -1373,7 +1372,7 @@
     into-stream "^6.0.0"
     minimist "^1.2.5"
     multistream "^4.1.0"
-    pkg-fetch "3.1.1"
+    pkg-fetch "3.2.4"
     prebuild-install "6.0.1"
     progress "^2.0.3"
     resolve "^1.20.0"
@@ -14701,10 +14700,10 @@ pkg-dir@^3.0.0:
   dependencies:
     find-up "^3.0.0"
 
-pkg-fetch@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/pkg-fetch/-/pkg-fetch-3.1.1.tgz#8f94115d926e71359ed96c211fe022b7a2452f8d"
-  integrity sha512-3GfpNwbwoTxge2TrVp6Oyz/FZJOoxF1r0+1YikOhnBXa2Di/VOJKtUObFHap76BFnyFo1fwh5vARWFR9TzLKUg==
+pkg-fetch@3.2.4:
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/pkg-fetch/-/pkg-fetch-3.2.4.tgz#5372734b12167d4bacd872be348217461b517390"
+  integrity sha512-ewUD26GP86/8+Fu93zrb30CpJjKOtT4maSgm4SwTX9Ujy1pfdUdv+1PubsY9tTJES0iBYItAtqbfkf7Wu5LV9w==
   dependencies:
     chalk "^4.1.0"
     fs-extra "^9.1.0"

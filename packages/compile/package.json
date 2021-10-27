@@ -25,7 +25,7 @@
     "test": "mocha test/test.js --timeout 480000"
   },
   "dependencies": {
-    "@bjrmatos/pkg": "5.2.2",
+    "@bjrmatos/pkg": "github:bjrmatos/pkg#pkg-update-from-5.4.0",
     "acorn": "5.5.0",
     "bubleify": "0.7.0",
     "debug": "4.3.2",
@@ -38,9 +38,9 @@
     "yargs": "13.2.4"
   },
   "devDependencies": {
-    "fs-extra": "2.1.2",
     "@jsreport/jsreport-cli": "3.0.0",
     "@jsreport/jsreport-core": "3.0.1",
+    "fs-extra": "2.1.2",
     "mocha": "3.2.0",
     "should": "11.2.1",
     "standard": "16.0.3"
