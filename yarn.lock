@@ -1359,9 +1359,10 @@
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
 
-"@bjrmatos/pkg@github:bjrmatos/pkg#pkg-update-from-5.4.0":
+"@bjrmatos/pkg@5.4.0":
   version "5.4.0"
-  resolved "https://codeload.github.com/bjrmatos/pkg/tar.gz/d8b52bff9fce52b063fe07d5ffabfa6d2f8e810f"
+  resolved "https://registry.yarnpkg.com/@bjrmatos/pkg/-/pkg-5.4.0.tgz#4d8a96c284ab203e9f4241fa427fe714dfc3f941"
+  integrity sha512-bN1oR0sx0ytaWcrhnUYarHoGYqrk2RmO63Eoqw//VUnLjb41yy5drY5R9cWOef3HKpAZEtBa8mj4n8AWuIliIQ==
   dependencies:
     "@babel/parser" "7.13.13"
     "@babel/types" "7.13.12"

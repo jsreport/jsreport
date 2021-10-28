@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/compile",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Compile jsreport into single executable",
   "keywords": [
     "jsreport"
@@ -25,7 +25,7 @@
     "test": "mocha test/test.js --timeout 480000"
   },
   "dependencies": {
-    "@bjrmatos/pkg": "github:bjrmatos/pkg#pkg-update-from-5.4.0",
+    "@bjrmatos/pkg": "5.4.0",
     "acorn": "5.5.0",
     "bubleify": "0.7.0",
     "debug": "4.3.2",
