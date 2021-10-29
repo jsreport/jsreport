@@ -116,6 +116,10 @@ module.exports = async (inputs, reporter, req, res) => {
       }
 
       await manipulator.merge(pagesBuffers, operation.mergeToFront)
+      reporter.profiler.emit({
+        type: 'operationEnd',
+        operationId: profilerEvent.operationId
+      }, req, res)
       continue
     }
   }
