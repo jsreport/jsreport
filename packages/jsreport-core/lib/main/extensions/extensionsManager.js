@@ -33,7 +33,6 @@ module.exports = (reporter) => {
           tempCoreDirectory: reporter.options.tempCoreDirectory,
           useExtensionsLocationCache: reporter.options.useExtensionsLocationCache
         })
-
         reporter.logger.debug(`Discovered ${extensions.length} extensions`)
         this.availableExtensions = this.availableExtensions.concat(extensions)
       }
@@ -42,13 +41,6 @@ module.exports = (reporter) => {
 
       if (reporter.options.extensionsList) {
         this.availableExtensions = this.availableExtensions.filter((e) => reporter.options.extensionsList.indexOf(e.name) !== -1)
-      }
-
-      if (opts.onlyLocation !== true) {
-        this.availableExtensions = await Promise.all(this.availableExtensions.map(async (e) => {
-          const { version, pkgVersion, source } = await findVersion(e)
-          return Object.assign(e, { source, version, pkgVersion })
-        }))
       }
 
       this.availableExtensions.sort(sorter)
@@ -69,6 +61,13 @@ module.exports = (reporter) => {
 
         return isUnique
       })
+
+      if (opts.onlyLocation !== true) {
+        this.availableExtensions = await Promise.all(this.availableExtensions.map(async (e) => {
+          const { version, pkgVersion, source } = await findVersion(e)
+          return Object.assign(e, { source, version, pkgVersion })
+        }))
+      }
     },
 
     async init () {
