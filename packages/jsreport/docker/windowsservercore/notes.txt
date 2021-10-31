@@ -1,0 +1,5 @@
+To run docker build, run the first:
+docker network ls
+
+Take a netork id (likely first named Default Switch) and run
+docker build . -f packages/jsreport/docker/windowsservercore/Dockerfile --network 2d9bc16e094f -t jsreport-windows
