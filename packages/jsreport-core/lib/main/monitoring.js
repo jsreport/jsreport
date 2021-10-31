@@ -64,7 +64,7 @@ class Monitoring {
 
   init () {
     this._interval = setInterval(() => {
-      this.execute()
+      this.execute().catch((e) => this.reporter.logger.warn('unable to persist monitoring info, but no need to worry, we will retry, details:' + e.stack))
     }, 60000)
     this._interval.unref()
   }
