@@ -45,6 +45,11 @@ This persistence implementation also guarantees consistency for parallel access 
 
 ## Changelog
 
+### 3.0.1
+
+fix for persisting more than 1000 files
+
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
