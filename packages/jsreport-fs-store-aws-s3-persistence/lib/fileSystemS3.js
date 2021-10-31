@@ -25,16 +25,23 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     copyObject: util.promisify(s3.copyObject).bind(s3),
     putObject: util.promisify(s3.putObject).bind(s3),
     deleteObject: util.promisify(s3.deleteObject).bind(s3),
+    deleteObjects: util.promisify(s3.deleteObjects).bind(s3),
     headBucket: util.promisify(s3.headBucket).bind(s3)
   }
 
   async function listObjectKeys (p) {
-    const blobs = await s3Async.listObjectsV2({
+    const opts = {
       Bucket: bucket,
       Prefix: p
-    })
+    }
+    const result = []
+    do {
+      const data = await s3Async.listObjectsV2(opts)
+      opts.ContinuationToken = data.NextContinuationToken
+      result.push(...data.Contents)
+    } while (opts.ContinuationToken)
 
-    return blobs.Contents
+    return result
       .filter(e =>
         e.Key === p ||
         e.Key.startsWith(p + '/') ||
@@ -91,18 +98,8 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       }
     },
     readdir: async (p) => {
-      const res = await s3Async.listObjectsV2({
-        Bucket: bucket,
-        Prefix: p
-      })
-
-      const topFilesOrDirectories = res.Contents
-        .filter(e =>
-          e.Key === p ||
-          e.Key.startsWith(p + '/') ||
-          p === ''
-        )
-        .map(e => e.Key.replace(p, '').split('/').filter(f => f)[0]).filter(f => f)
+      const res = await listObjectKeys(p)
+      const topFilesOrDirectories = res.map(e => e.replace(p, '').split('/').filter(f => f)[0]).filter(f => f)
       return [...new Set(topFilesOrDirectories)]
     },
     readFile: async (p) => {
@@ -153,7 +150,19 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
         })
       }))
 
-      return Promise.all(objectsToRename.map(key => s3Async.deleteObject({ Bucket: bucket, Key: key })))
+      const chunks = objectsToRename.reduce((all, one, i) => {
+        const ch = Math.floor(i / 1000)
+        all[ch] = [].concat((all[ch] || []), one)
+        return all
+      }, [])
+
+      await Promise.all(chunks.map(ch => s3Async.deleteObjects({
+        Bucket: bucket,
+        Delete: {
+          Objects: ch.map(e => ({ Key: e })),
+          Quiet: true
+        }
+      })))
     },
     exists: async (p) => {
       try {
@@ -176,8 +185,19 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     mkdir: (p) => Promise.resolve(),
     remove: async (p) => {
       const blobsToRemove = await listObjectKeys(p)
+      const chunks = blobsToRemove.reduce((all, one, i) => {
+        const ch = Math.floor(i / 1000)
+        all[ch] = [].concat((all[ch] || []), one)
+        return all
+      }, [])
 
-      return Promise.all(blobsToRemove.map(e => s3Async.deleteObject({ Bucket: bucket, Key: e })))
+      await Promise.all(chunks.map(ch => s3Async.deleteObjects({
+        Bucket: bucket,
+        Delete: {
+          Objects: ch.map(e => ({ Key: e })),
+          Quiet: true
+        }
+      })))
     },
     copyFile: (p, pp) => s3Async.copyObject({
       Bucket: bucket,
