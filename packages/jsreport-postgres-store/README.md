@@ -19,7 +19,12 @@ Then alter jsreport configuration
 			"port": 5433,
 			"database": "jsreport",
 			"user": "postgres",
-			"password": "password"
+			"password": "password",
+			// optionaly enable ssl
+			"ssl": true,
+			// optionally customize ssl
+			// https://node-postgres.com/features/ssl
+			"ssl": { ... }
 		}
 	}
 }
