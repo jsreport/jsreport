@@ -36,6 +36,7 @@
 
 .Preview-previewContainer {
   display: flex;
+  width: 100%;
   flex: 1 1;
   flex-direction: column;
   background-color: $preview-backgroundColor;

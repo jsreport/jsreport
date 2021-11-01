@@ -38,7 +38,7 @@ module.exports.getRootSchemaOptions = () => ({
     useExtensionsLocationCache: {
       type: 'boolean',
       default: true,
-      description: 'wheter if jsreport should read list of extensions from a previous generated cache or if it should crawl and try to search extensions again, set it to false when you want to always force crawling node_modules when searching for extensions while starting jsreport'
+      description: 'whether if jsreport should read list of extensions from a previous generated cache or if it should crawl and try to search extensions again, set it to false when you want to always force crawling node_modules when searching for extensions while starting jsreport'
     },
     logger: {
       type: 'object',

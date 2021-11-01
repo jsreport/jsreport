@@ -5,7 +5,7 @@
 const fs = require('fs')
 const path = require('path')
 
-exports.walkSync = (rootPath, fileName, exclude) => {
+exports.walkSync = (rootPath, fileName, excludePath) => {
   const results = []
   const queue = []
   let next = rootPath
@@ -26,7 +26,7 @@ exports.walkSync = (rootPath, fileName, exclude) => {
     list.forEach((i) => {
       const item = path.join(next, i)
 
-      if (item.indexOf(exclude) > -1) {
+      if (item.startsWith(excludePath)) {
         return
       }
 
@@ -48,6 +48,7 @@ exports.walkSync = (rootPath, fileName, exclude) => {
         }
       }
     })
+
     next = queue.shift()
   }
 

@@ -28,11 +28,7 @@ module.exports = async (extension) => {
     const packageJsonContent = await fsAsync.readFile(path.join(extension.directory, 'package.json'))
     const packageJson = JSON.parse(packageJsonContent.toString())
 
-    if (packageJson._requested && packageJson._requested.type === 'git') {
-      result.source = 'git'
-      result.version = packageJson._resolved
-      result.pkgVersion = packageJson.version
-    } else if (packageJson._requested && packageJson.version != null) {
+    if (extension.directory.includes('node_modules') && packageJson.version != null) {
       result.source = 'npm'
       result.version = packageJson.version
       result.pkgVersion = packageJson.version

@@ -133,9 +133,9 @@ await jsreport.render({
 
 The following variables are available in the global scope:
 
-`__rootDirectory` - two directories up from jsreport-core
-`__appDirectory` - directory of the script which is used when starting node
-`__parentModuleDirectory` - directory of script which was initializing jsreport-core
+- `__rootDirectory` - two directories up from jsreport-core
+- `__appDirectory` - directory of the script which is used when starting node
+- `__parentModuleDirectory` - directory of script which was initializing jsreport-core
 
 ## Extensions
 You need to install additional packages (extensions) even for the simplest pdf printing. This is the philosophy of jsreport, and you will need to install additional extensions very often. There are many extensions adding support for persisting templates, dynamic script evaluation, adding browser based reports studio or exposing API. To get the idea of the whole platform you can install the full [jsreport](http://jsreport.net/) distribution and pick what you like. Then you can go back to `jsreport-core` and install extensions you need.
