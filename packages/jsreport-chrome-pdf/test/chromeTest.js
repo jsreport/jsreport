@@ -57,7 +57,7 @@ function common (strategy, imageExecution) {
 
     reporter.use(require('../')({
       strategy,
-      numberOfWorkers: 2,
+      numberOfWorkers: 1,
       launchOptions: {
         args: ['--no-sandbox']
       }

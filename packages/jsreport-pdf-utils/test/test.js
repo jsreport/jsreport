@@ -33,7 +33,7 @@ describe('pdf utils', () => {
     return jsreport.init()
   })
 
-  afterEach(() => jsreport.close())
+  afterEach(() => jsreport && jsreport.close())
 
   it('merge should embed static text', async () => {
     await jsreport.documentStore.collection('templates').insert({
@@ -1369,7 +1369,7 @@ describe('pdf utils', () => {
                   content: '{{{pdfAddPageItem "foo"}}}',
                   engine: 'handlebars',
                   recipe: 'chrome-pdf'
-                }                
+                }
               })
 
               const $pdf = await jsreport.pdfUtils.parse(appendRest.content)
@@ -1431,7 +1431,7 @@ describe('pdf utils', () => {
     parsedPdf.pages.should.have.length(1)
   })
 
-  it('should expose jsreport-proxy pdfUtils and postprocess should be able to add pasword', async () => {
+  it('should expose jsreport-proxy pdfUtils and postprocess should be able to add password', async () => {
     const result = await jsreport.render({
       template: {
         content: 'foo',
@@ -1444,7 +1444,7 @@ describe('pdf utils', () => {
             async function afterRender (req, res) {
               res.content = await jsreport.pdfUtils.postprocess(res.content, {
                 pdfPassword: {
-                  password: 'password'                           
+                  password: 'password'
                 }
               })
             }
@@ -2042,7 +2042,7 @@ describe('pdf utils', () => {
                 content: "{{{pdfFormField name='b' type='text' width='200px' height='20px'}}}",
                 recipe: "chrome-pdf",
                 engine: "handlebars"
-              }             
+              }
             })
             res.content = await jsreport.pdfUtils.append(res.content, r.content)
           }
