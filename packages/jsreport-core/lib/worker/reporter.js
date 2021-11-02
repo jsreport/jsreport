@@ -26,13 +26,13 @@ class WorkerReporter extends Reporter {
     this._workerActions = new Map()
     this._registerRenderAction()
 
-    this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection()
-    this.validateRenderListeners = this.createListenerCollection()
+    this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection('afterTemplatingEnginesExecuted')
+    this.validateRenderListeners = this.createListenerCollection('validateRender')
 
     this.extensionsManager = ExtensionsManager(this, extensionsDefs)
 
     this.extendProxy((proxy, req) => defaultProxyExtend(this)(proxy, req))
-    this.beforeMainActionListeners = this.createListenerCollection()
+    this.beforeMainActionListeners = this.createListenerCollection('beforeMainAction')
   }
 
   async init () {

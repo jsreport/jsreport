@@ -68,7 +68,7 @@ class MainReporter extends Reporter {
     this.entityTypeValidator = new SchemaValidator()
 
     this.logger = createLogger()
-    this.beforeMainActionListeners = this.createListenerCollection()
+    this.beforeMainActionListeners = this.createListenerCollection('beforeMainAction')
   }
 
   discover () {

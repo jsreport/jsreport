@@ -37,9 +37,9 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.authorization = {
-    findPermissionFilteringListeners: reporter.createListenerCollection(),
-    requestAuthorizationListeners: reporter.createListenerCollection(),
-    operationAuthorizationListeners: reporter.createListenerCollection(),
+    findPermissionFilteringListeners: reporter.createListenerCollection('Authorization@findPermissionFiltering'),
+    requestAuthorizationListeners: reporter.createListenerCollection('Authorization@requestAuthorization'),
+    operationAuthorizationListeners: reporter.createListenerCollection('Authorization@operationAuthorization'),
     authorizeRequest: async function (req, res) {
       const authRes = await this.requestAuthorizationListeners.fireAndJoinResults(req, res)
 

@@ -5,8 +5,8 @@ const { parseMultipart } = require('./helpers')
 let multer
 
 module.exports = (reporter, definition) => {
-  const beforeEntityPersistedListeners = reporter.createListenerCollection()
-  const beforeEntityValidationListeners = reporter.createListenerCollection()
+  const beforeEntityPersistedListeners = reporter.createListenerCollection('Import@beforeEntityPersisted')
+  const beforeEntityValidationListeners = reporter.createListenerCollection('ImportValidation@beforeEntityValidation')
 
   multer = Multer({ dest: reporter.options.tempAutoCleanupDirectory })
 

@@ -1,11 +1,10 @@
-const ListenerCollection = require('listener-collection')
 
 module.exports = (reporter, definition) => {
   reporter.tests = reporter.tests || {}
-  reporter.tests.beforeRenderListeners = new ListenerCollection()
-  reporter.tests.afterRenderListeners = new ListenerCollection()
-  reporter.tests.validateRenderListeners = new ListenerCollection()
-  reporter.tests.afterTemplatingEnginesExecutedListeners = new ListenerCollection()
+  reporter.tests.beforeRenderListeners = reporter.createListenerCollection()
+  reporter.tests.afterRenderListeners = reporter.createListenerCollection()
+  reporter.tests.validateRenderListeners = reporter.createListenerCollection()
+  reporter.tests.afterTemplatingEnginesExecutedListeners = reporter.createListenerCollection()
 
   reporter.registerMainAction('test-beforeRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)

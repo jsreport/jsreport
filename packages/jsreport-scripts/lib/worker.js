@@ -14,7 +14,7 @@ class Scripts {
     this.reporter = reporter
     this.definition = definition
 
-    reporter.beforeScriptListeners = reporter.createListenerCollection()
+    reporter.beforeScriptListeners = reporter.createListenerCollection('Scripts@beforeScript')
 
     reporter.beforeRenderListeners.insert({
       after: 'data',

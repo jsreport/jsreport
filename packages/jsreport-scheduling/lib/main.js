@@ -13,7 +13,7 @@ class Scheduling {
     this.definition = definition
     this.cleanScheduleHistoryRunning = false
 
-    this.beforeProcessJobListeners = reporter.createListenerCollection()
+    this.beforeProcessJobListeners = reporter.createListenerCollection('Scheduling@beforeProcessJob')
 
     this.ScheduleType = this.reporter.documentStore.registerEntityType('ScheduleType', {
       cron: { type: 'Edm.String' },

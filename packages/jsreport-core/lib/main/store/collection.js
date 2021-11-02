@@ -1,16 +1,16 @@
-const ListenerCollection = require('listener-collection')
+const createListenerCollection = require('../../shared/listenerCollection')
 const { resolvePropDefinition } = require('./typeUtils')
 const createError = require('../../shared/createError')
 const validateEntityName = require('../validateEntityName')
 
 module.exports = (entitySet, provider, model, validator, encryption, transactions) => ({
   name: entitySet,
-  beforeFindListeners: new ListenerCollection(),
-  beforeUpdateListeners: new ListenerCollection(),
-  beforeInsertListeners: new ListenerCollection(),
-  beforeRemoveListeners: new ListenerCollection(),
-  beforeUpdateValidationListeners: new ListenerCollection(),
-  beforeInsertValidationListeners: new ListenerCollection(),
+  beforeFindListeners: createListenerCollection(`DocumentStoreCollection(${entitySet})@beforeFind`),
+  beforeUpdateListeners: createListenerCollection(`DocumentStoreCollection(${entitySet})@beforeUpdate`),
+  beforeInsertListeners: createListenerCollection(`DocumentStoreCollection(${entitySet})@beforeInsert`),
+  beforeRemoveListeners: createListenerCollection(`DocumentStoreCollection(${entitySet})@beforeRemove`),
+  beforeUpdateValidationListeners: createListenerCollection(`DocumentStoreCollection(${entitySet})@beforeUpdateValidation`),
+  beforeInsertValidationListeners: createListenerCollection(`DocumentStoreCollection(${entitySet})@beforeInsertValidation`),
   entitySet,
 
   load: (...args) => {

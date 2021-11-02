@@ -1,5 +1,5 @@
 const EventEmitter = require('events')
-const ListenerCollection = require('listener-collection')
+const createListenerCollection = require('./listenerCollection')
 const Request = require('./request')
 const Templates = require('./templates')
 const Folders = require('./folders')
@@ -26,15 +26,15 @@ class Reporter extends EventEmitter {
     this.version = coreVersion
     this.coreVersion = coreVersion
 
-    this.initializeListeners = this.createListenerCollection()
-    this.afterRenderListeners = this.createListenerCollection()
-    this.renderErrorListeners = this.createListenerCollection()
-    this.beforeRenderListeners = this.createListenerCollection()
-    this.closeListeners = this.createListenerCollection()
+    this.initializeListeners = this.createListenerCollection('initialize')
+    this.afterRenderListeners = this.createListenerCollection('afterRender')
+    this.renderErrorListeners = this.createListenerCollection('renderError')
+    this.beforeRenderListeners = this.createListenerCollection('beforeRender')
+    this.closeListeners = this.createListenerCollection('close')
   }
 
-  createListenerCollection () {
-    return new ListenerCollection()
+  createListenerCollection (name) {
+    return createListenerCollection(name)
   }
 
   /**
@@ -47,7 +47,7 @@ class Reporter extends EventEmitter {
   }
 
   /**
-   * Ensures that the jsreport autocleanup temp directory (options.tempAutoCleanupDirectory) exists by doing a mkdir call
+   * Ensures that the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory) exists by doing a mkdir call
    *
    * @public
    */
@@ -60,7 +60,7 @@ class Reporter extends EventEmitter {
   }
 
   /**
-   * Reads a file from the jsreport autocleanup temp directory (options.tempAutoCleanupDirectory)
+   * Reads a file from the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
    *
    * @public
    */
@@ -73,7 +73,7 @@ class Reporter extends EventEmitter {
   }
 
   /**
-   * Creates a file into the jsreport autocleanup temp directory (options.tempAutoCleanupDirectory)
+   * Creates a file into the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
    * ensuring that the directory always exists
    *
    * @public
@@ -87,7 +87,7 @@ class Reporter extends EventEmitter {
   }
 
   /**
-   * Reads a file as stream from the jsreport autocleanup temp directory (options.tempAutoCleanupDirectory)
+   * Reads a file as stream from the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
    *
    * @public
    */
@@ -100,7 +100,7 @@ class Reporter extends EventEmitter {
   }
 
   /**
-   * Creates a file as stream into the jsreport autocleanup temp directory (options.tempAutoCleanupDirectory)
+   * Creates a file as stream into the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
    * ensuring that the directory always exists
    *
    * @public

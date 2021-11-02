@@ -1,7 +1,7 @@
 const events = require('events')
 const { nanoid } = require('nanoid')
 const { v4: uuidv4 } = require('uuid')
-const ListenerCollection = require('listener-collection')
+const createListenerCollection = require('../../shared/listenerCollection')
 const { resolvePropDefinition, typeDefToJSONSchema } = require('./typeUtils')
 const { findReferencePropertiesInType, findLinkedEntitiesForReferenceValue, existsReferenceValue, updateReferenceValue } = require('./referenceUtils')
 const collection = require('./collection')
@@ -43,7 +43,7 @@ const DocumentStore = (options, validator, encryption) => {
       complexTypes: {},
       entitySets: {}
     },
-    internalAfterInitListeners: new ListenerCollection(),
+    internalAfterInitListeners: createListenerCollection('DocumentStore@internalAfterInit'),
     emitter: new events.EventEmitter(),
 
     registerProvider (provider) {
