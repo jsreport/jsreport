@@ -43,7 +43,7 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.1",
     "@jsreport/jsreport-express": "3.0.0",
-    "@jsreport/studio-dev": "3.0.0",
+    "@jsreport/studio-dev": "3.0.1",
     "express": "4.17.1",
     "lodash.clonedeep": "4.5.0",
     "mocha": "5.2.0",

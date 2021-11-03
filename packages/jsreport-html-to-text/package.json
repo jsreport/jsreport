@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.1",
-    "@jsreport/studio-dev": "3.0.0",
+    "@jsreport/studio-dev": "3.0.1",
     "mocha": "8.2.1",
     "should": "13.2.3",
     "standard": "16.0.3"

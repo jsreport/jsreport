@@ -51,7 +51,7 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.1",
     "@jsreport/jsreport-express": "3.0.0",
-    "@jsreport/studio-dev": "3.0.0",
+    "@jsreport/studio-dev": "3.0.1",
     "@seznam/compose-react-refs": "1.0.4",
     "chart.js": "2.9.4",
     "classnames": "2.2.6",

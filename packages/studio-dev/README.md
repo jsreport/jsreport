@@ -12,12 +12,16 @@
 `jsreport-studio-build` command should be run from the main extension directory. It automatically locates `studio/main_dev.js` and build it. The most common approach is to run it from the `package.json`  `prepublish` script. It's also recommended to additionally install and use [in-publish](https://github.com/iarna/in-publish) module to assure the `jsreport-studio-build` does run only during npm publish.
 
 ```js
-"scripts": {  
+"scripts": {
     "prepublish": "in-publish && jsreport-studio-build || not-in-publish"
 }
 ```
 
 ## Changelog
+
+### 3.0.1
+
+fix jsreport-studio-start installing jsreport@beta instead of latest
 
 ### 3.0.0-beta.2
 
