@@ -47,7 +47,7 @@ module.exports = {
       {
         test: /\.jsx?$/,
         exclude: (modulePath) => {
-          if (modulePath.includes('eslint-browser.js')) {
+          if (modulePath.includes('eslint-browser.js') || modulePath.includes('babel-eslint-browser.js')) {
             return true
           }
 
@@ -207,12 +207,13 @@ module.exports = {
         }]
       }
     ],
-    noParse: /eslint-browser\.js$/
+    noParse: [/eslint-browser\.js$/, /babel-eslint-browser\.js$/]
   },
   resolve: {
     extensions: ['.json', '.js', '.jsx'],
     alias: {
-      'eslint-browser': path.join(__dirname, '../static/dist/eslint-browser.js')
+      'eslint-browser': path.join(__dirname, '../static/dist/eslint-browser.js'),
+      'babel-eslint-browser': path.join(__dirname, '../static/dist/babel-eslint-browser.js')
     },
     modules: [
       'src',
@@ -232,7 +233,7 @@ module.exports = {
   },
   plugins: [
     new CleanPlugin({
-      cleanOnceBeforeBuildPatterns: ['**/*', '!eslint-browser.js']
+      cleanOnceBeforeBuildPatterns: ['**/*', '!eslint-browser.js', '!babel-eslint-browser.js']
     }),
     new webpack.DefinePlugin({
       __DEVELOPMENT__: false

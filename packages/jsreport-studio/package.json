@@ -26,15 +26,17 @@
     "jsreport.config.js"
   ],
   "scripts": {
-    "build": "npm run build-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
+    "build": "npm run build-eslint-browser && npm run build-babel-eslint-browser && jsreport-studio-build --config webpack/prod.config.js --stats.modules=false",
     "build-eslint-browser": "jsreport-studio-build --config webpack/eslint-browser.config.js --stats.modules=false",
+    "build-babel-eslint-browser": "jsreport-studio-build --config webpack/babel-eslint-browser.config.js --stats.modules=false",
     "check-build-eslint-browser": "ok-file static/dist/eslint-browser.js || npm run build-eslint-browser",
+    "check-build-babel-eslint-browser": "ok-file static/dist/babel-eslint-browser.js || npm run build-babel-eslint-browser",
     "docs": "jsdoc2md src/Studio.js > static/Studio.md",
     "lint": "standard",
     "prepublish": "npm run build",
     "run": "npm run build && jsreport-studio-start --run-only",
     "server-test": "mocha test/server",
-    "start": "npm run check-build-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
+    "start": "npm run check-build-eslint-browser && npm run check-build-babel-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
     "test": "npm run ui-test && npm run server-test",
     "test:watch": "npm test -- --watch",
     "ui-test": "mocha test/ui/.setup.js test/ui --recursive --exit --require babel-core/register --require mocha-clean --require ignore-styles"
@@ -53,6 +55,7 @@
     "@jsreport/jsreport-express": "3.0.0",
     "@jsreport/studio-dev": "3.0.1",
     "@seznam/compose-react-refs": "1.0.4",
+    "babel-eslint": "10.0.2",
     "chart.js": "2.9.4",
     "classnames": "2.2.6",
     "connected-react-router": "6.8.0",

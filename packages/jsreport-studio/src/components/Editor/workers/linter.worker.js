@@ -1,8 +1,14 @@
 import Linter from 'eslint-browser'
+import BabelEslint from 'babel-eslint-browser'
 import flatten from 'lodash/flatten'
 import defaultConfig from './defaultLinterConfig'
 
 const linter = new Linter()
+
+linter.defineParser(
+  'babel-eslint',
+  BabelEslint
+)
 
 /* eslint-disable-next-line no-undef */
 self.addEventListener('message', (event) => {

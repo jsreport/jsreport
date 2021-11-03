@@ -62,13 +62,17 @@ const restrictedGlobals = [
 ]
 
 const options = Object.assign({}, Linter.DEFAULT_RECOMMENDED_RULES, {
+  parser: 'babel-eslint',
   parserOptions: {
     ecmaVersion: 9,
-    sourceType: 'script',
+    // this makes top level await to not show error, default value was "script"
+    sourceType: 'module',
     ecmaFeatures: {
       jsx: false,
       globalReturn: false,
-      impliedStrict: false
+      impliedStrict: false,
+      experimentalObjectRestSpread: true,
+      modules: true
     }
   },
   env: {

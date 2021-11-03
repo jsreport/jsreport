@@ -133,8 +133,8 @@ module.exports = (extensions, extensionsInNormalMode) => {
         {
           test: /\.js$/,
           exclude: (modulePath) => {
-            // we need to tell babel to exclude the processing of eslint-browser bundle
-            if (modulePath.includes('eslint-browser.js')) {
+            // we need to tell babel to exclude the processing of eslint-browser, babel-eslint-browser bundle
+            if (modulePath.includes('eslint-browser.js') || modulePath.includes('babel-eslint-browser.js')) {
               return true
             }
 
@@ -348,12 +348,13 @@ module.exports = (extensions, extensionsInNormalMode) => {
           }]
         }
       ],
-      noParse: /eslint-browser\.js$/
+      noParse: [/eslint-browser\.js$/, /babel-eslint-browser\.js$/]
     },
     resolve: {
       extensions: ['.json', '.js', '.jsx'],
       alias: {
-        'eslint-browser': path.join(__dirname, '../static/dist/eslint-browser.js')
+        'eslint-browser': path.join(__dirname, '../static/dist/eslint-browser.js'),
+        'babel-eslint-browser': path.join(__dirname, '../static/dist/babel-eslint-browser.js')
       },
       modules: [
         'src',
