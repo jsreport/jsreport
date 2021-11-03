@@ -147,7 +147,7 @@ module.exports = (extensions, extensionsInNormalMode) => {
 
             if (
               hasMatchWithExtension(modulePath, extensions) &&
-              modulePath.replace(getMatchedExtension(modulePath, extensions), '').indexOf('node_modules') === -1
+              modulePath.replace(getMatchedExtension(modulePath, extensions), '').includes('node_modules') === false
             ) {
               return false
             }

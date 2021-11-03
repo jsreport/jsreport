@@ -51,7 +51,7 @@ module.exports = {
             return true
           }
 
-          if (modulePath.includes('node_modules')) {
+          if (modulePath.replace(projectRootPath, '').includes('node_modules')) {
             return true
           }
 
