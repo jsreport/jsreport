@@ -21,7 +21,7 @@ if (!argv.ignoreJsreportInstall) {
     fs.statSync(path.join(process.cwd(), 'node_modules', 'jsreport'))
   } catch (e) {
     console.log('Installing the latest jsreport, this takes few minutes')
-    execSync('npm install jsreport@beta --no-save', { stdio: [0, 1, 2] })
+    execSync('npm install jsreport --no-save', { stdio: [0, 1, 2] })
   }
 }
 
