@@ -174,6 +174,22 @@
   margin-bottom: 0.2rem;
   align-items: baseline;
   border-bottom: 1px dashed transparent;
+  /* tweak to have full background colors
+  value should be the same as profilerLogs padding-left, right  */
+  margin-left: -0.4rem;
+  margin-right: -0.4rem;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+}
+
+.profileLogItem.standard {
+  background-color: $profile-log-backgroundColor;
+  color: $profile-log-color;
+}
+
+.profileLogItem.alternative {
+  background-color: $profile-log-alternative-backgroundColor;
+  color: $profile-log-alternative-color;
 }
 
 .profileLogItem:last-child {
@@ -195,8 +211,25 @@
   margin-right: 0.3rem;
 }
 
+.profileLogItemLevel.debug {
+  color: #3636ef;
+}
+
+.profileLogItemLevel.info {
+  color: #008000;
+}
+
+.profileLogItemLevel.warn {
+  color: #b1b112;
+}
+
+.profileLogItemLevel.error {
+  color: #ff0000;
+}
+
 .profileLogItemTime {
   font-size: 0.8em;
+  color: #a57337;
   min-width: 3.6em;
   max-width: 3.6em;
   margin-right: 0.5rem;

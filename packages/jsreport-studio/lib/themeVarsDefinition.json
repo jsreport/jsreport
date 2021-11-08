@@ -292,6 +292,22 @@
     "extends": "primary-color"
   },
   {
+    "name": "profile-log-backgroundColor",
+    "extends": "preview-backgroundColor"
+  },
+  {
+    "name": "profile-log-color",
+    "extends": "preview-color"
+  },
+  {
+    "name": "profile-log-alternative-backgroundColor",
+    "default": "#E5E5E5"
+  },
+  {
+    "name": "profile-log-alternative-color",
+    "extends": "preview-color"
+  },
+  {
     "name": "property-heading-backgroundColor",
     "extends": "primary-hover-backgroundColor"
   },

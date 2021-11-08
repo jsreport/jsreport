@@ -379,16 +379,13 @@ class Toolbar extends Component {
 }
 
 Toolbar.propTypes = {
-  openStartup: PropTypes.func.isRequired,
-  onUpdate: PropTypes.func.isRequired,
-  onRun: PropTypes.func.isRequired,
-  canRun: PropTypes.bool.isRequired,
-  onSave: PropTypes.func.isRequired,
-  canSave: PropTypes.bool.isRequired,
-  onSaveAll: PropTypes.func.isRequired,
-  canSaveAll: PropTypes.bool.isRequired,
+  templateRunning: PropTypes.string,
   isPending: PropTypes.bool.isRequired,
-  activeTab: PropTypes.object
+  canRun: PropTypes.bool.isRequired,
+  canSave: PropTypes.bool.isRequired,
+  canSaveAll: PropTypes.bool.isRequired,
+  activeTab: PropTypes.object,
+  activeTabWithEntity: PropTypes.object
 }
 
 function makeMapStateToProps () {
