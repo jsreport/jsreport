@@ -1186,7 +1186,7 @@ var LocalChangesEditor = function (_Component) {
 
                 _context3.prev = 3;
 
-                if (!confirm('This will delete all your uncommitted files and revert changes. Are you sure?')) {
+                if (!confirm('This will revert all your changes to the previous commit. In case you have no previous commit, you will loose all entities! Are you sure?')) {
                   _context3.next = 11;
                   break;
                 }

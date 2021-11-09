@@ -63,7 +63,7 @@ export default class LocalChangesEditor extends Component {
     this.setState({ inExecution: true })
 
     try {
-      if (confirm('This will delete all your uncommitted files and revert changes. Are you sure?')) {
+      if (confirm('This will revert all your changes to the previous commit. In case you have no previous commit, you will loose all entities! Are you sure?')) {
         await Studio.api.post('/api/version-control/revert')
         this.setState({ inExecution: false })
         return Studio.reset().catch((e) => console.error(e))
