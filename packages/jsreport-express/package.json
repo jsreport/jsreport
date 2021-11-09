@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-express",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "jsreport extension adding API",
   "keywords": [
     "jsreport"
