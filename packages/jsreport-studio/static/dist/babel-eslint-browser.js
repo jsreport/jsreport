@@ -62330,9 +62330,13 @@ exports.matchToToken = function (match) {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
-var _keys = __webpack_require__(46);
+var _stringify = __webpack_require__(151);
 
-var _keys2 = _interopRequireDefault(_keys);
+var _stringify2 = _interopRequireDefault(_stringify);
+
+var _typeof2 = __webpack_require__(86);
+
+var _typeof3 = _interopRequireDefault(_typeof2);
 
 var _getIterator2 = __webpack_require__(55);
 
@@ -62341,6 +62345,14 @@ var _getIterator3 = _interopRequireDefault(_getIterator2);
 var _defineProperties = __webpack_require__(255);
 
 var _defineProperties2 = _interopRequireDefault(_defineProperties);
+
+var _iterator5 = __webpack_require__(87);
+
+var _iterator6 = _interopRequireDefault(_iterator5);
+
+var _keys = __webpack_require__(46);
+
+var _keys2 = _interopRequireDefault(_keys);
 
 var _setPrototypeOf = __webpack_require__(246);
 
@@ -62409,6 +62421,12 @@ if (isSimpleWindowsTerm) {
 	ansiStyles.blue.open = '\x1B[94m';
 }
 
+_Object$keys = (0, _keys2.default)(ansiStyles);
+
+if (!(_Object$keys && (typeof _Object$keys[_iterator6.default] === 'function' || Array.isArray(_Object$keys)))) {
+	throw new TypeError('Expected _Object$keys to be iterable, got ' + _inspect(_Object$keys));
+}
+
 var _iteratorNormalCompletion = true;
 var _didIteratorError = false;
 var _iteratorError = undefined;
@@ -62427,7 +62445,9 @@ try {
 		};
 	};
 
-	for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)(ansiStyles)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	for (var _iterator = (0, _getIterator3.default)(_Object$keys), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+		var _Object$keys;
+
 		_loop();
 	}
 } catch (err) {
@@ -62452,6 +62472,12 @@ styles.visible = {
 };
 
 ansiStyles.color.closeRe = new RegExp(escapeStringRegexp(ansiStyles.color.close), 'g');
+_Object$keys2 = (0, _keys2.default)(ansiStyles.color.ansi);
+
+if (!(_Object$keys2 && (typeof _Object$keys2[_iterator6.default] === 'function' || Array.isArray(_Object$keys2)))) {
+	throw new TypeError('Expected _Object$keys2 to be iterable, got ' + _inspect(_Object$keys2));
+}
+
 var _iteratorNormalCompletion2 = true;
 var _didIteratorError2 = false;
 var _iteratorError2 = undefined;
@@ -62480,7 +62506,9 @@ try {
 		};
 	};
 
-	for (var _iterator2 = (0, _getIterator3.default)((0, _keys2.default)(ansiStyles.color.ansi)), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	for (var _iterator2 = (0, _getIterator3.default)(_Object$keys2), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+		var _Object$keys2;
+
 		var _ret2 = _loop2();
 
 		if (_ret2 === 'continue') continue;
@@ -62501,6 +62529,12 @@ try {
 }
 
 ansiStyles.bgColor.closeRe = new RegExp(escapeStringRegexp(ansiStyles.bgColor.close), 'g');
+_Object$keys3 = (0, _keys2.default)(ansiStyles.bgColor.ansi);
+
+if (!(_Object$keys3 && (typeof _Object$keys3[_iterator6.default] === 'function' || Array.isArray(_Object$keys3)))) {
+	throw new TypeError('Expected _Object$keys3 to be iterable, got ' + _inspect(_Object$keys3));
+}
+
 var _iteratorNormalCompletion3 = true;
 var _didIteratorError3 = false;
 var _iteratorError3 = undefined;
@@ -62530,7 +62564,9 @@ try {
 		};
 	};
 
-	for (var _iterator3 = (0, _getIterator3.default)((0, _keys2.default)(ansiStyles.bgColor.ansi)), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	for (var _iterator3 = (0, _getIterator3.default)(_Object$keys3), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+		var _Object$keys3;
+
 		var _ret3 = _loop3();
 
 		if (_ret3 === 'continue') continue;
@@ -62621,12 +62657,20 @@ function applyStyle() {
 		ansiStyles.dim.open = '';
 	}
 
+	_styles$slice$reverse = this._styles.slice().reverse();
+
+	if (!(_styles$slice$reverse && (typeof _styles$slice$reverse[_iterator6.default] === 'function' || Array.isArray(_styles$slice$reverse)))) {
+		throw new TypeError('Expected _styles$slice$reverse to be iterable, got ' + _inspect(_styles$slice$reverse));
+	}
+
 	var _iteratorNormalCompletion4 = true;
 	var _didIteratorError4 = false;
 	var _iteratorError4 = undefined;
 
 	try {
-		for (var _iterator4 = (0, _getIterator3.default)(this._styles.slice().reverse()), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+		for (var _iterator4 = (0, _getIterator3.default)(_styles$slice$reverse), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+			var _styles$slice$reverse;
+
 			var code = _step4.value;
 
 			// Replace any instances already present with a re-opening code
@@ -62684,6 +62728,69 @@ function chalkTag(chalk, strings) {
 module.exports = Chalk(); // eslint-disable-line new-cap
 module.exports.supportsColor = stdoutColor;
 module.exports.default = module.exports; // For TypeScript
+
+function _inspect(input, depth) {
+	var maxDepth = 4;
+	var maxKeys = 15;
+
+	if (depth === undefined) {
+		depth = 0;
+	}
+
+	depth += 1;
+
+	if (input === null) {
+		return 'null';
+	} else if (input === undefined) {
+		return 'void';
+	} else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+		return typeof input === 'undefined' ? 'undefined' : (0, _typeof3.default)(input);
+	} else if (Array.isArray(input)) {
+		if (input.length > 0) {
+			if (depth > maxDepth) return '[...]';
+
+			var first = _inspect(input[0], depth);
+
+			if (input.every(function (item) {
+				return _inspect(item, depth) === first;
+			})) {
+				return first.trim() + '[]';
+			} else {
+				return '[' + input.slice(0, maxKeys).map(function (item) {
+					return _inspect(item, depth);
+				}).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+			}
+		} else {
+			return 'Array';
+		}
+	} else {
+		var keys = (0, _keys2.default)(input);
+
+		if (!keys.length) {
+			if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+				return input.constructor.name;
+			} else {
+				return 'Object';
+			}
+		}
+
+		if (depth > maxDepth) return '{...}';
+		var indent = '  '.repeat(depth - 1);
+		var entries = keys.slice(0, maxKeys).map(function (key) {
+			return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : (0, _stringify2.default)(key)) + ': ' + _inspect(input[key], depth) + ';';
+		}).join('\n  ' + indent);
+
+		if (keys.length >= maxKeys) {
+			entries += '\n  ' + indent + '...';
+		}
+
+		if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+			return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+		} else {
+			return '{\n  ' + indent + entries + '\n' + indent + '}';
+		}
+	}
+}
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(104)))
 
 /***/ }),
@@ -64235,6 +64342,14 @@ module.exports = {
 "use strict";
 
 
+var _stringify = __webpack_require__(151);
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
+var _typeof2 = __webpack_require__(86);
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
 var _keys = __webpack_require__(46);
 
 var _keys2 = _interopRequireDefault(_keys);
@@ -64242,6 +64357,10 @@ var _keys2 = _interopRequireDefault(_keys);
 var _getIterator2 = __webpack_require__(55);
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+var _iterator5 = __webpack_require__(87);
+
+var _iterator6 = _interopRequireDefault(_iterator5);
 
 var _map = __webpack_require__(285);
 
@@ -64268,6 +64387,10 @@ function parseArguments(name, args) {
 	var results = [];
 	var chunks = args.trim().split(/\s*,\s*/g);
 	var matches = void 0;
+
+	if (!(chunks && (typeof chunks[_iterator6.default] === 'function' || Array.isArray(chunks)))) {
+		throw new TypeError('Expected chunks to be iterable, got ' + _inspect(chunks));
+	}
 
 	var _iteratorNormalCompletion = true;
 	var _didIteratorError = false;
@@ -64328,6 +64451,10 @@ function parseStyle(style) {
 function buildStyle(chalk, styles) {
 	var enabled = {};
 
+	if (!(styles && (typeof styles[_iterator6.default] === 'function' || Array.isArray(styles)))) {
+		throw new TypeError('Expected styles to be iterable, got ' + _inspect(styles));
+	}
+
 	var _iteratorNormalCompletion2 = true;
 	var _didIteratorError2 = false;
 	var _iteratorError2 = undefined;
@@ -64335,12 +64462,20 @@ function buildStyle(chalk, styles) {
 	try {
 		for (var _iterator2 = (0, _getIterator3.default)(styles), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 			var layer = _step2.value;
+			_layer$styles = layer.styles;
+
+			if (!(_layer$styles && (typeof _layer$styles[_iterator6.default] === 'function' || Array.isArray(_layer$styles)))) {
+				throw new TypeError('Expected _layer$styles to be iterable, got ' + _inspect(_layer$styles));
+			}
+
 			var _iteratorNormalCompletion4 = true;
 			var _didIteratorError4 = false;
 			var _iteratorError4 = undefined;
 
 			try {
-				for (var _iterator4 = (0, _getIterator3.default)(layer.styles), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+				for (var _iterator4 = (0, _getIterator3.default)(_layer$styles), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+					var _layer$styles;
+
 					var style = _step4.value;
 
 					enabled[style[0]] = layer.inverse ? null : style.slice(1);
@@ -64376,12 +64511,20 @@ function buildStyle(chalk, styles) {
 	}
 
 	var current = chalk;
+	_Object$keys = (0, _keys2.default)(enabled);
+
+	if (!(_Object$keys && (typeof _Object$keys[_iterator6.default] === 'function' || Array.isArray(_Object$keys)))) {
+		throw new TypeError('Expected _Object$keys to be iterable, got ' + _inspect(_Object$keys));
+	}
+
 	var _iteratorNormalCompletion3 = true;
 	var _didIteratorError3 = false;
 	var _iteratorError3 = undefined;
 
 	try {
-		for (var _iterator3 = (0, _getIterator3.default)((0, _keys2.default)(enabled)), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+		for (var _iterator3 = (0, _getIterator3.default)(_Object$keys), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+			var _Object$keys;
+
 			var styleName = _step3.value;
 
 			if (Array.isArray(enabled[styleName])) {
@@ -64450,6 +64593,69 @@ module.exports = function (chalk, tmp) {
 
 	return chunks.join('');
 };
+
+function _inspect(input, depth) {
+	var maxDepth = 4;
+	var maxKeys = 15;
+
+	if (depth === undefined) {
+		depth = 0;
+	}
+
+	depth += 1;
+
+	if (input === null) {
+		return 'null';
+	} else if (input === undefined) {
+		return 'void';
+	} else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+		return typeof input === 'undefined' ? 'undefined' : (0, _typeof3.default)(input);
+	} else if (Array.isArray(input)) {
+		if (input.length > 0) {
+			if (depth > maxDepth) return '[...]';
+
+			var first = _inspect(input[0], depth);
+
+			if (input.every(function (item) {
+				return _inspect(item, depth) === first;
+			})) {
+				return first.trim() + '[]';
+			} else {
+				return '[' + input.slice(0, maxKeys).map(function (item) {
+					return _inspect(item, depth);
+				}).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+			}
+		} else {
+			return 'Array';
+		}
+	} else {
+		var keys = (0, _keys2.default)(input);
+
+		if (!keys.length) {
+			if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+				return input.constructor.name;
+			} else {
+				return 'Object';
+			}
+		}
+
+		if (depth > maxDepth) return '{...}';
+		var indent = '  '.repeat(depth - 1);
+		var entries = keys.slice(0, maxKeys).map(function (key) {
+			return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : (0, _stringify2.default)(key)) + ': ' + _inspect(input[key], depth) + ';';
+		}).join('\n  ' + indent);
+
+		if (keys.length >= maxKeys) {
+			entries += '\n  ' + indent + '...';
+		}
+
+		if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+			return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+		} else {
+			return '{\n  ' + indent + entries + '\n' + indent + '}';
+		}
+	}
+}
 
 /***/ }),
 /* 395 */

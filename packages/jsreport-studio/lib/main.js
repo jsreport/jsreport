@@ -40,7 +40,7 @@ module.exports = (reporter, definition) => {
     variable: 'jsreport',
     // disabling escape
     escape: null,
-    // making evaluate and interpolate the same, so basic javascript (like ternaty conditions) works in the interpolation
+    // making evaluate and interpolate the same, so basic javascript (like ternary conditions) works in the interpolation
     evaluate: /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g,
     // only match es6 string templates
     interpolate: /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g,

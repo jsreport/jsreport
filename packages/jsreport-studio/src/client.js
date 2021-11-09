@@ -15,7 +15,6 @@ import './theme/style.css'
 import * as entities from './redux/entities'
 import * as settings from './redux/settings'
 import * as configuration from './lib/configuration.js'
-import defaults from './configurationDefaults.js'
 import getEntityTreeOrder from './helpers/getEntityTreeOrder'
 
 window.React = React
@@ -28,14 +27,15 @@ ReactModal.setAppElement(getAppElement())
 // eslint-disable-next-line no-undef, camelcase
 __webpack_public_path__ = configuration.rootPath() + '/studio/assets/'
 
+// we need to require the configurationDefaults, and Studio files api at this point because it requires some component files
+// that need to be evaluated/executed after we set the correct __webpack_public_path__
+const defaults = require('./configurationDefaults')
+const { createStudio } = require('./Studio')
+
 defaults()
 
 const browserHistory = createBrowserHistory()
 const store = createStore(browserHistory)
-
-// we need to require the Studio file api at this point because it requires some component files
-// that need to be evaluated/executed after we set the correct __webpack_public_path__
-const { createStudio } = require('./Studio')
 
 const Studio = window.Studio = createStudio(store)
 
