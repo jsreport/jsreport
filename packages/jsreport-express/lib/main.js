@@ -219,6 +219,10 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
 
 module.exports = function (reporter, definition) {
   let customServer = false
+  const optionsApp = definition.options.app
+  const optionsServer = definition.options.server
+  delete definition.options.app
+  delete definition.options.server
 
   definition.options = Object.assign({
     hostname: reporter.options.hostname,
@@ -242,8 +246,7 @@ module.exports = function (reporter, definition) {
 
   reporter.express = {}
 
-  let app = definition.options.app
-
+  let app = optionsApp
   if (!app) {
     app = require('express')()
   }
@@ -290,17 +293,14 @@ module.exports = function (reporter, definition) {
       }
     }
 
-    if (definition.options.app) {
+    if (optionsApp) {
       reporter.logger.info('Configuring routes for existing express app.')
       configureExpressApp(app, reporter, definition, exposedOptions)
 
-      if (definition.options.server) {
+      if (optionsServer) {
         customServer = true
         reporter.logger.info('Using existing server instance.')
-        reporter.express.server = definition.options.server
-        // deleting server option otherwise requests to list available extensions
-        // will fail, see https://github.com/jsreport/jsreport/issues/118#issuecomment-148965452
-        delete definition.options.server
+        reporter.express.server = optionsServer
       }
 
       return
