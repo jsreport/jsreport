@@ -1,6 +1,3 @@
-const jsreport = require('jsreport-proxy')
-await jsreport.assets.registerHelpers('../shared/common helpers.js')
-
 function nowPlus20Days() {
     var date = new Date()
     date.setDate(date.getDate() + 20);

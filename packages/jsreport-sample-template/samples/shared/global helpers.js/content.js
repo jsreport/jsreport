@@ -1,3 +1,3 @@
-function toJSON (data) {
-  return JSON.stringify(data);
+function nowLocalStr () {
+  return new Date().toLocaleDateString()
 }

@@ -8,7 +8,7 @@ More complex example demonstrating advanced features like
 
 Note: This example requires jsreport to be configured with
 { "allowLocalFilesAccess": true } or
-{ "extensions": { "scripts": { "allowedModules": ["https"] } } }
+{ "sandbox": { "allowedModules": ["https"] } }
 !-->
 <html>
   <head>
@@ -47,7 +47,7 @@ Note: This example requires jsreport to be configured with
             // convert data into js string using function from asset global helpers.js
             // this results into something like var data = { "a": "foo" }
             // which gets afterwards interpreted in chrome into object
-            var data = {{{toJSON accumulated}}}
+            var data = {{{toJS accumulated}}}
 
             Chart.defaults.global.legend.display = false;
 
