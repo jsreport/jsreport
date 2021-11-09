@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
-### 3.0.0-beta.1
+### 3.0.1
+
+fix for passing express app into options
+
+### 3.0.0
 
 Adaptations for the v3 APIs
