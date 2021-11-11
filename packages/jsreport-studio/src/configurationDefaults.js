@@ -25,6 +25,7 @@ import ApiModal from './components/Modals/ApiModal'
 import NewEntityModal from './components/Modals/NewEntityModal'
 import NewTemplateModal from './components/Modals/NewTemplateModal'
 import NewFolderModal from './components/Modals/NewFolderModal'
+import EntityDefinitionModal from './components/Modals/EntityDefinitionModal'
 import ConcurrentUpdateErrorModal from './components/Modals/ConcurrentUpdateErrorModal'
 import DownloadPreviewAction from './components/Preview/MenuActions/DownloadAction'
 import DownloadProfilePreviewAction from './components/Preview/MenuActions/DownloadProfileAction'
@@ -175,6 +176,17 @@ export default () => {
   }) => {
     const items = []
 
+    if (!isRoot) {
+      items.push({
+        key: 'Definition',
+        title: 'Definition',
+        icon: 'fa-code',
+        onClick: () => {
+          openModal(EntityDefinitionModal, { entity })
+        }
+      })
+    }
+
     if (isGroupEntity) {
       items.push({
         key: 'Edit',
@@ -208,7 +220,7 @@ export default () => {
       })
     }
 
-    if (!isRoot && (isGroupEntity || isGroupEntity == null)) {
+    if (!isRoot && isGroupEntity) {
       items.push({
         key: 'Cut',
         title: 'Cut',
@@ -242,7 +254,7 @@ export default () => {
       })
     }
 
-    if ((isRoot || (isGroupEntity || isGroupEntity == null))) {
+    if (isRoot || isGroupEntity) {
       items.push({
         key: 'Paste',
         title: 'Paste',

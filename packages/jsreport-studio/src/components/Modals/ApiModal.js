@@ -50,7 +50,7 @@ class ApiModal extends Component {
         <h3>Render report using REST API </h3>
 
         <div className={style.row}>
-          <span className={style.label}>POST: </span><a className={style.url}>{this.getRootUrl() + '/api/report'}</a>
+          <span className={style.label}>POST: </span><a className={style.url}><b>{this.getRootUrl() + '/api/report'}</b></a>
         </div>
         <div className={style.row}>
           <span className={style.label + ' ' + style.minor}>HEADERS:</span>

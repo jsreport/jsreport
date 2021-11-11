@@ -176,6 +176,17 @@ module.exports = (app, reporter, exposedOptions) => {
     res.send('pong')
   })
 
+  app.get('/api/schema/:entitySet', (req, res, next) => {
+    const normalizedEntityTypeName = reporter.documentStore.model.entitySets[req.params.entitySet]?.normalizedEntityTypeName
+    const schema = normalizedEntityTypeName != null ? reporter.entityTypeValidator.getSchema(normalizedEntityTypeName) : undefined
+
+    if (schema == null) {
+      return res.status(404).send(`There is no schema for "${req.params.entitySet}"`)
+    }
+
+    res.json(schema)
+  })
+
   app.get('/api/profile/:id', async (req, res, next) => {
     try {
       let profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)

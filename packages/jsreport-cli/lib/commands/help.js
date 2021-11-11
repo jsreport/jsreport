@@ -442,7 +442,7 @@ function printProperties (ui, props, {
         required: schema.items.required
       })
 
-      ui.div({ text: '{', padding: getPadding(level + 1) })
+      ui.div({ text: '}', padding: getPadding(level + 1) })
       ui.div({ text: `]${!isLastKey ? ',' : ''}`, padding: content.padding })
     } else if (schema.type === 'array' && Array.isArray(schema.items)) {
       printProperties(ui, schema.items.map((s, idx) => {

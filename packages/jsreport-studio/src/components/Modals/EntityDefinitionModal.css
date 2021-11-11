@@ -1,0 +1,27 @@
+
+.container {
+  width: 450px;
+}
+
+.jsonContainer {
+  height: 250px;
+}
+
+.blockquote {
+  border-left: 5px solid rgba(102,128,153,0.075);
+  background-color: rgba(102,128,153,0.05);
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  padding: 15px 20px;
+  margin: 10px 10px 15px;
+  word-break: break-all;
+}
+
+.limitText {
+  word-break: break-all;
+}
+
+.codeText {
+  max-height: 150px;
+  overflow: auto;
+}
