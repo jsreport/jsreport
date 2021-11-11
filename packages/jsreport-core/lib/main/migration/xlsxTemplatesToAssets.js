@@ -38,11 +38,21 @@ module.exports = async (reporter) => {
           try {
             const assetName = `${'_'.repeat(tryCount) + xlsxTemplate.name}.xlsx`
 
-            newAsset = await reporter.documentStore.collection('assets').insert({
+            const assetProps = {
               name: assetName,
               content: xlsxTemplate.contentRaw,
               folder: xlsxTemplate.folder || null
-            }, req)
+            }
+
+            if (xlsxTemplate.readPermissions != null) {
+              assetProps.readPermissions = xlsxTemplate.readPermissions
+            }
+
+            if (xlsxTemplate.editPermissions != null) {
+              assetProps.editPermissions = xlsxTemplate.editPermissions
+            }
+
+            newAsset = await reporter.documentStore.collection('assets').insert(assetProps, req)
           } catch (insertError) {
             tryCount++
 

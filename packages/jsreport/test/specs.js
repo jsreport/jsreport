@@ -268,6 +268,12 @@ describe('resources to assets migration', () => {
   it('should contain script in template', async () => {
     const t1 = await reporter.documentStore.collection('templates').findOne({ name: 'main' })
     t1.scripts.should.have.length(1)
+
+    const scriptShortid = t1.scripts[0].shortid
+    const script = await reporter.documentStore.collection('scripts').findOne({ shortid: scriptShortid })
+
+    should(script).be.ok()
+    script.name.should.be.eql('main_resources')
   })
 
   it('should expose resource information for back-compatibility', async () => {
