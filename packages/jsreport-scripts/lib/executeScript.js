@@ -43,6 +43,8 @@ module.exports = async function executeScript (reporter, script, method, req, re
     throw cancellationError
   }
 
+  const sandboxManager = {}
+
   const executionFn = async ({ topLevelFunctions, restore, context }) => {
     try {
       if (method === 'beforeRender' && topLevelFunctions.beforeRender) {
@@ -70,7 +72,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
     let err = null
     // this will only restore original values of properties of __request.context
     // and unwrap proxies and descriptors into new sandbox object
-    const restoredSandbox = restore()
+    const restoredSandbox = sandboxManager.restore()
 
     if (
       err == null &&
@@ -105,6 +107,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
 
   try {
     return await reporter.runInSandbox({
+      manager: sandboxManager,
       context: initialContext,
       userCode: script.content,
       executionFn,

@@ -465,14 +465,16 @@ describe('sandbox', () => {
 
   it('restore should reveal hidden props', async () => {
     reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      const sandboxManager = {}
       const r = await reporter.runInSandbox({
+        manager: sandboxManager,
         context: {
           a: { b: 'foo' }
         },
         userCode: '',
         executionFn: ({ context, restore }) => {
           const beforeRestore = typeof context.a.b
-          const restoredContext = restore()
+          const restoredContext = sandboxManager.restore()
           const afterRestore = typeof restoredContext.a.b
 
           return beforeRestore + afterRestore

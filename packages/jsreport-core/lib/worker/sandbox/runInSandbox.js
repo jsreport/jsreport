@@ -5,6 +5,7 @@ const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter) => {
   return ({
+    manager = {},
     context,
     userCode,
     executionFn,
@@ -25,7 +26,7 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { run, restore, sandbox, safeRequire } = safeSandbox(context, {
+    const { run, restore, contextifyValue, decontextifyValue, unproxyValue, sandbox, safeRequire } = safeSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
@@ -60,7 +61,14 @@ module.exports = (reporter) => {
 
     jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions, safeRequire })
 
-    sandbox.__restore = restore
+    // NOTE: it is important that cleanup, restore methods are not called from a function attached to the
+    // sandbox, because the arguments and return value of such function call will be sandboxed again, to solve this
+    // we don't attach these methods to the sandbox, and instead share them through a "manager" object that should
+    // be passed in options
+    manager.restore = restore
+    manager.contextifyValue = contextifyValue
+    manager.decontextifyValue = decontextifyValue
+    manager.unproxyValue = unproxyValue
 
     const functionNames = getTopLevelFunctions(userCode)
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
@@ -72,7 +80,6 @@ module.exports = (reporter) => {
             },
             require,
             console,
-            restore: __restore,
             context: this
         })).catch(__handleError);`
 

@@ -133,6 +133,7 @@ class WorkerReporter extends Reporter {
   }
 
   async runInSandbox ({
+    manager,
     context,
     userCode,
     executionFn,
@@ -141,6 +142,7 @@ class WorkerReporter extends Reporter {
     errorLineNumberOffset
   }, req) {
     return this._runInSandbox({
+      manager,
       context,
       userCode,
       executionFn,
