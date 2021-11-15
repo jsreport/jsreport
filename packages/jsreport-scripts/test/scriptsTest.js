@@ -589,38 +589,44 @@ describe('scripts', () => {
       response.content.toString().should.be.eql('hello')
     })
 
-    it('should be able to require jsreport-proxy, find collection with parsed buffers', async () => {
-      await reporter.documentStore.collection('templates').insert({
-        name: 'foo',
-        content: 'foo',
-        engine: 'jsrender',
-        recipe: 'html'
+    it('should be able to require jsreport-proxy and read asset with relative path', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'foldera',
+        shortid: 'foldera'
       })
-
       await reporter.documentStore.collection('assets').insert({
-        name: 'hello',
-        content: Buffer.from(JSON.stringify({ a: 'foo' }))
+        name: 'asset.txt',
+        folder: { shortid: 'foldera' },
+        content: 'myasset'
+      })
+      await reporter.documentStore.collection('scripts').insert({
+        name: 'myscript',
+        shortid: 'myscript',
+        folder: { shortid: 'foldera' },
+        content: `
+        const jsreport = require('jsreport-proxy')
+        async function beforeRender(req, res) {
+          const asset = await jsreport.assets.read('./asset.txt')
+          req.template.content = asset.toString()
+        }`
+      })
+      await reporter.documentStore.collection('folders').insert({
+        name: 'folderb',
+        shortid: 'folderb'
+      })
+      await reporter.documentStore.collection('templates').insert({
+        name: 't1',
+        engine: 'none',
+        recipe: 'html',
+        content: 'hello',
+        scripts: [{ shortid: 'myscript' }],
+        folder: { shortid: 'folderb' }
       })
 
-      const request = {
-        template: {
-          content: 'original',
-          recipe: 'html',
-          engine: 'jsrender',
-          scripts: [{
-            content: `
-              const jsreport = require('jsreport-proxy')
-              function beforeRender(req, res, done) {
-                jsreport.documentStore.collection('assets').find({name: 'hello'}).then((result) => {
-                  req.template.content = JSON.parse(result[0].content.toString()).a
-                  done();
-                }).catch((e) => done(e))
-              }`
-          }]
-        }
-      }
-      const response = await reporter.render(request)
-      response.content.toString().should.be.eql('foo')
+      const response = await reporter.render({
+        template: { name: 't1' }
+      })
+      response.content.toString().should.be.eql('myasset')
     })
 
     it('should be able to require jsreport-proxy, findOne collection with parsed buffers', async () => {

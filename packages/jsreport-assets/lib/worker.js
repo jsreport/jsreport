@@ -107,7 +107,7 @@ module.exports = (reporter, definition) => {
   }) => {
     proxy.assets = {
       read: async (path, encoding, moduleMode = false) => {
-        const r = await readAsset(reporter, definition, { id: null, name: path, encoding, moduleMode }, req)
+        const r = await readAsset(reporter, definition, { id: null, name: path, encoding, moduleMode, currentPath: proxy.currentPath }, req)
         return r.content
       },
 
@@ -131,7 +131,7 @@ module.exports = (reporter, definition) => {
       },
 
       registerHelpers: async (path) => {
-        const asset = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8' }, req)
+        const asset = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentPath: proxy.currentPath }, req)
 
         const functionNames = getTopLevelFunctions(asset.content.toString())
         const userCode = `(async () => { ${asset.content.toString()};
@@ -148,7 +148,7 @@ module.exports = (reporter, definition) => {
       },
 
       require: async (path) => {
-        const r = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8' }, req)
+        const r = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentPath: proxy.currentPath }, req)
 
         const userCode = [
           `;(() => { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,

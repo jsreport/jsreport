@@ -8,6 +8,7 @@ describe('localization', () => {
     reporter = jsreport()
       .use(require('@jsreport/jsreport-assets')())
       .use(require('@jsreport/jsreport-handlebars')())
+      .use(require('@jsreport/jsreport-components')())
       .use(require('../')())
 
     return reporter.init()
@@ -250,6 +251,63 @@ describe('localization', () => {
       })),
       folder: {
         shortid: 'afolder'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 'template'
+      },
+      options: {
+        language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql('Hello')
+  })
+
+  it('should provide localize proxy with relative to the current component', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'afolder',
+      shortid: 'afolder'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      content: "{{component '../bfolder/c1'}}",
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 'template',
+      folder: {
+        shortid: 'afolder'
+      }
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'bfolder',
+      shortid: 'bfolder'
+    })
+
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: "{{localize 'message' './localization'}}",
+      engine: 'handlebars',
+      folder: { shortid: 'bfolder' }
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization',
+      folder: {
+        shortid: 'bfolder'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        message: 'Hello'
+      })),
+      folder: {
+        shortid: 'localization'
       }
     })
 

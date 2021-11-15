@@ -9,6 +9,7 @@ module.exports = (reporter) => {
     context,
     userCode,
     executionFn,
+    currentPath,
     onRequire,
     propertiesConfig,
     errorLineNumberOffset = 0
@@ -60,6 +61,7 @@ module.exports = (reporter) => {
     })
 
     jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions, safeRequire })
+    jsreportProxy.currentPath = currentPath
 
     // NOTE: it is important that cleanup, restore methods are not called from a function attached to the
     // sandbox, because the arguments and return value of such function call will be sandboxed again, to solve this

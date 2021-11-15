@@ -3,6 +3,12 @@ const _omit = require('lodash.omit')
 const promisify = require('util').promisify
 
 module.exports = async function executeScript (reporter, script, method, req, res) {
+  let entityPath
+  if (script._id) {
+    entityPath = await reporter.folders.resolveEntityPath(script, 'scripts', req)
+    entityPath = entityPath.substring(0, entityPath.lastIndexOf('/'))
+  }
+
   const requestContextMetaConfig = reporter.getRequestContextMetaConfig() || {}
 
   const originalData = req.data
@@ -111,6 +117,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
       context: initialContext,
       userCode: script.content,
       executionFn,
+      currentPath: entityPath,
       propertiesConfig: Object.keys(requestContextMetaConfig).reduce((acu, prop) => {
       // configure properties inside the context of sandbox
         acu[`__request.context.${prop}`] = requestContextMetaConfig[prop]

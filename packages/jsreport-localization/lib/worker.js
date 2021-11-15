@@ -36,7 +36,7 @@ module.exports = async (reporter, definition) => {
         }
 
         const localizationDataPath = path.posix.join(folder, `${language || 'en'}.json`)
-        const resolvedValue = await proxy.folders.resolveEntityFromPath(localizationDataPath, 'assets')
+        const resolvedValue = await proxy.folders.resolveEntityFromPath(localizationDataPath, 'assets', { currentPath: proxy.currentPath })
 
         if (!resolvedValue) {
           throw new Error('localize helper couldn\'t find asset with data at ' + localizationDataPath)
