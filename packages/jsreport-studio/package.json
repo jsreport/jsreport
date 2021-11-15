@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.0.1",
-    "@jsreport/jsreport-express": "3.0.0",
+    "@jsreport/jsreport-express": "3.0.1",
     "@jsreport/studio-dev": "3.0.1",
     "@seznam/compose-react-refs": "1.0.4",
     "babel-eslint": "10.0.2",

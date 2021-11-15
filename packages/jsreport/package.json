@@ -53,7 +53,7 @@
     "@jsreport/jsreport-core": "3.0.1",
     "@jsreport/jsreport-data": "3.0.0",
     "@jsreport/jsreport-docx": "3.0.0",
-    "@jsreport/jsreport-express": "3.0.0",
+    "@jsreport/jsreport-express": "3.0.1",
     "@jsreport/jsreport-freeze": "3.0.1",
     "@jsreport/jsreport-fs-store": "3.0.0",
     "@jsreport/jsreport-handlebars": "3.0.0",

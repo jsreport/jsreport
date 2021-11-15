@@ -31,7 +31,7 @@
     "@jsreport/jsreport-authentication": "3.0.0",
     "@jsreport/jsreport-chrome-pdf": "3.0.0",
     "@jsreport/jsreport-core": "3.0.1",
-    "@jsreport/jsreport-express": "3.0.0",
+    "@jsreport/jsreport-express": "3.0.1",
     "@jsreport/jsreport-fs-store": "3.0.0",
     "@jsreport/jsreport-handlebars": "3.0.0",
     "@jsreport/jsreport-scripts": "3.0.0",
