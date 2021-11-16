@@ -241,4 +241,26 @@ describe('pptx', () => {
     text.should.containEql('Jan')
     text.should.containEql('Boris')
   })
+
+  it('should propagate lineNumber when error in helper', async () => {
+    try {
+      await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'pptx',
+          pptx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(__dirname, 'variable.pptx'))
+            }
+          },
+          helpers: `function hello() {
+            throw new Error('xxx')
+          }        
+        `
+        }
+      })
+    } catch (e) {
+      e.lineNumber.should.be.eql(2)
+    }
+  })
 })
