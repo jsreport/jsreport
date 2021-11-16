@@ -75,6 +75,7 @@ RUN npm uninstall -g @jsreport/jsreport-cli && \
 
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
 COPY ./packages/jsreport/docker/default/run.sh run.sh
+RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
 
