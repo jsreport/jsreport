@@ -22,7 +22,12 @@ module.exports = (reporter, options) => {
 
     async append (blobName, buffer, req) {
       if (!provider.append) {
-        const existingBuf = await provider.read(blobName, req)
+        let existingBuf = Buffer.from([])
+        try {
+          existingBuf = await provider.read(blobName, req)
+        } catch (e) {
+          // so far blob storage throws when blob doesnt exit
+        }
         return provider.write(blobName, existingBuf ? Buffer.concat([existingBuf, buffer]) : buffer, req)
       }
       return provider.append(blobName, buffer, req)
