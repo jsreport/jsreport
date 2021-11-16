@@ -18,6 +18,15 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.1.0
+
+- add entity definition button in entity tree item context menu
+- fix loading of monaco editor icons
+- improve styles for profiler logs
+- fix studio editor linter error for top level await in script/helpers (add babel-eslint to our linter in studio)
+- fix jsreport-studio-start when running with —runOnly in extension starter kit
+- fix layout issue with profiler when a large base64 image is logged
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

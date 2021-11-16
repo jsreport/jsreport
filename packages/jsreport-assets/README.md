@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.0.1
+
+- use relative path to the currently evaluated entity (for example relative asset inside script should be relative to the script)
+
 ### 3.0.0-beta.1
 
 Initial release for jsreport v3

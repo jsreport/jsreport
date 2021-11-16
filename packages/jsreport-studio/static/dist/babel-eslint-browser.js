@@ -29492,6 +29492,8 @@ var tt = {
   bitwiseXOR: createBinop("^", 4),
   bitwiseAND: createBinop("&", 5),
   equality: createBinop("==/!=/===/!==", 6),
+  lt: createBinop("</>/<=/>=", 7),
+  gt: createBinop("</>/<=/>=", 7),
   relational: createBinop("</>/<=/>=", 7),
   bitShift: createBinop("<</>>/>>>", 8),
   plusMin: createToken("+/-", {
@@ -29746,13 +29748,16 @@ var tt = {
   })
 };
 function tokenIsIdentifier(token) {
-  return token >= 85 && token <= 120;
+  return token >= 87 && token <= 122;
+}
+function tokenKeywordOrIdentifierIsKeyword(token) {
+  return token <= 86;
 }
 function tokenIsKeywordOrIdentifier(token) {
-  return token >= 50 && token <= 120;
+  return token >= 52 && token <= 122;
 }
 function tokenIsLiteralPropertyName(token) {
-  return token >= 50 && token <= 124;
+  return token >= 52 && token <= 126;
 }
 function tokenComesBeforeExpression(token) {
   return tokenBeforeExprs[token];
@@ -29764,16 +29769,16 @@ function tokenIsAssignment(token) {
   return token >= 27 && token <= 31;
 }
 function tokenIsFlowInterfaceOrTypeOrOpaque(token) {
-  return token >= 117 && token <= 119;
+  return token >= 119 && token <= 121;
 }
 function tokenIsLoop(token) {
-  return token >= 82 && token <= 84;
+  return token >= 84 && token <= 86;
 }
 function tokenIsKeyword(token) {
-  return token >= 50 && token <= 84;
+  return token >= 52 && token <= 86;
 }
 function tokenIsOperator(token) {
-  return token >= 35 && token <= 51;
+  return token >= 35 && token <= 53;
 }
 function tokenIsPostfix(token) {
   return token === 32;
@@ -29782,10 +29787,10 @@ function tokenIsPrefix(token) {
   return tokenPrefixes[token];
 }
 function tokenIsTSTypeOperator(token) {
-  return token >= 109 && token <= 111;
+  return token >= 111 && token <= 113;
 }
 function tokenIsTSDeclarationStart(token) {
-  return token >= 112 && token <= 118;
+  return token >= 114 && token <= 120;
 }
 function tokenLabelName(token) {
   return tokenLabels[token];
@@ -29794,7 +29799,7 @@ function tokenOperatorPrecedence(token) {
   return tokenBinops[token];
 }
 function tokenIsRightAssociative(token) {
-  return token === 49;
+  return token === 51;
 }
 function getExportedToken(token) {
   return tokenTypes[token];
@@ -29819,7 +29824,7 @@ function isTokenType(obj) {
     }
   };
 
-  tokenTypes[130].updateContext = function (context) {
+  tokenTypes[132].updateContext = function (context) {
     context.push(types.j_expr, types.j_oTag);
   };
 }
@@ -30231,7 +30236,6 @@ var State = function () {
     this.maybeInArrowParameters = false;
     this.inType = false;
     this.noAnonFunctionType = false;
-    this.inPropertyName = false;
     this.hasFlowComment = false;
     this.isAmbientContext = false;
     this.inAbstractClass = false;
@@ -30246,7 +30250,7 @@ var State = function () {
     this.comments = [];
     this.commentStack = [];
     this.pos = 0;
-    this.type = 127;
+    this.type = 129;
     this.value = null;
     this.start = 0;
     this.end = 0;
@@ -30255,7 +30259,7 @@ var State = function () {
     this.lastTokStart = 0;
     this.lastTokEnd = 0;
     this.context = [types.brace];
-    this.exprAllowed = true;
+    this.canStartJSXElement = true;
     this.containsEsc = false;
     this.strictErrors = new _map2.default();
     this.tokensLength = 0;
@@ -30466,7 +30470,7 @@ var Tokenizer = function (_ParserError) {
       if (!this.isLookahead) this.state.startLoc = this.state.curPosition();
 
       if (this.state.pos >= this.length) {
-        this.finishToken(127);
+        this.finishToken(129);
         return;
       }
 
@@ -30654,6 +30658,12 @@ var Tokenizer = function (_ParserError) {
       }
     }
   }, {
+    key: 'replaceToken',
+    value: function replaceToken(type) {
+      this.state.type = type;
+      this.updateContext();
+    }
+  }, {
     key: 'readToken_numberSign',
     value: function readToken_numberSign() {
       if (this.state.pos === 0 && this.readToken_interpreter()) {
@@ -30683,10 +30693,10 @@ var Tokenizer = function (_ParserError) {
         }
       } else if (isIdentifierStart(next)) {
         ++this.state.pos;
-        this.finishToken(126, this.readWord1(next));
+        this.finishToken(128, this.readWord1(next));
       } else if (next === 92) {
         ++this.state.pos;
-        this.finishToken(126, this.readWord1());
+        this.finishToken(128, this.readWord1());
       } else {
         this.finishOp(25, 1);
       }
@@ -30717,7 +30727,7 @@ var Tokenizer = function (_ParserError) {
       if (next === 61) {
         this.finishOp(29, 2);
       } else {
-        this.finishOp(48, 1);
+        this.finishOp(50, 1);
       }
     }
   }, {
@@ -30740,14 +30750,14 @@ var Tokenizer = function (_ParserError) {
   }, {
     key: 'readToken_mult_modulo',
     value: function readToken_mult_modulo(code) {
-      var type = code === 42 ? 47 : 46;
+      var type = code === 42 ? 49 : 48;
       var width = 1;
       var next = this.input.charCodeAt(this.state.pos + 1);
 
       if (code === 42 && next === 42) {
         width++;
         next = this.input.charCodeAt(this.state.pos + 2);
-        type = 49;
+        type = 51;
       }
 
       if (next === 61 && !this.state.inType) {
@@ -30830,32 +30840,58 @@ var Tokenizer = function (_ParserError) {
       if (next === 61) {
         this.finishOp(28, 2);
       } else {
-        this.finishOp(45, 1);
+        this.finishOp(47, 1);
       }
     }
   }, {
-    key: 'readToken_lt_gt',
-    value: function readToken_lt_gt(code) {
-      var next = this.input.charCodeAt(this.state.pos + 1);
-      var size = 1;
+    key: 'readToken_lt',
+    value: function readToken_lt() {
+      var pos = this.state.pos;
 
-      if (next === code) {
-        size = code === 62 && this.input.charCodeAt(this.state.pos + 2) === 62 ? 3 : 2;
+      var next = this.input.charCodeAt(pos + 1);
 
-        if (this.input.charCodeAt(this.state.pos + size) === 61) {
-          this.finishOp(28, size + 1);
+      if (next === 60) {
+        if (this.input.charCodeAt(pos + 2) === 61) {
+          this.finishOp(28, 3);
           return;
         }
 
-        this.finishOp(44, size);
+        this.finishOp(46, 2);
         return;
       }
 
       if (next === 61) {
-        size = 2;
+        this.finishOp(45, 2);
+        return;
       }
 
-      this.finishOp(43, size);
+      this.finishOp(43, 1);
+    }
+  }, {
+    key: 'readToken_gt',
+    value: function readToken_gt() {
+      var pos = this.state.pos;
+
+      var next = this.input.charCodeAt(pos + 1);
+
+      if (next === 62) {
+        var size = this.input.charCodeAt(pos + 2) === 62 ? 3 : 2;
+
+        if (this.input.charCodeAt(pos + size) === 61) {
+          this.finishOp(28, size + 1);
+          return;
+        }
+
+        this.finishOp(46, size);
+        return;
+      }
+
+      if (next === 61) {
+        this.finishOp(45, 2);
+        return;
+      }
+
+      this.finishOp(44, 1);
     }
   }, {
     key: 'readToken_eq_excl',
@@ -31043,8 +31079,11 @@ var Tokenizer = function (_ParserError) {
           return;
 
         case 60:
+          this.readToken_lt();
+          return;
+
         case 62:
-          this.readToken_lt_gt(code);
+          this.readToken_gt();
           return;
 
         case 61:
@@ -31144,7 +31183,7 @@ var Tokenizer = function (_ParserError) {
       }
 
       this.state.pos = pos;
-      this.finishToken(125, {
+      this.finishToken(127, {
         pattern: content,
         flags: mods
       });
@@ -31241,11 +31280,11 @@ var Tokenizer = function (_ParserError) {
 
       if (isBigInt) {
         var str = this.input.slice(start, this.state.pos).replace(/[_n]/g, "");
-        this.finishToken(123, str);
+        this.finishToken(125, str);
         return;
       }
 
-      this.finishToken(122, val);
+      this.finishToken(124, val);
     }
   }, {
     key: 'readNumber',
@@ -31330,17 +31369,17 @@ var Tokenizer = function (_ParserError) {
       var str = this.input.slice(start, this.state.pos).replace(/[_mn]/g, "");
 
       if (isBigInt) {
-        this.finishToken(123, str);
+        this.finishToken(125, str);
         return;
       }
 
       if (isDecimal) {
-        this.finishToken(124, str);
+        this.finishToken(126, str);
         return;
       }
 
       var val = isOctal ? parseInt(str, 8) : parseFloat(str);
-      this.finishToken(122, val);
+      this.finishToken(124, val);
     }
   }, {
     key: 'readCodePoint',
@@ -31396,7 +31435,7 @@ var Tokenizer = function (_ParserError) {
       }
 
       out += this.input.slice(chunkStart, this.state.pos++);
-      this.finishToken(121, out);
+      this.finishToken(123, out);
     }
   }, {
     key: 'readTmplToken',
@@ -31638,7 +31677,7 @@ var Tokenizer = function (_ParserError) {
       if (type !== undefined) {
         this.finishToken(type, tokenLabelName(type));
       } else {
-        this.finishToken(120, word);
+        this.finishToken(122, word);
       }
     }
   }, {
@@ -32055,20 +32094,6 @@ var UtilParser = function (_Tokenizer) {
       extra[key] = val;
     }
   }, {
-    key: 'isRelational',
-    value: function isRelational(op) {
-      return this.match(43) && this.state.value === op;
-    }
-  }, {
-    key: 'expectRelational',
-    value: function expectRelational(op) {
-      if (this.isRelational(op)) {
-        this.next();
-      } else {
-        this.unexpected(null, 43);
-      }
-    }
-  }, {
     key: 'isContextual',
     value: function isContextual(token) {
       return this.state.type === token && !this.state.containsEsc;
@@ -32109,7 +32134,7 @@ var UtilParser = function (_Tokenizer) {
   }, {
     key: 'canInsertSemicolon',
     value: function canInsertSemicolon() {
-      return this.match(127) || this.match(8) || this.hasPrecedingLineBreak();
+      return this.match(129) || this.match(8) || this.hasPrecedingLineBreak();
     }
   }, {
     key: 'hasPrecedingLineBreak',
@@ -32582,7 +32607,7 @@ function hasTypeImportKind(node) {
 }
 
 function isMaybeDefaultImport(type) {
-  return tokenIsKeywordOrIdentifier(type) && type !== 89;
+  return tokenIsKeywordOrIdentifier(type) && type !== 91;
 }
 
 var exportSuggestions = {
@@ -32641,7 +32666,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'finishToken',
       value: function finishToken(type, val) {
-        if (type !== 121 && type !== 13 && type !== 26) {
+        if (type !== 123 && type !== 13 && type !== 26) {
           if (this.flowPragma === undefined) {
             this.flowPragma = null;
           }
@@ -32682,7 +32707,7 @@ var flow = function flow(superClass) {
         var node = this.startNode();
         var moduloPos = this.state.start;
         this.next();
-        this.expectContextual(99);
+        this.expectContextual(101);
 
         if (this.state.lastTokStart > moduloPos + 1) {
           this.raise(moduloPos, FlowErrors.UnexpectedSpaceBetweenModuloChecks);
@@ -32705,14 +32730,14 @@ var flow = function flow(superClass) {
         var type = null;
         var predicate = null;
 
-        if (this.match(46)) {
+        if (this.match(48)) {
           this.state.inType = oldInType;
           predicate = this.flowParsePredicate();
         } else {
           type = this.flowParseType();
           this.state.inType = oldInType;
 
-          if (this.match(46)) {
+          if (this.match(48)) {
             predicate = this.flowParsePredicate();
           }
         }
@@ -32734,7 +32759,7 @@ var flow = function flow(superClass) {
         var typeNode = this.startNode();
         var typeContainer = this.startNode();
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           typeNode.typeParameters = this.flowParseTypeParameterDeclaration();
         } else {
           typeNode.typeParameters = null;
@@ -32764,13 +32789,13 @@ var flow = function flow(superClass) {
     }, {
       key: 'flowParseDeclare',
       value: function flowParseDeclare(node, insideModule) {
-        if (this.match(72)) {
+        if (this.match(74)) {
           return this.flowParseDeclareClass(node);
-        } else if (this.match(60)) {
+        } else if (this.match(62)) {
           return this.flowParseDeclareFunction(node);
-        } else if (this.match(66)) {
+        } else if (this.match(68)) {
           return this.flowParseDeclareVariable(node);
-        } else if (this.eatContextual(115)) {
+        } else if (this.eatContextual(117)) {
           if (this.match(16)) {
             return this.flowParseDeclareModuleExports(node);
           } else {
@@ -32780,13 +32805,13 @@ var flow = function flow(superClass) {
 
             return this.flowParseDeclareModule(node);
           }
-        } else if (this.isContextual(118)) {
+        } else if (this.isContextual(120)) {
           return this.flowParseDeclareTypeAlias(node);
-        } else if (this.isContextual(119)) {
+        } else if (this.isContextual(121)) {
           return this.flowParseDeclareOpaqueType(node);
-        } else if (this.isContextual(117)) {
+        } else if (this.isContextual(119)) {
           return this.flowParseDeclareInterface(node);
-        } else if (this.match(74)) {
+        } else if (this.match(76)) {
           return this.flowParseDeclareExportDeclaration(node, insideModule);
         } else {
           throw this.unexpected();
@@ -32808,7 +32833,7 @@ var flow = function flow(superClass) {
 
         this.scope.enter(SCOPE_OTHER);
 
-        if (this.match(121)) {
+        if (this.match(123)) {
           node.id = this.parseExprAtom();
         } else {
           node.id = this.parseIdentifier();
@@ -32821,16 +32846,16 @@ var flow = function flow(superClass) {
         while (!this.match(8)) {
           var _bodyNode = this.startNode();
 
-          if (this.match(75)) {
+          if (this.match(77)) {
             this.next();
 
-            if (!this.isContextual(118) && !this.match(79)) {
+            if (!this.isContextual(120) && !this.match(81)) {
               this.raise(this.state.lastTokStart, FlowErrors.InvalidNonTypeImportInDeclareModule);
             }
 
             this.parseImport(_bodyNode);
           } else {
-            this.expectContextual(113, FlowErrors.UnsupportedStatementInDeclareModule);
+            this.expectContextual(115, FlowErrors.UnsupportedStatementInDeclareModule);
             _bodyNode = this.flowParseDeclare(_bodyNode, true);
           }
 
@@ -32868,10 +32893,10 @@ var flow = function flow(superClass) {
     }, {
       key: 'flowParseDeclareExportDeclaration',
       value: function flowParseDeclareExportDeclaration(node, insideModule) {
-        this.expect(74);
+        this.expect(76);
 
-        if (this.eat(57)) {
-          if (this.match(60) || this.match(72)) {
+        if (this.eat(59)) {
+          if (this.match(62) || this.match(74)) {
             node.declaration = this.flowParseDeclare(this.startNode());
           } else {
             node.declaration = this.flowParseType();
@@ -32881,17 +32906,17 @@ var flow = function flow(superClass) {
           node.default = true;
           return this.finishNode(node, "DeclareExportDeclaration");
         } else {
-          if (this.match(67) || this.isLet() || (this.isContextual(118) || this.isContextual(117)) && !insideModule) {
+          if (this.match(69) || this.isLet() || (this.isContextual(120) || this.isContextual(119)) && !insideModule) {
             var label = this.state.value;
             var suggestion = exportSuggestions[label];
             throw this.raise(this.state.start, FlowErrors.UnsupportedDeclareExportKind, label, suggestion);
           }
 
-          if (this.match(66) || this.match(60) || this.match(72) || this.isContextual(119)) {
+          if (this.match(68) || this.match(62) || this.match(74) || this.isContextual(121)) {
             node.declaration = this.flowParseDeclare(this.startNode());
             node.default = false;
             return this.finishNode(node, "DeclareExportDeclaration");
-          } else if (this.match(47) || this.match(5) || this.isContextual(117) || this.isContextual(118) || this.isContextual(119)) {
+          } else if (this.match(49) || this.match(5) || this.isContextual(119) || this.isContextual(120) || this.isContextual(121)) {
             node = this.parseExport(node);
 
             if (node.type === "ExportNamedDeclaration") {
@@ -32911,7 +32936,7 @@ var flow = function flow(superClass) {
       key: 'flowParseDeclareModuleExports',
       value: function flowParseDeclareModuleExports(node) {
         this.next();
-        this.expectContextual(100);
+        this.expectContextual(102);
         node.typeAnnotation = this.flowParseTypeAnnotation();
         this.semicolon();
         return this.finishNode(node, "DeclareModuleExports");
@@ -32947,7 +32972,7 @@ var flow = function flow(superClass) {
         node.id = this.flowParseRestrictedIdentifier(!isClass, true);
         this.scope.declareName(node.id.name, isClass ? BIND_FUNCTION : BIND_LEXICAL, node.id.start);
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterDeclaration();
         } else {
           node.typeParameters = null;
@@ -32957,13 +32982,13 @@ var flow = function flow(superClass) {
         node.implements = [];
         node.mixins = [];
 
-        if (this.eat(73)) {
+        if (this.eat(75)) {
           do {
             node.extends.push(this.flowParseInterfaceExtends());
           } while (!isClass && this.eat(12));
         }
 
-        if (this.isContextual(106)) {
+        if (this.isContextual(108)) {
           this.next();
 
           do {
@@ -32971,7 +32996,7 @@ var flow = function flow(superClass) {
           } while (this.eat(12));
         }
 
-        if (this.isContextual(102)) {
+        if (this.isContextual(104)) {
           this.next();
 
           do {
@@ -32993,7 +33018,7 @@ var flow = function flow(superClass) {
         var node = this.startNode();
         node.id = this.flowParseQualifiedTypeIdentifier();
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterInstantiation();
         } else {
           node.typeParameters = null;
@@ -33032,7 +33057,7 @@ var flow = function flow(superClass) {
         node.id = this.flowParseRestrictedIdentifier(false, true);
         this.scope.declareName(node.id.name, BIND_LEXICAL, node.id.start);
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterDeclaration();
         } else {
           node.typeParameters = null;
@@ -33045,11 +33070,11 @@ var flow = function flow(superClass) {
     }, {
       key: 'flowParseOpaqueType',
       value: function flowParseOpaqueType(node, declare) {
-        this.expectContextual(118);
+        this.expectContextual(120);
         node.id = this.flowParseRestrictedIdentifier(true, true);
         this.scope.declareName(node.id.name, BIND_LEXICAL, node.id.start);
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterDeclaration();
         } else {
           node.typeParameters = null;
@@ -33102,7 +33127,7 @@ var flow = function flow(superClass) {
         node.params = [];
         this.state.inType = true;
 
-        if (this.isRelational("<") || this.match(130)) {
+        if (this.match(43) || this.match(132)) {
           this.next();
         } else {
           this.unexpected();
@@ -33118,12 +33143,12 @@ var flow = function flow(superClass) {
             defaultRequired = true;
           }
 
-          if (!this.isRelational(">")) {
+          if (!this.match(44)) {
             this.expect(12);
           }
-        } while (!this.isRelational(">"));
+        } while (!this.match(44));
 
-        this.expectRelational(">");
+        this.expect(44);
         this.state.inType = oldInType;
         return this.finishNode(node, "TypeParameterDeclaration");
       }
@@ -33134,20 +33159,20 @@ var flow = function flow(superClass) {
         var oldInType = this.state.inType;
         node.params = [];
         this.state.inType = true;
-        this.expectRelational("<");
+        this.expect(43);
         var oldNoAnonFunctionType = this.state.noAnonFunctionType;
         this.state.noAnonFunctionType = false;
 
-        while (!this.isRelational(">")) {
+        while (!this.match(44)) {
           node.params.push(this.flowParseType());
 
-          if (!this.isRelational(">")) {
+          if (!this.match(44)) {
             this.expect(12);
           }
         }
 
         this.state.noAnonFunctionType = oldNoAnonFunctionType;
-        this.expectRelational(">");
+        this.expect(44);
         this.state.inType = oldInType;
         return this.finishNode(node, "TypeParameterInstantiation");
       }
@@ -33158,17 +33183,17 @@ var flow = function flow(superClass) {
         var oldInType = this.state.inType;
         node.params = [];
         this.state.inType = true;
-        this.expectRelational("<");
+        this.expect(43);
 
-        while (!this.isRelational(">")) {
+        while (!this.match(44)) {
           node.params.push(this.flowParseTypeOrImplicitInstantiation());
 
-          if (!this.isRelational(">")) {
+          if (!this.match(44)) {
             this.expect(12);
           }
         }
 
-        this.expectRelational(">");
+        this.expect(44);
         this.state.inType = oldInType;
         return this.finishNode(node, "TypeParameterInstantiation");
       }
@@ -33176,10 +33201,10 @@ var flow = function flow(superClass) {
       key: 'flowParseInterfaceType',
       value: function flowParseInterfaceType() {
         var node = this.startNode();
-        this.expectContextual(117);
+        this.expectContextual(119);
         node.extends = [];
 
-        if (this.eat(73)) {
+        if (this.eat(75)) {
           do {
             node.extends.push(this.flowParseInterfaceExtends());
           } while (this.eat(12));
@@ -33197,7 +33222,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'flowParseObjectPropertyKey',
       value: function flowParseObjectPropertyKey() {
-        return this.match(122) || this.match(121) ? this.parseExprAtom() : this.parseIdentifier(true);
+        return this.match(124) || this.match(123) ? this.parseExprAtom() : this.parseIdentifier(true);
       }
     }, {
       key: 'flowParseObjectTypeIndexer',
@@ -33225,7 +33250,7 @@ var flow = function flow(superClass) {
         this.expect(3);
         this.expect(3);
 
-        if (this.isRelational("<") || this.match(10)) {
+        if (this.match(43) || this.match(10)) {
           node.method = true;
           node.optional = false;
           node.value = this.flowParseObjectTypeMethodish(this.startNodeAt(node.start, node.loc.start));
@@ -33249,13 +33274,13 @@ var flow = function flow(superClass) {
         node.typeParameters = null;
         node.this = null;
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterDeclaration();
         }
 
         this.expect(10);
 
-        if (this.match(70)) {
+        if (this.match(72)) {
           node.this = this.flowParseFunctionTypeParam(true);
           node.this.name = null;
 
@@ -33326,7 +33351,7 @@ var flow = function flow(superClass) {
           var inexactStart = null;
           var node = this.startNode();
 
-          if (allowProto && this.isContextual(107)) {
+          if (allowProto && this.isContextual(109)) {
             var lookahead = this.lookahead();
 
             if (lookahead.type !== 14 && lookahead.type !== 17) {
@@ -33336,7 +33361,7 @@ var flow = function flow(superClass) {
             }
           }
 
-          if (allowStatic && this.isContextual(96)) {
+          if (allowStatic && this.isContextual(98)) {
             var _lookahead = this.lookahead();
 
             if (_lookahead.type !== 14 && _lookahead.type !== 17) {
@@ -33361,7 +33386,7 @@ var flow = function flow(superClass) {
             } else {
               nodeStart.indexers.push(this.flowParseObjectTypeIndexer(node, isStatic, variance));
             }
-          } else if (this.match(10) || this.isRelational("<")) {
+          } else if (this.match(10) || this.match(43)) {
             if (protoStart != null) {
               this.unexpected(protoStart);
             }
@@ -33374,7 +33399,7 @@ var flow = function flow(superClass) {
           } else {
             var kind = "init";
 
-            if (this.isContextual(90) || this.isContextual(95)) {
+            if (this.isContextual(92) || this.isContextual(97)) {
               var _lookahead2 = this.lookahead();
 
               if (tokenIsLiteralPropertyName(_lookahead2.type)) {
@@ -33451,7 +33476,7 @@ var flow = function flow(superClass) {
           node.kind = kind;
           var optional = false;
 
-          if (this.isRelational("<") || this.match(10)) {
+          if (this.match(43) || this.match(10)) {
             node.method = true;
 
             if (protoStart != null) {
@@ -33540,7 +33565,7 @@ var flow = function flow(superClass) {
         node.typeParameters = null;
         node.id = this.flowParseQualifiedTypeIdentifier(startPos, startLoc, id);
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterInstantiation();
         }
 
@@ -33550,7 +33575,7 @@ var flow = function flow(superClass) {
       key: 'flowParseTypeofType',
       value: function flowParseTypeofType() {
         var node = this.startNode();
-        this.expect(79);
+        this.expect(81);
         node.argument = this.flowParsePrimaryType();
         return this.finishNode(node, "TypeofTypeAnnotation");
       }
@@ -33578,7 +33603,7 @@ var flow = function flow(superClass) {
         var typeAnnotation = null;
         var node = this.startNode();
         var lh = this.lookahead();
-        var isThis = this.state.type === 70;
+        var isThis = this.state.type === 72;
 
         if (lh.type === 14 || lh.type === 17) {
           if (isThis && !first) {
@@ -33622,7 +33647,7 @@ var flow = function flow(superClass) {
         var rest = null;
         var _this = null;
 
-        if (this.match(70)) {
+        if (this.match(72)) {
           _this = this.flowParseFunctionTypeParam(true);
           _this.name = null;
 
@@ -33717,26 +33742,22 @@ var flow = function flow(superClass) {
             return type;
 
           case 43:
-            if (this.state.value === "<") {
-              node.typeParameters = this.flowParseTypeParameterDeclaration();
-              this.expect(10);
-              tmp = this.flowParseFunctionTypeParams();
-              node.params = tmp.params;
-              node.rest = tmp.rest;
-              node.this = tmp._this;
-              this.expect(11);
-              this.expect(19);
-              node.returnType = this.flowParseType();
-              return this.finishNode(node, "FunctionTypeAnnotation");
-            }
-
-            break;
+            node.typeParameters = this.flowParseTypeParameterDeclaration();
+            this.expect(10);
+            tmp = this.flowParseFunctionTypeParams();
+            node.params = tmp.params;
+            node.rest = tmp.rest;
+            node.this = tmp._this;
+            this.expect(11);
+            this.expect(19);
+            node.returnType = this.flowParseType();
+            return this.finishNode(node, "FunctionTypeAnnotation");
 
           case 10:
             this.next();
 
             if (!this.match(11) && !this.match(21)) {
-              if (tokenIsIdentifier(this.state.type) || this.match(70)) {
+              if (tokenIsIdentifier(this.state.type) || this.match(72)) {
                 var token = this.lookahead().type;
                 isGroupedType = token !== 17 && token !== 14;
               } else {
@@ -33772,24 +33793,24 @@ var flow = function flow(superClass) {
             node.typeParameters = null;
             return this.finishNode(node, "FunctionTypeAnnotation");
 
-          case 121:
+          case 123:
             return this.parseLiteral(this.state.value, "StringLiteralTypeAnnotation");
 
-          case 77:
-          case 78:
-            node.value = this.match(77);
+          case 79:
+          case 80:
+            node.value = this.match(79);
             this.next();
             return this.finishNode(node, "BooleanLiteralTypeAnnotation");
 
-          case 45:
+          case 47:
             if (this.state.value === "-") {
               this.next();
 
-              if (this.match(122)) {
+              if (this.match(124)) {
                 return this.parseLiteralAtNode(-this.state.value, "NumberLiteralTypeAnnotation", node);
               }
 
-              if (this.match(123)) {
+              if (this.match(125)) {
                 return this.parseLiteralAtNode(-this.state.value, "BigIntLiteralTypeAnnotation", node);
               }
 
@@ -33798,29 +33819,29 @@ var flow = function flow(superClass) {
 
             throw this.unexpected();
 
-          case 122:
+          case 124:
             return this.parseLiteral(this.state.value, "NumberLiteralTypeAnnotation");
 
-          case 123:
+          case 125:
             return this.parseLiteral(this.state.value, "BigIntLiteralTypeAnnotation");
 
-          case 80:
+          case 82:
             this.next();
             return this.finishNode(node, "VoidTypeAnnotation");
 
-          case 76:
+          case 78:
             this.next();
             return this.finishNode(node, "NullLiteralTypeAnnotation");
 
-          case 70:
+          case 72:
             this.next();
             return this.finishNode(node, "ThisTypeAnnotation");
 
-          case 47:
+          case 49:
             this.next();
             return this.finishNode(node, "ExistsTypeAnnotation");
 
-          case 79:
+          case 81:
             return this.flowParseTypeofType();
 
           default:
@@ -33829,7 +33850,7 @@ var flow = function flow(superClass) {
               this.next();
               return (0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'createIdentifier', this).call(this, node, label);
             } else if (tokenIsIdentifier(this.state.type)) {
-              if (this.isContextual(117)) {
+              if (this.isContextual(119)) {
                 return this.flowParseInterfaceType();
               }
 
@@ -33943,7 +33964,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'flowParseTypeOrImplicitInstantiation',
       value: function flowParseTypeOrImplicitInstantiation() {
-        if (this.state.type === 120 && this.state.value === "_") {
+        if (this.state.type === 122 && this.state.value === "_") {
           var startPos = this.state.start;
           var startLoc = this.state.startLoc;
           var node = this.parseIdentifier();
@@ -33983,7 +34004,7 @@ var flow = function flow(superClass) {
       value: function flowParseVariance() {
         var variance = null;
 
-        if (this.match(45)) {
+        if (this.match(47)) {
           variance = this.startNode();
 
           if (this.state.value === "+") {
@@ -34036,7 +34057,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'parseStatement',
       value: function parseStatement(context, topLevel) {
-        if (this.state.strict && this.isContextual(117)) {
+        if (this.state.strict && this.isContextual(119)) {
           var lookahead = this.lookahead();
 
           if (tokenIsKeywordOrIdentifier(lookahead.type)) {
@@ -34044,7 +34065,7 @@ var flow = function flow(superClass) {
             this.next();
             return this.flowParseInterface(node);
           }
-        } else if (this.shouldParseEnums() && this.isContextual(114)) {
+        } else if (this.shouldParseEnums() && this.isContextual(116)) {
           var _node = this.startNode();
           this.next();
           return this.flowParseEnumDeclaration(_node);
@@ -34063,7 +34084,7 @@ var flow = function flow(superClass) {
       value: function parseExpressionStatement(node, expr) {
         if (expr.type === "Identifier") {
           if (expr.name === "declare") {
-            if (this.match(72) || tokenIsIdentifier(this.state.type) || this.match(60) || this.match(66) || this.match(74)) {
+            if (this.match(74) || tokenIsIdentifier(this.state.type) || this.match(62) || this.match(68) || this.match(76)) {
               return this.flowParseDeclare(node);
             }
           } else if (tokenIsIdentifier(this.state.type)) {
@@ -34085,7 +34106,7 @@ var flow = function flow(superClass) {
         var type = this.state.type;
 
 
-        if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.shouldParseEnums() && type === 114) {
+        if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.shouldParseEnums() && type === 116) {
           return !this.state.containsEsc;
         }
 
@@ -34097,7 +34118,7 @@ var flow = function flow(superClass) {
         var type = this.state.type;
 
 
-        if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.shouldParseEnums() && type === 114) {
+        if (tokenIsFlowInterfaceOrTypeOrOpaque(type) || this.shouldParseEnums() && type === 116) {
           return this.state.containsEsc;
         }
 
@@ -34106,7 +34127,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'parseExportDefaultExpression',
       value: function parseExportDefaultExpression() {
-        if (this.shouldParseEnums() && this.isContextual(114)) {
+        if (this.shouldParseEnums() && this.isContextual(116)) {
           var node = this.startNode();
           this.next();
           return this.flowParseEnumDeclaration(node);
@@ -34311,7 +34332,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'parseExportDeclaration',
       value: function parseExportDeclaration(node) {
-        if (this.isContextual(118)) {
+        if (this.isContextual(120)) {
           node.exportKind = "type";
           var declarationNode = this.startNode();
           this.next();
@@ -34323,17 +34344,17 @@ var flow = function flow(superClass) {
           } else {
             return this.flowParseTypeAlias(declarationNode);
           }
-        } else if (this.isContextual(119)) {
+        } else if (this.isContextual(121)) {
           node.exportKind = "type";
           var _declarationNode = this.startNode();
           this.next();
           return this.flowParseOpaqueType(_declarationNode, false);
-        } else if (this.isContextual(117)) {
+        } else if (this.isContextual(119)) {
           node.exportKind = "type";
           var _declarationNode2 = this.startNode();
           this.next();
           return this.flowParseInterface(_declarationNode2);
-        } else if (this.shouldParseEnums() && this.isContextual(114)) {
+        } else if (this.shouldParseEnums() && this.isContextual(116)) {
           node.exportKind = "value";
           var _declarationNode3 = this.startNode();
           this.next();
@@ -34347,7 +34368,7 @@ var flow = function flow(superClass) {
       value: function eatExportStar(node) {
         if ((0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'eatExportStar', this).apply(this, arguments)) return true;
 
-        if (this.isContextual(118) && this.lookahead().type === 47) {
+        if (this.isContextual(120) && this.lookahead().type === 49) {
           node.exportKind = "type";
           this.next();
           this.next();
@@ -34373,7 +34394,7 @@ var flow = function flow(superClass) {
       value: function parseClassId(node, isStatement, optionalId) {
         (0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'parseClassId', this).call(this, node, isStatement, optionalId);
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterDeclaration();
         }
       }
@@ -34382,7 +34403,7 @@ var flow = function flow(superClass) {
       value: function parseClassMember(classBody, member, state) {
         var pos = this.state.start;
 
-        if (this.isContextual(113)) {
+        if (this.isContextual(115)) {
           if (this.parseClassMemberFromModifier(classBody, member)) {
             return;
           }
@@ -34415,7 +34436,7 @@ var flow = function flow(superClass) {
           this.raise(this.state.pos, ErrorMessages.InvalidIdentifier, fullWord);
         }
 
-        this.finishToken(120, fullWord);
+        this.finishToken(122, fullWord);
       }
     }, {
       key: 'getTokenFromCode',
@@ -34425,7 +34446,7 @@ var flow = function flow(superClass) {
         if (code === 123 && next === 124) {
           return this.finishOp(6, 2);
         } else if (this.state.inType && (code === 62 || code === 60)) {
-          return this.finishOp(43, 1);
+          return this.finishOp(code === 62 ? 44 : 43, 1);
         } else if (this.state.inType && code === 63) {
           if (next === 46) {
             return this.finishOp(18, 2);
@@ -34532,7 +34553,7 @@ var flow = function flow(superClass) {
     }, {
       key: 'isClassMethod',
       value: function isClassMethod() {
-        return this.isRelational("<") || (0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'isClassMethod', this).call(this);
+        return this.match(43) || (0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'isClassMethod', this).call(this);
       }
     }, {
       key: 'isClassProperty',
@@ -34553,7 +34574,7 @@ var flow = function flow(superClass) {
 
         delete method.variance;
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           method.typeParameters = this.flowParseTypeParameterDeclaration();
         }
 
@@ -34582,7 +34603,7 @@ var flow = function flow(superClass) {
 
         delete method.variance;
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           method.typeParameters = this.flowParseTypeParameterDeclaration();
         }
 
@@ -34593,11 +34614,11 @@ var flow = function flow(superClass) {
       value: function parseClassSuper(node) {
         (0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'parseClassSuper', this).call(this, node);
 
-        if (node.superClass && this.isRelational("<")) {
+        if (node.superClass && this.match(43)) {
           node.superTypeParameters = this.flowParseTypeParameterInstantiation();
         }
 
-        if (this.isContextual(102)) {
+        if (this.isContextual(104)) {
           this.next();
           var implemented = node.implements = [];
 
@@ -34605,7 +34626,7 @@ var flow = function flow(superClass) {
             var _node3 = this.startNode();
             _node3.id = this.flowParseRestrictedIdentifier(true);
 
-            if (this.isRelational("<")) {
+            if (this.match(43)) {
               _node3.typeParameters = this.flowParseTypeParameterInstantiation();
             } else {
               _node3.typeParameters = null;
@@ -34649,7 +34670,7 @@ var flow = function flow(superClass) {
         delete prop.variance;
         var typeParameters = void 0;
 
-        if (this.isRelational("<") && !isAccessor) {
+        if (this.match(43) && !isAccessor) {
           typeParameters = this.flowParseTypeParameterDeclaration();
           if (!this.match(10)) this.unexpected();
         }
@@ -34721,9 +34742,9 @@ var flow = function flow(superClass) {
         node.importKind = "value";
         var kind = null;
 
-        if (this.match(79)) {
+        if (this.match(81)) {
           kind = "typeof";
-        } else if (this.isContextual(118)) {
+        } else if (this.isContextual(120)) {
           kind = "type";
         }
 
@@ -34732,11 +34753,11 @@ var flow = function flow(superClass) {
           var type = lh.type;
 
 
-          if (kind === "type" && type === 47) {
+          if (kind === "type" && type === 49) {
             this.unexpected(lh.start);
           }
 
-          if (isMaybeDefaultImport(type) || type === 5 || type === 47) {
+          if (isMaybeDefaultImport(type) || type === 5 || type === 49) {
             this.next();
             node.importKind = kind;
           }
@@ -34760,7 +34781,7 @@ var flow = function flow(superClass) {
 
         var isBinding = false;
 
-        if (this.isContextual(85) && !this.isLookaheadContextual("as")) {
+        if (this.isContextual(87) && !this.isLookaheadContextual("as")) {
           var as_ident = this.parseIdentifier(true);
 
           if (specifierTypeKind !== null && !tokenIsKeywordOrIdentifier(this.state.type)) {
@@ -34785,7 +34806,7 @@ var flow = function flow(superClass) {
             specifier.importKind = null;
           }
 
-          if (this.eatContextual(85)) {
+          if (this.eatContextual(87)) {
             specifier.local = this.parseIdentifier();
           } else {
             isBinding = true;
@@ -34814,7 +34835,7 @@ var flow = function flow(superClass) {
       key: 'parseBindingAtom',
       value: function parseBindingAtom() {
         switch (this.state.type) {
-          case 70:
+          case 72:
             return this.parseIdentifier(true);
 
           default:
@@ -34826,7 +34847,7 @@ var flow = function flow(superClass) {
       value: function parseFunctionParams(node, allowModifiers) {
         var kind = node.kind;
 
-        if (kind !== "get" && kind !== "set" && this.isRelational("<")) {
+        if (kind !== "get" && kind !== "set" && this.match(43)) {
           node.typeParameters = this.flowParseTypeParameterDeclaration();
         }
 
@@ -34869,7 +34890,7 @@ var flow = function flow(superClass) {
         var state = null;
         var jsx = void 0;
 
-        if (this.hasPlugin("jsx") && (this.match(130) || this.isRelational("<"))) {
+        if (this.hasPlugin("jsx") && (this.match(132) || this.match(43))) {
           state = this.state.clone();
           jsx = this.tryParse(function () {
             return (0, _get18.default)(_class2.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class2.prototype), 'parseMaybeAssign', _this21).call(_this21, refExpressionErrors, afterLeftParse);
@@ -34886,7 +34907,7 @@ var flow = function flow(superClass) {
           }
         }
 
-        if ((_jsx = jsx) != null && _jsx.error || this.isRelational("<")) {
+        if ((_jsx = jsx) != null && _jsx.error || this.match(43)) {
           var _jsx2, _jsx3;
 
           state = state || this.state.clone();
@@ -35013,7 +35034,7 @@ var flow = function flow(superClass) {
           node.callee = base;
           node.arguments = this.parseCallExpressionArguments(11, false);
           base = this.finishNode(node, "CallExpression");
-        } else if (base.type === "Identifier" && base.name === "async" && this.isRelational("<")) {
+        } else if (base.type === "Identifier" && base.name === "async" && this.match(43)) {
           var state = this.state.clone();
           var arrow = this.tryParse(function (abort) {
             return _this23.parseAsyncArrowWithTypeParameters(startPos, startLoc) || abort();
@@ -35060,7 +35081,7 @@ var flow = function flow(superClass) {
           node.arguments = this.parseCallExpressionArguments(11, false);
           node.optional = true;
           return this.finishCallExpression(node, true);
-        } else if (!noCalls && this.shouldParseTypes() && this.isRelational("<")) {
+        } else if (!noCalls && this.shouldParseTypes() && this.match(43)) {
           var _node4 = this.startNodeAt(startPos, startLoc);
           _node4.callee = base;
           var result = this.tryParse(function () {
@@ -35086,7 +35107,7 @@ var flow = function flow(superClass) {
 
         var targs = null;
 
-        if (this.shouldParseTypes() && this.isRelational("<")) {
+        if (this.shouldParseTypes() && this.match(43)) {
           targs = this.tryParse(function () {
             return _this25.flowParseTypeParameterInstantiationCallOrNew();
           }).node;
@@ -35297,7 +35318,7 @@ var flow = function flow(superClass) {
         };
 
         switch (this.state.type) {
-          case 122:
+          case 124:
             {
               var literal = this.parseNumericLiteral(this.state.value);
 
@@ -35315,7 +35336,7 @@ var flow = function flow(superClass) {
               };
             }
 
-          case 121:
+          case 123:
             {
               var _literal = this.parseStringLiteral(this.state.value);
 
@@ -35333,10 +35354,10 @@ var flow = function flow(superClass) {
               };
             }
 
-          case 77:
-          case 78:
+          case 79:
+          case 80:
             {
-              var _literal2 = this.parseBooleanLiteral(this.match(77));
+              var _literal2 = this.parseBooleanLiteral(this.match(79));
 
               if (endOfInit()) {
                 return {
@@ -35573,7 +35594,7 @@ var flow = function flow(superClass) {
       value: function flowEnumParseExplicitType(_ref18) {
         var enumName = _ref18.enumName;
 
-        if (this.eatContextual(93)) {
+        if (this.eatContextual(95)) {
           if (!tokenIsIdentifier(this.state.type)) {
             throw this.flowEnumErrorInvalidExplicitType(this.state.start, {
               enumName: enumName,
@@ -36090,16 +36111,16 @@ var jsx = function jsx(superClass) {
             case 60:
             case 123:
               if (this.state.pos === this.state.start) {
-                if (ch === 60 && this.state.exprAllowed) {
+                if (ch === 60 && this.state.canStartJSXElement) {
                   ++this.state.pos;
-                  return this.finishToken(130);
+                  return this.finishToken(132);
                 }
 
                 return (0, _get18.default)(_class3.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class3.prototype), 'getTokenFromCode', this).call(this, ch);
               }
 
               out += this.input.slice(chunkStart, this.state.pos);
-              return this.finishToken(129, out);
+              return this.finishToken(131, out);
 
             case 38:
               out += this.input.slice(chunkStart, this.state.pos);
@@ -36168,7 +36189,7 @@ var jsx = function jsx(superClass) {
         }
 
         out += this.input.slice(chunkStart, this.state.pos++);
-        return this.finishToken(121, out);
+        return this.finishToken(123, out);
       }
     }, {
       key: 'jsxReadEntity',
@@ -36224,14 +36245,14 @@ var jsx = function jsx(superClass) {
           ch = this.input.charCodeAt(++this.state.pos);
         } while (isIdentifierChar(ch) || ch === 45);
 
-        return this.finishToken(128, this.input.slice(start, this.state.pos));
+        return this.finishToken(130, this.input.slice(start, this.state.pos));
       }
     }, {
       key: 'jsxParseIdentifier',
       value: function jsxParseIdentifier() {
         var node = this.startNode();
 
-        if (this.match(128)) {
+        if (this.match(130)) {
           node.name = this.state.value;
         } else if (tokenIsKeyword(this.state.type)) {
           node.name = tokenLabelName(this.state.type);
@@ -36291,8 +36312,8 @@ var jsx = function jsx(superClass) {
 
             return node;
 
-          case 130:
-          case 121:
+          case 132:
+          case 123:
             return this.parseExprAtom();
 
           default:
@@ -36347,8 +36368,8 @@ var jsx = function jsx(superClass) {
       value: function jsxParseOpeningElementAt(startPos, startLoc) {
         var node = this.startNodeAt(startPos, startLoc);
 
-        if (this.match(131)) {
-          this.expect(131);
+        if (this.match(133)) {
+          this.expect(133);
           return this.finishNode(node, "JSXOpeningFragment");
         }
 
@@ -36360,13 +36381,13 @@ var jsx = function jsx(superClass) {
       value: function jsxParseOpeningElementAfterName(node) {
         var attributes = [];
 
-        while (!this.match(48) && !this.match(131)) {
+        while (!this.match(50) && !this.match(133)) {
           attributes.push(this.jsxParseAttribute());
         }
 
         node.attributes = attributes;
-        node.selfClosing = this.eat(48);
-        this.expect(131);
+        node.selfClosing = this.eat(50);
+        this.expect(133);
         return this.finishNode(node, "JSXOpeningElement");
       }
     }, {
@@ -36374,13 +36395,13 @@ var jsx = function jsx(superClass) {
       value: function jsxParseClosingElementAt(startPos, startLoc) {
         var node = this.startNodeAt(startPos, startLoc);
 
-        if (this.match(131)) {
-          this.expect(131);
+        if (this.match(133)) {
+          this.expect(133);
           return this.finishNode(node, "JSXClosingFragment");
         }
 
         node.name = this.jsxParseElementName();
-        this.expect(131);
+        this.expect(133);
         return this.finishNode(node, "JSXClosingElement");
       }
     }, {
@@ -36394,12 +36415,12 @@ var jsx = function jsx(superClass) {
         if (!openingElement.selfClosing) {
           contents: for (;;) {
             switch (this.state.type) {
-              case 130:
+              case 132:
                 startPos = this.state.start;
                 startLoc = this.state.startLoc;
                 this.next();
 
-                if (this.eat(48)) {
+                if (this.eat(50)) {
                   closingElement = this.jsxParseClosingElementAt(startPos, startLoc);
                   break contents;
                 }
@@ -36407,7 +36428,7 @@ var jsx = function jsx(superClass) {
                 children.push(this.jsxParseElementAt(startPos, startLoc));
                 break;
 
-              case 129:
+              case 131:
                 children.push(this.parseExprAtom());
                 break;
 
@@ -36451,7 +36472,7 @@ var jsx = function jsx(superClass) {
 
         node.children = children;
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           throw this.raise(this.state.start, JsxErrors.UnwrappedAdjacentJSXElements);
         }
 
@@ -36468,28 +36489,20 @@ var jsx = function jsx(superClass) {
     }, {
       key: 'parseExprAtom',
       value: function parseExprAtom(refExpressionErrors) {
-        if (this.match(129)) {
+        if (this.match(131)) {
           return this.parseLiteral(this.state.value, "JSXText");
-        } else if (this.match(130)) {
+        } else if (this.match(132)) {
           return this.jsxParseElement();
-        } else if (this.isRelational("<") && this.input.charCodeAt(this.state.pos) !== 33) {
-          this.finishToken(130);
+        } else if (this.match(43) && this.input.charCodeAt(this.state.pos) !== 33) {
+          this.replaceToken(132);
           return this.jsxParseElement();
         } else {
           return (0, _get18.default)(_class3.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class3.prototype), 'parseExprAtom', this).call(this, refExpressionErrors);
         }
       }
     }, {
-      key: 'createLookaheadState',
-      value: function createLookaheadState(state) {
-        var lookaheadState = (0, _get18.default)(_class3.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class3.prototype), 'createLookaheadState', this).call(this, state);
-        lookaheadState.inPropertyName = state.inPropertyName;
-        return lookaheadState;
-      }
-    }, {
       key: 'getTokenFromCode',
       value: function getTokenFromCode(code) {
-        if (this.state.inPropertyName) return (0, _get18.default)(_class3.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class3.prototype), 'getTokenFromCode', this).call(this, code);
         var context = this.curContext();
 
         if (context === types.j_expr) {
@@ -36503,7 +36516,7 @@ var jsx = function jsx(superClass) {
 
           if (code === 62) {
             ++this.state.pos;
-            return this.finishToken(131);
+            return this.finishToken(133);
           }
 
           if ((code === 34 || code === 39) && context === types.j_oTag) {
@@ -36511,9 +36524,9 @@ var jsx = function jsx(superClass) {
           }
         }
 
-        if (code === 60 && this.state.exprAllowed && this.input.charCodeAt(this.state.pos + 1) !== 33) {
+        if (code === 60 && this.state.canStartJSXElement && this.input.charCodeAt(this.state.pos + 1) !== 33) {
           ++this.state.pos;
-          return this.finishToken(130);
+          return this.finishToken(132);
         }
 
         return (0, _get18.default)(_class3.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class3.prototype), 'getTokenFromCode', this).call(this, code);
@@ -36527,24 +36540,22 @@ var jsx = function jsx(superClass) {
             type = _state2.type;
 
 
-        if (type === 48 && prevType === 130) {
+        if (type === 50 && prevType === 132) {
           context.splice(-2, 2, types.j_cTag);
-          this.state.exprAllowed = false;
-        } else if (type === 130) {
+          this.state.canStartJSXElement = false;
+        } else if (type === 132) {
           context.push(types.j_expr, types.j_oTag);
-        } else if (type === 131) {
+        } else if (type === 133) {
           var out = context.pop();
 
-          if (out === types.j_oTag && prevType === 48 || out === types.j_cTag) {
+          if (out === types.j_oTag && prevType === 50 || out === types.j_cTag) {
             context.pop();
-            this.state.exprAllowed = context[context.length - 1] === types.j_expr;
+            this.state.canStartJSXElement = context[context.length - 1] === types.j_expr;
           } else {
-            this.state.exprAllowed = true;
+            this.state.canStartJSXElement = true;
           }
-        } else if (tokenIsKeyword(type) && (prevType === 16 || prevType === 18)) {
-          this.state.exprAllowed = false;
         } else {
-          this.state.exprAllowed = tokenComesBeforeExpression(type);
+          this.state.canStartJSXElement = tokenComesBeforeExpression(type);
         }
       }
     }]);
@@ -36791,7 +36802,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsTokenCanFollowModifier',
       value: function tsTokenCanFollowModifier() {
-        return (this.match(0) || this.match(5) || this.match(47) || this.match(21) || this.match(126) || this.isLiteralPropertyName()) && !this.hasPrecedingLineBreak();
+        return (this.match(0) || this.match(5) || this.match(49) || this.match(21) || this.match(128) || this.isLiteralPropertyName()) && !this.hasPrecedingLineBreak();
       }
     }, {
       key: 'tsNextTokenCanFollowModifier',
@@ -36886,7 +36897,7 @@ var typescript = function typescript(superClass) {
             return this.match(3);
 
           case "TypeParametersOrArguments":
-            return this.isRelational(">");
+            return this.match(44);
         }
 
         throw new Error("Unreachable");
@@ -36956,7 +36967,7 @@ var typescript = function typescript(superClass) {
           if (bracket) {
             this.expect(0);
           } else {
-            this.expectRelational("<");
+            this.expect(43);
           }
         }
 
@@ -36965,7 +36976,7 @@ var typescript = function typescript(superClass) {
         if (bracket) {
           this.expect(3);
         } else {
-          this.expectRelational(">");
+          this.expect(44);
         }
 
         return result;
@@ -36974,10 +36985,10 @@ var typescript = function typescript(superClass) {
       key: 'tsParseImportType',
       value: function tsParseImportType() {
         var node = this.startNode();
-        this.expect(75);
+        this.expect(77);
         this.expect(10);
 
-        if (!this.match(121)) {
+        if (!this.match(123)) {
           this.raise(this.state.start, TSErrors.UnsupportedImportTypeArgument);
         }
 
@@ -36988,7 +36999,7 @@ var typescript = function typescript(superClass) {
           node.qualifier = this.tsParseEntityName(true);
         }
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.tsParseTypeArguments();
         }
 
@@ -37014,7 +37025,7 @@ var typescript = function typescript(superClass) {
         var node = this.startNode();
         node.typeName = this.tsParseEntityName(false);
 
-        if (!this.hasPrecedingLineBreak() && this.isRelational("<")) {
+        if (!this.hasPrecedingLineBreak() && this.match(43)) {
           node.typeParameters = this.tsParseTypeArguments();
         }
 
@@ -37041,9 +37052,9 @@ var typescript = function typescript(superClass) {
       key: 'tsParseTypeQuery',
       value: function tsParseTypeQuery() {
         var node = this.startNode();
-        this.expect(79);
+        this.expect(81);
 
-        if (this.match(75)) {
+        if (this.match(77)) {
           node.exprName = this.tsParseImportType();
         } else {
           node.exprName = this.tsParseEntityName(true);
@@ -37056,14 +37067,14 @@ var typescript = function typescript(superClass) {
       value: function tsParseTypeParameter() {
         var node = this.startNode();
         node.name = this.tsParseTypeParameterName();
-        node.constraint = this.tsEatThenParseType(73);
+        node.constraint = this.tsEatThenParseType(75);
         node.default = this.tsEatThenParseType(27);
         return this.finishNode(node, "TSTypeParameter");
       }
     }, {
       key: 'tsTryParseTypeParameters',
       value: function tsTryParseTypeParameters() {
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           return this.tsParseTypeParameters();
         }
       }
@@ -37072,7 +37083,7 @@ var typescript = function typescript(superClass) {
       value: function tsParseTypeParameters() {
         var node = this.startNode();
 
-        if (this.isRelational("<") || this.match(130)) {
+        if (this.match(43) || this.match(132)) {
           this.next();
         } else {
           this.unexpected();
@@ -37096,7 +37107,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsTryNextParseConstantContext',
       value: function tsTryNextParseConstantContext() {
-        if (this.lookahead().type === 67) {
+        if (this.lookahead().type === 69) {
           this.next();
           return this.tsParseTypeReference();
         }
@@ -37180,14 +37191,14 @@ var typescript = function typescript(superClass) {
         if (this.eat(17)) node.optional = true;
         var nodeAny = node;
 
-        if (this.match(10) || this.isRelational("<")) {
+        if (this.match(10) || this.match(43)) {
           if (readonly) {
             this.raise(node.start, TSErrors.ReadonlyForMethodSignature);
           }
 
           var method = nodeAny;
 
-          if (method.kind && this.isRelational("<")) {
+          if (method.kind && this.match(43)) {
             this.raise(this.state.pos, TSErrors.AccesorCannotHaveTypeParameters);
           }
 
@@ -37243,15 +37254,15 @@ var typescript = function typescript(superClass) {
       value: function tsParseTypeMember() {
         var node = this.startNode();
 
-        if (this.match(10) || this.isRelational("<")) {
+        if (this.match(10) || this.match(43)) {
           return this.tsParseSignatureMember("TSCallSignatureDeclaration", node);
         }
 
-        if (this.match(69)) {
+        if (this.match(71)) {
           var id = this.startNode();
           this.next();
 
-          if (this.match(10) || this.isRelational("<")) {
+          if (this.match(10) || this.match(43)) {
             return this.tsParseSignatureMember("TSConstructSignatureDeclaration", node);
           } else {
             node.key = this.createIdentifier(id, "new");
@@ -37295,11 +37306,11 @@ var typescript = function typescript(superClass) {
       value: function tsIsStartOfMappedType() {
         this.next();
 
-        if (this.eat(45)) {
-          return this.isContextual(110);
+        if (this.eat(47)) {
+          return this.isContextual(112);
         }
 
-        if (this.isContextual(110)) {
+        if (this.isContextual(112)) {
           this.next();
         }
 
@@ -37314,14 +37325,14 @@ var typescript = function typescript(superClass) {
         }
 
         this.next();
-        return this.match(50);
+        return this.match(52);
       }
     }, {
       key: 'tsParseMappedTypeParameter',
       value: function tsParseMappedTypeParameter() {
         var node = this.startNode();
         node.name = this.tsParseTypeParameterName();
-        node.constraint = this.tsExpectThenParseType(50);
+        node.constraint = this.tsExpectThenParseType(52);
         return this.finishNode(node, "TSTypeParameter");
       }
     }, {
@@ -37330,20 +37341,20 @@ var typescript = function typescript(superClass) {
         var node = this.startNode();
         this.expect(5);
 
-        if (this.match(45)) {
+        if (this.match(47)) {
           node.readonly = this.state.value;
           this.next();
-          this.expectContextual(110);
-        } else if (this.eatContextual(110)) {
+          this.expectContextual(112);
+        } else if (this.eatContextual(112)) {
           node.readonly = true;
         }
 
         this.expect(0);
         node.typeParameter = this.tsParseMappedTypeParameter();
-        node.nameType = this.eatContextual(85) ? this.tsParseType() : null;
+        node.nameType = this.eatContextual(87) ? this.tsParseType() : null;
         this.expect(3);
 
-        if (this.match(45)) {
+        if (this.match(47)) {
           node.optional = this.state.value;
           this.next();
           this.expect(17);
@@ -37463,11 +37474,11 @@ var typescript = function typescript(superClass) {
 
         node.literal = function () {
           switch (_this35.state.type) {
-            case 122:
+            case 124:
+            case 125:
             case 123:
-            case 121:
-            case 77:
-            case 78:
+            case 79:
+            case 80:
               return _this35.parseExprAtom();
 
             default:
@@ -37495,7 +37506,7 @@ var typescript = function typescript(superClass) {
       value: function tsParseThisTypeOrThisTypePredicate() {
         var thisKeyword = this.tsParseThisTypeNode();
 
-        if (this.isContextual(105) && !this.hasPrecedingLineBreak()) {
+        if (this.isContextual(107) && !this.hasPrecedingLineBreak()) {
           return this.tsParseThisTypePredicate(thisKeyword);
         } else {
           return thisKeyword;
@@ -37505,19 +37516,19 @@ var typescript = function typescript(superClass) {
       key: 'tsParseNonArrayType',
       value: function tsParseNonArrayType() {
         switch (this.state.type) {
-          case 121:
-          case 122:
           case 123:
-          case 77:
-          case 78:
+          case 124:
+          case 125:
+          case 79:
+          case 80:
             return this.tsParseLiteralTypeNode();
 
-          case 45:
+          case 47:
             if (this.state.value === "-") {
               var node = this.startNode();
               var nextToken = this.lookahead();
 
-              if (nextToken.type !== 122 && nextToken.type !== 123) {
+              if (nextToken.type !== 124 && nextToken.type !== 125) {
                 throw this.unexpected();
               }
 
@@ -37527,13 +37538,13 @@ var typescript = function typescript(superClass) {
 
             break;
 
-          case 70:
+          case 72:
             return this.tsParseThisTypeOrThisTypePredicate();
 
-          case 79:
+          case 81:
             return this.tsParseTypeQuery();
 
-          case 75:
+          case 77:
             return this.tsParseImportType();
 
           case 5:
@@ -37553,8 +37564,8 @@ var typescript = function typescript(superClass) {
               var type = this.state.type;
 
 
-              if (tokenIsIdentifier(type) || type === 80 || type === 76) {
-                var nodeType = type === 80 ? "TSVoidKeyword" : type === 76 ? "TSNullKeyword" : keywordTypeFromName(this.state.value);
+              if (tokenIsIdentifier(type) || type === 82 || type === 78) {
+                var nodeType = type === 82 ? "TSVoidKeyword" : type === 78 ? "TSNullKeyword" : keywordTypeFromName(this.state.value);
 
                 if (nodeType !== undefined && this.lookaheadCharCode() !== 46) {
                   var _node6 = this.startNode();
@@ -37622,7 +37633,7 @@ var typescript = function typescript(superClass) {
       key: 'tsParseInferType',
       value: function tsParseInferType() {
         var node = this.startNode();
-        this.expectContextual(104);
+        this.expectContextual(106);
         var typeParameter = this.startNode();
         typeParameter.name = this.tsParseTypeParameterName();
         node.typeParameter = this.finishNode(typeParameter, "TSTypeParameter");
@@ -37632,7 +37643,7 @@ var typescript = function typescript(superClass) {
       key: 'tsParseTypeOperatorOrHigher',
       value: function tsParseTypeOperatorOrHigher() {
         var isTypeOperator = tokenIsTSTypeOperator(this.state.type) && !this.state.containsEsc;
-        return isTypeOperator ? this.tsParseTypeOperator() : this.isContextual(104) ? this.tsParseInferType() : this.tsParseArrayTypeOrHigher();
+        return isTypeOperator ? this.tsParseTypeOperator() : this.isContextual(106) ? this.tsParseInferType() : this.tsParseArrayTypeOrHigher();
       }
     }, {
       key: 'tsParseUnionOrIntersectionType',
@@ -37665,7 +37676,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsIsStartOfFunctionType',
       value: function tsIsStartOfFunctionType() {
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           return true;
         }
 
@@ -37674,7 +37685,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsSkipParameterStart',
       value: function tsSkipParameterStart() {
-        if (tokenIsIdentifier(this.state.type) || this.match(70)) {
+        if (tokenIsIdentifier(this.state.type) || this.match(72)) {
           this.next();
           return true;
         }
@@ -37751,7 +37762,7 @@ var typescript = function typescript(superClass) {
           var node = _this36.startNode();
           var asserts = !!_this36.tsTryParse(_this36.tsParseTypePredicateAsserts.bind(_this36));
 
-          if (asserts && _this36.match(70)) {
+          if (asserts && _this36.match(72)) {
             var thisTypePredicate = _this36.tsParseThisTypeOrThisTypePredicate();
 
             if (thisTypePredicate.type === "TSThisType") {
@@ -37810,7 +37821,7 @@ var typescript = function typescript(superClass) {
       value: function tsParseTypePredicatePrefix() {
         var id = this.parseIdentifier();
 
-        if (this.isContextual(105) && !this.hasPrecedingLineBreak()) {
+        if (this.isContextual(107) && !this.hasPrecedingLineBreak()) {
           this.next();
           return id;
         }
@@ -37818,14 +37829,14 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseTypePredicateAsserts',
       value: function tsParseTypePredicateAsserts() {
-        if (this.state.type !== 98) {
+        if (this.state.type !== 100) {
           return false;
         }
 
         var containsEsc = this.state.containsEsc;
         this.next();
 
-        if (!tokenIsIdentifier(this.state.type) && !this.match(70)) {
+        if (!tokenIsIdentifier(this.state.type) && !this.match(72)) {
           return false;
         }
 
@@ -37855,7 +37866,7 @@ var typescript = function typescript(superClass) {
         assert(this.state.inType);
         var type = this.tsParseNonConditionalType();
 
-        if (this.hasPrecedingLineBreak() || !this.eat(73)) {
+        if (this.hasPrecedingLineBreak() || !this.eat(75)) {
           return type;
         }
 
@@ -37871,7 +37882,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'isAbstractConstructorSignature',
       value: function isAbstractConstructorSignature() {
-        return this.isContextual(112) && this.lookahead().type === 69;
+        return this.isContextual(114) && this.lookahead().type === 71;
       }
     }, {
       key: 'tsParseNonConditionalType',
@@ -37880,7 +37891,7 @@ var typescript = function typescript(superClass) {
           return this.tsParseFunctionOrConstructorType("TSFunctionType");
         }
 
-        if (this.match(69)) {
+        if (this.match(71)) {
           return this.tsParseFunctionOrConstructorType("TSConstructorType");
         } else if (this.isAbstractConstructorSignature()) {
           return this.tsParseFunctionOrConstructorType("TSConstructorType", true);
@@ -37900,7 +37911,7 @@ var typescript = function typescript(superClass) {
         var _const = this.tsTryNextParseConstantContext();
 
         node.typeAnnotation = _const || this.tsNextThenParseType();
-        this.expectRelational(">");
+        this.expect(44);
         node.expression = this.parseMaybeUnary();
         return this.finishNode(node, "TSTypeAssertion");
       }
@@ -37922,7 +37933,7 @@ var typescript = function typescript(superClass) {
         var node = this.startNode();
         node.expression = this.tsParseEntityName(false);
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           node.typeParameters = this.tsParseTypeArguments();
         }
 
@@ -37941,7 +37952,7 @@ var typescript = function typescript(superClass) {
 
         node.typeParameters = this.tsTryParseTypeParameters();
 
-        if (this.eat(73)) {
+        if (this.eat(75)) {
           node.extends = this.tsParseHeritageClause("extends");
         }
 
@@ -37961,7 +37972,7 @@ var typescript = function typescript(superClass) {
         node.typeAnnotation = this.tsInType(function () {
           _this38.expect(27);
 
-          if (_this38.isContextual(103) && _this38.lookahead().type !== 16) {
+          if (_this38.isContextual(105) && _this38.lookahead().type !== 16) {
             var _node8 = _this38.startNode();
             _this38.next();
             return _this38.finishNode(_node8, "TSIntrinsicKeyword");
@@ -38033,7 +38044,7 @@ var typescript = function typescript(superClass) {
       key: 'tsParseEnumMember',
       value: function tsParseEnumMember() {
         var node = this.startNode();
-        node.id = this.match(121) ? this.parseExprAtom() : this.parseIdentifier(true);
+        node.id = this.match(123) ? this.parseExprAtom() : this.parseIdentifier(true);
 
         if (this.eat(27)) {
           node.initializer = this.parseMaybeAssignAllowIn();
@@ -38090,10 +38101,10 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseAmbientExternalModuleDeclaration',
       value: function tsParseAmbientExternalModuleDeclaration(node) {
-        if (this.isContextual(101)) {
+        if (this.isContextual(103)) {
           node.global = true;
           node.id = this.parseIdentifier();
-        } else if (this.match(121)) {
+        } else if (this.match(123)) {
           node.id = this.parseExprAtom();
         } else {
           this.unexpected();
@@ -38131,7 +38142,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsIsExternalModuleReference',
       value: function tsIsExternalModuleReference() {
-        return this.isContextual(108) && this.lookaheadCharCode() === 40;
+        return this.isContextual(110) && this.lookaheadCharCode() === 40;
       }
     }, {
       key: 'tsParseModuleReference',
@@ -38142,10 +38153,10 @@ var typescript = function typescript(superClass) {
       key: 'tsParseExternalModuleReference',
       value: function tsParseExternalModuleReference() {
         var node = this.startNode();
-        this.expectContextual(108);
+        this.expectContextual(110);
         this.expect(10);
 
-        if (!this.match(121)) {
+        if (!this.match(123)) {
           throw this.unexpected();
         }
 
@@ -38196,33 +38207,33 @@ var typescript = function typescript(superClass) {
         var starttype = this.state.type;
         var kind = void 0;
 
-        if (this.isContextual(91)) {
-          starttype = 66;
+        if (this.isContextual(93)) {
+          starttype = 68;
           kind = "let";
         }
 
         return this.tsInAmbientContext(function () {
           switch (starttype) {
-            case 60:
+            case 62:
               nany.declare = true;
               return _this42.parseFunctionStatement(nany, false, true);
 
-            case 72:
+            case 74:
               nany.declare = true;
               return _this42.parseClass(nany, true, false);
 
-            case 67:
-              if (_this42.match(67) && _this42.isLookaheadContextual("enum")) {
-                _this42.expect(67);
-                _this42.expectContextual(114);
+            case 69:
+              if (_this42.match(69) && _this42.isLookaheadContextual("enum")) {
+                _this42.expect(69);
+                _this42.expectContextual(116);
                 return _this42.tsParseEnumDeclaration(nany, true);
               }
 
-            case 66:
+            case 68:
               kind = kind || _this42.state.value;
               return _this42.parseVarStatement(nany, kind);
 
-            case 101:
+            case 103:
               return _this42.tsParseAmbientExternalModuleDeclaration(nany);
 
             default:
@@ -38279,7 +38290,7 @@ var typescript = function typescript(superClass) {
       value: function tsParseDeclaration(node, value, next) {
         switch (value) {
           case "abstract":
-            if (this.tsCheckLineTerminator(next) && (this.match(72) || tokenIsIdentifier(this.state.type))) {
+            if (this.tsCheckLineTerminator(next) && (this.match(74) || tokenIsIdentifier(this.state.type))) {
               return this.tsParseAbstractDeclaration(node);
             }
 
@@ -38302,7 +38313,7 @@ var typescript = function typescript(superClass) {
 
           case "module":
             if (this.tsCheckLineTerminator(next)) {
-              if (this.match(121)) {
+              if (this.match(123)) {
                 return this.tsParseAmbientExternalModuleDeclaration(node);
               } else if (tokenIsIdentifier(this.state.type)) {
                 return this.tsParseModuleOrNamespaceDeclaration(node);
@@ -38342,7 +38353,7 @@ var typescript = function typescript(superClass) {
       value: function tsTryParseGenericAsyncArrowFunction(startPos, startLoc) {
         var _this43 = this;
 
-        if (!this.isRelational("<")) {
+        if (!this.match(43)) {
           return undefined;
         }
 
@@ -38372,7 +38383,7 @@ var typescript = function typescript(superClass) {
         var node = this.startNode();
         node.params = this.tsInType(function () {
           return _this44.tsInNoContext(function () {
-            _this44.expectRelational("<");
+            _this44.expect(43);
             return _this44.tsParseDelimitedList("TypeParametersOrArguments", _this44.tsParseType.bind(_this44));
           });
         });
@@ -38381,7 +38392,7 @@ var typescript = function typescript(superClass) {
           this.raise(node.start, TSErrors.EmptyTypeArguments);
         }
 
-        this.expectRelational(">");
+        this.expect(44);
         return this.finishNode(node, "TSTypeParameterInstantiation");
       }
     }, {
@@ -38521,7 +38532,7 @@ var typescript = function typescript(superClass) {
         var _this46 = this;
 
         if (!this.hasPrecedingLineBreak() && this.match(33)) {
-          this.state.exprAllowed = false;
+          this.state.canStartJSXElement = false;
           this.next();
           var nonNullExpression = this.startNodeAt(startPos, startLoc);
           nonNullExpression.expression = base;
@@ -38540,7 +38551,7 @@ var typescript = function typescript(superClass) {
           this.next();
         }
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           var missingParenErrorPos = void 0;
           var result = this.tsTryParseAndCatch(function () {
             if (!noCalls && _this46.atPossibleAsyncArrow(base)) {
@@ -38595,7 +38606,7 @@ var typescript = function typescript(superClass) {
       value: function parseNewArguments(node) {
         var _this47 = this;
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           var typeParameters = this.tsTryParseAndCatch(function () {
             var args = _this47.tsParseTypeArguments();
             if (!_this47.match(10)) _this47.unexpected();
@@ -38612,7 +38623,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseExprOp',
       value: function parseExprOp(left, leftStartPos, leftStartLoc, minPrec) {
-        if (tokenOperatorPrecedence(50) > minPrec && !this.hasPrecedingLineBreak() && this.isContextual(85)) {
+        if (tokenOperatorPrecedence(52) > minPrec && !this.hasPrecedingLineBreak() && this.isContextual(87)) {
           var node = this.startNodeAt(leftStartPos, leftStartLoc);
           node.expression = left;
 
@@ -38642,10 +38653,10 @@ var typescript = function typescript(superClass) {
       value: function parseImport(node) {
         node.importKind = "value";
 
-        if (tokenIsIdentifier(this.state.type) || this.match(47) || this.match(5)) {
+        if (tokenIsIdentifier(this.state.type) || this.match(49) || this.match(5)) {
           var ahead = this.lookahead();
 
-          if (this.isContextual(118) && ahead.type !== 12 && ahead.type !== 89 && ahead.type !== 27) {
+          if (this.isContextual(120) && ahead.type !== 12 && ahead.type !== 91 && ahead.type !== 27) {
             node.importKind = "type";
             this.next();
             ahead = this.lookahead();
@@ -38667,10 +38678,10 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseExport',
       value: function parseExport(node) {
-        if (this.match(75)) {
+        if (this.match(77)) {
           this.next();
 
-          if (this.isContextual(118) && this.lookaheadCharCode() !== 61) {
+          if (this.isContextual(120) && this.lookaheadCharCode() !== 61) {
             node.importKind = "type";
             this.next();
           } else {
@@ -38683,14 +38694,14 @@ var typescript = function typescript(superClass) {
           assign.expression = this.parseExpression();
           this.semicolon();
           return this.finishNode(assign, "TSExportAssignment");
-        } else if (this.eatContextual(85)) {
+        } else if (this.eatContextual(87)) {
           var decl = node;
-          this.expectContextual(116);
+          this.expectContextual(118);
           decl.id = this.parseIdentifier();
           this.semicolon();
           return this.finishNode(decl, "TSNamespaceExportDeclaration");
         } else {
-          if (this.isContextual(118) && this.lookahead().type === 5) {
+          if (this.isContextual(120) && this.lookahead().type === 5) {
             this.next();
             node.exportKind = "type";
           } else {
@@ -38703,7 +38714,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'isAbstractClass',
       value: function isAbstractClass() {
-        return this.isContextual(112) && this.lookahead().type === 72;
+        return this.isContextual(114) && this.lookahead().type === 74;
       }
     }, {
       key: 'parseExportDefaultExpression',
@@ -38716,7 +38727,7 @@ var typescript = function typescript(superClass) {
           return cls;
         }
 
-        if (this.match(117)) {
+        if (this.match(119)) {
           var interfaceNode = this.startNode();
           this.next();
           var result = this.tsParseInterfaceDeclaration(interfaceNode);
@@ -38728,13 +38739,13 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseStatementContent',
       value: function parseStatementContent(context, topLevel) {
-        if (this.state.type === 67) {
+        if (this.state.type === 69) {
           var ahead = this.lookahead();
 
-          if (ahead.type === 114) {
+          if (ahead.type === 116) {
             var node = this.startNode();
             this.next();
-            this.expectContextual(114);
+            this.expectContextual(116);
             return this.tsParseEnumDeclaration(node, true);
           }
         }
@@ -38760,7 +38771,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsIsStartOfStaticBlocks',
       value: function tsIsStartOfStaticBlocks() {
-        return this.isContextual(96) && this.lookaheadCharCode() === 123;
+        return this.isContextual(98) && this.lookaheadCharCode() === 123;
       }
     }, {
       key: 'parseClassMember',
@@ -38904,9 +38915,9 @@ var typescript = function typescript(superClass) {
       value: function parseExportDeclaration(node) {
         var startPos = this.state.start;
         var startLoc = this.state.startLoc;
-        var isDeclare = this.eatContextual(113);
+        var isDeclare = this.eatContextual(115);
 
-        if (isDeclare && (this.isContextual(113) || !this.shouldParseExportDeclaration())) {
+        if (isDeclare && (this.isContextual(115) || !this.shouldParseExportDeclaration())) {
           throw this.raise(this.state.start, TSErrors.ExpectedAmbientAfterExportDeclare);
         }
 
@@ -38934,7 +38945,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseClassId',
       value: function parseClassId(node, isStatement, optionalId) {
-        if ((!isStatement || optionalId) && this.isContextual(102)) {
+        if ((!isStatement || optionalId) && this.isContextual(104)) {
           return;
         }
 
@@ -39018,11 +39029,11 @@ var typescript = function typescript(superClass) {
       value: function parseClassSuper(node) {
         (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseClassSuper', this).call(this, node);
 
-        if (node.superClass && this.isRelational("<")) {
+        if (node.superClass && this.match(43)) {
           node.superTypeParameters = this.tsParseTypeArguments();
         }
 
-        if (this.eatContextual(102)) {
+        if (this.eatContextual(104)) {
           node.implements = this.tsParseHeritageClause("implements");
         }
       }
@@ -39087,7 +39098,7 @@ var typescript = function typescript(superClass) {
         var jsx = void 0;
         var typeCast = void 0;
 
-        if (this.hasPlugin("jsx") && (this.match(130) || this.isRelational("<"))) {
+        if (this.hasPlugin("jsx") && (this.match(132) || this.match(43))) {
           state = this.state.clone();
           jsx = this.tryParse(function () {
             var _get9;
@@ -39105,7 +39116,7 @@ var typescript = function typescript(superClass) {
           }
         }
 
-        if (!((_jsx = jsx) != null && _jsx.error) && !this.isRelational("<")) {
+        if (!((_jsx = jsx) != null && _jsx.error) && !this.match(43)) {
           var _get10;
 
           return (_get10 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', this)).call.apply(_get10, [this].concat(args));
@@ -39181,7 +39192,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseMaybeUnary',
       value: function parseMaybeUnary(refExpressionErrors) {
-        if (!this.hasPlugin("jsx") && this.isRelational("<")) {
+        if (!this.hasPlugin("jsx") && this.match(43)) {
           return this.tsParseTypeAssertion();
         } else {
           return (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeUnary', this).call(this, refExpressionErrors);
@@ -39320,7 +39331,7 @@ var typescript = function typescript(superClass) {
       key: 'parseBindingAtom',
       value: function parseBindingAtom() {
         switch (this.state.type) {
-          case 70:
+          case 72:
             return this.parseIdentifier(true);
 
           default:
@@ -39330,7 +39341,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseMaybeDecoratorArguments',
       value: function parseMaybeDecoratorArguments(expr) {
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           var typeArguments = this.tsParseTypeArguments();
 
           if (this.match(10)) {
@@ -39356,7 +39367,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'isClassMethod',
       value: function isClassMethod() {
-        return this.isRelational("<") || (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'isClassMethod', this).call(this);
+        return this.match(43) || (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'isClassMethod', this).call(this);
       }
     }, {
       key: 'isClassProperty',
@@ -39383,22 +39394,30 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'getTokenFromCode',
       value: function getTokenFromCode(code) {
-        if (this.state.inType && (code === 62 || code === 60)) {
-          return this.finishOp(43, 1);
-        } else {
-          return (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'getTokenFromCode', this).call(this, code);
+        if (this.state.inType) {
+          if (code === 62) {
+            return this.finishOp(44, 1);
+          }
+
+          if (code === 60) {
+            return this.finishOp(43, 1);
+          }
         }
+
+        return (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'getTokenFromCode', this).call(this, code);
       }
     }, {
       key: 'reScan_lt_gt',
       value: function reScan_lt_gt() {
-        if (this.match(43)) {
-          var code = this.input.charCodeAt(this.state.start);
+        var type = this.state.type;
 
-          if (code === 60 || code === 62) {
-            this.state.pos -= 1;
-            this.readToken_lt_gt(code);
-          }
+
+        if (type === 43) {
+          this.state.pos -= 1;
+          this.readToken_lt();
+        } else if (type === 44) {
+          this.state.pos -= 1;
+          this.readToken_gt();
         }
       }
     }, {
@@ -39462,7 +39481,7 @@ var typescript = function typescript(superClass) {
       value: function jsxParseOpeningElementAfterName(node) {
         var _this53 = this;
 
-        if (this.isRelational("<")) {
+        if (this.match(43)) {
           var typeArguments = this.tsTryParseAndCatch(function () {
             return _this53.tsParseTypeArguments();
           });
@@ -39526,10 +39545,10 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseAbstractDeclaration',
       value: function tsParseAbstractDeclaration(node) {
-        if (this.match(72)) {
+        if (this.match(74)) {
           node.abstract = true;
           return this.parseClass(node, true, false);
-        } else if (this.isContextual(117)) {
+        } else if (this.isContextual(119)) {
           if (!this.hasFollowingLineBreak()) {
             node.abstract = true;
             this.raise(node.start, TSErrors.NonClassMethodPropertyHasAbstractModifer);
@@ -39537,7 +39556,7 @@ var typescript = function typescript(superClass) {
             return this.tsParseInterfaceDeclaration(node);
           }
         } else {
-          this.unexpected(null, 72);
+          this.unexpected(null, 74);
         }
       }
     }, {
@@ -39625,10 +39644,10 @@ var typescript = function typescript(superClass) {
         var canParseAsKeyword = true;
         var pos = leftOfAs.start;
 
-        if (this.isContextual(85)) {
+        if (this.isContextual(87)) {
           var firstAs = this.parseIdentifier();
 
-          if (this.isContextual(85)) {
+          if (this.isContextual(87)) {
             var secondAs = this.parseIdentifier();
 
             if (tokenIsKeywordOrIdentifier(this.state.type)) {
@@ -39661,7 +39680,7 @@ var typescript = function typescript(superClass) {
         var kindKey = isImport ? "importKind" : "exportKind";
         node[kindKey] = hasTypeSpecifier ? "type" : "value";
 
-        if (canParseAsKeyword && this.eatContextual(85)) {
+        if (canParseAsKeyword && this.eatContextual(87)) {
           node[rightOfAsKey] = isImport ? this.parseIdentifier() : this.parseModuleExportName();
         }
 
@@ -39693,13 +39712,13 @@ var placeholders = function placeholders(superClass) {
     (0, _createClass3.default)(_class5, [{
       key: 'parsePlaceholder',
       value: function parsePlaceholder(expectedNode) {
-        if (this.match(132)) {
+        if (this.match(134)) {
           var node = this.startNode();
           this.next();
           this.assertNoSpace("Unexpected space in placeholder.");
           node.name = (0, _get18.default)(_class5.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class5.prototype), 'parseIdentifier', this).call(this, true);
           this.assertNoSpace("Unexpected space in placeholder.");
-          this.expect(132);
+          this.expect(134);
           return this.finishPlaceholder(node, expectedNode);
         }
       }
@@ -39714,7 +39733,7 @@ var placeholders = function placeholders(superClass) {
       key: 'getTokenFromCode',
       value: function getTokenFromCode(code) {
         if (code === 37 && this.input.charCodeAt(this.state.pos + 1) === 37) {
-          return this.finishOp(132, 2);
+          return this.finishOp(134, 2);
         }
 
         return (0, _get18.default)(_class5.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class5.prototype), 'getTokenFromCode', this).apply(this, arguments);
@@ -39761,14 +39780,14 @@ var placeholders = function placeholders(superClass) {
           return true;
         }
 
-        if (!this.isContextual(91)) {
+        if (!this.isContextual(93)) {
           return false;
         }
 
         if (context) return false;
         var nextToken = this.lookahead();
 
-        if (nextToken.type === 132) {
+        if (nextToken.type === 134) {
           return true;
         }
 
@@ -39819,7 +39838,7 @@ var placeholders = function placeholders(superClass) {
         var placeholder = this.parsePlaceholder("Identifier");
 
         if (placeholder) {
-          if (this.match(73) || this.match(132) || this.match(5)) {
+          if (this.match(75) || this.match(134) || this.match(5)) {
             node.id = placeholder;
           } else if (optionalId || !isStatement) {
             node.id = null;
@@ -39842,7 +39861,7 @@ var placeholders = function placeholders(superClass) {
         var placeholder = this.parsePlaceholder("Identifier");
         if (!placeholder) return (0, _get18.default)(_class5.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class5.prototype), 'parseExport', this).apply(this, arguments);
 
-        if (!this.isContextual(89) && !this.match(12)) {
+        if (!this.isContextual(91) && !this.match(12)) {
           node.specifiers = [];
           node.source = null;
           node.declaration = this.finishPlaceholder(placeholder, "Declaration");
@@ -39858,11 +39877,11 @@ var placeholders = function placeholders(superClass) {
     }, {
       key: 'isExportDefaultSpecifier',
       value: function isExportDefaultSpecifier() {
-        if (this.match(57)) {
+        if (this.match(59)) {
           var next = this.nextTokenStart();
 
           if (this.isUnparsedContextual(next, "from")) {
-            if (this.input.startsWith(tokenLabelName(132), this.nextTokenStartSince(next + 4))) {
+            if (this.input.startsWith(tokenLabelName(134), this.nextTokenStartSince(next + 4))) {
               return true;
             }
           }
@@ -39901,7 +39920,7 @@ var placeholders = function placeholders(superClass) {
         if (!placeholder) return (0, _get18.default)(_class5.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class5.prototype), 'parseImport', this).apply(this, arguments);
         node.specifiers = [];
 
-        if (!this.isContextual(89) && !this.match(12)) {
+        if (!this.isContextual(91) && !this.match(12)) {
           node.source = this.finishPlaceholder(placeholder, "StringLiteral");
           this.semicolon();
           return this.finishNode(node, "ImportDeclaration");
@@ -39917,7 +39936,7 @@ var placeholders = function placeholders(superClass) {
           if (!hasStarImport) this.parseNamedImportSpecifiers(node);
         }
 
-        this.expectContextual(89);
+        this.expectContextual(91);
         node.source = this.parseImportSource();
         this.semicolon();
         return this.finishNode(node, "ImportDeclaration");
@@ -39944,7 +39963,7 @@ var v8intrinsic = function v8intrinsic(superClass) {
     (0, _createClass3.default)(_class6, [{
       key: 'parseV8Intrinsic',
       value: function parseV8Intrinsic() {
-        if (this.match(46)) {
+        if (this.match(48)) {
           var v8IntrinsicStart = this.state.start;
           var node = this.startNode();
           this.next();
@@ -40686,7 +40705,7 @@ var ExpressionParser = function (_LValParser) {
       this.nextToken();
       var expr = this.parseExpression();
 
-      if (!this.match(127)) {
+      if (!this.match(129)) {
         this.unexpected();
       }
 
@@ -40767,7 +40786,7 @@ var ExpressionParser = function (_LValParser) {
       var startPos = this.state.start;
       var startLoc = this.state.startLoc;
 
-      if (this.isContextual(97)) {
+      if (this.isContextual(99)) {
         if (this.prodParam.hasYield) {
           var _left2 = this.parseYield();
 
@@ -40858,7 +40877,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'parseMaybeUnaryOrPrivate',
     value: function parseMaybeUnaryOrPrivate(refExpressionErrors) {
-      return this.match(126) ? this.parsePrivateName() : this.parseMaybeUnary(refExpressionErrors);
+      return this.match(128) ? this.parsePrivateName() : this.parseMaybeUnary(refExpressionErrors);
     }
   }, {
     key: 'parseExprOps',
@@ -40882,7 +40901,7 @@ var ExpressionParser = function (_LValParser) {
         var start = left.start;
 
 
-        if (minPrec >= tokenOperatorPrecedence(50) || !this.prodParam.hasIn || !this.match(50)) {
+        if (minPrec >= tokenOperatorPrecedence(52) || !this.prodParam.hasIn || !this.match(52)) {
           this.raise(start, ErrorMessages.PrivateInExpectedIn, value);
         }
 
@@ -40891,7 +40910,7 @@ var ExpressionParser = function (_LValParser) {
 
       var op = this.state.type;
 
-      if (tokenIsOperator(op) && (this.prodParam.hasIn || !this.match(50))) {
+      if (tokenIsOperator(op) && (this.prodParam.hasIn || !this.match(52))) {
         var prec = tokenOperatorPrecedence(op);
 
         if (prec > minPrec) {
@@ -40918,7 +40937,7 @@ var ExpressionParser = function (_LValParser) {
           this.next();
 
           if (op === 35 && this.getPluginOption("pipelineOperator", "proposal") === "minimal") {
-            if (this.state.type === 88 && this.prodParam.hasAwait) {
+            if (this.state.type === 90 && this.prodParam.hasAwait) {
               throw this.raise(this.state.start, ErrorMessages.UnexpectedAwaitAfterPipelineBody);
             }
           }
@@ -40955,7 +40974,7 @@ var ExpressionParser = function (_LValParser) {
 
             case "smart":
               return this.withTopicBindingContext(function () {
-                if (_this62.prodParam.hasYield && _this62.isContextual(97)) {
+                if (_this62.prodParam.hasYield && _this62.isContextual(99)) {
                   throw _this62.raise(_this62.state.start, ErrorMessages.PipeBodyIsTighter, _this62.state.value);
                 }
 
@@ -41001,7 +41020,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'checkExponentialAfterUnary',
     value: function checkExponentialAfterUnary(node) {
-      if (this.match(49)) {
+      if (this.match(51)) {
         this.raise(node.argument.start, ErrorMessages.UnexpectedTokenUnaryExponentiation);
       }
     }
@@ -41010,7 +41029,7 @@ var ExpressionParser = function (_LValParser) {
     value: function parseMaybeUnary(refExpressionErrors, sawUnary) {
       var startPos = this.state.start;
       var startLoc = this.state.startLoc;
-      var isAwait = this.isContextual(88);
+      var isAwait = this.isContextual(90);
 
       if (isAwait && this.isAwaitAllowed()) {
         this.next();
@@ -41026,11 +41045,11 @@ var ExpressionParser = function (_LValParser) {
         node.operator = this.state.value;
         node.prefix = true;
 
-        if (this.match(64)) {
+        if (this.match(66)) {
           this.expectPlugin("throwExpressions");
         }
 
-        var isDelete = this.match(81);
+        var isDelete = this.match(83);
         this.next();
         node.argument = this.parseMaybeUnary(null, true);
         this.checkExpressionErrors(refExpressionErrors, true);
@@ -41056,7 +41075,7 @@ var ExpressionParser = function (_LValParser) {
       if (isAwait) {
         var type = this.state.type;
 
-        var _startsExpr = this.hasPlugin("v8intrinsic") ? tokenCanStartExpression(type) : tokenCanStartExpression(type) && !this.match(46);
+        var _startsExpr = this.hasPlugin("v8intrinsic") ? tokenCanStartExpression(type) : tokenCanStartExpression(type) && !this.match(48);
 
         if (_startsExpr && !this.isAmbiguousAwait()) {
           this.raiseOverwrite(startPos, ErrorMessages.AwaitNotInAsyncContext);
@@ -41161,7 +41180,7 @@ var ExpressionParser = function (_LValParser) {
       var node = this.startNodeAt(startPos, startLoc);
       node.object = base;
       node.computed = computed;
-      var privateName = !computed && this.match(126) && this.state.value;
+      var privateName = !computed && this.match(128) && this.state.value;
       var property = computed ? this.parseExpression() : privateName ? this.parsePrivateName() : this.parseIdentifier(true);
 
       if (privateName !== false) {
@@ -41380,10 +41399,10 @@ var ExpressionParser = function (_LValParser) {
 
 
       switch (type) {
-        case 71:
+        case 73:
           return this.parseSuper();
 
-        case 75:
+        case 77:
           node = this.startNode();
           this.next();
 
@@ -41397,42 +41416,42 @@ var ExpressionParser = function (_LValParser) {
 
           return this.finishNode(node, "Import");
 
-        case 70:
+        case 72:
           node = this.startNode();
           this.next();
           return this.finishNode(node, "ThisExpression");
 
-        case 82:
+        case 84:
           {
             return this.parseDo(this.startNode(), false);
           }
 
-        case 48:
+        case 50:
         case 29:
           {
             this.readRegexp();
             return this.parseRegExpLiteral(this.state.value);
           }
 
-        case 122:
+        case 124:
           return this.parseNumericLiteral(this.state.value);
 
-        case 123:
+        case 125:
           return this.parseBigIntLiteral(this.state.value);
 
-        case 124:
+        case 126:
           return this.parseDecimalLiteral(this.state.value);
 
-        case 121:
+        case 123:
           return this.parseStringLiteral(this.state.value);
 
-        case 76:
+        case 78:
           return this.parseNullLiteral();
 
-        case 77:
+        case 79:
           return this.parseBooleanLiteral(true);
 
-        case 78:
+        case 80:
           return this.parseBooleanLiteral(false);
 
         case 10:
@@ -41463,18 +41482,18 @@ var ExpressionParser = function (_LValParser) {
             return this.parseObjectLike(8, false, false, refExpressionErrors);
           }
 
-        case 60:
+        case 62:
           return this.parseFunctionOrFunctionSent();
 
         case 24:
           this.parseDecorators();
 
-        case 72:
+        case 74:
           node = this.startNode();
           this.takeDecorators(node);
           return this.parseClass(node, false);
 
-        case 69:
+        case 71:
           return this.parseNewOrNewTarget();
 
         case 22:
@@ -41494,7 +41513,7 @@ var ExpressionParser = function (_LValParser) {
             }
           }
 
-        case 126:
+        case 128:
           {
             this.raise(this.state.start, ErrorMessages.PrivateInExpectedIn, this.state.value);
             return this.parsePrivateName();
@@ -41502,7 +41521,7 @@ var ExpressionParser = function (_LValParser) {
 
         case 31:
           {
-            return this.parseTopicReferenceThenEqualsSign(46, "%");
+            return this.parseTopicReferenceThenEqualsSign(48, "%");
           }
 
         case 30:
@@ -41511,30 +41530,33 @@ var ExpressionParser = function (_LValParser) {
           }
 
         case 40:
-        case 46:
+        case 48:
         case 25:
           {
             var pipeProposal = this.getPluginOption("pipelineOperator", "proposal");
 
             if (pipeProposal) {
               return this.parseTopicReference(pipeProposal);
+            } else {
+              throw this.unexpected();
             }
           }
 
         case 43:
           {
-            if (this.state.value === "<") {
-              var lookaheadCh = this.input.codePointAt(this.nextTokenStart());
+            var lookaheadCh = this.input.codePointAt(this.nextTokenStart());
 
-              if (isIdentifierStart(lookaheadCh) || lookaheadCh === 62) {
-                this.expectOnePlugin(["jsx", "flow", "typescript"]);
-              }
+            if (isIdentifierStart(lookaheadCh) || lookaheadCh === 62) {
+              this.expectOnePlugin(["jsx", "flow", "typescript"]);
+              break;
+            } else {
+              throw this.unexpected();
             }
           }
 
         default:
           if (tokenIsIdentifier(type)) {
-            if (this.isContextual(115) && this.lookaheadCharCode() === 123 && !this.hasFollowingLineBreak()) {
+            if (this.isContextual(117) && this.lookaheadCharCode() === 123 && !this.hasFollowingLineBreak()) {
               return this.parseModuleExpression();
             }
 
@@ -41546,7 +41568,7 @@ var ExpressionParser = function (_LValParser) {
               var _type = this.state.type;
 
 
-              if (_type === 60) {
+              if (_type === 62) {
                 this.resetPreviousNodeTrailingComments(id);
                 this.next();
                 return this.parseFunction(this.startNodeAtNode(id), undefined, true);
@@ -41556,7 +41578,7 @@ var ExpressionParser = function (_LValParser) {
                 } else {
                   return id;
                 }
-              } else if (_type === 82) {
+              } else if (_type === 84) {
                 this.resetPreviousNodeTrailingComments(id);
                 return this.parseDo(this.startNodeAtNode(id), true);
               }
@@ -41703,7 +41725,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'parseMaybePrivateName',
     value: function parseMaybePrivateName(isPrivateNameAllowed) {
-      var isPrivate = this.match(126);
+      var isPrivate = this.match(128);
 
       if (isPrivate) {
         if (!isPrivateNameAllowed) {
@@ -41735,7 +41757,7 @@ var ExpressionParser = function (_LValParser) {
         var meta = this.createIdentifier(this.startNodeAtNode(node), "function");
         this.next();
 
-        if (this.match(94)) {
+        if (this.match(96)) {
           this.expectPlugin("functionSent");
         } else if (!this.hasPlugin("functionSent")) {
           this.unexpected();
@@ -41765,7 +41787,7 @@ var ExpressionParser = function (_LValParser) {
       var id = this.createIdentifier(this.startNodeAtNode(node), "import");
       this.next();
 
-      if (this.isContextual(92)) {
+      if (this.isContextual(94)) {
         if (!this.inModule) {
           this.raise(id.start, SourceTypeModuleErrorMessages.ImportMetaOutsideModule);
         }
@@ -42089,7 +42111,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'maybeAsyncOrAccessorProp',
     value: function maybeAsyncOrAccessorProp(prop) {
-      return !prop.computed && prop.key.type === "Identifier" && (this.isLiteralPropertyName() || this.match(0) || this.match(47));
+      return !prop.computed && prop.key.type === "Identifier" && (this.isLiteralPropertyName() || this.match(0) || this.match(49));
     }
   }, {
     key: 'parsePropertyDefinition',
@@ -42139,7 +42161,7 @@ var ExpressionParser = function (_LValParser) {
       }
 
       if (!isPattern) {
-        isGenerator = this.eat(47);
+        isGenerator = this.eat(49);
       }
 
       var containsEsc = this.state.containsEsc;
@@ -42151,7 +42173,7 @@ var ExpressionParser = function (_LValParser) {
         if (keyName === "async" && !this.hasPrecedingLineBreak()) {
           isAsync = true;
           this.resetPreviousNodeTrailingComments(key);
-          isGenerator = this.eat(47);
+          isGenerator = this.eat(49);
           this.parsePropertyName(prop, false);
         }
 
@@ -42160,7 +42182,7 @@ var ExpressionParser = function (_LValParser) {
           this.resetPreviousNodeTrailingComments(key);
           prop.kind = keyName;
 
-          if (this.match(47)) {
+          if (this.match(49)) {
             isGenerator = true;
             this.raise(this.state.pos, ErrorMessages.AccessorIsGenerator, keyName);
             this.next();
@@ -42264,16 +42286,12 @@ var ExpressionParser = function (_LValParser) {
         prop.key = this.parseMaybeAssignAllowIn();
         this.expect(3);
       } else {
-        var oldInPropertyName = this.state.inPropertyName;
-        this.state.inPropertyName = true;
         var type = this.state.type;
-        prop.key = type === 122 || type === 121 || type === 123 || type === 124 ? this.parseExprAtom() : this.parseMaybePrivateName(isPrivateNameAllowed);
+        prop.key = type === 124 || type === 123 || type === 125 || type === 126 ? this.parseExprAtom() : this.parseMaybePrivateName(isPrivateNameAllowed);
 
-        if (type !== 126) {
+        if (type !== 128) {
           prop.computed = false;
         }
-
-        this.state.inPropertyName = oldInPropertyName;
       }
 
       return prop.key;
@@ -42389,9 +42407,10 @@ var ExpressionParser = function (_LValParser) {
           }
         });
         this.prodParam.exit();
-        this.expressionScope.exit();
         this.state.labels = oldLabels;
       }
+
+      this.expressionScope.exit();
     }
   }, {
     key: 'isSimpleParamList',
@@ -42521,10 +42540,14 @@ var ExpressionParser = function (_LValParser) {
         throw this.unexpected();
       }
 
+      var tokenIsKeyword = tokenKeywordOrIdentifierIsKeyword(type);
+
       if (liberal) {
-        this.state.type = 120;
+        if (tokenIsKeyword) {
+          this.replaceToken(122);
+        }
       } else {
-        this.checkReservedWord(name, start, tokenIsKeyword(type), false);
+        this.checkReservedWord(name, start, tokenIsKeyword, false);
       }
 
       this.next();
@@ -42591,7 +42614,7 @@ var ExpressionParser = function (_LValParser) {
       var node = this.startNodeAt(startPos, startLoc);
       this.expressionScope.recordParameterInitializerError(node.start, ErrorMessages.AwaitExpressionFormalParameter);
 
-      if (this.eat(47)) {
+      if (this.eat(49)) {
         this.raise(node.start, ErrorMessages.ObsoleteAwaitStar);
       }
 
@@ -42612,7 +42635,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'isAmbiguousAwait',
     value: function isAmbiguousAwait() {
-      return this.hasPrecedingLineBreak() || this.match(45) || this.match(10) || this.match(0) || this.match(22) || this.match(125) || this.match(48) || this.hasPlugin("v8intrinsic") && this.match(46);
+      return this.hasPrecedingLineBreak() || this.match(47) || this.match(10) || this.match(0) || this.match(22) || this.match(127) || this.match(50) || this.hasPlugin("v8intrinsic") && this.match(48);
     }
   }, {
     key: 'parseYield',
@@ -42624,11 +42647,11 @@ var ExpressionParser = function (_LValParser) {
       var argument = null;
 
       if (!this.hasPrecedingLineBreak()) {
-        delegating = this.eat(47);
+        delegating = this.eat(49);
 
         switch (this.state.type) {
           case 13:
-          case 127:
+          case 129:
           case 8:
           case 11:
           case 3:
@@ -42853,7 +42876,7 @@ function babel7CompatTokens(tokens) {
     var type = token.type;
 
 
-    if (type === 126) {
+    if (type === 128) {
       {
         var loc = token.loc,
             start = token.start,
@@ -42870,7 +42893,7 @@ function babel7CompatTokens(tokens) {
           startLoc: loc.start,
           endLoc: hashEndLoc
         }), new Token({
-          type: getExportedToken(120),
+          type: getExportedToken(122),
           value: value,
           start: hashEndPos,
           end: end,
@@ -42909,7 +42932,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseProgram',
     value: function parseProgram(program) {
-      var end = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 127;
+      var end = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 129;
       var sourceType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.options.sourceType;
 
       program.sourceType = sourceType;
@@ -42977,7 +43000,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'isLet',
     value: function isLet(context) {
-      if (!this.isContextual(91)) {
+      if (!this.isContextual(93)) {
         return false;
       }
 
@@ -43029,27 +43052,27 @@ var StatementParser = function (_ExpressionParser) {
       var kind = void 0;
 
       if (this.isLet(context)) {
-        starttype = 66;
+        starttype = 68;
         kind = "let";
       }
 
       switch (starttype) {
-        case 52:
+        case 54:
           return this.parseBreakContinueStatement(node, true);
 
-        case 55:
+        case 57:
           return this.parseBreakContinueStatement(node, false);
 
-        case 56:
+        case 58:
           return this.parseDebuggerStatement(node);
 
-        case 82:
+        case 84:
           return this.parseDoStatement(node);
 
-        case 83:
+        case 85:
           return this.parseForStatement(node);
 
-        case 60:
+        case 62:
           if (this.lookaheadCharCode() === 46) break;
 
           if (context) {
@@ -43062,27 +43085,27 @@ var StatementParser = function (_ExpressionParser) {
 
           return this.parseFunctionStatement(node, false, !context);
 
-        case 72:
+        case 74:
           if (context) this.unexpected();
           return this.parseClass(node, true);
 
-        case 61:
+        case 63:
           return this.parseIfStatement(node);
 
-        case 62:
+        case 64:
           return this.parseReturnStatement(node);
 
-        case 63:
+        case 65:
           return this.parseSwitchStatement(node);
 
-        case 64:
+        case 66:
           return this.parseThrowStatement(node);
 
-        case 65:
+        case 67:
           return this.parseTryStatement(node);
 
-        case 67:
-        case 66:
+        case 69:
+        case 68:
           kind = kind || this.state.value;
 
           if (context && kind !== "var") {
@@ -43091,10 +43114,10 @@ var StatementParser = function (_ExpressionParser) {
 
           return this.parseVarStatement(node, kind);
 
-        case 84:
+        case 86:
           return this.parseWhileStatement(node);
 
-        case 68:
+        case 70:
           return this.parseWithStatement(node);
 
         case 5:
@@ -43103,7 +43126,7 @@ var StatementParser = function (_ExpressionParser) {
         case 13:
           return this.parseEmptyStatement(node);
 
-        case 75:
+        case 77:
           {
             var nextTokenCharCode = this.lookaheadCharCode();
 
@@ -43112,7 +43135,7 @@ var StatementParser = function (_ExpressionParser) {
             }
           }
 
-        case 74:
+        case 76:
           {
             if (!this.options.allowImportExportEverywhere && !topLevel) {
               this.raise(this.state.start, ErrorMessages.UnexpectedImportExport);
@@ -43121,7 +43144,7 @@ var StatementParser = function (_ExpressionParser) {
             this.next();
             var result = void 0;
 
-            if (starttype === 75) {
+            if (starttype === 77) {
               result = this.parseImport(node);
 
               if (result.type === "ImportDeclaration" && (!result.importKind || result.importKind === "value")) {
@@ -43182,7 +43205,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'canHaveLeadingDecorator',
     value: function canHaveLeadingDecorator() {
-      return this.match(72);
+      return this.match(74);
     }
   }, {
     key: 'parseDecorators',
@@ -43194,7 +43217,7 @@ var StatementParser = function (_ExpressionParser) {
         currentContextDecorators.push(decorator);
       }
 
-      if (this.match(74)) {
+      if (this.match(76)) {
         if (!allowExport) {
           this.unexpected();
         }
@@ -43314,7 +43337,7 @@ var StatementParser = function (_ExpressionParser) {
         return _this65.parseStatement("do");
       });
       this.state.labels.pop();
-      this.expect(84);
+      this.expect(86);
       node.test = this.parseHeaderExpression();
       this.eat(13);
       return this.finishNode(node, "DoWhileStatement");
@@ -43326,7 +43349,7 @@ var StatementParser = function (_ExpressionParser) {
       this.state.labels.push(loopLabel);
       var awaitAt = -1;
 
-      if (this.isAwaitAllowed() && this.eatContextual(88)) {
+      if (this.isAwaitAllowed() && this.eatContextual(90)) {
         awaitAt = this.state.lastTokStart;
       }
 
@@ -43341,17 +43364,17 @@ var StatementParser = function (_ExpressionParser) {
         return this.parseFor(node, null);
       }
 
-      var startsWithLet = this.isContextual(91);
+      var startsWithLet = this.isContextual(93);
       var isLet = startsWithLet && this.isLetKeyword();
 
-      if (this.match(66) || this.match(67) || isLet) {
+      if (this.match(68) || this.match(69) || isLet) {
         var _init = this.startNode();
         var kind = isLet ? "let" : this.state.value;
         this.next();
         this.parseVar(_init, true, kind);
         this.finishNode(_init, "VariableDeclaration");
 
-        if ((this.match(50) || this.isContextual(93)) && _init.declarations.length === 1) {
+        if ((this.match(52) || this.isContextual(95)) && _init.declarations.length === 1) {
           return this.parseForIn(node, _init, awaitAt);
         }
 
@@ -43362,10 +43385,10 @@ var StatementParser = function (_ExpressionParser) {
         return this.parseFor(node, _init);
       }
 
-      var startsWithAsync = this.isContextual(87);
+      var startsWithAsync = this.isContextual(89);
       var refExpressionErrors = new ExpressionErrors();
       var init = this.parseExpression(true, refExpressionErrors);
-      var isForOf = this.isContextual(93);
+      var isForOf = this.isContextual(95);
 
       if (isForOf) {
         if (startsWithLet) {
@@ -43375,7 +43398,7 @@ var StatementParser = function (_ExpressionParser) {
         }
       }
 
-      if (isForOf || this.match(50)) {
+      if (isForOf || this.match(52)) {
         this.toAssignable(init, true);
         var description = isForOf ? "for-of statement" : "for-in statement";
         this.checkLVal(init, description);
@@ -43402,7 +43425,7 @@ var StatementParser = function (_ExpressionParser) {
       this.next();
       node.test = this.parseHeaderExpression();
       node.consequent = this.parseStatement("if");
-      node.alternate = this.eat(58) ? this.parseStatement("if") : null;
+      node.alternate = this.eat(60) ? this.parseStatement("if") : null;
       return this.finishNode(node, "IfStatement");
     }
   }, {
@@ -43435,8 +43458,8 @@ var StatementParser = function (_ExpressionParser) {
       var cur = void 0;
 
       for (var sawDefault; !this.match(8);) {
-        if (this.match(53) || this.match(57)) {
-          var isCase = this.match(53);
+        if (this.match(55) || this.match(59)) {
+          var isCase = this.match(55);
           if (cur) this.finishNode(cur, "SwitchCase");
           cases.push(cur = this.startNode());
           cur.consequent = [];
@@ -43500,7 +43523,7 @@ var StatementParser = function (_ExpressionParser) {
       node.block = this.parseBlock();
       node.handler = null;
 
-      if (this.match(54)) {
+      if (this.match(56)) {
         var clause = this.startNode();
         this.next();
 
@@ -43520,7 +43543,7 @@ var StatementParser = function (_ExpressionParser) {
         node.handler = this.finishNode(clause, "CatchClause");
       }
 
-      node.finalizer = this.eat(59) ? this.parseBlock() : null;
+      node.finalizer = this.eat(61) ? this.parseBlock() : null;
 
       if (!node.handler && !node.finalizer) {
         this.raise(node.start, ErrorMessages.NoCatchOrFinally);
@@ -43602,7 +43625,7 @@ var StatementParser = function (_ExpressionParser) {
         }
       }
 
-      var kind = tokenIsLoop(this.state.type) ? "loop" : this.match(63) ? "switch" : null;
+      var kind = tokenIsLoop(this.state.type) ? "loop" : this.match(65) ? "switch" : null;
 
       for (var i = this.state.labels.length - 1; i >= 0; i--) {
         var label = this.state.labels[i];
@@ -43734,7 +43757,7 @@ var StatementParser = function (_ExpressionParser) {
     value: function parseForIn(node, init, awaitAt) {
       var _this70 = this;
 
-      var isForIn = this.match(50);
+      var isForIn = this.match(52);
       this.next();
 
       if (isForIn) {
@@ -43773,11 +43796,11 @@ var StatementParser = function (_ExpressionParser) {
         if (this.eat(27)) {
           decl.init = isFor ? this.parseMaybeAssignDisallowIn() : this.parseMaybeAssignAllowIn();
         } else {
-          if (kind === "const" && !(this.match(50) || this.isContextual(93))) {
+          if (kind === "const" && !(this.match(52) || this.isContextual(95))) {
             if (!isTypescript) {
               this.raise(this.state.lastTokEnd, ErrorMessages.DeclarationMissingInitializer, "Const declarations");
             }
-          } else if (decl.id.type !== "Identifier" && !(isFor && (this.match(50) || this.isContextual(93)))) {
+          } else if (decl.id.type !== "Identifier" && !(isFor && (this.match(52) || this.isContextual(95)))) {
             this.raise(this.state.lastTokEnd, ErrorMessages.DeclarationMissingInitializer, "Complex binding patterns");
           }
 
@@ -43809,11 +43832,11 @@ var StatementParser = function (_ExpressionParser) {
       var requireId = !!isStatement && !(statement & FUNC_NULLABLE_ID);
       this.initFunction(node, isAsync);
 
-      if (this.match(47) && isHangingStatement) {
+      if (this.match(49) && isHangingStatement) {
         this.raise(this.state.start, ErrorMessages.GeneratorInSingleStatementContext);
       }
 
-      node.generator = this.eat(47);
+      node.generator = this.eat(49);
 
       if (isStatement) {
         node.id = this.parseFunctionId(requireId);
@@ -43970,7 +43993,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseClassMember',
     value: function parseClassMember(classBody, member, state) {
-      var isStatic = this.isContextual(96);
+      var isStatic = this.isContextual(98);
 
       if (isStatic) {
         if (this.parseClassMemberFromModifier(classBody, member)) {
@@ -43996,9 +44019,9 @@ var StatementParser = function (_ExpressionParser) {
       var publicMember = publicMethod;
       member.static = isStatic;
 
-      if (this.eat(47)) {
+      if (this.eat(49)) {
         method.kind = "method";
-        var isPrivateName = this.match(126);
+        var isPrivateName = this.match(128);
         this.parseClassElementName(method);
 
         if (isPrivateName) {
@@ -44015,7 +44038,7 @@ var StatementParser = function (_ExpressionParser) {
       }
 
       var isContextual = tokenIsIdentifier(this.state.type) && !this.state.containsEsc;
-      var isPrivate = this.match(126);
+      var isPrivate = this.match(128);
       var key = this.parseClassElementName(member);
       var maybeQuestionTokenStart = this.state.start;
       this.parsePostMemberNameModifiers(publicMember);
@@ -44055,14 +44078,14 @@ var StatementParser = function (_ExpressionParser) {
         }
       } else if (isContextual && key.name === "async" && !this.isLineTerminator()) {
         this.resetPreviousNodeTrailingComments(key);
-        var isGenerator = this.eat(47);
+        var isGenerator = this.eat(49);
 
         if (publicMember.optional) {
           this.unexpected(maybeQuestionTokenStart);
         }
 
         method.kind = "method";
-        var _isPrivate = this.match(126);
+        var _isPrivate = this.match(128);
         this.parseClassElementName(method);
         this.parsePostMemberNameModifiers(publicMember);
 
@@ -44075,10 +44098,10 @@ var StatementParser = function (_ExpressionParser) {
 
           this.pushClassMethod(classBody, publicMethod, isGenerator, true, false, false);
         }
-      } else if (isContextual && (key.name === "get" || key.name === "set") && !(this.match(47) && this.isLineTerminator())) {
+      } else if (isContextual && (key.name === "get" || key.name === "set") && !(this.match(49) && this.isLineTerminator())) {
         this.resetPreviousNodeTrailingComments(key);
         method.kind = key.name;
-        var _isPrivate2 = this.match(126);
+        var _isPrivate2 = this.match(128);
         this.parseClassElementName(publicMethod);
 
         if (_isPrivate2) {
@@ -44111,11 +44134,11 @@ var StatementParser = function (_ExpressionParser) {
           start = _state5.start;
 
 
-      if ((type === 120 || type === 121) && member.static && value === "prototype") {
+      if ((type === 122 || type === 123) && member.static && value === "prototype") {
         this.raise(start, ErrorMessages.StaticPrototype);
       }
 
-      if (type === 126 && value === "constructor") {
+      if (type === 128 && value === "constructor") {
         this.raise(start, ErrorMessages.ConstructorClassPrivateField);
       }
 
@@ -44225,7 +44248,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseClassSuper',
     value: function parseClassSuper(node) {
-      node.superClass = this.eat(73) ? this.parseExprSubscripts() : null;
+      node.superClass = this.eat(75) ? this.parseExprSubscripts() : null;
     }
   }, {
     key: 'parseExport',
@@ -44263,7 +44286,7 @@ var StatementParser = function (_ExpressionParser) {
         return this.finishNode(node, "ExportNamedDeclaration");
       }
 
-      if (this.eat(57)) {
+      if (this.eat(59)) {
         node.declaration = this.parseExportDefaultExpression();
         this.checkExport(node, true, true);
         return this.finishNode(node, "ExportDefaultDeclaration");
@@ -44274,7 +44297,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'eatExportStar',
     value: function eatExportStar(node) {
-      return this.eat(47);
+      return this.eat(49);
     }
   }, {
     key: 'maybeParseExportDefaultSpecifier',
@@ -44292,7 +44315,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'maybeParseExportNamespaceSpecifier',
     value: function maybeParseExportNamespaceSpecifier(node) {
-      if (this.isContextual(85)) {
+      if (this.isContextual(87)) {
         if (!node.specifiers) node.specifiers = [];
         var specifier = this.startNodeAt(this.state.lastTokStart, this.state.lastTokStartLoc);
         this.next();
@@ -44334,7 +44357,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'isAsyncFunction',
     value: function isAsyncFunction() {
-      if (!this.isContextual(87)) return false;
+      if (!this.isContextual(89)) return false;
       var next = this.nextTokenStart();
       return !lineBreak.test(this.input.slice(this.state.pos, next)) && this.isUnparsedContextual(next, "function");
     }
@@ -44344,7 +44367,7 @@ var StatementParser = function (_ExpressionParser) {
       var expr = this.startNode();
       var isAsync = this.isAsyncFunction();
 
-      if (this.match(60) || isAsync) {
+      if (this.match(62) || isAsync) {
         this.next();
 
         if (isAsync) {
@@ -44352,7 +44375,7 @@ var StatementParser = function (_ExpressionParser) {
         }
 
         return this.parseFunction(expr, FUNC_STATEMENT | FUNC_NULLABLE_ID, isAsync);
-      } else if (this.match(72)) {
+      } else if (this.match(74)) {
         return this.parseClass(expr, true, true);
       } else if (this.match(24)) {
         if (this.hasPlugin("decorators") && this.getPluginOption("decorators", "decoratorsBeforeExport")) {
@@ -44361,7 +44384,7 @@ var StatementParser = function (_ExpressionParser) {
 
         this.parseDecorators(false);
         return this.parseClass(expr, true, true);
-      } else if (this.match(67) || this.match(66) || this.isLet()) {
+      } else if (this.match(69) || this.match(68) || this.isLet()) {
         throw this.raise(this.state.start, ErrorMessages.UnsupportedDefaultExport);
       } else {
         var res = this.parseMaybeAssignAllowIn();
@@ -44381,20 +44404,20 @@ var StatementParser = function (_ExpressionParser) {
 
 
       if (tokenIsIdentifier(type)) {
-        if (type === 87 && !this.state.containsEsc || type === 91) {
+        if (type === 89 && !this.state.containsEsc || type === 93) {
           return false;
         }
 
-        if ((type === 118 || type === 117) && !this.state.containsEsc) {
+        if ((type === 120 || type === 119) && !this.state.containsEsc) {
           var _lookahead3 = this.lookahead(),
               nextType = _lookahead3.type;
 
-          if (tokenIsIdentifier(nextType) && nextType !== 89 || nextType === 5) {
+          if (tokenIsIdentifier(nextType) && nextType !== 91 || nextType === 5) {
             this.expectOnePlugin(["flow", "typescript"]);
             return false;
           }
         }
-      } else if (!this.match(57)) {
+      } else if (!this.match(59)) {
         return false;
       }
 
@@ -44405,7 +44428,7 @@ var StatementParser = function (_ExpressionParser) {
         return true;
       }
 
-      if (this.match(57) && hasFrom) {
+      if (this.match(59) && hasFrom) {
         var nextAfterFrom = this.input.charCodeAt(this.nextTokenStartSince(next + 4));
         return nextAfterFrom === 34 || nextAfterFrom === 39;
       }
@@ -44415,7 +44438,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseExportFrom',
     value: function parseExportFrom(node, expect) {
-      if (this.eatContextual(89)) {
+      if (this.eatContextual(91)) {
         node.source = this.parseImportSource();
         this.checkExport(node);
         var assertions = this.maybeParseImportAssertions();
@@ -44451,7 +44474,7 @@ var StatementParser = function (_ExpressionParser) {
         }
       }
 
-      return type === 66 || type === 67 || type === 60 || type === 72 || this.isLet() || this.isAsyncFunction();
+      return type === 68 || type === 69 || type === 62 || type === 74 || this.isLet() || this.isAsyncFunction();
     }
   }, {
     key: 'checkExport',
@@ -44637,8 +44660,8 @@ var StatementParser = function (_ExpressionParser) {
           if (this.eat(8)) break;
         }
 
-        var isMaybeTypeOnly = this.isContextual(118);
-        var isString = this.match(121);
+        var isMaybeTypeOnly = this.isContextual(120);
+        var isString = this.match(123);
         var node = this.startNode();
         node.local = this.parseModuleExportName();
         nodes.push(this.parseExportSpecifier(node, isString, isInTypeExport, isMaybeTypeOnly));
@@ -44649,7 +44672,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseExportSpecifier',
     value: function parseExportSpecifier(node, isString, isInTypeExport, isMaybeTypeOnly) {
-      if (this.eatContextual(85)) {
+      if (this.eatContextual(87)) {
         node.exported = this.parseModuleExportName();
       } else if (isString) {
         node.exported = cloneStringLiteral(node.local);
@@ -44662,7 +44685,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseModuleExportName',
     value: function parseModuleExportName() {
-      if (this.match(121)) {
+      if (this.match(123)) {
         var result = this.parseStringLiteral(this.state.value);
         var surrogate = result.value.match(loneSurrogate);
 
@@ -44680,12 +44703,12 @@ var StatementParser = function (_ExpressionParser) {
     value: function parseImport(node) {
       node.specifiers = [];
 
-      if (!this.match(121)) {
+      if (!this.match(123)) {
         var hasDefault = this.maybeParseDefaultImportSpecifier(node);
         var parseNext = !hasDefault || this.eat(12);
         var hasStar = parseNext && this.maybeParseStarImportSpecifier(node);
         if (parseNext && !hasStar) this.parseNamedImportSpecifiers(node);
-        this.expectContextual(89);
+        this.expectContextual(91);
       }
 
       node.source = this.parseImportSource();
@@ -44707,7 +44730,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseImportSource',
     value: function parseImportSource() {
-      if (!this.match(121)) this.unexpected();
+      if (!this.match(123)) this.unexpected();
       return this.parseExprAtom();
     }
   }, {
@@ -44742,7 +44765,7 @@ var StatementParser = function (_ExpressionParser) {
 
         attrNames.add(keyName);
 
-        if (this.match(121)) {
+        if (this.match(123)) {
           node.key = this.parseStringLiteral(keyName);
         } else {
           node.key = this.parseIdentifier(true);
@@ -44750,7 +44773,7 @@ var StatementParser = function (_ExpressionParser) {
 
         this.expect(14);
 
-        if (!this.match(121)) {
+        if (!this.match(123)) {
           throw this.unexpected(this.state.start, ErrorMessages.ModuleAttributeInvalidValue);
         }
 
@@ -44764,7 +44787,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'maybeParseModuleAttributes',
     value: function maybeParseModuleAttributes() {
-      if (this.match(68) && !this.hasPrecedingLineBreak()) {
+      if (this.match(70) && !this.hasPrecedingLineBreak()) {
         this.expectPlugin("moduleAttributes");
         this.next();
       } else {
@@ -44790,7 +44813,7 @@ var StatementParser = function (_ExpressionParser) {
         attributes.add(node.key.name);
         this.expect(14);
 
-        if (!this.match(121)) {
+        if (!this.match(123)) {
           throw this.unexpected(this.state.start, ErrorMessages.ModuleAttributeInvalidValue);
         }
 
@@ -44804,7 +44827,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'maybeParseImportAssertions',
     value: function maybeParseImportAssertions() {
-      if (this.isContextual(86) && !this.hasPrecedingLineBreak()) {
+      if (this.isContextual(88) && !this.hasPrecedingLineBreak()) {
         this.expectPlugin("importAssertions");
         this.next();
       } else {
@@ -44830,10 +44853,10 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'maybeParseStarImportSpecifier',
     value: function maybeParseStarImportSpecifier(node) {
-      if (this.match(47)) {
+      if (this.match(49)) {
         var specifier = this.startNode();
         this.next();
-        this.expectContextual(85);
+        this.expectContextual(87);
         this.parseImportSpecifierLocal(node, specifier, "ImportNamespaceSpecifier", "import namespace specifier");
         return true;
       }
@@ -44859,8 +44882,8 @@ var StatementParser = function (_ExpressionParser) {
         }
 
         var specifier = this.startNode();
-        var importedIsString = this.match(121);
-        var isMaybeTypeOnly = this.isContextual(118);
+        var importedIsString = this.match(123);
+        var isMaybeTypeOnly = this.isContextual(120);
         specifier.imported = this.parseModuleExportName();
         var importSpecifier = this.parseImportSpecifier(specifier, importedIsString, node.importKind === "type" || node.importKind === "typeof", isMaybeTypeOnly);
         node.specifiers.push(importSpecifier);
@@ -44869,7 +44892,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseImportSpecifier',
     value: function parseImportSpecifier(specifier, importedIsString, isInTypeOnlyImport, isMaybeTypeOnly) {
-      if (this.eatContextual(85)) {
+      if (this.eatContextual(87)) {
         specifier.local = this.parseIdentifier();
       } else {
         var imported = specifier.imported;
@@ -65301,6 +65324,7 @@ var arrowFunctionExpression = _t.arrowFunctionExpression,
     stringLiteral = _t.stringLiteral,
     _super = _t.super,
     thisExpression = _t.thisExpression,
+    toExpression = _t.toExpression,
     unaryExpression = _t.unaryExpression;
 
 
@@ -65391,22 +65415,25 @@ function arrowFunctionToExpression() {
     throw this.buildCodeFrameError("Cannot convert non-arrow function to a function expression.");
   }
 
-  var thisBinding = hoistFunctionEnvironment(this, noNewArrows, allowInsertArrow);
-  this.ensureBlock();
-  this.node.type = "FunctionExpression";
+  var _hoistFunctionEnviron = hoistFunctionEnvironment(this, noNewArrows, allowInsertArrow),
+      thisBinding = _hoistFunctionEnviron.thisBinding,
+      fn = _hoistFunctionEnviron.fnPath;
+
+  fn.ensureBlock();
+  fn.node.type = "FunctionExpression";
 
   if (!noNewArrows) {
-    var checkBinding = thisBinding ? null : this.parentPath.scope.generateUidIdentifier("arrowCheckId");
+    var checkBinding = thisBinding ? null : fn.scope.generateUidIdentifier("arrowCheckId");
 
     if (checkBinding) {
-      this.parentPath.scope.push({
+      fn.parentPath.scope.push({
         id: checkBinding,
         init: objectExpression([])
       });
     }
 
-    this.get("body").unshiftContainer("body", expressionStatement(callExpression(this.hub.addHelper("newArrowCheck"), [thisExpression(), checkBinding ? identifier(checkBinding.name) : identifier(thisBinding)])));
-    this.replaceWith(callExpression(memberExpression((0, _helperFunctionName.default)(this, true) || this.node, identifier("bind")), [checkBinding ? identifier(checkBinding.name) : thisExpression()]));
+    fn.get("body").unshiftContainer("body", expressionStatement(callExpression(this.hub.addHelper("newArrowCheck"), [thisExpression(), checkBinding ? identifier(checkBinding.name) : identifier(thisBinding)])));
+    fn.replaceWith(callExpression(memberExpression((0, _helperFunctionName.default)(this, true) || fn.node, identifier("bind")), [checkBinding ? identifier(checkBinding.name) : thisExpression()]));
   }
 }
 
@@ -65414,15 +65441,35 @@ function hoistFunctionEnvironment(fnPath) {
   var noNewArrows = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
   var allowInsertArrow = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
+  var arrowParent = void 0;
   var thisEnvFn = fnPath.findParent(function (p) {
-    return p.isFunction() && !p.isArrowFunctionExpression() || p.isProgram() || p.isClassProperty({
+    if (p.isArrowFunctionExpression()) {
+      var _arrowParent;
+
+      (_arrowParent = arrowParent) != null ? _arrowParent : arrowParent = p;
+      return false;
+    }
+
+    return p.isFunction() || p.isProgram() || p.isClassProperty({
+      static: false
+    }) || p.isClassPrivateProperty({
       static: false
     });
   });
-  var inConstructor = (thisEnvFn == null ? void 0 : thisEnvFn.node.kind) === "constructor";
+  var inConstructor = thisEnvFn.isClassMethod({
+    kind: "constructor"
+  });
 
-  if (thisEnvFn.isClassProperty()) {
-    throw fnPath.buildCodeFrameError("Unable to transform arrow inside class property");
+  if (thisEnvFn.isClassProperty() || thisEnvFn.isClassPrivateProperty()) {
+    if (arrowParent) {
+      thisEnvFn = arrowParent;
+    } else if (allowInsertArrow) {
+      fnPath.replaceWith(callExpression(arrowFunctionExpression([], toExpression(fnPath.node)), []));
+      thisEnvFn = fnPath.get("callee");
+      fnPath = thisEnvFn.get("body");
+    } else {
+      throw fnPath.buildCodeFrameError("Unable to transform arrow inside class property");
+    }
   }
 
   var _getScopeInformation = getScopeInformation(fnPath),
@@ -65546,7 +65593,10 @@ function hoistFunctionEnvironment(fnPath) {
     }
   }
 
-  return thisBinding;
+  return {
+    thisBinding: thisBinding,
+    fnPath: fnPath
+  };
 }
 
 function standardizeSuperProperty(superProp) {

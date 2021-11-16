@@ -7,6 +7,10 @@ See https://jsreport.net/learn/localization
 
 ## Changelog
 
+### 3.0.1
+
+- use relative path to the currently evaluated entity (when localization is used from script the current path is equal to the running script)
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 3.0.1
+
+- fix error line numbers in xlsx recipe
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-express",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "jsreport extension adding API",
   "keywords": [
     "jsreport"
@@ -39,9 +39,9 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.0.1",
+    "@jsreport/jsreport-core": "3.1.0",
     "@jsreport/jsreport-jsrender": "3.0.0",
-    "@jsreport/jsreport-scripts": "3.0.0",
+    "@jsreport/jsreport-scripts": "3.0.1",
     "@jsreport/studio-dev": "3.0.1",
     "axios": "0.23.0",
     "cross-env": "5.2.0",

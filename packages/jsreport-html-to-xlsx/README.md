@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 3.0.1
+
+- fix error line numbers in html to xlsx
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 3.0.1
+
+- fix errorLine in stack trace when propagating from pptx
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

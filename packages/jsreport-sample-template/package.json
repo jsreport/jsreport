@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-sample-template",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "jsreport extension which creates a sample template at the first run",
   "keywords": [
     "jsreport"
@@ -31,18 +31,18 @@
     "lodash.omit": "4.5.0"
   },
   "devDependencies": {
-    "handlebars": "4.7.7",
-    "@jsreport/jsreport-assets": "3.0.0",
+    "@jsreport/jsreport-assets": "3.0.1",
     "@jsreport/jsreport-chrome-pdf": "3.0.0",
-    "@jsreport/jsreport-core": "3.0.1",
+    "@jsreport/jsreport-core": "3.1.0",
     "@jsreport/jsreport-data": "3.0.0",
     "@jsreport/jsreport-fs-store": "3.0.0",
     "@jsreport/jsreport-handlebars": "3.0.0",
-    "@jsreport/jsreport-html-to-xlsx": "3.0.0",
-    "@jsreport/jsreport-pdf-utils": "3.0.0",
-    "@jsreport/jsreport-scripts": "3.0.0",
+    "@jsreport/jsreport-html-to-xlsx": "3.0.1",
+    "@jsreport/jsreport-pdf-utils": "3.0.1",
+    "@jsreport/jsreport-scripts": "3.0.1",
+    "@jsreport/jsreport-xlsx": "3.0.1",
     "@jsreport/studio-dev": "3.0.1",
-    "@jsreport/jsreport-xlsx": "3.0.0",
+    "handlebars": "4.7.7",
     "mocha": "7.0.1",
     "puppeteer": "10.4.0",
     "rimraf": "^3.0.2",

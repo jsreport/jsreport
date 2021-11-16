@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-xlsx",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "jsreport recipe rendering excels directly from open xml",
   "keywords": [
     "jsreport"
@@ -41,8 +41,8 @@
   "devDependencies": {
     "cross-env": "6.0.3",
     "handlebars": "4.7.7",
-    "@jsreport/jsreport-assets": "3.0.0",
-    "@jsreport/jsreport-core": "3.0.1",
+    "@jsreport/jsreport-assets": "3.0.1",
+    "@jsreport/jsreport-core": "3.1.0",
     "@jsreport/jsreport-handlebars": "3.0.0",
     "@jsreport/studio-dev": "3.0.1",
     "mocha": "7.0.0",

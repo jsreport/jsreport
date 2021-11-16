@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scheduling
 
 ## Changelog
 
+### 3.0.1
+
+- refactor ListenerCollection usage for better stack traces
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

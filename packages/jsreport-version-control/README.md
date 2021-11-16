@@ -9,6 +9,10 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 3.0.1
+
+- improve revert changes warning in studio
+
 ### 3.0.0-beta.1
 
 Storing diffs in the blobs instead of the entities.

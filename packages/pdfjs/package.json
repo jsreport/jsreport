@@ -1,7 +1,7 @@
 {
   "name": "@jsreport/pdfjs",
   "author": "Markus Ast <npm.m@rkusa.st>",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A Portable Document Format (PDF) generation library targeting both the server- and client-side.",
   "keywords": [
     "pdf",

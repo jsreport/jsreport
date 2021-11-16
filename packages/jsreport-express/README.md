@@ -7,6 +7,11 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.1.0
+
+- add `/api/schema/:entitySet` route to fetch json schema for entitySet
+- don't crash when host header missing
+
 ### 3.0.1
 
 fix for passing express app into options

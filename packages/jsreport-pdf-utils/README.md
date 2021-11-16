@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.0.1
+
+- fix pdf utils merge operation never ending in profile
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

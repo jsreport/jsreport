@@ -280,5 +280,19 @@ jsreport.documentStore.collection('templates')
 	.then((res) => {})
 ```
 
+## Changelog
+
+### 3.1.0
+
+- fix blob storage append to not existing blob (mongo)
+- use relative path to the currently evaluated entity
+- fix performance issue in sandbox with long buffer (don't use restore() of sandbox through a method attached to the sandbox)
+- update migration `xlsxTemplatesToAssets`, `resourcesToAssets` to inherit permissions and change name for resource script to `${template.name}_resources`
+- refactor ListenerCollection for better stack traces
+- fix startup extensions logs not recognized as npm source
+- fix extensions cache entry root path
+- don't crash process when monitoring persist fails
+- fix compilation (updates to vm2)
+
 ## License
 LGPL
