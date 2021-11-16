@@ -373,4 +373,28 @@ describe('html to xlsx', () => {
     parseInt(workbook.sheets()[1].column(1).width()).should.be.eql(17)
     parseInt(workbook.sheets()[1].row(1).height()).should.be.eql(37)
   })
+
+  it('should propagate line number to error in helper', async () => {
+    const request = {
+      template: {
+        content: '<table><tr><td>{{foo}}</td></tr></table>',
+        helpers: `
+          function foo() {
+            zzz
+          }
+        `,
+        recipe: 'html-to-xlsx',
+        engine: 'none',
+        htmlToXlsx: {
+          htmlEngine: 'chrome'
+        }
+      }
+    }
+
+    try {
+      await reporter.render(request)
+    } catch (err) {
+      err.lineNumber.should.be.eql(3)
+    }
+  })
 })
