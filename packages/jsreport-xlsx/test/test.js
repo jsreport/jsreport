@@ -10,7 +10,7 @@ const handlebars = require('@jsreport/jsreport-handlebars')
 const xlsxRecipe = require('../index')
 const jsonToXml = require('../lib/jsonToXml')
 
-describe.only('excel recipe', () => {
+describe('excel recipe', () => {
   let reporter
 
   beforeEach(() => {
@@ -221,6 +221,21 @@ describe.only('excel recipe', () => {
       xlsx.read(res.content).Sheets.Sheet1.A1.v.should.be.eql('& & &')
     })
   })
+
+  it('should provide proper lineNumber on error in helper', async () => {
+    try {
+      await reporter.render({
+        template: {
+          recipe: 'xlsx',
+          engine: 'handlebars',
+          helpers: 'function foo() { return zz }',
+          content: fs.readFileSync(path.join(__dirname, 'content', 'add-row-block-helper.handlebars'), 'utf8')
+        }
+      })
+    } catch (e) {
+      e.lineNumber.should.be.eql(1)
+    }
+  })
 })
 
 describe('excel recipe with previewInExcelOnline false', () => {
@@ -410,6 +425,8 @@ describe('excel recipe with disabled add parsing', () => {
         }
       }
     })
+    reporter.use(xlsxRecipe())
+    reporter.use(handlebars())
 
     return reporter.init()
   })
@@ -485,39 +502,6 @@ describe('excel recipe with disabled add parsing', () => {
       data: { foo: '<=' }
     }).then((res) => {
       xlsx.read(res.content).Sheets.Sheet1.A1.v.should.be.eql('<=')
-    })
-  })
-})
-
-describe('excel recipe with in process helpers', () => {
-  let reporter
-
-  beforeEach(() => {
-    reporter = jsreport({
-      rootDirectory: path.join(__dirname, '../')
-    })
-
-    return reporter.init()
-  })
-
-  afterEach(() => {
-    if (reporter) {
-      return reporter.close()
-    }
-  })
-
-  it('should be able to use native helpers', () => {
-    return reporter.render({
-      template: {
-        recipe: 'xlsx',
-        engine: 'handlebars',
-        helpers: {
-          foo: () => '<c><v>11</v></c>'
-        },
-        content: fs.readFileSync(path.join(__dirname, 'content', 'add-row-block-helper.handlebars'), 'utf8')
-      }
-    }).then((res) => {
-      xlsx.read(res.content).Sheets.Sheet1.A1.v.should.be.eql(11)
     })
   })
 })

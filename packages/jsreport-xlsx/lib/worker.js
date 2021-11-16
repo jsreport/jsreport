@@ -28,6 +28,11 @@ module.exports = (reporter, definition) => {
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
+  let helpersScript
+  reporter.initializeListeners.add('xlsx', async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
+  })
+
   reporter.beforeRenderListeners.insert({ after: 'data' }, 'xlsx', async (req) => {
     if (req.template.recipe !== 'xlsx') {
       return
@@ -84,7 +89,6 @@ module.exports = (reporter, definition) => {
     req.data.$escapeAmp = definition.options.escapeAmp
     req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations
 
-    const helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
-    req.template.helpers = helpersScript + '\n' + (req.template.helpers || '')
+    req.context.systemHelpers += helpersScript + '\n'
   })
 }
