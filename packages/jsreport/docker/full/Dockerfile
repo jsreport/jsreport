@@ -56,7 +56,7 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0 \
     @jsreport/jsreport-office-password@3.0.0 \
     @jsreport/jsreport-html-to-text@3.0.0 \
     @jsreport/jsreport-html-embedded-in-docx@3.0.0 \
-    @jsreport/jsreport-fs-store-aws-s3-persistence@3.0.0 \
+    @jsreport/jsreport-fs-store-aws-s3-persistence@3.0.1 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0 \
     @jsreport/jsreport-unoconv@3.0.0 \
     cheerio-page-eval@1.0.0
