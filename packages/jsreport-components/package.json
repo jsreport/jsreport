@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.0.1",
-    "@jsreport/jsreport-core": "3.1.0",
+    "@jsreport/jsreport-core": "3.1.1",
     "@jsreport/jsreport-handlebars": "3.0.0",
     "@jsreport/jsreport-jsrender": "3.0.0",
     "@jsreport/studio-dev": "3.0.1",
