@@ -18,6 +18,7 @@
   "main": "index.js",
   "files": [
     "lib",
+    "static",
     "studio",
     "index.js",
     "jsreport.config.js"

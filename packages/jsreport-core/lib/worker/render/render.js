@@ -11,19 +11,11 @@ const generateRequestId = require('../../shared/generateRequestId')
 const resolveReferences = require('./resolveReferences.js')
 const moduleHelper = require('./moduleHelper')
 let reportCounter = 0
-const fs = require('fs').promises
-const path = require('path')
 
 module.exports = (reporter) => {
-  let helpersScript
-  reporter.beforeRenderListeners.add('core-helpers', async (req) => {
-    if (!helpersScript) {
-      helpersScript = await fs.readFile(path.join(__dirname, '../../static/helpers.js'), 'utf8')
-    }
-    req.context.systemHelpers += helpersScript + '\n'
-  })
-  moduleHelper(reporter)
   reporter.addRequestContextMetaConfig('systemHelpers', { sandboxHidden: true })
+
+  moduleHelper(reporter)
 
   const executeEngine = ExecuteEngine(reporter)
   async function beforeRender (reporter, request, response) {

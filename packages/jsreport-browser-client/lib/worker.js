@@ -1,12 +1,15 @@
+const path = require('path')
+const fs = require('fs').promises
+
 module.exports = (reporter, definition) => {
+  let helpersScript
+
   reporter.beforeRenderListeners.add(definition.name, this, async (req, res) => {
-    req.context.systemHelpers += `function browserClientLink() {
-      const jsreport = require('jsreport-proxy')
-      if (!jsreport.req.context.http || !jsreport.req.context.http.baseUrl) {
-        throw new Error('browserClientLink requires context.http.baseUrl to be set')
-      }
-      return jsreport.req.context.http.baseUrl + '/extension/browser-client/public/js/jsreport.umd.js'
-    }` + '\n'
+    req.context.systemHelpers += helpersScript + '\n'
+  })
+
+  reporter.initializeListeners.add(definition.name, async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
   function recipe (request, response) {

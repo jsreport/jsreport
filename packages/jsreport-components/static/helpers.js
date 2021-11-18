@@ -1,19 +1,20 @@
 /* eslint-disable */
-const __componentCache = {}
-async function component (path, options) {  
-  const jsreport = require('jsreport-proxy')    
-  if (!__componentCache[path]) {
+async function component (path, options) {
+  const jsreport = require('jsreport-proxy')
+  if (!component.__cache || !component.__cache[path]) {
     if (path == null) {
       throw new Error('component helper requires path argument')
-    }    
-    
+    }
+
     const componentSearchResult = await jsreport.folders.resolveEntityFromPath(path, 'components', { currentPath: jsreport.currentPath })
     if (componentSearchResult == null) {
       throw new Error(`Component ${path} not found`)
     }
-    __componentCache[path] = componentSearchResult.entity
+
+    component.__cache = component.__cache || {}
+    component.__cache[path] = componentSearchResult.entity
   }
-  const entity = __componentCache[path]
+  const entity = component.__cache[path]
 
   const isHandlebars = typeof arguments[arguments.length - 1].lookupProperty === 'function'
   const isJsRender = this.tmpl && this.tmpl && typeof this.tmpl.fn === 'function'
@@ -25,9 +26,9 @@ async function component (path, options) {
 
   if (isJsRender) {
     currentContext = this.data
-  } 
+  }
 
-  try {       
+  try {
     return await jsreport.templatingEngines.evaluate({
       engine: entity.engine,
       content: entity.content,
@@ -35,9 +36,9 @@ async function component (path, options) {
       data: currentContext
     }, {
       entity,
-      entitySet: 'components'      
+      entitySet: 'components'
     })
-  } catch (e) {    
+  } catch (e) {
     if (e.entity == null) {
       e.message = `Error when evaluating templating engine for component ${path}\n${e.message}`
       e.entity = {
@@ -47,8 +48,8 @@ async function component (path, options) {
       }
       if (e.property !== 'content') {
         e.property = 'helpers'
-      }      
-    } 
+      }
+    }
 
     throw e
   }

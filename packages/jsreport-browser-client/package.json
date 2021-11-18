@@ -16,6 +16,7 @@
   },
   "files": [
     "lib",
+    "static",
     "index.js",
     "jsreport.config.js",
     "studio"

@@ -1,15 +1,14 @@
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
-
-// eslint-disable-next-line prefer-const
-let Handlebars = require('handlebars')
-
 function docxPageBreak () {
+  const Handlebars = require('handlebars')
   return new Handlebars.SafeString('')
 }
 
 function docxRaw (options) {
+  const Handlebars = require('handlebars')
+
   if (typeof options.hash.xml === 'string') {
     if (options.hash.xml.startsWith('<')) {
       return new Handlebars.SafeString(options.hash.xml)
@@ -21,12 +20,14 @@ function docxRaw (options) {
 }
 
 function docxList (data, options) {
+  const Handlebars = require('handlebars')
   return Handlebars.helpers.each(data, options)
 }
 
 function docxTable (data, options) {
-  let currentData
+  const Handlebars = require('handlebars')
   const optionsToUse = options == null ? data : options
+  let currentData
 
   if (
     arguments.length === 1 &&
@@ -102,13 +103,18 @@ function docxTable (data, options) {
 
   return Handlebars.helpers.each(currentData, optionsToUse)
 }
+
 function docxStyle (options) {
+  const Handlebars = require('handlebars')
+
   return new Handlebars.SafeString(
     `<docxStyle id="${options.hash.id}" textColor="${options.hash.textColor}" />`
   )
 }
 
 function docxImage (options) {
+  const Handlebars = require('handlebars')
+
   if (!options.hash.src) {
     throw new Error(
       'docxImage helper requires src parameter to be set'
@@ -163,6 +169,8 @@ function docxImage (options) {
 }
 
 function docxCheckbox (options) {
+  const Handlebars = require('handlebars')
+
   if (options.hash.value == null) {
     throw new Error('docxCheckbox helper requires value parameter')
   }
@@ -173,10 +181,13 @@ function docxCheckbox (options) {
 }
 
 function docxCombobox (options) {
+  const Handlebars = require('handlebars')
   return new Handlebars.SafeString('$docxCombobox' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
 
 function docxChart (options) {
+  const Handlebars = require('handlebars')
+
   if (options.hash.data == null) {
     throw new Error('docxChart helper requires data parameter to be set')
   }
