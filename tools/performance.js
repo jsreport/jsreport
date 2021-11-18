@@ -1,18 +1,19 @@
 const fsStandard = require('fs')
 const v8 = require('v8')
 const path = require('path')
+const jsreportClient = require('@jsreport/nodejs-client')('http://localhost:5488')
 
 if (!fsStandard.existsSync('tools/snapshots')) {
   fsStandard.mkdirSync('tools/snapshots')
 }
 
-const jsreport = require('../')({
+const jsreport = require('jsreport')({
   rootDirectory: path.join(__dirname, '../'),
   logger: {
     silent: true
   }
 })
-let snapshots = 1
+const snapshots = 1
 let elapsedTime = 0
 
 const data = {
@@ -31,17 +32,17 @@ for (let i = 0; i < 10000; i++) {
 
   console.time('reports took')
 
-  for (let i = 1; i < 10; i++) {
+  for (let i = 1; i < 100000; i++) {
     const start = new Date().getTime()
-    await jsreport.render({
+    await jsreportClient.render({
       template: {
         content: 'hello', // {{#each people}}{{name}}{{/each}}',
-        recipe: 'html',
-        engine: 'handlebars'
-        /* pdfOperations: [{
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        pdfOperations: [{
           type: 'merge',
           template: { content: 'Header', engine: 'none', recipe: 'chrome-pdf' }
-        }] */
+        }]
       },
       data
     })
@@ -59,11 +60,12 @@ for (let i = 0; i < 10000; i++) {
       const memoryUsed = Math.round(process.memoryUsage().rss / 1024 / 1024 * 100) / 100
       console.log(`memory used: ${memoryUsed} MB`)
 
-      const workserSnapshotStream = await jsreport._workersManager._workerManager.threads[0].getHeapSnapshot()
-      console.log('writing snapshot memory...')
-      workserSnapshotStream.pipe(fsStandard.createWriteStream(`tools/snapshots/snapshot-worker-${snapshots}.heapsnapshot`))
+      // const workserSnapshotStream = await jsreport._workersManager.pool.workers[0].worker.getHeapSnapshot()
+      // console.log('writing snapshot memory...')
+      // workserSnapshotStream.pipe(fsStandard.createWriteStream(`tools/snapshots/snapshot-worker-${snapshots}.heapsnapshot`))
 
-      v8.getHeapSnapshot().pipe(fsStandard.createWriteStream(`tools/snapshots/snapshot-${snapshots++}.heapsnapshot`))
+      // v8.getHeapSnapshot().pipe(fsStandard.createWriteStream(`tools/snapshots/snapshot-${snapshots++}.heapsnapshot`))
     }
   }
+  await jsreport.close()
 })().catch(console.error)
