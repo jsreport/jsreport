@@ -435,10 +435,6 @@ class MainReporter extends Reporter {
     }
   }
 
-  generateRequestId () {
-    return generateRequestId()
-  }
-
   registerWorkersManagerFactory (workersManagerFactory) {
     this._workersManagerFactory = workersManagerFactory
   }

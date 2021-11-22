@@ -10,8 +10,42 @@ const { nanoid } = require('nanoid')
 
 module.exports = (reporter) => {
   const cache = LRU(reporter.options.sandbox.cache || { max: 100 })
+
   reporter.templatingEngines = { cache }
+
   const executionFnParsedParamsMap = new Map()
+
+  const templatingEnginesEvaluate = async (mainCall, { engine, content, helpers, data }, { entity, entitySet }, req) => {
+    const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
+
+    if (!engine) {
+      throw reporter.createError(`Engine '${engine}' not found. If this is a custom engine make sure it's properly installed from npm`, {
+        statusCode: 400
+      })
+    }
+
+    if (mainCall) {
+      executionFnParsedParamsMap.set(req.context.id, new Map())
+    }
+
+    try {
+      const res = await executeEngine({
+        engine: engineImpl,
+        content,
+        helpers,
+        systemHelpers: req.context.systemHelpers,
+        data
+      }, { handleErrors: false, entity, entitySet }, req)
+
+      return res.content
+    } finally {
+      if (mainCall) {
+        executionFnParsedParamsMap.delete(req.context.id)
+      }
+    }
+  }
+
+  reporter.templatingEngines.evaluate = (executionInfo, entityInfo, req) => templatingEnginesEvaluate(true, executionInfo, entityInfo, req)
 
   reporter.extendProxy((proxy, req, {
     runInSandbox,
@@ -19,23 +53,8 @@ module.exports = (reporter) => {
     getTopLevelFunctions
   }) => {
     proxy.templatingEngines = {
-      evaluate: async ({ engine, content, helpers, data }, { entity, entitySet }) => {
-        const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
-
-        if (!engine) {
-          throw reporter.createError(`Engine '${engine}' not found. If this is a custom engine make sure it's properly installed from npm`, {
-            statusCode: 400
-          })
-        }
-
-        const res = await executeEngine({
-          engine: engineImpl,
-          content,
-          helpers,
-          systemHelpers: req.context.systemHelpers,
-          data
-        }, { handleErrors: false, entity, entitySet }, req)
-        return res.content
+      evaluate: async (executionInfo, entityInfo) => {
+        return templatingEnginesEvaluate(false, executionInfo, entityInfo, req)
       }
     }
   })
@@ -65,12 +84,13 @@ module.exports = (reporter) => {
 
   async function executeEngine ({ engine, content, helpers, systemHelpers, data }, { handleErrors, entity, entitySet }, req) {
     let entityPath
+
     if (entity._id) {
       entityPath = await reporter.folders.resolveEntityPath(entity, entitySet, req)
       entityPath = entityPath.substring(0, entityPath.lastIndexOf('/'))
     }
 
-    const joinedHelpers = systemHelpers + '\n' + helpers
+    const joinedHelpers = systemHelpers + '\n' + (helpers || '')
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
     const executionFn = async ({ require, console, topLevelFunctions }) => {

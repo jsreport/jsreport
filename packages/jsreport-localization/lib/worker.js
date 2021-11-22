@@ -3,12 +3,13 @@ const path = require('path')
 
 module.exports = async (reporter, definition) => {
   let helpers
+
   reporter.initializeListeners.add('assets', async () => {
     helpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
   })
 
-  reporter.beforeRenderListeners.add(definition.name, this, (req, res) => {
-    req.context.systemHelpers += helpers + '\n'
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    return helpers
   })
 
   reporter.extendProxy((proxy, req) => {

@@ -75,8 +75,6 @@ module.exports = (reporter, definition) => {
   let assetHelpers
 
   reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
-    req.context.systemHelpers += assetHelpers + '\n'
-
     req.template.content = await evaluateAssets(reporter, definition, req.template.content, req)
 
     if (req.template.helpers && typeof req.template.helpers === 'string') {
@@ -84,15 +82,19 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  reporter.afterTemplatingEnginesExecutedListeners.add('assets', async (req, res) => {
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    return assetHelpers
+  })
+
+  reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, async (req, res) => {
     const result = await evaluateAssets(reporter, definition, res.content.toString(), req)
     res.content = Buffer.from(result)
   })
 
-  reporter.initializeListeners.add('assets', async () => {
+  reporter.initializeListeners.add(definition.name, async () => {
     assetHelpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
     if (reporter.beforeScriptListeners) {
-      reporter.beforeScriptListeners.add('assets', function ({ script }, req) {
+      reporter.beforeScriptListeners.add(definition.name, function ({ script }, req) {
         return evaluateAssets(reporter, definition, script.content, req).then(function (result) {
           script.content = result
         })

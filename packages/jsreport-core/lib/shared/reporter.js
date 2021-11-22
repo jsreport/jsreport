@@ -6,6 +6,7 @@ const Folders = require('./folders')
 const createOrExtendError = require('./createError')
 const tempFilesHandler = require('./tempFilesHandler')
 const encryption = require('./encryption')
+const generateRequestId = require('../shared/generateRequestId')
 
 class Reporter extends EventEmitter {
   constructor (options) {
@@ -44,6 +45,10 @@ class Reporter extends EventEmitter {
    */
   createError (message, options = {}) {
     return createOrExtendError(message, options)
+  }
+
+  generateRequestId () {
+    return generateRequestId()
   }
 
   /**

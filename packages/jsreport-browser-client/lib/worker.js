@@ -4,8 +4,8 @@ const fs = require('fs').promises
 module.exports = (reporter, definition) => {
   let helpersScript
 
-  reporter.beforeRenderListeners.add(definition.name, this, async (req, res) => {
-    req.context.systemHelpers += helpersScript + '\n'
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    return helpersScript
   })
 
   reporter.initializeListeners.add(definition.name, async () => {

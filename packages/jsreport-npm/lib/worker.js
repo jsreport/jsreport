@@ -13,11 +13,13 @@ module.exports = (reporter, definition) => {
   const rootPrefix = path.join(reporter.options.tempDirectory, 'npm')
 
   let helpersScript
-  reporter.beforeRenderListeners.add(`${definition.name}-helpers`, async (req) => {
-    if (!helpersScript) {
-      helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
-    }
-    req.context.systemHelpers += helpersScript + '\n'
+
+  reporter.registerHelpersListeners.add(`${definition.name}-helpers`, (req) => {
+    return helpersScript
+  })
+
+  reporter.initializeListeners.add(definition.name, async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
   reporter.extendProxy((proxy, req, { safeRequire }) => {

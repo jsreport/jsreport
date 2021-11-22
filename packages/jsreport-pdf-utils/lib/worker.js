@@ -80,8 +80,8 @@ module.exports = (reporter, definition) => {
     })
   })
 
-  reporter.beforeRenderListeners.insert({ after: 'data' }, 'pdf-utils', async (req, res) => {
-    req.context.systemHelpers += helpersScript + '\n'
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    return helpersScript
   })
 
   // we insert to the front so we can run before reports or scripts

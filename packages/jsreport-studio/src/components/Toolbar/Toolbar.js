@@ -75,7 +75,7 @@ class Toolbar extends Component {
 
   componentWillUnmount () {
     window.removeEventListener('keydown', this.handleShortcut)
-    window.addEventListener('keydown', this.handleEarlyShortcut, true)
+    window.removeEventListener('keydown', this.handleEarlyShortcut, true)
   }
 
   handleUpdate (...params) {

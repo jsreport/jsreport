@@ -4,8 +4,12 @@ const path = require('path')
 module.exports = (reporter, definition) => {
   let componentHelpers
 
-  reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
-    req.context.systemHelpers += componentHelpers + '\n'
+  reporter.registerWorkerAction('component-preview', (data, req) => {
+    return require('./componentPreview')(data, reporter, req)
+  })
+
+  reporter.registerHelpersListeners.add('components', (req) => {
+    return componentHelpers
   })
 
   reporter.initializeListeners.add('components', async () => {

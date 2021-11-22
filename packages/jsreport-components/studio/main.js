@@ -111,6 +111,14 @@ var _ComponentProperties = __webpack_require__(4);
 
 var _ComponentProperties2 = _interopRequireDefault(_ComponentProperties);
 
+var _ComponentPreview = __webpack_require__(5);
+
+var _ComponentPreview2 = _interopRequireDefault(_ComponentPreview);
+
+var _PreviewComponentToolbar = __webpack_require__(6);
+
+var _PreviewComponentToolbar2 = _interopRequireDefault(_PreviewComponentToolbar);
+
 var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
@@ -139,6 +147,9 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
 _jsreportStudio2.default.addPropertiesComponent(_ComponentProperties2.default.title, _ComponentProperties2.default, function (entity) {
   return entity.__entitySet === 'components';
 });
+_jsreportStudio2.default.addToolbarComponent(_PreviewComponentToolbar2.default);
+
+_jsreportStudio2.default.addPreviewComponent('component', _ComponentPreview2.default);
 
 /***/ }),
 /* 3 */
@@ -481,6 +492,185 @@ var ComponentProperties = function (_Component) {
 }(_react.Component);
 
 exports.default = ComponentProperties;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _react = __webpack_require__(1);
+
+var _jsreportStudio = __webpack_require__(0);
+
+var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var FramePreview = _jsreportStudio2.default.sharedComponents.FramePreview;
+
+var ComponentPreview = function ComponentPreview(props) {
+  var data = props.data;
+
+
+  var src = (0, _react.useMemo)(function () {
+    if (data.type == null && data.content == null) {
+      return null;
+    }
+
+    var blob = new Blob([data.content], { type: data.type });
+    return window.URL.createObjectURL(blob);
+  }, [data.type, data.content]);
+
+  var styles = (0, _react.useMemo)(function () {
+    if (data.type !== 'text/html') {
+      return {};
+    }
+
+    // match default browser styles
+    return {
+      backgroundColor: '#fff',
+      color: '#000'
+    };
+  }, [data.type]);
+
+  return React.createElement(FramePreview, {
+    src: src,
+    styles: styles
+  });
+};
+
+exports.default = ComponentPreview;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _react = __webpack_require__(1);
+
+var _jsreportStudio = __webpack_require__(0);
+
+var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
+  var _useState = (0, _react.useState)(false),
+      _useState2 = _slicedToArray(_useState, 2),
+      isRunning = _useState2[0],
+      setIsRunning = _useState2[1];
+
+  var entity = props.tab != null && props.tab.entity != null ? props.tab.entity : undefined;
+
+  var previewComponent = (0, _react.useCallback)(function previewComponent(componentShortid, componentName) {
+    if (isRunning) {
+      return;
+    }
+
+    setIsRunning(true);
+    _jsreportStudio2.default.startProgress();
+
+    var previewId = _jsreportStudio2.default.preview({
+      type: 'component',
+      data: {}
+    });
+
+    var componentPayload = {
+      component: {
+        content: entity.content || '',
+        shortid: componentShortid
+      }
+    };
+
+    if (entity.data && entity.data.shortid) {
+      // try to fill request.data from the active open tab with sample data
+      var dataDetails = _jsreportStudio2.default.getAllEntities().filter(function (d) {
+        return d.shortid === entity.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew);
+      });
+
+      if (dataDetails.length > 0) {
+        componentPayload.data = dataDetails[0].dataJson ? JSON.parse(dataDetails[0].dataJson) : {};
+      }
+    }
+
+    _jsreportStudio2.default.api.post('/api/component', {
+      data: componentPayload,
+      responseType: 'text'
+    }).then(function (componentHtml) {
+      setIsRunning(false);
+
+      _jsreportStudio2.default.updatePreview(previewId, {
+        data: {
+          type: 'text/html',
+          content: componentHtml
+        },
+        completed: true
+      });
+    }).catch(function (err) {
+      setIsRunning(false);
+
+      _jsreportStudio2.default.updatePreview(previewId, {
+        data: {
+          type: 'text/plain',
+          content: 'Component' + (componentName != null ? ' "' + componentName + '"' : '') + ' preview failed.\n\n' + err.message + '\n' + err.stack
+        },
+        completed: true
+      });
+    });
+  }, [entity, isRunning]);
+
+  var handleEarlyShortcut = (0, _react.useCallback)(function handleEarlyShortcut(e) {
+    if (e.which === 120 && entity && entity.__entitySet === 'components') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      previewComponent(entity.shortid, entity.name);
+
+      return false;
+    }
+  }, [previewComponent, entity]);
+
+  (0, _react.useEffect)(function () {
+    window.addEventListener('keydown', handleEarlyShortcut, true);
+
+    return function () {
+      window.removeEventListener('keydown', handleEarlyShortcut, true);
+    };
+  }, [handleEarlyShortcut]);
+
+  if (!props.tab || !props.tab.entity || props.tab.entity.__entitySet !== 'components') {
+    return React.createElement('span', null);
+  }
+
+  return React.createElement(
+    'div',
+    {
+      title: 'Run and preview component (F9)',
+      className: 'toolbar-button ' + (isRunning ? 'disabled' : ''),
+      onClick: function onClick() {
+        previewComponent(props.tab.entity.shortid, props.tab.entity.name);
+      }
+    },
+    React.createElement('i', { className: 'fa fa-eye' }),
+    'Component'
+  );
+};
+
+exports.default = PreviewComponentToolbar;
 
 /***/ })
 /******/ ]);

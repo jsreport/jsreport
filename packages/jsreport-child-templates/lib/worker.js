@@ -63,15 +63,17 @@ module.exports = function (reporter, definition) {
   })
 
   let helpersScript
-  reporter.beforeRenderListeners.insert({ after: definition.name }, `${definition.name}-helpers`, async (req) => {
-    if (!helpersScript) {
-      helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
-    }
-    req.context.systemHelpers += helpersScript + '\n'
+
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    return helpersScript
   })
 
   reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (request, response) => {
     return evaluateChildTemplates(reporter, request, response, { evaluateInTemplateContent: false })
+  })
+
+  reporter.initializeListeners.add(definition.name, async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
   reporter.childTemplates = {
