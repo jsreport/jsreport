@@ -6,7 +6,7 @@ exports.getDefaultTempDirectory = () => {
 }
 
 exports.getDefaultRootDirectory = () => {
-  return path.join(__dirname, '../../../../')
+  return path.join(__dirname, '../../../../../')
 }
 
 exports.getDefaultLoadConfig = () => {

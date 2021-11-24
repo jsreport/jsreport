@@ -6,7 +6,8 @@ describe('moduleHelper test with allowLocalFileAccess true', () => {
 
   beforeEach(async () => {
     reporter = core({
-      allowLocalFilesAccess: true
+      allowLocalFilesAccess: true,
+      rootDirectory: __dirname
     })
     reporter.use({
       name: 'engine-testing',
