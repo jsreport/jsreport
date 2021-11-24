@@ -1,5 +1,5 @@
 import DataEditor from './DataEditor.js'
-import Properties from './DataProperties.js'
+import DataProperties from './DataProperties.js'
 import Studio from 'jsreport-studio'
 
 Studio.addEntitySet({
@@ -10,7 +10,7 @@ Studio.addEntitySet({
   entityTreePosition: 900
 })
 
-Studio.addPropertiesComponent(Properties.title, Properties, (entity) => entity.__entitySet === 'templates')
+Studio.addPropertiesComponent(DataProperties.title, DataProperties, (entity) => entity.__entitySet === 'templates' || entity.__entitySet === 'components')
 Studio.addEditorComponent('data', DataEditor, (reformatter, entity) => ({ dataJson: reformatter(entity.dataJson, 'js') }))
 
 Studio.runListeners.push((request, entities) => {
@@ -19,9 +19,8 @@ Studio.runListeners.push((request, entities) => {
   }
 
   // try to fill request.data from the active open tab with sample data
-
   const dataDetails = Object.keys(entities).map((e) => entities[e])
-    .filter((d) => d.shortid === request.template.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isNew))
+    .filter((d) => d.shortid === request.template.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew))
 
   if (!dataDetails.length) {
     return

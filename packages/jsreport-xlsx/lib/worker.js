@@ -29,11 +29,18 @@ module.exports = (reporter, definition) => {
   })
 
   let helpersScript
-  reporter.initializeListeners.add('xlsx', async () => {
+
+  reporter.initializeListeners.add(definition.name, async () => {
     helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
-  reporter.beforeRenderListeners.insert({ after: 'data' }, 'xlsx', async (req) => {
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    if (req.template.recipe === 'xlsx') {
+      return helpersScript
+    }
+  })
+
+  reporter.beforeRenderListeners.insert({ after: 'data' }, definition.name, async (req) => {
     if (req.template.recipe !== 'xlsx') {
       return
     }
@@ -88,7 +95,5 @@ module.exports = (reporter, definition) => {
     req.data.$addBufferSize = definition.options.addBufferSize || 50000000
     req.data.$escapeAmp = definition.options.escapeAmp
     req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations
-
-    req.context.systemHelpers += helpersScript + '\n'
   })
 }

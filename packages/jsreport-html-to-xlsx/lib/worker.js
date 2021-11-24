@@ -15,8 +15,15 @@ module.exports = (reporter, definition) => {
   })
 
   let htmlToXlsxHelpers
+
   reporter.initializeListeners.add('html-to-xlsx', async () => {
     htmlToXlsxHelpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
+  })
+
+  reporter.registerHelpersListeners.add('htmlToXlsx', (req) => {
+    if (req.template.recipe === 'html-to-xlsx') {
+      return htmlToXlsxHelpers
+    }
   })
 
   reporter.beforeRenderListeners.insert({ after: 'data' }, 'htmlToXlsx', async (req) => {
@@ -27,7 +34,5 @@ module.exports = (reporter, definition) => {
     req.data = req.data || {}
     req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
     req.data.$writeToFiles = ['cheerio', 'chrome'].includes((req.template.htmlToXlsx || {}).htmlEngine)
-
-    req.context.systemHelpers += htmlToXlsxHelpers + '\n'
   })
 }

@@ -7,7 +7,7 @@ module.exports = (reporter, definition) => {
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
-  reporter.beforeRenderListeners.insert({ before: 'templates' }, 'pptx', (req) => {
+  reporter.beforeRenderListeners.insert({ before: 'templates' }, definition.name, (req) => {
     if (req.template.recipe === 'pptx' && !req.template.name && !req.template.shortid && !req.template.content) {
       // templates extension otherwise complains that the template is empty
       // but that is fine for this recipe
@@ -16,11 +16,12 @@ module.exports = (reporter, definition) => {
   })
 
   let helpersScript
-  reporter.initializeListeners.add('pptx', async () => {
+
+  reporter.initializeListeners.add(definition.name, async () => {
     helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
-  reporter.beforeRenderListeners.insert({ after: 'templates' }, 'pptx', async (req) => {
-    req.context.systemHelpers += helpersScript + '\n'
+  reporter.registerHelpersListeners.add(definition.name, (req) => {
+    return helpersScript
   })
 }

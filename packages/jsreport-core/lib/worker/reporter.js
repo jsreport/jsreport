@@ -26,6 +26,7 @@ class WorkerReporter extends Reporter {
     this._workerActions = new Map()
     this._registerRenderAction()
 
+    this.registerHelpersListeners = this.createListenerCollection('registerHelpers')
     this.afterTemplatingEnginesExecutedListeners = this.createListenerCollection('afterTemplatingEnginesExecuted')
     this.validateRenderListeners = this.createListenerCollection('validateRender')
 

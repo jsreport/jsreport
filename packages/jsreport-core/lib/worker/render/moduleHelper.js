@@ -3,11 +3,13 @@ const path = require('path')
 
 module.exports = (reporter) => {
   let helpersScript
-  reporter.beforeRenderListeners.add('core-helpers', async (req) => {
-    if (!helpersScript) {
-      helpersScript = await fs.readFile(path.join(__dirname, '../../static/helpers.js'), 'utf8')
-    }
-    req.context.systemHelpers += helpersScript + '\n'
+
+  reporter.registerHelpersListeners.add('core-helpers', (req) => {
+    return helpersScript
+  })
+
+  reporter.initializeListeners.add('core-helpers', async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../../static/helpers.js'), 'utf8')
   })
 
   reporter.extendProxy((proxy, req, { safeRequire }) => {

@@ -1,5 +1,7 @@
-import NewComponentModal from './NewComponentModal.js'
-import ComponentProperties from './ComponentProperties.js'
+import NewComponentModal from './NewComponentModal'
+import ComponentProperties from './ComponentProperties'
+import ComponentPreview from './ComponentPreview'
+import PreviewComponentToolbar from './PreviewComponentToolbar'
 import Studio from 'jsreport-studio'
 
 Studio.addEntitySet({
@@ -20,3 +22,6 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
 })
 
 Studio.addPropertiesComponent(ComponentProperties.title, ComponentProperties, (entity) => entity.__entitySet === 'components')
+Studio.addToolbarComponent(PreviewComponentToolbar)
+
+Studio.addPreviewComponent('component', ComponentPreview)

@@ -23,4 +23,15 @@ module.exports = function (reporter, definition) {
     // this makes the reference to accept null also when validating with json schema
     type: 'jsreport.DataItemRefType', schema: { type: 'null' }
   }
+
+  reporter.documentStore.on('before-init', (documentStore) => {
+    if (documentStore.model.entityTypes.ComponentType == null) {
+      return
+    }
+
+    reporter.documentStore.model.entityTypes.ComponentType.data = {
+      // this makes the reference to accept null also when validating with json schema
+      type: 'jsreport.DataItemRefType', schema: { type: 'null' }
+    }
+  })
 }

@@ -3,6 +3,7 @@ const path = require('path')
 
 module.exports = (reporter, definition) => {
   let helpersScript
+
   reporter.extensionsManager.recipes.push({
     name: 'docx',
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
@@ -16,12 +17,11 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  reporter.beforeRenderListeners.insert({ after: 'templates' }, 'docx', async (req) => {
-    if (req.template.recipe === 'docx') {
-      if (!helpersScript) {
-        helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
-      }
-      req.template.helpers = (req.template.helpers || '') + '\n' + helpersScript
-    }
+  reporter.registerHelpersListeners.add('docx', async (req) => {
+    return helpersScript
+  })
+
+  reporter.initializeListeners.add('docx', async () => {
+    helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 }

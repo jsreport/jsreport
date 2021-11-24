@@ -36,4 +36,102 @@ module.exports = function (reporter, definition) {
       }
     })
   })
+
+  reporter.on('express-configure', (app) => {
+    app.post('/api/component', async (req, res, next) => {
+      try {
+        const component = req.body.component
+
+        if (!component?.shortid) {
+          throw reporter.createError('Missing component.shortid parameter in body', {
+            weak: true,
+            statusCode: 400
+          })
+        }
+
+        const componentEntity = await reporter.documentStore.collection('components').findOne({
+          shortid: component.shortid
+        }, req)
+
+        if (!componentEntity) {
+          throw reporter.createError(`Component does not exists with shortid "${component.shortid}"`, {
+            weak: true,
+            statusCode: 404
+          })
+        }
+
+        if (Object.prototype.hasOwnProperty.call(component, 'content')) {
+          componentEntity.content = component.content
+        }
+
+        const payload = {
+          component: componentEntity
+        }
+
+        if (Object.prototype.hasOwnProperty.call(req.body, 'data')) {
+          reporter.logger.debug('Inline data specified for component.')
+          payload.data = req.body.data
+        } else {
+          if (!componentEntity.data?.shortid && !componentEntity.data?.name) {
+            reporter.logger.debug('Data item not defined for this component.')
+            payload.data = {}
+          } else {
+            const findDataItem = async () => {
+              const query = {}
+              if (componentEntity.data.shortid) {
+                query.shortid = componentEntity.data.shortid
+              }
+
+              if (componentEntity.data.name) {
+                query.name = componentEntity.data.name
+              }
+
+              const items = await reporter.documentStore.collection('data').find(query, req)
+
+              if (items.length !== 1) {
+                throw reporter.createError(`Data entry not found (${(componentEntity.data.shortid || componentEntity.data.name)})`, {
+                  weak: true,
+                  statusCode: 404
+                })
+              }
+
+              reporter.logger.debug('Adding sample data ' + (componentEntity.data.name || componentEntity.data.shortid))
+              return items[0]
+            }
+
+            const dataEntity = await findDataItem()
+
+            try {
+              payload.data = JSON.parse(dataEntity.dataJson)
+            } catch (e) {
+              throw reporter.createError('Failed to parse data json', {
+                weak: true,
+                statusCode: 400,
+                original: e
+              })
+            }
+          }
+        }
+
+        if (
+          payload.data != null &&
+          typeof payload.data === 'object' &&
+          Array.isArray(payload.data)
+        ) {
+          throw reporter.createError('Component data can not be an array. you should pass an object in request.data input', {
+            weak: true,
+            statusCode: 400
+          })
+        }
+
+        const componentHtml = await reporter.executeWorkerAction('component-preview', payload, {
+          timeoutErrorMessage: 'Timeout during execution of component preview'
+        }, req)
+
+        res.status(200).send(componentHtml)
+      } catch (err) {
+        next(err)
+      }
+    })
+  })
 }

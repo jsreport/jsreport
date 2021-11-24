@@ -54,6 +54,14 @@ module.exports = (reporter) => {
       })
     }
 
+    let helpersResults = await reporter.registerHelpersListeners.fire(request)
+
+    helpersResults = helpersResults.filter((result) => {
+      return result != null
+    })
+
+    request.context.systemHelpers = helpersResults.join('\n')
+
     const engineProfilerEvent = reporter.profiler.emit({
       type: 'operationStart',
       subtype: 'engine',
@@ -113,7 +121,6 @@ module.exports = (reporter) => {
 
   return async (req, parentReq) => {
     const request = Request(req, parentReq)
-    request.context.systemHelpers = ''
     const response = { meta: {} }
     let renderStartProfilerEvent
     try {
@@ -132,6 +139,7 @@ module.exports = (reporter) => {
 
       request.context.reportCounter = ++reportCounter
       request.context.startTimestamp = new Date().getTime()
+      request.context.systemHelpers = ''
 
       reporter.requestModulesCache.set(request.context.id, Object.create(null))
 
