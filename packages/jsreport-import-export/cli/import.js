@@ -141,11 +141,7 @@ exports.handler = async (argv) => {
 
     jsreportInstance.options = jsreportInstance.options || {}
     jsreportInstance.options.extensions = jsreportInstance.options.extensions || {}
-    jsreportInstance.options.extensions.express = Object.assign(
-      {},
-      jsreportInstance.options.extensions.express,
-      { enabled: false }
-    )
+    jsreportInstance.options.extensions.express = { enabled: false }
     jsreportInstance.options.extensions.authentication = Object.assign(
       {},
       jsreportInstance.options.extensions.authentication,
