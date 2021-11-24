@@ -28,11 +28,13 @@ module.exports = function (reporter, definition) {
     })
 
     reporter.documentStore.collection('components').beforeUpdateListeners.add('components', (q, u) => {
-      if (u.$set && u.$set.engine == null) {
-        throw reporter.createError('Component must contain engine', {
-          weak: true,
-          statusCode: 400
-        })
+      if ('engine' in u.$set) {
+        if (!u.$set.engine) {
+          throw reporter.createError('Component must contain engine', {
+            statusCode: 400,
+            weak: true
+          })
+        }
       }
     })
   })

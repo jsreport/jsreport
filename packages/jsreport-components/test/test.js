@@ -40,6 +40,27 @@ describe('components', function () {
     res.content.toString().should.be.eql('hellomyHelper')
   })
 
+  it('should throw when inserting or updating without engine', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: 'foo'
+    }).should.be.rejected()
+
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: 'foo',
+      engine: 'handlebars'
+    })
+
+    await reporter.documentStore.collection('components').update({ name: 'c1' }, {
+      $set: { engine: null }
+    }).should.be.rejected()
+
+    await reporter.documentStore.collection('components').update({ name: 'c1' }, {
+      $set: { name: 'c2' }
+    })
+  })
+
   it('should evaluate nested components using handlebars', async () => {
     await reporter.documentStore.collection('components').insert({
       name: 'c1',
