@@ -5,13 +5,6 @@
  */
 
 module.exports = function (reporter, definition) {
-  if (reporter.options.allowLocalFilesAccess === true && !definition.options.allowedModules) {
-    definition.options.allowedModules = '*'
-  }
-
-  definition.options.allowedModules = definition.options.allowedModules || []
-  reporter.options.scripts = definition.options
-
   reporter.documentStore.registerEntityType('ScriptType', {
     content: { type: 'Edm.String', document: { extension: 'js' } },
     name: { type: 'Edm.String' },
