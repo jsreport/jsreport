@@ -130,31 +130,38 @@ class ChromePdfProperties extends Component {
             onChange={(v) => changeChrome(this.props, { pageRanges: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>format</label>
+        <div className='form-group'>
+          <label>format</label>
           <input
             type='text'
             placeholder='Letter'
             value={chrome.format || ''}
+            title='Specifies a pre-defined size for the pdf'
             onChange={(v) => changeChrome(this.props, { format: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>width</label>
+        <div className='form-group'>
+          <label>pdf width</label>
           <input
             type='text'
             placeholder='10cm'
             value={chrome.width || ''}
+            title='Specifies a custom width for the pdf'
             onChange={(v) => changeChrome(this.props, { width: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>height</label>
+        <div className='form-group'>
+          <label>pdf height</label>
           <input
             type='text'
             placeholder='10cm'
             value={chrome.height || ''}
+            title='Specifies a custom height for the pdf'
             onChange={(v) => changeChrome(this.props, { height: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>margin top</label>
+        <div className='form-group'>
+          <label>pdf margin top</label>
           <input
             type='text'
             placeholder='10cm'
@@ -162,7 +169,8 @@ class ChromePdfProperties extends Component {
             onChange={(v) => changeChrome(this.props, { marginTop: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>margin right</label>
+        <div className='form-group'>
+          <label>pdf margin right</label>
           <input
             type='text'
             placeholder='10cm'
@@ -170,7 +178,8 @@ class ChromePdfProperties extends Component {
             onChange={(v) => changeChrome(this.props, { marginRight: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>margin bottom</label>
+        <div className='form-group'>
+          <label>pdf margin bottom</label>
           <input
             type='text'
             placeholder='10cm'
@@ -178,12 +187,49 @@ class ChromePdfProperties extends Component {
             onChange={(v) => changeChrome(this.props, { marginBottom: v.target.value })}
           />
         </div>
-        <div className='form-group'><label>margin left</label>
+        <div className='form-group'>
+          <label>pdf margin left</label>
           <input
             type='text'
             placeholder='10cm'
             value={chrome.marginLeft || ''}
             onChange={(v) => changeChrome(this.props, { marginLeft: v.target.value })}
+          />
+        </div>
+        <div className='form-group'>
+          <label>viewport width</label>
+          <input
+            type='text'
+            value={chrome.viewportWidth != null ? chrome.viewportWidth : ''}
+            title='Specifies the target viewport width of the chrome page'
+            placeholder='800'
+            onChange={(v) => {
+              let viewportWidthValue = v.target.value
+
+              if (viewportWidthValue.trim() === '') {
+                viewportWidthValue = null
+              }
+
+              changeChrome(this.props, { viewportWidth: viewportWidthValue })
+            }}
+          />
+        </div>
+        <div className='form-group'>
+          <label>viewport height</label>
+          <input
+            type='text'
+            value={chrome.viewportHeight != null ? chrome.viewportHeight : ''}
+            title='Specifies the target viewport height of the chrome page'
+            placeholder='600'
+            onChange={(v) => {
+              let viewportHeightValue = v.target.value
+
+              if (viewportHeightValue.trim() === '') {
+                viewportHeightValue = null
+              }
+
+              changeChrome(this.props, { viewportHeight: viewportHeightValue })
+            }}
           />
         </div>
         <div className='form-group'>

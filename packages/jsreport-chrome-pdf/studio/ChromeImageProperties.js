@@ -56,7 +56,44 @@ export default class ImageProperties extends Component {
             onChange={(v) => changeChrome(this.props, { fullPage: v.target.checked })}
           />
         </div>
-        <div className='form-group'><label>clip X</label>
+        <div className='form-group'>
+          <label>viewport width</label>
+          <input
+            type='text'
+            value={chrome.viewportWidth != null ? chrome.viewportWidth : ''}
+            title='Specifies the target viewport width of the chrome page'
+            placeholder='800'
+            onChange={(v) => {
+              let viewportWidthValue = v.target.value
+
+              if (viewportWidthValue.trim() === '') {
+                viewportWidthValue = null
+              }
+
+              changeChrome(this.props, { viewportWidth: viewportWidthValue })
+            }}
+          />
+        </div>
+        <div className='form-group'>
+          <label>viewport height</label>
+          <input
+            type='text'
+            value={chrome.viewportHeight != null ? chrome.viewportHeight : ''}
+            title='Specifies the target viewport height of the chrome page'
+            placeholder='600'
+            onChange={(v) => {
+              let viewportHeightValue = v.target.value
+
+              if (viewportHeightValue.trim() === '') {
+                viewportHeightValue = null
+              }
+
+              changeChrome(this.props, { viewportHeight: viewportHeightValue })
+            }}
+          />
+        </div>
+        <div className='form-group'>
+          <label>clip X</label>
           <input
             type='text'
             value={chrome.clipX != null ? chrome.clipX : ''}
@@ -72,7 +109,8 @@ export default class ImageProperties extends Component {
             }}
           />
         </div>
-        <div className='form-group'><label>clip Y</label>
+        <div className='form-group'>
+          <label>clip Y</label>
           <input
             type='text'
             value={chrome.clipY != null ? chrome.clipY : ''}

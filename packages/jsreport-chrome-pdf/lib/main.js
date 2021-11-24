@@ -96,6 +96,8 @@ module.exports = function (reporter, definition) {
     marginBottom: { type: 'Edm.String' },
     marginLeft: { type: 'Edm.String' },
     mediaType: { type: 'Edm.String' },
+    viewportWidth: { type: 'Edm.Decimal', schema: { type: 'null' } },
+    viewportHeight: { type: 'Edm.Decimal', schema: { type: 'null' } },
     waitForJS: { type: 'Edm.Boolean' },
     waitForNetworkIddle: { type: 'Edm.Boolean' },
     waitForNetworkIdle: { type: 'Edm.Boolean' },
@@ -114,6 +116,8 @@ module.exports = function (reporter, definition) {
     clipHeight: { type: 'Edm.Decimal', schema: { type: 'null' } },
     omitBackground: { type: 'Edm.Boolean' },
     mediaType: { type: 'Edm.String' },
+    viewportWidth: { type: 'Edm.Decimal', schema: { type: 'null' } },
+    viewportHeight: { type: 'Edm.Decimal', schema: { type: 'null' } },
     waitForJS: { type: 'Edm.Boolean' },
     waitForNetworkIddle: { type: 'Edm.Boolean' },
     waitForNetworkIdle: { type: 'Edm.Boolean' }

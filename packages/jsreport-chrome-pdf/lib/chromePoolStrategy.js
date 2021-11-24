@@ -123,7 +123,7 @@ async function allocateBrowser (puppeteer, pool, tasksQueue, options) {
       // to continue the rotation
       pool.push(browserInfo)
 
-      // we check that instance exists, theorically there will be always an instance,
+      // we check that instance exists, in theory there will be always an instance,
       // however there is small chance that an error while recycling a chrome instance happens
       // and we end with .instance being null, in which case we need to create it here
       if (browserInfo.instance == null) {

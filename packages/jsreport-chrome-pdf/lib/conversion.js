@@ -3,6 +3,7 @@ const hasOwn = require('has-own-deep')
 
 module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req, imageExecution, allowLocalFilesAccess, options }) => {
   const optionsToUse = Object.assign({}, options)
+
   if (optionsToUse.waitForNetworkIdle == null && optionsToUse.waitForNetworkIddle != null) {
     optionsToUse.waitForNetworkIdle = optionsToUse.waitForNetworkIddle
   }
@@ -234,6 +235,25 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     }
 
     Object.assign(optionsToUse, newChromeSettings)
+
+    if (
+      optionsToUse.viewportWidth != null || optionsToUse.viewportHeight != null
+    ) {
+      const customViewport = {
+        width: optionsToUse.viewportWidth != null ? optionsToUse.viewportWidth : 800,
+        height: optionsToUse.viewportHeight != null ? optionsToUse.viewportHeight : 600
+      }
+
+      delete optionsToUse.viewportWidth
+      delete optionsToUse.viewportHeight
+
+      reporter.logger.debug(`Custom viewport for chrome page width=${customViewport.width}, height=${customViewport.height}`, req)
+      await page.setViewport(customViewport)
+
+      if (executionInfo.error) {
+        return
+      }
+    }
 
     if (optionsToUse.mediaType) {
       if (optionsToUse.mediaType !== 'screen' && optionsToUse.mediaType !== 'print') {

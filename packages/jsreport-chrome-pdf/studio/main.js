@@ -393,6 +393,7 @@ var ChromePdfProperties = function (_Component) {
             type: 'text',
             placeholder: 'Letter',
             value: chrome.format || '',
+            title: 'Specifies a pre-defined size for the pdf',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { format: v.target.value });
             }
@@ -404,12 +405,13 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'width'
+            'pdf width'
           ),
           _react2.default.createElement('input', {
             type: 'text',
             placeholder: '10cm',
             value: chrome.width || '',
+            title: 'Specifies a custom width for the pdf',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { width: v.target.value });
             }
@@ -421,12 +423,13 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'height'
+            'pdf height'
           ),
           _react2.default.createElement('input', {
             type: 'text',
             placeholder: '10cm',
             value: chrome.height || '',
+            title: 'Specifies a custom height for the pdf',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { height: v.target.value });
             }
@@ -438,7 +441,7 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'margin top'
+            'pdf margin top'
           ),
           _react2.default.createElement('input', {
             type: 'text',
@@ -455,7 +458,7 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'margin right'
+            'pdf margin right'
           ),
           _react2.default.createElement('input', {
             type: 'text',
@@ -472,7 +475,7 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'margin bottom'
+            'pdf margin bottom'
           ),
           _react2.default.createElement('input', {
             type: 'text',
@@ -489,7 +492,7 @@ var ChromePdfProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'margin left'
+            'pdf margin left'
           ),
           _react2.default.createElement('input', {
             type: 'text',
@@ -497,6 +500,54 @@ var ChromePdfProperties = function (_Component) {
             value: chrome.marginLeft || '',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { marginLeft: v.target.value });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'viewport width'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text',
+            value: chrome.viewportWidth != null ? chrome.viewportWidth : '',
+            title: 'Specifies the target viewport width of the chrome page',
+            placeholder: '800',
+            onChange: function onChange(v) {
+              var viewportWidthValue = v.target.value;
+
+              if (viewportWidthValue.trim() === '') {
+                viewportWidthValue = null;
+              }
+
+              changeChrome(_this2.props, { viewportWidth: viewportWidthValue });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'viewport height'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text',
+            value: chrome.viewportHeight != null ? chrome.viewportHeight : '',
+            title: 'Specifies the target viewport height of the chrome page',
+            placeholder: '600',
+            onChange: function onChange(v) {
+              var viewportHeightValue = v.target.value;
+
+              if (viewportHeightValue.trim() === '') {
+                viewportHeightValue = null;
+              }
+
+              changeChrome(_this2.props, { viewportHeight: viewportHeightValue });
             }
           })
         ),
@@ -740,6 +791,54 @@ var ImageProperties = function (_Component) {
             title: 'Specifies whether to take a screenshot of the full scrollable page or not',
             onChange: function onChange(v) {
               return changeChrome(_this2.props, { fullPage: v.target.checked });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'viewport width'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text',
+            value: chrome.viewportWidth != null ? chrome.viewportWidth : '',
+            title: 'Specifies the target viewport width of the chrome page',
+            placeholder: '800',
+            onChange: function onChange(v) {
+              var viewportWidthValue = v.target.value;
+
+              if (viewportWidthValue.trim() === '') {
+                viewportWidthValue = null;
+              }
+
+              changeChrome(_this2.props, { viewportWidth: viewportWidthValue });
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'viewport height'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text',
+            value: chrome.viewportHeight != null ? chrome.viewportHeight : '',
+            title: 'Specifies the target viewport height of the chrome page',
+            placeholder: '600',
+            onChange: function onChange(v) {
+              var viewportHeightValue = v.target.value;
+
+              if (viewportHeightValue.trim() === '') {
+                viewportHeightValue = null;
+              }
+
+              changeChrome(_this2.props, { viewportHeight: viewportHeightValue });
             }
           })
         ),
