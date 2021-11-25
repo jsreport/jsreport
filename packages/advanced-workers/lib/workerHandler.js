@@ -1,4 +1,3 @@
-
 const { parentPort, workerData } = require('worker_threads')
 const callbackQueue = require('./callbacksQueue')()
 const convertUint8ArrayToBuffer = require('./convertUint8ArrayToBuffer')
@@ -16,6 +15,7 @@ function asyncAwaiter () {
 }
 
 let currentCallbackResponseAwaiter
+
 const workerModule = require(workerData.systemData.workerModule)(workerData.userData, {
   convertUint8ArrayToBuffer,
   executeMain: (userData) => {
@@ -99,7 +99,14 @@ parentPort.on('message', (m) => {
   }
   if (m.systemAction === 'close') {
     workerModule.close()
-      .finally(() => process.exit())
+      .finally(() => {
+        // it seems it is important to exit on next tick
+        // otherwise the node.js crash with FATAL ERROR
+        // on some cases
+        process.nextTick(() => {
+          process.exit()
+        })
+      })
   }
   if (m.systemAction === 'execute') {
     return processAndResponse(m, execute)

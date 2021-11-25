@@ -455,11 +455,11 @@ class MainReporter extends Reporter {
       clearInterval(this._reaperTimerRef)
     }
 
+    await this.closeListeners.fire()
+
     if (this._workersManager) {
       await this._workersManager.close()
     }
-
-    await this.closeListeners.fire()
 
     if (this.documentStore) {
       await this.documentStore.close()

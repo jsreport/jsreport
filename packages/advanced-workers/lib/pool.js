@@ -10,6 +10,7 @@ module.exports = ({
       this._pendingInitializedWorkersToEventualyCleanup = []
 
       const workersCreateFn = []
+
       for (let i = 0; i < numberOfWorkers; i++) {
         workersCreateFn.push(async () => {
           const worker = createWorker()
