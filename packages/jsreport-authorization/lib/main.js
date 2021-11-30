@@ -7,7 +7,6 @@
  * user can work on which object.
  */
 const modificationListeners = require('./modificationListeners')
-const foldersMigration = require('./foldersMigration')
 
 module.exports = function (reporter, definition) {
   if (!reporter.authentication) {
@@ -80,10 +79,6 @@ module.exports = function (reporter, definition) {
   modificationListeners(reporter)
 
   reporter.initializeListeners.add(definition.name, async () => {
-    if (definition.options.foldersMigrationEnabled !== false) {
-      await foldersMigration(reporter)
-    }
-
     const sharedEntitySets = []
 
     for (const key in reporter.documentStore.collections) {
