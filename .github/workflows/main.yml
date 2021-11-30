@@ -50,6 +50,7 @@ jobs:
 
       - name: unoconv
         run: |
+            sudo apt-get update 
             sudo apt-get -y install unoconv    
 
       - name: Use Node.js ${{ matrix.node-version }}
