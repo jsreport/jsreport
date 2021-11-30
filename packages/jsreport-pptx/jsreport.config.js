@@ -7,12 +7,6 @@ module.exports = {
   optionsSchema: office.extendSchema('pptx', {
     type: 'object',
     properties: {
-      beta: {
-        type: 'object',
-        properties: {
-          showWarning: { type: 'boolean', default: true }
-        }
-      }
     }
   }),
   dependencies: ['assets'],

@@ -133,56 +133,6 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
   }
 });
 
-var pendingModalsLaunch = [];
-
-var pendingModalsInterval = setInterval(function () {
-  if (pendingModalsLaunch.length === 0 || _jsreportStudio2.default.isModalOpen()) {
-    return;
-  }
-
-  var toLaunch = pendingModalsLaunch.splice(0, 1);
-
-  toLaunch[0]();
-
-  if (pendingModalsLaunch.length === 0) {
-    clearInterval(pendingModalsInterval);
-  }
-}, 200);
-
-_jsreportStudio2.default.runListeners.push(function (request, entities) {
-  if (request.template.recipe !== 'docx') {
-    return;
-  }
-
-  if (_jsreportStudio2.default.extensions.docx.options.beta.showWarning === false) {
-    return;
-  }
-
-  if (_jsreportStudio2.default.getSettingValueByKey('beta-docx-informed', false) === true) {
-    return;
-  }
-
-  _jsreportStudio2.default.setSetting('beta-docx-informed', true);
-
-  var launchBetaModal = function launchBetaModal() {
-    _jsreportStudio2.default.openModal(function () {
-      return React.createElement(
-        'div',
-        null,
-        'docx recipe is currently in the beta phase and in continuous development. There\'re use cases it doesn\'t support yet but we get there soon if you help us with',
-        React.createElement(
-          'a',
-          { href: 'https://forum.jsreport.net', target: '_blank', rel: 'noreferrer' },
-          'feedback'
-        ),
-        '. Please note there can be breaking changes in the next versions of the recipe until we reach stable API.'
-      );
-    });
-  };
-
-  pendingModalsLaunch.push(launchBetaModal);
-});
-
 _jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'docx') {
     return;
@@ -200,31 +150,19 @@ _jsreportStudio2.default.runListeners.push(function (request, entities) {
     return;
   }
 
-  _jsreportStudio2.default.setSetting('office-preview-informed', true);
-
-  var launchOfficeModal = function launchOfficeModal() {
-    _jsreportStudio2.default.openModal(function () {
-      return React.createElement(
-        'div',
-        null,
-        'We need to upload your docx report to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see ',
-        React.createElement(
-          'a',
-          { href: 'https://jsreport.net/learn/docx', target: '_blank', rel: 'noreferrer' },
-          'https://jsreport.net/learn/docx'
-        ),
-        ' for details.'
-      );
-    });
-  };
-
-  pendingModalsLaunch.push(launchOfficeModal);
-});
-
-_jsreportStudio2.default.runListeners.push(function () {
-  if (pendingModalsLaunch.length === 0) {
-    clearInterval(pendingModalsInterval);
-  }
+  _jsreportStudio2.default.openModal(function () {
+    return React.createElement(
+      'div',
+      null,
+      'We need to upload your docx report to our publicly hosted server to be able to use Office Online Service for previewing here in the studio. You can disable it in the configuration, see ',
+      React.createElement(
+        'a',
+        { href: 'https://jsreport.net/learn/docx', target: '_blank', rel: 'noreferrer' },
+        'https://jsreport.net/learn/docx'
+      ),
+      ' for details.'
+    );
+  });
 });
 
 /***/ }),

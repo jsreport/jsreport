@@ -11,13 +11,6 @@ module.exports = {
         type: 'number',
         default: 5,
         description: 'specifies the number of images that can be processed at the same time'
-      },
-      beta: {
-        type: 'object',
-        default: {},
-        properties: {
-          showWarning: { type: 'boolean', default: true }
-        }
       }
     }
   }),
