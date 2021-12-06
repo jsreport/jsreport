@@ -14,6 +14,21 @@ module.exports = function (reporter, definition) {
     return
   }
 
+  reporter.documentStore.registerComplexType('UserRefType', {
+    shortid: { type: 'Edm.String', referenceTo: 'users' }
+  })
+
+  reporter.documentStore.registerEntityType('UsersGroupType', {
+    name: { type: 'Edm.String' },
+    users: { type: 'Collection(jsreport.UserRefType)' }
+  })
+
+  reporter.documentStore.registerEntitySet('usersGroups', {
+    entityType: 'jsreport.UsersGroupType',
+    shared: true,
+    splitIntoDirectories: true
+  })
+
   reporter.documentStore.model.entityTypes.UserType.editAllPermissions = { type: 'Edm.Boolean' }
   reporter.documentStore.model.entityTypes.UserType.readAllPermissions = { type: 'Edm.Boolean' }
   reporter.documentStore.model.entityTypes.FolderType.visibilityPermissions = { type: 'Collection(Edm.String)' }
@@ -30,6 +45,8 @@ module.exports = function (reporter, definition) {
 
       entityType.readPermissions = { type: 'Collection(Edm.String)' }
       entityType.editPermissions = { type: 'Collection(Edm.String)' }
+      entityType.readPermissionsGroup = { type: 'Collection(Edm.String)' }
+      entityType.editPermissionsGroup = { type: 'Collection(Edm.String)' }
       entityType.inheritedReadPermissions = { type: 'Collection(Edm.String)' }
       entityType.inheritedEditPermissions = { type: 'Collection(Edm.String)' }
     }

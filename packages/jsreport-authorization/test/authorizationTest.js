@@ -6,11 +6,32 @@ describe('authorization', () => {
 
   beforeEach(() => {
     reporter = jsreport()
+    reporter.use(require('@jsreport/jsreport-authentication')({
+      admin: {
+        username: 'admin',
+        password: 'password'
+      },
+      cookieSession: {
+        secret: 'secret'
+      }
+    }))
     reporter.use(require('../')())
     reporter.use((reporter, definition) => {
-      // auth fake
-      reporter.authentication = {}
-      reporter.documentStore.model.entityTypes.UserType = {}
+      reporter.initializeListeners.add('authorization-test', async () => {
+        await reporter.documentStore.collection('users').insert({
+          _id: 'a',
+          name: 'a',
+          password: 'a',
+          shortid: 'a'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'b',
+          name: 'b',
+          password: 'b',
+          shortid: 'b'
+        })
+      })
     })
     return reporter.init()
   })
@@ -26,9 +47,28 @@ describe('authorization', () => {
     return res.length
   }
 
-  const req1 = () => reporter.Request({ context: { user: { _id: 'a' } } })
-  const req2 = () => reporter.Request({ context: { user: { _id: 'b' } } })
+  const req1 = () => reporter.Request({ context: { user: { _id: 'a', shortid: 'a' } } })
+  const req2 = () => reporter.Request({ context: { user: { _id: 'b', shortid: 'b' } } })
   const reqAdmin = () => reporter.Request({ context: { user: { _id: 'admin', isAdmin: true } } })
+  const reqGroup = (g) => reporter.Request({ context: { user: { _id: g._id, isGroup: true } } })
+
+  const addUserToGroup = async (name, userReq) => {
+    let group = await reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
+
+    if (group == null) {
+      group = await reporter.documentStore.collection('usersGroups').insert({ name, users: [] }, reqAdmin())
+    }
+
+    await reporter.documentStore.collection('usersGroups').update({
+      _id: group._id
+    }, {
+      $set: {
+        users: [...group.users, { shortid: userReq.context.user.shortid }]
+      }
+    }, reqAdmin())
+
+    return reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
+  }
 
   it('user creating entity should be able to read it', async () => {
     await createTemplate(req1())
@@ -69,8 +109,8 @@ describe('authorization', () => {
   })
 
   it('query should filter out entities without permissions', async () => {
-    await reporter.documentStore.collection('templates').insert({ content: 'foo', name: 'a', engine: 'none', recipe: 'html' }, req1())
-    await reporter.documentStore.collection('templates').insert({ content: 'foo', name: 'b', engine: 'none', recipe: 'html' }, req2())
+    await reporter.documentStore.collection('templates').insert({ content: 'foo', name: 't1', engine: 'none', recipe: 'html' }, req1())
+    await reporter.documentStore.collection('templates').insert({ content: 'foo', name: 't2', engine: 'none', recipe: 'html' }, req2())
     const count = await countTemplates(req1())
     count.should.be.eql(1)
   })
@@ -142,22 +182,22 @@ describe('authorization', () => {
 
   it('query with $or should still correctly filter permissions', async () => {
     await reporter.documentStore.collection('templates').insert({
-      name: 'a',
+      name: 't1',
       engine: 'none',
       recipe: 'html'
     }, req1())
     await reporter.documentStore.collection('templates').insert({
-      name: 'b',
+      name: 't2',
       engine: 'none',
       recipe: 'html'
     }, req1())
     await reporter.documentStore.collection('templates').insert({
-      name: 'c',
+      name: 't3',
       engine: 'none',
       recipe: 'html'
     }, req1())
     const templates = await reporter.documentStore.collection('templates').find({
-      $or: [{ name: 'a' }, { name: 'b' }]
+      $or: [{ name: 't1' }, { name: 't2' }]
     }, req1())
 
     templates.should.have.length(2)
@@ -165,17 +205,17 @@ describe('authorization', () => {
 
   it('query with $and should still correctly filter permissions', async () => {
     await reporter.documentStore.collection('templates').insert({
-      name: 'a',
+      name: 't1',
       engine: 'none',
       recipe: 'html'
     }, req1())
     await reporter.documentStore.collection('templates').insert({
-      name: 'b',
+      name: 't2',
       engine: 'none',
       recipe: 'html'
     }, req1())
     await reporter.documentStore.collection('templates').insert({
-      name: 'c',
+      name: 't3',
       engine: 'none',
       recipe: 'another'
     }, req1())
@@ -211,7 +251,7 @@ describe('authorization', () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'folder',
       shortid: 'folder',
-      visibilityPermissions: ['a']
+      visibilityPermissions: [req1().context.user._id]
     }, reqAdmin())
 
     return reporter.documentStore.collection('templates').insert({
@@ -232,7 +272,7 @@ describe('authorization', () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'folderb',
       shortid: 'folderb',
-      editPermissions: ['b'],
+      editPermissions: [req2().context.user._id],
       folder: {
         shortid: 'foldera'
       }
@@ -349,16 +389,16 @@ describe('authorization', () => {
     }, req2())
   })
 
-  it('updating folder permissions should propagate to the all childs', async () => {
+  it('updating folder permissions should propagate to the all children', async () => {
     await reporter.documentStore.collection('folders').insert({
-      name: 'a',
-      shortid: 'a'
+      name: 'f1',
+      shortid: 'f1'
     }, req1())
 
     await reporter.documentStore.collection('folders').insert({
-      name: 'b',
-      shortid: 'b',
-      folder: { shortid: 'a' }
+      name: 'f2',
+      shortid: 'f2',
+      folder: { shortid: 'f1' }
     }, req1())
 
     await reporter.documentStore.collection('templates').insert({
@@ -366,11 +406,11 @@ describe('authorization', () => {
       engine: 'none',
       recipe: 'html',
       content: 'foo',
-      folder: { shortid: 'b' }
+      folder: { shortid: 'f2' }
     }, req1())
 
     await reporter.documentStore.collection('folders').update({
-      name: 'a'
+      name: 'f1'
     }, {
       $set: { editPermissions: [req1().context.user._id, req2().context.user._id] }
     }, req1())
@@ -379,10 +419,10 @@ describe('authorization', () => {
     count.should.be.eql(1)
   })
 
-  it('updating entity folder should get permissions from it', async () => {
+  it('updating entity to a folder should get permissions from it', async () => {
     await reporter.documentStore.collection('folders').insert({
-      name: 'b',
-      shortid: 'b',
+      name: 'f1',
+      shortid: 'f1',
       readPermissions: ['c']
     }, req1())
 
@@ -396,17 +436,17 @@ describe('authorization', () => {
     await reporter.documentStore.collection('templates').update({
       name: 'template'
     }, {
-      $set: { folder: { shortid: 'b' } }
+      $set: { folder: { shortid: 'f1' } }
     }, req1())
 
     const count = await countTemplates(reporter.Request({ context: { user: { _id: 'c' } } }))
     count.should.be.eql(1)
   })
 
-  it('removing entity folder should remove inherited permissions', async () => {
+  it('updating entity from a folder to the root should remove inherited permissions', async () => {
     await reporter.documentStore.collection('folders').insert({
-      name: 'b',
-      shortid: 'b'
+      name: 'f1',
+      shortid: 'f1'
     }, req1())
 
     await reporter.documentStore.collection('templates').insert({
@@ -415,7 +455,7 @@ describe('authorization', () => {
       recipe: 'html',
       content: 'foo',
       folder: {
-        shortid: 'b'
+        shortid: 'f1'
       }
     }, reqAdmin())
 
@@ -457,7 +497,7 @@ describe('authorization', () => {
     count.should.be.eql(2)
   })
 
-  it('failed authorizatoin should not update visibility permissions', async () => {
+  it('failed authorization when updating entity should not update visibility permissions', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'foldera',
       shortid: 'foldera'
@@ -468,7 +508,7 @@ describe('authorization', () => {
       shortid: 'template',
       engine: 'none',
       recipe: 'html',
-      readPermissions: ['a'],
+      readPermissions: [req1().context.user._id],
       folder: {
         shortid: 'foldera'
       }
@@ -528,7 +568,7 @@ describe('authorization', () => {
       }
     }, reqAdmin())
 
-    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissions: ['b'] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissions: [req2().context.user._id] } }, reqAdmin())
     await reporter.documentStore.collection('folders').update({ name: 'folderb' }, { $set: { folder: { shortid: 'foldera' } } }, reqAdmin())
 
     const count = await reporter.documentStore.collection('folders').count({}, req2())
@@ -610,11 +650,45 @@ describe('authorization', () => {
       }
     }, reqAdmin())
 
-    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissions: ['b'] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissions: [req2().context.user._id] } }, reqAdmin())
     await reporter.documentStore.collection('templates').remove({ }, reqAdmin())
 
     const count = await reporter.documentStore.collection('folders').count({}, req2())
     count.should.be.eql(0)
+  })
+
+  it('removing entity should recalculate and preserve visibility', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissions: [req2().context.user._id] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').update({ name: 'template2' }, { $set: { readPermissions: [req2().context.user._id] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').remove({ name: 'template' }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(1)
   })
 
   it('inserting entity should recalculate visibility on folders', async () => {
@@ -628,7 +702,7 @@ describe('authorization', () => {
       engine: 'none',
       content: 'foo',
       recipe: 'html',
-      editPermissions: ['a'],
+      editPermissions: [req1().context.user._id],
       folder: {
         shortid: 'foldera'
       }
@@ -641,7 +715,7 @@ describe('authorization', () => {
   it('inserting entity should recalculate visibility on folders (permissions on folder)', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'foldera',
-      editPermissions: ['a'],
+      editPermissions: [req1().context.user._id],
       shortid: 'foldera'
     }, reqAdmin())
 
@@ -678,7 +752,7 @@ describe('authorization', () => {
       engine: 'none',
       content: 'foo',
       recipe: 'html',
-      editPermissions: ['a'],
+      editPermissions: [req1().context.user._id],
       folder: {
         shortid: 'folderb'
       }
@@ -700,7 +774,7 @@ describe('authorization', () => {
       folder: {
         shortid: 'foldera'
       },
-      editPermissions: ['a']
+      editPermissions: [req1().context.user._id]
     }, reqAdmin())
 
     await reporter.documentStore.collection('templates').insert({
@@ -717,6 +791,48 @@ describe('authorization', () => {
     count.should.be.eql(2)
   })
 
+  it('updating folder permissions should preserve inherited permissions in its children', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissions: [req1().context.user._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').update({ name: 'foldera' }, { $set: { readPermissions: [req2().context.user._id] } }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('templates').count({}, req1())
+    count.should.be.eql(1)
+
+    const foldersCount = await reporter.documentStore.collection('folders').count({}, req1())
+    foldersCount.should.be.eql(1)
+
+    const count2 = await reporter.documentStore.collection('templates').count({}, req2())
+    count2.should.be.eql(2)
+
+    const foldersCount2 = await reporter.documentStore.collection('folders').count({}, req2())
+    foldersCount2.should.be.eql(1)
+  })
+
   it('removing entity permissions should recalculate visibility', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'foldera',
@@ -728,7 +844,7 @@ describe('authorization', () => {
       engine: 'none',
       content: 'foo',
       recipe: 'html',
-      readPermissions: ['b'],
+      readPermissions: [req2().context.user._id],
       folder: {
         shortid: 'foldera'
       }
@@ -740,7 +856,7 @@ describe('authorization', () => {
     count.should.be.eql(0)
   })
 
-  it('removing folder permissions should recalculate visibility in the parent folder', async () => {
+  it('removing folder should recalculate visibility in the parent folder', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'foldera',
       shortid: 'foldera'
@@ -759,7 +875,7 @@ describe('authorization', () => {
       engine: 'none',
       content: 'foo',
       recipe: 'html',
-      readPermissions: ['b'],
+      readPermissions: [req2().context.user._id],
       folder: {
         shortid: 'folderb'
       }
@@ -792,5 +908,1533 @@ describe('authorization', () => {
         shortid: 'foldera'
       }
     }, req2())
+  })
+
+  it('user inside group should not be able to read entity if group has no permission to it', async () => {
+    await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+  })
+
+  it('user inside group should be able to read entity if group has permission to it', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(1)
+  })
+
+  it('user without group should not be able to read entity with only permissions to group', async () => {
+    const g1 = await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', users: [] }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+  })
+
+  it('user inside group should not be able to edit entity if group has no permissions to it', async () => {
+    await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    }, reqAdmin())
+
+    return reporter.documentStore.collection('templates')
+      .update({ name: 'foo' }, { $set: { content: 'hello' } }, req1())
+      .should.be.rejectedWith(/Unauthorized/)
+  })
+
+  it('user inside group should not be able to remove entity if group has no permissions to it', async () => {
+    await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    }, reqAdmin())
+
+    return reporter.documentStore.collection('templates')
+      .remove({ name: 'foo' }, req1())
+      .should.be.rejectedWith(/Unauthorized/)
+  })
+
+  it('user inside group should be able to edit entity if group has permissions to it', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: { content: 'hello' }
+    }, req1())
+
+    const templates = await reporter.documentStore.collection('templates').find({}, req1())
+    templates[0].content.should.be.eql('hello')
+  })
+
+  it('user inside group should be able to remove entity if group has permissions to it', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').remove({
+      name: 'foo'
+    }, req1())
+
+    const templates = await reporter.documentStore.collection('templates').find({}, req1())
+    templates.should.have.length(0)
+  })
+
+  it('user inside group should not be able to read entity if entity permissions was updated to disallow the group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: {
+        readPermissionsGroup: []
+      }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+  })
+
+  it('user inside group should not be able to edit entity if entity permissions was updated to disallow the group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: {
+        editPermissionsGroup: []
+      }
+    }, reqAdmin())
+
+    return reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: { content: 'hello' }
+    }, req1()).should.be.rejectedWith(/Unauthorized/)
+  })
+
+  it('user inside group should not be able to remove entity if entity permissions was updated to disallow the group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: {
+        editPermissionsGroup: []
+      }
+    }, reqAdmin())
+
+    return reporter.documentStore.collection('templates').remove({
+      name: 'foo'
+    }, req1()).should.be.rejectedWith(/Unauthorized/)
+  })
+
+  it('user inside group should be able to read entity if entity permissions was updated to allow the group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: {
+        readPermissionsGroup: [g1._id]
+      }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(1)
+  })
+
+  it('user inside group should be able to edit entity if entity permissions was updated to allow the group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: {
+        editPermissionsGroup: [g1._id]
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: { content: 'hello' }
+    }, req1())
+
+    const templates = await reporter.documentStore.collection('templates').find({}, req1())
+    templates[0].content.should.be.eql('hello')
+  })
+
+  it('user inside group should be able to remove entity if entity permissions was updated to allow the group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      content: 'foo',
+      name: 'foo',
+      engine: 'none',
+      recipe: 'html'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'foo'
+    }, {
+      $set: {
+        editPermissionsGroup: [g1._id]
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').remove({
+      name: 'foo'
+    }, req1())
+
+    const templates = await reporter.documentStore.collection('templates').find({}, req1())
+    templates.should.have.length(0)
+  })
+
+  it('user inside group with permissions to the folder should have access also to the entities inside the folder', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder',
+      readPermissionsGroup: [g1._id]
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folder'
+      }
+    }, req1())
+
+    const count = await countTemplates(req2())
+    count.should.be.eql(1)
+  })
+
+  it('user inside group should not be able to create entities in folders where group has no permissions', async () => {
+    await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder',
+      visibilityPermissions: [req1().context.user._id]
+    }, reqAdmin())
+
+    return reporter.documentStore.collection('templates').insert({
+      name: 'nested',
+      engine: 'none',
+      recipe: 'html',
+      shortid: 'nested',
+      folder: { shortid: 'folder' }
+    }, req1()).should.be.rejectedWith(/Unauthorized/)
+  })
+
+  it('user inside group should be able to create entities in folders where group has permissions', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      editPermissionsGroup: [g1._id],
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      shortid: 'template',
+      engine: 'none',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, req1())
+  })
+
+  it('user inside group should not be able to update entities in folders where group has no permissions', async () => {
+    await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder'
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: { shortid: 'folder' }
+    }, req1())
+
+    return reporter.documentStore.collection('templates').update({
+      name: 'template'
+    }, {
+      $set: { content: 'change' }
+    }, req2()).should.be.rejected()
+  })
+
+  it('user inside group should be able to update entities in folders where group has permissions', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder',
+      editPermissionsGroup: [g1._id],
+      readPermissionsGroup: [g1._id]
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: { shortid: 'folder' }
+    }, req1())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'template'
+    }, {
+      $set: { content: 'change' }
+    }, req2())
+  })
+
+  it('user inside group should be able to insert entities in folders where group has permissions', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder',
+      editPermissionsGroup: [g1._id],
+      readPermissionsGroup: [g1._id]
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: { shortid: 'folder' }
+    }, req2())
+  })
+
+  it('user inside group should not be able to remove entities in folders where group has no permissions', async () => {
+    await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder'
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: { shortid: 'folder' }
+    }, req1())
+
+    return reporter.documentStore.collection('templates').remove({
+      name: 'template'
+    }, req2()).should.be.rejectedWith(/Unauthorized/)
+  })
+
+  it('user inside group should be able to remove entities in folders where group has permissions', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folder',
+      shortid: 'folder',
+      editPermissionsGroup: [g1._id]
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: { shortid: 'folder' }
+    }, req1())
+
+    return reporter.documentStore.collection('templates').remove({
+      name: 'template'
+    }, req2())
+  })
+
+  it('updating folder group permissions should propagate to the all children', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    }, req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f2',
+      shortid: 'f2',
+      folder: { shortid: 'f1' }
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: { shortid: 'f2' }
+    }, req1())
+
+    await reporter.documentStore.collection('folders').update({
+      name: 'f1'
+    }, {
+      $set: { editPermissionsGroup: [g1._id] }
+    }, req1())
+
+    const count = await countTemplates(req2())
+    count.should.be.eql(1)
+  })
+
+  it('updating entity to a folder with group permissions should get permissions from it', async () => {
+    await reporter.documentStore.collection('users').insert({
+      _id: 'c',
+      name: 'c',
+      password: 'c',
+      shortid: 'c'
+    })
+
+    const g1 = await addUserToGroup('g1', reporter.Request({ context: { user: { _id: 'c', shortid: 'c' } } }))
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1',
+      readPermissionsGroup: [g1._id]
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo'
+    }, req1())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'template'
+    }, {
+      $set: { folder: { shortid: 'f1' } }
+    }, req1())
+
+    const count = await countTemplates(reporter.Request({ context: { user: { _id: 'c', shortid: 'c' } } }))
+    count.should.be.eql(1)
+  })
+
+  it('updating entity from a folder with group permissions to the root should remove inherited permissions', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      recipe: 'html',
+      content: 'foo',
+      folder: {
+        shortid: 'f1'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'template'
+    }, {
+      $set: { folder: null }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+  })
+
+  it('user inside group with read to an entity should be able to read parent folders', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: { shortid: 'foldera' }
+    }, req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, req1())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissionsGroup: [g1._id] } }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(2)
+  })
+
+  it('moving folder should recalculate visibility permissions from inherited permissions (groups)', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissionsGroup: [g1._id] } }, reqAdmin())
+    await reporter.documentStore.collection('folders').update({ name: 'folderb' }, { $set: { folder: { shortid: 'foldera' } } }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(2)
+  })
+
+  it('moving folder inside the same hierarchy should refresh visibility permissions (groups)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      },
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { folder: { shortid: 'foldera' } } }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req1())
+    count.should.be.eql(1)
+  })
+
+  it('inserting entity with group permissions should recalculate visibility on folders', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id],
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req1())
+    count.should.be.eql(1)
+  })
+
+  it('inserting entity should recalculate visibility on folders (group permissions on folder)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      editPermissionsGroup: [g1._id],
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req1())
+    count.should.be.eql(1)
+  })
+
+  it('inserting entity should recalculate visibility on folders (nested - groups permissions)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id],
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req1())
+    count.should.be.eql(2)
+  })
+
+  it('inserting entity should recalculate visibility on folders (nested - groups permissions on folder)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req1())
+    count.should.be.eql(2)
+  })
+
+  it('updating folder group permissions should preserve inherited permissions from group in its children', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    const g2 = await addUserToGroup('g2', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').update({ name: 'foldera' }, { $set: { readPermissionsGroup: [g2._id] } }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('templates').count({}, req1())
+    count.should.be.eql(1)
+
+    const foldersCount = await reporter.documentStore.collection('folders').count({}, req1())
+    foldersCount.should.be.eql(1)
+
+    const count2 = await reporter.documentStore.collection('templates').count({}, req2())
+    count2.should.be.eql(2)
+
+    const foldersCount2 = await reporter.documentStore.collection('folders').count({}, req2())
+    foldersCount2.should.be.eql(1)
+  })
+
+  it('removing entity group permissions should recalculate visibility', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id],
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissionsGroup: [] } }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(0)
+  })
+
+  it('removing entity should recalculate visibility in the parent folder (groups permissions)', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissionsGroup: [g1._id] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').remove({ }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(0)
+  })
+
+  it('removing entity should recalculate and preserve visibility in the parent folder (groups permissions)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({ name: 'template' }, { $set: { readPermissionsGroup: [g1._id] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').update({ name: 'template2' }, { $set: { readPermissionsGroup: [g1._id] } }, reqAdmin())
+    await reporter.documentStore.collection('templates').remove({ name: 'template' }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req1())
+    count.should.be.eql(1)
+  })
+
+  it('removing folder should recalculate visibility in the parent folder (groups permissions)', async () => {
+    const g1 = await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id],
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').remove({ name: 'folderb' }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(0)
+  })
+
+  it('adding users to group should propagate permissions to the entities with permission to that group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').update({
+      name: 'g1'
+    }, {
+      $set: {
+        users: [{ shortid: req1().context.user.shortid }, { shortid: req2().context.user.shortid }]
+      }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(2)
+
+    const count2 = await countTemplates(req2())
+    count2.should.be.eql(2)
+  })
+
+  it('removing users from group should propagate permissions to the entities with permission to that group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').update({
+      name: 'g1'
+    }, {
+      $set: {
+        users: [{ shortid: req1().context.user.shortid }]
+      }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(2)
+
+    const count2 = await countTemplates(req2())
+    count2.should.be.eql(0)
+  })
+
+  it('removing group should propagate permissions to the entities with permission to that group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+
+    const t = await reporter.documentStore.collection('templates').findOne({
+      name: 'template'
+    }, reqAdmin())
+
+    t.readPermissionsGroup.should.have.length(0)
+
+    const t2 = await reporter.documentStore.collection('templates').findOne({
+      name: 'template'
+    }, reqAdmin())
+
+    t2.readPermissionsGroup.should.have.length(0)
+  })
+
+  it('removing group should propagate permissions to the entities with permission to that group (preserve other group permissions)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    const g2 = await addUserToGroup('g2', req2())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id, g2._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      readPermissionsGroup: [g1._id, g2._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+
+    const count2 = await countTemplates(req2())
+    count2.should.be.eql(2)
+
+    const t = await reporter.documentStore.collection('templates').findOne({
+      name: 'template'
+    }, reqAdmin())
+
+    t.readPermissionsGroup.should.have.length(1)
+    t.readPermissionsGroup.should.containEql(g2._id)
+
+    const t2 = await reporter.documentStore.collection('templates').findOne({
+      name: 'template'
+    }, reqAdmin())
+
+    t2.readPermissionsGroup.should.have.length(1)
+    t2.readPermissionsGroup.should.containEql(g2._id)
+  })
+
+  it('adding users to group should propagate permissions to the entities with permission to that group (folders affected)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').update({
+      name: 'g1'
+    }, {
+      $set: {
+        users: [{ shortid: req1().context.user.shortid }, { shortid: req2().context.user.shortid }]
+      }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(2)
+
+    const count2 = await countTemplates(req2())
+    count2.should.be.eql(2)
+  })
+
+  it('removing users from group should propagate permissions to the entities with permission to that group (folders affected)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    await addUserToGroup('g1', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').update({
+      name: 'g1'
+    }, {
+      $set: {
+        users: [{ shortid: req1().context.user.shortid }]
+      }
+    }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(2)
+
+    const count2 = await countTemplates(req2())
+    count2.should.be.eql(0)
+  })
+
+  it('removing group should propagate permissions to the entities with permission to that group (folders affected)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+
+    const f = await reporter.documentStore.collection('folders').findOne({
+      name: 'folderb'
+    }, reqAdmin())
+
+    f.readPermissionsGroup.should.have.length(0)
+  })
+
+  it('removing group should propagate permissions to the entities with permission to that group (folders affected - preserve other group permissions)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    const g2 = await addUserToGroup('g2', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      readPermissionsGroup: [g1._id, g2._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template2',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqAdmin())
+
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+
+    const count2 = await countTemplates(req2())
+    count2.should.be.eql(2)
+
+    const f = await reporter.documentStore.collection('folders').findOne({
+      name: 'folderb'
+    }, reqAdmin())
+
+    f.readPermissionsGroup.should.have.length(1)
+  })
+
+  it('adding entity group permissions should propagate group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('templates').count({}, req1())
+    count.should.be.eql(1)
+
+    const t = await reporter.documentStore.collection('templates').findOne({ name: 'template' }, reqAdmin())
+
+    t.editPermissionsGroup.should.have.length(1)
+    t.editPermissionsGroup[0].should.be.eql(g1._id)
+    t.inheritedEditPermissions.should.have.length(2)
+    t.inheritedEditPermissions[0].should.be.eql(g1._id)
+    t.inheritedEditPermissions[1].should.be.eql(req1().context.user._id)
+  })
+
+  it('removing entity group permissions should propagate group', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    const g2 = await addUserToGroup('g2', req2())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      editPermissionsGroup: [g1._id, g2._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').update({
+      name: 'template'
+    }, {
+      $set: {
+        editPermissionsGroup: [g1._id]
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('templates').count({}, req1())
+    count.should.be.eql(1)
+
+    const count2 = await reporter.documentStore.collection('templates').count({}, req2())
+    count2.should.be.eql(0)
+
+    const t = await reporter.documentStore.collection('templates').findOne({ name: 'template' }, reqAdmin())
+
+    t.editPermissionsGroup.should.have.length(1)
+    t.editPermissionsGroup[0].should.be.eql(g1._id)
+    t.inheritedEditPermissions.should.have.length(2)
+    t.inheritedEditPermissions[0].should.be.eql(g1._id)
+    t.inheritedEditPermissions[1].should.be.eql(req1().context.user._id)
+  })
+
+  it('adding entity group permissions should propagate group (nested folders)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      editPermissionsGroup: [g1._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('templates').count({}, req1())
+    count.should.be.eql(1)
+
+    const countFolders = await reporter.documentStore.collection('folders').count({}, req1())
+    countFolders.should.be.eql(2)
+
+    const f = await reporter.documentStore.collection('folders').findOne({ name: 'folderb' }, reqAdmin())
+
+    f.editPermissionsGroup.should.have.length(1)
+    f.editPermissionsGroup[0].should.be.eql(g1._id)
+
+    const t = await reporter.documentStore.collection('templates').findOne({ name: 'template' }, reqAdmin())
+
+    t.inheritedEditPermissions.should.have.length(2)
+    t.inheritedEditPermissions[0].should.be.eql(g1._id)
+    t.inheritedEditPermissions[1].should.be.eql(req1().context.user._id)
+  })
+
+  it('removing entity group permissions should propagate group (nested folders)', async () => {
+    const g1 = await addUserToGroup('g1', req1())
+    const g2 = await addUserToGroup('g2', req2())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      },
+      editPermissionsGroup: [g1._id, g2._id]
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').update({
+      name: 'folderb'
+    }, {
+      $set: {
+        editPermissionsGroup: [g1._id]
+      }
+    }, reqAdmin())
+
+    const count = await reporter.documentStore.collection('templates').count({}, req1())
+    count.should.be.eql(1)
+
+    const countFolders = await reporter.documentStore.collection('folders').count({}, req1())
+    countFolders.should.be.eql(2)
+
+    const count2 = await reporter.documentStore.collection('templates').count({}, req2())
+    count2.should.be.eql(0)
+
+    const countFolders2 = await reporter.documentStore.collection('folders').count({}, req2())
+    countFolders2.should.be.eql(0)
+
+    const f = await reporter.documentStore.collection('folders').findOne({ name: 'folderb' }, reqAdmin())
+
+    f.editPermissionsGroup.should.have.length(1)
+    f.editPermissionsGroup[0].should.be.eql(g1._id)
+
+    const t = await reporter.documentStore.collection('templates').findOne({ name: 'template' }, reqAdmin())
+
+    t.inheritedEditPermissions.should.have.length(2)
+    t.inheritedEditPermissions[0].should.be.eql(g1._id)
+    t.inheritedEditPermissions[1].should.be.eql(req1().context.user._id)
+  })
+
+  it('adding should work ok with user that is group', async () => {
+    const g = await reporter.documentStore.collection('usersGroups').insert({ name: 'g', users: [] }, reqAdmin())
+    const req = reqGroup(g)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, req)
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, req)
+
+    const t = await reporter.documentStore.collection('templates').findOne({ name: 'template' }, req)
+
+    t.readPermissions = t.readPermissions || []
+    t.editPermissions = t.editPermissions || []
+
+    t.readPermissions.should.have.length(0)
+    t.editPermissions.should.have.length(0)
+    t.readPermissionsGroup.should.have.length(1)
+    t.editPermissionsGroup.should.have.length(1)
+    t.readPermissionsGroup[0].should.be.eql(g._id)
+    t.editPermissionsGroup[0].should.be.eql(g._id)
+  })
+
+  it('updating should work ok with user that is group', async () => {
+    const g = await reporter.documentStore.collection('usersGroups').insert({ name: 'g', users: [] }, reqAdmin())
+    const req = reqGroup(g)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, req)
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, req)
+
+    return reporter.documentStore.collection('templates').update({
+      name: 'template'
+    }, {
+      $set: {
+        content: 'foo2'
+      }
+    }, req).should.not.be.rejected()
+  })
+
+  it('removing should work ok with user that is group', async () => {
+    const g = await reporter.documentStore.collection('usersGroups').insert({ name: 'g', users: [] }, reqAdmin())
+    const req = reqGroup(g)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, req)
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, req)
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, req)
+
+    return reporter.documentStore.collection('templates').remove({
+      name: 'template'
+    }, req).should.not.be.rejected()
   })
 })

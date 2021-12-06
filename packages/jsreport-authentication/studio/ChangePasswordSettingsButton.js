@@ -2,7 +2,7 @@ import ChangePasswordModal from './ChangePasswordModal.js'
 import Studio from 'jsreport-studio'
 
 const ChangePasswordSettingsButton = (props) => {
-  if (Studio.authentication.user.isAdmin) {
+  if (Studio.authentication.user.isAdmin || Studio.authentication.user.isGroup) {
     return <span />
   }
 

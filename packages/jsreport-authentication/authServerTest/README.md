@@ -64,7 +64,7 @@ The main points to highlight about the jsreport configuration related to authori
 
 Open jsreport at http://localhost:5488/, you will see the standard login screen but now there will be an extra button "LOGIN WITH AUTHSERVER", when you click that you will be redirected to the authorization server, there you will need to login.
 
-The Authorization server is configured to make any username as valid, but for the purpose of our test we need to use `admin` (because it needs to match an existing jsreport username), as password we can put any value, the login will pass normally no matter which password we use.
+The Authorization server is configured to make any username as valid, but for the purpose of our test we need to use `admin` (because it needs to match an existing jsreport username), as password we can put any value, the login will pass normally no matter which password we use. We can use `guser` or `guser2` (login with `guser2` will give you a custom username display on studio) as users if we want to test a login flow based on groups, we just need to ensure that a users group `g1` exists on jsreport.
 
 After the login succeed we will now see a page in which we will give our consent/authorization, this basically tells the user that jsreport studio is going to access some specific information from its account. when the consent is finished (by clicking "Continue") we are now going to be redirected to the jsreport studio again, this time we are going to have an active session with the user `admin`. Internally the studio creates a session after getting successfully response from authorization server, this session is basically the same like if user were authenticating directly with its jsreport credentials in the studio login page, so any action the user does in studio from now should work the same.
 
@@ -74,7 +74,7 @@ If after refreshing the page, rendering a few times and checking the entities yo
 
 For this test we are going to need a token issued by the authorization server. The easy way to get this token is by repeating the login from the [Single Sign On with jsreport studio Test](#single-sign-on-with-jsreport-studio-test) and get the token from the console in which the authorization server is running.
 
-Open jsreport at http://localhost:5488/, go and click "LOGIN WITH AUTHSERVER", if you have an active session with the authorization server then this will just redirect you back to the studio, if not the authorization server is going to ask for your login and consent again, just remember to complete that step using `admin` as the user.
+Open jsreport at http://localhost:5488/, go and click "LOGIN WITH AUTHSERVER", if you have an active session with the authorization server then this will just redirect you back to the studio, if not the authorization server is going to ask for your login and consent again, just remember to complete that step using `admin` as the user, or `guser`, `guser2` users if want to test the flow against the group.
 
 When you are again in jsreport studio as an authenticated user, go to the console in which the Authorization server is running and check the last lines, you should see a log similar to `NEW access_token "xxxxxxxxxxxxxxxx" saved AccessToken {...}`. what it is between the quotation marks is the token, so make sure to copy that.
 

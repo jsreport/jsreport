@@ -28,6 +28,21 @@ module.exports = function createAuthServer (options) {
       return {
         accountId: sub,
         async claims (use, scope, claims, rejected) {
+          if (sub === 'guser') {
+            return {
+              sub,
+              group: 'g1'
+            }
+          }
+
+          if (sub === 'guser2') {
+            return {
+              sub,
+              group: 'g1',
+              username: 'custom'
+            }
+          }
+
           return {
             sub,
             username: sub
@@ -36,7 +51,7 @@ module.exports = function createAuthServer (options) {
       }
     },
     claims: {
-      authProfile: ['username']
+      authProfile: ['username', 'group']
     },
     scopes: [
       'openid',

@@ -55,6 +55,7 @@ module.exports = {
                 }
               },
               usernameField: { type: 'string', default: 'username' },
+              groupField: { type: 'string', default: 'group' },
               timeout: { type: 'number', default: 3500 },
               authorizationRequest: {
                 type: 'object',

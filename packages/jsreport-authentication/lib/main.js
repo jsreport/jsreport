@@ -117,6 +117,7 @@ function addPassport (reporter, app, admin, definition) {
       authenticateToken({
         authorizationServerAuth,
         client: apiResourceClient,
+        documentStore: reporter.documentStore,
         logger: reporter.logger,
         usersRepository: reporter.authentication.usersRepository,
         admin
@@ -136,26 +137,58 @@ function addPassport (reporter, app, admin, definition) {
         scope: scopesForAuthorize.join(' ')
       }
     }, (tokenset, userinfo, done) => {
-      const username = userinfo[authorizationServerAuth.usernameField]
+      let mode = 'user'
 
-      if (username == null) {
-        done(new Error(`Information returned by the authorization server does not contain "${authorizationServerAuth.usernameField}" field. Authentication cancelled`))
-      } else {
-        if (username === admin.name) {
-          return done(null, { name: username })
-        }
+      if (authorizationServerAuth.groupField != null && userinfo[authorizationServerAuth.groupField] != null) {
+        mode = 'group'
+      }
 
-        reporter.authentication.usersRepository.find(username)
-          .then((u) => {
-            if (u == null) {
-              throw new Error(`No jsreport user "${username}" found linked to this authenticated session`)
+      if (mode === 'group') {
+        const groupName = userinfo[authorizationServerAuth.groupField]
+
+        reporter.documentStore.collection('usersGroups').findOne({ name: groupName })
+          .then((g) => {
+            if (g == null) {
+              throw new Error(`No jsreport user group "${groupName}" found linked to this authenticated session`)
             }
 
-            done(null, { name: username })
+            let usernameForGroup = `:group/${g.name}`
+
+            if (authorizationServerAuth.usernameField != null && userinfo[authorizationServerAuth.usernameField] != null) {
+              usernameForGroup += `/${userinfo[authorizationServerAuth.usernameField]}`
+            }
+
+            done(null, { name: usernameForGroup })
           })
           .catch((err) => {
-            done(new Error(`Error while verifying user. Authentication cancelled. Reason: ${err.message}`))
+            done(new Error(`Error while verifying user (group). Authentication cancelled. Reason: ${err.message}`))
           })
+      } else {
+        if (authorizationServerAuth.usernameField == null) {
+          return done(new Error('authorizationServer.usernameField is not configured'))
+        }
+
+        const username = userinfo[authorizationServerAuth.usernameField]
+
+        if (username == null) {
+          done(new Error(`Information returned by the authorization server does not contain "${authorizationServerAuth.usernameField}" field. Authentication cancelled`))
+        } else {
+          if (username === admin.name) {
+            return done(null, { name: username })
+          }
+
+          reporter.authentication.usersRepository.find(username)
+            .then((u) => {
+              if (u == null) {
+                throw new Error(`No jsreport user "${username}" found linked to this authenticated session`)
+              }
+
+              done(null, { name: username })
+            })
+            .catch((err) => {
+              done(new Error(`Error while verifying user. Authentication cancelled. Reason: ${err.message}`))
+            })
+        }
       }
     }))
   }
@@ -167,9 +200,34 @@ function addPassport (reporter, app, admin, definition) {
       return done(null, admin)
     }
 
-    reporter.authentication.usersRepository.find(username)
-      .then((u) => done(null, u))
-      .catch(done)
+    const groupPrefix = ':group/'
+    const isGroup = username.startsWith(groupPrefix)
+
+    if (isGroup) {
+      const input = username.slice(groupPrefix.length)
+      const parts = input.split('/')
+      const groupName = parts[0]
+
+      let customName
+
+      if (parts[1] != null) {
+        customName = parts[1]
+      }
+
+      reporter.documentStore.collection('usersGroups').findOne({ name: groupName })
+        .then((g) => {
+          return done(null, {
+            _id: g._id,
+            name: customName != null ? customName : g.name,
+            isGroup: true
+          })
+        })
+        .catch(done)
+    } else {
+      reporter.authentication.usersRepository.find(username)
+        .then((u) => done(null, u))
+        .catch(done)
+    }
   })
 
   app.use((req, res, next) => {

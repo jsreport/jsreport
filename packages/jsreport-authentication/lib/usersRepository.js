@@ -202,6 +202,12 @@ module.exports = (reporter, admin) => {
       const user = users[0]
       let password = newPassword
 
+      if (currentUser.isGroup) {
+        throw reporter.createError('Change password is an invalid action for a user identified as group', {
+          statusCode: 400
+        })
+      }
+
       if (!currentUser.isAdmin && !passwordHash.verify(oldPassword, user.password)) {
         throw reporter.createError('Invalid password', {
           statusCode: 400

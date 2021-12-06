@@ -11,10 +11,12 @@ const selectValues = (selected) => {
 class PermissionProperties extends Component {
   componentDidMount () {
     this.removeInvalidUserReferences()
+    this.removeInvalidUsersGroupReferences()
   }
 
   componentDidUpdate () {
     this.removeInvalidUserReferences()
+    this.removeInvalidUsersGroupReferences()
   }
 
   removeInvalidUserReferences () {
@@ -43,10 +45,36 @@ class PermissionProperties extends Component {
     }
   }
 
+  removeInvalidUsersGroupReferences () {
+    const { entity, onChange } = this.props
+
+    if (Array.isArray(entity.readPermissionsGroup) && entity.readPermissionsGroup.length > 0) {
+      const updatedReadPermissionsGroup = entity.readPermissionsGroup.map((_id) => {
+        const currentEntity = Studio.getEntityById(_id, false)
+        return currentEntity ? currentEntity._id : null
+      }).filter((i) => i != null)
+
+      if (updatedReadPermissionsGroup.length !== entity.readPermissionsGroup.length) {
+        onChange({ _id: entity._id, readPermissionsGroup: updatedReadPermissionsGroup })
+      }
+    }
+
+    if (Array.isArray(entity.editPermissionsGroup) && entity.editPermissionsGroup.length > 0) {
+      const updatedEditPermissionsGroup = entity.editPermissionsGroup.map((_id) => {
+        const currentEntity = Studio.getEntityById(_id, false)
+        return currentEntity ? currentEntity._id : null
+      }).filter((i) => i != null)
+
+      if (updatedEditPermissionsGroup.length !== entity.editPermissionsGroup.length) {
+        onChange({ _id: entity._id, editPermissionsGroup: updatedEditPermissionsGroup })
+      }
+    }
+  }
+
   render () {
     const { entity, onChange } = this.props
 
-    if (entity.__entitySet === 'users') {
+    if (entity.__entitySet === 'users' || entity.__entitySet === 'usersGroups') {
       return <div />
     }
 
@@ -59,6 +87,20 @@ class PermissionProperties extends Component {
 
     const editPermissionsEntities = entity.editPermissions
       ? entity.editPermissions.map((_id) => {
+          const currentEntity = Studio.getEntityById(_id, false)
+          return currentEntity != null ? currentEntity : null
+        }).filter((i) => i != null)
+      : []
+
+    const readPermissionsGroupEntities = entity.readPermissionsGroup
+      ? entity.readPermissionsGroup.map((_id) => {
+          const currentEntity = Studio.getEntityById(_id, false)
+          return currentEntity != null ? currentEntity : null
+        }).filter((i) => i != null)
+      : []
+
+    const editPermissionsGroupEntities = entity.editPermissionsGroup
+      ? entity.editPermissionsGroup.map((_id) => {
           const currentEntity = Studio.getEntityById(_id, false)
           return currentEntity != null ? currentEntity : null
         }).filter((i) => i != null)
@@ -93,6 +135,36 @@ class PermissionProperties extends Component {
             value={editPermissionsEntities.map((e) => e.shortid)}
             onChange={(selected) => onChange({ _id: entity._id, editPermissions: selectValues(selected) })}
             renderNew={(modalProps) => <sharedComponents.NewUserModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder } }} />}
+            multiple
+          />
+        </div>
+        <div className='form-group'>
+          <label>read permissions group</label>
+          <EntityRefSelect
+            headingLabel='Select group (read permissions group)'
+            newLabel='New group (read permissions group)'
+            filter={(references) => {
+              const groups = references.usersGroups.filter((e) => !e.__isNew)
+              return { usersGroups: groups }
+            }}
+            value={readPermissionsGroupEntities.map((r) => r.shortid)}
+            onChange={(selected) => onChange({ _id: entity._id, readPermissionsGroup: selectValues(selected) })}
+            renderNew={(modalProps) => <sharedComponents.NewUsersGroupModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder } }} />}
+            multiple
+          />
+        </div>
+        <div className='form-group'>
+          <label>edit permissions group</label>
+          <EntityRefSelect
+            headingLabel='Select group (edit permissions group)'
+            newLabel='New group (edit permissions group)'
+            filter={(references) => {
+              const groups = references.usersGroups.filter((e) => !e.__isNew)
+              return { usersGroups: groups }
+            }}
+            value={editPermissionsGroupEntities.map((e) => e.shortid)}
+            onChange={(selected) => onChange({ _id: entity._id, editPermissionsGroup: selectValues(selected) })}
+            renderNew={(modalProps) => <sharedComponents.NewUsersGroupModal {...modalProps} options={{ ...modalProps.options, defaults: { folder: entity.folder } }} />}
             multiple
           />
         </div>

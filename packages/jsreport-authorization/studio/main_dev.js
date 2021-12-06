@@ -1,10 +1,27 @@
-import PermissionProperties from './PermissionProperties.js'
+import NewUsersGroupModal from './NewUsersGroupModal'
+import UsersGroupEditor from './UsersGroupEditor'
+import UsersGroupProperties from './UsersGroupProperties'
+import PermissionProperties from './PermissionProperties'
 import Studio from 'jsreport-studio'
+
+Studio.sharedComponents.NewUsersGroupModal = NewUsersGroupModal
 
 Studio.initializeListeners.push(async () => {
   if (!Studio.authentication || !Studio.authentication.user.isAdmin) {
     return
   }
+
+  Studio.addEntitySet({
+    name: 'usersGroups',
+    faIcon: 'fa-users',
+    visibleName: 'group',
+    onNew: (options) => Studio.openModal(NewUsersGroupModal, options),
+    entityTreePosition: 300
+  })
+
+  Studio.addEditorComponent('usersGroups', UsersGroupEditor)
+
+  Studio.addPropertiesComponent(UsersGroupProperties.title, UsersGroupProperties, (entity) => entity.__entitySet === 'usersGroups')
 
   Studio.addPropertiesComponent('permissions', PermissionProperties, (entity) => {
     return Studio.extensions.authorization.options.sharedEntitySets.indexOf(entity.__entitySet) === -1

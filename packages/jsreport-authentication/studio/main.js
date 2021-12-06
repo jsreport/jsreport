@@ -361,7 +361,7 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
               React.createElement(
                 'span',
                 null,
-                React.createElement('i', { className: 'fa fa-user' }),
+                React.createElement('i', { className: 'fa fa-' + (_jsreportStudio2.default.authentication.user.isGroup ? 'users' : 'user') }),
                 _jsreportStudio2.default.authentication.user.name
               )
             );
@@ -561,7 +561,7 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var ChangePasswordSettingsButton = function ChangePasswordSettingsButton(props) {
-  if (_jsreportStudio2.default.authentication.user.isAdmin) {
+  if (_jsreportStudio2.default.authentication.user.isAdmin || _jsreportStudio2.default.authentication.user.isGroup) {
     return React.createElement('span', null);
   }
 

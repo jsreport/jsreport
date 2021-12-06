@@ -35,7 +35,7 @@ Studio.initializeListeners.unshift(async () => {
 
   Studio.addToolbarComponent(() => (
     <div className='toolbar-button'>
-      <span><i className='fa fa-user' />{Studio.authentication.user.name}</span>
+      <span><i className={`fa fa-${Studio.authentication.user.isGroup ? 'users' : 'user'}`} />{Studio.authentication.user.name}</span>
     </div>
   ), 'settingsBottom')
 

@@ -104,10 +104,10 @@ module.exports.shouldDelegateTokenAuth = (definition) => {
     )
   }
 
-  if (!options.authorizationServer.usernameField) {
+  if (!options.authorizationServer.usernameField && !options.authorizationServer.groupField) {
     throw new Error(
-      'authorizationServer.usernameField config is required, ' +
-      'please pass the name of the field which will contain the username of the linked user in the authorization server response'
+      'one of authorizationServer.usernameField or authorizationServer.groupField config is required, ' +
+      'please pass the name of the field which will contain either name the username or group name of the linked user in the authorization server response'
     )
   }
 
@@ -118,6 +118,7 @@ module.exports.shouldDelegateTokenAuth = (definition) => {
     studioClient: options.authorizationServer.studioClient,
     apiResource: options.authorizationServer.apiResource,
     usernameField: options.authorizationServer.usernameField,
+    groupField: options.authorizationServer.groupField,
     timeout: options.authorizationServer.timeout,
     authorizationRequest: options.authorizationServer.authorizationRequest == null ? {} : options.authorizationServer.authorizationRequest,
     introspectionRequest: options.authorizationServer.introspectionRequest == null ? {} : options.authorizationServer.introspectionRequest
@@ -130,7 +131,7 @@ module.exports.hasBearerSchema = (info) => {
   return Array.isArray(info) && info.some((item) => bearerSchemaReg.test(String(item)))
 }
 
-module.exports.authenticateToken = ({ authorizationServerAuth, client, logger, admin, usersRepository }) => async (req, token, done) => {
+module.exports.authenticateToken = ({ authorizationServerAuth, client, documentStore, logger, admin, usersRepository }) => async (req, token, done) => {
   logger.debug(`Delegating token auth to authorization server at ${authorizationServerAuth.endpoints.introspection}`)
 
   try {
@@ -202,43 +203,119 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, logger, a
       }
     }
 
-    let usernameFromAuthServer = tokenResponse[authorizationServerAuth.usernameField]
+    let mode
+    let userinfo
 
-    // check for username field presence in the token, if not there
-    // we fetch the userinfo endpoint
-    if (usernameFromAuthServer == null) {
-      const userinfo = await client.userinfo(token)
-      usernameFromAuthServer = userinfo[authorizationServerAuth.usernameField]
+    if (
+      authorizationServerAuth.groupField != null &&
+      tokenResponse[authorizationServerAuth.groupField] != null
+    ) {
+      mode = 'group'
+    } else if (
+      authorizationServerAuth.usernameField != null &&
+      tokenResponse[authorizationServerAuth.usernameField] != null
+    ) {
+      mode = 'user'
     }
 
-    if (usernameFromAuthServer == null) {
-      logger.error(`Authorization server has no "${authorizationServerAuth.usernameField}" field in its response, token assumed as invalid`)
-      return done(null, false)
-    }
+    if (mode == null) {
+      userinfo = await client.userinfo(token)
 
-    if (typeof usernameFromAuthServer !== 'string' || usernameFromAuthServer.trim() === '') {
-      logger.error(`Authorization server has responded with an invalid value in username field "${authorizationServerAuth.usernameField}", token assumed as invalid`)
-      return done(null, false)
+      if (authorizationServerAuth.groupField != null && userinfo[authorizationServerAuth.groupField] != null) {
+        mode = 'group'
+      } else {
+        mode = 'user'
+      }
     }
 
     let resolvedUser
 
-    if (admin.username === usernameFromAuthServer) {
-      req.authServerTokenValidationResponse = tokenResponse
-      resolvedUser = admin
-    } else {
-      const user = await usersRepository.find(usernameFromAuthServer)
+    if (mode === 'group') {
+      let groupFromAuthServer = tokenResponse[authorizationServerAuth.groupField]
 
-      if (!user) {
-        logger.error(`username "${usernameFromAuthServer}" returned from authorization server is not a jsreport user`)
+      // check for group field presence in the token, if not there
+      // we get it from the userinfo endpoint
+      if (groupFromAuthServer == null && userinfo != null) {
+        groupFromAuthServer = userinfo[authorizationServerAuth.groupField]
+      }
+
+      if (groupFromAuthServer == null) {
+        logger.error(`Authorization server has no "${authorizationServerAuth.groupField}" field (group) in its response, token assumed as invalid`)
         return done(null, false)
       }
 
-      req.authServerTokenValidationResponse = tokenResponse
-      resolvedUser = user
+      if (typeof groupFromAuthServer !== 'string' || groupFromAuthServer.trim() === '') {
+        logger.error(`Authorization server has responded with an invalid value in group field "${authorizationServerAuth.groupField}", token assumed as invalid`)
+        return done(null, false)
+      }
+
+      const group = await documentStore.collection('usersGroups').findOne({
+        name: groupFromAuthServer
+      }, req)
+
+      if (!group) {
+        logger.error(`group "${groupFromAuthServer}" returned from authorization server is not a jsreport group`)
+        return done(null, false)
+      }
+
+      let usernameForGroup = `:group/${group.name}`
+      let customUsername
+
+      if (
+        authorizationServerAuth.usernameField != null &&
+        tokenResponse[authorizationServerAuth.usernameField] != null
+      ) {
+        customUsername = tokenResponse[authorizationServerAuth.usernameField]
+      } else if (
+        authorizationServerAuth.usernameField != null &&
+        userinfo != null &&
+        userinfo[authorizationServerAuth.usernameField] != null
+      ) {
+        customUsername = userinfo[authorizationServerAuth.usernameField]
+      }
+
+      if (customUsername != null) {
+        usernameForGroup += `/${customUsername}`
+      }
+
+      resolvedUser = {
+        name: usernameForGroup
+      }
+    } else {
+      let usernameFromAuthServer = tokenResponse[authorizationServerAuth.usernameField]
+
+      // check for username field presence in the token, if not there
+      // we get it from the userinfo endpoint
+      if (usernameFromAuthServer == null && userinfo != null) {
+        usernameFromAuthServer = userinfo[authorizationServerAuth.usernameField]
+      }
+
+      if (usernameFromAuthServer == null) {
+        logger.error(`Authorization server has no "${authorizationServerAuth.usernameField}" field in its response, token assumed as invalid`)
+        return done(null, false)
+      }
+
+      if (typeof usernameFromAuthServer !== 'string' || usernameFromAuthServer.trim() === '') {
+        logger.error(`Authorization server has responded with an invalid value in username field "${authorizationServerAuth.usernameField}", token assumed as invalid`)
+        return done(null, false)
+      }
+
+      if (admin.username === usernameFromAuthServer) {
+        resolvedUser = admin
+      } else {
+        const user = await usersRepository.find(usernameFromAuthServer)
+
+        if (!user) {
+          logger.error(`username "${usernameFromAuthServer}" returned from authorization server is not a jsreport user`)
+          return done(null, false)
+        }
+
+        resolvedUser = user
+      }
     }
 
     logger.debug('Token auth in authorization server was validated correctly')
+    req.authServerTokenValidationResponse = tokenResponse
     done(null, resolvedUser)
   } catch (err) {
     logger.error(`Error during authorization server request: ${err.message}`)
