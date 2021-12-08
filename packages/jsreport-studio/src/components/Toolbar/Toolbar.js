@@ -295,7 +295,7 @@ class Toolbar extends Component {
             return (
               // eslint-disable-next-line react/jsx-fragments
               <Fragment>
-                {subRunActions.map((fn) => fn(itemProps))}
+                {subRunActions.map((Action, idx) => <Action key={idx} {...itemProps} />)}
               </Fragment>
             )
           }}
