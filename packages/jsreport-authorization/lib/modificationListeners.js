@@ -1,5 +1,6 @@
 const extend = require('node.extend.without.arrays')
 const AssertPermissions = require('./assertPermissions.js')
+const omit = require('lodash.omit')
 
 const {
   collectEntitiesInHierarchy,
@@ -310,11 +311,15 @@ async function propagatePermissions (reporter, modificationType, data, req) {
 }
 
 async function propagateVisibilityPermissions (reporter, entity, { permissions = [], groupUsers } = {}, req) {
-  permissions = permissions != null ? permissions : []
-  const folder = await reporter.documentStore.collection('folders').findOne({ shortid: entity.folder.shortid }, req)
+  const localReq = req ? reporter.Request(req) : req
+  if (localReq) {
+    localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
+  }
 
-  const folders = await collectParentFolders(reporter, folder, req)
-  let entities = await collectEntitiesAtSameLevel(reporter, folder, req)
+  permissions = permissions != null ? permissions : []
+  const folder = await reporter.documentStore.collection('folders').findOne({ shortid: entity.folder.shortid }, localReq)
+  const folders = await collectParentFolders(reporter, folder, localReq)
+  let entities = await collectEntitiesAtSameLevel(reporter, folder, localReq)
   entities = entities.filter(e => e._id !== entity._id)
 
   const finalVisibilityPermissionsSet = new Set([...permissions])
@@ -335,7 +340,7 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
     const {
       readPermissions: inheritedReadPermissionsFromGroup,
       editPermissions: inheritedEditPermissionsFromGroup
-    } = await collectPermissionsFromEntityGroups(reporter, { entity: e, groupUsers }, req)
+    } = await collectPermissionsFromEntityGroups(reporter, { entity: e, groupUsers }, localReq)
 
     inheritedReadPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
     inheritedEditPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
@@ -348,8 +353,8 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
       _id: f._id
     }
 
-    if (req && req.context) {
-      req.context.skipAuthorizationForUpdate = q
+    if (localReq && localReq.context) {
+      localReq.context.skipAuthorizationForUpdate = q
     }
 
     if (arraysEqual(f.visibilityPermissions, finalVisibilityPermissions)) {
@@ -363,7 +368,7 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
           visibilityPermissions: finalVisibilityPermissions
         }
       },
-      req
+      localReq
     )
   }
 }

@@ -657,6 +657,41 @@ describe('authorization', () => {
     count.should.be.eql(0)
   })
 
+  it('removing entity should not fail cause visibility recalc when user has no permissions to parent folder', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'foldera',
+      shortid: 'foldera'
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderb',
+      shortid: 'folderb',
+      folder: {
+        shortid: 'foldera'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      engine: 'none',
+      content: 'foo',
+      recipe: 'html',
+      folder: {
+        shortid: 'folderb'
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').update({ name: 'folderb' }, {
+      $set: {
+        editPermissions: [req2().context.user._id]
+      }
+    }, reqAdmin())
+
+    await reporter.documentStore.collection('folders').remove({ name: 'folderb' }, req2())
+    const count = await reporter.documentStore.collection('folders').count({}, req2())
+    count.should.be.eql(0)
+  })
+
   it('removing entity should recalculate and preserve visibility', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'foldera',
