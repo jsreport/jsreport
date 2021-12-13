@@ -121,8 +121,13 @@ async function collectPermissionsFromEntityGroups (reporter, { entity, groupUser
     }
 
     // we always inherit the group id
-    inheritedReadPermissionsFromGroup = mergeArrays(inheritedReadPermissionsFromGroup, [groupId])
-    inheritedEditPermissionsFromGroup = mergeArrays(inheritedEditPermissionsFromGroup, [groupId])
+    if (entity.readPermissionsGroup && entity.readPermissionsGroup.includes(groupId)) {
+      inheritedReadPermissionsFromGroup = mergeArrays(inheritedReadPermissionsFromGroup, [groupId])
+    }
+
+    if (entity.editPermissionsGroup && entity.editPermissionsGroup.includes(groupId)) {
+      inheritedEditPermissionsFromGroup = mergeArrays(inheritedEditPermissionsFromGroup, [groupId])
+    }
 
     const usersInGroup = await reporter.documentStore.collection('users').find({
       shortid: {

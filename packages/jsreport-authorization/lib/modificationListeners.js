@@ -147,6 +147,20 @@ module.exports = (reporter) => {
           }
 
           await propagatePermissions(reporter, 'update', { entity: entityBeingUpdated, entitySet: col.entitySet, originalEntity }, req)
+
+          // we don't want the update to override the permissions
+          // we had calculated
+          if (u.$set.inheritedReadPermissions) {
+            delete u.$set.inheritedReadPermissions
+          }
+
+          if (u.$set.inheritedEditPermissions) {
+            delete u.$set.inheritedEditPermissions
+          }
+
+          if (u.$set.visibilityPermissions) {
+            delete u.$set.visibilityPermissions
+          }
         }
 
         req.context.skipPermissionsCascade = false
@@ -246,49 +260,54 @@ async function propagatePermissions (reporter, modificationType, data, req) {
     await propagateVisibilityPermissions(reporter, originalEntity, { permissions: [], groupUsers }, req)
   }
 
+  // visibility should start with group permissions that are set on the folder itself
+  const entityVisibilityPermissionsSet = new Set([...inheritedReadPermissionsFromGroup, ...inheritedEditPermissionsFromGroup])
+
+  if (modificationType === 'update' && entitySet === 'folders') {
+    // when entity is folder we should recalculate visibility permissions
+    // for it and then use those visibility permissions for the propagation
+    const entities = await collectEntitiesAtSameLevel(reporter, entity, req)
+
+    for (const e of entities) {
+      if (e.editPermissions) {
+        e.editPermissions.forEach(p => entityVisibilityPermissionsSet.add(p))
+      }
+
+      if (e.readPermissions) {
+        e.readPermissions.forEach(p => entityVisibilityPermissionsSet.add(p))
+      }
+
+      if (e.visibilityPermissions) {
+        e.visibilityPermissions.forEach(p => entityVisibilityPermissionsSet.add(p))
+      }
+
+      const {
+        readPermissions: inheritedReadPermissionsFromGroup,
+        editPermissions: inheritedEditPermissionsFromGroup
+      } = await collectPermissionsFromEntityGroups(reporter, { entity: e, groupUsers }, req)
+
+      inheritedReadPermissionsFromGroup.forEach(p => entityVisibilityPermissionsSet.add(p))
+      inheritedEditPermissionsFromGroup.forEach(p => entityVisibilityPermissionsSet.add(p))
+    }
+
+    const updatedVisibilityPermissions = [...entityVisibilityPermissionsSet]
+
+    entity.visibilityPermissions = updatedVisibilityPermissions
+
+    await reporter.documentStore.collection('folders').update(
+      { _id: entity._id },
+      {
+        $set: {
+          visibilityPermissions: updatedVisibilityPermissions
+        }
+      },
+      req
+    )
+  }
+
   // propagate visibility permissions up
   // user having permissions to the entity should always see all folders up the tree
   if (entity.folder) {
-    const entityVisibilityPermissionsSet = new Set([])
-
-    if (entitySet === 'folders') {
-      // when entity is folder we should recalculate visibility permissions
-      // for it and then use those visibility permissions for the propagation
-      const entities = await collectEntitiesAtSameLevel(reporter, entity, req)
-
-      for (const e of entities) {
-        if (e.editPermissions) {
-          e.editPermissions.forEach(p => entityVisibilityPermissionsSet.add(p))
-        }
-
-        if (e.readPermissions) {
-          e.readPermissions.forEach(p => entityVisibilityPermissionsSet.add(p))
-        }
-
-        if (e.visibilityPermissions) {
-          e.visibilityPermissions.forEach(p => entityVisibilityPermissionsSet.add(p))
-        }
-
-        const {
-          readPermissions: inheritedReadPermissionsFromGroup,
-          editPermissions: inheritedEditPermissionsFromGroup
-        } = await collectPermissionsFromEntityGroups(reporter, { entity: e, groupUsers }, req)
-
-        inheritedReadPermissionsFromGroup.forEach(p => entityVisibilityPermissionsSet.add(p))
-        inheritedEditPermissionsFromGroup.forEach(p => entityVisibilityPermissionsSet.add(p))
-      }
-
-      await reporter.documentStore.collection('folders').update(
-        { _id: entity._id },
-        {
-          $set: {
-            visibilityPermissions: [...entityVisibilityPermissionsSet]
-          }
-        },
-        req
-      )
-    }
-
     const permissions = mergeArrays(
       entity.readPermissions,
       entity.editPermissions,
@@ -341,6 +360,16 @@ async function propagateVisibilityPermissions (reporter, entity, { permissions =
       readPermissions: inheritedReadPermissionsFromGroup,
       editPermissions: inheritedEditPermissionsFromGroup
     } = await collectPermissionsFromEntityGroups(reporter, { entity: e, groupUsers }, localReq)
+
+    inheritedReadPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
+    inheritedEditPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
+  }
+
+  for (const pFolder of folders) {
+    const {
+      readPermissions: inheritedReadPermissionsFromGroup,
+      editPermissions: inheritedEditPermissionsFromGroup
+    } = await collectPermissionsFromEntityGroups(reporter, { entity: pFolder, groupUsers }, localReq)
 
     inheritedReadPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
     inheritedEditPermissionsFromGroup.forEach(p => finalVisibilityPermissionsSet.add(p))
