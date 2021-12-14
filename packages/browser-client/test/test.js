@@ -2,7 +2,7 @@ require('should')
 const JsReport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
-const jsreportClientDist = fs.readFileSync(path.join(__dirname, '../dist/index.umd.js')).toString()
+const jsreportClientDist = fs.readFileSync(path.join(__dirname, '../dist/jsreport.umd.js')).toString()
 const puppeteer = require('puppeteer')
 require('should')
 
@@ -89,7 +89,7 @@ describe('browser client', () => {
     datauri.should.be.eql('data:text/html;base64,' + Buffer.from('<h1>Hello world</h1>').toString('base64'))
   })
 
-  it('should expose openInWindow', async () => {
+  it('should expose openInWindow in render', async () => {
     await page.evaluate(async () => {
       const res = await jsreport.render({
         template: {
@@ -185,6 +185,34 @@ describe('browser client', () => {
     })
 
     e.message.should.containEql('jsreport server')
+  })
+
+  it('should expose openInWindow', async () => {
+    await page.evaluate(async () => {
+      jsreport.openInWindow({ filename: 'test.pdf', title: 'mytitle' }, {
+        template: {
+          content: '<h1>Hello world</h1>',
+          engine: 'none',
+          recipe: 'chrome-pdf'
+        }
+      })
+    })
+    const pages = await browser.pages()
+    pages.length.should.be.eql(2)
+  })
+
+  it('should expose download', async () => {
+    await page.evaluate(async () => {
+      jsreport.download('test.pdf', {
+        template: {
+          content: '<h1>Hello world</h1>',
+          engine: 'none',
+          recipe: 'chrome-pdf'
+        }
+      })
+    })
+    const pages = await browser.pages()
+    pages.length.should.be.eql(2)
   })
 })
 

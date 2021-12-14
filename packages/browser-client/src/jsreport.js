@@ -60,19 +60,41 @@ class RenderResponse {
    * @param {string} options.windowName - name of the window
    * @param {string} options.windowFeatures - features of the window
    * @param {Number} options.cleanInterval - how often to check if the window is closed to clean up the object URL
+   * @param {Number} options.title - tab title name
    * @returns {Promise<Window}
    */
   async openInWindow ({
     cleanInterval = 5000,
     windowName,
-    windowFeatures
+    windowFeatures,
+    title
   } = { }) {
     const blob = await this.response.blob()
     const objectURL = URL.createObjectURL(blob, windowName, windowFeatures)
-    const w = window.open(objectURL)
+
+    const previewURL = window.URL.createObjectURL(new Blob([`
+    <html>
+      <head>
+        <title>${title || 'report'}</title>
+        <style>
+          html, body {
+            margin: 0px;
+            width: 100%;
+            height: 100%;
+          }
+        </style>
+      </head>
+      <body>
+        <iframe src="${objectURL}" frameborder="0" width="100%" height="100%" />
+      </body>
+    </html>
+  `], { type: 'text/html' }))
+
+    const w = window.open(previewURL)
     const interval = setInterval(() => {
-      if (w.closed) {
+      if (w && w.closed) {
         URL.revokeObjectURL(objectURL)
+        URL.revokeObjectURL(previewURL)
         clearInterval(interval)
       }
     }, cleanInterval)
@@ -138,6 +160,72 @@ class JsReportClient {
     }
 
     return res
+  }
+
+  _submitFormRequest (req, target, title) {
+    const mapForm = document.createElement('form')
+    mapForm.target = target
+    mapForm.id = new Date().getTime()
+    mapForm.method = 'POST'
+    mapForm.action = this.serverUrl + '/api/report/' + encodeURIComponent(title)
+
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'renderRequestContent'
+    input.value = JSON.stringify(req)
+    mapForm.appendChild(input)
+    document.body.appendChild(mapForm)
+
+    function submit (i) {
+      if (i > 10) {
+        return console.log('Unable to submit render form.')
+      }
+      try {
+        mapForm.submit()
+        mapForm.outerHTML = ''
+      } catch (e) {
+        setTimeout(function () {
+          submit(i + 1)
+        }, 50)
+      }
+    }
+
+    submit(0)
+  }
+
+  /**
+   * Render report in remote server and initiate download
+   * This method doesnt support submiting to jsreport with authentification enabled
+   * @param {filename} new tab title
+   * @param {RenderRequest} renderRequest
+   */
+  download (filename, req) {
+    const request = Object.assign({}, req)
+    request.options = Object.assign({}, request.options)
+    if (request.options['Content-Disposition'] == null) {
+      request.options['Content-Disposition'] = `attachment; filename="${filename}"`
+    }
+    this._submitFormRequest(request, '_self', filename)
+  }
+
+  /**
+   * Render report in remote server and open in new tab
+   * This method doesnt support submiting to jsreport with authentification enabled
+   * @param {Object} options
+   * @param {string} options.filename
+   * @param {string} options.title
+   * @param {RenderRequest} renderRequest
+   */
+  openInWindow ({ title, filename }, req) {
+    const request = Object.assign({}, req)
+    if (filename) {
+      request.options = Object.assign({}, request.options)
+      if (request.options['Content-Disposition'] == null) {
+        request.options['Content-Disposition'] = `inline; filename="${filename}"`
+      }
+    }
+
+    this._submitFormRequest(request, '_blank', title)
   }
 
   /**

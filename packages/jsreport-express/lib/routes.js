@@ -125,7 +125,8 @@ module.exports = (app, reporter, exposedOptions) => {
       if (req.query.profilerMode === 'standard' || req.query.profilerMode === 'full') {
         reporter.express.streamRender(req.body, req, res, next)
       } else {
-        reporter.express.render(req.body, req, res, next)
+        //support for browser client sending renderRequestContent in form element        
+        reporter.express.render(req.body.renderRequestContent || req.body, req, res, next)
       }
     }
 

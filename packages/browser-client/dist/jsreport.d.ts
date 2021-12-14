@@ -7,6 +7,26 @@ declare class JsReportClient {
         path: any;
         body: any;
     }): Promise<Response>;
+    _submitFormRequest(req: any, target: any, title: any): void;
+    /**
+     * Render report in remote server and initiate download
+     * This method doesnt support submiting to jsreport with authentification enabled
+     * @param {filename} new tab title
+     * @param {RenderRequest} renderRequest
+     */
+    download(filename: any, req: any): void;
+    /**
+     * Render report in remote server and open in new tab
+     * This method doesnt support submiting to jsreport with authentification enabled
+     * @param {Object} options
+     * @param {string} options.filename
+     * @param {string} options.title
+     * @param {RenderRequest} renderRequest
+     */
+    openInWindow({ title, filename }: {
+        filename: string;
+        title: string;
+    }, req: any): void;
     /**
      * Render report in remote server
      * @param {RenderRequest} renderRequest
@@ -52,12 +72,14 @@ declare class RenderResponse {
      * @param {string} options.windowName - name of the window
      * @param {string} options.windowFeatures - features of the window
      * @param {Number} options.cleanInterval - how often to check if the window is closed to clean up the object URL
+     * @param {Number} options.title - tab title name
      * @returns {Promise<Window}
      */
-    openInWindow({ cleanInterval, windowName, windowFeatures }?: {
+    openInWindow({ cleanInterval, windowName, windowFeatures, title }?: {
         windowName: string;
         windowFeatures: string;
         cleanInterval: number;
+        title: number;
     }): Promise<Window>;
     /**
      * Return the response as object URL. Remember you need to revoke the object URL when you are done with it
