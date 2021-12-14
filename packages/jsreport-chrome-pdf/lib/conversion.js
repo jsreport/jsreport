@@ -3,6 +3,7 @@ const hasOwn = require('has-own-deep')
 
 module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req, imageExecution, allowLocalFilesAccess, options }) => {
   const optionsToUse = Object.assign({}, options)
+  optionsToUse.timeout = timeout
 
   if (optionsToUse.waitForNetworkIdle == null && optionsToUse.waitForNetworkIddle != null) {
     optionsToUse.waitForNetworkIdle = optionsToUse.waitForNetworkIddle
