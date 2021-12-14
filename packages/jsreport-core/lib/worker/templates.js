@@ -1,4 +1,5 @@
 const extend = require('node.extend.without.arrays')
+const omit = require('lodash.omit')
 
 module.exports = (reporter) => {
   reporter.addRequestContextMetaConfig('currentFolderPath', { sandboxReadOnly: true })
@@ -35,8 +36,9 @@ module.exports = (reporter) => {
       })
     }
 
-    // store a copy to prevent side-effects
-    req.template = template ? extend(true, {}, template, req.template) : req.template
+    // store a copy to prevent side-effects, we ignore name from the req.template because it can be path "/path/to/template"
+    // and we want that req.template.name be always the real template name
+    req.template = template ? extend(true, {}, template, omit(req.template, ['name'])) : req.template
     req.template.content = req.template.content || ''
 
     reporter.logger.info(

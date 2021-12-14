@@ -73,6 +73,48 @@ describe('localization', () => {
     res.content.toString().should.be.eql('Hello')
   })
 
+  it('should provide localize helper with relative path and template.name as path', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'afolder',
+      shortid: 'afolder'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      content: "{{localize 'message' '../localization'}}",
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 'template',
+      folder: {
+        shortid: 'afolder'
+      }
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        message: 'Hello'
+      })),
+      folder: {
+        shortid: 'localization'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: '/afolder/template'
+      },
+      options: {
+        language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql('Hello')
+  })
+
   it('should provide localize helper with absolute path', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'afolder',
