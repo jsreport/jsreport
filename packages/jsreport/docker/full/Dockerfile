@@ -61,8 +61,7 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0 \
     @jsreport/jsreport-unoconv@3.0.0 \
     cheerio-page-eval@1.0.0
 
-RUN npm uninstall -g @jsreport/jsreport-cli && \
-    npm cache clean -f && rm -rf /tmp/*
+RUN npm cache clean -f && rm -rf /tmp/*
 
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
 COPY ./packages/jsreport/docker/full/run.sh run.sh

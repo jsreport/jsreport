@@ -70,8 +70,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 RUN npm i -g @jsreport/jsreport-cli
 RUN jsreport init
 
-RUN npm uninstall -g @jsreport/jsreport-cli && \
-    npm cache clean -f && rm -rf /tmp/*
+RUN npm cache clean -f && rm -rf /tmp/*
 
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
 COPY ./packages/jsreport/docker/default/run.sh run.sh
