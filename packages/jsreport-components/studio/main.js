@@ -591,10 +591,18 @@ var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
 
     var componentPayload = {
       component: {
-        content: entity.content || '',
-        shortid: componentShortid
+        shortid: componentShortid,
+        content: entity.content || ''
       }
     };
+
+    if (entity.engine != null) {
+      componentPayload.component.engine = entity.engine;
+    }
+
+    if (entity.helpers != null) {
+      componentPayload.component.helpers = entity.helpers;
+    }
 
     if (entity.data && entity.data.shortid) {
       // try to fill request.data from the active open tab with sample data

@@ -1,3 +1,5 @@
+const extend = require('node.extend.without.arrays')
+
 module.exports = function (reporter, definition) {
   reporter.documentStore.registerEntityType('ComponentType', {
     name: { type: 'Edm.String' },
@@ -52,19 +54,24 @@ module.exports = function (reporter, definition) {
           })
         }
 
-        const componentEntity = await reporter.documentStore.collection('components').findOne({
+        let componentEntity = await reporter.documentStore.collection('components').findOne({
           shortid: component.shortid
         }, localReq)
 
-        if (!componentEntity) {
+        if (!componentEntity && component.content == null) {
           throw reporter.createError(`Component does not exists with shortid "${component.shortid}"`, {
             weak: true,
             statusCode: 404
           })
         }
 
-        if (Object.prototype.hasOwnProperty.call(component, 'content')) {
-          componentEntity.content = component.content
+        componentEntity = componentEntity ? extend(true, {}, componentEntity, component) : component
+
+        if (componentEntity.engine == null) {
+          throw reporter.createError('Component engine must be specified', {
+            weak: true,
+            statusCode: 400
+          })
         }
 
         const payload = {

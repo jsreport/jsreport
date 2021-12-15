@@ -119,7 +119,7 @@ module.exports = async function executeScript (reporter, script, method, req, re
       executionFn,
       currentPath: entityPath,
       propertiesConfig: Object.keys(requestContextMetaConfig).reduce((acu, prop) => {
-      // configure properties inside the context of sandbox
+        // configure properties inside the context of sandbox
         acu[`__request.context.${prop}`] = requestContextMetaConfig[prop]
         return acu
       }, { '__request.context': { sandboxReadOnly: true } })

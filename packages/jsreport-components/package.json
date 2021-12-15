@@ -22,14 +22,15 @@
   ],
   "scripts": {
     "build": "jsreport-studio-build",
+    "lint": "standard",
     "prepublish": "jsreport-studio-build",
     "run": "npm run build && jsreport-studio-start --run-only",
     "start": "jsreport-studio-start",
-    "lint": "standard",
     "test": "mocha test --timeout 5000 --exit && standard",
     "test:watch": "mocha test --watch"
   },
   "dependencies": {
+    "node.extend.without.arrays": "1.1.6",
     "react-copy-to-clipboard": "5.0.2"
   },
   "devDependencies": {
