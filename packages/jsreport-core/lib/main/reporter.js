@@ -385,8 +385,8 @@ class MainReporter extends Reporter {
 
       if (
         this.options.enableRequestReportTimeout &&
-      req.options &&
-      req.options.timeout != null
+        req.options &&
+        req.options.timeout != null
       ) {
         reportTimeout = req
       }
@@ -511,7 +511,6 @@ class MainReporter extends Reporter {
           options: req.options
         }
       }, {
-      // TODO add worker timeout
         timeout,
         timeoutErrorMessage: options.timeoutErrorMessage || ('Timeout during worker action ' + actionName),
         executeMain: async (data) => {

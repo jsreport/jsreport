@@ -52,6 +52,10 @@ module.exports = ({
               worker.running = true
               return await worker.execute(userData, options)
             } catch (e) {
+              if (e.code === 'WORKER_TIMEOUT' && options.timeoutErrorMessage) {
+                e.message = options.timeoutErrorMessage
+              }
+
               if (e.code === 'WORKER_TIMEOUT' || e.code === 'WORKER_CRASHED') {
                 worker.needRestart = true
               }
