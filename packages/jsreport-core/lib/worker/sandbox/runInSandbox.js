@@ -34,7 +34,7 @@ module.exports = (reporter) => {
       formatError: (error, moduleName) => {
         error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
       },
-      modulesCache: reporter.requestModulesCache.get(req.context.id),
+      modulesCache: reporter.requestModulesCache.get(req.context.rootId),
       globalModules: reporter.options.sandbox.nativeModules || [],
       allowedModules: reporter.options.sandbox.allowedModules,
       propertiesConfig,

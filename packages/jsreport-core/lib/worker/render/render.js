@@ -141,7 +141,9 @@ module.exports = (reporter) => {
       request.context.startTimestamp = new Date().getTime()
       request.context.systemHelpers = ''
 
-      reporter.requestModulesCache.set(request.context.id, Object.create(null))
+      if (parentReq == null) {
+        reporter.requestModulesCache.set(request.context.rootId, Object.create(null))
+      }
 
       reporter.logger.info(`Starting rendering request ${request.context.reportCounter} (user: ${(request.context.user ? request.context.user.username : 'null')})`, request)
 
@@ -203,7 +205,9 @@ module.exports = (reporter) => {
 
       throw e
     } finally {
-      reporter.requestModulesCache.delete(request.context.id)
+      if (parentReq == null) {
+        reporter.requestModulesCache.delete(request.context.rootId)
+      }
     }
   }
 }
