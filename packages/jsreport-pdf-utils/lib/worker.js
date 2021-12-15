@@ -175,7 +175,7 @@ module.exports = (reporter, definition) => {
     try {
       res.content = await (require('./pdfProcessing.js')(
         {
-          pdfContent: res.content.toString('base64'),
+          pdfContent: res.content,
           operations: req.template.pdfOperations || [],
           outlines: req.context.pdfUtilsOutlines,
           pdfMeta,

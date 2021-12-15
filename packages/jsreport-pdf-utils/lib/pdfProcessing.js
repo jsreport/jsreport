@@ -22,7 +22,7 @@ module.exports = async (inputs, reporter, req, res) => {
     return res.content
   }
 
-  const pdfBuf = Buffer.from(pdfContent, 'base64')
+  const pdfBuf = pdfContent
   const manipulator = PdfManipulator(pdfBuf, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks, hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields })
   const operationsToProcess = operations.filter(o => o.templateShortid || o.template)
 
