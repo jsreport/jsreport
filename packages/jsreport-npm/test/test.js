@@ -33,7 +33,7 @@ describe('npm', function () {
         recipe: 'html',
         helpers: `
           const jsreport = require('jsreport-proxy')
-          const moment = await jsreport.npm.require('moment@2.25.3')          
+          const moment = await jsreport.npm.require('moment@2.25.3')
 
           function test() {
             return moment().format('YYYY-MM-DD')
@@ -54,8 +54,8 @@ describe('npm', function () {
         helpers: `
           const jsreport = require('jsreport-proxy')
           const moment1 = await jsreport.npm.require('moment@2.25.3')
-          const moment2 = await jsreport.npm.require('moment@2.26.0')          
-          const moment3 = await jsreport.npm.require('moment@moment/moment')          
+          const moment2 = await jsreport.npm.require('moment@2.26.0')
+          const moment3 = await jsreport.npm.require('moment@moment/moment')
 
           function test() {
             return moment1 === moment2 ? 'equals' : 'not'
@@ -75,7 +75,7 @@ describe('npm', function () {
         helpers: `
           const jsreport = require('jsreport-proxy')
           const moment = await jsreport.npm.require('moment@2.29.1')
-          moment.foo = 'xxxx'      
+          moment.foo = 'xxxx'
         `
       }
     })
@@ -89,7 +89,7 @@ describe('npm', function () {
           const moment = await jsreport.npm.require('moment@2.29.1')
           function test() {
             return moment.foo
-          }      
+          }
         `
       }
     })
@@ -132,7 +132,7 @@ describe('npm with disabled allowLocalFilesAccess', function () {
         recipe: 'html',
         helpers: `
           const jsreport = require('jsreport-proxy')
-          const moment = await jsreport.npm.require('moment@2.29.1')        
+          const moment = await jsreport.npm.require('moment@2.29.1')
         `
       }
     }).should.be.rejectedWith(/require/)
@@ -165,7 +165,7 @@ describe('npm with disabled allowLocalFilesAccess but enabled npm.allowedModules
         recipe: 'html',
         helpers: `
           const jsreport = require('jsreport-proxy')
-          const moment = await jsreport.npm.require('moment@2.29.1')        
+          const moment = await jsreport.npm.require('moment@2.29.1')
         `
       }
     })
@@ -198,7 +198,7 @@ describe('npm with disabled allowLocalFilesAccess but enabled npm.allowedModules
         recipe: 'html',
         helpers: `
           const jsreport = require('jsreport-proxy')
-          const moment = await jsreport.npm.require('moment@2.29.1')        
+          const moment = await jsreport.npm.require('moment@2.29.1')
         `
       }
     })

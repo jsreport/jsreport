@@ -75,15 +75,22 @@ module.exports = (reporter) => {
     const functionNames = getTopLevelFunctions(userCode)
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
-        .then((topLevelFunctions) => ${executionFnName}({
-            topLevelFunctions: {
-                ...topLevelFunctions,
-                ...__topLevelFunctions
-            },
-            require,
-            console,
-            context: this
-        })).catch(__handleError);`
+        .then((topLevelFunctions) => {
+          const mergedTopLevelFunctions = { ...topLevelFunctions, ...__topLevelFunctions }
+
+          // expose top level functions to the sandbox context
+          // so helpers can call other helpers (from shared asset helpers, or .registerHelpers call from proxy)
+          for (const [topLevelFnName, topLevelFn] of Object.entries(mergedTopLevelFunctions)) {
+            this[topLevelFnName] = topLevelFn
+          }
+
+          return ${executionFnName}({
+              topLevelFunctions: mergedTopLevelFunctions,
+              require,
+              console,
+              context: this
+          })
+        }).catch(__handleError);`
 
     return run(executionCode, {
       filename: 'sandbox.js',

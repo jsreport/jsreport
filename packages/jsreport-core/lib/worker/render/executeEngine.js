@@ -33,7 +33,6 @@ module.exports = (reporter) => {
         engine: engineImpl,
         content,
         helpers,
-        systemHelpers: req.context.systemHelpers,
         data
       }, { handleErrors: false, entity, entitySet }, req)
 
@@ -70,7 +69,6 @@ module.exports = (reporter) => {
         engine,
         content: req.template.content,
         helpers: req.template.helpers,
-        systemHelpers: req.context.systemHelpers,
         data: req.data
       }, {
         handleErrors: true,
@@ -82,7 +80,7 @@ module.exports = (reporter) => {
     }
   }
 
-  async function executeEngine ({ engine, content, helpers, systemHelpers, data }, { handleErrors, entity, entitySet }, req) {
+  async function executeEngine ({ engine, content, helpers, data }, { handleErrors, entity, entitySet }, req) {
     let entityPath
 
     if (entity._id) {
@@ -90,7 +88,21 @@ module.exports = (reporter) => {
       entityPath = entityPath.substring(0, entityPath.lastIndexOf('/'))
     }
 
-    const joinedHelpers = systemHelpers + '\n' + (helpers || '')
+    const registerResults = await reporter.registerHelpersListeners.fire(req)
+    const systemHelpers = []
+
+    for (const result of registerResults) {
+      if (result == null) {
+        continue
+      }
+
+      if (typeof result === 'string') {
+        systemHelpers.push(result)
+      }
+    }
+
+    const systemHelpersStr = systemHelpers.join('\n')
+    const joinedHelpers = systemHelpersStr + '\n' + (helpers || '')
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
     const executionFn = async ({ require, console, topLevelFunctions }) => {
@@ -168,7 +180,7 @@ module.exports = (reporter) => {
         userCode: joinedHelpers,
         executionFn,
         currentPath: entityPath,
-        errorLineNumberOffset: systemHelpers.split('\n').length,
+        errorLineNumberOffset: systemHelpersStr.split('\n').length,
         onRequire: (moduleName, { context }) => {
           if (engine.onRequire) {
             return engine.onRequire(moduleName, { context })
@@ -211,7 +223,7 @@ module.exports = (reporter) => {
 
   function wrapHelperForAsyncSupport (fn, asyncResultMap) {
     return function (...args) {
-    // important to call the helper with the current this to preserve the same behaviour
+    // important to call the helper with the current this to preserve the same behavior
       const fnResult = fn.call(this, ...args)
 
       if (fnResult == null || typeof fnResult.then !== 'function') {

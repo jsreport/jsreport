@@ -18,7 +18,7 @@ module.exports = (obj, parent) => {
   request.template = extend(true, {}, obj.template)
 
   if (parent) {
-    request.context = Object.assign({}, request.context, omit(parent.context, ['id', 'logs', 'systemHelpers']))
+    request.context = Object.assign({}, request.context, omit(parent.context, ['id', 'logs']))
     request.context.isChildRequest = true
     request.options = Object.assign({}, request.options, parent.options)
 

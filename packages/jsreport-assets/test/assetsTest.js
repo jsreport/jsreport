@@ -67,6 +67,53 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract static asset which is marked as shared helper and make them callable to other helpers', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      content: 'function foo() { return "hello" }'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{:~bar()}}',
+        recipe: 'html',
+        engine: 'jsrender',
+        helpers: `
+          function bar () {
+            return foo() +  ' world'
+          }
+        `
+      }
+    })
+
+    res.content.toString().should.be.eql('hello world')
+  })
+
+  it('should extract static asset which is marked as shared helper and make them async callable to other helpers', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      content: 'async function foo() { return new Promise(resolve => setTimeout(resolve("hello"), 500)) }'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{:~bar()}}',
+        recipe: 'html',
+        engine: 'jsrender',
+        helpers: `
+          async function bar () {
+            const fromFoo = await foo()
+            return fromFoo +  ' world'
+          }
+        `
+      }
+    })
+
+    res.content.toString().should.be.eql('hello world')
+  })
+
   it('should extract static asset which is marked as shared helper and don\'t break stack traces', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.js',
@@ -1252,6 +1299,33 @@ describe('assets', function () {
         }
       })
       res.content.toString().should.be.eql('foo')
+    })
+
+    it('should expose jsreport.assets.registerHelpers and make them callable by other helpers', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.js',
+        content: `function fn() {
+          return new Promise((resolve) => setTimeout(() => resolve('foo'), 100))
+        }`
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{{:~mainFn()}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          helpers: `
+            const jsreport = require('jsreport-proxy')
+            await jsreport.assets.registerHelpers('foo.js')
+
+            async function mainFn () {
+              const fnResult = await fn()
+              return fnResult + ' bar'
+            }
+          `
+        }
+      })
+      res.content.toString().should.be.eql('foo bar')
     })
 
     it('jsreport.assets.registerHelpers should support async scope inside', async () => {

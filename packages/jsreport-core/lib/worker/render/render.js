@@ -13,8 +13,6 @@ const moduleHelper = require('./moduleHelper')
 let reportCounter = 0
 
 module.exports = (reporter) => {
-  reporter.addRequestContextMetaConfig('systemHelpers', { sandboxHidden: true })
-
   moduleHelper(reporter)
 
   const executeEngine = ExecuteEngine(reporter)
@@ -53,14 +51,6 @@ module.exports = (reporter) => {
         statusCode: 400
       })
     }
-
-    let helpersResults = await reporter.registerHelpersListeners.fire(request)
-
-    helpersResults = helpersResults.filter((result) => {
-      return result != null
-    })
-
-    request.context.systemHelpers = helpersResults.join('\n')
 
     const engineProfilerEvent = reporter.profiler.emit({
       type: 'operationStart',
@@ -139,7 +129,6 @@ module.exports = (reporter) => {
 
       request.context.reportCounter = ++reportCounter
       request.context.startTimestamp = new Date().getTime()
-      request.context.systemHelpers = ''
 
       if (parentReq == null) {
         reporter.requestModulesCache.set(request.context.rootId, Object.create(null))
