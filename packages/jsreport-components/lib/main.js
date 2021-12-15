@@ -43,6 +43,7 @@ module.exports = function (reporter, definition) {
     app.post('/api/component', async (req, res, next) => {
       try {
         const component = req.body.component
+        const localReq = reporter.Request(req)
 
         if (!component?.shortid) {
           throw reporter.createError('Missing component.shortid parameter in body', {
@@ -53,7 +54,7 @@ module.exports = function (reporter, definition) {
 
         const componentEntity = await reporter.documentStore.collection('components').findOne({
           shortid: component.shortid
-        }, req)
+        }, localReq)
 
         if (!componentEntity) {
           throw reporter.createError(`Component does not exists with shortid "${component.shortid}"`, {
@@ -88,7 +89,7 @@ module.exports = function (reporter, definition) {
                 query.name = componentEntity.data.name
               }
 
-              const items = await reporter.documentStore.collection('data').find(query, req)
+              const items = await reporter.documentStore.collection('data').find(query, localReq)
 
               if (items.length !== 1) {
                 throw reporter.createError(`Data entry not found (${(componentEntity.data.shortid || componentEntity.data.name)})`, {
@@ -128,7 +129,7 @@ module.exports = function (reporter, definition) {
 
         const componentHtml = await reporter.executeWorkerAction('component-preview', payload, {
           timeoutErrorMessage: 'Timeout during execution of component preview'
-        }, req)
+        }, localReq)
 
         res.status(200).send(componentHtml)
       } catch (err) {
