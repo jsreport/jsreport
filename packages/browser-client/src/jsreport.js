@@ -56,7 +56,7 @@ class RenderResponse {
 
   /**
    * Opens the response content in a new browser window
-   * @param {Object} options - optinal configs passed to the window.open
+   * @param {Object} options - optional configs passed to the window.open
    * @param {string} options.windowName - name of the window
    * @param {string} options.windowFeatures - features of the window
    * @param {Number} options.cleanInterval - how often to check if the window is closed to clean up the object URL
@@ -116,14 +116,43 @@ class JsReportClient {
     this.headers = {}
   }
 
+  _normalizeUrl (baseUrl, ...paths) {
+    const rootUrl = new URL(baseUrl)
+    const normalizedPaths = []
+
+    for (const path of paths) {
+      let normalizedPath = path
+
+      if (normalizedPath[0] === '/') {
+        normalizedPath = normalizedPath.slice(1)
+      }
+
+      if (normalizedPath[normalizedPath.length - 1] === '/') {
+        normalizedPath = normalizedPath.slice(0, -1)
+      }
+
+      if (normalizedPath !== '') {
+        normalizedPaths.push(normalizedPath)
+      }
+    }
+
+    if (normalizedPaths.length === 0) {
+      return rootUrl.toString()
+    }
+
+    return new URL(normalizedPaths.join('/'), rootUrl).toString()
+  }
+
   async _jsreportRequest ({ method, path, body }) {
     if (!this.serverUrl) {
       throw new Error('The script was not linked from jsreport. You need to fill jsreport.serverUrl property with valid url to jsreport server.')
     }
 
+    const reportUrl = this._normalizeUrl(this.serverUrl, path)
+
     let res
     try {
-      res = await fetch(this.serverUrl + path, {
+      res = await fetch(reportUrl, {
         headers: {
           'Content-Type': 'application/json',
           ...this.headers
@@ -167,7 +196,7 @@ class JsReportClient {
     mapForm.target = target
     mapForm.id = new Date().getTime()
     mapForm.method = 'POST'
-    mapForm.action = this.serverUrl + '/api/report/' + encodeURIComponent(title)
+    mapForm.action = this._normalizeUrl(this.serverUrl, '/api/report', encodeURIComponent(title))
 
     const input = document.createElement('input')
     input.type = 'hidden'
@@ -195,11 +224,19 @@ class JsReportClient {
 
   /**
    * Render report in remote server and initiate download
-   * This method doesnt support submiting to jsreport with authentification enabled
+   * This method doesn't support submitting to jsreport with authentication enabled
    * @param {filename} new tab title
    * @param {RenderRequest} renderRequest
    */
   download (filename, req) {
+    if (
+      filename == null ||
+      typeof filename !== 'string' ||
+      filename.trim() === ''
+    ) {
+      throw new Error('jsreport.download requires filename parameter and must be a non empty string')
+    }
+
     const request = Object.assign({}, req)
     request.options = Object.assign({}, request.options)
     if (request.options['Content-Disposition'] == null) {
@@ -210,13 +247,29 @@ class JsReportClient {
 
   /**
    * Render report in remote server and open in new tab
-   * This method doesnt support submiting to jsreport with authentification enabled
+   * This method doesn't support submitting to jsreport with authentication enabled
    * @param {Object} options
    * @param {string} options.filename
    * @param {string} options.title
    * @param {RenderRequest} renderRequest
    */
-  openInWindow ({ title, filename }, req) {
+  openInWindow ({ title, filename } = {}, req) {
+    if (
+      title == null ||
+      typeof title !== 'string' ||
+      title.trim() === ''
+    ) {
+      throw new Error('jsreport.openInWindow requires title parameter and must be a non empty string')
+    }
+
+    if (
+      filename == null ||
+      typeof filename !== 'string' ||
+      filename.trim() === ''
+    ) {
+      throw new Error('jsreport.openInWindow requires filename parameter and must be a non empty string')
+    }
+
     const request = Object.assign({}, req)
     if (filename) {
       request.options = Object.assign({}, request.options)

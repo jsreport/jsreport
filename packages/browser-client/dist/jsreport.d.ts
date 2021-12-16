@@ -2,6 +2,7 @@ export default jsreportInstance;
 declare const jsreportInstance: JsReportClient;
 declare class JsReportClient {
     headers: {};
+    _normalizeUrl(baseUrl: any, ...paths: any[]): string;
     _jsreportRequest({ method, path, body }: {
         method: any;
         path: any;
@@ -10,14 +11,14 @@ declare class JsReportClient {
     _submitFormRequest(req: any, target: any, title: any): void;
     /**
      * Render report in remote server and initiate download
-     * This method doesnt support submiting to jsreport with authentification enabled
+     * This method doesn't support submitting to jsreport with authentication enabled
      * @param {filename} new tab title
      * @param {RenderRequest} renderRequest
      */
     download(filename: any, req: any): void;
     /**
      * Render report in remote server and open in new tab
-     * This method doesnt support submiting to jsreport with authentification enabled
+     * This method doesn't support submitting to jsreport with authentication enabled
      * @param {Object} options
      * @param {string} options.filename
      * @param {string} options.title
@@ -68,7 +69,7 @@ declare class RenderResponse {
     toDataURI(): Promise<string>;
     /**
      * Opens the response content in a new browser window
-     * @param {Object} options - optinal configs passed to the window.open
+     * @param {Object} options - optional configs passed to the window.open
      * @param {string} options.windowName - name of the window
      * @param {string} options.windowFeatures - features of the window
      * @param {Number} options.cleanInterval - how often to check if the window is closed to clean up the object URL
