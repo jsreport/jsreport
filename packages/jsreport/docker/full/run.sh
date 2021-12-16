@@ -24,10 +24,10 @@ if [ "$(ls -A /jsreport)" ]; then
   chown -R jsreport:jsreport /jsreport
 fi
 
-if [ $EUID > 0 ]; then
-  # If we're not running as root, we can't use `gosu` (and don't need to)
-  exec node "server.js"
-else
+if [ "$(id -u)" = '0' ]; then
   # If we are root, run the app as the lower-privilege `jsreport` user
-  exec gosu jsreport node "server.js"
+  exec gosu jsreport node "server.js"  
+else
+  # If we're not root, we can't use `gosu` (and don't need to)
+  exec node "server.js"
 fi
