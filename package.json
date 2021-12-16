@@ -26,7 +26,7 @@
   "devDependencies": {
     "archiver": "5.3.0",
     "cross-env": "5.2.1",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "standard": {
     "ignore": [

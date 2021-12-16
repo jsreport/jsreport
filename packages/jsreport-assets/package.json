@@ -51,7 +51,7 @@
     "mocha": "8.2.1",
     "moment": "2.29.1",
     "should": "13.2.3",
-    "standard": "16.0.3",
+    "standard": "16.0.4",
     "supertest": "3.3.0"
   },
   "engines": {

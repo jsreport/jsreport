@@ -28,7 +28,7 @@
     "@jsreport/studio-dev": "3.0.1",
     "mocha": "5.0.1",
     "should": "13.2.3",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "peerDependencies": {
     "handlebars": "4.x.x"

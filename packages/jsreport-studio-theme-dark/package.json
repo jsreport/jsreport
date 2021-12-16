@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@jsreport/studio-dev": "3.0.1",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

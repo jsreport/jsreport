@@ -52,7 +52,7 @@
     "@jsreport/jsreport-docker-workers": "3.0.0-beta.1",
     "mocha": "8.3.2",
     "should": "13.2.3",
-    "standard": "16.0.3",
+    "standard": "16.0.4",
     "supertest": "6.1.3"
   },
   "standard": {

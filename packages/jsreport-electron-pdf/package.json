@@ -38,7 +38,7 @@
     "in-publish": "2.0.1",
     "mocha": "8.3.2",
     "should": "13.2.3",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

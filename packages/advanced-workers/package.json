@@ -23,7 +23,7 @@
   "devDependencies": {
     "mocha": "8.2.1",
     "should": "13.2.3",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

@@ -51,7 +51,7 @@
     "del": "6.0.0",
     "sinon": "9.2.2",
     "socket.io-client": "2.4.0",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

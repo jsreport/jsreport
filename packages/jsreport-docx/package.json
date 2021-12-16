@@ -53,7 +53,7 @@
     "mocha": "6.1.4",
     "nock": "11.7.2",
     "should": "13.2.3",
-    "standard": "16.0.3",
+    "standard": "16.0.4",
     "word-extractor": "1.0.4"
   },
   "engines": {

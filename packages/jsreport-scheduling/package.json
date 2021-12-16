@@ -44,7 +44,7 @@
     "mocha": "5.2.0",
     "ordinal-number-suffix": "0.1.2",
     "should": "13.2.3",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

@@ -41,7 +41,7 @@
     "ncp": "2.0.0",
     "rimraf": "2.6.3",
     "should": "13.2.3",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

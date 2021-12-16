@@ -58,7 +58,7 @@
     "yargs-parser": "13.1.2"
   },
   "devDependencies": {
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "engines": {
     "node": ">=16.11"

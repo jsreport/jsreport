@@ -42,7 +42,7 @@
     "@jsreport/studio-dev": "3.0.1",
     "mocha": "6.1.4",
     "should": "13.2.3",
-    "standard": "16.0.3",
+    "standard": "16.0.4",
     "textract": "2.5.0"
   },
   "engines": {

@@ -105,7 +105,7 @@
     "shortid": "2.2.15",
     "should": "13.2.3",
     "socket.io-client": "2.4.0",
-    "standard": "16.0.3",
+    "standard": "16.0.4",
     "string-replace-loader": "2.3.0",
     "superagent": "5.3.1",
     "supertest": "4.0.2",

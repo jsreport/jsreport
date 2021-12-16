@@ -43,7 +43,7 @@
     "fs-extra": "2.1.2",
     "mocha": "3.2.0",
     "should": "11.2.1",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "standard": {
     "ignore": [

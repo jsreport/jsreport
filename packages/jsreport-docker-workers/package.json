@@ -39,7 +39,7 @@
     "parse-pdf": "1.0.0",
     "puppeteer": "10.4.0",
     "should": "13.2.3",
-    "standard": "16.0.3"
+    "standard": "16.0.4"
   },
   "standard": {
     "env": {

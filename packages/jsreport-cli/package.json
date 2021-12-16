@@ -84,7 +84,7 @@
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "sinon": "4.4.0",
-    "standard": "16.0.3",
+    "standard": "16.0.4",
     "std-mocks": "1.0.1"
   },
   "optionalDependencies": {
