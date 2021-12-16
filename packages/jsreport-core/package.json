@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-core",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -32,7 +32,7 @@
     "@babel/code-frame": "7.12.13",
     "@babel/parser": "7.14.4",
     "@babel/traverse": "7.12.9",
-    "@jsreport/advanced-workers": "1.1.0",
+    "@jsreport/advanced-workers": "1.2.0",
     "@jsreport/mingo": "2.4.1",
     "ajv": "6.12.6",
     "app-root-path": "2.0.1",

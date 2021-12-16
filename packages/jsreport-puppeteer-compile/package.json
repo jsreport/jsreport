@@ -27,8 +27,8 @@
     "shortid": "2.2.15"
   },
   "devDependencies": {
-    "@jsreport/jsreport-chrome-pdf": "3.0.0",
-    "@jsreport/jsreport-core": "3.1.1",
+    "@jsreport/jsreport-chrome-pdf": "3.1.0",
+    "@jsreport/jsreport-core": "3.2.0",
     "mocha": "5.0.5",
     "puppeteer": "10.4.0",
     "should": "13.2.3",

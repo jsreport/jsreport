@@ -26,8 +26,8 @@
     "mongodb": "3.6.5"
   },
   "devDependencies": {
+    "@jsreport/jsreport-core": "3.2.0",
     "cross-env": "6.0.3",
-    "@jsreport/jsreport-core": "3.1.1",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "16.0.4"

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-child-templates",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "jsreport extension adding support to combine one template from multiple sub templates",
   "keywords": [
     "jsreport",
@@ -30,10 +30,10 @@
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {
-    "handlebars": "4.7.7",
-    "@jsreport/jsreport-core": "3.1.1",
+    "@jsreport/jsreport-core": "3.2.0",
     "@jsreport/jsreport-handlebars": "3.0.0",
     "@jsreport/jsreport-jsrender": "3.0.0",
+    "handlebars": "4.7.7",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "16.0.4"

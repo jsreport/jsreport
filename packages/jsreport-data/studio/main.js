@@ -126,7 +126,7 @@ _jsreportStudio2.default.addEntitySet({
 });
 
 _jsreportStudio2.default.addPropertiesComponent(_DataProperties2.default.title, _DataProperties2.default, function (entity) {
-  return entity.__entitySet === 'templates';
+  return entity.__entitySet === 'templates' || entity.__entitySet === 'components';
 });
 _jsreportStudio2.default.addEditorComponent('data', _DataEditor2.default, function (reformatter, entity) {
   return { dataJson: reformatter(entity.dataJson, 'js') };
@@ -138,11 +138,10 @@ _jsreportStudio2.default.runListeners.push(function (request, entities) {
   }
 
   // try to fill request.data from the active open tab with sample data
-
   var dataDetails = Object.keys(entities).map(function (e) {
     return entities[e];
   }).filter(function (d) {
-    return d.shortid === request.template.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isNew);
+    return d.shortid === request.template.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew);
   });
 
   if (!dataDetails.length) {
