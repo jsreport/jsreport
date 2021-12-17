@@ -1,6 +1,6 @@
 {
   "name": "jsreport",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -40,7 +40,6 @@
     "test": "mocha test --timeout 35000 && standard"
   },
   "dependencies": {
-    "handlebars": "4.7.7",
     "@jsreport/jsreport-assets": "3.1.0",
     "@jsreport/jsreport-authentication": "3.1.0",
     "@jsreport/jsreport-authorization": "3.1.0",
@@ -77,6 +76,7 @@
     "@jsreport/jsreport-text": "3.0.0",
     "@jsreport/jsreport-version-control": "3.0.1",
     "@jsreport/jsreport-xlsx": "3.1.0",
+    "handlebars": "4.7.7",
     "puppeteer": "10.4.0",
     "semver": "6.3.0"
   },
