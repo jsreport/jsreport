@@ -402,9 +402,29 @@ function addPassport (reporter, app, admin, definition) {
 
       passport.authenticate('oidc', {
         redirect_uri: callbackLink
-      }, (err, user) => {
-        if (err) {
-          return next(err)
+      }, (err, user, challenge) => {
+        if (err || !user) {
+          let errFound
+
+          if (err == null) {
+            let challengeErr
+
+            if (challenge != null && challenge.message != null) {
+              challengeErr = new Error(`${challenge.message}${challenge.jwt != null ? ` (jwt: "${challenge.jwt}")` : ''}`)
+
+              if (challenge.stack != null) {
+                challengeErr.stack = challenge.stack
+              }
+            }
+
+            errFound = challengeErr || new Error('Unknown reason')
+          } else {
+            errFound = err
+          }
+
+          return next(reporter.createError('Authentication with authorization server failed', {
+            original: errFound
+          }))
         }
 
         req.logIn(user, (loginErr) => {

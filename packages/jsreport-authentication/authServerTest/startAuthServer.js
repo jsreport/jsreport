@@ -10,7 +10,11 @@ if (!fs.existsSync(path.join(__dirname, 'node_modules/oidc-provider'))) {
 const createOIDCServer = require('./authServer')
 
 createOIDCServer({
-  issuer: 'http://localhost:5000',
+  // we need to use custom ISSUER in case we proxy or expose jsreport at a custom hostname
+  // for example the internal server is localhost:5000 but we can use ngrok to expose it
+  // and the final public url will be different like "http://1eec-2001-1388-144f-741b-18b4-88d-f9ec-e55e.ngrok.io"
+  // in that case we need to use that url as the issuer for the jwt validation to pass correctly
+  issuer: process.env.ISSUER || 'http://localhost:5000',
   port: 5000,
   studioClient: {
     clientId: 'jsreport-studio',
