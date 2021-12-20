@@ -1,4 +1,4 @@
-FROM node:16.11.0-alpine3.14
+FROM node:16.13.1-alpine3.14
 EXPOSE 5488
 USER root
 
@@ -38,10 +38,10 @@ RUN apk update --no-cache && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=93.0.4577.82-r2 \
-    nss@edge \
-    freetype@edge \
-    harfbuzz@edge \
+    chromium@edge=93.0.4577.82-r0 \
+    nss \
+    freetype \
+    harfbuzz \
     ttf-freefont@edge \
     # just for now as we npm install from git
     git \
