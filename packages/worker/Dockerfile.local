@@ -2,11 +2,9 @@
 FROM ubuntu:xenial
 EXPOSE 2000
 
-ENV DEBIAN_FRONTEND noninteractive
-
 RUN adduser --disabled-password --gecos "" jsreport && \
     apt-get update && \
-    apt-get install -y --no-install-recommends libxss1 libgconf-2-4 libappindicator3-1 libxtst6 gnupg git curl wget ca-certificates && \
+    apt-get install -y --no-install-recommends libxss1 libgconf-2-4 libappindicator3-1 libxtst6 gnupg bzip2 git curl wget ca-certificates && \
     # chrome needs some base fonts
     apt-get install -y --no-install-recommends xfonts-base xfonts-75dpi && \
     # chrome
@@ -20,21 +18,10 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_93.0.4577.82-1_amd64.deb && \
     dpkg -i ./google-chrome*.deb && \
     rm google-chrome*.deb && \
-    # phantomjs
-    apt-get install -y --no-install-recommends libgtk2.0-dev \
-    libxtst-dev \
-    libxss1 \
-    libgconf2-dev \
-    libnss3-dev \
-    libasound2-dev \
-    xvfb \
-    xfonts-75dpi \
-    xfonts-base && \
-    curl -Lo phantomjs.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-linux-x86_64.tar.bz2 && \
-    tar jxvf phantomjs.tar.bz2 && \
-    chmod +x phantomjs-1.9.8-linux-x86_64/bin/phantomjs && \
-    mv phantomjs-1.9.8-linux-x86_64/bin/phantomjs /usr/local/bin/ && \
-    rm -rf phantomjs* && \
+    # fix duplicated chrome source, leave the image in clean state for other images can use
+    # apt-get correctly
+    rm -f /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
     # cleanup
     rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
     rm -rf /src/*.deb

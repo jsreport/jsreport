@@ -29,7 +29,7 @@ module.exports = {
           container: {
             type: 'object',
             default: {
-              image: 'jsreport/jsreport-worker',
+              image: 'jsreport/worker',
               namePrefix: 'jsreport_worker',
               exposedPort: 2000,
               basePublishPort: 2001,
@@ -44,7 +44,7 @@ module.exports = {
               logDriver: 'json-file'
             },
             properties: {
-              image: { type: 'string', default: 'jsreport/jsreport-worker' },
+              image: { type: 'string', default: 'jsreport/worker' },
               namePrefix: { type: 'string', default: 'jsreport_worker' },
               exposedPort: { type: 'number', default: 2000 },
               basePublishPort: { type: 'number', default: 2001 },
