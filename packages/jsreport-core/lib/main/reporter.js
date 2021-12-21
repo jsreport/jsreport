@@ -320,26 +320,29 @@ class MainReporter extends Reporter {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
     }
 
+    let options = {}
+    if (parentReq && !parentReq.__isJsreportRequest__) {
+      options = parentReq
+      parentReq = null
+    }
+
     req = Object.assign({}, req)
     req.context = Object.assign({}, req.context)
     req.context.rootId = req.context.rootId || generateRequestId()
     req.context.id = req.context.rootId
 
-    const worker = await this._workersManager.allocate(req, {
+    const worker = options.worker || await this._workersManager.allocate(req, {
       timeout: this.options.reportTimeout
     })
 
+    let keepWorker
     let workerAborted
-    if (parentReq && !parentReq.__isJsreportRequest__) {
-      const options = parentReq
-      parentReq = null
 
-      if (options.abortEmitter) {
-        options.abortEmitter.once('abort', () => {
-          workerAborted = true
-          worker.release(req).catch((e) => this.logger.error('Failed to release worker ' + e))
-        })
-      }
+    if (options.abortEmitter) {
+      options.abortEmitter.once('abort', () => {
+        workerAborted = true
+        worker.release(req).catch((e) => this.logger.error('Failed to release worker ' + e))
+      })
     }
 
     const res = { meta: {} }
@@ -391,9 +394,16 @@ class MainReporter extends Reporter {
         reportTimeout = req
       }
 
-      await this.beforeRenderListeners.fire(req, res)
+      await this.beforeRenderListeners.fire(req, res, { worker })
 
-      if (req.context.isFinished) {
+      // this is used so far just in the reports extension
+      // it wants to send to the client immediate response with link to the report status
+      // but the previous steps already allocated worker which has the parsed input request
+      // so we need to keep the worker active and let the subsequent real render call use it
+      // we cant move the main beforeRenderListener before the worker allocation, because at that point
+      // the request isn't parsed and we don't know the template and options
+      if (req.context.returnResponseAndKeepWorker) {
+        keepWorker = true
         res.stream = Readable.from(res.content)
         return res
       }
@@ -429,7 +439,7 @@ class MainReporter extends Reporter {
       await this.renderErrorListeners.fire(req, res, err)
       throw err
     } finally {
-      if (!workerAborted) {
+      if (!workerAborted && !keepWorker) {
         await worker.release(req)
       }
     }

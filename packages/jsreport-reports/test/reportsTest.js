@@ -6,8 +6,13 @@ describe('with reports extension', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport()
+    reporter = jsreport({
+      workers: {
+        numberOfWorkers: 2
+      }
+    })
     reporter.use(require('../')())
+    reporter.use(require('@jsreport/jsreport-handlebars')())
     reporter.use(require('@jsreport/jsreport-express')())
     reporter.use(require('@jsreport/jsreport-scripts')())
     reporter.use(jsreport.tests.listeners())
@@ -336,6 +341,34 @@ describe('with reports extension', () => {
     const report = await reporter.documentStore.collection('reports').findOne({})
     const blob = await reporter.blobStorage.read(report.blobName)
     blob.toString().should.be.eql('changed')
+  })
+
+  it('should not lose data when rawContent is passed and async:true is used', async () => {
+    await reporter.render({
+      rawContent: JSON.stringify({
+        options: { reports: { async: true } },
+        template: {
+          engine: 'handlebars',
+          content: '{{foo}}',
+          recipe: 'html'
+        },
+        data: {
+          foo: 'hello'
+        }
+      })
+    })
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const report = await reporter.documentStore.collection('reports').findOne({})
+      if (report?.state !== 'success') {
+        continue
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      const blob = await reporter.blobStorage.read(report.blobName)
+      blob.toString().should.be.eql('hello')
+      break
+    }
   })
 })
 

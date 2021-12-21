@@ -219,7 +219,7 @@ class Reports {
     }
   }
 
-  async _handleBeforeRender (request, response) {
+  async _handleBeforeRender (request, response, options) {
     if (request.options.reports == null || request.options.reports.async !== true) {
       return
     }
@@ -257,7 +257,7 @@ class Reports {
     // this request is now just returning status page, we don't want store blobs there
     delete response.meta.reportsOptions
 
-    request.context.isFinished = true
+    request.context.returnResponseAndKeepWorker = true
     response.content = Buffer.from("Async rendering in progress. Use Location response header to check the current status. Check it <a href='" + response.meta.headers.Location + "'>here</a>")
     response.meta.contentType = 'text/html'
     response.meta.fileExtension = 'html'
@@ -267,7 +267,7 @@ class Reports {
     process.nextTick(() => {
       this.reporter.logger.info(`Async report is starting to render ${asyncRequest.options.reports._id}`)
 
-      this.reporter.render(asyncRequest).then(() => {
+      this.reporter.render(asyncRequest, options).then(() => {
         this.reporter.logger.info(`Async report render finished ${asyncRequest.options.reports._id}`)
       }).catch((e) => {
         this.reporter.logger.error(`Async report render failed ${asyncRequest.options.reports._id}: ${e.stack}`)
