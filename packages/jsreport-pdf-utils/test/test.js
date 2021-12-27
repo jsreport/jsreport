@@ -2060,6 +2060,39 @@ describe('pdf utils', () => {
     fonts.get('Helvetica').should.be.ok()
   })
 
+  it('pdfFormField with merge operation called from a script', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: 'Page1 {{{pdfFormField name=\'a\' type=\'text\' width=\'200px\' height=\'20px\'}}}',
+        scripts: [{
+          content: `
+          async function afterRender(req, res) {
+            const jsreport = require('jsreport-proxy')
+            const r = await jsreport.render({
+              template: {
+                content: "<div style='margin-top: 100px; background-color: red'>{{{pdfFormField name='myfield1' type='text' width='200px' height='20px'}}}</div>",
+                recipe: "chrome-pdf",
+                engine: "handlebars"
+              }
+            })
+            res.content = await jsreport.pdfUtils.merge(res.content, r.content)
+          }
+          `
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+    const acroForm = doc.catalog.get('AcroForm').object
+    acroForm.properties.get('Fields').should.have.length(2)
+    acroForm.properties.get('NeedAppearances').toString().should.be.eql('true')
+    const fonts = acroForm.properties.get('DR').get('Font')
+    fonts.get('Helvetica').should.be.ok()
+  })
+
   describe('processText with pdf from alpine', () => {
     it('should deal with double f ligature and remove hidden mark', async () => {
       const content = fs.readFileSync(path.join(__dirname, 'alpine.pdf'))

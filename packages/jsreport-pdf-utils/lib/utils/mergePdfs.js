@@ -3,6 +3,7 @@ const PDFDictionary = require('@jsreport/pdfjs/lib/object/dictionary')
 const zlib = require('zlib')
 const EmbeddedPage = require('./EmbeddedPage')
 const Parser = require('@jsreport/pdfjs/lib/parser/parser')
+const PDF = require('@jsreport/pdfjs/lib/object')
 
 function uint8ToString (u8a) {
   const CHUNK_SZ = 0x8000
@@ -136,6 +137,7 @@ module.exports.mergeDocument = (contentBuffer, mergeBuffer, mergeToFront, pagesH
   const mergeExtDoc = new pdfjs.ExternalDocument(mergeBuffer)
 
   const finalDoc = new pdfjs.Document()
+  const annots = []
 
   for (let i = 0; i < contentExtDoc.pages.get('Kids').length; i++) {
     const contentPage = contentExtDoc.pages.get('Kids')[i]
@@ -147,6 +149,57 @@ module.exports.mergeDocument = (contentBuffer, mergeBuffer, mergeToFront, pagesH
 
     const xobj = new EmbeddedPage(mergingPage.object.properties)
     mergePage(finalDoc, contentPage, xobj, mergeToFront, pagesHelpInfo[i])
+
+    if (Array.isArray(mergingPage.object.properties.get('Annots'))) {
+      for (const annot of mergingPage.object.properties.get('Annots')) {
+        const annotObject = annot.object
+        annotObject.properties.set('P', contentPage)
+        finalDoc._registerObject(annotObject)
+        annots.push(annotObject.toReference())
+      }
+
+      const contentPageAnnots = contentPage.object.properties.get('Annots') || []
+      contentPage.object.properties.set('Annots', new PDF.Array([...contentPageAnnots, ...annots]))
+    }
+  }
+
+  if (annots.length && mergeExtDoc.acroFormObj) {
+    const fieldsInMegedDoc = mergeExtDoc.acroFormObj.properties.get('Fields').filter(f => annots.find(a => a.object === f.object))
+    const fields = [...finalDoc._acroFormObj.properties.get('Fields'), ...fieldsInMegedDoc]
+    finalDoc._acroFormObj.prop('Fields', new PDF.Array([...fields]))
+
+    // merge the DR -> these are font refs, without DR the fields doesn't display text when lost focus
+    if (mergeExtDoc.acroFormObj.properties.has('DR')) {
+      let docDR = finalDoc._acroFormObj.properties.get('DR')
+      if (docDR == null) {
+        docDR = new PDF.Dictionary({
+          Font: new PDF.Dictionary()
+        })
+        finalDoc._acroFormObj.properties.set('DR', docDR)
+      }
+      const extFontDict = mergeExtDoc.acroFormObj.properties.get('DR').get('Font')
+      const docFontDict = docDR.get('Font')
+
+      for (let fontName in extFontDict.dictionary) {
+        fontName = fontName.substring(1)
+        if (!docFontDict.has(fontName)) {
+          const font = extFontDict.get(fontName)
+          const fontObjects = []
+          Parser.addObjectsRecursive(fontObjects, font)
+          for (const o of fontObjects) {
+            finalDoc._registerObject(o, true)
+          }
+
+          docFontDict.set(fontName, font)
+        }
+      }
+    }
+    if (mergeExtDoc.acroFormObj.properties.has('NeedAppearances')) {
+      finalDoc._acroFormObj.properties.set('NeedAppearances', mergeExtDoc.acroFormObj.properties.get('NeedAppearances'))
+    }
+    if (mergeExtDoc.acroFormObj.properties.has('SigFlags')) {
+      finalDoc._acroFormObj.properties.set('SigFlags', mergeExtDoc.acroFormObj.properties.get('SigFlags'))
+    }
   }
 
   finalDoc.addPagesOf(contentExtDoc)
