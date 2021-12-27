@@ -242,7 +242,7 @@ describe('components', function () {
     res.content.toString().should.containEql('hello')
   })
 
-  it('template helpers shouldnt be populated to the component', async () => {
+  it('template helpers should not be populated to the component', async () => {
     await reporter.documentStore.collection('components').insert({
       name: 'c1',
       content: 'c1 {{foo}}',
