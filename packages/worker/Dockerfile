@@ -4,7 +4,7 @@ EXPOSE 2000
 
 RUN adduser --disabled-password --gecos "" jsreport && \
     apt-get update && \
-    apt-get install -y --no-install-recommends libxss1 libgconf-2-4 libappindicator3-1 libxtst6 gnupg git curl wget ca-certificates && \
+    apt-get install -y --no-install-recommends libxss1 libgconf-2-4 libappindicator3-1 libxtst6 gnupg bzip2 git curl wget ca-certificates && \
     # chrome needs some base fonts
     apt-get install -y --no-install-recommends xfonts-base xfonts-75dpi && \
     # chrome
@@ -18,6 +18,10 @@ RUN adduser --disabled-password --gecos "" jsreport && \
     wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_93.0.4577.82-1_amd64.deb && \
     dpkg -i ./google-chrome*.deb && \
     rm google-chrome*.deb && \
+    # fix duplicated chrome source, leave the image in clean state for other images can use
+    # apt-get correctly
+    rm -f /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
     # cleanup
     rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
     rm -rf /src/*.deb

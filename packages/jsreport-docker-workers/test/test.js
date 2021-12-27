@@ -47,7 +47,7 @@ function createPool ({
   }
 }
 
-describe.only('docker manager', () => {
+describe('docker manager', () => {
   let reporter
   let containers
   beforeEach(() => {

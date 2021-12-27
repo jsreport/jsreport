@@ -11,7 +11,7 @@ describe('containers manager', () => {
       },
       containerParallelRequestsLimit: 50,
       customContainersPoolFactory: () => ({
-        containers: [{ id: 'a' }, { id: 'b' }],
+        containers: [{ id: 'a', restart: () => {} }, { id: 'b', restart: () => {} }],
         start: () => {},
         remove: () => {}
       }),
