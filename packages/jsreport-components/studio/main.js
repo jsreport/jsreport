@@ -574,6 +574,7 @@ var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
       isRunning = _useState2[0],
       setIsRunning = _useState2[1];
 
+  var stopPreviewRef = (0, _react.useRef)(null);
   var entity = props.tab != null && props.tab.entity != null ? props.tab.entity : undefined;
 
   var previewComponent = (0, _react.useCallback)(function previewComponent(componentShortid, componentName) {
@@ -615,42 +616,110 @@ var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
       }
     }
 
-    _jsreportStudio2.default.api.post('/api/component', {
-      data: componentPayload,
-      responseType: 'text'
-    }).then(function (componentHtml) {
+    var componentUrl = _jsreportStudio2.default.resolveUrl('/api/component');
+
+    var previewController = new AbortController();
+
+    stopPreviewRef.current = function () {
+      previewController.abort();
+    };
+
+    window.fetch(componentUrl, {
+      method: 'POST',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(componentPayload),
+      signal: previewController.signal
+    }).then(function (response) {
+      var contentType = '';
+
+      if (response.headers != null) {
+        contentType = response.headers.get('Content-Type') || '';
+      }
+
+      var contentPromise = void 0;
+
+      if (response.status !== 200) {
+        if (contentType.indexOf('application/json') === 0) {
+          contentPromise = response.json();
+        } else {
+          contentPromise = response.text();
+        }
+      } else {
+        contentPromise = response.text();
+      }
+
+      return contentPromise.then(function (content) {
+        return {
+          status: response.status,
+          content: content
+        };
+      });
+    }).then(function (_ref) {
+      var status = _ref.status,
+          content = _ref.content;
+
+      if (status !== 200) {
+        var notOkError = void 0;
+
+        if (typeof content !== 'string' && content.message && content.stack) {
+          notOkError = new Error(content.message);
+          notOkError.stack = content.stack;
+        } else {
+          notOkError = new Error('Got not ok response, status: ' + status + ', message: ' + content);
+        }
+
+        throw notOkError;
+      }
+
       setIsRunning(false);
+      _jsreportStudio2.default.stopProgress();
+      stopPreviewRef.current = null;
 
       _jsreportStudio2.default.updatePreview(previewId, {
         data: {
           type: 'text/html',
-          content: componentHtml
+          content: content
         },
         completed: true
       });
     }).catch(function (err) {
       setIsRunning(false);
+      _jsreportStudio2.default.stopProgress();
+      stopPreviewRef.current = null;
 
       _jsreportStudio2.default.updatePreview(previewId, {
         data: {
           type: 'text/plain',
-          content: 'Component' + (componentName != null ? ' "' + componentName + '"' : '') + ' preview failed.\n\n' + err.message + '\n' + err.stack
+          content: 'Component' + (componentName != null ? ' "' + componentName + '"' : '') + ' preview failed.\n\n' + err.message + '\n' + (err.stack || '')
         },
         completed: true
       });
     });
   }, [entity, isRunning]);
 
+  var stopPreviewComponent = (0, _react.useCallback)(function stopPreviewComponent() {
+    if (stopPreviewRef.current != null) {
+      stopPreviewRef.current();
+    }
+  });
+
   var handleEarlyShortcut = (0, _react.useCallback)(function handleEarlyShortcut(e) {
     if (e.which === 120 && entity && entity.__entitySet === 'components') {
       e.preventDefault();
       e.stopPropagation();
 
-      previewComponent(entity.shortid, entity.name);
+      if (isRunning) {
+        stopPreviewComponent();
+      } else {
+        previewComponent(entity.shortid, entity.name);
+      }
 
       return false;
     }
-  }, [previewComponent, entity]);
+  }, [previewComponent, isRunning, entity]);
 
   (0, _react.useEffect)(function () {
     window.addEventListener('keydown', handleEarlyShortcut, true);
@@ -668,12 +737,16 @@ var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
     'div',
     {
       title: 'Run and preview component (F9)',
-      className: 'toolbar-button ' + (isRunning ? 'disabled' : ''),
+      className: 'toolbar-button',
       onClick: function onClick() {
-        previewComponent(props.tab.entity.shortid, props.tab.entity.name);
+        if (isRunning) {
+          stopPreviewComponent();
+        } else {
+          previewComponent(props.tab.entity.shortid, props.tab.entity.name);
+        }
       }
     },
-    React.createElement('i', { className: 'fa fa-eye' }),
+    React.createElement('i', { className: 'fa fa-' + (isRunning ? 'stop' : 'eye') }),
     'Component'
   );
 };
