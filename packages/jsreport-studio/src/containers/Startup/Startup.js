@@ -5,9 +5,8 @@ import NewTemplateModal from '../../components/Modals/NewTemplateModal'
 import { actions } from '../../redux/editor'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
-import resolveUrl from '../../helpers/resolveUrl'
 import { openModal } from '../../helpers/openModal'
-import openProfileFromStreamReader from '../../helpers/openProfileFromStreamReader'
+import openProfileFromServer from '../../helpers/openProfileFromServer'
 import { startupComponents } from '../../lib/configuration'
 
 function randomColor () {
@@ -97,23 +96,7 @@ class Startup extends Component {
     })
 
     try {
-      await openProfileFromStreamReader(async () => {
-        const getBlobUrl = resolveUrl(`/api/profile/${p._id}/events`)
-
-        const response = await window.fetch(getBlobUrl, {
-          method: 'GET',
-          cache: 'no-cache'
-        })
-
-        if (response.status !== 200) {
-          throw new Error(`Got not ok response, status: ${response.status}`)
-        }
-
-        return response.body.getReader()
-      }, {
-        name: p.template.name,
-        shortid: p.template.shortid
-      })
+      await openProfileFromServer(p)
     } catch (e) {
       console.warn(`Error while trying to open profile "${p._id}"`, e)
     } finally {

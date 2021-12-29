@@ -18,16 +18,7 @@ class Profiler {
     })
 
     this.profiledRequestsMap = new Map()
-    const profileEventsFlushInterval = setInterval(async () => {
-      for (const id of [...this.profiledRequestsMap.keys()]) {
-        const profilingInfo = this.profiledRequestsMap.get(id)
-        if (profilingInfo) {
-          const batch = profilingInfo.batch
-          profilingInfo.batch = []
-          await this.reporter.executeMainAction('profile', batch, profilingInfo.req).catch((e) => this.reporter.logger.error(e, profilingInfo.req))
-        }
-      }
-    }, 100)
+    const profileEventsFlushInterval = setInterval(() => this.flush(), 100)
     profileEventsFlushInterval.unref()
 
     this.reporter.closeListeners.add('profiler', this, () => {
@@ -35,6 +26,19 @@ class Profiler {
         clearInterval(profileEventsFlushInterval)
       }
     })
+  }
+
+  async flush (id) {
+    const toProcess = id == null ? [...this.profiledRequestsMap.keys()] : [id]
+
+    for (const id of toProcess) {
+      const profilingInfo = this.profiledRequestsMap.get(id)
+      if (profilingInfo) {
+        const batch = profilingInfo.batch
+        profilingInfo.batch = []
+        await this.reporter.executeMainAction('profile', batch, profilingInfo.req).catch((e) => this.reporter.logger.error(e, profilingInfo.req))
+      }
+    }
   }
 
   emit (m, req, res) {

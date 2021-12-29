@@ -1,7 +1,7 @@
-import * as ActionTypes from './constants.js'
-import api from '../../helpers/api.js'
-import * as selectors from './selectors.js'
-import { entitySets, entityNewListeners, entitySaveListeners, referencesLoader } from '../../lib/configuration.js'
+import * as ActionTypes from './constants'
+import api from '../../helpers/api'
+import * as selectors from './selectors'
+import { entitySets, entityNewListeners, entitySaveListeners, referencesLoader } from '../../lib/configuration'
 
 export const prune = (entity) => {
   const pruned = {}
@@ -198,7 +198,7 @@ export function save (id, { ignoreFailed = false, validateConcurrent = true } = 
       dispatch(apiStart())
 
       // eslint-disable-next-line
-      for (const l of entitySaveListeners) {       
+      for (const l of entitySaveListeners) {
         await l(entity)
       }
 

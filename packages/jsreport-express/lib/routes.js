@@ -238,12 +238,26 @@ module.exports = (app, reporter, exposedOptions) => {
 
   app.get('/api/profile/:id/events', async (req, res, next) => {
     try {
-      const profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
+      let profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
 
       if (!profile) {
         throw reporter.createError(`Profile ${req.params.id} not found`, {
           statusCode: 404
         })
+      }
+
+      if (!profile.blobPersisted) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
+          if (profile.blobPersisted) {
+            break
+          }
+        }
+
+        if (!profile.blobPersisted) {
+          throw reporter.createError('Timeout when waiting for profile blob to be fully persisted')
+        }
       }
 
       const blobContentBuf = await reporter.blobStorage.read(profile.blobName)

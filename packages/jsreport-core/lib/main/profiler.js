@@ -26,9 +26,13 @@ module.exports = (reporter) => {
       return
     }
 
+    let lastOperation
+
     for (const m of events) {
       if (m.type === 'log') {
         reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
+      } else {
+        lastOperation = m
       }
 
       if (profilersMap.has(req.context.rootId)) {
@@ -36,8 +40,15 @@ module.exports = (reporter) => {
       }
     }
 
+    if (lastOperation != null) {
+      req.context.profiling.lastOperation = lastOperation
+    }
+
     profilerAppendChain.set(req.context.rootId, profilerAppendChain.get(req.context.rootId).then(() => {
-      return reporter.blobStorage.append(req.context.profiling.entity.blobName, Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'), req).catch(e => {
+      return reporter.blobStorage.append(
+        req.context.profiling.entity.blobName,
+        Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'), req
+      ).catch(e => {
         reporter.logger.error('Failed to append to profile blob', e)
       })
     }))
@@ -64,6 +75,7 @@ module.exports = (reporter) => {
     profilerAppendChain.set(req.context.rootId, Promise.resolve())
 
     req.context.profiling = req.context.profiling || {}
+    req.context.profiling.lastOperation = null
 
     let blobName = `profiles/${req.context.rootId}.log`
 

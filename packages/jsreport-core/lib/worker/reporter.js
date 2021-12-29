@@ -143,6 +143,11 @@ class WorkerReporter extends Reporter {
     currentPath,
     errorLineNumberOffset
   }, req) {
+    // we flush before running code in sandbox because it can potentially
+    // include code that blocks the whole process (like `while (true) {}`) and we
+    // want to ensure that the batched messages are flushed before trying to execute the code
+    await this.profiler.flush(req.context.rootId)
+
     return this._runInSandbox({
       manager,
       context,

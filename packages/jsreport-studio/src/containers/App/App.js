@@ -17,6 +17,7 @@ import Modal from '../Modal/Modal'
 import RestoreDockConfirmationModal from '../../components/Modals/RestoreDockConfirmationModal'
 import { openModal } from '../../helpers/openModal'
 import openStartup from '../../helpers/openStartup'
+import openProfileFromServer from '../../helpers/openProfileFromServer'
 import runLastActiveTemplate from '../../helpers/runLastActiveTemplate'
 import { openPreviewWindow, previewWindows, getPreviewWindowOptions } from '../../helpers/previewWindow'
 
@@ -66,6 +67,12 @@ class App extends Component {
       }, 200)
 
       this.props.openTab({ shortid, entitySet })
+      return
+    }
+
+    if (this.props.match.params.profileId) {
+      const profileId = this.props.match.params.profileId
+      openProfileFromServer({ _id: profileId }, true)
       return
     }
 

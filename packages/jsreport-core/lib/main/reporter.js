@@ -424,6 +424,15 @@ class MainReporter extends Reporter {
     } catch (err) {
       if (err.code === 'WORKER_TIMEOUT') {
         err.message = 'Report timeout'
+        if (req.context.profiling?.lastOperation != null && req.context.profiling?.entity != null) {
+          err.message += `. Last profiler operation: (${req.context.profiling.lastOperation.subtype}) ${req.context.profiling.lastOperation.name}`
+        }
+
+        if (req.context.http != null) {
+          const profileUrl = `${req.context.http.baseUrl}/studio/profiles/${req.context.profiling.entity._id}`
+          err.message += `. You can inspect and find more details here: ${profileUrl}`
+        }
+
         err.weak = true
       }
 

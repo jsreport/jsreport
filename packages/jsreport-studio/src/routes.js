@@ -20,6 +20,7 @@ export default (aroutes) => {
     <Switch>
       <Route exact path={getPathDef()} component={App} />
       <Route exact path={getPathDef('/studio')} component={App} />
+      <Route exact path={getPathDef('/studio/profiles/:profileId')} component={App} />
       <Route exact path={getPathDef('/studio/:entitySet')} component={App} />
       <Route exact path={getPathDef('/studio/:entitySet/:shortid')} component={App} />
       {routes.map((r) => <Route exact path={r.path} component={r.component} key={r.path} />)}
