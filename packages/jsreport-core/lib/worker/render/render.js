@@ -113,7 +113,12 @@ module.exports = (reporter) => {
     const request = Request(req, parentReq)
     const response = { meta: {} }
     let renderStartProfilerEvent
+
     try {
+      if (parentReq) {
+        request.context.timeoutLimit = reporter.getAvailableRenderTimeout(parentReq)
+      }
+
       if (request.context.id == null) {
         request.context.id = generateRequestId()
       }

@@ -31,6 +31,7 @@ module.exports = (reporter) => {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
+      timeout: reporter.getAvailableRenderTimeout(req),
       formatError: (error, moduleName) => {
         error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
       },

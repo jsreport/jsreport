@@ -394,6 +394,8 @@ class MainReporter extends Reporter {
         reportTimeout = req.options.timeout
       }
 
+      req.context.timeoutLimit = reportTimeout
+
       await this.beforeRenderListeners.fire(req, res, { worker })
 
       // this is used so far just in the reports extension
