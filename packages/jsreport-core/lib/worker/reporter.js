@@ -58,7 +58,6 @@ class WorkerReporter extends Reporter {
     this.addRequestContextMetaConfig('id', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('reportCounter', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('startTimestamp', { sandboxReadOnly: true })
-    this.addRequestContextMetaConfig('timeoutLimit', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('logs', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('isChildRequest', { sandboxReadOnly: true })
     this.addRequestContextMetaConfig('originalInputDataIsEmpty', { sandboxReadOnly: true })
@@ -123,29 +122,6 @@ class WorkerReporter extends Reporter {
       })
     }
     return proxyInstance
-  }
-
-  getAvailableRenderTimeout (req) {
-    const timeoutLimit = req.context.timeoutLimit
-
-    const createRenderTimeoutError = (limit) => {
-      return this.createError(`Render timeout${limit != null ? ` after ${limit}ms` : ''}`)
-    }
-
-    if (timeoutLimit == null) {
-      throw createRenderTimeoutError()
-    }
-
-    const start = req.context.startTimestamp
-    const now = new Date().getTime()
-    const spent = now - start
-    const availableTimeout = timeoutLimit - spent
-
-    if (availableTimeout <= 0) {
-      throw createRenderTimeoutError(timeoutLimit)
-    }
-
-    return availableTimeout
   }
 
   render (req, parentReq) {

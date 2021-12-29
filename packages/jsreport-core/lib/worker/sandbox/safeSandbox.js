@@ -15,7 +15,6 @@ const { codeFrameColumns } = require('@babel/code-frame')
 module.exports = (_sandbox, options = {}) => {
   const {
     onLog,
-    timeout,
     formatError,
     propertiesConfig = {},
     globalModules = [],
@@ -112,13 +111,7 @@ module.exports = (_sandbox, options = {}) => {
     require: (m) => _require(m, { context: _sandbox })
   })
 
-  const vmInitParams = []
-
-  if (timeout != null) {
-    vmInitParams.push({ timeout })
-  }
-
-  const vm = new VM(...vmInitParams)
+  const vm = new VM()
 
   // NOTE: we wrap the Contextify.object, Decontextify.object methods because those are the
   // methods that returns the proxies created by vm2 in the sandbox, we want to have a list of those
@@ -200,7 +193,7 @@ module.exports = (_sandbox, options = {}) => {
         const result = await vm.run(script)
         return result
       } catch (e) {
-        decorateErrorMessage(e, { sourceFilesInfo })
+        decorateErrorMessage(e, sourceFilesInfo)
 
         throw e
       }
@@ -284,7 +277,7 @@ function doRequire (moduleName, requirePaths = [], modulesCache) {
   return result
 }
 
-function decorateErrorMessage (e, { sourceFilesInfo } = {}) {
+function decorateErrorMessage (e, sourceFilesInfo) {
   const filesCount = sourceFilesInfo.size
 
   if (filesCount > 0) {

@@ -38,7 +38,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
         htmlUrl,
         strategy,
         req,
-        timeout: reporter.getAvailableRenderTimeout(req),
+        timeout: reporter.options.reportTimeout,
         allowLocalFilesAccess,
         imageExecution,
         options: conversionOptions
