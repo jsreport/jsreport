@@ -391,7 +391,7 @@ class MainReporter extends Reporter {
         req.options &&
         req.options.timeout != null
       ) {
-        reportTimeout = req
+        reportTimeout = req.options.timeout
       }
 
       await this.beforeRenderListeners.fire(req, res, { worker })
