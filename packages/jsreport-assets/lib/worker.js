@@ -109,7 +109,7 @@ module.exports = (reporter, definition) => {
   }) => {
     proxy.assets = {
       read: async (path, encoding, moduleMode = false) => {
-        const r = await readAsset(reporter, definition, { id: null, name: path, encoding, moduleMode, currentPath: proxy.currentPath }, req)
+        const r = await readAsset(reporter, definition, { id: null, name: path, encoding, moduleMode, currentDirectoryPath: proxy.currentDirectoryPath }, req)
         return r.content
       },
 
@@ -118,12 +118,13 @@ module.exports = (reporter, definition) => {
         for (const a of sharedHelpersAssets) {
           const asset = await readAsset(reporter, definition, { id: a._id, name: null, encoding: 'utf8' }, req)
           const functionNames = getTopLevelFunctions(asset.content.toString())
-          const userCode = `(() => { ${asset.content.toString()};
+          const userCode = `(async () => { ${asset.content.toString()};
             __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
             })()`
           await runInSandbox(userCode, {
             filename: a.name,
             source: userCode,
+            entitySet: 'assets',
             entity: {
               ...a,
               content: a.content.toString()
@@ -133,7 +134,7 @@ module.exports = (reporter, definition) => {
       },
 
       registerHelpers: async (path) => {
-        const asset = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentPath: proxy.currentPath }, req)
+        const asset = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentDirectoryPath: proxy.currentDirectoryPath }, req)
 
         const functionNames = getTopLevelFunctions(asset.content.toString())
         const userCode = `(async () => { ${asset.content.toString()};
@@ -142,6 +143,7 @@ module.exports = (reporter, definition) => {
         await runInSandbox(userCode, {
           filename: asset.filename,
           source: userCode,
+          entitySet: 'assets',
           entity: {
             ...asset.entity,
             content: asset.entity.content.toString()
@@ -150,7 +152,7 @@ module.exports = (reporter, definition) => {
       },
 
       require: async (path) => {
-        const r = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentPath: proxy.currentPath }, req)
+        const r = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentDirectoryPath: proxy.currentDirectoryPath }, req)
 
         const userCode = [
           `;(() => { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,
@@ -163,6 +165,7 @@ module.exports = (reporter, definition) => {
         const result = await runInSandbox(userCode, {
           filename: path,
           source: userCode,
+          entitySet: 'assets',
           entity: r.entity
         })
 

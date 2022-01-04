@@ -6,7 +6,6 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   let entityPath
   if (script._id) {
     entityPath = await reporter.folders.resolveEntityPath(script, 'scripts', req)
-    entityPath = entityPath.substring(0, entityPath.lastIndexOf('/'))
   }
 
   const requestContextMetaConfig = reporter.getRequestContextMetaConfig() || {}

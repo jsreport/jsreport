@@ -26,7 +26,7 @@
     "prepublish": "jsreport-studio-build",
     "run": "npm run build && jsreport-studio-start --run-only",
     "start": "jsreport-studio-start",
-    "test": "mocha test --timeout 99999999 --exit && standard",
+    "test": "mocha test --timeout 8000 --exit && standard",
     "test:watch": "mocha test --watch"
   },
   "dependencies": {

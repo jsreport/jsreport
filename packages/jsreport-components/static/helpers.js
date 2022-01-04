@@ -10,7 +10,8 @@ async function component (path, options) {
         throw new Error('component helper requires path argument')
       }
 
-      const componentSearchResult = await jsreport.folders.resolveEntityFromPath(path, 'components', { currentPath: jsreport.currentPath })
+      const resolvedCurrentDirectoryPath = await jsreport.currentDirectoryPath()
+      const componentSearchResult = await jsreport.folders.resolveEntityFromPath(path, 'components', { currentPath: resolvedCurrentDirectoryPath })
 
       if (componentSearchResult == null) {
         throw new Error(`Component ${path} not found`)

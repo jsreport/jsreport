@@ -85,7 +85,6 @@ module.exports = (reporter) => {
 
     if (entity._id) {
       entityPath = await reporter.folders.resolveEntityPath(entity, entitySet, req)
-      entityPath = entityPath.substring(0, entityPath.lastIndexOf('/'))
     }
 
     const registerResults = await reporter.registerHelpersListeners.fire(req)
@@ -106,12 +105,6 @@ module.exports = (reporter) => {
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
     const executionFn = async ({ require, console, topLevelFunctions }) => {
-      // cached components dont call runInSandbox but share the proxy, we get to it here
-      if (entitySet !== 'templates') {
-        const jsreport = require('jsreport-proxy')
-        jsreport.currentPath = entityPath
-      }
-
       const asyncResultMap = new Map()
       executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions })
       const key = `template:${content}:${engine.name}`

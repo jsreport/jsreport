@@ -1,6 +1,7 @@
 const LRU = require('lru-cache')
-const safeSandbox = require('./safeSandbox')
+const stackTrace = require('stack-trace')
 const { customAlphabet } = require('nanoid')
+const safeSandbox = require('./safeSandbox')
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter) => {
@@ -27,7 +28,7 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { run, restore, contextifyValue, decontextifyValue, unproxyValue, sandbox, safeRequire } = safeSandbox(context, {
+    const { sourceFilesInfo, run, restore, contextifyValue, decontextifyValue, unproxyValue, sandbox, safeRequire } = safeSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
@@ -61,7 +62,51 @@ module.exports = (reporter) => {
     })
 
     jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions, safeRequire })
-    jsreportProxy.currentPath = currentPath
+
+    jsreportProxy.currentPath = async () => {
+      // we get the current path by throwing an error, which give us a stack trace
+      // which we analyze and see if some source file is associated to an entity
+      // if it is then we can properly get the path associated to it, if not we
+      // fallback to the current path passed as options
+      const filesCount = sourceFilesInfo.size
+      let resolvedPath = currentPath
+
+      if (filesCount > 0) {
+        const err = new Error('get me stack trace please')
+        const trace = stackTrace.parse(err)
+
+        for (let i = 0; i < trace.length; i++) {
+          const current = trace[i]
+
+          if (sourceFilesInfo.has(current.getFileName())) {
+            const { entity, entitySet } = sourceFilesInfo.get(current.getFileName())
+
+            if (entity != null && entitySet != null) {
+              resolvedPath = await reporter.folders.resolveEntityPath(entity, entitySet, req)
+              break
+            }
+          }
+        }
+      }
+
+      return resolvedPath
+    }
+
+    jsreportProxy.currentDirectoryPath = async () => {
+      const currentPath = await jsreportProxy.currentPath()
+
+      if (currentPath != null) {
+        const localPath = currentPath.substring(0, currentPath.lastIndexOf('/'))
+
+        if (localPath === '') {
+          return '/'
+        }
+
+        return localPath
+      }
+
+      return currentPath
+    }
 
     // NOTE: it is important that cleanup, restore methods are not called from a function attached to the
     // sandbox, because the arguments and return value of such function call will be sandboxed again, to solve this

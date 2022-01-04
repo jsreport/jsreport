@@ -150,6 +150,7 @@ module.exports = (_sandbox, options = {}) => {
   return {
     sandbox: vm._context,
     console: _console,
+    sourceFilesInfo,
     contextifyValue: (value) => {
       return vm._internal.Contextify.value(value)
     },
@@ -163,11 +164,11 @@ module.exports = (_sandbox, options = {}) => {
       return getOriginalFromProxy(proxiesInVM, customProxies, value)
     },
     safeRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
-    run: async (code, { filename, errorLineNumberOffset = 0, source, entity } = {}) => {
+    run: async (code, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
       const script = new VMScript(code, filename)
 
       if (filename != null && source != null) {
-        sourceFilesInfo.set(filename, { filename, source, entity, errorLineNumberOffset })
+        sourceFilesInfo.set(filename, { filename, source, entity, entitySet, errorLineNumberOffset })
       }
 
       // NOTE: if we need to upgrade vm2 we will need to check the source of this function

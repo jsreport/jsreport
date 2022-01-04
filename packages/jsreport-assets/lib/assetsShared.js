@@ -10,7 +10,7 @@ module.exports.linkPath = linkPath
 module.exports.readAsset = readAsset
 module.exports.isAssetPathValid = isAssetPathValid
 
-async function readAsset (reporter, definition, { id, name, encoding, currentPath }, req) {
+async function readAsset (reporter, definition, { id, name, encoding, currentDirectoryPath }, req) {
   const allowAssetsLinkedToFiles = definition.options.allowAssetsLinkedToFiles !== false
 
   let escape = function (val) { return val }
@@ -63,7 +63,9 @@ async function readAsset (reporter, definition, { id, name, encoding, currentPat
     let assets = []
 
     assetName = [...pathParts].pop()
-    const result = await reporter.folders.resolveEntityFromPath(name, 'assets', { currentPath }, req)
+
+    const resolvedCurrentDirectoryPath = currentDirectoryPath != null ? await currentDirectoryPath() : null
+    const result = await reporter.folders.resolveEntityFromPath(name, 'assets', { currentPath: resolvedCurrentDirectoryPath }, req)
 
     if (result) {
       assets = [result.entity]
