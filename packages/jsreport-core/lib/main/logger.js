@@ -37,13 +37,24 @@ function createLogger () {
 }
 
 function configureLogger (logger, _transports) {
+  const transports = _transports || {}
+  const transportFormatMap = new WeakMap()
+
+  // we ensure we do .format cleanup on options first before checking if the logger
+  // is configured or not, this ensure that options are properly cleaned up when
+  // configureLogger is called more than once (like when execution cli commands from extensions)
+  for (const [, transpOptions] of Object.entries(transports)) {
+    if (transpOptions.format != null) {
+      transportFormatMap.set(transpOptions, transpOptions.format)
+      delete transpOptions.format
+    }
+  }
+
   const configuredPreviously = logger.__configured__ === true
 
   if (configuredPreviously) {
     return
   }
-
-  const transports = _transports || {}
 
   const knownTransports = {
     debug: DebugTransport,
@@ -78,20 +89,19 @@ function configureLogger (logger, _transports) {
       continue
     }
 
+    let originalFormat
+
+    if (transportFormatMap.has(transpOptions)) {
+      originalFormat = transportFormatMap.get(transpOptions)
+    }
+
     if (
-      transpOptions.format != null &&
-      typeof transpOptions.format.constructor !== 'function'
+      originalFormat != null &&
+      typeof originalFormat.constructor !== 'function'
     ) {
       throw new Error(`Invalid option for transport object "${
         transpName
       }", option "format" has an incorrect value, must be an instance of loggerFormat. check your "logger" config`)
-    }
-
-    let originalFormat
-
-    if (transpOptions.format != null) {
-      originalFormat = transpOptions.format
-      delete transpOptions.format
     }
 
     const options = Object.assign(omit(transpOptions, knownOptions), {
