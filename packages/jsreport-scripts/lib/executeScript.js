@@ -2,7 +2,7 @@ const extend = require('node.extend.without.arrays')
 const _omit = require('lodash.omit')
 const promisify = require('util').promisify
 
-module.exports = async function executeScript (reporter, script, method, req, res) {
+module.exports = async function executeScript (reporter, { script, method, onBeforeExecute }, req, res) {
   let entityPath
   if (script._id) {
     entityPath = await reporter.folders.resolveEntityPath(script, 'scripts', req)
@@ -49,9 +49,18 @@ module.exports = async function executeScript (reporter, script, method, req, re
     throw cancellationError
   }
 
+  initialContext.__request.__onBeforeExecute = (topLevelFunctionsNames) => {
+    onBeforeExecute(script, topLevelFunctionsNames)
+  }
+
   const sandboxManager = {}
 
   const executionFn = async ({ topLevelFunctions, restore, context }) => {
+    const onBeforeExecute = context.__request.__onBeforeExecute
+    delete context.__request.__onBeforeExecute
+
+    onBeforeExecute(Object.keys(topLevelFunctions))
+
     try {
       if (method === 'beforeRender' && topLevelFunctions.beforeRender) {
         if (topLevelFunctions.beforeRender.length === 3) {
