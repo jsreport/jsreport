@@ -10,9 +10,11 @@ describe('container', () => {
 
   beforeEach(async () => {
     const network = 'nw_jsreport_docker_workers'
+    const subnet = '172.30.0.0/24'
 
     const containersPool = createContainersPool({
       network,
+      subnet,
       logger: reporter.logger
     })
 
