@@ -1,4 +1,5 @@
-const Container = require('../../lib/docker/container.js')
+const createContainersPool = require('../../lib/docker/containersPool')
+const Container = require('../../lib/docker/container')
 const reporter = require('@jsreport/jsreport-core')()
 const axios = require('axios')
 const os = require('os')
@@ -7,14 +8,23 @@ const path = require('path')
 describe('container', () => {
   let container
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const network = 'nw_jsreport_docker_workers'
+
+    const containersPool = createContainersPool({
+      network,
+      logger: reporter.logger
+    })
+
+    await containersPool.createNetworkForContainers()
+
     container = new Container({
       port: 2000,
       startTimeout: 2000,
       logger: reporter.logger,
       id: 'jsreport_worker_1',
       tempDirectory: path.join(os.tmpdir(), 'jsreport'),
-      network: 'nw_jsreport_docker_workers',
+      network,
       hostIp: 'localhost',
       container: {
         image: 'mendhak/http-https-echo:18',

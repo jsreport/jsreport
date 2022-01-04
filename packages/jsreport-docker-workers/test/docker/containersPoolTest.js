@@ -1,4 +1,4 @@
-const createContainersPool = require('../../lib/docker/containersPool.js')
+const createContainersPool = require('../../lib/docker/containersPool')
 const reporter = require('@jsreport/jsreport-core')()
 const axios = require('axios')
 const os = require('os')
