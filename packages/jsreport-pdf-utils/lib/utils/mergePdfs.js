@@ -159,7 +159,7 @@ module.exports.mergeDocument = (contentBuffer, mergeBuffer, mergeToFront, pagesH
       }
 
       const contentPageAnnots = contentPage.object.properties.get('Annots') || []
-      contentPage.object.properties.set('Annots', new PDF.Array([...contentPageAnnots, ...annots]))
+      contentPage.object.properties.set('Annots', new PDF.Array([...contentPageAnnots, ...mergingPage.object.properties.get('Annots')]))
     }
   }
 

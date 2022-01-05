@@ -80,9 +80,15 @@ module.exports = class ExternalDocument {
     }
 
     // merge in the acroform object
-    if (!page && this.acroFormObj) {
+    if (this.acroFormObj && this.acroFormObj.properties.get('Fields')) {
+      let fieldsToMerge = this.acroFormObj.properties.get('Fields')
+      if (page != null) {
+        const pageObject = kids[page - 1].object
+        fieldsToMerge = pageObject.properties.get('Annots') ? fieldsToMerge.filter(f => pageObject.properties.get('Annots').find(a => a === f)) : []
+      }
+
       // union dields from both, fields are just refs already registered in the page->annotation so don't need registration
-      doc._acroFormObj.prop('Fields', new PDF.Array([...doc._acroFormObj.properties.get('Fields'), ...this.acroFormObj.properties.get('Fields')]))
+      doc._acroFormObj.prop('Fields', new PDF.Array([...doc._acroFormObj.properties.get('Fields'), ...fieldsToMerge]))
 
       // merge the DR -> these are font refs, without DR the fields doesn't display text when lost focus
       if (this.acroFormObj.properties.has('DR')) {

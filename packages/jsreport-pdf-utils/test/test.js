@@ -2065,14 +2065,14 @@ describe('pdf utils', () => {
       template: {
         recipe: 'chrome-pdf',
         engine: 'handlebars',
-        content: 'Page1 {{{pdfFormField name=\'a\' type=\'text\' width=\'200px\' height=\'20px\'}}}',
+        content: 'Page1{{{pdfFormField name=\'a\' type=\'text\' width=\'200px\' height=\'20px\'}}}<div style=\'page-break-before: always;\'></div>page2',
         scripts: [{
           content: `
           async function afterRender(req, res) {
             const jsreport = require('jsreport-proxy')
             const r = await jsreport.render({
               template: {
-                content: "<div style='margin-top: 100px; background-color: red'>{{{pdfFormField name='myfield1' type='text' width='200px' height='20px'}}}</div>",
+                content: "header1{{{pdfFormField name='myfield1' type='text' width='200px' height='20px'}}}<div style='page-break-before: always;'></div>header2{{{pdfFormField name='myfield2' type='text' width='200px' height='20px'}}}</div>",
                 recipe: "chrome-pdf",
                 engine: "handlebars"
               }
@@ -2087,10 +2087,40 @@ describe('pdf utils', () => {
     require('fs').writeFileSync('out.pdf', result.content)
     const doc = new pdfjs.ExternalDocument(result.content)
     const acroForm = doc.catalog.get('AcroForm').object
-    acroForm.properties.get('Fields').should.have.length(2)
+    acroForm.properties.get('Fields').should.have.length(3)
     acroForm.properties.get('NeedAppearances').toString().should.be.eql('true')
     const fonts = acroForm.properties.get('DR').get('Font')
     fonts.get('Helvetica').should.be.ok()
+    const pages = doc.catalog.get('Pages').object
+    const page1 = pages.properties.get('Kids')[0].object
+    const page2 = pages.properties.get('Kids')[1].object
+    page1.properties.get('Annots').should.have.length(2)
+    page2.properties.get('Annots').should.have.length(1)
+  })
+
+  it('pdfFormField with remove operation called from a script', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: `Page1{{{pdfFormField name='a' type='text' width='200px' height='20px'}}}
+        <div style='page-break-before: always;'></div>
+        page2{{{pdfFormField name='b' type='text' width='200px' height='20px'}}}`,
+        scripts: [{
+          content: `
+          async function afterRender(req, res) {
+            const jsreport = require('jsreport-proxy')         
+            res.content = await jsreport.pdfUtils.removePages(res.content, 2)
+          }
+          `
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+    const acroForm = doc.catalog.get('AcroForm').object
+    acroForm.properties.get('Fields').should.have.length(1)
   })
 
   describe('processText with pdf from alpine', () => {
