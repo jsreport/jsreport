@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -377,7 +377,29 @@ exports.default = AssetUploadButton;
 "use strict";
 
 
-var _AssetEditor = __webpack_require__(4);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = [{
+  key: 'global',
+  title: 'global',
+  value: 'global',
+  desc: 'helpers in the asset will be attached to all templates'
+}, {
+  key: 'folder',
+  title: 'folder',
+  value: 'folder',
+  desc: 'helpers in the asset will be attached to all templates in the same folder hierarchy'
+}];
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _AssetEditor = __webpack_require__(5);
 
 var _AssetEditor2 = _interopRequireDefault(_AssetEditor);
 
@@ -385,11 +407,11 @@ var _AssetUploadButton = __webpack_require__(2);
 
 var _AssetUploadButton2 = _interopRequireDefault(_AssetUploadButton);
 
-var _NewAssetModal = __webpack_require__(12);
+var _NewAssetModal = __webpack_require__(13);
 
 var _NewAssetModal2 = _interopRequireDefault(_NewAssetModal);
 
-var _AssetProperties = __webpack_require__(13);
+var _AssetProperties = __webpack_require__(14);
 
 var _AssetProperties2 = _interopRequireDefault(_AssetProperties);
 
@@ -408,7 +430,7 @@ _jsreportStudio2.default.addEntitySet({
   onNew: function onNew(options) {
     return _jsreportStudio2.default.openModal(_NewAssetModal2.default, options);
   },
-  referenceAttributes: ['isSharedHelper'],
+  referenceAttributes: ['isSharedHelper', 'scope'],
   entityTreePosition: 700
 });
 
@@ -655,7 +677,7 @@ _jsreportStudio2.default.entityTreeDropResolvers.push({
 });
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -681,17 +703,17 @@ var _jsreportStudio = __webpack_require__(1);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
-var _superagent = __webpack_require__(5);
+var _superagent = __webpack_require__(6);
 
 var _superagent2 = _interopRequireDefault(_superagent);
 
-var _reactCopyToClipboard = __webpack_require__(6);
+var _reactCopyToClipboard = __webpack_require__(7);
 
-var _binaryExtensions = __webpack_require__(10);
+var _binaryExtensions = __webpack_require__(11);
 
 var _binaryExtensions2 = _interopRequireDefault(_binaryExtensions);
 
-var _AssetEditor = __webpack_require__(11);
+var _AssetEditor = __webpack_require__(12);
 
 var _AssetEditor2 = _interopRequireDefault(_AssetEditor);
 
@@ -1424,26 +1446,26 @@ AssetEditor.defaultProps = {
 exports.default = AssetEditor;
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 module.exports = Studio.libraries['superagent'];
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _require = __webpack_require__(7),
+var _require = __webpack_require__(8),
     CopyToClipboard = _require.CopyToClipboard;
 
 CopyToClipboard.CopyToClipboard = CopyToClipboard;
 module.exports = CopyToClipboard;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1456,7 +1478,7 @@ exports.CopyToClipboard = void 0;
 
 var _react = _interopRequireDefault(__webpack_require__(0));
 
-var _copyToClipboard = _interopRequireDefault(__webpack_require__(8));
+var _copyToClipboard = _interopRequireDefault(__webpack_require__(9));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -1559,13 +1581,13 @@ _defineProperty(CopyToClipboard, "defaultProps", {
 });
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var deselectCurrent = __webpack_require__(9);
+var deselectCurrent = __webpack_require__(10);
 
 var clipboardToIE11Formatting = {
   "text/plain": "Text",
@@ -1679,7 +1701,7 @@ module.exports = copy;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports) {
 
 
@@ -1724,20 +1746,20 @@ module.exports = function () {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module) {
 
 module.exports = ["3dm","3ds","3g2","3gp","7z","a","aac","adp","ai","aif","aiff","alz","ape","apk","ar","arj","asf","au","avi","bak","baml","bh","bin","bk","bmp","btif","bz2","bzip2","cab","caf","cgm","class","cmx","cpio","cr2","csv","cur","dat","dcm","deb","dex","djvu","dll","dmg","dng","doc","docm","docx","dot","dotm","dra","DS_Store","dsk","dts","dtshd","dvb","dwg","dxf","ecelp4800","ecelp7470","ecelp9600","egg","eol","eot","epub","exe","f4v","fbs","fh","fla","flac","fli","flv","fpx","fst","fvt","g3","gh","gif","graffle","gz","gzip","h261","h263","h264","icns","ico","ief","img","ipa","iso","jar","jpeg","jpg","jpgv","jpm","jxr","key","ktx","lha","lib","lvp","lz","lzh","lzma","lzo","m3u","m4a","m4v","mar","mdi","mht","mid","midi","mj2","mka","mkv","mmr","mng","mobi","mov","movie","mp3","mp4","mp4a","mpeg","mpg","mpga","mxu","nef","npx","numbers","o","oga","ogg","ogv","otf","pages","pbm","pcx","pdb","pdf","pea","pgm","pic","png","pnm","pot","potm","potx","ppa","ppam","ppm","pps","ppsm","ppsx","ppt","pptm","pptx","psd","pya","pyc","pyo","pyv","qt","rar","ras","raw","resources","rgb","rip","rlc","rmf","rmvb","rtf","rz","s3m","s7z","scpt","sgi","shar","sil","sketch","slk","smv","so","stl","sub","swf","tar","tbz","tbz2","tga","tgz","thmx","tif","tiff","tlz","ttc","ttf","txz","udf","uvh","uvi","uvm","uvp","uvs","uvu","viv","vob","war","wav","wax","wbmp","wdp","weba","webm","webp","whl","wim","wm","wma","wmv","wmx","woff","woff2","wrm","wvx","xbm","xif","xla","xlam","xls","xlsb","xlsm","xlsx","xlt","xltm","xltx","xm","xmind","xpi","xpm","xwd","xz","z","zip","zipx"];
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
 module.exports = {"toolbarContainer":"x-assets-AssetEditor-toolbarContainer","toolbarRow":"x-assets-AssetEditor-toolbarRow","toolbarAssetName":"x-assets-AssetEditor-toolbarAssetName"};
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1752,6 +1774,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
+
+var _scopeOptions = __webpack_require__(3);
+
+var _scopeOptions2 = _interopRequireDefault(_scopeOptions);
 
 var _AssetUploadButton = __webpack_require__(2);
 
@@ -1781,7 +1807,7 @@ var NewAssetModal = function (_Component) {
 
     _this.nameRef = _react2.default.createRef();
     _this.linkRef = _react2.default.createRef();
-    _this.state = { isLink: false };
+    _this.state = { isLink: false, isSharedHelper: false, scope: null };
     return _this;
   }
 
@@ -1837,23 +1863,26 @@ var NewAssetModal = function (_Component) {
                   entity.name = this.nameRef.current.value;
                 }
 
-                _context.prev = 5;
+                entity.isSharedHelper = this.state.isSharedHelper;
+                entity.scope = this.state.scope;
+
+                _context.prev = 7;
 
                 if (!_jsreportStudio2.default.workspaces) {
-                  _context.next = 9;
+                  _context.next = 11;
                   break;
                 }
 
-                _context.next = 9;
+                _context.next = 11;
                 return _jsreportStudio2.default.workspaces.save();
 
-              case 9:
-                _context.next = 11;
+              case 11:
+                _context.next = 13;
                 return _jsreportStudio2.default.api.post('/odata/assets', {
                   data: entity
                 });
 
-              case 11:
+              case 13:
                 response = _context.sent;
 
                 response.__entitySet = 'assets';
@@ -1866,21 +1895,21 @@ var NewAssetModal = function (_Component) {
                 }
 
                 this.props.close();
-                _context.next = 22;
+                _context.next = 24;
                 break;
 
-              case 19:
-                _context.prev = 19;
-                _context.t0 = _context['catch'](5);
+              case 21:
+                _context.prev = 21;
+                _context.t0 = _context['catch'](7);
 
                 this.setState({ error: _context.t0.message });
 
-              case 22:
+              case 24:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[5, 19]]);
+        }, _callee, this, [[7, 21]]);
       }));
 
       function createAsset(_x) {
@@ -1896,8 +1925,15 @@ var NewAssetModal = function (_Component) {
 
       var _state = this.state,
           isLink = _state.isLink,
+          isSharedHelper = _state.isSharedHelper,
+          scope = _state.scope,
           error = _state.error;
 
+
+      var currentScopeValue = scope != null ? scope : 'global';
+      var currentScopeOption = _scopeOptions2.default.find(function (opt) {
+        return opt.value === currentScopeValue;
+      });
 
       return _react2.default.createElement(
         'div',
@@ -1917,7 +1953,7 @@ var NewAssetModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Relative or absolute path to existing file'
+            'relative or absolute path to existing file'
           ),
           _react2.default.createElement('input', {
             type: 'text',
@@ -1957,6 +1993,57 @@ var NewAssetModal = function (_Component) {
             }
           })
         ) : _react2.default.createElement('div', null),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'shared helpers attached to templates'
+          ),
+          _react2.default.createElement('input', {
+            type: 'checkbox', checked: isSharedHelper === true,
+            onChange: function onChange(v) {
+              _this3.setState({
+                isSharedHelper: v.target.checked,
+                scope: v.target.checked === false ? null : 'global'
+              });
+            }
+          })
+        ),
+        isSharedHelper && _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'scope'
+          ),
+          _react2.default.createElement(
+            'select',
+            {
+              value: currentScopeValue,
+              onChange: function onChange(v) {
+                var newScope = v.target.value;
+                _this3.setState({
+                  scope: newScope
+                });
+              }
+            },
+            _scopeOptions2.default.map(function (opt) {
+              return _react2.default.createElement(
+                'option',
+                { key: opt.key, value: opt.value, title: opt.desc },
+                opt.title
+              );
+            })
+          ),
+          _react2.default.createElement(
+            'em',
+            null,
+            currentScopeOption.desc
+          )
+        ),
         _react2.default.createElement(
           'div',
           { className: 'form-group' },
@@ -2023,7 +2110,7 @@ var NewAssetModal = function (_Component) {
 exports.default = NewAssetModal;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2038,6 +2125,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
+
+var _scopeOptions = __webpack_require__(3);
+
+var _scopeOptions2 = _interopRequireDefault(_scopeOptions);
 
 var _jsreportStudio = __webpack_require__(1);
 
@@ -2061,12 +2152,39 @@ var AssetProperties = function (_Component) {
   }
 
   _createClass(AssetProperties, [{
-    key: 'render',
-    value: function render() {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      this.normalizeScope();
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate() {
+      this.normalizeScope();
+    }
+  }, {
+    key: 'normalizeScope',
+    value: function normalizeScope() {
       var _props = this.props,
           entity = _props.entity,
-          _onChange = _props.onChange;
+          onChange = _props.onChange;
 
+
+      if (entity.isSharedHelper === true && entity.scope == null) {
+        onChange({ _id: entity._id, scope: 'global' });
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _props2 = this.props,
+          entity = _props2.entity,
+          _onChange = _props2.onChange;
+
+
+      var currentScopeValue = entity.scope != null ? entity.scope : 'global';
+      var currentScopeOption = _scopeOptions2.default.find(function (opt) {
+        return opt.value === currentScopeValue;
+      });
 
       return _react2.default.createElement(
         'div',
@@ -2093,21 +2211,62 @@ var AssetProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'shared helpers attached to each template'
+            'shared helpers attached to templates'
           ),
           _react2.default.createElement('input', {
             type: 'checkbox', checked: entity.isSharedHelper === true,
             onChange: function onChange(v) {
-              return _onChange({ _id: entity._id, isSharedHelper: v.target.checked });
+              _onChange({
+                _id: entity._id,
+                isSharedHelper: v.target.checked,
+                scope: v.target.checked === false ? null : 'global'
+              });
             }
           })
+        ),
+        entity.isSharedHelper && _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'scope'
+          ),
+          _react2.default.createElement(
+            'select',
+            {
+              value: currentScopeValue,
+              onChange: function onChange(v) {
+                var newScope = v.target.value;
+                _onChange({ _id: entity._id, scope: newScope });
+              }
+            },
+            _scopeOptions2.default.map(function (opt) {
+              return _react2.default.createElement(
+                'option',
+                { key: opt.key, value: opt.value, title: opt.desc },
+                opt.title
+              );
+            })
+          ),
+          _react2.default.createElement(
+            'em',
+            null,
+            currentScopeOption.desc
+          )
         )
       );
     }
   }], [{
     key: 'title',
     value: function title(entity, entities) {
-      return 'asset ' + (entity.link ? '(link)' : '');
+      var suffix = entity.link ? ' (link)' : '';
+
+      if (entity.isSharedHelper) {
+        suffix += ' (shared helper, scope: ' + (entity.scope != null ? entity.scope : 'global') + ')';
+      }
+
+      return 'asset' + suffix;
     }
   }]);
 

@@ -66,7 +66,13 @@ class TemplateScriptProperties extends Component {
             headingLabel='Select script'
             newLabel='New script for template'
             filter={(references) => {
-              const scripts = references.scripts.filter((e) => !e.isGlobal)
+              const scripts = references.scripts.filter((e) => {
+                if (Object.prototype.hasOwnProperty.call(e, 'scope')) {
+                  return e.scope == null
+                }
+
+                return !e.isGlobal
+              })
               return { scripts: scripts }
             }}
             value={entity.scripts ? entity.scripts.map((s) => s.shortid) : []}

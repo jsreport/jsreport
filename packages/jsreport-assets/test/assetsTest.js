@@ -67,6 +67,30 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract static asset which is marked as shared helper and run in alphabetically order', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      content: 'function foo() { return "bar" }'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      content: 'function foo() { return "hello" }'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{:~foo()}}',
+        recipe: 'html',
+        engine: 'jsrender'
+      }
+    })
+
+    res.content.toString().should.be.eql('bar')
+  })
+
   it('should extract static asset which is marked as shared helper and make them callable to other helpers', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
@@ -138,6 +162,327 @@ describe('assets', function () {
       e.entity.name.should.be.eql('foo.js')
       e.lineNumber.should.be.eql(3)
     }
+  })
+
+  it('should extract static folder asset which is marked as shared helper', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "hello" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      content: '{{:~foo()}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 'template'
+      }
+    })
+
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract static folder asset which is marked as shared helper and run in alphabetically order', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "bar" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "hello" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      content: '{{:~foo()}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 'template'
+      }
+    })
+
+    res.content.toString().should.be.eql('bar')
+  })
+
+  it('should extract static folder asset which is marked as shared helper only at top level when template is anonymous', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "hello" }'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "bar" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{:~foo()}}',
+        engine: 'jsrender',
+        recipe: 'html'
+      }
+    })
+
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract static folder asset which is marked as shared helper only at top level when template is anonymous and run in alphabetically order', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "bar" }'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "hello" }'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "bar" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{:~foo()}}',
+        engine: 'jsrender',
+        recipe: 'html'
+      }
+    })
+
+    res.content.toString().should.be.eql('bar')
+  })
+
+  it('should extract static folder asset which is marked as shared helper and run in hierarchy and alphabetically order', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo2" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f2',
+      shortid: 'f2',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo3.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo3" }',
+      folder: {
+        shortid: 'f2'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo4.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo4" }',
+      folder: {
+        shortid: 'f2'
+      }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      content: '{{:~foo()}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      folder: {
+        shortid: 'f2'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 'template'
+      }
+    })
+
+    res.content.toString().should.be.eql('foo4')
+  })
+
+  it('should extract static global and folder asset which are marked as shared helpers and run in hierarchy and alphabetically order', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo2.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo2" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'g2.html',
+      isSharedHelper: true,
+      scope: 'global',
+      content: 'function foo() { return "g2" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'g1.html',
+      isSharedHelper: true,
+      scope: 'global',
+      content: 'function foo() { return "g1" }',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'f2',
+      shortid: 'f2',
+      folder: {
+        shortid: 'f1'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo3.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo3" }',
+      folder: {
+        shortid: 'f2'
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo4.html',
+      isSharedHelper: true,
+      scope: 'folder',
+      content: 'function foo() { return "foo4" }',
+      folder: {
+        shortid: 'f2'
+      }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'template',
+      content: '{{:~foo()}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      folder: {
+        shortid: 'f2'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 'template'
+      }
+    })
+
+    res.content.toString().should.be.eql('foo4')
   })
 
   it('should extract static asset as base64 when @encoding=base64', async () => {

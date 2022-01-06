@@ -9,7 +9,7 @@ Studio.addEntitySet({
   faIcon: 'fa-file',
   visibleName: 'asset',
   onNew: (options) => Studio.openModal(NewAssetModal, options),
-  referenceAttributes: ['isSharedHelper'],
+  referenceAttributes: ['isSharedHelper', 'scope'],
   entityTreePosition: 700
 })
 

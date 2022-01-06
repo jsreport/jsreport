@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -103,15 +103,46 @@ module.exports = Studio;
 "use strict";
 
 
-var _ScriptEditor = __webpack_require__(3);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = [{
+  key: 'default',
+  title: '(none)',
+  value: '',
+  desc: 'script will only run for the templates it is being explicitly attached'
+}, {
+  key: 'global',
+  title: 'global',
+  value: 'global',
+  desc: 'script will run for all templates'
+}, {
+  key: 'folder',
+  title: 'folder',
+  value: 'folder',
+  desc: 'script will run for all templates in the same folder hierarchy'
+}];
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _NewScriptModal = __webpack_require__(4);
+
+var _NewScriptModal2 = _interopRequireDefault(_NewScriptModal);
+
+var _ScriptEditor = __webpack_require__(5);
 
 var _ScriptEditor2 = _interopRequireDefault(_ScriptEditor);
 
-var _TemplateScriptProperties = __webpack_require__(4);
+var _TemplateScriptProperties = __webpack_require__(6);
 
 var _TemplateScriptProperties2 = _interopRequireDefault(_TemplateScriptProperties);
 
-var _ScriptProperties = __webpack_require__(5);
+var _ScriptProperties = __webpack_require__(7);
 
 var _ScriptProperties2 = _interopRequireDefault(_ScriptProperties);
 
@@ -125,8 +156,11 @@ _jsreportStudio2.default.addEntitySet({
   name: 'scripts',
   faIcon: 'fa-cog',
   visibleName: 'script',
+  onNew: function onNew(options) {
+    return _jsreportStudio2.default.openModal(_NewScriptModal2.default, options);
+  },
   helpUrl: 'http://jsreport.net/learn/scripts',
-  referenceAttributes: ['isGlobal'],
+  referenceAttributes: ['isGlobal', 'scope'],
   entityTreePosition: 800
 });
 
@@ -179,7 +213,7 @@ _jsreportStudio2.default.entitySaveListeners.push(function (entity) {
         React.createElement(
           'a',
           { href: 'https://jsreport.net/learn/scripts' },
-          'scripts docummentation'
+          'scripts documentation'
         ),
         ' for the details.'
       );
@@ -188,7 +222,11 @@ _jsreportStudio2.default.entitySaveListeners.push(function (entity) {
 });
 
 _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
-  return entity.__entitySet === 'scripts' && entity.isGlobal ? 'fa-cogs' : null;
+  if (entity.__entitySet === 'scripts' && (Object.prototype.hasOwnProperty.call(entity, 'scope') && (entity.scope === 'global' || entity.scope === 'folder') || entity.isGlobal)) {
+    return 'fa-cogs';
+  }
+
+  return null;
 });
 
 function getDefaultScriptContent() {
@@ -196,7 +234,282 @@ function getDefaultScriptContent() {
 }
 
 /***/ }),
-/* 3 */
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _scopeOptions = __webpack_require__(2);
+
+var _scopeOptions2 = _interopRequireDefault(_scopeOptions);
+
+var _jsreportStudio = __webpack_require__(1);
+
+var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var NewScriptModal = function (_Component) {
+  _inherits(NewScriptModal, _Component);
+
+  function NewScriptModal(props) {
+    _classCallCheck(this, NewScriptModal);
+
+    var _this = _possibleConstructorReturn(this, (NewScriptModal.__proto__ || Object.getPrototypeOf(NewScriptModal)).call(this, props));
+
+    _this.nameInputRef = _react2.default.createRef();
+
+    _this.state = {
+      selectedScope: null,
+      error: null,
+      processing: false
+    };
+    return _this;
+  }
+
+  // the modal component for some reason after open focuses the panel itself
+
+
+  _createClass(NewScriptModal, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      var _this2 = this;
+
+      setTimeout(function () {
+        return _this2.nameInputRef.current.focus();
+      }, 0);
+    }
+  }, {
+    key: 'handleKeyPress',
+    value: function handleKeyPress(e) {
+      if (e.key === 'Enter') {
+        this.submit(e.target.value);
+      }
+    }
+  }, {
+    key: 'submit',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(val) {
+        var name, entity;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!this.state.processing) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt('return');
+
+              case 2:
+                name = val || this.nameInputRef.current.value;
+                entity = _extends({}, this.props.options.defaults, {
+                  name: name,
+                  scope: this.state.selectedScope,
+                  __entitySet: 'scripts'
+                });
+
+
+                this.setState({ processing: true });
+
+                _context.prev = 5;
+                _context.next = 8;
+                return _jsreportStudio2.default.api.post('/studio/validate-entity-name', {
+                  data: {
+                    _id: this.props.options.cloning === true ? undefined : entity._id,
+                    name: name,
+                    entitySet: 'scripts',
+                    folderShortid: entity.folder != null ? entity.folder.shortid : null
+                  }
+                }, true);
+
+              case 8:
+                _context.next = 14;
+                break;
+
+              case 10:
+                _context.prev = 10;
+                _context.t0 = _context['catch'](5);
+
+                this.setState({
+                  error: _context.t0.message,
+                  processing: false
+                });
+
+                return _context.abrupt('return');
+
+              case 14:
+
+                this.setState({
+                  error: null,
+                  processing: false
+                });
+
+                this.props.close();
+
+                _jsreportStudio2.default.openNewTab({
+                  entity: entity,
+                  entitySet: 'scripts',
+                  name: name
+                });
+
+              case 17:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[5, 10]]);
+      }));
+
+      function submit(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return submit;
+    }()
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this3 = this;
+
+      var _state = this.state,
+          selectedScope = _state.selectedScope,
+          error = _state.error,
+          processing = _state.processing;
+
+      var currentScopeValue = selectedScope != null ? selectedScope : '';
+      var currentScopeOption = _scopeOptions2.default.find(function (opt) {
+        return opt.value === currentScopeValue;
+      });
+
+      return _react2.default.createElement(
+        'div',
+        null,
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'New script'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'name'
+          ),
+          _react2.default.createElement('input', {
+            type: 'text',
+            placeholder: 'name...',
+            ref: this.nameInputRef,
+            onKeyPress: function onKeyPress(e) {
+              return _this3.handleKeyPress(e);
+            }
+          })
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'scope'
+          ),
+          _react2.default.createElement(
+            'select',
+            {
+              value: currentScopeValue,
+              onChange: function onChange(v) {
+                var newScope = v.target.value;
+
+                if (newScope === '') {
+                  newScope = null;
+                }
+
+                _this3.setState({
+                  selectedScope: newScope
+                });
+              }
+            },
+            _scopeOptions2.default.map(function (opt) {
+              return _react2.default.createElement(
+                'option',
+                { key: opt.key, value: opt.value, title: opt.desc },
+                opt.title
+              );
+            })
+          ),
+          _react2.default.createElement(
+            'em',
+            null,
+            currentScopeOption.desc
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'span',
+            {
+              style: {
+                color: 'red',
+                display: error ? 'block' : 'none',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                maxWidth: '360px'
+              }
+            },
+            error
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'button-bar' },
+          _react2.default.createElement(
+            'button',
+            { className: 'button confirmation', disabled: processing, onClick: function onClick() {
+                return _this3.submit();
+              } },
+            'Ok'
+          )
+        )
+      );
+    }
+  }]);
+
+  return NewScriptModal;
+}(_react.Component);
+
+exports.default = NewScriptModal;
+
+/***/ }),
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -256,7 +569,7 @@ var ScriptEditor = function (_Component) {
 exports.default = ScriptEditor;
 
 /***/ }),
-/* 4 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -367,6 +680,10 @@ var TemplateScriptProperties = function (_Component) {
             newLabel: 'New script for template',
             filter: function filter(references) {
               var scripts = references.scripts.filter(function (e) {
+                if (Object.prototype.hasOwnProperty.call(e, 'scope')) {
+                  return e.scope == null;
+                }
+
                 return !e.isGlobal;
               });
               return { scripts: scripts };
@@ -435,7 +752,7 @@ var TemplateScriptProperties = function (_Component) {
 exports.default = TemplateScriptProperties;
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -450,6 +767,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
+
+var _scopeOptions = __webpack_require__(2);
+
+var _scopeOptions2 = _interopRequireDefault(_scopeOptions);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -469,11 +790,39 @@ var ScriptProperties = function (_Component) {
   }
 
   _createClass(ScriptProperties, [{
-    key: 'render',
-    value: function render() {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      this.removeOldIsGlobalProperty();
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate() {
+      this.removeOldIsGlobalProperty();
+    }
+  }, {
+    key: 'removeOldIsGlobalProperty',
+    value: function removeOldIsGlobalProperty() {
       var _props = this.props,
           entity = _props.entity,
-          _onChange = _props.onChange;
+          onChange = _props.onChange;
+
+
+      if (entity.isGlobal === true) {
+        onChange({ _id: entity._id, scope: 'global', isGlobal: false });
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _props2 = this.props,
+          entity = _props2.entity,
+          _onChange = _props2.onChange;
+
+
+      var currentScopeValue = entity.scope != null ? entity.scope : '';
+      var currentScopeOption = _scopeOptions2.default.find(function (opt) {
+        return opt.value === currentScopeValue;
+      });
 
       return _react2.default.createElement(
         'div',
@@ -484,21 +833,46 @@ var ScriptProperties = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'run every time'
+            'scope'
           ),
-          _react2.default.createElement('input', {
-            type: 'checkbox', checked: entity.isGlobal === true,
-            onChange: function onChange(v) {
-              return _onChange({ _id: entity._id, isGlobal: v.target.checked });
-            }
-          })
+          _react2.default.createElement(
+            'select',
+            {
+              value: currentScopeValue,
+              onChange: function onChange(v) {
+                var newScope = v.target.value;
+
+                if (newScope === '') {
+                  newScope = null;
+                }
+
+                _onChange({ _id: entity._id, scope: newScope });
+              }
+            },
+            _scopeOptions2.default.map(function (opt) {
+              return _react2.default.createElement(
+                'option',
+                { key: opt.key, value: opt.value, title: opt.desc },
+                opt.title
+              );
+            })
+          ),
+          _react2.default.createElement(
+            'em',
+            null,
+            currentScopeOption.desc
+          )
         )
       );
     }
   }], [{
     key: 'title',
     value: function title(entity, entities) {
-      return 'scripts (global: ' + (entity.isGlobal === true) + ')';
+      if (entity.scope != null) {
+        return 'scripts (scope: ' + entity.scope + ')';
+      }
+
+      return 'scripts';
     }
   }]);
 

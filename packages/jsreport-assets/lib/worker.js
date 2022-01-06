@@ -114,7 +114,80 @@ module.exports = (reporter, definition) => {
       },
 
       evaluateShared: async () => {
-        const sharedHelpersAssets = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
+        const getSorterByName = () => {
+          return (a, b) => {
+            const nameA = a.name.toUpperCase()
+            const nameB = b.name.toUpperCase()
+
+            if (nameA < nameB) {
+              return -1
+            }
+
+            if (nameA > nameB) {
+              return 1
+            }
+
+            return 0
+          }
+        }
+
+        let globalAssetsHelpers = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
+        globalAssetsHelpers = globalAssetsHelpers.filter((asset) => asset.scope == null || asset.scope === 'global')
+
+        globalAssetsHelpers.sort(getSorterByName())
+
+        const folderAssetsHelpers = []
+
+        if (req.context.resolvedTemplate != null) {
+          let currentEntity = req.context.resolvedTemplate
+          const assetsHelpersByLevel = []
+
+          do {
+            const folderQuery = currentEntity.folder != null ? { shortid: currentEntity.folder.shortid } : null
+
+            const assetsHelpers = await reporter.documentStore.collection('assets').find({
+              isSharedHelper: true,
+              scope: 'folder',
+              folder: folderQuery
+            }, req)
+
+            if (assetsHelpers.length > 0) {
+              assetsHelpersByLevel.push([...assetsHelpers])
+            }
+
+            if (currentEntity.folder != null) {
+              currentEntity = await reporter.documentStore.collection('folders').findOne({
+                shortid: currentEntity.folder.shortid
+              }, req)
+            } else {
+              currentEntity = null
+            }
+          } while (currentEntity != null)
+
+          assetsHelpersByLevel.reverse()
+
+          for (const currentAssetHelpers of assetsHelpersByLevel) {
+            currentAssetHelpers.sort(getSorterByName())
+            folderAssetsHelpers.push(...currentAssetHelpers)
+          }
+        } else {
+          // if anonymous request just search for asset helpers with scope "folder" at the top level
+          const folders = await reporter.documentStore.collection('assets').find({
+            isSharedHelper: true,
+            scope: 'folder',
+            folder: null
+          }, req)
+
+          folderAssetsHelpers.push(...folders)
+          // sort alphabetically asc
+          folderAssetsHelpers.sort(getSorterByName())
+        }
+
+        const sharedHelpersAssets = [
+          ...globalAssetsHelpers,
+          ...folderAssetsHelpers
+        ]
+
         for (const a of sharedHelpersAssets) {
           const asset = await readAsset(reporter, definition, { id: a._id, name: null, encoding: 'utf8' }, req)
           const functionNames = getTopLevelFunctions(asset.content.toString())

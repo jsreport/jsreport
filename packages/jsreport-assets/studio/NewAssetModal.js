@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import AssetUploadButton from './AssetUploadButton.js'
+import scopeOptions from './scopeOptions'
+import AssetUploadButton from './AssetUploadButton'
 import Studio from 'jsreport-studio'
 
 class NewAssetModal extends Component {
@@ -8,7 +9,7 @@ class NewAssetModal extends Component {
 
     this.nameRef = React.createRef()
     this.linkRef = React.createRef()
-    this.state = { isLink: false }
+    this.state = { isLink: false, isSharedHelper: false, scope: null }
   }
 
   handleKeyPress (e) {
@@ -41,6 +42,9 @@ class NewAssetModal extends Component {
       entity.name = this.nameRef.current.value
     }
 
+    entity.isSharedHelper = this.state.isSharedHelper
+    entity.scope = this.state.scope
+
     try {
       if (Studio.workspaces) {
         await Studio.workspaces.save()
@@ -65,7 +69,10 @@ class NewAssetModal extends Component {
   }
 
   render () {
-    const { isLink, error } = this.state
+    const { isLink, isSharedHelper, scope, error } = this.state
+
+    const currentScopeValue = scope != null ? scope : 'global'
+    const currentScopeOption = scopeOptions.find((opt) => opt.value === currentScopeValue)
 
     return (
       <div>
@@ -75,7 +82,7 @@ class NewAssetModal extends Component {
         {isLink
           ? (
             <div className='form-group'>
-              <label>Relative or absolute path to existing file</label>
+              <label>relative or absolute path to existing file</label>
               <input
                 type='text'
                 name='link'
@@ -106,6 +113,37 @@ class NewAssetModal extends Component {
             </div>
             )
           : <div />}
+        <div className='form-group'>
+          <label>shared helpers attached to templates</label>
+          <input
+            type='checkbox' checked={isSharedHelper === true}
+            onChange={(v) => {
+              this.setState({
+                isSharedHelper: v.target.checked,
+                scope: v.target.checked === false ? null : 'global'
+              })
+            }}
+          />
+        </div>
+        {isSharedHelper && (
+          <div className='form-group'>
+            <label>scope</label>
+            <select
+              value={currentScopeValue}
+              onChange={(v) => {
+                const newScope = v.target.value
+                this.setState({
+                  scope: newScope
+                })
+              }}
+            >
+              {scopeOptions.map((opt) => (
+                <option key={opt.key} value={opt.value} title={opt.desc}>{opt.title}</option>
+              ))}
+            </select>
+            <em>{currentScopeOption.desc}</em>
+          </div>
+        )}
         <div className='form-group'>
           <span
             style={{ color: 'red', display: error ? 'block' : 'none' }}

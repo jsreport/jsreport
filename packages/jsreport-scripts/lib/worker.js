@@ -197,6 +197,23 @@ class Scripts {
   async _findScripts (req) {
     req.template.scripts = req.template.scripts || []
 
+    const getSorterByName = () => {
+      return (a, b) => {
+        const nameA = a.name.toUpperCase()
+        const nameB = b.name.toUpperCase()
+
+        if (nameA < nameB) {
+          return -1
+        }
+
+        if (nameA > nameB) {
+          return 1
+        }
+
+        return 0
+      }
+    }
+
     const items = await Promise.all(req.template.scripts.map(async (script) => {
       if (script.content) {
         return script
@@ -225,7 +242,65 @@ class Scripts {
       return items[0]
     }))
 
-    const globalItems = await this.reporter.documentStore.collection('scripts').find({ isGlobal: true }, req)
-    return globalItems.concat(items)
+    const globalItems = await this.reporter.documentStore.collection('scripts').find({
+      $or: [
+        { isGlobal: true },
+        { scope: 'global' }
+      ]
+    }, req)
+
+    // sort alphabetically asc
+    globalItems.sort(getSorterByName())
+
+    const folderItems = []
+
+    if (req.context.resolvedTemplate != null) {
+      let currentEntity = req.context.resolvedTemplate
+      const scriptsByLevel = []
+
+      do {
+        const folderQuery = currentEntity.folder != null ? { shortid: currentEntity.folder.shortid } : null
+
+        const scripts = await this.reporter.documentStore.collection('scripts').find({
+          scope: 'folder',
+          folder: folderQuery
+        }, req)
+
+        if (scripts.length > 0) {
+          scriptsByLevel.push([...scripts])
+        }
+
+        if (currentEntity.folder != null) {
+          currentEntity = await this.reporter.documentStore.collection('folders').findOne({
+            shortid: currentEntity.folder.shortid
+          }, req)
+        } else {
+          currentEntity = null
+        }
+      } while (currentEntity != null)
+
+      scriptsByLevel.reverse()
+
+      for (const currentScripts of scriptsByLevel) {
+        currentScripts.sort(getSorterByName())
+        folderItems.push(...currentScripts)
+      }
+    } else {
+      // if anonymous request just search for scripts with scope "folder" at the top level
+      const folders = await this.reporter.documentStore.collection('scripts').find({
+        scope: 'folder',
+        folder: null
+      }, req)
+
+      folderItems.push(...folders)
+      // sort alphabetically asc
+      folderItems.sort(getSorterByName())
+    }
+
+    return [
+      ...globalItems,
+      ...folderItems,
+      ...items
+    ]
   }
 }

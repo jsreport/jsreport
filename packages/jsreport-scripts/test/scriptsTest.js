@@ -148,12 +148,421 @@ describe('scripts', () => {
         content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
         name: 'b',
         shortid: 'b',
-        isGlobal: true
+        scope: 'global'
       })
       const res = await reporter.render({
         template: { content: 'x', engine: 'none', recipe: 'html', scripts: [{ shortid: 'a' }] }
       })
       res.content.toString().should.be.eql('xba')
+    })
+
+    it('should prepend global scripts in alphabetically order in beforeRender', async () => {
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'c\'; done(); }',
+        name: 'c',
+        shortid: 'c',
+        scope: 'global'
+      })
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'global'
+      })
+      const res = await reporter.render({
+        template: { content: 'x', engine: 'none', recipe: 'html', scripts: [{ shortid: 'a' }] }
+      })
+      res.content.toString().should.be.eql('xbca')
+    })
+
+    it('should prepend folder scripts in beforeRender', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        content: 'x',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: 'a' }],
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          name: 'foo'
+        }
+      })
+
+      res.content.toString().should.be.eql('xba')
+    })
+
+    it('should prepend folder scripts in alphabetically order in beforeRender', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'c\'; done(); }',
+        name: 'c',
+        shortid: 'c',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        content: 'x',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: 'a' }],
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          name: 'foo'
+        }
+      })
+
+      res.content.toString().should.be.eql('xbca')
+    })
+
+    it('should prepend folder scripts only at the top level in beforeRender when the template is anonymous', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'c\'; done(); }',
+        name: 'c',
+        shortid: 'c',
+        scope: 'folder'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        content: 'x',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: 'a' }],
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: 'x',
+          engine: 'none',
+          recipe: 'html',
+          scripts: [{ shortid: 'a' }]
+        }
+      })
+
+      res.content.toString().should.be.eql('xca')
+    })
+
+    it('should prepend folder scripts only at the top level in alphabetically order in beforeRender when the template is anonymous', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'d\'; done(); }',
+        name: 'd',
+        shortid: 'd',
+        scope: 'folder'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'c\'; done(); }',
+        name: 'c',
+        shortid: 'c',
+        scope: 'folder'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        content: 'x',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: 'a' }],
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: 'x',
+          engine: 'none',
+          recipe: 'html',
+          scripts: [{ shortid: 'a' }]
+        }
+      })
+
+      res.content.toString().should.be.eql('xcda')
+    })
+
+    it('should prepend folder scripts in hierarchy and alphabetically order in beforeRender', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'c\'; done(); }',
+        name: 'c',
+        shortid: 'c',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f2',
+        shortid: 'f2',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'d\'; done(); }',
+        name: 'd',
+        shortid: 'd',
+        scope: 'folder',
+        folder: {
+          shortid: 'f2'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'e\'; done(); }',
+        name: 'e',
+        shortid: 'e',
+        scope: 'folder',
+        folder: {
+          shortid: 'f2'
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        content: 'x',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: 'a' }],
+        folder: {
+          shortid: 'f2'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          name: 'foo'
+        }
+      })
+
+      res.content.toString().should.be.eql('xbcdea')
+    })
+
+    it('should prepend global and folder scripts in hierarchy and alphabetically order in beforeRender', async () => {
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f1',
+        shortid: 'f1'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'a\'; done(); }',
+        name: 'a',
+        shortid: 'a'
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'c\'; done(); }',
+        name: 'c',
+        shortid: 'c',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'g2\'; done(); }',
+        name: 'g2',
+        shortid: 'g2',
+        scope: 'global',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'g1\'; done(); }',
+        name: 'g1',
+        shortid: 'g1',
+        scope: 'global',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'b\'; done(); }',
+        name: 'b',
+        shortid: 'b',
+        scope: 'folder',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('folders').insert({
+        name: 'f2',
+        shortid: 'f2',
+        folder: {
+          shortid: 'f1'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'d\'; done(); }',
+        name: 'd',
+        shortid: 'd',
+        scope: 'folder',
+        folder: {
+          shortid: 'f2'
+        }
+      })
+
+      await reporter.documentStore.collection('scripts').insert({
+        content: 'function beforeRender(request, response, done) { request.template.content += \'e\'; done(); }',
+        name: 'e',
+        shortid: 'e',
+        scope: 'folder',
+        folder: {
+          shortid: 'f2'
+        }
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 'foo',
+        content: 'x',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: 'a' }],
+        folder: {
+          shortid: 'f2'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          name: 'foo'
+        }
+      })
+
+      res.content.toString().should.be.eql('xg1g2bcdea')
     })
 
     it('should not be able to see internal context data in scripts', async () => {

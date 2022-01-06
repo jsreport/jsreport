@@ -1,14 +1,16 @@
-import ScriptEditor from './ScriptEditor.js'
-import TemplateScriptProperties from './TemplateScriptProperties.js'
-import ScriptProperties from './ScriptProperties.js'
+import NewScriptModal from './NewScriptModal'
+import ScriptEditor from './ScriptEditor'
+import TemplateScriptProperties from './TemplateScriptProperties'
+import ScriptProperties from './ScriptProperties'
 import Studio from 'jsreport-studio'
 
 Studio.addEntitySet({
   name: 'scripts',
   faIcon: 'fa-cog',
   visibleName: 'script',
+  onNew: (options) => Studio.openModal(NewScriptModal, options),
   helpUrl: 'http://jsreport.net/learn/scripts',
-  referenceAttributes: ['isGlobal'],
+  referenceAttributes: ['isGlobal', 'scope'],
   entityTreePosition: 800
 })
 
@@ -49,13 +51,28 @@ Studio.entitySaveListeners.push((entity) => {
     Studio.openModal(() => (
       <div>
         The script "{entity.name}" doesn't have a function hook defined. This means the script won't do anything. You should define either "beforeRender" or "afterRender" function hooks.
-        <br />See the <a href='https://jsreport.net/learn/scripts'>scripts docummentation</a> for the details.
+        <br />See the <a href='https://jsreport.net/learn/scripts'>scripts documentation</a> for the details.
       </div>
     ))
   }
 })
 
-Studio.entityTreeIconResolvers.push((entity) => (entity.__entitySet === 'scripts' && entity.isGlobal) ? 'fa-cogs' : null)
+Studio.entityTreeIconResolvers.push((entity) => {
+  if (
+    entity.__entitySet === 'scripts' &&
+    (
+      (
+        Object.prototype.hasOwnProperty.call(entity, 'scope') &&
+        (entity.scope === 'global' ||
+        entity.scope === 'folder')
+      ) || entity.isGlobal
+    )
+  ) {
+    return 'fa-cogs'
+  }
+
+  return null
+})
 
 function getDefaultScriptContent () {
   return (
