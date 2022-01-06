@@ -270,7 +270,7 @@ var NewComponentModal = function (_Component) {
                     entitySet: 'components',
                     folderShortid: entity.folder != null ? entity.folder.shortid : null
                   }
-                });
+                }, true);
 
               case 8:
                 _context.next = 14;
@@ -334,6 +334,15 @@ var NewComponentModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
+            'New component'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
             'name'
           ),
           _react2.default.createElement('input', {
@@ -373,7 +382,15 @@ var NewComponentModal = function (_Component) {
           { className: 'form-group' },
           _react2.default.createElement(
             'span',
-            { style: { color: 'red', display: error ? 'block' : 'none' } },
+            {
+              style: {
+                color: 'red',
+                display: error ? 'block' : 'none',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                maxWidth: '360px'
+              }
+            },
             error
           )
         ),

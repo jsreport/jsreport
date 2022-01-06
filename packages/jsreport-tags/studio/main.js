@@ -690,7 +690,16 @@ var NewTagModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Name'
+            'New tag'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'name'
           ),
           _react2.default.createElement('input', { type: 'text', name: 'name', ref: this.nameRef, placeholder: 'tag name...', onKeyPress: function onKeyPress(e) {
               return _this3.handleKeyPress(e);
@@ -702,7 +711,7 @@ var NewTagModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Color'
+            'color'
           ),
           _react2.default.createElement(
             'div',

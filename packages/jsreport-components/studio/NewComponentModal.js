@@ -12,7 +12,7 @@ function getDefaultEngine () {
   return Studio.engines[0]
 }
 
-export default class NewComponentModal extends Component {
+class NewComponentModal extends Component {
   constructor (props) {
     super(props)
 
@@ -60,7 +60,7 @@ export default class NewComponentModal extends Component {
           entitySet: 'components',
           folderShortid: entity.folder != null ? entity.folder.shortid : null
         }
-      })
+      }, true)
     } catch (e) {
       this.setState({
         error: e.message,
@@ -89,6 +89,9 @@ export default class NewComponentModal extends Component {
     return (
       <div>
         <div className='form-group'>
+          <label>New component</label>
+        </div>
+        <div className='form-group'>
           <label>name</label>
           <input
             type='text'
@@ -107,7 +110,17 @@ export default class NewComponentModal extends Component {
           </select>
         </div>
         <div className='form-group'>
-          <span style={{ color: 'red', display: error ? 'block' : 'none' }}>{error}</span>
+          <span
+            style={{
+              color: 'red',
+              display: error ? 'block' : 'none',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              maxWidth: '360px'
+            }}
+          >
+            {error}
+          </span>
         </div>
         <div className='button-bar'>
           <button className='button confirmation' disabled={processing} onClick={() => this.submit()}>Ok</button>
@@ -116,3 +129,5 @@ export default class NewComponentModal extends Component {
     )
   }
 }
+
+export default NewComponentModal

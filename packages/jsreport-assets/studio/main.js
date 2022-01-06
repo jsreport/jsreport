@@ -1902,6 +1902,15 @@ var NewAssetModal = function (_Component) {
       return _react2.default.createElement(
         'div',
         null,
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'New asset'
+          )
+        ),
         isLink ? _react2.default.createElement(
           'div',
           { className: 'form-group' },
@@ -1921,7 +1930,7 @@ var NewAssetModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Name'
+            'name'
           ),
           _react2.default.createElement('input', {
             type: 'text',

@@ -831,7 +831,16 @@ var NewUserModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Username'
+            'New user'
+          )
+        ),
+        _react2.default.createElement(
+          'div',
+          { className: 'form-group' },
+          _react2.default.createElement(
+            'label',
+            null,
+            'username'
           ),
           _react2.default.createElement('input', { type: 'text', ref: this.usernameRef, onChange: function onChange() {
               return _this3.validateUsername();
@@ -845,7 +854,7 @@ var NewUserModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Password'
+            'password'
           ),
           _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.password1Ref })
         ),
@@ -855,7 +864,7 @@ var NewUserModal = function (_Component) {
           _react2.default.createElement(
             'label',
             null,
-            'Password verification'
+            'password verification'
           ),
           _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.password2Ref, onChange: function onChange() {
               return _this3.validatePassword();

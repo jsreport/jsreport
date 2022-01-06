@@ -117,6 +117,9 @@ class NewFolderModal extends Component {
       <div>
         <div className='form-group'>
           <label>New folder</label>
+        </div>
+        <div className='form-group'>
+          <label>name</label>
           <input
             type='text'
             placeholder='name...'

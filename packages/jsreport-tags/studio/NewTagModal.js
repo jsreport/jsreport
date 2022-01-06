@@ -82,11 +82,14 @@ class NewTagModal extends Component {
     return (
       <div>
         <div className='form-group'>
-          <label>Name</label>
+          <label>New tag</label>
+        </div>
+        <div className='form-group'>
+          <label>name</label>
           <input type='text' name='name' ref={this.nameRef} placeholder='tag name...' onKeyPress={(e) => this.handleKeyPress(e)} />
         </div>
         <div className='form-group'>
-          <label>Color</label>
+          <label>color</label>
 
           <div>
             <ColorPicketTrigger

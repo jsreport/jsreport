@@ -79,15 +79,18 @@ class NewUserModal extends Component {
     return (
       <div>
         <div className='form-group'>
-          <label>Username</label>
+          <label>New user</label>
+        </div>
+        <div className='form-group'>
+          <label>username</label>
           <input type='text' ref={this.usernameRef} onChange={() => this.validateUsername()} onKeyPress={(e) => this.handleKeyPress(e)} />
         </div>
         <div className='form-group'>
-          <label>Password</label>
+          <label>password</label>
           <input type='password' autoComplete='off' ref={this.password1Ref} />
         </div>
         <div className='form-group'>
-          <label>Password verification</label>
+          <label>password verification</label>
           <input type='password' autoComplete='off' ref={this.password2Ref} onChange={() => this.validatePassword()} />
         </div>
         <div className='form-group'>

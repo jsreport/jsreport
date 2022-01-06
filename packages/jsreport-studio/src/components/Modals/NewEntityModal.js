@@ -87,6 +87,9 @@ class NewEntityModal extends Component {
       <div>
         <div className='form-group'>
           <label>New {entitySets[entitySet].visibleName}</label>
+        </div>
+        <div className='form-group'>
+          <label>name</label>
           <input
             type='text'
             placeholder='name...'

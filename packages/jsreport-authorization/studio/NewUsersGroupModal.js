@@ -62,7 +62,10 @@ const NewUsersGroupModal = (props) => {
   return (
     <div>
       <div className='form-group'>
-        <label>Group name</label>
+        <label>New group</label>
+      </div>
+      <div className='form-group'>
+        <label>name</label>
         <input type='text' ref={groupNameRef} onChange={() => validateGroupName()} onKeyPress={(e) => handleKeyPress(e)} />
       </div>
       <div className='form-group'>

@@ -350,7 +350,16 @@ var NewUsersGroupModal = function NewUsersGroupModal(props) {
       React.createElement(
         'label',
         null,
-        'Group name'
+        'New group'
+      )
+    ),
+    React.createElement(
+      'div',
+      { className: 'form-group' },
+      React.createElement(
+        'label',
+        null,
+        'name'
       ),
       React.createElement('input', { type: 'text', ref: groupNameRef, onChange: function onChange() {
           return validateGroupName();

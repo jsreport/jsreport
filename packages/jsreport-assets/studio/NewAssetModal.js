@@ -69,6 +69,9 @@ class NewAssetModal extends Component {
 
     return (
       <div>
+        <div className='form-group'>
+          <label>New asset</label>
+        </div>
         {isLink
           ? (
             <div className='form-group'>
@@ -82,7 +85,7 @@ class NewAssetModal extends Component {
             )
           : (
             <div className='form-group'>
-              <label>Name</label>
+              <label>name</label>
               <input
                 type='text'
                 name='name'
