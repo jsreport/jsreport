@@ -42,8 +42,11 @@ class NewAssetModal extends Component {
       entity.name = this.nameRef.current.value
     }
 
-    entity.isSharedHelper = this.state.isSharedHelper
-    entity.scope = this.state.scope
+    if (this.state.isSharedHelper) {
+      entity.sharedHelpersScope = this.state.scope
+    } else {
+      entity.sharedHelpersScope = null
+    }
 
     try {
       if (Studio.workspaces) {

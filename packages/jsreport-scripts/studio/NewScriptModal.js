@@ -9,7 +9,7 @@ class NewScriptModal extends Component {
     this.nameInputRef = React.createRef()
 
     this.state = {
-      selectedScope: null,
+      selectedScope: 'template',
       error: null,
       processing: false
     }
@@ -76,7 +76,7 @@ class NewScriptModal extends Component {
 
   render () {
     const { selectedScope, error, processing } = this.state
-    const currentScopeValue = selectedScope != null ? selectedScope : ''
+    const currentScopeValue = selectedScope
     const currentScopeOption = scopeOptions.find((opt) => opt.value === currentScopeValue)
 
     return (
@@ -98,11 +98,7 @@ class NewScriptModal extends Component {
           <select
             value={currentScopeValue}
             onChange={(v) => {
-              let newScope = v.target.value
-
-              if (newScope === '') {
-                newScope = null
-              }
+              const newScope = v.target.value
 
               this.setState({
                 selectedScope: newScope

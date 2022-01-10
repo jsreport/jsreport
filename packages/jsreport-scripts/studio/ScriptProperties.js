@@ -23,13 +23,15 @@ class ScriptProperties extends Component {
 
     if (entity.isGlobal === true) {
       onChange({ _id: entity._id, scope: 'global', isGlobal: false })
+    } else if (entity.scope == null && !entity.isGlobal) {
+      onChange({ _id: entity._id, scope: 'template', isGlobal: false })
     }
   }
 
   render () {
     const { entity, onChange } = this.props
 
-    const currentScopeValue = entity.scope != null ? entity.scope : ''
+    const currentScopeValue = entity.scope != null ? entity.scope : 'template'
     const currentScopeOption = scopeOptions.find((opt) => opt.value === currentScopeValue)
 
     return (
@@ -39,12 +41,7 @@ class ScriptProperties extends Component {
           <select
             value={currentScopeValue}
             onChange={(v) => {
-              let newScope = v.target.value
-
-              if (newScope === '') {
-                newScope = null
-              }
-
+              const newScope = v.target.value
               onChange({ _id: entity._id, scope: newScope })
             }}
           >

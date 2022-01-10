@@ -1863,26 +1863,29 @@ var NewAssetModal = function (_Component) {
                   entity.name = this.nameRef.current.value;
                 }
 
-                entity.isSharedHelper = this.state.isSharedHelper;
-                entity.scope = this.state.scope;
+                if (this.state.isSharedHelper) {
+                  entity.sharedHelpersScope = this.state.scope;
+                } else {
+                  entity.sharedHelpersScope = null;
+                }
 
-                _context.prev = 7;
+                _context.prev = 6;
 
                 if (!_jsreportStudio2.default.workspaces) {
-                  _context.next = 11;
+                  _context.next = 10;
                   break;
                 }
 
-                _context.next = 11;
+                _context.next = 10;
                 return _jsreportStudio2.default.workspaces.save();
 
-              case 11:
-                _context.next = 13;
+              case 10:
+                _context.next = 12;
                 return _jsreportStudio2.default.api.post('/odata/assets', {
                   data: entity
                 });
 
-              case 13:
+              case 12:
                 response = _context.sent;
 
                 response.__entitySet = 'assets';
@@ -1895,21 +1898,21 @@ var NewAssetModal = function (_Component) {
                 }
 
                 this.props.close();
-                _context.next = 24;
+                _context.next = 23;
                 break;
 
-              case 21:
-                _context.prev = 21;
-                _context.t0 = _context['catch'](7);
+              case 20:
+                _context.prev = 20;
+                _context.t0 = _context['catch'](6);
 
                 this.setState({ error: _context.t0.message });
 
-              case 24:
+              case 23:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[7, 21]]);
+        }, _callee, this, [[6, 20]]);
       }));
 
       function createAsset(_x) {
@@ -2169,8 +2172,8 @@ var AssetProperties = function (_Component) {
           onChange = _props.onChange;
 
 
-      if (entity.isSharedHelper === true && entity.scope == null) {
-        onChange({ _id: entity._id, scope: 'global' });
+      if (entity.isSharedHelper === true && entity.sharedHelpersScope == null) {
+        onChange({ _id: entity._id, sharedHelpersScope: 'global', isSharedHelper: false });
       }
     }
   }, {
@@ -2181,7 +2184,7 @@ var AssetProperties = function (_Component) {
           _onChange = _props2.onChange;
 
 
-      var currentScopeValue = entity.scope != null ? entity.scope : 'global';
+      var currentScopeValue = entity.sharedHelpersScope != null ? entity.sharedHelpersScope : 'global';
       var currentScopeOption = _scopeOptions2.default.find(function (opt) {
         return opt.value === currentScopeValue;
       });
@@ -2214,17 +2217,16 @@ var AssetProperties = function (_Component) {
             'shared helpers attached to templates'
           ),
           _react2.default.createElement('input', {
-            type: 'checkbox', checked: entity.isSharedHelper === true,
+            type: 'checkbox', checked: entity.sharedHelpersScope != null,
             onChange: function onChange(v) {
               _onChange({
                 _id: entity._id,
-                isSharedHelper: v.target.checked,
-                scope: v.target.checked === false ? null : 'global'
+                sharedHelpersScope: v.target.checked === false ? null : 'global'
               });
             }
           })
         ),
-        entity.isSharedHelper && _react2.default.createElement(
+        entity.sharedHelpersScope != null && _react2.default.createElement(
           'div',
           { className: 'form-group' },
           _react2.default.createElement(
@@ -2238,7 +2240,7 @@ var AssetProperties = function (_Component) {
               value: currentScopeValue,
               onChange: function onChange(v) {
                 var newScope = v.target.value;
-                _onChange({ _id: entity._id, scope: newScope });
+                _onChange({ _id: entity._id, sharedHelpersScope: newScope });
               }
             },
             _scopeOptions2.default.map(function (opt) {
@@ -2262,8 +2264,8 @@ var AssetProperties = function (_Component) {
     value: function title(entity, entities) {
       var suffix = entity.link ? ' (link)' : '';
 
-      if (entity.isSharedHelper) {
-        suffix += ' (shared helper, scope: ' + (entity.scope != null ? entity.scope : 'global') + ')';
+      if (entity.sharedHelpersScope != null) {
+        suffix += ' (shared helper, scope: ' + entity.sharedHelpersScope + ')';
       }
 
       return 'asset' + suffix;

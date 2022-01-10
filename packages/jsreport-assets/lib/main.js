@@ -10,7 +10,7 @@ module.exports = function (reporter, definition) {
     name: { type: 'Edm.String' },
     content: { type: 'Edm.Binary', document: { extension: 'html', content: true } },
     forceUpdate: { type: 'Edm.Boolean' },
-    scope: { type: 'Edm.String', schema: { type: 'null', enum: [null, 'global', 'folder'] } },
+    sharedHelpersScope: { type: 'Edm.String', schema: { type: 'null', enum: [null, 'global', 'folder'] } },
     isSharedHelper: { type: 'Edm.Boolean' },
     link: { type: 'Edm.String' }
   })

@@ -8,7 +8,7 @@ module.exports = function (reporter, definition) {
   reporter.documentStore.registerEntityType('ScriptType', {
     content: { type: 'Edm.String', document: { extension: 'js' } },
     name: { type: 'Edm.String' },
-    scope: { type: 'Edm.String', schema: { type: 'null', enum: [null, 'global', 'folder'] } },
+    scope: { type: 'Edm.String', schema: { enum: ['template', 'global', 'folder'] } },
     isGlobal: { type: 'Edm.Boolean' }
   })
 

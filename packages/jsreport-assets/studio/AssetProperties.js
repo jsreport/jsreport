@@ -6,8 +6,8 @@ class AssetProperties extends Component {
   static title (entity, entities) {
     let suffix = entity.link ? ' (link)' : ''
 
-    if (entity.isSharedHelper) {
-      suffix += ` (shared helper, scope: ${entity.scope != null ? entity.scope : 'global'})`
+    if (entity.sharedHelpersScope != null) {
+      suffix += ` (shared helper, scope: ${entity.sharedHelpersScope})`
     }
 
     return `asset${suffix}`
@@ -24,15 +24,15 @@ class AssetProperties extends Component {
   normalizeScope () {
     const { entity, onChange } = this.props
 
-    if (entity.isSharedHelper === true && entity.scope == null) {
-      onChange({ _id: entity._id, scope: 'global' })
+    if (entity.isSharedHelper === true && entity.sharedHelpersScope == null) {
+      onChange({ _id: entity._id, sharedHelpersScope: 'global', isSharedHelper: false })
     }
   }
 
   render () {
     const { entity, onChange } = this.props
 
-    const currentScopeValue = entity.scope != null ? entity.scope : 'global'
+    const currentScopeValue = entity.sharedHelpersScope != null ? entity.sharedHelpersScope : 'global'
     const currentScopeOption = scopeOptions.find((opt) => opt.value === currentScopeValue)
 
     return (
@@ -52,24 +52,23 @@ class AssetProperties extends Component {
         <div className='form-group'>
           <label>shared helpers attached to templates</label>
           <input
-            type='checkbox' checked={entity.isSharedHelper === true}
+            type='checkbox' checked={entity.sharedHelpersScope != null}
             onChange={(v) => {
               onChange({
                 _id: entity._id,
-                isSharedHelper: v.target.checked,
-                scope: v.target.checked === false ? null : 'global'
+                sharedHelpersScope: v.target.checked === false ? null : 'global'
               })
             }}
           />
         </div>
-        {entity.isSharedHelper && (
+        {entity.sharedHelpersScope != null && (
           <div className='form-group'>
             <label>scope</label>
             <select
               value={currentScopeValue}
               onChange={(v) => {
                 const newScope = v.target.value
-                onChange({ _id: entity._id, scope: newScope })
+                onChange({ _id: entity._id, sharedHelpersScope: newScope })
               }}
             >
               {scopeOptions.map((opt) => (

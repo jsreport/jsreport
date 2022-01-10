@@ -107,9 +107,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = [{
-  key: 'default',
-  title: '(none)',
-  value: '',
+  key: 'template',
+  title: 'template',
+  value: 'template',
   desc: 'script will only run for the templates it is being explicitly attached'
 }, {
   key: 'global',
@@ -281,7 +281,7 @@ var NewScriptModal = function (_Component) {
     _this.nameInputRef = _react2.default.createRef();
 
     _this.state = {
-      selectedScope: null,
+      selectedScope: 'template',
       error: null,
       processing: false
     };
@@ -399,7 +399,7 @@ var NewScriptModal = function (_Component) {
           error = _state.error,
           processing = _state.processing;
 
-      var currentScopeValue = selectedScope != null ? selectedScope : '';
+      var currentScopeValue = selectedScope;
       var currentScopeOption = _scopeOptions2.default.find(function (opt) {
         return opt.value === currentScopeValue;
       });
@@ -447,10 +447,6 @@ var NewScriptModal = function (_Component) {
               value: currentScopeValue,
               onChange: function onChange(v) {
                 var newScope = v.target.value;
-
-                if (newScope === '') {
-                  newScope = null;
-                }
 
                 _this3.setState({
                   selectedScope: newScope
@@ -653,7 +649,7 @@ var TemplateScriptProperties = function (_Component) {
 
       var updatedScripts = entity.scripts.filter(function (s) {
         return Object.keys(entities).filter(function (k) {
-          return entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid && entities[k].scope == null;
+          return entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid && (entities[k].scope === 'template' || entities[k].scope == null && !entities[k].isGlobal);
         }).length;
       });
 
@@ -680,11 +676,7 @@ var TemplateScriptProperties = function (_Component) {
             newLabel: 'New script for template',
             filter: function filter(references) {
               var scripts = references.scripts.filter(function (e) {
-                if (Object.prototype.hasOwnProperty.call(e, 'scope')) {
-                  return e.scope == null;
-                }
-
-                return !e.isGlobal;
+                return e.scope === 'template' || e.scope == null && !e.isGlobal;
               });
               return { scripts: scripts };
             },
@@ -809,6 +801,8 @@ var ScriptProperties = function (_Component) {
 
       if (entity.isGlobal === true) {
         onChange({ _id: entity._id, scope: 'global', isGlobal: false });
+      } else if (entity.scope == null && !entity.isGlobal) {
+        onChange({ _id: entity._id, scope: 'template', isGlobal: false });
       }
     }
   }, {
@@ -819,7 +813,7 @@ var ScriptProperties = function (_Component) {
           _onChange = _props2.onChange;
 
 
-      var currentScopeValue = entity.scope != null ? entity.scope : '';
+      var currentScopeValue = entity.scope != null ? entity.scope : 'template';
       var currentScopeOption = _scopeOptions2.default.find(function (opt) {
         return opt.value === currentScopeValue;
       });
@@ -841,11 +835,6 @@ var ScriptProperties = function (_Component) {
               value: currentScopeValue,
               onChange: function onChange(v) {
                 var newScope = v.target.value;
-
-                if (newScope === '') {
-                  newScope = null;
-                }
-
                 _onChange({ _id: entity._id, scope: newScope });
               }
             },

@@ -1,8 +1,8 @@
 
 export default [{
-  key: 'default',
-  title: '(none)',
-  value: '',
+  key: 'template',
+  title: 'template',
+  value: 'template',
   desc: 'script will only run for the templates it is being explicitly attached'
 }, {
   key: 'global',

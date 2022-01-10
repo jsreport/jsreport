@@ -76,7 +76,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
+      sharedHelpersScope: 'global',
       content: 'function foo() { return "hello" }'
     })
 
@@ -172,8 +172,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "hello" }',
       folder: {
         shortid: 'f1'
@@ -207,8 +206,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo2.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "bar" }',
       folder: {
         shortid: 'f1'
@@ -217,8 +215,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "hello" }',
       folder: {
         shortid: 'f1'
@@ -252,15 +249,13 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "hello" }'
     })
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo2.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "bar" }',
       folder: {
         shortid: 'f1'
@@ -286,22 +281,19 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo2.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "bar" }'
     })
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "hello" }'
     })
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo2.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "bar" }',
       folder: {
         shortid: 'f1'
@@ -327,8 +319,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo2.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo2" }',
       folder: {
         shortid: 'f1'
@@ -337,8 +328,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo" }',
       folder: {
         shortid: 'f1'
@@ -355,8 +345,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo3.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo3" }',
       folder: {
         shortid: 'f2'
@@ -365,8 +354,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo4.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo4" }',
       folder: {
         shortid: 'f2'
@@ -400,8 +388,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo2.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo2" }',
       folder: {
         shortid: 'f1'
@@ -410,8 +397,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo" }',
       folder: {
         shortid: 'f1'
@@ -420,8 +406,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'g2.html',
-      isSharedHelper: true,
-      scope: 'global',
+      sharedHelpersScope: 'global',
       content: 'function foo() { return "g2" }',
       folder: {
         shortid: 'f1'
@@ -430,8 +415,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'g1.html',
-      isSharedHelper: true,
-      scope: 'global',
+      sharedHelpersScope: 'global',
       content: 'function foo() { return "g1" }',
       folder: {
         shortid: 'f1'
@@ -448,8 +432,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo3.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo3" }',
       folder: {
         shortid: 'f2'
@@ -458,8 +441,7 @@ describe('assets', function () {
 
     await reporter.documentStore.collection('assets').insert({
       name: 'foo4.html',
-      isSharedHelper: true,
-      scope: 'folder',
+      sharedHelpersScope: 'folder',
       content: 'function foo() { return "foo4" }',
       folder: {
         shortid: 'f2'

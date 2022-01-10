@@ -131,8 +131,14 @@ module.exports = (reporter, definition) => {
           }
         }
 
-        let globalAssetsHelpers = await reporter.documentStore.collection('assets').find({ isSharedHelper: true }, req)
-        globalAssetsHelpers = globalAssetsHelpers.filter((asset) => asset.scope == null || asset.scope === 'global')
+        let globalAssetsHelpers = await reporter.documentStore.collection('assets').find({
+          $or: [
+            { isSharedHelper: true },
+            { sharedHelpersScope: 'global' }
+          ]
+        }, req)
+
+        globalAssetsHelpers = globalAssetsHelpers.filter((asset) => asset.sharedHelpersScope == null || asset.sharedHelpersScope === 'global')
 
         globalAssetsHelpers.sort(getSorterByName())
 
@@ -146,8 +152,7 @@ module.exports = (reporter, definition) => {
             const folderQuery = currentEntity.folder != null ? { shortid: currentEntity.folder.shortid } : null
 
             const assetsHelpers = await reporter.documentStore.collection('assets').find({
-              isSharedHelper: true,
-              scope: 'folder',
+              sharedHelpersScope: 'folder',
               folder: folderQuery
             }, req)
 
@@ -173,8 +178,7 @@ module.exports = (reporter, definition) => {
         } else {
           // if anonymous request just search for asset helpers with scope "folder" at the top level
           const folders = await reporter.documentStore.collection('assets').find({
-            isSharedHelper: true,
-            scope: 'folder',
+            sharedHelpersScope: 'folder',
             folder: null
           }, req)
 
@@ -200,7 +204,7 @@ module.exports = (reporter, definition) => {
             entitySet: 'assets',
             entity: {
               ...a,
-              content: a.content.toString()
+              content: asset.content.toString()
             }
           })
         }

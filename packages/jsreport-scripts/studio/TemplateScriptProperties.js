@@ -49,7 +49,11 @@ class TemplateScriptProperties extends Component {
       return
     }
 
-    const updatedScripts = entity.scripts.filter((s) => Object.keys(entities).filter((k) => entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid && entities[k].scope == null).length)
+    const updatedScripts = entity.scripts.filter((s) => Object.keys(entities).filter((k) => (
+      entities[k].__entitySet === 'scripts' &&
+      entities[k].shortid === s.shortid &&
+      (entities[k].scope === 'template' || (entities[k].scope == null && !entities[k].isGlobal))
+    )).length)
 
     if (updatedScripts.length !== entity.scripts.length) {
       onChange({ _id: entity._id, scripts: updatedScripts })
@@ -67,11 +71,7 @@ class TemplateScriptProperties extends Component {
             newLabel='New script for template'
             filter={(references) => {
               const scripts = references.scripts.filter((e) => {
-                if (Object.prototype.hasOwnProperty.call(e, 'scope')) {
-                  return e.scope == null
-                }
-
-                return !e.isGlobal
+                return e.scope === 'template' || (e.scope == null && !e.isGlobal)
               })
               return { scripts: scripts }
             }}
