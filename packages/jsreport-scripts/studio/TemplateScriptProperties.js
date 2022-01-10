@@ -49,7 +49,7 @@ class TemplateScriptProperties extends Component {
       return
     }
 
-    const updatedScripts = entity.scripts.filter((s) => Object.keys(entities).filter((k) => entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid).length)
+    const updatedScripts = entity.scripts.filter((s) => Object.keys(entities).filter((k) => entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid && entities[k].scope == null).length)
 
     if (updatedScripts.length !== entity.scripts.length) {
       onChange({ _id: entity._id, scripts: updatedScripts })

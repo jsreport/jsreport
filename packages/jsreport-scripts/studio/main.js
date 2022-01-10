@@ -653,7 +653,7 @@ var TemplateScriptProperties = function (_Component) {
 
       var updatedScripts = entity.scripts.filter(function (s) {
         return Object.keys(entities).filter(function (k) {
-          return entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid;
+          return entities[k].__entitySet === 'scripts' && entities[k].shortid === s.shortid && entities[k].scope == null;
         }).length;
       });
 
