@@ -228,9 +228,9 @@ module.exports = (reporter, definition) => {
         const r = await readAsset(reporter, definition, { id: null, name: path, encoding: 'utf8', currentDirectoryPath: proxy.currentDirectoryPath }, req)
 
         const userCode = [
-          `;(() => { function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,
+          `;(async () => { async function moduleWrap(exports, require, module, __filename, __dirname) { ${r.content} \n};\n`,
           `const m = { exports: { }};
-          const r = moduleWrap(m.exports, require, m);
+          const r = await moduleWrap(m.exports, require, m);
           return m.exports;
           })()`
         ].join('')

@@ -937,6 +937,52 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello world')
   })
 
+  it('should provide asset relative to the current asset (asset code calling another asset with require)', async () => {
+    const f1 = await reporter.documentStore.collection('folders').insert({
+      name: 'assets'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'sometext.txt',
+      content: 'hello world',
+      folder: {
+        shortid: f1.shortid
+      }
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'mymodule.js',
+      content: `
+        const jsreport = require('jsreport-proxy')
+        const text = await jsreport.assets.read('./sometext.txt')
+        module.exports = async () => {
+            return text
+        }
+      `,
+      folder: {
+        shortid: f1.shortid
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{foo}}',
+        helpers: `
+          const jsreport = require('jsreport-proxy')
+          const mymodule = await jsreport.assets.require('./assets/mymodule.js')
+
+          function foo() {
+              return mymodule()
+          }
+        `,
+        recipe: 'html',
+        engine: 'handlebars'
+      }
+    })
+
+    res.content.toString().should.be.eql('hello world')
+  })
+
   it('should proxy methods resolve correctly jsreportProxy.currentPath and jsreportProxy.currentDirectoryPath', async () => {
     const f1 = await reporter.documentStore.collection('folders').insert({
       name: 'assets'
