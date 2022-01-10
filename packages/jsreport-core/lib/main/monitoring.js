@@ -84,7 +84,8 @@ module.exports = (reporter) => {
 
   reporter.documentStore.registerEntitySet('monitoring', {
     entityType: 'jsreport.MonitoringType',
-    exportable: false
+    exportable: false,
+    shared: true
   })
 
   reporter.monitoring = new Monitoring(reporter)
