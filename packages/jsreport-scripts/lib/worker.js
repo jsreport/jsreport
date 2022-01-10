@@ -228,7 +228,10 @@ class Scripts {
         query.name = script.name
       }
 
-      const items = await this.reporter.documentStore.collection('scripts').find(query, req)
+      let items = await this.reporter.documentStore.collection('scripts').find(query, req)
+
+      items = items.filter((s) => s.scope == null)
+
       if (items.length < 1) {
         const error = this.reporter.createError(`Script not found or user not authorized to read it (${
           (script.shortid || script.name)
