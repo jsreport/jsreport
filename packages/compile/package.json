@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "start": "node ./bin/compile.js",
-    "test": "mocha test/test.js --timeout 480000"
+    "test": "mocha test/test.js --timeout 480000 && standard"
   },
   "dependencies": {
     "@bjrmatos/pkg": "5.4.0",

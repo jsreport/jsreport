@@ -37,7 +37,7 @@
     "run": "npm run build && jsreport-studio-start --run-only",
     "server-test": "mocha test/server",
     "start": "npm run check-build-eslint-browser && npm run check-build-babel-eslint-browser && jsreport-studio-start --ignore-jsreport-studio-install",
-    "test": "npm run ui-test && npm run server-test",
+    "test": "npm run ui-test && npm run server-test && standard",
     "test:watch": "npm test -- --watch",
     "ui-test": "mocha test/ui/.setup.js test/ui --recursive --exit --require babel-core/register --require mocha-clean --require ignore-styles"
   },

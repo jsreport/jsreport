@@ -46,7 +46,7 @@
   "scripts": {
     "lint": "standard",
     "start": "cross-env JSREPORT_CLI_DEV=enabled node cli.js",
-    "test": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit",
+    "test": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit && standard",
     "test:watch": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit --watch"
   },
   "dependencies": {
