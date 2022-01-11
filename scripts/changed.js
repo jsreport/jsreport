@@ -142,6 +142,10 @@ if (targetPkg != null && targetPkg !== '') {
         console.log(otherPackages.map((p) => `- ${p}`).join('\n'))
       }
 
+      if (packagesRelevantForJsreportRelease.length > 0) {
+        console.log(`\nYou can run the audit check for packages by running: node scripts/audit.js ${packagesRelevantForJsreportRelease.join(' ')}`)
+      }
+
       console.log(`\nYou can get details about the commit changes of each package by running: node scripts/changed.js ${firstCommit} ${lastCommit} ${extensions[0]}`)
     }
   }

@@ -11,11 +11,11 @@ if (fs.existsSync(tempDir)) {
   fs.rmSync(tempDir, { recursive: true })
 }
 
-if (args[0] == null || args[0] === '') {
-  throw new Error('extensionsList arg is required. First positional argument')
+if (args.length === 0 || args[0] == null || args[0] === '') {
+  throw new Error('You need to pass one or more packages to audit')
 }
 
-if (args[0] === '--clean') {
+if (args[0] === 'clean') {
   console.log('\n..executing clean steps for audit..\n')
 
   const pkgs = fs.readdirSync(path.join(process.cwd(), 'packages')).filter((n) => n !== '.DS_Store')
@@ -48,7 +48,7 @@ if (args[0] === '--clean') {
   process.exit()
 }
 
-const extensionsList = args[0].split(',').map(x => x.trim())
+const extensionsList = args.map(x => x.trim())
 const packagesInWorkspace = getPackagesInWorkspace()
 
 for (const ext of extensionsList) {
@@ -113,3 +113,5 @@ if (withVulnerabilities.length > 0) {
 } else {
   console.log('\nNo packages with vulnerabilities found')
 }
+
+console.log('\nYou can run the following to clean the workspace after audit: node scripts/audit.js clean')
