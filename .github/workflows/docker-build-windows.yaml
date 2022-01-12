@@ -1,0 +1,23 @@
+name: docker-windows 
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  push:
+
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v2    
+
+      - uses: mr-smithers-excellent/docker-build-push@v5
+        name: Build & push Docker image
+        with:
+          image: jsreport/jsreport
+          tags: ${{ github.event.release.tag_name }}-windowsservercore, latest-windowsservercore
+          registry: docker.io
+          dockerfile: packages/jsreport/docker/windowsservercore/Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}     
