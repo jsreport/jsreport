@@ -1207,6 +1207,266 @@ describe('docx', () => {
     text.should.containEql('My Table - pavel@foo.met')
   })
 
+  it('table rows, columns (merged cells - rowspan)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          [{ rowspan: 4, value: 'R2-1' }, 'R2-2', 'R2-3', { rowspan: 4, value: 'R2-4' }],
+          [null, 'R3-2', 'R3-3', null],
+          [null, 'R4-2', 'R4-3', null],
+          [null, 'R5-2', 'R5-3', null],
+          [{ rowspan: 2, value: 'R6-1' }, 'R6-2', 'R6-3', { rowspan: 2, value: 'R6-4' }],
+          [null, 'R7-2', 'R7-3', null],
+          [{ rowspan: 3, value: 'R8-1' }, 'R8-2', 'R8-3', { rowspan: 3, value: 'R8-4' }],
+          [null, 'R9-2', 'R9-3', null],
+          [null, 'R10-2', 'R10-3', null]
+        ],
+        columnsItems: ['R1-1', 'R1-2', 'R1-3', 'R1-4']
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['R1-1', 'R1-2', 'R1-3', 'R1-4', ''].join('\t'),
+      ['R2-1', 'R2-2', 'R2-3', 'R2-4', ''].join('\t'),
+      ['', 'R3-2', 'R3-3', '', ''].join('\t'),
+      ['', 'R4-2', 'R4-3', '', ''].join('\t'),
+      ['', 'R5-2', 'R5-3', '', ''].join('\t'),
+      ['R6-1', 'R6-2', 'R6-3', 'R6-4', ''].join('\t'),
+      ['', 'R7-2', 'R7-3', '', ''].join('\t'),
+      ['R8-1', 'R8-2', 'R8-3', 'R8-4', ''].join('\t'),
+      ['', 'R9-2', 'R9-3', '', ''].join('\t'),
+      ['', 'R10-2', 'R10-3', '', ''].join('\t')
+    ].join('\n'))
+  })
+
+  it('table rows, columns (merged cells - rowspan with all cells in row with same value)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          [{ rowspan: 2, value: 'R2-1' }, { rowspan: 2, value: 'R2-2' }, { rowspan: 2, value: 'R2-3' }, { rowspan: 2, value: 'R2-4' }],
+          ['R3-1', 'R3-2', 'R3-3', 'R3-4'],
+          ['R4-1', 'R4-2', 'R4-3', 'R4-4']
+        ],
+        columnsItems: ['R1-1', 'R1-2', 'R1-3', 'R1-4']
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['R1-1', 'R1-2', 'R1-3', 'R1-4', ''].join('\t'),
+      ['R2-1', 'R2-2', 'R2-3', 'R2-4', ''].join('\t'),
+      ['R3-1', 'R3-2', 'R3-3', 'R3-4', ''].join('\t'),
+      ['R4-1', 'R4-2', 'R4-3', 'R4-4', ''].join('\t')
+    ].join('\n'))
+  })
+
+  it('table rows, columns (merged cells - rowspan in columns items)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          [null, 'R2-2', 'R2-3', null],
+          ['R3-1', 'R3-2', 'R3-3', 'R3-4'],
+          ['R4-1', 'R4-2', 'R4-3', 'R4-4']
+        ],
+        columnsItems: [{ rowspan: 2, value: 'R1-1' }, 'R1-2', 'R1-3', { rowspan: 2, value: 'R1-4' }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['R1-1', 'R1-2', 'R1-3', 'R1-4', ''].join('\t'),
+      ['', 'R2-2', 'R2-3', '', ''].join('\t'),
+      ['R3-1', 'R3-2', 'R3-3', 'R3-4', ''].join('\t'),
+      ['R4-1', 'R4-2', 'R4-3', 'R4-4', ''].join('\t')
+    ].join('\n'))
+  })
+
+  it('table rows, columns (merged cells - colspan)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          [{ colspan: 2, value: 'R2-1' }, { colspan: 2, value: 'R2-3' }],
+          ['R3-1', 'R3-2', 'R3-3', 'R3-4'],
+          [{ colspan: 2, value: 'R4-1' }, 'R4-3', 'R4-4'],
+          ['R5-1', 'R5-2', 'R5-3', 'R5-4'],
+          ['R6-1', 'R6-2', { colspan: 2, value: 'R6-3' }],
+          ['R7-1', 'R7-2', 'R7-3', 'R7-4'],
+          ['R8-1', { colspan: 2, value: 'R8-2' }, 'R8-4'],
+          ['R9-1', 'R9-2', 'R9-3', 'R9-4'],
+          ['R10-1', 'R10-2', 'R10-3', 'R10-4']
+        ],
+        columnsItems: ['R1-1', 'R1-2', 'R1-3', 'R1-4']
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['R1-1', 'R1-2', 'R1-3', 'R1-4', ''].join('\t'),
+      ['R2-1', 'R2-3', ''].join('\t'),
+      ['R3-1', 'R3-2', 'R3-3', 'R3-4', ''].join('\t'),
+      ['R4-1', 'R4-3', 'R4-4', ''].join('\t'),
+      ['R5-1', 'R5-2', 'R5-3', 'R5-4', ''].join('\t'),
+      ['R6-1', 'R6-2', 'R6-3', ''].join('\t'),
+      ['R7-1', 'R7-2', 'R7-3', 'R7-4', ''].join('\t'),
+      ['R8-1', 'R8-2', 'R8-4', ''].join('\t'),
+      ['R9-1', 'R9-2', 'R9-3', 'R9-4', ''].join('\t'),
+      ['R10-1', 'R10-2', 'R10-3', 'R10-4', ''].join('\t')
+    ].join('\n'))
+  })
+
+  it('table rows, columns (merged cells - colspan in columns items)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          ['R2-1', 'R2-2', 'R2-3', 'R2-4'],
+          ['R3-1', 'R3-2', 'R3-3', 'R3-4'],
+          ['R4-1', 'R4-2', 'R4-3', 'R4-4']
+        ],
+        columnsItems: [{ colspan: 2, value: 'R1-1' }, { colspan: 2, value: 'R1-3' }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['R1-1', 'R1-3', ''].join('\t'),
+      ['R2-1', 'R2-2', 'R2-3', 'R2-4', ''].join('\t'),
+      ['R3-1', 'R3-2', 'R3-3', 'R3-4', ''].join('\t'),
+      ['R4-1', 'R4-2', 'R4-3', 'R4-4', ''].join('\t')
+    ].join('\n'))
+  })
+
+  it('table rows, columns (merged cells - rowspan and colspan)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          [null, 'R2-3', 'R2-4'],
+          ['R3-1', 'R3-2', 'R3-3', 'R3-4'],
+          [{ rowspan: 3, colspan: 3, value: 'R4-1' }, 'R4-4'],
+          [null, 'R5-4'],
+          [null, 'R6-4'],
+          ['R7-1', 'R7-2', 'R7-3', 'R7-4']
+        ],
+        columnsItems: [{ colspan: 2, rowspan: 2, value: 'R1-1' }, { colspan: 2, value: 'R1-3' }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['R1-1', 'R1-3', ''].join('\t'),
+      ['', 'R2-3', 'R2-4', ''].join('\t'),
+      ['R3-1', 'R3-2', 'R3-3', 'R3-4', ''].join('\t'),
+      ['R4-1', 'R4-4', ''].join('\t'),
+      ['', 'R5-4', ''].join('\t'),
+      ['', 'R6-4', ''].join('\t'),
+      ['R7-1', 'R7-2', 'R7-3', 'R7-4', ''].join('\t')
+    ].join('\n'))
+  })
+
+  it('table rows, columns (merged cells - rowspan and colspan, columnIndex and rowIndex exists)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns-block-index.docx'))
+          }
+        }
+      },
+      data: {
+        rowsItems: [
+          [null, 'R2-3', 'R2-4'],
+          ['R3-1', 'R3-2', 'R3-3', 'R3-4'],
+          [{ rowspan: 3, colspan: 3, value: 'R4-1' }, 'R4-4'],
+          [null, 'R5-4'],
+          [null, 'R6-4'],
+          ['R7-1', 'R7-2', 'R7-3', 'R7-4']
+        ],
+        columnsItems: [{ colspan: 2, rowspan: 2, value: 'R1-1' }, { colspan: 2, value: 'R1-3' }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
+
+    text.should.be.eql([
+      ['0-0', '0-2', ''].join('\t'),
+      ['', '1-2', '1-3', ''].join('\t'),
+      ['2-0', '2-1', '2-2', '2-3', ''].join('\t'),
+      ['3-0', '3-3', ''].join('\t'),
+      ['', '4-3', ''].join('\t'),
+      ['', '5-3', ''].join('\t'),
+      ['6-0', '6-1', '6-2', '6-3', ''].join('\t')
+    ].join('\n'))
+  })
+
   it('style', async () => {
     const result = await reporter.render({
       template: {

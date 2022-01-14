@@ -29,6 +29,62 @@ function docxTable (data, options) {
   const optionsToUse = options == null ? data : options
   let currentData
 
+  const getMatchedMergedCell = (rowIndex, columnIndex, activeMergedCellsItems) => {
+    let matchedRowspan
+
+    for (const item of activeMergedCellsItems) {
+      if (
+        rowIndex >= item.rowStart &&
+        rowIndex <= item.rowEnd &&
+        columnIndex >= item.colStart &&
+        columnIndex <= item.colEnd
+      ) {
+        matchedRowspan = item
+        break
+      }
+    }
+
+    return matchedRowspan
+  }
+
+  if (
+    arguments.length === 1 &&
+    Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'wrapper') &&
+    optionsToUse.hash.wrapper === 'main'
+  ) {
+    const newData = Handlebars.createFrame({})
+    newData.rows = optionsToUse.hash.rows
+    newData.columns = optionsToUse.hash.columns
+    newData.activeMergedCellsItems = []
+    return optionsToUse.fn(this, { data: newData })
+  }
+
+  if (
+    arguments.length === 1 &&
+    Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'check')
+  ) {
+    if (
+      optionsToUse.hash.check === 'colspan' &&
+      optionsToUse.data.colspan > 1
+    ) {
+      return optionsToUse.fn(optionsToUse.data.colspan)
+    }
+
+    if (
+      optionsToUse.hash.check === 'rowspan'
+    ) {
+      const matchedMergedCell = getMatchedMergedCell(optionsToUse.data.rowIndex, optionsToUse.data.columnIndex, optionsToUse.data.activeMergedCellsItems)
+
+      if (matchedMergedCell != null && matchedMergedCell.rowStart !== matchedMergedCell.rowEnd) {
+        const data = Handlebars.createFrame({})
+        data.empty = matchedMergedCell.rowStart !== optionsToUse.data.rowIndex
+        return optionsToUse.fn({}, { data })
+      }
+    }
+
+    return new Handlebars.SafeString('')
+  }
+
   if (
     arguments.length === 1 &&
     (
@@ -43,11 +99,10 @@ function docxTable (data, options) {
         throw new Error('docxTable full table mode needs to have both rows and columns defined as params when processing row')
       }
 
+      // rows block processing start here
       currentData = optionsToUse.hash.rows
 
       const newData = Handlebars.createFrame(optionsToUse.data)
-      newData.rows = optionsToUse.hash.rows
-      newData.columns = optionsToUse.hash.columns
       optionsToUse.data = newData
 
       const chunks = []
@@ -63,6 +118,9 @@ function docxTable (data, options) {
 
       return new Handlebars.SafeString(chunks.join(''))
     } else {
+      // columns processing, when isInsideRowHelper is false it means
+      // that we are processing the first row based on columns info,
+      // when true it means we are processing columns inside the rows block
       let isInsideRowHelper = false
 
       if (optionsToUse.hash.columns) {
@@ -88,11 +146,89 @@ function docxTable (data, options) {
         return new Handlebars.SafeString('')
       }
 
-      for (const [idx, item] of currentData.entries()) {
+      const getCellInfo = (item) => {
+        const cellInfo = {}
+
+        if (item != null && typeof item === 'object' && !Array.isArray(item)) {
+          cellInfo.value = item.value
+          cellInfo.colspan = item.colspan
+          cellInfo.rowspan = item.rowspan
+        } else {
+          cellInfo.value = item
+        }
+
+        if (cellInfo.colspan == null) {
+          cellInfo.colspan = 1
+        }
+
+        if (cellInfo.rowspan == null) {
+          cellInfo.rowspan = 1
+        }
+
+        return cellInfo
+      }
+
+      // if all cells in current row have the same rowspan then
+      // assume there is no rowspan applied
+      const cellsInRow = isInsideRowHelper ? optionsToUse.data.rows[rowIndex] : currentData
+
+      for (const [idx, item] of cellsInRow.entries()) {
         // rowIndex + 1 because this is technically the second row on table after the row of table headers
         newData.rowIndex = isInsideRowHelper ? rowIndex + 1 : 0
-        newData.columnIndex = idx
-        chunks.push(optionsToUse.fn(isInsideRowHelper ? optionsToUse.data.rows[rowIndex][idx] : item, { data: newData }))
+
+        newData.columnIndex = cellsInRow.reduce((acu, cell, cellIdx) => {
+          if (cellIdx >= idx) {
+            return acu
+          }
+
+          const matchedMergedCell = getMatchedMergedCell(newData.rowIndex, acu, newData.activeMergedCellsItems)
+
+          if (matchedMergedCell != null && matchedMergedCell.colStart !== matchedMergedCell.colEnd) {
+            return acu + (matchedMergedCell.colEnd - matchedMergedCell.colStart) + 1
+          }
+
+          const cellInfo = getCellInfo(cell)
+          return acu + cellInfo.colspan
+        }, 0)
+
+        const currentItem = isInsideRowHelper ? optionsToUse.data.rows[rowIndex][idx] : item
+        const cellInfo = getCellInfo(currentItem)
+
+        const allCellsInRowHaveSameRowspan = cellsInRow.every((cell) => {
+          const cellInfo = getCellInfo(cell)
+          return cellInfo.rowspan === getCellInfo(cellsInRow[0]).rowspan
+        })
+
+        if (allCellsInRowHaveSameRowspan) {
+          cellInfo.rowspan = 1
+        }
+
+        newData.colspan = cellInfo.colspan
+        newData.rowspan = cellInfo.rowspan
+
+        if (newData.rowspan > 1 || newData.colspan > 1) {
+          newData.activeMergedCellsItems.push({
+            colStart: newData.columnIndex,
+            colEnd: newData.columnIndex + (newData.colspan - 1),
+            rowStart: newData.rowIndex,
+            rowEnd: newData.rowIndex + (newData.rowspan - 1)
+          })
+        }
+
+        const matchedMergedCell = getMatchedMergedCell(newData.rowIndex, newData.columnIndex, newData.activeMergedCellsItems)
+
+        if (
+          matchedMergedCell != null &&
+          matchedMergedCell.rowStart !== matchedMergedCell.rowEnd &&
+          matchedMergedCell.rowStart !== newData.rowIndex
+        ) {
+          newData.placeholderCell = true
+          newData.colspan = (matchedMergedCell.colEnd - matchedMergedCell.colStart) + 1
+        } else {
+          newData.placeholderCell = false
+        }
+
+        chunks.push(optionsToUse.fn(cellInfo.value, { data: newData }))
       }
 
       return new Handlebars.SafeString(chunks.join(''))
