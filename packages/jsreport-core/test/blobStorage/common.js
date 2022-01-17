@@ -18,4 +18,8 @@ module.exports = (storage) => {
     const buf = await storage().read('foldera/folderb/myblob.txt')
     buf.toString().should.be.eql('hula')
   })
+
+  it('remove shouldnt fail for missing blob', async () => {
+    await storage().remove('foo')
+  })
 }

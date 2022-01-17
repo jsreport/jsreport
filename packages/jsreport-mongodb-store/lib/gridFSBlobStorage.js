@@ -25,8 +25,10 @@ module.exports = (client, db) => ({
 
   async remove (blobName) {
     const file = await db.collection('fs.files').findOne({ filename: blobName })
-    const gs = new mongodb.GridFSBucket(db)
-    return gs.delete(file._id)
+    if (file) {
+      const gs = new mongodb.GridFSBucket(db)
+      return gs.delete(file._id)
+    }
   },
 
   init () {
