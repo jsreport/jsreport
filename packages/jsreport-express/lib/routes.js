@@ -64,7 +64,7 @@ module.exports = (app, reporter, exposedOptions) => {
     }
 
     const abortEmitter = new EventEmitter()
-    req.connection.once('close', () => {
+    req.socket.once('close', () => {
       abortEmitter.emit('abort')
     })
 
