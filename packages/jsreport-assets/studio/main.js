@@ -430,7 +430,7 @@ _jsreportStudio2.default.addEntitySet({
   onNew: function onNew(options) {
     return _jsreportStudio2.default.openModal(_NewAssetModal2.default, options);
   },
-  referenceAttributes: ['isSharedHelper', 'scope'],
+  referenceAttributes: ['isSharedHelper', 'sharedHelpersScope'],
   entityTreePosition: 700
 });
 
