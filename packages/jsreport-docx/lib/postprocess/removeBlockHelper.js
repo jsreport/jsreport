@@ -35,6 +35,15 @@ module.exports = async (files) => {
         }
 
         if (nextRNode) {
+          for (let idx = 0; idx < nextRNode.childNodes.length; idx++) {
+            const childNode = nextRNode.childNodes[idx]
+
+            // remove new line after the removed helper node
+            if (childNode.nodeName === 'w:br' && childNode.getAttribute('w:type') === '') {
+              nextRNode.removeChild(childNode)
+            }
+          }
+
           const childContentNodesLeft = nodeListToArray(nextRNode.childNodes).filter((node) => {
             if (node.nodeName === 'w:br') {
               const wType = node.getAttribute('w:type')

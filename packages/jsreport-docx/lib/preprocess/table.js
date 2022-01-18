@@ -35,13 +35,103 @@ module.exports = (files) => {
           el.textContent = el.textContent.replace(regexp, '')
         }
 
-        const cellNode = el.parentNode.parentNode.parentNode
+        const paragraphNode = el.parentNode.parentNode
+
+        let newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{#if @placeholderCell}}'
+
+        paragraphNode.parentNode.insertBefore(newElement, paragraphNode)
+
+        const emptyParagraphNode = paragraphNode.cloneNode(true)
+
+        while (emptyParagraphNode.firstChild) {
+          emptyParagraphNode.removeChild(emptyParagraphNode.firstChild)
+          emptyParagraphNode.removeAttribute('__block_helper_container__')
+        }
+
+        paragraphNode.parentNode.insertBefore(emptyParagraphNode, paragraphNode)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{else}}'
+
+        paragraphNode.parentNode.insertBefore(newElement, paragraphNode)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{/if}}'
+
+        paragraphNode.parentNode.insertBefore(newElement, paragraphNode.nextSibling)
+
+        const cellNode = paragraphNode.parentNode
+        const cellPropertiesNode = nodeListToArray(cellNode.childNodes).find((node) => node.nodeName === 'w:tcPr')
+
+        // insert conditional logic for colspan and rowspan
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{#docxTable check="colspan"}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('w:gridSpan')
+        newElement.setAttribute('w:val', '{{this}}')
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{/docxTable}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{#docxTable check="rowspan"}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{#if @empty}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('w:vMerge')
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{else}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('w:vMerge')
+        newElement.setAttribute('w:val', 'restart')
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{/if}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{/docxTable}}'
+
+        cellPropertiesNode.appendChild(newElement)
+
         const rowNode = cellNode.parentNode
+        const tableNode = rowNode.parentNode
+
         const newRowNode = rowNode.cloneNode(true)
 
         if (!isBlock) {
           helperCall = helperCall.replace('{{docxTable', '{{#docxTable')
         }
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = helperCall.replace('{{#docxTable', '{{#docxTable wrapper="main"')
+
+        tableNode.parentNode.insertBefore(newElement, tableNode)
+
+        newElement = doc.createElement('docxRemove')
+        newElement.textContent = '{{/docxTable}}'
+
+        tableNode.parentNode.insertBefore(newElement, tableNode.nextSibling)
 
         if (isBlock) {
           openTags.push({ mode: 'column' })
