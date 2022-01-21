@@ -5,7 +5,7 @@ const schema = {
     licenseKey: { type: 'string' },
     useSavedLicenseInfo: { type: 'boolean', default: true },
     licenseInfoPath: { type: 'string' },
-    development: { tyle: 'boolean', default: false }
+    development: { type: 'boolean', default: false }
   }
 }
 
