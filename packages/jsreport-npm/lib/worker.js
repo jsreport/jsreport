@@ -41,7 +41,8 @@ module.exports = (reporter, definition) => {
 
           reporter.logger.debug(`require of npm ${module}`, req)
           const modulePath = path.join(prefix, 'node_modules', module.split('@')[0])
-          if (!(await exists(modulePath))) {
+          // we are including check for package.json, because sometimes the files in the module are missing because of some auto os temp cleanup
+          if (!(await exists(path.join(modulePath, 'package.json')))) {
             const npmInstallProfilerEvent = reporter.profiler.emit({
               type: 'operationStart',
               subtype: 'npm',
