@@ -7,6 +7,7 @@ const table = require('./table')
 const link = require('./link')
 const style = require('./style')
 const pageBreak = require('./pageBreak')
+const toc = require('./toc')
 
 module.exports = (files) => {
   concatTags(files)
@@ -17,5 +18,6 @@ module.exports = (files) => {
   table(files)
   link(files)
   style(files)
+  toc(files)
   pageBreak(files)
 }

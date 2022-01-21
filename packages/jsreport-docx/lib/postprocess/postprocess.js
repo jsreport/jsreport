@@ -4,6 +4,7 @@ const drawingObject = require('./drawingObject')
 const link = require('./link')
 const form = require('./form')
 const pageBreak = require('./pageBreak')
+const toc = require('./toc')
 const removeBlockHelper = require('./removeBlockHelper')
 
 module.exports = async (files, options) => {
@@ -14,5 +15,6 @@ module.exports = async (files, options) => {
   await drawingObject(files, newBookmarksMap, options)
   link(files)
   form(files)
+  await toc(files)
   await removeBlockHelper(files)
 }
