@@ -12,6 +12,7 @@ describe('pdf utils', () => {
 
   beforeEach(async () => {
     jsreport = JsReport({
+      reportTimeout: 999999999,
       encryption: {
         secretKey: '1111111811111118'
       }
@@ -800,6 +801,29 @@ describe('pdf utils', () => {
     parsedPdf.pages.should.have.length(2)
     parsedPdf.pages[0].text.includes('header').should.be.ok()
     parsedPdf.pages[1].text.includes('header').should.be.ok()
+  })
+
+  it('merge should should not fail when merged page has none fields annotations', async () => {
+    await jsreport.render({
+      template: {
+        content: 'main1',
+        chrome: {
+          marginTop: '5cm'
+        },
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfOperations: [{
+          type: 'merge',
+          mergeWholeDocument: true,
+          template: {
+            content: '<a href=\'#header1\'>link to header</a><br><h1 id=\'header1\'>header</h1>',
+            engine: 'handlebars',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
   })
 
   it.skip('should be able to merge watermark into pdf with native header produced by phantomjs', async () => {

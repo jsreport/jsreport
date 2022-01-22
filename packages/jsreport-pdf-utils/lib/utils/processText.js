@@ -70,7 +70,7 @@ async function createCMap (stream) {
 
 async function processStream (doc, streamObject, { page, pages, pageIndex, cmapCache, formsProcessor, removeHiddenMarks, hiddenPageFields }) {
   // we just support known structures chrome produces
-  if (!streamObject.object.properties.get('Filter')) {
+  if (streamObject == null || !streamObject.object.properties.get('Filter')) {
     return
   }
 

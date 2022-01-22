@@ -151,15 +151,34 @@ module.exports.mergeDocument = (contentBuffer, mergeBuffer, mergeToFront, pagesH
     mergePage(finalDoc, contentPage, xobj, mergeToFront, pagesHelpInfo[i])
 
     if (Array.isArray(mergingPage.object.properties.get('Annots'))) {
+      const pageFieldAnnots = []
       for (const annot of mergingPage.object.properties.get('Annots')) {
+        if ((annot.object.properties.get('Subtype') == null || annot.object.properties.get('Subtype').toString() !== '/Widget') ||
+        (annot.object.properties.get('F') == null || annot.object.properties.get('F').toString() !== '4')) {
+          continue
+        }
         const annotObject = annot.object
         annotObject.properties.set('P', contentPage)
+
         finalDoc._registerObject(annotObject)
+
         annots.push(annotObject.toReference())
+        pageFieldAnnots.push(annotObject.toReference())
       }
 
+      /*
+        I tried to copy all annotations from the merging page to the content page, but the annotations can have also
+        the nested objects, which can be xobjects and this breaks the merging, so for now we copy just acroform fields
+        const annotsNestedObjects = []
+        Parser.addObjectsRecursive(annotsNestedObjects, annotObject)
+        for (const annotNestedObject of annotsNestedObjects) {
+          finalDoc._registerObject(annotNestedObject)
+          contentExtDoc.objects[i].push(annotNestedObject)
+          contentExtDoc.objects[i].push(annotObject)
+        } */
+
       const contentPageAnnots = contentPage.object.properties.get('Annots') || []
-      contentPage.object.properties.set('Annots', new PDF.Array([...contentPageAnnots, ...mergingPage.object.properties.get('Annots')]))
+      contentPage.object.properties.set('Annots', new PDF.Array([...contentPageAnnots, ...pageFieldAnnots]))
     }
   }
 
