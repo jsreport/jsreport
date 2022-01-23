@@ -9,6 +9,7 @@ describe('localization', () => {
       .use(require('@jsreport/jsreport-assets')())
       .use(require('@jsreport/jsreport-handlebars')())
       .use(require('@jsreport/jsreport-components')())
+      .use(require('@jsreport/jsreport-child-templates')())
       .use(require('../')())
 
     return reporter.init()
@@ -68,6 +69,39 @@ describe('localization', () => {
       },
       options: {
         language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql('Hello')
+  })
+
+  it('should provide localize helper accepting object', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        message: 'Hello'
+      })),
+      folder: {
+        shortid: 'localization'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{localize locData}}',
+        engine: 'handlebars',
+        recipe: 'html'
+      },
+      data: {
+        locData: {
+          key: 'message',
+          folder: 'localization',
+          language: 'en'
+        }
       }
     })
     res.content.toString().should.be.eql('Hello')
@@ -359,6 +393,42 @@ describe('localization', () => {
       },
       options: {
         language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql('Hello')
+  })
+
+  it('should propagate req.template.localization.language to the child templates', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        message: 'Hello'
+      })),
+      folder: {
+        shortid: 'localization'
+      }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      name: 'ch1',
+      content: "{{localize 'message' 'localization'}}",
+      engine: 'handlebars',
+      recipe: 'html'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: "{{childTemplate 'ch1'}}",
+        engine: 'handlebars',
+        recipe: 'html',
+        localization: {
+          language: 'en'
+        }
       }
     })
     res.content.toString().should.be.eql('Hello')
