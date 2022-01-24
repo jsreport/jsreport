@@ -54,7 +54,7 @@ async function parseFiles (fs, parentDirectory, documentsModel, files) {
   try {
     document = parse(rawContent)
   } catch (e) {
-    const newE = new Error(`Error when trying to parse file at "${pathToFile}", check that file constains valid JSON. ${e.message}`)
+    const newE = new Error(`Error when trying to parse file at "${pathToFile}", check that file contains valid JSON. ${e.message}`)
     throw newE
   }
 
@@ -147,7 +147,7 @@ async function load (fs, directory, model, documents, { loadConcurrency, parentD
   return documents
 }
 
-async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents, rootDirectory) {
+async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents, safeWrite, rootDirectory) {
   if (await fs.exists(docPath)) {
     await fs.remove(docPath)
   }
@@ -158,8 +158,15 @@ async function persistToPath (fs, resolveFileExtension, model, docPath, doc, ori
 
   if (originalDoc && doc.$entitySet === 'folders') {
     const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
+    let shouldCopy = false
 
-    if (originalDocPath !== docPath) {
+    if (safeWrite === false) {
+      shouldCopy = true
+    } else {
+      shouldCopy = originalDocPath !== docPath
+    }
+
+    if (shouldCopy) {
       await copy(fs, originalDocPath, docPath)
     }
   }
@@ -216,7 +223,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
 
   // performance optimization, we don't need to slower safe writes when running in the transaction
   if (safeWrite === false) {
-    await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents, rootDirectory)
+    await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents, safeWrite, rootDirectory)
 
     if (originalDoc) {
       const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
@@ -227,7 +234,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
     return
   }
 
-  await persistToPath(fs, resolveFileExtension, model, docInconsistentPath, docClone, originalDoc, documents, rootDirectory)
+  await persistToPath(fs, resolveFileExtension, model, docInconsistentPath, docClone, originalDoc, documents, safeWrite, rootDirectory)
 
   if (await fs.exists(docConsistentPath)) {
     await fs.remove(docConsistentPath)
