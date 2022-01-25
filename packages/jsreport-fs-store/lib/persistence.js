@@ -147,30 +147,28 @@ async function load (fs, directory, model, documents, { loadConcurrency, parentD
   return documents
 }
 
-async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents, safeWrite, rootDirectory) {
-  if (await fs.exists(docPath)) {
-    await fs.remove(docPath)
+async function persistToPath (fs, resolveFileExtension, model, docPath, doc, originalDoc, documents, rootDirectory) {
+  if (!(await fs.exists(docPath))) {
+    await fs.mkdir(docPath)
   }
-
-  await fs.mkdir(docPath)
-
-  const entityType = model.entitySets[doc.$entitySet].entityType
 
   if (originalDoc && doc.$entitySet === 'folders') {
     const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
-    let shouldCopy = false
 
-    if (safeWrite === false) {
-      shouldCopy = true
-    } else {
-      shouldCopy = originalDocPath !== docPath
-    }
-
-    if (shouldCopy) {
+    if (originalDocPath !== docPath) {
       await copy(fs, originalDocPath, docPath)
     }
   }
 
+  const dirEntries = await fs.readdir(docPath)
+  await Promise.all(dirEntries.map(async (e) => {
+    const stat = await fs.stat(fs.path.join(docPath, e))
+    if (!stat.isDirectory()) {
+      return fs.remove(fs.path.join(docPath, e))
+    }
+  }))
+
+  const entityType = model.entitySets[doc.$entitySet].entityType
   await Promise.all(entityType.documentProperties.map(async (prop) => {
     const fileExtension = resolveFileExtension(doc, doc.$entitySet, prop.path)
     let value = deepGet(doc, prop.path)
@@ -223,7 +221,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
 
   // performance optimization, we don't need to slower safe writes when running in the transaction
   if (safeWrite === false) {
-    await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents, safeWrite, rootDirectory)
+    await persistToPath(fs, resolveFileExtension, model, docFinalPath, docClone, originalDoc, documents, rootDirectory)
 
     if (originalDoc) {
       const originalDocPath = fs.path.join(rootDirectory, getDirectoryPath(fs, model, originalDoc, documents), originalDoc.name)
@@ -234,7 +232,7 @@ async function persist (fs, resolveFileExtension, model, doc, originalDoc, docum
     return
   }
 
-  await persistToPath(fs, resolveFileExtension, model, docInconsistentPath, docClone, originalDoc, documents, safeWrite, rootDirectory)
+  await persistToPath(fs, resolveFileExtension, model, docInconsistentPath, docClone, originalDoc, documents, rootDirectory)
 
   if (await fs.exists(docConsistentPath)) {
     await fs.remove(docConsistentPath)

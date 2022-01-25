@@ -241,6 +241,16 @@ describe('provider', () => {
       fs.readdirSync(tmpData).filter(d => d.startsWith('~.tran')).should.have.length(0)
       fs.readdirSync(tmpData).filter(d => d.startsWith('.tran')).should.have.length(0)
     })
+
+    it('commit should properly handle folder updates', async () => {
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('templates').insert({ name: 't', folder: { shortid: 'fa' } })
+      const req = Request({})
+      await store.beginTransaction(req)
+      await store.collection('folders').update({ name: 'fa' }, { $set: { modificationDate: new Date() } }, req)
+      await store.commitTransaction(req)
+      fs.existsSync(tmpData + '/fa/t').should.be.true()
+    })
   })
 
   describe('document properties', () => {
