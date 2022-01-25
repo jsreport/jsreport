@@ -251,6 +251,30 @@ describe('provider', () => {
       await store.commitTransaction(req)
       fs.existsSync(tmpData + '/fa/t').should.be.true()
     })
+
+    it('commit should properly handle folder rename', async () => {
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('templates').insert({ name: 't', folder: { shortid: 'fa' } })
+      const req = Request({})
+      await store.beginTransaction(req)
+      await store.collection('folders').update({ name: 'fa' }, { $set: { name: 'fa2' } }, req)
+      await store.commitTransaction(req)
+      fs.existsSync(tmpData + '/fa/t').should.be.false()
+      fs.existsSync(tmpData + '/fa2/t').should.be.true()
+    })
+
+    it('commit should properly handle moving entity to another folder', async () => {
+      await store.collection('folders').insert({ name: 'fa', shortid: 'fa' })
+      await store.collection('folders').insert({ name: 'fa2', shortid: 'fa2' })
+      await store.collection('templates').insert({ name: 't', folder: { shortid: 'fa' } })
+      const req = Request({})
+      await store.beginTransaction(req)
+      await store.collection('templates').update({ name: 't' }, { $set: { folder: { shortid: 'fa2' } } }, req)
+      await store.commitTransaction(req)
+      fs.existsSync(tmpData + '/fa').should.be.true()
+      fs.existsSync(tmpData + '/fa/t').should.be.false()
+      fs.existsSync(tmpData + '/fa2/t').should.be.true()
+    })
   })
 
   describe('document properties', () => {
