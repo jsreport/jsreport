@@ -21,7 +21,7 @@ async function run () {
 
   originalPackageJson.resolutions = getResolutionsForDuplicatedPackages()
 
-  await fsAsync.writeFile('./package.json', JSON.stringify(originalPackageJson, null, 2))
+  await fsAsync.writeFile('./package.json', `${JSON.stringify(originalPackageJson, null, 2)}\n`)
 
   console.log(`running ${packageManager} install with packages resolutions set to ensure deps are correctly de-duplicated..`)
 
