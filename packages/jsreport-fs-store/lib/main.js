@@ -4,9 +4,12 @@
  * File system based templates store for jsreport
  */
 
-const Provider = require('./provider')
-const IO = require('socket.io')
 const path = require('path')
+const IO = require('socket.io')
+const getIgnoreDefaults = require('./ignoreDefaults')
+const Provider = require('./provider')
+
+const ignoreDefaults = getIgnoreDefaults()
 
 module.exports = function (reporter, definition) {
   if (reporter.options.store.provider !== 'fs' && reporter.options.blobStorage.provider !== 'fs') {
@@ -43,6 +46,14 @@ module.exports = function (reporter, definition) {
     createError: reporter.createError.bind(reporter),
     blobStorageDirectory: reporter.options.blobStorage.dataDirectory
   }, definition.options)
+
+  // we ensure that our defaults are always there to avoid user having to repeat the
+  // same options
+  for (const iDefault of ignoreDefaults) {
+    if (!options.ignore.includes(iDefault)) {
+      options.ignore.push(iDefault)
+    }
+  }
 
   options.resolveFileExtension = reporter.documentStore.resolveFileExtension.bind(reporter.documentStore)
 

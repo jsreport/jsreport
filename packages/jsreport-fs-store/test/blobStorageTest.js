@@ -23,7 +23,9 @@ describe('fileSystemBlobStorage', () => {
     })
 
     afterEach(async () => {
-      await reporter.close()
+      if (reporter) {
+        await reporter.close()
+      }
       fs.rmSync(tmpData, { recursive: true })
     })
 

@@ -566,6 +566,7 @@ describe('load', () => {
     store.registerProvider(
       Provider({
         dataDirectory: path.join(__dirname, 'data'),
+        blobStorageDirectory: path.join(__dirname, 'data', 'storage'),
         logger: store.options.logger,
         persistence: { provider: 'fs' },
         sync: { provider: 'fs' },
@@ -626,6 +627,41 @@ describe('load', () => {
   })
 })
 
+describe('load and ignore', () => {
+  let store
+
+  beforeEach(async () => {
+    store = createDefaultStore()
+
+    addCommonTypes(store)
+
+    store.registerProvider(
+      Provider({
+        dataDirectory: path.join(__dirname, 'dataWithIgnoredFiles'),
+        blobStorageDirectory: path.join(__dirname, 'dataWithIgnoredFiles', 'storage'),
+        ignore: ['.ci', '.gitignore'],
+        logger: store.options.logger,
+        persistence: { provider: 'fs' },
+        sync: { provider: 'fs' },
+        resolveFileExtension: store.resolveFileExtension.bind(store),
+        createError: m => new Error(m)
+      })
+    )
+
+    await store.init()
+  })
+
+  afterEach(() => {
+    return store.provider.close()
+  })
+
+  it('should load only the valid entities and ignore the files/directories specified', async () => {
+    const folders = await store.collection('folders').find({})
+    folders.should.have.length(1)
+    folders[0].name.should.be.eql('random')
+  })
+})
+
 describe('load cleanup', () => {
   let store
   let startTime
@@ -641,6 +677,7 @@ describe('load cleanup', () => {
     store.registerProvider(
       Provider({
         dataDirectory: path.join(__dirname, 'dataToCleanupCopy'),
+        blobStorageDirectory: path.join(__dirname, 'dataToCleanupCopy', 'storage'),
         logger: store.options.logger,
         persistence: { provider: 'fs' },
         sync: { provider: 'fs' },
@@ -697,6 +734,7 @@ describe('load cleanup consistent transaction', () => {
     store.registerProvider(
       Provider({
         dataDirectory: path.join(__dirname, 'tranDataToCleanupCopy'),
+        blobStorageDirectory: path.join(__dirname, 'tranDataToCleanupCopy', 'storage'),
         logger: store.options.logger,
         persistence: { provider: 'fs' },
         sync: { provider: 'fs' },
@@ -733,6 +771,7 @@ describe('load cleanup inconsistent transaction', () => {
     store.registerProvider(
       Provider({
         dataDirectory: path.join(__dirname, 'tranDataToCleanupCopy'),
+        blobStorageDirectory: path.join(__dirname, 'tranDataToCleanupCopy', 'storage'),
         logger: store.options.logger,
         persistence: { provider: 'fs' },
         sync: { provider: 'fs' },
