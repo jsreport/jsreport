@@ -41,6 +41,7 @@ module.exports = (reporter, definition) => {
 
   if (reporter.compilation) {
     reporter.compilation.resource('pdfjs-dist-lib-files', path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'lib'))
+    reporter.compilation.resource('pdfjs-dist-legacy-build-files', path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'legacy/build'))
   }
 
   if (reporter.documentStore.model.entityTypes.TemplateType) {
