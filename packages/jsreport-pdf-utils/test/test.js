@@ -3,7 +3,7 @@ const parsePdf = require('../lib/utils/parsePdf')
 const fs = require('fs')
 const path = require('path')
 const pdfjs = require('@jsreport/pdfjs')
-const { extractSignature } = require('node-signpdf/dist/helpers')
+const { extractSignature } = require('@jsreport/node-signpdf/dist/helpers')
 const processText = require('../lib/utils/processText.js')
 const should = require('should')
 

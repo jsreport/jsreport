@@ -1388,6 +1388,11 @@
   resolved "https://registry.yarnpkg.com/@jsreport/mingo/-/mingo-2.4.1.tgz#019ff48079a3ffeff2a5d8f1380386b921a0fc81"
   integrity sha512-6ZXpnsXoLvXf8t1aGhJ3TamVdi3tHfDGlNs5qfaIQfIlUkga6x6juQD+9twO5NHn+PKKct/FQQBScOqC0SsrmA==
 
+"@jsreport/node-signpdf@1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@jsreport/node-signpdf/-/node-signpdf-1.4.2.tgz#982ba2cdb1571b5eb75c8ec473d9563a657f42b4"
+  integrity sha512-qk2IBd27OcrUc0JTNgzTwErZtOWO1BRzMEp153ShtZv9HGRF5KiyhAR0PqBx32LKdwlzcaCwHzSC9ciiuZJC/g==
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
@@ -13101,10 +13106,10 @@ node-fetch@2.6.7, node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.6:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-forge@0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.10.0.tgz#32dea2afb3e9926f02ee5ce8794902691a676bf3"
-  integrity sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
+node-forge@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.2.1.tgz#82794919071ef2eb5c509293325cec8afd0fd53c"
+  integrity sha512-Fcvtbb+zBcZXbTTVwqGA5W+MKBj56UjVRevvchv5XrcyXbmNdesfZL37nlcWOfpgHhgmxApw3tQbTr4CqNmX4w==
 
 node-libs-browser@^2.0.0:
   version "2.2.1"
@@ -13148,11 +13153,6 @@ node-releases@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.1.tgz#3d1d395f204f1f2f29a54358b9fb678765ad2fc5"
   integrity sha512-CqyzN6z7Q6aMeF/ktcMVTzhAHCEpf8SOarwpzpf8pNBY2k5/oM34UHldUwp8VKI7uxct2HxSRdJjBaZeESzcxA==
-
-node-signpdf@1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/node-signpdf/-/node-signpdf-1.3.2.tgz#6442eada4c449d9dff7fad34bba17d537afd27a9"
-  integrity sha512-9+nv0XYR43R8cXonF9clbh6FKvhFY18eqfJyJ8LoyvipC9pf8BaZ/G7jR1Ks4R3XMih/XOrt4bwyvyhLgOXtZA==
 
 node-status-codes@^1.0.0:
   version "1.0.0"
