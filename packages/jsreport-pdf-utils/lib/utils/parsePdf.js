@@ -1,4 +1,4 @@
-const pdfjs = require('pdfjs-dist')
+const pdfjs = require('pdfjs-dist/legacy/build/pdf.js')
 
 function parseGroup (text, hiddenPageFields) {
   let id = null
@@ -80,7 +80,7 @@ module.exports = async (contentBuffer, {
     if (password != null) {
       loadTask.onPassword = (updatePassword) => updatePassword(password)
     }
-    doc = await loadTask
+    doc = await loadTask.promise
   } catch (e) {
     // pdf.js fails on empty pdfs even it is valid
     // seems better to just log warning than crash completely
@@ -96,7 +96,7 @@ module.exports = async (contentBuffer, {
   let lastGroup
 
   const result = { pages: [] }
-  for (let i = 1; i < doc.pdfInfo.numPages + 1; i++) {
+  for (let i = 1; i < doc.numPages + 1; i++) {
     const text = await getPageText(i, doc)
     const parsedGroup = parseGroup(text, hiddenPageFields)
     const page = {
