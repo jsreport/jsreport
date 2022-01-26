@@ -21,7 +21,6 @@ import resolveUrl from './helpers/resolveUrl'
 import { findTextEditor } from './helpers/textEditorInstance'
 import babelRuntime from './lib/babelRuntime'
 import bluebird from 'bluebird'
-import io from 'socket.io-client'
 
 /**
  * Main facade and API for extensions. Exposed as global variable Studio. It can be also imported from jsreport-studio
@@ -843,8 +842,7 @@ class Studio {
       superagent: superagent,
       shortid: shortid,
       bluebird: bluebird,
-      'filesaver.js-npm': fileSaver,
-      'socket.io-client': io
+      'filesaver.js-npm': fileSaver
     }
   }
 }

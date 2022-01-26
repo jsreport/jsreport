@@ -12,8 +12,7 @@ const exposedLibraries = [
   'superagent',
   'shortid',
   'bluebird',
-  'filesaver.js-npm',
-  'socket.io-client'
+  'filesaver.js-npm'
 ]
 
 module.exports = (customExtName) => {
