@@ -12879,11 +12879,6 @@ nanoid@1.0.2:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-1.0.2.tgz#15d2b5e76b6dbfb15cac1000cb457d4bfc845bdb"
   integrity sha512-sCTwJt690lduNHyqknXJp8pRwzm80neOLGaiTHU2KUJZFVSErl778NNCIivEQCX5gNT0xR1Jy3HEMe/TABT6lw==
 
-nanoid@1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-1.0.7.tgz#23857a9514ae8efb7374221b923a2b92be3f74f2"
-  integrity sha512-DCTnU68QAckm8vgPbFhM1XcK3/zX8LWL4/kEXzPH5w2qy2ibBWHig+685aF8ff8rd5lUXkhVB3W60pb4mbRcDA==
-
 nanoid@2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-2.0.3.tgz#dde999e173bc9d7bd2ee2746b89909ade98e075e"
