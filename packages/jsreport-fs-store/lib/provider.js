@@ -12,9 +12,13 @@ const Queue = require('./queue')
 const FileSystemPersistence = require('./fileSystem')
 const ExternalModificationsSync = require('./externalModificationsSync')
 const Journal = require('./journal')
+const getIgnoreDefaults = require('./ignoreDefaults')
+
+const ignoreDefaults = getIgnoreDefaults()
 
 module.exports = ({
   dataDirectory,
+  ignore = ignoreDefaults,
   blobStorageDirectory,
   logger,
   externalModificationsSync,
@@ -50,18 +54,34 @@ module.exports = ({
         throw new Error(`File system store persistence provider ${persistence.provider} was not registered`)
       }
       logger.info(`fs store is persisting using ${persistence.provider} for ${dataDirectory}`)
+
       this.fs = PersistenceProvider(Object.assign({ dataDirectory: dataDirectory }, persistence))
+
+      const originalFsReaddir = this.fs.readdir.bind(this.fs)
+
+      this.fs.readdir = async (...args) => {
+        const result = await originalFsReaddir(...args)
+
+        // the ignore options only filters and ignore for root files/directories
+        if (args[0] === '') {
+          return result.filter(item => !ignore.includes(item))
+        }
+
+        return result
+      }
 
       this.persistence = Persistence({
         documentsModel: this.documentsModel,
         fs: this.fs,
         corruptAlertThreshold,
         resolveFileExtension,
+        dataDirectory,
+        blobStorageDirectory,
         loadConcurrency: persistence.loadConcurrency
       })
 
       this.queue = Queue(persistenceQueueWaitingTimeout)
-      this.transaction = Transaction({ queue: this.queue, persistence: this.persistence, fs: this.fs, logger })
+      this.transaction = Transaction({ dataDirectory, blobStorageDirectory, queue: this.queue, persistence: this.persistence, fs: this.fs, logger })
 
       this.journal = Journal({
         fs: this.fs,

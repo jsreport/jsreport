@@ -1,3 +1,4 @@
+const path = require('path')
 const extend = require('node.extend.without.arrays')
 const pMap = require('p-map')
 const { copy, deepGet, deepSet, deepDelete, serialize, parse, retry, uid } = require('./customUtils')
@@ -90,7 +91,7 @@ async function parseFiles (fs, parentDirectory, documentsModel, files) {
   return [document]
 }
 
-async function load (fs, directory, model, documents, { loadConcurrency, parentDirectoryEntity }) {
+async function load (fs, directory, model, documents, { dataDirectory, blobStorageDirectory, loadConcurrency, parentDirectoryEntity }) {
   const dirEntries = await fs.readdir(directory)
   const contentStats = await pMap(dirEntries, async (e) => ({ name: e, stat: await fs.stat(fs.path.join(directory, e)) }), { concurrency: loadConcurrency })
 
@@ -115,7 +116,18 @@ async function load (fs, directory, model, documents, { loadConcurrency, parentD
 
   documents.push(...loadedDocuments)
 
-  let dirNames = contentStats.filter((e) => e.stat.isDirectory() && e.name !== 'storage' && !e.name.startsWith('~.tran')).map((e) => e.name)
+  let dirNames = contentStats.filter((e) => {
+    let result = e.stat.isDirectory()
+
+    if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
+      const blobStorageDirectoryName = path.basename(blobStorageDirectory, '')
+      result = result && e.name !== blobStorageDirectoryName
+    }
+
+    result = result && !e.name.startsWith('~.tran')
+
+    return result
+  }).map((e) => e.name)
 
   // eslint-disable-next-line no-unused-vars
   for (const dir of dirNames.filter((n) => n.startsWith('~'))) {
@@ -143,7 +155,7 @@ async function load (fs, directory, model, documents, { loadConcurrency, parentD
     }
   }
 
-  await pMap(dirNames, (n) => load(fs, fs.path.join(directory, n), model, documents, { parentDirectoryEntity, loadConcurrency }), { concurrency: loadConcurrency })
+  await pMap(dirNames, (n) => load(fs, fs.path.join(directory, n), model, documents, { parentDirectoryEntity, dataDirectory, blobStorageDirectory, loadConcurrency }), { concurrency: loadConcurrency })
   return documents
 }
 
@@ -348,20 +360,20 @@ async function compactFlatFiles (fs, model, memoryDocumentsByEntitySet, corruptA
   }
 }
 
-module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtension, loadConcurrency = 8 }) => ({
+module.exports = ({ fs, documentsModel, corruptAlertThreshold, resolveFileExtension, dataDirectory, blobStorageDirectory, loadConcurrency = 8 }) => ({
   update: (doc, originalDoc, documents, safeWrite, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, originalDoc, documents, safeWrite, rootDirectory),
   insert: (doc, documents, safeWrite, rootDirectory = '') => persist(fs, resolveFileExtension, documentsModel, doc, null, documents, safeWrite, rootDirectory),
   remove: (doc, documents, safeWrite, rootDirectory = '') => remove(fs, documentsModel, doc, documents, safeWrite, rootDirectory),
   reload: async (doc, documents) => {
     const loadedDocuments = []
     const docPath = fs.path.join(getDirectoryPath(fs, documentsModel, doc, documents), doc.name)
-    await load(fs, docPath, documentsModel, loadedDocuments, { loadConcurrency })
+    await load(fs, docPath, documentsModel, loadedDocuments, { dataDirectory, blobStorageDirectory, loadConcurrency })
 
     return loadedDocuments.length !== 1 ? null : loadedDocuments[0]
   },
   load: async () => {
     const documents = []
-    await load(fs, '', documentsModel, documents, { loadConcurrency })
+    await load(fs, '', documentsModel, documents, { dataDirectory, blobStorageDirectory, loadConcurrency })
     await loadFlatDocuments(fs, documentsModel, documents, corruptAlertThreshold)
     return documents
   },

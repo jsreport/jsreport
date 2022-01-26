@@ -13,7 +13,7 @@ module.exports = ({ dataDirectory, lock }) => ({
   init: () => mkdirpAsync(dataDirectory),
   readdir: async (p) => {
     const dirs = await fs.readdir(path.join(dataDirectory, p))
-    return dirs.filter(d => d !== '.git')
+    return dirs
   },
   async readFile (p) {
     const res = await fs.readFile(path.join(dataDirectory, p))

@@ -1,3 +1,4 @@
+const getIgnoreDefaults = require('./lib/ignoreDefaults')
 
 module.exports = {
   name: 'fs-store',
@@ -20,6 +21,19 @@ module.exports = {
         type: 'object',
         properties: {
           dataDirectory: { type: 'string' },
+          ignore: {
+            anyOf: [
+              {
+                type: 'string',
+                '$jsreport-constantOrArray': []
+              },
+              {
+                type: 'array',
+                items: { type: 'string' }
+              }
+            ],
+            default: getIgnoreDefaults()
+          },
           compactionEnabled: { type: 'boolean', default: true },
           compactionInterval: {
             type: ['string', 'number'],

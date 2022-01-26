@@ -123,7 +123,9 @@ async function retry (fn, maxCount = 10) {
 async function copy (fs, psource, ptarget, ignore = [], replace = false) {
   let dirEntries = await fs.readdir(psource)
   await fs.mkdir(ptarget)
-  const filesIgnore = ['storage', 'fs.lock', 'fs.journal', 'fs.version', '.tran'].concat(ignore)
+  // these are the files that we want to ignore always during copy and replace,
+  // it is a bit different than the ignore option so that is why it is just a hard-coded list
+  const filesIgnore = ['fs.lock', 'fs.journal', 'fs.version', '.tran'].concat(ignore)
 
   const filesFilter = (f) => !filesIgnore.includes(f)
 
@@ -148,7 +150,7 @@ async function copy (fs, psource, ptarget, ignore = [], replace = false) {
     const stat = await fs.stat(sourcePath)
 
     if (stat.isDirectory()) {
-      return copy(fs, sourcePath, targetPath, replace)
+      return copy(fs, sourcePath, targetPath)
     }
 
     return fs.copyFile(sourcePath, targetPath)

@@ -1,9 +1,16 @@
+const path = require('path')
 const { copy, lock, cloneDocuments, infiniteRetry } = require('./customUtils')
 
 const transactionDirectory = '~.tran'
 const transactionConsistencyFile = '.tran'
 
-module.exports = ({ queue, persistence, fs, logger }) => {
+module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs, logger }) => {
+  let blobStorageDirectoryName
+
+  if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
+    blobStorageDirectoryName = path.basename(blobStorageDirectory, '')
+  }
+
   let commitedDocuments = {}
 
   const unsafePersistence = {
@@ -30,7 +37,13 @@ module.exports = ({ queue, persistence, fs, logger }) => {
     async init () {
       if (await fs.exists(transactionDirectory)) {
         if (await fs.exists(transactionConsistencyFile)) {
-          await copy(fs, transactionDirectory, '', [transactionDirectory], true)
+          const ignoreDuringCopy = [transactionDirectory]
+
+          if (blobStorageDirectoryName != null) {
+            ignoreDuringCopy.push(blobStorageDirectoryName)
+          }
+
+          await copy(fs, transactionDirectory, '', ignoreDuringCopy, true)
           await fs.remove(transactionConsistencyFile)
         }
 
@@ -80,7 +93,13 @@ module.exports = ({ queue, persistence, fs, logger }) => {
           await fs.remove(transactionDirectory)
           await fs.remove(transactionConsistencyFile)
 
-          await copy(fs, '', transactionDirectory)
+          const ignoreDuringInitialCopy = []
+
+          if (blobStorageDirectoryName != null) {
+            ignoreDuringInitialCopy.push(blobStorageDirectoryName)
+          }
+
+          await copy(fs, '', transactionDirectory, ignoreDuringInitialCopy)
 
           const documentsClone = cloneDocuments(commitedDocuments)
 
@@ -105,7 +124,13 @@ module.exports = ({ queue, persistence, fs, logger }) => {
 
           await fs.writeFile(transactionConsistencyFile, '')
 
-          await infiniteRetry(() => copy(fs, transactionDirectory, '', [transactionDirectory], true), (e, delay) => {
+          const ignoreDuringFinalCopy = [transactionDirectory]
+
+          if (blobStorageDirectoryName != null) {
+            ignoreDuringFinalCopy.push(blobStorageDirectoryName)
+          }
+
+          await infiniteRetry(() => copy(fs, transactionDirectory, '', ignoreDuringFinalCopy, true), (e, delay) => {
             logger.error(`copy consistent transaction to the data directory crashed, trying again in ${delay}ms`, e)
           })
 
