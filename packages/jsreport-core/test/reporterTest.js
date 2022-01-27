@@ -818,11 +818,9 @@ describe('reporter', () => {
 
   it('should not loose values when using both camel case and normal config from arg values for configuration of extensions', async () => {
     process.argv.push('--extensions.customExtension.foo')
-    process.argv.push('fromarg-normal')
-    process.argv.push('--extensions.custom-extension.foo')
     process.argv.push('fromarg-camel')
     process.argv.push('--extensions.custom-extension.bar')
-    process.argv.push('fromarg2-camel')
+    process.argv.push('fromarg2-normal')
 
     reporter = core({
       discover: false,
@@ -840,8 +838,68 @@ describe('reporter', () => {
     })
 
     await reporter.init()
-    extensionOptions.foo.should.be.eql('fromarg-normal')
-    extensionOptions.bar.should.be.eql('fromarg2-camel')
+    extensionOptions.foo.should.be.eql('fromarg-camel')
+    extensionOptions.bar.should.be.eql('fromarg2-normal')
+  })
+
+  it('should merge value from both camel case and normal config and parse it into array for configuration of extensions', async () => {
+    process.argv.push('--extensions.customExtension.foo')
+    process.argv.push('fromarg-camel')
+    process.argv.push('--extensions.custom-extension.foo')
+    process.argv.push('fromarg2-normal')
+
+    reporter = core({
+      discover: false,
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+    extensionOptions.foo.should.have.length(2)
+    extensionOptions.foo[0].should.be.eql('fromarg-camel')
+    extensionOptions.foo[1].should.be.eql('fromarg2-normal')
+  })
+
+  it('should merge multiple value from both camel case and normal config and parse it into array for configuration of extensions', async () => {
+    process.argv.push('--extensions.custom-extension.foo')
+    process.argv.push('fromarg-normal')
+    process.argv.push('--extensions.custom-extension.foo')
+    process.argv.push('fromarg-normal2')
+    process.argv.push('--extensions.customExtension.foo')
+    process.argv.push('fromarg2-camel')
+    process.argv.push('--extensions.customExtension.foo')
+    process.argv.push('fromarg2-camel2')
+
+    reporter = core({
+      discover: false,
+      rootDirectory: path.join(__dirname),
+      loadConfig: true
+    })
+
+    let extensionOptions
+
+    reporter.use({
+      name: 'custom-extension',
+      main: function (reporter, definition) {
+        extensionOptions = definition.options
+      }
+    })
+
+    await reporter.init()
+    extensionOptions.foo.should.have.length(4)
+    extensionOptions.foo[0].should.be.eql('fromarg-normal')
+    extensionOptions.foo[1].should.be.eql('fromarg-normal2')
+    extensionOptions.foo[2].should.be.eql('fromarg2-camel')
+    extensionOptions.foo[3].should.be.eql('fromarg2-camel2')
   })
 
   it('should skip extension with enabled === false in config', async () => {

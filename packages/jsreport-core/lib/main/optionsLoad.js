@@ -133,15 +133,9 @@ async function loadConfig (defaults, options, loadExternal = true) {
         const currentValue = obj.value[extensionKey]
         delete obj.value[extensionKey]
 
-        if (realExtensionName !== extensionKey && obj.value[realExtensionName]) {
-          obj.value[realExtensionName] = extend(
-            true,
-            obj.value[realExtensionName],
-            currentValue
-          )
-        } else {
-          obj.value[realExtensionName] = currentValue
-        }
+        // the camelCase key version should already contain all merged values
+        // (from both the real extension name with "-" and camel case)
+        obj.value[realExtensionName] = currentValue
       })
     } else if (!normalize && obj.key.startsWith('extensions')) {
       // the transform ensures that camelCase alias keys of extensions
