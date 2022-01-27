@@ -1,9 +1,8 @@
-'use strict'
-
 const yargs = require('yargs')
 
-module.exports = function createCommandParser (instance, cliName) {
+module.exports = function createCommandParser (instance, _cliName) {
   let cli = instance || yargs([])
+  const cliName = _cliName || 'jsreport'
   const commandHelp = 'To show more information about a command, type: jsreport <command> -h'
 
   if (cliName != null && cliName !== '') {

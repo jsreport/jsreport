@@ -1,8 +1,6 @@
-'use strict'
-
 const path = require('path')
 const fs = require('fs')
-const nanoid = require('nanoid')
+const { nanoid } = require('nanoid')
 const inquirer = require('inquirer')
 
 const description = 'Generates a jsreport configuration file (*.config.json) based on some questions'

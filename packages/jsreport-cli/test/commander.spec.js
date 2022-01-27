@@ -302,10 +302,8 @@ describe('commander', () => {
       const testCommand = {
         command: 'test',
         description: 'test command desc',
-        handler: () => {
-          return new Promise((resolve, reject) => {
-            reject(new Error('error in handler'))
-          })
+        handler: async () => {
+          throw new Error('error in handler')
         }
       }
 
@@ -620,8 +618,11 @@ describe('commander', () => {
 
       cli.registerCommand(testCommand)
 
+      let finished = false
+
       cli.on('started', (err) => {
         if (err) {
+          finished = true
           return done(err)
         }
       })
@@ -629,10 +630,28 @@ describe('commander', () => {
       cli.on('command.error', (cmdName, err) => {
         should(cmdName).be.eql('test')
         should(err).be.Error()
+        should(err.message).containEql('error testing')
+        finished = true
         done()
       })
 
-      cli.startAndWait(['test']).then(() => {}).catch(() => {})
+      cli.startAndWait(['test']).then(({ error }) => {
+        if (finished) {
+          return
+        }
+
+        if (error) {
+          done(new Error(`should not have error here after promise resolved successfully. Original error: ${error.message}`))
+        } else {
+          done(new Error('should not have error here after promise resolved successfully'))
+        }
+      }).catch((err) => {
+        if (finished) {
+          return
+        }
+
+        done(new Error(`should not have failed here after promise resolved with error. Original error: ${err.message}`))
+      })
     })
 
     it('should handle a failing async command', (done) => {
@@ -641,8 +660,8 @@ describe('commander', () => {
       const testCommand = {
         command: 'test',
         description: 'test command desc',
-        handler: () => {
-          return new Promise((resolve, reject) => reject(new Error('error testing')))
+        handler: async () => {
+          throw new Error('error testing')
         }
       }
 

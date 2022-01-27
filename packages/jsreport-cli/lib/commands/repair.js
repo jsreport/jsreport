@@ -1,11 +1,10 @@
-'use strict'
-
 const initializeApp = require('./_initializeApp')
 
 const description = 'Repairs current working directory to start a jsreport application (It re-creates files server.js, *.config.json and package.json)'
 const command = 'repair'
+const positionalArgs = '[versionToInstall]'
 
-exports.command = command
+exports.command = `${command} ${positionalArgs}`
 exports.description = description
 
 exports.builder = (yargs) => {
@@ -35,8 +34,8 @@ exports.handler = (argv) => {
   const cwd = argv.context.cwd
   let versionToInstall
 
-  if (argv._ && argv._[1]) {
-    versionToInstall = argv._[1]
+  if (argv && argv.versionToInstall != null) {
+    versionToInstall = argv.versionToInstall
   }
 
   return initializeApp(

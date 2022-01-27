@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const should = require('should')
-const nanoid = require('nanoid')
+const { nanoid } = require('nanoid')
 const daemonHandler = require('../../lib/daemonHandler')
 
 const { getTempDir, createTempDir, setup, init, exec } = require('../testUtils')({

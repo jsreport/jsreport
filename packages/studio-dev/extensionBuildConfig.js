@@ -1,6 +1,6 @@
 const path = require('path')
 const fs = require('fs')
-const nanoid = require('nanoid')
+const { nanoid } = require('nanoid')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 

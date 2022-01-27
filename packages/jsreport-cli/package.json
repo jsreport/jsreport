@@ -60,14 +60,14 @@
     "liftoff": "3.1.0",
     "lockfile": "1.0.4",
     "lodash.omit": "4.5.0",
-    "nanoid": "1.0.2",
+    "nanoid": "3.2.0",
     "npm-install-package": "2.1.0",
     "nssocket": "0.6.0",
     "once": "1.4.0",
     "prompt-tmp": "1.0.0",
     "semver": "5.6.0",
     "silent-spawn": "0.4.0",
-    "yargs": "13.2.4"
+    "yargs": "17.3.1"
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "3.2.0",

@@ -1,9 +1,7 @@
-'use strict'
-
 const util = require('util')
 const fs = require('fs')
 const jsreportClient = require('@jsreport/nodejs-client')
-const normalizePathOptionOrArg = require('../normalizePathOptionOrArg')
+const normalizePathOptionOrArg = require('../utils/normalizePathOptionOrArg')
 
 const writeFileAsync = util.promisify(fs.writeFile)
 
@@ -20,10 +18,7 @@ exports.builder = (yargs) => {
     request: {
       alias: 'r',
       description: 'Specifies a path to a json file containing option for the entire rendering request',
-      requiresArg: true,
-      coerce: (value) => {
-        return normalizePathOptionOrArg(cwd, 'request', value, { json: true, strict: true })
-      }
+      requiresArg: true
     },
     keepAlive: {
       alias: 'k',
@@ -33,50 +28,26 @@ exports.builder = (yargs) => {
     template: {
       alias: 't',
       description: 'Specifies a path to a json file containing options for template input or you can specify singular options doing --template.[option_name] value',
-      requiresArg: true,
-      coerce: (value) => {
-        if (typeof value !== 'string') {
-          if (value.content != null) {
-            value.content = normalizePathOptionOrArg(cwd, 'template.content', value.content, { strict: true })
-          }
-
-          if (value.helpers != null) {
-            value.helpers = normalizePathOptionOrArg(cwd, 'template.helpers', value.helpers, { strict: true })
-          }
-
-          return value
-        }
-
-        return normalizePathOptionOrArg(cwd, 'template', value, { json: true, strict: true })
-      }
+      requiresArg: true
     },
     data: {
       alias: 'd',
       description: 'Specifies a path to a json file containing options for data input',
-      requiresArg: true,
-      coerce: (value) => {
-        return normalizePathOptionOrArg(cwd, 'data', value, { json: true, strict: false })
-      }
+      requiresArg: true
     },
     out: {
       alias: 'o',
       description: 'Save rendering result into a file path',
       type: 'string',
       demandOption: true,
-      requiresArg: true,
-      coerce: (value) => {
-        return normalizePathOptionOrArg(cwd, 'out', value, { read: false, strict: true })
-      }
+      requiresArg: true
     },
     meta: {
       alias: 'm',
       description: 'Save response meta information into a file path',
       type: 'string',
       demandOption: false,
-      requiresArg: true,
-      coerce: (value) => {
-        return normalizePathOptionOrArg(cwd, 'meta', value, { read: false, strict: true })
-      }
+      requiresArg: true
     }
   }
 
@@ -93,6 +64,37 @@ exports.builder = (yargs) => {
       .usage(`${description}\n\n${getUsage('jsreport ' + command)}`)
       .group(options, 'Command options:')
       .options(commandOptions)
+      .middleware((argv) => {
+        if (argv.request != null) {
+          argv.request = normalizePathOptionOrArg(cwd, 'request', argv.request, { json: true, strict: true })
+        }
+
+        if (argv.template != null) {
+          if (typeof argv.template !== 'string') {
+            if (argv.template.content != null) {
+              argv.template.content = normalizePathOptionOrArg(cwd, 'template.content', argv.template.content, { strict: true })
+            }
+
+            if (argv.template.helpers != null) {
+              argv.template.helpers = normalizePathOptionOrArg(cwd, 'template.helpers', argv.template.helpers, { strict: true })
+            }
+          } else {
+            argv.template = normalizePathOptionOrArg(cwd, 'template', argv.template, { json: true, strict: true })
+          }
+        }
+
+        if (argv.data != null) {
+          argv.data = normalizePathOptionOrArg(cwd, 'data', argv.data, { json: true, strict: false })
+        }
+
+        if (argv.out != null) {
+          argv.out = normalizePathOptionOrArg(cwd, 'out', argv.out, { read: false, strict: true })
+        }
+
+        if (argv.meta != null) {
+          argv.meta = normalizePathOptionOrArg(cwd, 'meta', argv.meta, { read: false, strict: true })
+        }
+      }, true)
       .check((argv, hash) => {
         if (argv.user && !argv.serverUrl) {
           throw new Error('user option needs to be used with --serverUrl option')

@@ -3,7 +3,7 @@
 const util = require('util')
 const path = require('path')
 const fs = require('fs')
-const { addStack } = require('./errorUtils')
+const { addStack } = require('./utils/error')
 const accessAsync = util.promisify(fs.access)
 
 module.exports = async (extensions, commander) => {

@@ -4,9 +4,9 @@ const fs = require('fs')
 const HttpsServer = require('https').Server
 const ipAddress = require('ip-address')
 const nssocket = require('nssocket')
-const startSocketServer = require('./startSocketServer.js')
-const instanceHandler = require('./instanceHandler.js')
-const errorUtils = require('./errorUtils')
+const instanceHandler = require('./instanceHandler')
+const startSocketServer = require('./utils/startSocketServer')
+const { getErrors } = require('./utils/error')
 
 const PID = process.pid
 
@@ -126,7 +126,7 @@ function start (customInstance, socketFile) {
             if (socketInitErr) {
               return socketToMaster.send(['init'], {
                 error: socketInitErr.message,
-                stacks: errorUtils.getErrors(socketInitErr).map(e => e.stack)
+                stacks: getErrors(socketInitErr).map(e => e.stack)
               })
             }
 
@@ -155,7 +155,7 @@ function start (customInstance, socketFile) {
 
           socketToMaster.send(['init'], {
             error: err.message,
-            stacks: errorUtils.getErrors(err).map(e => e.stack),
+            stacks: getErrors(err).map(e => e.stack),
             meta: Object.keys(meta).length > 0 ? meta : undefined
           })
 

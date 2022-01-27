@@ -1,5 +1,3 @@
-'use strict'
-
 const commander = require('./lib/commander')
 const main = require('./lib/cliExtension')
 const keepAliveProcess = require('./lib/keepAliveProcess')

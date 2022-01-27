@@ -1,13 +1,12 @@
-'use strict'
-
 const cliui = require('cliui')
 const chalk = require('chalk')
 const omit = require('lodash.omit')
 
 const description = 'Prints information about a command or topic'
 const command = 'help'
+const positionalArgs = '[commandOrTopic]'
 
-exports.command = command
+exports.command = `${command} ${positionalArgs}`
 exports.description = description
 
 function getExamples (command) {
@@ -55,7 +54,7 @@ exports.builder = (yargs) => {
           return true
         }
 
-        if (!argv || !argv._[1]) {
+        if (!argv || !argv.commandOrTopic) {
           throw new Error('"commandOrTopic" argument is required')
         }
 
@@ -70,7 +69,7 @@ exports.handler = async (argv) => {
   const logger = context.logger
   const getInstance = context.getInstance
   const initInstance = context.initInstance
-  let commandOrTopic = argv._[1]
+  let commandOrTopic = argv.commandOrTopic
   let helpResult
 
   const getCommandHelp = context.getCommandHelp
@@ -135,8 +134,8 @@ exports.handler = async (argv) => {
       }
     }
 
-    if (helpResult) {
-      helpResult = { output: helpResult.output }
+    if (helpResult != null && typeof helpResult === 'string') {
+      helpResult = { output: helpResult }
     }
   }
 

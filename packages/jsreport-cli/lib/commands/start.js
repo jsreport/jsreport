@@ -1,5 +1,3 @@
-'use strict'
-
 const description = 'Starts a jsreport process in current working directory'
 const command = 'start'
 

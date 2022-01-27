@@ -1,7 +1,7 @@
 'use strict'
 
 const path = require('path')
-const searchExtensionsCommands = require('./registerExtensionsCommands')
+const detectAndRegisterExtensionsCommands = require('./detectAndRegisterExtensionsCommands')
 
 module.exports = (reporter, definition) => {
   if (reporter.compilation) {
@@ -12,7 +12,7 @@ module.exports = (reporter, definition) => {
 
   reporter.cli = {
     findCommandsInExtensions: async () => {
-      const extensionsCommands = await searchExtensionsCommands(
+      const extensionsCommands = await detectAndRegisterExtensionsCommands(
         reporter.extensionsManager.extensions,
         { registerCommand: () => {} }
       )

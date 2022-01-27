@@ -6,8 +6,9 @@ const normalizePath = require('./normalizePath')
 
 const description = 'Import an export file with entities in the specified jsreport instance'
 const command = 'import'
+const positionalArgs = '<exportFile>'
 
-exports.command = command
+exports.command = `${command} ${positionalArgs}`
 exports.description = description
 
 exports.configuration = {
@@ -52,22 +53,22 @@ exports.builder = (yargs) => {
       .group(options, 'Command options:')
       .options(commandOptions)
       .check((argv) => {
-        if (!argv || !argv._[1]) {
+        if (!argv || !argv.exportFile) {
           throw new Error('"exportFile" argument is required')
         }
 
-        if (!argv._[1].endsWith('.zip') && !argv._[1].endsWith('.jsrexport')) {
+        if (!argv.exportFile.endsWith('.zip') && !argv.exportFile.endsWith('.jsrexport')) {
           throw new Error('"exportFile" argument should have .jsrexport or .zip extension')
         }
 
-        argv._[1] = normalizePath(argv.context.cwd, 'exportFile', argv._[1], {
+        argv.exportFile = normalizePath(argv.context.cwd, 'exportFile', argv.exportFile, {
           type: 'argument',
           read: false,
           strict: true
         })
 
-        if (!fs.existsSync(argv._[1])) {
-          throw new Error(`exportFile argument "${argv._[1]}" points to a file that does not exists. make sure to specify an existing file`)
+        if (!fs.existsSync(argv.exportFile)) {
+          throw new Error(`exportFile argument "${argv.exportFile}" points to a file that does not exists. make sure to specify an existing file`)
         }
 
         if (argv.user && !argv.serverUrl) {
@@ -92,7 +93,7 @@ exports.builder = (yargs) => {
 }
 
 exports.handler = async (argv) => {
-  const exportFilePath = argv._[1]
+  const exportFilePath = argv.exportFile
   const context = argv.context
   const logger = context.logger
   const options = getOptions(argv)

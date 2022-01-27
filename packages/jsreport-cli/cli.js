@@ -19,7 +19,7 @@ if (!semver.satisfies(process.versions.node, cliPackageJson.engines.node)) {
 const path = require('path')
 const Liftoff = require('liftoff')
 const commander = require('./lib/commander')
-const { printError } = require('./lib/errorUtils')
+const { printError } = require('./lib/utils/error')
 const help = require('./lib/commands/help')
 const init = require('./lib/commands/init')
 const repair = require('./lib/commands/repair')
@@ -73,7 +73,7 @@ function initCLI (env) {
     globalCliHandler.start(args)
   } else {
     if (isCLIDev) {
-      localCommander = require(path.join(cwd, 'lib/commander.js'))(cwd, { cliName: 'jsreport' })
+      localCommander = require(path.join(cwd, 'lib/commander'))(cwd, { cliName: 'jsreport' })
     } else {
       // Check for semver difference between global cli and local installation
       if (semver.gt(cliPackageJson.version, env.modulePackage.version)) {
@@ -82,7 +82,7 @@ function initCLI (env) {
         console.log('Local jsreport-cli is', env.modulePackage.version)
       }
 
-      localCommander = require(path.join(path.dirname(env.modulePath), 'lib/commander.js'))(cwd, {
+      localCommander = require(path.join(path.dirname(env.modulePath), 'lib/commander'))(cwd, {
         cliName: 'jsreport'
       })
     }

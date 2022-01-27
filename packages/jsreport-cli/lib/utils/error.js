@@ -58,7 +58,7 @@ function getErrors (err) {
     errors.push({
       message: parent.message,
       stack: currentStack || '',
-      meta: Object.keys(customProps).length > 0 ? customProps : undefined,
+      meta: Object.keys(customProps).length > 0 ? getSimpleProperties(customProps) : undefined,
       cleanState
     })
 
@@ -113,6 +113,28 @@ function getErrorMessages (err) {
   }
 
   return messages
+}
+
+function getSimpleProperties (obj) {
+  const newObj = {}
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (
+      value == null ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      typeof value === 'bigint'
+    ) {
+      newObj[key] = value
+    }
+  }
+
+  if (Object.keys(newObj).length === 0) {
+    return undefined
+  }
+
+  return newObj
 }
 
 function printError (err, logger) {

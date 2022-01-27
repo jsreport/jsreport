@@ -1,9 +1,8 @@
-'use strict'
-
 const description = 'Kill a daemon jsreport process'
 const command = 'kill'
+const positionalArgs = '[uidOrpid]'
 
-exports.command = command
+exports.command = `${command} ${positionalArgs}`
 exports.description = description
 
 exports.builder = (yargs) => {
@@ -33,8 +32,8 @@ exports.handler = async (argv) => {
   let identifier
   let processInfo
 
-  if (argv._ && argv._[1]) {
-    identifier = argv._[1]
+  if (argv && argv.uidOrpid != null) {
+    identifier = argv.uidOrpid
   }
 
   if (!identifier) {
