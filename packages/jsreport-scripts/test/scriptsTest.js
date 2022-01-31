@@ -621,6 +621,22 @@ describe('scripts', () => {
       res.content.toString().should.be.eql('xxx')
     })
 
+    it('should not fail when full profiling enabled', async () => {
+      await reporter.settings.addOrSet('fullProfilerRunning', true)
+      await reporter.render({
+        template: {
+          content: '{{:foo}}',
+          recipe: 'html',
+          engine: 'jsrender',
+          scripts: [{
+            content: `
+              function afterRender(req, res, done) { done() }
+            `
+          }]
+        }
+      })
+    })
+
     it('res.content in afterRender should be buffer', async () => {
       return reporter.render({
         template: {

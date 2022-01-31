@@ -8,7 +8,7 @@ class Profiler {
   constructor (reporter) {
     this.reporter = reporter
 
-    this.reporter.addRequestContextMetaConfig('profiling', { sandboxReadOnly: true })
+    this.reporter.addRequestContextMetaConfig('profiling', { sandboxHidden: true })
     this.reporter.addRequestContextMetaConfig('resolvedTemplate', { sandboxHidden: true })
 
     this.reporter.beforeMainActionListeners.add('profiler', (actionName, data, req) => {
@@ -93,7 +93,7 @@ class Profiler {
 
       m.req = { diff: createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0) }
 
-      req.context.profiling.resLastVal = res.content
+      req.context.profiling.resLastVal = (res.content == null || isbinaryfile(res.content)) ? null : res.content.toString()
       req.context.profiling.resMetaLastVal = stringifiedResMeta
       req.context.profiling.reqLastVal = stringifiedReq
     }
