@@ -126,7 +126,7 @@ if (extraneousDeps.length > 0) {
 
   console.log('\npackage version updated!')
 
-  const installCommand = ['yarn', 'install']
+  const installCommand = ['yarn', 'install', '--check-files']
 
   console.log(`\nrunning ${installCommand.join(' ')} to normalize node_modules tree after version update`)
 
@@ -150,7 +150,9 @@ if (extraneousDeps.length > 0) {
     output: process.stdout
   })
 
-  console.log('\nAll done, make sure to check if there is something else to commit in git..')
+  console.log('\nAll done, make sure to check if the following things are pending or already covered:')
+  console.log('- something else is pending to commit in git')
+  console.log('- CHANGELOG section in README.md is updated')
 
   rl.question('About to start publish. Do you want to continue? (y/N): ', (answer) => {
     const shouldContinue = (answer === 'y')

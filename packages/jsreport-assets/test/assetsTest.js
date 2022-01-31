@@ -20,7 +20,7 @@ describe('assets', function () {
     return reporter.init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   it('should handle normal render request', async () => {
     const res = await reporter.render({
@@ -1887,7 +1887,7 @@ describe('assets with allowLocalFilesAccess', () => {
     return reporter.init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   it('should be able to require an npm module from inside proxy.asset.require', async () => {
     await reporter.documentStore.collection('assets').insert({
@@ -1929,7 +1929,7 @@ describe('assets with express', function () {
     return reporter.init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   it('should expose odata endpoint', () => {
     return request(reporter.express.app)

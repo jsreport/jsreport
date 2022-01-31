@@ -11,10 +11,6 @@ if (fs.existsSync(tempDir)) {
   fs.rmSync(tempDir, { recursive: true })
 }
 
-if (args.length === 0 || args[0] == null || args[0] === '') {
-  throw new Error('You need to pass one or more packages to audit')
-}
-
 if (args[0] === 'clean') {
   console.log('\n..executing clean steps for audit..\n')
 
@@ -28,7 +24,7 @@ if (args[0] === 'clean') {
     }
   }
 
-  const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync('yarn', ['install'], {
+  const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync('yarn', ['install', '--check-files'], {
     cwd: process.cwd(),
     stdio: 'inherit'
   })
@@ -48,8 +44,10 @@ if (args[0] === 'clean') {
   process.exit()
 }
 
-const extensionsList = args.map(x => x.trim())
+const runForAll = args[0] == null || args[0] === ''
+
 const packagesInWorkspace = getPackagesInWorkspace()
+const extensionsList = runForAll ? [...packagesInWorkspace.keys()] : args.map(x => x.trim())
 
 for (const ext of extensionsList) {
   if (!packagesInWorkspace.has(ext)) {
@@ -58,6 +56,10 @@ for (const ext of extensionsList) {
 }
 
 fs.mkdirSync(tempDir)
+
+if (runForAll) {
+  console.log('\nrunning audit for all packages..\n')
+}
 
 const withVulnerabilities = []
 
@@ -86,17 +88,19 @@ for (const ext of extensionsList) {
     stdio: 'pipe'
   })
 
+  const output = stdout != null ? stdout.toString().trim() : ''
+
   if (auditError || auditStatus === 1) {
-    console.error('Command failed to run')
+    console.error(`Audit command failed to run for ${ext}`)
 
     if (auditError) {
       throw auditError
     }
 
-    process.exit(1)
+    if (output === '') {
+      process.exit(1)
+    }
   }
-
-  const output = stdout.toString().trim()
 
   if (output !== 'found 0 vulnerabilities') {
     const outputPath = path.join(tempDir, `audit-${ext.replace(/\//g, '-')}.log`)

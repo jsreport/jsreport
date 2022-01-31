@@ -25,7 +25,7 @@ async function run () {
 
   console.log(`running ${packageManager} install with packages resolutions set to ensure deps are correctly de-duplicated..`)
 
-  childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
+  childProcess.execSync(`${packageManager} install --check-files`, { stdio: 'inherit' })
 
   console.log(`copying files for executable compilation. ${packageManager === 'npm' ? 'node_modules' : 'packages'}/jsreport-cli/example.config.json -> jsreport.config.json, executable-license.txt -> license.txt`)
 
@@ -109,7 +109,7 @@ async function run () {
 
   console.log(`running ${packageManager} install again to ensure deps are left as original before compilation..`)
 
-  childProcess.execSync(`${packageManager} install`, { stdio: 'inherit' })
+  childProcess.execSync(`${packageManager} install --check-files`, { stdio: 'inherit' })
 
   console.log('done!')
 }

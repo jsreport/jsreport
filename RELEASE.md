@@ -32,7 +32,13 @@ The list represents **all the packages that we need to release before jsreport**
 
 Now that we know the list of packages/extensions we need to release, we can run npm audit on them to check if they contain some vulnerability report that we can simply try to fix by doing some deps update.
 
-To execute the npm audit we should run the following command:
+To execute the npm audit for all packages:
+
+```bash
+node scripts/audit.js
+```
+
+To execute the npm audit for some or a single specific package run the following command:
 
 ```bash
 node scripts/audit.js <pkgName> <pkgName2> ...
@@ -65,6 +71,8 @@ node scripts/changed.js 37b82056a17ac64d812ec6161547c964398759de cdb7ec10ea1ca30
 ```
 
 The command will output a list of commits messages that should describe the changes related to the package between specific commits. These messages will help us in decide what is the new version that we need to use for the package.
+
+By knowing the changes and the expected new version we can update the **CHANGELOG** section in **README.md** of the package.
 
 Finally, now that we know the specific version number we are going to use we can publish the package.
 

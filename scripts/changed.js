@@ -60,7 +60,9 @@ if (targetPkg != null && targetPkg !== '') {
 
     console.log(`\nCurrent version of ${targetPkg}:`, packageJSON.version)
 
-    console.log(`\nAfter deciding the target version update, you can continue by running: node scripts/publish.js ${targetPkg} <version>`)
+    console.log('\nAfter deciding the target version update, you can continue by running:')
+    console.log(`- node scripts/audit.js ${targetPkg}`)
+    console.log(`- node scripts/publish.js ${targetPkg} <version>`)
   }
 } else {
   const commands = ['git', 'diff', '--name-only', lastCommit, firstCommit]
