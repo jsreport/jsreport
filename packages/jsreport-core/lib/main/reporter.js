@@ -405,6 +405,7 @@ class MainReporter extends Reporter {
       if (req.context.returnResponseAndKeepWorker) {
         keepWorker = true
         res.stream = Readable.from(res.content)
+        await this.afterRenderListeners.fire(req, res)
         return res
       }
 

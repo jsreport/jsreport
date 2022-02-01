@@ -67,7 +67,7 @@ describe('with reports extension', () => {
   it('should store report entity and single report with async: true', async () => {
     return new Promise((resolve, reject) => {
       reporter.afterRenderListeners.add('test', async (req, res) => {
-        if (req.template.content !== 'hello') {
+        if (res.content.toString() !== 'hello') {
           return
         }
 

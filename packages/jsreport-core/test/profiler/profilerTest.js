@@ -269,6 +269,41 @@ describe('profiler', () => {
     const profile = await reporter.documentStore.collection('profiles').findOne({ _id: res.meta.profileId })
     profile.should.be.ok()
   })
+
+  it('should set finished state also for render requests invoked from the beforeRenderListeners', async () => {
+    let _resolve
+    const promise = new Promise(resolve => {
+      _resolve = resolve
+    })
+    reporter.beforeRenderListeners.insert(0, 'test', async (req, res) => {
+      if (req.template.content !== 'main') {
+        return
+      }
+      req.context.returnResponseAndKeepWorker = true
+      res.content = Buffer.from('main')
+      process.nextTick(() => {
+        reporter.render({
+          template: {
+            content: 'hello',
+            engine: 'none',
+            recipe: 'html'
+          }
+        }).then(() => _resolve())
+      })
+    })
+    await reporter.render({
+      template: {
+        content: 'main',
+        engine: 'none',
+        recipe: 'html'
+      }
+    })
+    await promise
+
+    const profiles = await reporter.documentStore.collection('profiles').find({})
+    profiles[0].state.should.be.eql('success')
+    profiles[1].state.should.be.eql('success')
+  })
 })
 
 describe('profiler with timeout', () => {
