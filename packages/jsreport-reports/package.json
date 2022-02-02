@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.3.0",
+    "@jsreport/jsreport-data": "3.0.1",
     "@jsreport/jsreport-express": "3.2.1",
     "@jsreport/jsreport-handlebars": "3.0.0",
     "@jsreport/jsreport-scripts": "3.2.0",

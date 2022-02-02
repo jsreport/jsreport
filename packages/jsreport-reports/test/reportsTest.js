@@ -12,6 +12,7 @@ describe('with reports extension', () => {
       }
     })
     reporter.use(require('../')())
+    reporter.use(require('@jsreport/jsreport-data')())
     reporter.use(require('@jsreport/jsreport-handlebars')())
     reporter.use(require('@jsreport/jsreport-express')())
     reporter.use(require('@jsreport/jsreport-scripts')())
@@ -259,6 +260,51 @@ describe('with reports extension', () => {
       })
 
       reporter.render(request)
+    })
+  })
+
+  it('should use attached data when no explicit data was specific on the input when async specified', async () => {
+    const dataUsed = {
+      message: 'bar'
+    }
+
+    const d1 = await reporter.documentStore.collection('data').insert({
+      name: 'data',
+      dataJson: JSON.stringify(dataUsed)
+    })
+
+    const t1 = await reporter.documentStore.collection('templates').insert({
+      name: 'foo',
+      engine: 'handlebars',
+      content: '{{message}}',
+      recipe: 'html',
+      data: {
+        shortid: d1.shortid
+      }
+    })
+
+    const request = {
+      template: {
+        shortid: t1.shortid
+      },
+      options: { reports: { async: true } }
+    }
+
+    return new Promise((resolve, reject) => {
+      reporter.afterRenderListeners.add('test', (req, res) => {
+        if (req.options?.reports?.save) {
+          const result = res.content.toString()
+
+          try {
+            result.should.be.eql(dataUsed.message)
+            resolve()
+          } catch (error) {
+            reject(error)
+          }
+        }
+      })
+
+      reporter.render(request).catch(reject)
     })
   })
 
