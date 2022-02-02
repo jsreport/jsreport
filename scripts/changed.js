@@ -135,8 +135,11 @@ if (targetPkg != null && targetPkg !== '') {
       }
 
       if (packagesRelevantForJsreportRelease.length > 0) {
-        console.log('\nRelevant packages for jsreport release:')
-        console.log(packagesRelevantForJsreportRelease.map((p) => `- ${p}`).join('\n'))
+        const jsreportPackageJSON = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'packages/jsreport/package.json'), 'utf8'))
+        const jsreportDeps = Object.keys(jsreportPackageJSON.dependencies)
+
+        console.log('\nRelevant packages for jsreport release: (* means that it is official dependency of jsreport)')
+        console.log(packagesRelevantForJsreportRelease.map((p) => `- ${p}${jsreportDeps.includes(p) ? ' *' : ''}`).join('\n'))
       }
 
       if (otherPackages.length > 0) {
