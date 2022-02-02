@@ -239,6 +239,9 @@ class Reports {
     }
 
     const asyncRequest = extend(true, {}, _omit(request, 'data'))
+    if (request.context.parsedInWorker !== true) {
+      asyncRequest.data = request.data
+    }
 
     // start a fresh context so we don't inherit logs, etc
     asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs'))

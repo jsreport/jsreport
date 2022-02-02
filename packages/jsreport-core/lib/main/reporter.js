@@ -390,7 +390,17 @@ class MainReporter extends Reporter {
       if (req.context.returnResponseAndKeepWorker) {
         keepWorker = true
         res.stream = Readable.from(res.content)
-        await this.afterRenderListeners.fire(req, res)
+
+        // just temporary workaround until we change how report render works
+        await this.documentStore.collection('profiles').update({
+          _id: req.context.profiling.entity._id
+        }, {
+          $set: {
+            state: 'success',
+            finishedOn: new Date(),
+            blobPersisted: true
+          }
+        }, req)
         return res
       }
 

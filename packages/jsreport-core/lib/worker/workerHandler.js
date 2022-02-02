@@ -31,6 +31,7 @@ module.exports = (userInitData, { executeMain, convertUint8ArrayToBuffer }) => {
             ...JSON.parse(req.rawContent),
             context: req.context
           }
+          parsedReq.context.parsedInWorker = true
 
           return omit(parsedReq, 'data')
         } catch (e) {
