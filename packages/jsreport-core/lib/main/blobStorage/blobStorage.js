@@ -25,6 +25,7 @@ module.exports = (reporter, options) => {
         let existingBuf = Buffer.from([])
         try {
           existingBuf = await provider.read(blobName, req)
+          await provider.remove(blobName, req)
         } catch (e) {
           // so far blob storage throws when blob doesnt exit
         }
