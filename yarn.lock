@@ -12884,11 +12884,6 @@ nan@^2.12.1:
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.15.0.tgz#3f34a473ff18e15c1b5626b62903b5ad6e665fee"
   integrity sha512-8ZtvEnA2c5aYCZYd1cvgdnU6cqwixRoYg70xPLWUws5ORTa/lnw+u4amixRS/Ac5U5mQVgp9pnlSUnbNWFaWZQ==
 
-nanoid@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-1.0.2.tgz#15d2b5e76b6dbfb15cac1000cb457d4bfc845bdb"
-  integrity sha512-sCTwJt690lduNHyqknXJp8pRwzm80neOLGaiTHU2KUJZFVSErl778NNCIivEQCX5gNT0xR1Jy3HEMe/TABT6lw==
-
 nanoid@3.1.12:
   version "3.1.12"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.12.tgz#6f7736c62e8d39421601e4a0c77623a97ea69654"
@@ -14236,13 +14231,13 @@ phantom-html-to-pdf@0.6.1:
   optionalDependencies:
     phantomjs "1.9.20"
 
-phantom-page-eval@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/phantom-page-eval/-/phantom-page-eval-1.2.0.tgz#61ec88eab89347c97ac4f773f4025039fd8dfa1e"
-  integrity sha512-2l4wGf5y4FmhQ1ymQjh5AiDHAnTnVkg1X7sx7IO0/g6LdlWIe5/iPbKHKArLNKehj9xvfPvkbBo7i5nDHW0RQQ==
+phantom-page-eval@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/phantom-page-eval/-/phantom-page-eval-2.0.0.tgz#71e9dd4798e50341ecb44bc185a4ddea0c9ea96e"
+  integrity sha512-X2PK6WJKg2lQgy+Av03N9qlLdy8l8JAWYtzLVw7GELm+SG1vmkl6LqhR4WEyKhfNgmuyxtv/CvDU5GvyYH0Gdw==
   dependencies:
     debug "3.1.0"
-    nanoid "1.0.2"
+    nanoid "3.2.0"
 
 phantom-workers@0.5.0:
   version "0.5.0"
