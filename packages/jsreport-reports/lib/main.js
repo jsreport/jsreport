@@ -245,7 +245,7 @@ class Reports {
     asyncRequest.options.reports = extend(true, {}, request.options.reports)
     asyncRequest.options.reports.save = true
 
-    if (Object.prototype.hasOwnProperty.call(request.context, 'originalInputDataIsEmpty') && !request.context.originalInputDataIsEmpty) {
+    if (request.context.originalInputDataIsEmpty === false) {
       asyncRequest.data = request.data
     }
 
