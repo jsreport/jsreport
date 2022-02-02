@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-localization",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "description": "jsreport extension adding localize helper",
   "keywords": [
     "jsreport",
@@ -33,12 +33,12 @@
   "dependencies": {},
   "devDependencies": {
     "handlebars": "4.7.7",
-    "@jsreport/jsreport-assets": "3.2.0",
-    "@jsreport/jsreport-core": "3.3.0",
+    "@jsreport/jsreport-assets": "3.3.0",
+    "@jsreport/jsreport-core": "3.4.1",
     "@jsreport/jsreport-components": "3.2.0",
     "@jsreport/jsreport-child-templates": "3.0.1",
     "@jsreport/jsreport-handlebars": "3.0.0",
-    "@jsreport/studio-dev": "3.0.1",
+    "@jsreport/studio-dev": "3.1.0",
     "mocha": "8.3.2",
     "should": "13.2.3",
     "standard": "16.0.4"

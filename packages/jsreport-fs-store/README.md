@@ -18,6 +18,13 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 3.1.0
+
+- add fs-store ignore option to ignore directories/files during the load
+- add socket.io as explicit dep
+- optimization: don't delete nested folders when updating folder
+- fix losing entities in fs store data directory when updating folder in transaction
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

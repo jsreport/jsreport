@@ -1308,9 +1308,10 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@bjrmatos/pkg@bjrmatos/pkg#8e986c26d919edcc12f9b1a152cf9a1b7444450a":
-  version "5.4.0"
-  resolved "https://codeload.github.com/bjrmatos/pkg/tar.gz/8e986c26d919edcc12f9b1a152cf9a1b7444450a"
+"@bjrmatos/pkg@5.4.1":
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/@bjrmatos/pkg/-/pkg-5.4.1.tgz#d9543f598ba245667493328ad5e979714efecf64"
+  integrity sha512-obYdnw6a0LVbibl0xwfNVlAJW5xzXw14LLNxOr+eWQ5EC+sCdpoS2FQqO77PdDiPGVtkCjlPs67IjIxwtQ4IQw==
   dependencies:
     "@babel/parser" "7.13.13"
     "@babel/types" "7.13.12"
@@ -12840,15 +12841,15 @@ mssql@7.2.0:
     tarn "^3.0.1"
     tedious "^11.0.7"
 
-multer@1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/multer/-/multer-1.4.1.tgz#24b12a416a22fec2ade810539184bf138720159e"
-  integrity sha512-zzOLNRxzszwd+61JFuAo0fxdQfvku12aNJgnla0AQ+hHxFmfc/B7jBVuPr5Rmvu46Jze/iJrFpSOsD7afO8SDw==
+multer@1.4.4:
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/multer/-/multer-1.4.4.tgz#e2bc6cac0df57a8832b858d7418ccaa8ebaf7d8c"
+  integrity sha512-2wY2+xD4udX612aMqMcB8Ws2Voq6NIUPEtD1be6m411T4uDH/VtL9i//xvcyFlTVfRdaBsk7hV5tgrGQqhuBiw==
   dependencies:
     append-field "^1.0.0"
     busboy "^0.2.11"
     concat-stream "^1.5.2"
-    mkdirp "^0.5.1"
+    mkdirp "^0.5.4"
     object-assign "^4.1.1"
     on-finished "^2.3.0"
     type-is "^1.6.4"

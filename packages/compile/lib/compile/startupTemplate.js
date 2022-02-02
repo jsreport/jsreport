@@ -1,14 +1,19 @@
-// Dynamicaly constructed main entry for the jsreport executable
+// Dynamically constructed main entry for the jsreport executable
 'use strict'
 
+// eslint-disable-next-line
 const runtime = $runtime
 
 module.exports = runtime({
+  // eslint-disable-next-line
   originalProjectDir: $originalProjectDir,
   shortid: '$shortid',
   version: '$version',
+  // eslint-disable-next-line
   resources: $resources,
+  // eslint-disable-next-line
   requireExtensions: $requireExtensions,
+  // eslint-disable-next-line
   requireCliExtensionsCommands: $requireCliExtensionsCommands,
   getJsreport: () => {
     let wasDefined = false
@@ -17,6 +22,7 @@ module.exports = runtime({
       wasDefined = true
     }
 
+    // eslint-disable-next-line
     const instance = $entryPoint
 
     if (!instance) {
@@ -29,5 +35,6 @@ module.exports = runtime({
 
     return instance
   },
+  // eslint-disable-next-line
   handleArguments: $handleArguments
 })

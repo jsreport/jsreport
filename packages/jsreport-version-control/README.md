@@ -9,6 +9,10 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 3.1.0
+
+update deps to fix npm audit warnings
+
 ### 3.0.1
 
 - improve revert changes warning in studio

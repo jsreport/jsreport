@@ -12,3 +12,9 @@ npm install @jsreport/compile
 ...
 jsreport.exe start
 ```
+
+## Changelog
+
+### 3.0.2
+
+Fix for compile after deps update because npm audit warnings

@@ -7,6 +7,10 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 3.1.0
+
+internal refactor (use latest version of yargs)
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

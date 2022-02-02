@@ -18,6 +18,11 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.4.0
+
+- fix exe compilation
+- remove socket.io, it is now only part of where it is actually used (fs-store)
+
 ### 3.1.0
 
 - add entity definition button in entity tree item context menu

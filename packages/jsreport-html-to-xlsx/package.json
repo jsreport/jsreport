@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-html-to-xlsx",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "jsreport recipe capable of converting html into excel",
   "keywords": [
     "jsreport",
@@ -43,9 +43,9 @@
     "phantom-page-eval": "2.0.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.3.0",
+    "@jsreport/jsreport-core": "3.4.1",
     "@jsreport/jsreport-handlebars": "3.0.0",
-    "@jsreport/studio-dev": "3.0.1",
+    "@jsreport/studio-dev": "3.1.0",
     "handlebars": "4.7.7",
     "mocha": "5.2.0",
     "puppeteer": "13.1.2",

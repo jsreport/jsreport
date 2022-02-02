@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.3.0
+
+- improve merge of document with annotations
+- update deps to fix npm audit warnings
+
 ### 3.0.1
 
 - fix pdf utils merge operation never ending in profile

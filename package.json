@@ -21,7 +21,7 @@
   },
   "resolutions": {},
   "dependencies": {
-    "@jsreport/studio-dev": "3.0.1"
+    "@jsreport/studio-dev": "3.1.0"
   },
   "devDependencies": {
     "archiver": "5.3.0",

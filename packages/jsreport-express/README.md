@@ -7,6 +7,14 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.3.1
+
+update multer to fix npm audit warning
+
+### 3.3.0
+
+use req.socket to listen on canceled request because req.connection was deprecated
+
 ### 3.1.0
 
 - add `/api/schema/:entitySet` route to fetch json schema for entitySet

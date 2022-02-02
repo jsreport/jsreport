@@ -48,6 +48,10 @@ You can also pass connection uri like this
 
 ## Changelog
 
+### 3.0.1
+
+don't fail when removing not existing blob
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
