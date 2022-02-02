@@ -73,17 +73,25 @@ describe('data', () => {
 
     await reporter.documentStore.collection('data').insert(dataItem)
 
-    const parent = Request({
-      context: {
-        logs: []
-      },
-      template: { content: '{{a}}', engine: 'handlebars', recipe: 'html' },
-      data: { a: 'a' }
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+      if (req.template.content === 'main') {
+        await reporter.render({
+          template: { content: '{{a}}-{{b}}', data: { name: 'test' }, engine: 'handlebars', recipe: 'html' }
+        }, req)
+      }
     })
 
-    const res = await reporter.render({
-      template: { content: '{{a}}-{{b}}', data: { name: 'test' }, engine: 'handlebars', recipe: 'html' }
-    }, parent)
+    let res
+    reporter.tests.afterRenderListeners.add('test', this, (req, ares) => {
+      if (req.template.content !== 'main') {
+        res = ares
+      }
+    })
+
+    await reporter.render({
+      template: { content: 'main', engine: 'handlebars', recipe: 'html' },
+      data: { a: 'a' }
+    })
 
     res.content.toString().should.be.eql('a-')
   })
@@ -119,18 +127,26 @@ describe('data', () => {
 
     await reporter.documentStore.collection('data').insert(dataItem)
 
-    const parent = Request({
-      context: {
-        logs: []
-      },
-      template: { content: '{{a}}', engine: 'handlebars', recipe: 'html' },
-      data: { a: 'a' }
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+      if (req.template.content === 'main') {
+        await reporter.render({
+          template: { content: '{{a}}-{{b}}', data: { name: 'test' }, engine: 'handlebars', recipe: 'html' },
+          data: { b: 'b' }
+        }, req)
+      }
     })
 
-    const res = await reporter.render({
-      template: { content: '{{a}}-{{b}}', data: { name: 'test' }, engine: 'handlebars', recipe: 'html' },
-      data: { b: 'b' }
-    }, parent)
+    let res
+    reporter.tests.afterRenderListeners.add('test', this, (req, ares) => {
+      if (req.template.content !== 'main') {
+        res = ares
+      }
+    })
+
+    await reporter.render({
+      template: { content: 'main', engine: 'handlebars', recipe: 'html' },
+      data: { a: 'a' }
+    })
 
     res.content.toString().should.be.eql('a-b')
   })
