@@ -416,6 +416,48 @@ describe('with reports extension', () => {
       break
     }
   })
+
+  it('should apply inline data when async:true is used and sample data attached', async () => {
+    await reporter.documentStore.collection('data').insert({
+      shortid: 'data',
+      name: 'data',
+      dataJson: JSON.stringify({
+        foo: 'original'
+      })
+    })
+    await reporter.documentStore.collection('templates').insert({
+      engine: 'handlebars',
+      content: '{{foo}}',
+      recipe: 'html',
+      name: 'template',
+      data: {
+        shortid: 'data'
+      }
+    })
+    await reporter.render({
+      rawContent: JSON.stringify({
+        options: { reports: { async: true } },
+        template: {
+          name: 'template'
+        },
+        data: {
+          foo: 'hello'
+        }
+      })
+    })
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const report = await reporter.documentStore.collection('reports').findOne({})
+      if (report?.state !== 'success') {
+        continue
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      const blob = await reporter.blobStorage.read(report.blobName)
+      blob.toString().should.be.eql('hello')
+      break
+    }
+  })
 })
 
 describe('with reports extension and clean enabled', () => {

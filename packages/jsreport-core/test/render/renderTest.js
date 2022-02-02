@@ -330,23 +330,30 @@ describe('render', () => {
   })
 
   it('should add isChildRequest to the nested render', async () => {
-    let context
-    reporter.tests.beforeRenderListeners.add('test', this, (req) => (context = req.context))
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+      if (req.template.content === 'main') {
+        await reporter.render({
+          template: {
+            content: 'nested',
+            engine: 'none',
+            recipe: 'html'
+          }
+        }, req)
+      }
+    })
 
-    const parentReq = createRequest({
-      template: {},
-      options: {},
-      context: {
-        logs: []
+    let context
+    reporter.tests.beforeRenderListeners.add('test', async (req, res) => {
+      if (req.template.content === 'nested') {
+        context = req.context
       }
     })
 
     await reporter.render({
-      template: { content: 'Hey', engine: 'none', recipe: 'html' }
-    }, parentReq)
+      template: { content: 'main', engine: 'none', recipe: 'html' }
+    })
 
     context.isChildRequest.should.be.true()
-    should(parentReq.context.isChildRequest).not.be.true()
   })
 
   it('should detect initial data on current request correctly', async () => {
@@ -382,63 +389,33 @@ describe('render', () => {
     let options
     let childOriginalInputDataIsEmpty
 
-    reporter.tests.beforeRenderListeners.add('test', this, (req) => {
-      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
-      data = req.data
-      options = req.options
-    })
-
-    const parentReq = createRequest({
-      template: {},
-      options: { a: 'a', c: 'c' },
-      data: { a: 'a' },
-      context: {
-        logs: []
+    reporter.tests.beforeRenderEval(async (req, res, { reporter }) => {
+      if (req.template.content === 'main') {
+        await reporter.render({
+          template: {
+            content: 'nested',
+            engine: 'none',
+            recipe: 'html'
+          },
+          options: { a: 'a', c: 'x' },
+          data: { a: 'a' }
+        }, req)
       }
     })
 
-    parentReq.context.originalInputDataIsEmpty.should.be.eql(false)
-
-    await reporter.render({
-      template: { content: 'Hey', engine: 'none', recipe: 'html' },
-      options: { b: 'b', c: 'x' }
-    }, parentReq)
-
-    childOriginalInputDataIsEmpty.should.be.eql(false)
-    data.should.have.property('a')
-    options.should.have.property('a')
-    options.should.have.property('b')
-    options.should.have.property('c')
-    options.c.should.be.eql('x')
-  })
-
-  it('should merge parent to the current request', async () => {
-    let data
-    let options
-    let childOriginalInputDataIsEmpty
-
     reporter.tests.beforeRenderListeners.add('test', this, (req) => {
-      childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
-      data = req.data
-      options = req.options
-    })
-
-    const parentReq = createRequest({
-      template: {},
-      options: { a: 'a', c: 'c' },
-      data: { a: 'a' },
-      context: {
-        logs: []
+      if (req.template.content === 'nested') {
+        childOriginalInputDataIsEmpty = req.context.originalInputDataIsEmpty
+        data = req.data
+        options = req.options
       }
     })
 
-    parentReq.context.originalInputDataIsEmpty.should.be.eql(false)
-
     await reporter.render({
-      template: { content: 'Hey', engine: 'none', recipe: 'html' },
-      data: { b: 'b' },
-      options: { b: 'b', c: 'x' }
-    }, parentReq)
+      template: { content: 'main', engine: 'none', recipe: 'html' },
+      options: { b: 'b', c: 'c' },
+      data: { b: 'b' }
+    })
 
     childOriginalInputDataIsEmpty.should.be.eql(false)
     data.should.have.property('a')

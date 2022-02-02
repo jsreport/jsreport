@@ -25,7 +25,7 @@ const setupValidateShortid = require('./store/setupValidateShortid')
 const documentStoreActions = require('./store/mainActions')
 const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
-const Request = require('../shared/request')
+const Request = require('./request')
 const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
 const Monitoring = require('./monitoring')
@@ -315,15 +315,9 @@ class MainReporter extends Reporter {
    *
    * @public
    */
-  async render (req, parentReq) {
+  async render (req, options = {}) {
     if (!this._initialized) {
       throw new Error('Not initialized, you need to call jsreport.init().then before rendering')
-    }
-
-    let options = {}
-    if (parentReq && !parentReq.__isJsreportRequest__) {
-      options = parentReq
-      parentReq = null
     }
 
     req = Object.assign({}, req)
@@ -351,10 +345,7 @@ class MainReporter extends Reporter {
         throw this.createError('Request aborted by client')
       }
 
-      let isDataStoredInWorker = false
-
       if (req.rawContent) {
-        isDataStoredInWorker = true
         const result = await worker.execute({
           actionName: 'parse',
           req,
@@ -365,13 +356,7 @@ class MainReporter extends Reporter {
         req = result
       }
 
-      req = Request(req, parentReq)
-
-      if (isDataStoredInWorker) {
-        // we unset this because we want the Request() call in worker to evaluate the data
-        // and determine if the original was empty or not
-        delete req.context.originalInputDataIsEmpty
-      }
+      req = Request(req)
 
       // TODO: we will probably validate in the thread
       if (this.entityTypeValidator.getSchema('TemplateType') != null) {

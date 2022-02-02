@@ -245,10 +245,6 @@ class Reports {
     asyncRequest.options.reports = extend(true, {}, request.options.reports)
     asyncRequest.options.reports.save = true
 
-    if (request.context.originalInputDataIsEmpty === false) {
-      asyncRequest.data = request.data
-    }
-
     asyncRequest.options.reports.async = false
     asyncRequest.options.reports._id = r._id
 
