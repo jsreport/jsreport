@@ -1,10 +1,12 @@
-// docx file utilities when testing docx internal files
+// office file utilities when testing office (docx, pptx, xlsx, etc) internal files
 const os = require('os')
 const path = require('path')
 const fs = require('fs')
 const extractZip = require('extract-zip')
 const ZFolder = require('zfolder')
 const format = require('xml-formatter')
+
+const OFFICE_TYPES = ['docx', 'pptx', 'xlsx']
 
 const desktopPath = path.join(os.homedir(), 'Desktop')
 
@@ -16,7 +18,7 @@ async function main () {
     if (command === 'extract') {
       await extract(args[1])
     } else if (command === 'create') {
-      await create(args[1])
+      await create(args[1], args[2])
     } else {
       throw new Error(`Unknown command "${command}"`)
     }
@@ -26,22 +28,25 @@ async function main () {
   }
 }
 
-async function extract (docxPathArg) {
-  if (!docxPathArg) {
-    throw new Error('docxPath can not be empty')
+async function extract (officePathArg) {
+  if (!officePathArg) {
+    throw new Error('officePath can not be empty')
   }
 
-  if (!docxPathArg.endsWith('.docx')) {
-    throw new Error('docxPath does not have .docx extension')
+  const isValidOfficeExtension = OFFICE_TYPES.map((type) => `.${type}`).some((ext) => {
+    return officePathArg.endsWith(ext)
+  })
+
+  if (!isValidOfficeExtension) {
+    throw new Error('officePath does not have valid office extension')
   }
 
-  const docxPath = path.resolve(desktopPath, docxPathArg)
+  const officePath = path.resolve(desktopPath, officePathArg)
+  const officeFilename = path.basename(officePath, `.${officePath.split('.').pop()}`)
 
-  const docxFilename = path.basename(docxPath, '.docx')
+  const outputPath = path.join(desktopPath, officeFilename)
 
-  const outputPath = path.join(desktopPath, docxFilename)
-
-  await extractZip(docxPath, { dir: outputPath })
+  await extractZip(officePath, { dir: outputPath })
 
   const xmlFiles = await getXMLFilesContent(outputPath)
 
@@ -58,7 +63,15 @@ async function extract (docxPathArg) {
   console.log(`extracted into ${outputPath}`)
 }
 
-async function create (inputFolder) {
+async function create (inputFolder, newOfficeFileType) {
+  if (!newOfficeFileType) {
+    throw new Error('newOfficeFileType can not be empty')
+  }
+
+  if (OFFICE_TYPES.includes(newOfficeFileType)) {
+    throw new Error(`newOfficeFileType is not have valid office extension, used: ${newOfficeFileType}`)
+  }
+
   const inputFolderPath = path.resolve(desktopPath, inputFolder)
   const outputPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.zip`)
   const finalDocxPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.docx`)

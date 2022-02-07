@@ -46,13 +46,13 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }, req)
 
-    // we remove NUL unicode characters, which is the only character that is ilegal in XML
+    // we remove NUL unicode characters, which is the only character that is illegal in XML
     // eslint-disable-next-line no-control-regex
     const contents = newContent.toString().replace(/\u0000/g, '').split('$$$docxFile$$$')
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
-      // don't parse the word/document.xml file, because after the templating engie execution
+      // don't parse the word/document.xml file, because after the templating engine execution
       // that documents can be a lot more bigger and parsing such big document is a performance
       // kill for the process
       if (filesToRender[i].path !== 'word/document.xml') {
