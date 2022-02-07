@@ -7,6 +7,11 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.2.0
+
+- update table of contents in docx
+- add support for defining merged cells in dynamic table
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

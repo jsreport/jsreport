@@ -37,9 +37,9 @@
     "jszip": "2.6.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.2.0",
-    "@jsreport/jsreport-core": "3.3.0",
-    "@jsreport/studio-dev": "3.0.1",
+    "@jsreport/jsreport-assets": "3.3.0",
+    "@jsreport/jsreport-core": "3.4.1",
+    "@jsreport/studio-dev": "3.1.0",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "16.0.4",

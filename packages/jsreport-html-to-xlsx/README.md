@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 3.2.0
+
+- update deps to fix npm audit
+
 ### 3.0.1
 
 - fix error line numbers in html to xlsx

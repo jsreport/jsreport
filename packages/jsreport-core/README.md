@@ -282,6 +282,18 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.4.1
+
+- fix passing data to async report
+- fix blob appends
+
+### 3.4.0
+
+- fix for reports execution
+- fix for render profiling
+- fix for blob storage remove
+- update deps to fix npm audit
+
 ### 3.1.0
 
 - fix blob storage append to not existing blob (mongo)

@@ -23,7 +23,7 @@
   "dependencies": {
     "@azure/identity": "1.2.4",
     "@azure/storage-blob": "12.5.0",
-    "@jsreport/jsreport-core": "3.3.0",
+    "@jsreport/jsreport-core": "3.4.1",
     "mocha": "8.3.2",
     "should": "13.2.3"
   },

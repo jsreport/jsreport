@@ -7,6 +7,10 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 3.1.0
+
+- compatibility updates for new version of jsreport-cli (import, export commands)
+
 ### 3.0.1
 
 - refactor ListenerCollection usage for better stack traces

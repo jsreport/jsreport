@@ -90,7 +90,7 @@ async function sendRequest ({ url, user, password, body }) {
     const response = await new Promise((resolve, reject) => {
       try {
         const reqTimeout = 0
-        const urlInfo = urlModule.parse(url)
+        const urlInfo = new urlModule.URL(url)
 
         const serializedRequestBody = JSON.stringify(body)
 

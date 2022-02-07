@@ -33,6 +33,8 @@ if (!packagesInWorkspace.has(targetPkg)) {
 }
 
 const targetPkgFoldername = packagesInWorkspace.get(targetPkg)
+const workspaceRootPackageJSONPath = path.join(process.cwd(), 'package.json')
+const workspaceRootPackageJSON = JSON.parse(fs.readFileSync(workspaceRootPackageJSONPath))
 const packageJSONPath = path.join(process.cwd(), 'packages', targetPkgFoldername, 'package.json')
 const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath))
 
@@ -123,6 +125,16 @@ if (extraneousDeps.length > 0) {
 
     fs.writeFileSync(currentPackageJSONPath, `${JSON.stringify(currentPackageJSON, null, 2)}\n`)
   }
+
+  if (workspaceRootPackageJSON.dependencies && workspaceRootPackageJSON.dependencies[targetPkg]) {
+    workspaceRootPackageJSON.dependencies[targetPkg] = targetVersion
+  }
+
+  if (workspaceRootPackageJSON.devDependencies && workspaceRootPackageJSON.devDependencies[targetPkg]) {
+    workspaceRootPackageJSON.devDependencies[targetPkg] = targetVersion
+  }
+
+  fs.writeFileSync(workspaceRootPackageJSONPath, `${JSON.stringify(workspaceRootPackageJSON, null, 2)}\n`)
 
   console.log('\npackage version updated!')
 

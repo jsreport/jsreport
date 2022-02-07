@@ -19,6 +19,11 @@
 
 ## Changelog
 
+### 3.1.0
+
+- remove socket.io (it is now part of fs-store)
+- update deps to fix npm audit
+
 ### 3.0.1
 
 fix jsreport-studio-start installing jsreport@beta instead of latest

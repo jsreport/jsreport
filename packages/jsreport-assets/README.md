@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.3.0
+
+fix studio usage of old property `scope`, new one: `sharedHelpersScope`
+
 ### 3.0.1
 
 - use relative path to the currently evaluated entity (for example relative asset inside script should be relative to the script)

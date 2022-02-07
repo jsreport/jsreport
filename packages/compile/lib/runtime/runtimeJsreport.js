@@ -3,6 +3,9 @@ module.exports = (options) => {
   const coreOptions = {
     // we load config but don't do extensions discover by default
     loadConfig: true,
+    // the extensions location cache does not work in exe,
+    // so we don't enable it
+    useExtensionsLocationCache: false,
     appDirectory: process.cwd(),
     parentModuleDirectory: process.cwd(),
     rootDirectory: process.cwd()
