@@ -40,18 +40,6 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
         }
       }
 
-      // click on start node should open inspector
-      if (meta.id === 'preview-start') {
-        openInspectModal({
-          profileOperations: profileOperations,
-          sourceId: meta.data.id,
-          targetId: 'none',
-          inputId: profileOperations[0].id,
-          outputId: null,
-          onClose: () => setActiveElement(null)
-        })
-      }
-
       if (meta.data.operation == null) {
         return setActiveElement(null)
       }
@@ -213,7 +201,7 @@ function openInspectModal ({
   outputId,
   onClose = () => {}
 }) {
-  if (!profileOperations[0].startEvent.req) {
+  if (profileOperations[0].startEvent.data.mode !== 'full') {
     return openModal('This request was performed in the standard mode. The inspection works only when the full request profiling is enabled.')
   }
   openModal(ProfileInspectModal, {

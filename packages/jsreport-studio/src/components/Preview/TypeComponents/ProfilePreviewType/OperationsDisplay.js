@@ -2,14 +2,12 @@ import React, { useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 
 import classNames from 'classnames'
 import ReactFlow, { ReactFlowProvider, Controls, isNode } from 'react-flow-renderer'
 import dagre from 'dagre'
-import StartNode from './StartNode'
 import OperationNode from './OperationNode'
 import DefaultEdge from './DefaultEdge'
 import getStateAtProfileOperation from '../../../../helpers/getStateAtProfileOperation'
 import styles from '../../Preview.css'
 
 const nodeTypes = {
-  start: StartNode,
   operation: OperationNode
 }
 
@@ -133,9 +131,9 @@ const OperationsDisplay = React.memo(function OperationsDisplay (props) {
 })
 
 function getElementsFromOperations (operations, errorEvent) {
-  const mainRenderOperation = operations.find(o => o.startEvent && o.startEvent.subtype === 'render')
+  const mainProfileOperation = operations.find(o => o.startEvent && o.startEvent.subtype === 'profile')
 
-  if (!mainRenderOperation) {
+  if (!mainProfileOperation) {
     return []
   }
 
@@ -144,8 +142,8 @@ function getElementsFromOperations (operations, errorEvent) {
   allEvents.sort((a, b) => (a.timestamp - b.timestamp))
 
   const lastEvent = allEvents[allEvents.length - 1]
-  const startTimestamp = mainRenderOperation.startEvent.timestamp
-  const endTimestamp = lastEvent.timestamp
+  const startTimestamp = mainProfileOperation.startEvent.timestamp
+  const endTimestamp = mainProfileOperation.endEvent ? mainProfileOperation.endEvent.timestamp : lastEvent.timestamp
 
   let erroredOperation
 
@@ -155,16 +153,6 @@ function getElementsFromOperations (operations, errorEvent) {
 
   const elements = []
   const defaultPosition = { x: 0, y: 0 }
-
-  if (operations.length > 0) {
-    elements.push({
-      id: 'preview-start',
-      data: {},
-      position: defaultPosition,
-      type: 'start',
-      className: classNames('react-flow__node-default', styles.profileStartNode)
-    })
-  }
 
   const needsEndNode = []
 
@@ -187,14 +175,16 @@ function getElementsFromOperations (operations, errorEvent) {
     const nodeClass = classNames('react-flow__node-default', styles.profileOperationNode, {
       // constant blinking of the render operation is a bit annoying, so we don't do that
       // the global error with unknown operation is typically a timeout, so we keep blinking what was running
-      [styles.running]: !operation.endEvent && operation.startEvent.subtype !== 'render' && erroredOperation == null,
-      [styles.error]: erroredOperation === operation
+      [styles.running]: !operation.endEvent && operation.startEvent.subtype !== 'render' && erroredOperation == null && (i !== 0 || operations.length === 1),
+      [styles.error]: erroredOperation === operation,
+      [styles.profileEndNode]: i === 0
     })
-
     const node = {
       id: operation.id,
       data: {
+        isMainProfileNode: i === 0,
         label: operation.name,
+        timestamp: startTimestamp,
         time: getTime(operation, endTimestamp),
         timeCost: getTimeCost(operation, startTimestamp, endTimestamp),
         operation,
@@ -206,15 +196,6 @@ function getElementsFromOperations (operations, errorEvent) {
     }
 
     elements.push(node)
-
-    if (i === 0) {
-      elements.push(createEdge('preview-start', operation.id, {
-        data: {
-          outputId: null,
-          inputId: operation.id
-        }
-      }))
-    }
   }
 
   // eslint-disable-next-line
@@ -227,7 +208,7 @@ function getElementsFromOperations (operations, errorEvent) {
       data: {
         time: getTime(operation, endTimestamp),
         timeCost: getTimeCost(operation, startTimestamp, endTimestamp),
-        isFullRequestProfilingEnabled: operations[0].startEvent.req != null,
+        isFullRequestProfilingEnabled: operations[0].startEvent.data.mode === 'full',
         renderResult: {
           getContent: () => getStateAtProfileOperation(operations, operation.id, true)
         },

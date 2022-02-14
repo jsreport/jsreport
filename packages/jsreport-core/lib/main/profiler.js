@@ -10,7 +10,8 @@ module.exports = (reporter) => {
     state: { type: 'Edm.String' },
     blobPersisted: { type: 'Edm.Boolean' },
     blobName: { type: 'Edm.String' },
-    error: { type: 'Edm.String' }
+    error: { type: 'Edm.String' },
+    mode: { type: 'Edm.String', schema: { enum: ['full', 'standard'] } }
   })
 
   reporter.documentStore.registerEntitySet('profiles', {
@@ -21,7 +22,20 @@ module.exports = (reporter) => {
   const profilersMap = new Map()
   const profilerAppendChain = new Map()
 
-  async function emitProfiles (events, req) {
+  function createProfileMessage (m, req) {
+    m.timestamp = new Date().getTime()
+    m.id = generateRequestId()
+    m.previousOperationId = m.previousOperationId || null
+    if (m.type !== 'log') {
+      m.operationId = m.operationId || generateRequestId()
+      req.context.profiling.lastOperationId = m.operationId
+      req.context.profiling.lastEventId = m.id
+    }
+
+    return m
+  }
+
+  function emitProfiles (events, req) {
     if (events.length === 0) {
       return
     }
@@ -71,26 +85,15 @@ module.exports = (reporter) => {
     return profiler
   }
 
-  reporter.beforeRenderListeners.add('profiler', async (req, res) => {
+  reporter.beforeRenderWorkerAllocatedListeners.add('profiler', async (req) => {
     profilerAppendChain.set(req.context.rootId, Promise.resolve())
 
     req.context.profiling = req.context.profiling || {}
     req.context.profiling.lastOperation = null
 
-    let blobName = `profiles/${req.context.rootId}.log`
-
-    const template = await reporter.templates.resolveTemplate(req)
-
-    if (template && template._id) {
-      const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
-      blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
-      // store a copy to prevent side-effects
-      req.context.resolvedTemplate = extend(true, {}, template)
-    }
-
     if (!req.context.profiling.isAttached) {
-      const setting = await reporter.documentStore.collection('settings').findOne({ key: 'fullProfilerRunning' }, req)
-      if (setting && JSON.parse(setting.value)) {
+      const val = await reporter.settings.findValue('fullProfilerRunning', req)
+      if (val != null && JSON.parse(val) === true) {
         req.context.profiling.isAttached = true
         req.context.profiling.mode = 'full'
       }
@@ -100,18 +103,77 @@ module.exports = (reporter) => {
       req.context.profiling.mode = 'standard'
     }
 
+    const blobName = `profiles/${req.context.rootId}.log`
+
     const profile = await reporter.documentStore.collection('profiles').insert({
-      templateShortid: template != null ? template.shortid : null,
       timestamp: new Date(),
-      state: 'running',
-      blobName,
-      fullRequestProfiling: req.context.profiling.mode === 'full'
+      state: 'queued',
+      mode: req.context.profiling.mode ? req.context.profiling.mode : 'standard',
+      blobName
     }, req)
 
     req.context.profiling.entity = profile
+
+    const profileStartOperation = createProfileMessage({
+      type: 'operationStart',
+      subtype: 'profile',
+      data: profile,
+      doDiffs: false
+    }, req)
+
+    req.context.profiling.profileStartOperationId = profileStartOperation.operationId
+
+    emitProfiles([profileStartOperation], req)
+
+    emitProfiles([createProfileMessage({
+      type: 'log',
+      level: 'info',
+      message: `Render request ${req.context.reportCounter} queued for execution and waiting for availible worker`,
+      previousOperationId: profileStartOperation.operationId
+    }, req)], req)
+  })
+
+  reporter.beforeRenderListeners.add('profiler', async (req, res) => {
+    const update = {
+      state: 'running'
+    }
+
+    const template = await reporter.templates.resolveTemplate(req)
+    if (template && template._id) {
+      const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
+      const blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
+      // store a copy to prevent side-effects
+      req.context.resolvedTemplate = extend(true, {}, template)
+      update.templateShortid = template.shortid
+
+      const originalBlobName = req.context.profiling.entity.blobName
+      // we want to store the profile into blobName path reflecting the template path so we need to copy the blob to new path now
+      profilerAppendChain.set(req.context.rootId, profilerAppendChain.get(req.context.rootId)
+        .then(() => reporter.blobStorage.read(originalBlobName, req))
+        .then((content) => reporter.blobStorage.write(blobName, content, req))
+        .then(() => reporter.blobStorage.remove(originalBlobName, req)))
+
+      update.blobName = blobName
+    }
+
+    await reporter.documentStore.collection('profiles').update({
+      _id: req.context.profiling.entity._id
+    }, {
+      $set: update
+    }, req)
+
+    Object.assign(req.context.profiling.entity, update)
   })
 
   reporter.afterRenderListeners.add('profiler', async (req, res) => {
+    emitProfiles([createProfileMessage({
+      type: 'operationEnd',
+      doDiffs: false,
+      previousEventId: req.context.profiling.lastEventId,
+      previousOperationId: req.context.profiling.lastOperationId,
+      operationId: req.context.profiling.profileStartOperationId
+    }, req)], req)
+
     res.meta.profileId = req.context.profiling?.entity?._id
     profilersMap.delete(req.context.rootId)
     const profilerBlobPersistPromise = profilerAppendChain.get(req.context.rootId)

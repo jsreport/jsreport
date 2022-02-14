@@ -9,17 +9,6 @@ const LogsDisplay = React.memo(function LogsDisplay (props) {
     return currentTimestamp - prevTimestamp
   }, [])
 
-  const getUTCDate = useCallback((dateInput) => {
-    const year = dateInput.getUTCFullYear()
-    const month = ('0' + (dateInput.getUTCMonth() + 1).toString()).slice(-2)
-    const date = ('0' + dateInput.getUTCDate().toString()).slice(-2)
-    const hours = ('0' + dateInput.getUTCHours().toString()).slice(-2)
-    const minutes = ('0' + dateInput.getUTCMinutes().toString()).slice(-2)
-    const seconds = ('0' + dateInput.getUTCSeconds().toString()).slice(-2)
-
-    return `${year}-${month}-${date}T${hours}:${minutes}:${seconds}Z`
-  }, [])
-
   const logsLength = logs.length
   const logsElements = []
   let prevLog
@@ -45,7 +34,19 @@ const LogsDisplay = React.memo(function LogsDisplay (props) {
         <span className={`${styles.profileLogItemLevel} ${styles[log.level]}`}>{log.level}</span>
         <span
           className={styles.profileLogItemTime}
-          title={getUTCDate(logDate)}
+          title={new Intl.DateTimeFormat(navigator.language,
+            {
+              year: 'numeric',
+              month: 'numeric',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: 'numeric',
+              second: 'numeric',
+              fractionalSecondDigits: 3,
+              hour12: false
+            }
+          )
+            .format(logDate)}
         >
           {relativeTime}
         </span>

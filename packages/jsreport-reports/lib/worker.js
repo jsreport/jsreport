@@ -19,6 +19,13 @@ module.exports = (reporter, definition) => {
         return Promise.resolve()
       }
 
+      const reportProfilerEvent = reporter.profiler.emit({
+        type: 'operationStart',
+        subtype: 'reports',
+        name: 'persisting report',
+        doDiffs: false
+      }, request)
+
       const reportsOptions = response.meta.reportsOptions
 
       const report = Object.assign({}, reportsOptions.mergeProperties || {}, {
@@ -31,10 +38,10 @@ module.exports = (reporter, definition) => {
         public: reportsOptions.public === true
       })
 
-      if (!response.meta.reportsOptions._id) {
+      if (!reportsOptions._id) {
         report._id = await reporter.documentStore.collection('reports').insert({ reportName: response.meta.reportName }, request).then((r) => r._id)
       } else {
-        report._id = response.meta.reportsOptions._id
+        report._id = reportsOptions._id
       }
 
       let reportBlobName = reportsOptions.blobName
@@ -68,6 +75,11 @@ module.exports = (reporter, definition) => {
       }
 
       reporter.logger.debug('Report stored as ' + report.blobName, request)
+      reporter.profiler.emit({
+        type: 'operationEnd',
+        operationId: reportProfilerEvent.operationId,
+        doDiffs: false
+      }, request)
     })
   })
 }

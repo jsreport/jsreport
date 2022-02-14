@@ -10,7 +10,6 @@ const Request = require('../../shared/request')
 const generateRequestId = require('../../shared/generateRequestId')
 const resolveReferences = require('./resolveReferences.js')
 const moduleHelper = require('./moduleHelper')
-let reportCounter = 0
 
 module.exports = (reporter) => {
   moduleHelper(reporter)
@@ -127,7 +126,6 @@ module.exports = (reporter) => {
         response.meta.reportName = 'report'
       }
 
-      request.context.reportCounter = ++reportCounter
       request.context.startTimestamp = new Date().getTime()
 
       if (parentReq == null) {

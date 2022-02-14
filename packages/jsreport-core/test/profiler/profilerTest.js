@@ -45,7 +45,7 @@ describe('profiler', () => {
     // all operations should produce valid req json after patch apply
     let currentReqStr = ''
     for (const event of events) {
-      if (event.type === 'operationStart' || event.type === 'operationEnd') {
+      if ((event.type === 'operationStart' || event.type === 'operationEnd') && event.doDiffs !== false) {
         currentReqStr = applyPatch(currentReqStr, event.req.diff)
         JSON.parse(currentReqStr)
       }
@@ -54,7 +54,7 @@ describe('profiler', () => {
     // should produce proper result after applying diffs
     let currentResBuffer = Buffer.from('')
     for (const event of events) {
-      if (event.type === 'operationStart' || event.type === 'operationEnd') {
+      if ((event.type === 'operationStart' || event.type === 'operationEnd') && event.doDiffs !== false) {
         if (event.res.content == null) {
           continue
         }
@@ -92,7 +92,7 @@ describe('profiler', () => {
 
     let currentResBuffer = Buffer.from('')
     for (const event of events) {
-      if (event.type === 'operationStart' || event.type === 'operationEnd') {
+      if ((event.type === 'operationStart' || event.type === 'operationEnd') && event.doDiffs !== false) {
         if (event.res.content == null) {
           continue
         }
@@ -216,14 +216,7 @@ describe('profiler', () => {
   })
 
   it('should persist profiles with req/res when settings fullProfilerRunning enabled', async () => {
-    await reporter.documentStore.collection('settings').update({
-      key: 'fullProfilerRunning'
-    }, {
-      $set: {
-        value: true,
-        key: 'fullProfilerRunning'
-      }
-    }, { upsert: true })
+    await reporter.settings.addOrSet('fullProfilerRunning', true)
 
     await reporter.render({
       template: {
@@ -237,7 +230,7 @@ describe('profiler', () => {
     const content = await reporter.blobStorage.read(profile.blobName)
 
     const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    for (const m of events.filter(m => m.type !== 'log')) {
+    for (const m of events.filter(m => m.type !== 'log' && m.doDiffs !== false)) {
       should(m.req).be.ok()
     }
   })

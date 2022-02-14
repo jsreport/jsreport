@@ -3,20 +3,20 @@ import resolveUrl from '../../../helpers/resolveUrl'
 
 const DownloadProfileAction = ({ data, closeMenu }) => {
   const { profileOperations } = data
-  const mainRenderOperation = profileOperations.find((op) => op.startEvent.subtype === 'render')
+  const mainProfileOperation = profileOperations.find((op) => op.startEvent.subtype === 'profile')
   const containerRef = useRef(null)
 
   return (
     <div
       ref={containerRef}
-      className={mainRenderOperation ? '' : 'disabled'}
+      className={mainProfileOperation ? '' : 'disabled'}
       title='Download profile'
       onClick={() => {
-        if (!mainRenderOperation) {
+        if (!mainProfileOperation) {
           return
         }
 
-        handleDownload(containerRef, mainRenderOperation.startEvent.profileId)
+        handleDownload(containerRef, mainProfileOperation.startEvent.data._id)
         closeMenu()
       }}
     >

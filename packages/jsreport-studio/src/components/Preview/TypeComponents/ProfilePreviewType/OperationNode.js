@@ -15,7 +15,7 @@ const OperationNode = React.memo(function OperationNode (props) {
     sourcePosition = 'bottom'
   } = props
 
-  const { time, timeCost, error, renderResult, end, isFullRequestProfilingEnabled } = data
+  const { time, timeCost, timestamp, error, renderResult, end, isFullRequestProfilingEnabled, isMainProfileNode } = data
 
   const dispatch = useDispatch()
 
@@ -55,25 +55,44 @@ const OperationNode = React.memo(function OperationNode (props) {
     }, 200)
   }, [downloading, renderResult, isFullRequestProfilingEnabled, progressStart, progressStop])
 
+  const Download = (renderResult) => (
+    <button
+      className={`${styles.profileButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
+      title={renderResult.getContent == null ? 'render result not available' : 'download render result'}
+      disabled={renderResult.getContent == null}
+      onClick={handleDownloadRenderResultClick}
+    >
+      <i className='fa fa-download' />
+    </button>
+  )
+
+  const Error = <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span>
+
+  const formatedTime = new Intl.DateTimeFormat(navigator.language,
+    {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      fractionalSecondDigits: 3,
+      hour12: false
+    }
+  ).format(timestamp)
+
   return (
     // eslint-disable-next-line
     <Fragment>
       <Handle type='target' position={targetPosition} isConnectable={isConnectable} />
-      <div id={id}>
+      <div id={id} title={formatedTime}>
         {renderResult != null
-          ? (
-            <button
-              className={`${styles.profileButtonAction} ${renderResult.getContent == null ? 'disabled' : ''}`}
-              title={renderResult.getContent == null ? 'render result not available' : 'download render result'}
-              disabled={renderResult.getContent == null}
-              onClick={handleDownloadRenderResultClick}
-            >
-              <i className='fa fa-download' />
-            </button>
-            )
-          : (
-              error != null && end ? <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span> : <span>{data.label}</span>
-            )}
+          ? Download(renderResult)
+          : (error != null && end)
+              ? Error()
+              : isMainProfileNode
+                ? <span id={id}><i className={`fa fa-play ${styles.profileStartNodeLabel}`} /></span>
+                : <span>{data.label}</span>}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
       <div

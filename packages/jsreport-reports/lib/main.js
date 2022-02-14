@@ -5,7 +5,6 @@
  */
 
 const extend = require('node.extend.without.arrays')
-const _omit = require('lodash.omit')
 
 class Reports {
   constructor (reporter, definition) {
@@ -55,7 +54,8 @@ class Reports {
       this.reporter.closeListeners.add('reports', () => clearInterval(this.cleanInterval))
     }
 
-    this.reporter.beforeRenderListeners.insert(0, 'reports', this._handleBeforeRender.bind(this))
+    this.reporter.beforeRenderListeners.add('reports', this._handleBeforeRender.bind(this))
+    this.reporter.renderErrorListeners.add('reports', this._handleRenderError.bind(this))
   }
 
   configureExpress (app) {
@@ -219,6 +219,20 @@ class Reports {
     }
   }
 
+  async _handleRenderError (request, response, e) {
+    if (request.options.reports != null) {
+      this.reporter.logger.info(`Async report render finished with error ${request.options.reports._id}`)
+      await this.reporter.documentStore.collection('reports').update({
+        _id: request.options.reports._id
+      }, {
+        $set: {
+          state: 'error',
+          error: e.stack
+        }
+      }, request)
+    }
+  }
+
   async _handleBeforeRender (request, response, options) {
     if (request.options.reports == null || request.options.reports.async !== true) {
       return
@@ -230,57 +244,25 @@ class Reports {
       public: request.options.reports != null ? request.options.reports.public : false
     }, request)
 
+    const clientNotification = request.context.clientNotification = extend(true, response)
+
     if (request.context.http) {
       if (request.options.reports && request.options.reports.public) {
-        response.meta.headers.Location = `${request.context.http.baseUrl}/reports/public/${r._id}/status`
+        clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/public/${r._id}/status`
       } else {
-        response.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
+        clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
       }
     }
 
-    const asyncRequest = extend(true, {}, _omit(request, 'data'))
-    if (request.context.parsedInWorker !== true) {
-      asyncRequest.data = request.data
-    }
-
-    // start a fresh context so we don't inherit logs, etc
-    asyncRequest.context = extend(true, {}, _omit(asyncRequest.context, 'logs'))
-    asyncRequest.options.reports = extend(true, {}, request.options.reports)
-    asyncRequest.options.reports.save = true
-
-    asyncRequest.options.reports.async = false
-    asyncRequest.options.reports._id = r._id
-
-    request.options = {}
-
-    // this request is now just returning status page, we don't want store blobs there
-    delete response.meta.reportsOptions
-
-    request.context.returnResponseAndKeepWorker = true
     response.content = Buffer.from("Async rendering in progress. Use Location response header to check the current status. Check it <a href='" + response.meta.headers.Location + "'>here</a>")
     response.meta.contentType = 'text/html'
     response.meta.fileExtension = 'html'
 
-    this.reporter.logger.info('Rendering is queued for async report generation', request)
+    this.reporter.logger.info('Responding with async report location and continue with async report generation', request)
 
-    process.nextTick(() => {
-      this.reporter.logger.info(`Async report is starting to render ${asyncRequest.options.reports._id}`)
-
-      this.reporter.render(asyncRequest, options).then(() => {
-        this.reporter.logger.info(`Async report render finished ${asyncRequest.options.reports._id}`)
-      }).catch((e) => {
-        this.reporter.logger.error(`Async report render failed ${asyncRequest.options.reports._id}: ${e.stack}`)
-
-        this.reporter.documentStore.collection('reports').update({
-          _id: asyncRequest.options.reports._id
-        }, {
-          $set: {
-            state: 'error',
-            error: e.stack
-          }
-        }, request)
-      })
-    })
+    request.options.reports.save = true
+    request.options.reports.async = false
+    request.options.reports._id = r._id
   }
 }
 

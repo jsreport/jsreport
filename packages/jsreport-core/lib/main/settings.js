@@ -25,7 +25,7 @@ Settings.prototype.get = function (key) {
 }
 
 Settings.prototype.findValue = async function (key, req) {
-  const res = await this.documentStore.collection('settings').find({ key: key }, req)
+  const res = await this.documentStore.collection('settings').find({ key: key }, localReqWithoutAuthorization(req))
   if (res.length !== 1) {
     return null
   }
@@ -49,7 +49,6 @@ Settings.prototype.addOrSet = async function (key, avalue, req) {
   const value = typeof avalue !== 'string' ? JSON.stringify(avalue) : avalue
 
   const updateCount = await this.documentStore.collection('settings').update({ key }, { $set: { key: key, value: value } }, localReqWithoutAuthorization(req))
-
   if (updateCount === 0) {
     await this.documentStore.collection('settings').insert({ key: key, value: value }, localReqWithoutAuthorization(req))
     return 1

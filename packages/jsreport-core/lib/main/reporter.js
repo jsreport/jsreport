@@ -32,6 +32,7 @@ const Monitoring = require('./monitoring')
 const migrateXlsxTemplatesToAssets = require('./migration/xlsxTemplatesToAssets')
 const migrateResourcesToAssets = require('./migration/resourcesToAssets')
 const semver = require('semver')
+let reportCounter = 0
 
 class MainReporter extends Reporter {
   constructor (options, defaults) {
@@ -69,6 +70,7 @@ class MainReporter extends Reporter {
 
     this.logger = createLogger()
     this.beforeMainActionListeners = this.createListenerCollection('beforeMainAction')
+    this.beforeRenderWorkerAllocatedListeners = this.createListenerCollection('beforeRenderWorkerAllocated')
   }
 
   discover () {
@@ -306,6 +308,34 @@ class MainReporter extends Reporter {
     await validateReservedName(this, c, doc)
   }
 
+  async _handleRenderError (req, res, err) {
+    if (err.code === 'WORKER_TIMEOUT') {
+      err.message = 'Report timeout'
+      if (req.context.profiling?.lastOperation != null && req.context.profiling?.entity != null) {
+        err.message += `. Last profiler operation: (${req.context.profiling.lastOperation.subtype}) ${req.context.profiling.lastOperation.name}`
+      }
+
+      if (req.context.http != null) {
+        const profileUrl = `${req.context.http.baseUrl}/studio/profiles/${req.context.profiling.entity._id}`
+        err.message += `. You can inspect and find more details here: ${profileUrl}`
+      }
+
+      err.weak = true
+    }
+
+    if (err.code === 'WORKER_ABORTED') {
+      err.message = 'Report cancelled'
+      err.weak = true
+    }
+
+    if (!err.logged) {
+      const logFn = err.weak ? this.logger.warn : this.logger.error
+      logFn(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, req)
+    }
+    await this.renderErrorListeners.fire(req, res, err)
+    throw err
+  }
+
   /**
    * Main method for invoking rendering
    * render({ template: { content: 'foo', engine: 'none', recipe: 'html' }, data: { foo: 'hello' } })
@@ -324,23 +354,29 @@ class MainReporter extends Reporter {
     req.context = Object.assign({}, req.context)
     req.context.rootId = req.context.rootId || generateRequestId()
     req.context.id = req.context.rootId
+    req.context.reportCounter = ++reportCounter
 
-    const worker = options.worker || await this._workersManager.allocate(req, {
-      timeout: this.options.reportTimeout
-    })
-
-    let keepWorker
+    let worker
     let workerAborted
-
-    if (options.abortEmitter) {
-      options.abortEmitter.once('abort', () => {
-        workerAborted = true
-        worker.release(req).catch((e) => this.logger.error('Failed to release worker ' + e))
-      })
-    }
-
+    let dontCloseProcessing
     const res = { meta: {} }
     try {
+      await this.beforeRenderWorkerAllocatedListeners.fire(req)
+
+      worker = await this._workersManager.allocate(req, {
+        timeout: this.options.reportTimeout
+      })
+
+      if (options.abortEmitter) {
+        options.abortEmitter.once('abort', () => {
+          if (workerAborted) {
+            return
+          }
+          workerAborted = true
+          worker.release(req).catch((e) => this.logger.error('Failed to release worker ' + e))
+        })
+      }
+
       if (workerAborted) {
         throw this.createError('Request aborted by client')
       }
@@ -381,27 +417,36 @@ class MainReporter extends Reporter {
 
       await this.beforeRenderListeners.fire(req, res, { worker })
 
-      // this is used so far just in the reports extension
-      // it wants to send to the client immediate response with link to the report status
-      // but the previous steps already allocated worker which has the parsed input request
-      // so we need to keep the worker active and let the subsequent real render call use it
-      // we cant move the main beforeRenderListener before the worker allocation, because at that point
-      // the request isn't parsed and we don't know the template and options
-      if (req.context.returnResponseAndKeepWorker) {
-        keepWorker = true
-        res.stream = Readable.from(res.content)
+      if (workerAborted) {
+        throw this.createError('Request aborted by client')
+      }
 
-        // just temporary workaround until we change how report render works
-        await this.documentStore.collection('profiles').update({
-          _id: req.context.profiling.entity._id
-        }, {
-          $set: {
-            state: 'success',
-            finishedOn: new Date(),
-            blobPersisted: true
+      if (req.context.clientNotification) {
+        process.nextTick(async () => {
+          try {
+            const responseResult = await this.executeWorkerAction('render', {}, {
+              timeout: reportTimeout + this.options.reportTimeoutMargin,
+              worker
+            }, req)
+
+            Object.assign(res, responseResult)
+            await this.afterRenderListeners.fire(req, res)
+          } catch (err) {
+            await this._handleRenderError(req, res, err).catch((e) => {})
+          } finally {
+            if (!workerAborted) {
+              await worker.release(req)
+            }
           }
-        }, req)
-        return res
+        })
+
+        dontCloseProcessing = true
+        const r = {
+          ...req.context.clientNotification,
+          stream: Readable.from(req.context.clientNotification.content)
+        }
+        delete req.context.clientNotification
+        return r
       }
 
       if (workerAborted) {
@@ -418,33 +463,10 @@ class MainReporter extends Reporter {
       res.stream = Readable.from(res.content)
       return res
     } catch (err) {
-      if (err.code === 'WORKER_TIMEOUT') {
-        err.message = 'Report timeout'
-        if (req.context.profiling?.lastOperation != null && req.context.profiling?.entity != null) {
-          err.message += `. Last profiler operation: (${req.context.profiling.lastOperation.subtype}) ${req.context.profiling.lastOperation.name}`
-        }
-
-        if (req.context.http != null) {
-          const profileUrl = `${req.context.http.baseUrl}/studio/profiles/${req.context.profiling.entity._id}`
-          err.message += `. You can inspect and find more details here: ${profileUrl}`
-        }
-
-        err.weak = true
-      }
-
-      if (err.code === 'WORKER_ABORTED') {
-        err.message = 'Report cancelled'
-        err.weak = true
-      }
-
-      if (!err.logged) {
-        const logFn = err.weak ? this.logger.warn : this.logger.error
-        logFn(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, req)
-      }
-      await this.renderErrorListeners.fire(req, res, err)
+      await this._handleRenderError(req, res, err)
       throw err
     } finally {
-      if (!workerAborted && !keepWorker) {
+      if (worker && !workerAborted && !dontCloseProcessing) {
         await worker.release(req)
       }
     }

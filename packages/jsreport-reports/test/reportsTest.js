@@ -128,9 +128,15 @@ describe('with reports extension', () => {
       }
     })
 
-    const reports = await reporter.documentStore.collection('reports').find({})
-    reports.should.have.length(1)
-    reports[0].public.should.be.True()
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const reports = await reporter.documentStore.collection('reports').find({})
+      reports.should.have.length(1)
+      reports[0].public.should.be.True()
+      if (reports[0].state === 'success') {
+        break
+      }
+    }
   })
 
   it('should be able to read stored report through link', async () => {

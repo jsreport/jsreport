@@ -57,9 +57,9 @@ class Profiler {
 
     if (m.type !== 'log') {
       req.context.profiling.lastEventId = m.id
+      m.operationId = m.operationId || generateRequestId()
     }
 
-    m.operationId = m.operationId || generateRequestId()
     if (m.previousOperationId == null && req.context.profiling.lastOperationId) {
       m.previousOperationId = req.context.profiling.lastOperationId
     }
@@ -127,10 +127,6 @@ class Profiler {
       subtype: 'render',
       name: templateName,
       previousOperationId: parentReq ? parentReq.context.profiling.lastOperationId : null
-    }
-
-    if (!req.context.isChildRequest) {
-      profilerEvent.profileId = req.context.profiling.entity._id
     }
 
     return this.emit(profilerEvent, req, res)
