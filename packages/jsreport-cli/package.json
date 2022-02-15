@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "3.2.0",
-    "@jsreport/jsreport-core": "3.4.1",
+    "@jsreport/jsreport-core": "3.4.2",
     "@jsreport/jsreport-express": "3.3.1",
     "@jsreport/jsreport-fs-store": "3.1.0",
     "@jsreport/jsreport-handlebars": "3.0.0",

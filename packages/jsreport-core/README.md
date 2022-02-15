@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.4.2
+
+- update dep `vm2` to fix security vulnerability in sandbox
+
 ### 3.4.1
 
 - fix passing data to async report
