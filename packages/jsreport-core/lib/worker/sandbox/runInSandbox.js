@@ -28,7 +28,7 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { sourceFilesInfo, run, restore, contextifyValue, decontextifyValue, unproxyValue, sandbox, safeRequire } = safeSandbox(context, {
+    const { sourceFilesInfo, run, restore, sandbox, safeRequire } = safeSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
@@ -113,9 +113,6 @@ module.exports = (reporter) => {
     // we don't attach these methods to the sandbox, and instead share them through a "manager" object that should
     // be passed in options
     manager.restore = restore
-    manager.contextifyValue = contextifyValue
-    manager.decontextifyValue = decontextifyValue
-    manager.unproxyValue = unproxyValue
 
     const functionNames = getTopLevelFunctions(userCode)
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
