@@ -35,7 +35,7 @@
   "devDependencies": {
     "@jsreport/jsreport-authentication": "3.2.0",
     "@jsreport/jsreport-authorization": "3.2.0",
-    "@jsreport/jsreport-core": "3.4.1",
+    "@jsreport/jsreport-core": "3.4.2",
     "@jsreport/jsreport-reports": "3.0.3",
     "@jsreport/studio-dev": "3.1.0",
     "cron-builder": "0.3.0",

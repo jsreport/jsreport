@@ -41,7 +41,7 @@
     "socket.io": "4.4.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.4.1",
+    "@jsreport/jsreport-core": "3.4.2",
     "@jsreport/jsreport-express": "3.3.1",
     "@jsreport/studio-dev": "3.1.0",
     "lodash.once": "4.1.1",
