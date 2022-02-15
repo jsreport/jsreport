@@ -113,26 +113,12 @@ module.exports = (_sandbox, options = {}) => {
 
   const vm = new VM()
 
-  // NOTE: we wrap the Contextify.object, Decontextify.object methods because those are the
-  // methods that returns the proxies created by vm2 in the sandbox, we want to have a list of those
-  // to later use them
-  const wrapAndSaveProxyResult = (originalFn, thisArg) => {
-    return (value, ...args) => {
-      const result = originalFn.call(thisArg, value, ...args)
-
-      if (result != null && result.isVMProxy === true) {
-        proxiesInVM.set(result, value)
-      }
-
-      return result
-    }
-  }
-
-  vm._internal.Contextify.object = wrapAndSaveProxyResult(vm._internal.Contextify.object, vm._internal.Contextify)
-  vm._internal.Decontextify.object = wrapAndSaveProxyResult(vm._internal.Decontextify.object, vm._internal.Decontextify)
+  // delete the vm.sandbox.global because it introduces json stringify issues
+  // and we don't need such global in context
+  delete vm.sandbox.global
 
   for (const name in sandbox) {
-    vm._internal.Contextify.setGlobal(name, sandbox[name])
+    vm.setGlobal(name, sandbox[name])
   }
 
   // processing top level props because getter/setter descriptors
@@ -141,27 +127,18 @@ module.exports = (_sandbox, options = {}) => {
     const currentConfig = propsConfig[key]
 
     if (currentConfig.root && currentConfig.root.sandboxReadOnly) {
-      readOnlyProp(vm._context, key, [], customProxies, { onlyTopLevel: true })
+      readOnlyProp(vm.sandbox, key, [], customProxies, { onlyTopLevel: true })
     }
   })
 
   const sourceFilesInfo = new Map()
 
   return {
-    sandbox: vm._context,
+    sandbox: vm.sandbox,
     console: _console,
     sourceFilesInfo,
-    contextifyValue: (value) => {
-      return vm._internal.Contextify.value(value)
-    },
-    decontextifyValue: (value) => {
-      return vm._internal.Decontextify.value(value)
-    },
     restore: () => {
-      return restoreProperties(vm._context, originalValues, proxiesInVM, customProxies)
-    },
-    unproxyValue: (value) => {
-      return getOriginalFromProxy(proxiesInVM, customProxies, value)
+      return restoreProperties(vm.sandbox, originalValues, proxiesInVM, customProxies)
     },
     safeRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
     run: async (code, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
@@ -177,6 +154,7 @@ module.exports = (_sandbox, options = {}) => {
       // to show nice error when the compile of a script fails
       script._compile = function (prefix, suffix) {
         return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
+          __proto__: null,
           filename: this.filename,
           displayErrors: true,
           lineOffset: this.lineOffset,

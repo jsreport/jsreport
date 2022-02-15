@@ -559,6 +559,38 @@ describe('sandbox', () => {
     }).should.be.rejectedWith(/process is not defined/)
   })
 
+  it('should prevent constructor hacks #2', async () => {
+    reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+      const r = await reporter.runInSandbox({
+        context: {},
+        userCode: `
+          function stack() {
+            new Error().stack;
+            stack();
+          }
+
+          try {
+            stack();
+          } catch (e) {
+            console.log(e.constructor.constructor("return process")())
+          }
+        `,
+        executionFn: ({ context }) => {
+          return JSON.stringify(context)
+        }
+      }, req)
+      res.content = Buffer.from(r)
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: ' ',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/process is not defined/)
+  })
+
   it('should allow top level await in sandbox eval', async () => {
     reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
       const r = await reporter.runInSandbox({

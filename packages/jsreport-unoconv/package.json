@@ -28,7 +28,7 @@
   "scripts": {
     "build": "jsreport-studio-build",
     "prepublishOnly": "jsreport-studio-build",
-    "test": "mocha test --timeout 10000 && standard"
+    "test": "mocha test --timeout 15000 && standard"
   },
   "dependencies": {
     "mime": "2.4.4"
