@@ -28,6 +28,10 @@ module.exports = (reporter, definition) => {
     name: 'xlsx'
   })
 
+  reporter.extensionsManager.recipes.push({
+    name: 'xlsx-next'
+  })
+
   reporter.documentStore.registerEntityType('XlsxTemplateType', {
     name: { type: 'Edm.String' },
     contentRaw: { type: 'Edm.Binary', document: { extension: 'xlsx' } },

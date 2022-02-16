@@ -19529,6 +19529,11 @@ xlsjs@~0.7.1:
     exit-on-epipe ""
     ssf "~0.8.1"
 
+xlsx-coordinates@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/xlsx-coordinates/-/xlsx-coordinates-1.0.1.tgz#04e4eff54fdfc5a8f83e55a9c481ac051eaa1686"
+  integrity sha1-BOTv9U/fxaj4PlWpxIGsBR6qFoY=
+
 xlsx-populate@1.20.1:
   version "1.20.1"
   resolved "https://registry.yarnpkg.com/xlsx-populate/-/xlsx-populate-1.20.1.tgz#71714a0b3efd0c928f24038002286255bf01fc0a"
