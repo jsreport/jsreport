@@ -235,7 +235,7 @@ module.exports = async (reporter, definition) => {
         let conn
         try {
           conn = await pool.getConnection()
-          await conn.execute('DROP TABLE "jsreport_BLob"')
+          await conn.execute('DROP TABLE "jsreport_Blob"')
           await conn.commit()
         } finally {
           if (conn) {
