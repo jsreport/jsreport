@@ -15,6 +15,7 @@ const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 10)
 module.exports = (reporter, options) => {
   // now it basically represents a commit
   reporter.documentStore.registerEntityType('VersionType', {
+    changes: { type: 'Collection(jsreport.ChangeType)' },
     message: { type: 'Edm.String' },
     creationDate: { type: 'Edm.DateTimeOffset' },
     blobName: { type: 'Edm.String' }
