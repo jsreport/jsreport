@@ -11,6 +11,12 @@ module.exports = {
         provider: { type: 'string', enum: ['oracle'] }
       }
     },
+    blobStorage: {
+      type: 'object',
+      properties: {
+        provider: { type: 'string', enum: ['oracle'] }
+      }
+    },
     extensions: {
       'oracle-store': {
         type: 'object',
