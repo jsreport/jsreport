@@ -219,6 +219,10 @@ module.exports = (client, options, db) => {
       return result
     },
 
+    generateId () {
+      return ObjectId().toString()
+    },
+
     drop (opts = {}) {
       const dropOpts = addSessionToOpts(opts)
 

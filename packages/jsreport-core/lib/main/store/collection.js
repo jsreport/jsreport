@@ -86,16 +86,18 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
       validateEntityName(data.name)
     }
 
-    const entityType = model.entitySets[entitySet] ? model.entitySets[entitySet].normalizedEntityTypeName : null
+    if (req == null || req.context.skipValidationFor !== data) {
+      const entityType = model.entitySets[entitySet] ? model.entitySets[entitySet].normalizedEntityTypeName : null
 
-    if (entityType != null && validator.getSchema(entityType) != null) {
-      const validationResult = validator.validate(entityType, data)
+      if (entityType != null && validator.getSchema(entityType) != null) {
+        const validationResult = validator.validate(entityType, data)
 
-      if (!validationResult.valid) {
-        throw createError(`Error when trying to insert into "${entitySet}" collection. input contain values that does not match the schema. ${validationResult.fullErrorMessage}`, {
-          weak: true,
-          statusCode: 400
-        })
+        if (!validationResult.valid) {
+          throw createError(`Error when trying to insert into "${entitySet}" collection. input contain values that does not match the schema. ${validationResult.fullErrorMessage}`, {
+            weak: true,
+            statusCode: 400
+          })
+        }
       }
     }
 

@@ -7,7 +7,7 @@ const should = require('should')
 
 describe('fileSystem', () => {
   const tmpDir = path.join(__dirname, 'tmp')
-  const fileSystem = FS({ dataDirectory: tmpDir })
+  const fileSystem = FS({ dataDirectory: tmpDir, externalModificationsSync: true })
 
   beforeEach(async () => {
     await rimraf(tmpDir)

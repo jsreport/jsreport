@@ -411,6 +411,13 @@ const DocumentStore = (options, validator, encryption) => {
 
       transactions.delete(tranId)
       delete req.context.storeTransaction
+    },
+
+    generateId () {
+      if (this.provider.generateId) {
+        return this.provider.generateId()
+      }
+      return uuidv4()
     }
   }
 

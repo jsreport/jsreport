@@ -4,7 +4,7 @@ const MAX_JOURNAL_ITEM_AGE = 60000
 
 module.exports = ({
   fs,
-  getCurrentDocuments,
+  getCurrentStore,
   queue,
   reload,
   logger
@@ -104,17 +104,17 @@ module.exports = ({
           }
 
           if (item.operation === 'insert') {
-            getCurrentDocuments()[item.doc.$entitySet] = getCurrentDocuments()[item.doc.$entitySet].filter(d => d._id !== item.doc._id)
-            getCurrentDocuments()[item.doc.$entitySet].push(item.doc)
+            getCurrentStore().remove(item.doc.$entitySet, item.doc)
+            getCurrentStore().insert(item.doc.$entitySet, item.doc)
           }
 
           if (item.operation === 'update') {
-            getCurrentDocuments()[item.doc.$entitySet] = getCurrentDocuments()[item.doc.$entitySet].filter(d => d._id !== item.doc._id)
-            getCurrentDocuments()[item.doc.$entitySet].push(item.doc)
+            getCurrentStore().remove(item.doc.$entitySet, item.doc)
+            getCurrentStore().insert(item.doc.$entitySet, item.doc)
           }
 
           if (item.operation === 'remove') {
-            getCurrentDocuments()[item.doc.$entitySet] = getCurrentDocuments()[item.doc.$entitySet].filter(d => d._id !== item.doc._id)
+            getCurrentStore().remove(item.doc.$entitySet, item.doc)
           }
 
           if (item.operation === 'reload') {

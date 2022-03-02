@@ -458,7 +458,7 @@ describe('provider', () => {
 
       await store.collection('settings').insert({ key: 'a', value: 'b' })
       await store.collection('settings').update({ key: 'a' }, { $set: { value: 'c' } })
-      await store.provider.persistence.compact(store.provider.transaction.getCurrentDocuments())
+      await store.provider.persistence.compact(store.provider.transaction.getCurrentStore().documents)
 
       await new Promise(resolve => setTimeout(resolve, 1000))
       should(notified).be.null()
@@ -548,7 +548,7 @@ describe('provider', () => {
     it('compact should use state in files not in memory', async () => {
       await store.collection('settings').insert({ key: 'a', value: '1' })
       fs.appendFileSync(path.join(tmpData, 'settings'), JSON.stringify({ key: 'b', value: '2' }))
-      await store.provider.persistence.compact(store.provider.transaction.getCurrentDocuments())
+      await store.provider.persistence.compact(store.provider.transaction.getCurrentStore().documents)
       const settings = await store.collection('settings').find({})
       settings.should.have.length(2)
     })
@@ -940,7 +940,7 @@ describe('cluster', () => {
     await store1.collection('templates').insert({
       name: 'a'
     })
-    store1.provider.transaction.getCurrentDocuments().templates = []
+    store1.provider.transaction.getCurrentStore().documents.templates = []
     store1.provider.journal.lastSync = new Date(new Date().getTime() - 120000)
     await store1.provider.sync()
     const doc = await store1.collection('templates').findOne({})

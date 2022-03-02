@@ -163,6 +163,10 @@ module.exports.getRootSchemaOptions = () => ({
       type: 'object',
       default: {},
       properties: {
+        defaultMode: {
+          type: 'string',
+          default: 'standard'
+        },
         maxProfilesHistory: {
           type: 'number',
           default: 1000

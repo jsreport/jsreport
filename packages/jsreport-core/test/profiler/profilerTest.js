@@ -147,11 +147,18 @@ describe('profiler', () => {
       }
     })
 
-    const profile = await reporter.documentStore.collection('profiles').findOne({})
-    should(profile).be.ok()
+    let profile
+    while (true) {
+      profile = await reporter.documentStore.collection('profiles').findOne({})
+      if (profile && profile.state === 'success') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
 
     profile.state.should.be.eql('success')
     profile.timestamp.should.be.Date()
+    should(profile).be.ok()
 
     const content = await reporter.blobStorage.read(profile.blobName)
 
@@ -180,7 +187,14 @@ describe('profiler', () => {
     }
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    let profile
+    while (true) {
+      profile = await reporter.documentStore.collection('profiles').findOne({})
+      if (profile && profile.state === 'error') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
@@ -206,7 +220,15 @@ describe('profiler', () => {
 
     }
 
-    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    let profile
+
+    while (true) {
+      profile = await reporter.documentStore.collection('profiles').findOne({})
+      if (profile != null && profile.state === 'error') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
     profile.state.should.be.eql('error')
 
     const content = await reporter.blobStorage.read(profile.blobName)
@@ -215,8 +237,8 @@ describe('profiler', () => {
     should(errorMesage).be.ok()
   })
 
-  it('should persist profiles with req/res when settings fullProfilerRunning enabled', async () => {
-    await reporter.settings.addOrSet('fullProfilerRunning', true)
+  it('should persist profiles with req/res when settings profiler.mode is full', async () => {
+    await reporter.settings.addOrSet('profiler', { mode: 'full' })
 
     await reporter.render({
       template: {
@@ -233,6 +255,59 @@ describe('profiler', () => {
     for (const m of events.filter(m => m.type !== 'log' && m.doDiffs !== false)) {
       should(m.req).be.ok()
     }
+  })
+
+  it('should persist profiles log also when blobStorage doesnt support appends', async () => {
+    reporter.blobStorage._provider.append = null
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    const content = await reporter.blobStorage.read(profile.blobName)
+
+    should(content.toString().split('\n').length > 1).be.true()
+  })
+
+  it('should persist no profile entity when settings profiler.mode is disabled ', async () => {
+    await reporter.settings.addOrSet('profiler', { mode: 'disabled' })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    should(profile).be.null()
+  })
+
+  it('should persist no profile entity when settings profiler.mode empty but reporter.options.profiler.defaultMode eqls to disabled ', async () => {
+    reporter.options.profiler.defaultMode = 'disabled'
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    should(profile).be.null()
   })
 
   it('should delete profile blob when profile is deleted', async () => {
@@ -293,7 +368,16 @@ describe('profiler', () => {
     })
     await promise
 
-    const profiles = await reporter.documentStore.collection('profiles').find({})
+    let profiles
+
+    while (true) {
+      profiles = await reporter.documentStore.collection('profiles').find({})
+      if (profiles.length === 2 && profiles[0].state === 'success' && profiles[1].state === 'success') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
+
     profiles[0].state.should.be.eql('success')
     profiles[1].state.should.be.eql('success')
   })

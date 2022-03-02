@@ -198,16 +198,17 @@ module.exports = (app, reporter, exposedOptions) => {
         })
       }
 
-      if (!profile.blobPersisted) {
+      // try to wait until the events are fully flushed
+      if (profile.state !== 'success' && profile.state !== 'error') {
         for (let i = 0; i < 10; i++) {
           await new Promise((resolve) => setTimeout(resolve, 500))
           profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
-          if (profile.blobPersisted) {
+          if (profile.state === 'success' || profile.state === 'error') {
             break
           }
         }
 
-        if (!profile.blobPersisted) {
+        if (profile.state !== 'success' && profile.state !== 'error') {
           throw reporter.createError('Timeout when waiting for profile blob to be fully persisted')
         }
       }
@@ -246,16 +247,17 @@ module.exports = (app, reporter, exposedOptions) => {
         })
       }
 
-      if (!profile.blobPersisted) {
+      // try to wait until the events are fully flushed
+      if (profile.state !== 'success' && profile.state !== 'error') {
         for (let i = 0; i < 10; i++) {
           await new Promise((resolve) => setTimeout(resolve, 500))
           profile = await reporter.documentStore.collection('profiles').findOne({ _id: req.params.id }, req)
-          if (profile.blobPersisted) {
+          if (profile.state === 'success' || profile.state === 'error') {
             break
           }
         }
 
-        if (!profile.blobPersisted) {
+        if (profile.state !== 'success' && profile.state !== 'error') {
           throw reporter.createError('Timeout when waiting for profile blob to be fully persisted')
         }
       }

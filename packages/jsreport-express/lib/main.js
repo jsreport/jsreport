@@ -274,9 +274,11 @@ module.exports = function (reporter, definition) {
     })
 
     reporter.afterRenderListeners.add('express', (req, res) => {
-      res.meta.profileId = res.meta.headers['Profile-Id'] = res.meta.profileId
-      if (req.context.http) {
-        res.meta.headers['Profile-Location'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}`
+      if (res.meta.profileId) {
+        res.meta.profileId = res.meta.headers['Profile-Id'] = res.meta.profileId
+        if (req.context.http) {
+          res.meta.headers['Profile-Location'] = `${req.context.http.baseUrl}/api/profile/${res.meta.profileId}`
+        }
       }
     })
 

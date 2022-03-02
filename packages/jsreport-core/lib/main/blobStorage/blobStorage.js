@@ -46,6 +46,14 @@ module.exports = (reporter, options) => {
       }
     },
 
+    get supportsAppend () {
+      return provider.append instanceof Function
+    },
+
+    get _provider () {
+      return provider
+    },
+
     registerProvider (p) {
       provider = p
     }

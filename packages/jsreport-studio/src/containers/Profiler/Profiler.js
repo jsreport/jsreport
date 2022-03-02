@@ -6,6 +6,7 @@ import openProfileFromStreamReader from '../../helpers/openProfileFromStreamRead
 import storeMethods from '../../redux/methods'
 import { actions as settingsActions } from '../../redux/settings'
 import moment from 'moment'
+import * as configuration from '../../lib/configuration'
 
 class Profiler extends Component {
   constructor () {
@@ -17,9 +18,10 @@ class Profiler extends Component {
     this.loadProfiles()
     this._interval = setInterval(() => this.loadProfiles(), 5000)
 
-    const fullProfilerRunning = storeMethods.getSettingsByKey('fullProfilerRunning', false)
+    const profilerSettings = storeMethods.getSettingsByKey('profiler', false)
+
     this.setState({
-      fullProfilingEnabled: fullProfilerRunning != null ? fullProfilerRunning : false
+      profilerMode: (profilerSettings != null && profilerSettings.mode != null) ? profilerSettings.mode : (configuration.extensions.studio.options.profiler.defaultMode || 'standard')
     })
   }
 
@@ -140,16 +142,23 @@ class Profiler extends Component {
   }
 
   startFullRequestProfiling () {
-    this.props.update('fullProfilerRunning', true)
+    this.props.update('profiler', { mode: 'full' })
     this.setState({
-      fullProfilingEnabled: true
+      profilerMode: 'full'
     })
   }
 
   stopFullRequestProfiling () {
-    this.props.update('fullProfilerRunning', false)
+    this.props.update('profiler', { mode: 'standard' })
     this.setState({
-      fullProfilingEnabled: false
+      profilerMode: 'standard'
+    })
+  }
+
+  disableProfiling () {
+    this.props.update('profiler', { mode: 'disabled' })
+    this.setState({
+      profilerMode: 'disabled'
     })
   }
 
@@ -160,12 +169,13 @@ class Profiler extends Component {
           <h2><i className='fa fa-spinner fa-spin fa-fw' /> profiling</h2>
           <small>
             Profiler now automatically pops up running requests. You can select "Full profiling" to collect additional information like input data and the output report. Note this slightly degrades the request performance and should not be enabled in production permanently.
+            The last option is to disable persisting profiles. This means you won't see any requests here. This can be only useful in rare situations when you need to render many simple html reports and every single millisecond matters.
           </small>
           <div style={{ paddingTop: '0.8rem' }}>
             <label>
               <input
                 type='radio'
-                checked={!this.state.fullProfilingEnabled}
+                checked={this.state.profilerMode === 'standard'}
                 onChange={(ev) => {
                   ev.target.checked && this.stopFullRequestProfiling()
                 }}
@@ -175,12 +185,22 @@ class Profiler extends Component {
             <label style={{ paddingLeft: '1rem' }}>
               <input
                 type='radio'
-                checked={this.state.fullProfilingEnabled}
+                checked={this.state.profilerMode === 'full'}
                 onChange={(ev) => {
                   ev.target.checked && this.startFullRequestProfiling()
                 }}
               />
               <span>Full profiling</span>
+            </label>
+            <label style={{ paddingLeft: '1rem' }}>
+              <input
+                type='radio'
+                checked={this.state.profilerMode === 'disabled'}
+                onChange={(ev) => {
+                  ev.target.checked && this.disableProfiling()
+                }}
+              />
+              <span>Disabled profiling</span>
             </label>
           </div>
         </div>

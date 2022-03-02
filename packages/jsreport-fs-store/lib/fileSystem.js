@@ -7,7 +7,7 @@ const lockFile = require('lockfile')
 const callLock = util.promisify(lockFile.lock)
 const callUnlock = util.promisify(lockFile.unlock)
 
-module.exports = ({ dataDirectory, lock }) => ({
+module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   memoryState: {},
   lockOptions: Object.assign({ stale: 10000, retries: 100, retryWait: 100 }, lock),
   init: () => mkdirpAsync(dataDirectory),
@@ -17,13 +17,13 @@ module.exports = ({ dataDirectory, lock }) => ({
   },
   async readFile (p) {
     const res = await fs.readFile(path.join(dataDirectory, p))
-    if (!p.includes('~')) {
+    if (externalModificationsSync && !p.includes('~')) {
       this.memoryState[path.join(dataDirectory, p)] = { content: res, isDirectory: false }
     }
     return res
   },
   writeFile (p, c) {
-    if (!p.includes('~')) {
+    if (externalModificationsSync && !p.includes('~')) {
       this.memoryState[path.join(dataDirectory, p)] = { content: Buffer.from(c), isDirectory: false }
     }
 
@@ -31,7 +31,8 @@ module.exports = ({ dataDirectory, lock }) => ({
   },
   appendFile (p, c) {
     const fpath = path.join(dataDirectory, p)
-    if (!p.includes('~')) {
+
+    if (externalModificationsSync && !p.includes('~')) {
       this.memoryState[fpath] = this.memoryState[fpath] || { content: Buffer.from(''), isDirectory: false }
       this.memoryState[fpath].content = Buffer.concat([this.memoryState[fpath].content, Buffer.from(c)])
     }
@@ -39,7 +40,7 @@ module.exports = ({ dataDirectory, lock }) => ({
     return fs.appendFile(fpath, c)
   },
   async rename (p, pp) {
-    if (p.includes('~') && !pp.includes('~')) {
+    if (externalModificationsSync && p.includes('~') && !pp.includes('~')) {
       const readDirMemoryState = async (sp, dp) => {
         this.memoryState[dp] = { isDirectory: true }
         const contents = await fs.readdir(sp)
@@ -75,23 +76,25 @@ module.exports = ({ dataDirectory, lock }) => ({
   },
   async stat (p) {
     const stat = await fs.stat(path.join(dataDirectory, p))
-    if (!p.includes('~') && stat.isDirectory()) {
+    if (externalModificationsSync && !p.includes('~') && stat.isDirectory()) {
       this.memoryState[path.join(dataDirectory, p)] = { isDirectory: true }
     }
     return stat
   },
   async mkdir (p) {
-    if (!p.includes('~')) {
+    if (externalModificationsSync && !p.includes('~')) {
       this.memoryState[path.join(dataDirectory, p)] = { isDirectory: true }
     }
 
     await mkdirpAsync(path.join(dataDirectory, p))
   },
   async remove (p) {
+    if (externalModificationsSync) {
     // eslint-disable-next-line no-unused-vars
-    for (const c in this.memoryState) {
-      if (c.startsWith(path.join(dataDirectory, p, '/')) || c === path.join(dataDirectory, p)) {
-        delete this.memoryState[c]
+      for (const c in this.memoryState) {
+        if (c.startsWith(path.join(dataDirectory, p, '/')) || c === path.join(dataDirectory, p)) {
+          delete this.memoryState[c]
+        }
       }
     }
 

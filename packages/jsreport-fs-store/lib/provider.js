@@ -2,7 +2,6 @@ const util = require('util')
 const EventEmitter = require('events').EventEmitter
 const extend = require('node.extend.without.arrays')
 const omit = require('lodash.omit')
-const mingo = require('@jsreport/mingo')
 const rimrafAsync = util.promisify(require('rimraf'))
 const Transaction = require('./transaction')
 const Persistence = require('./persistence')
@@ -55,7 +54,7 @@ module.exports = ({
       }
       logger.info(`fs store is persisting using ${persistence.provider} for ${dataDirectory}`)
 
-      this.fs = PersistenceProvider(Object.assign({ dataDirectory: dataDirectory }, persistence))
+      this.fs = PersistenceProvider(Object.assign({ dataDirectory: dataDirectory, externalModificationsSync }, persistence))
 
       const originalFsReaddir = this.fs.readdir.bind(this.fs)
 
@@ -85,7 +84,7 @@ module.exports = ({
 
       this.journal = Journal({
         fs: this.fs,
-        getCurrentDocuments: this.transaction.getCurrentDocuments.bind(this.transaction),
+        getCurrentStore: this.transaction.getCurrentStore.bind(this.transaction),
         reload: this.reload.bind(this),
         logger,
         queue: this.queue
@@ -130,11 +129,11 @@ module.exports = ({
     async reload () {
       logger.info('fs store is loading data')
 
-      const documents = this.transaction.getCurrentDocuments()
+      const documents = {}
       const _documents = await this.persistence.load()
-      Object.keys(documents).forEach(k => delete documents[k])
       Object.keys(this.documentsModel.entitySets).forEach(e => (documents[e] = []))
       _documents.forEach(d => documents[d.$entitySet].push(d))
+      this.transaction.getCurrentStore().replace(documents)
     },
 
     beginTransaction () {
@@ -154,24 +153,24 @@ module.exports = ({
     },
 
     find (entitySet, query, fields, opts = {}) {
-      const documents = this.transaction.getCurrentDocuments(opts)
-      const cursor = mingo.find(documents[entitySet], query, fields)
+      const store = this.transaction.getCurrentStore(opts)
+      const cursor = store.find(entitySet, query, fields)
       // the queue is not used here because reads are supposed to not block
       cursor.toArray = () => cursor.all().map((v) => extend(true, {}, omit(v, '$$etag', '$entitySet')))
       return cursor
     },
 
     insert (entitySet, doc, opts = {}) {
-      return this.transaction.operation(opts, async (documents, persistence, rootDirectoy) => {
+      return this.transaction.operation(opts, async (store, persistence, rootDirectoy) => {
         doc._id = doc._id || uid(16)
         doc.$entitySet = entitySet
 
-        await persistence.insert(doc, documents, rootDirectoy)
+        await persistence.insert(doc, store.documents, rootDirectoy)
 
         const clone = extend(true, {}, doc)
         clone.$$etag = Date.now()
 
-        documents[entitySet].push(clone)
+        store.insert(entitySet, clone)
 
         if (opts.transaction) {
           return doc
@@ -185,8 +184,8 @@ module.exports = ({
     async update (entitySet, q, u, opts = {}) {
       let count
 
-      const res = await this.transaction.operation(opts, async (documents, persistence, rootDirectoy) => {
-        const toUpdate = mingo.find(documents[entitySet], q).all()
+      const res = await this.transaction.operation(opts, async (store, persistence, rootDirectoy) => {
+        const toUpdate = store.find(entitySet, q).all()
 
         count = toUpdate.length
 
@@ -197,7 +196,7 @@ module.exports = ({
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toUpdate) {
-          await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, documents, rootDirectoy)
+          await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, store.documents, rootDirectoy)
 
           Object.assign(doc, u.$set || {})
 
@@ -220,15 +219,14 @@ module.exports = ({
     },
 
     async remove (entitySet, q, opts = {}) {
-      return this.transaction.operation(opts, async (documents, persistence, rootDirectoy) => {
-        const toRemove = mingo.find(documents[entitySet], q).all()
+      return this.transaction.operation(opts, async (store, persistence, rootDirectoy) => {
+        const toRemove = store.find(entitySet, q).all()
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toRemove) {
-          await persistence.remove(doc, documents, rootDirectoy)
+          await persistence.remove(doc, store.documents, rootDirectoy)
+          store.remove(entitySet, doc)
         }
-
-        documents[entitySet] = documents[entitySet].filter(d => !toRemove.includes(d))
 
         if (opts.transaction) {
           return
@@ -258,6 +256,10 @@ module.exports = ({
       this.journal.close()
     },
 
+    generateId () {
+      return uid(16)
+    },
+
     drop () {
       this.close()
       return rimrafAsync(dataDirectory)
@@ -270,7 +272,11 @@ module.exports = ({
           return
         }
         compactIsQueued = true
-        return this.queue.push(() => lock(this.fs, () => this.persistence.compact(this.transaction.getCurrentDocuments())))
+        return this.queue.push(() => lock(this.fs, async () => {
+          const currentStore = this.transaction.getCurrentStore()
+          await this.persistence.compact(currentStore.documents)
+          currentStore.replace(currentStore.documents)
+        }))
           .catch((e) => logger.warn('fs store compaction failed, but no problem, it will retry the next time.' + e.message))
           .finally(() => (compactIsQueued = false))
       }

@@ -1,6 +1,6 @@
 const path = require('path')
-const { copy, lock, cloneDocuments, infiniteRetry } = require('./customUtils')
-
+const { copy, lock, infiniteRetry } = require('./customUtils')
+const Store = require('./store')
 const transactionDirectory = '~.tran'
 const transactionConsistencyFile = '.tran'
 
@@ -11,7 +11,7 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
     blobStorageDirectoryName = path.basename(blobStorageDirectory, '')
   }
 
-  let commitedDocuments = {}
+  let commitedStore = Store()
 
   const unsafePersistence = {
     insert: (doc, documents, rootDirectory) => persistence.insert(doc, documents, false, rootDirectory),
@@ -30,8 +30,8 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
   }, 2000).unref()
 
   return {
-    getCurrentDocuments (opts = {}) {
-      return opts.transaction == null ? commitedDocuments : opts.transaction.documents
+    getCurrentStore (opts = {}) {
+      return opts.transaction == null ? commitedStore : opts.transaction.store
     },
 
     async init () {
@@ -54,7 +54,7 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
     begin () {
       return queue.push(() => lock(fs, async () => {
         return {
-          documents: cloneDocuments(commitedDocuments),
+          store: commitedStore.clone(),
           operations: [],
           beginTime: Date.now()
         }
@@ -77,13 +77,13 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
           }
 
           opts.transaction.operations.push(fn)
-          return fn(opts.transaction.documents, persistenceStub)
+          return fn(opts.transaction.store, persistenceStub)
         })
       }
 
       return queue.push(() => lock(fs, async () => {
         await this.journal.sync()
-        return fn(commitedDocuments, safePersistence)
+        return fn(commitedStore, safePersistence)
       }))
     },
 
@@ -101,18 +101,18 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
 
           await copy(fs, '', transactionDirectory, ignoreDuringInitialCopy)
 
-          const documentsClone = cloneDocuments(commitedDocuments)
+          const storeClone = commitedStore.clone()
 
           // eslint-disable-next-line no-unused-vars
           for (const op of transaction.operations) {
-            await op(documentsClone, unsafePersistence, transactionDirectory)
+            await op(storeClone, unsafePersistence, transactionDirectory)
           }
 
           // eslint-disable-next-line no-unused-vars
-          for (const entitySet in documentsClone) {
+          for (const entitySet in storeClone.documents) {
             // eslint-disable-next-line no-unused-vars
-            for (const transactionEntity of documentsClone[entitySet]) {
-              const commitedEntity = commitedDocuments[entitySet].find(e => e._id)
+            for (const transactionEntity of storeClone.documents[entitySet]) {
+              const commitedEntity = commitedStore.documents[entitySet].find(e => e._id)
               if (commitedEntity &&
                 transactionEntity.$$etag !== commitedEntity.$$etag &&
                 commitedEntity.$$etag > transaction.beginTime
@@ -134,7 +134,7 @@ module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs,
             logger.error(`copy consistent transaction to the data directory crashed, trying again in ${delay}ms`, e)
           })
 
-          commitedDocuments = documentsClone
+          commitedStore = storeClone
 
           await this.journal.commit()
         } finally {

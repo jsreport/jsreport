@@ -1,6 +1,7 @@
 const EventEmitter = require('events')
 const extend = require('node.extend.without.arrays')
 const generateRequestId = require('../shared/generateRequestId')
+const fs = require('fs/promises')
 
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('ProfileType', {
@@ -8,10 +9,9 @@ module.exports = (reporter) => {
     timestamp: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     finishedOn: { type: 'Edm.DateTimeOffset', schema: { type: 'null' } },
     state: { type: 'Edm.String' },
-    blobPersisted: { type: 'Edm.Boolean' },
-    blobName: { type: 'Edm.String' },
     error: { type: 'Edm.String' },
-    mode: { type: 'Edm.String', schema: { enum: ['full', 'standard'] } }
+    mode: { type: 'Edm.String', schema: { enum: ['full', 'standard', 'disabled'] } },
+    blobName: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerEntitySet('profiles', {
@@ -20,7 +20,26 @@ module.exports = (reporter) => {
   })
 
   const profilersMap = new Map()
-  const profilerAppendChain = new Map()
+
+  const profilerOperationsChainsMap = new Map()
+  function runInProfilerChain (fn, req) {
+    if (req.context.profiling.mode === 'disabled') {
+      return
+    }
+
+    profilerOperationsChainsMap.set(req.context.rootId, profilerOperationsChainsMap.get(req.context.rootId).then(async () => {
+      if (req.context.profiling.chainFailed) {
+        return
+      }
+
+      try {
+        await fn()
+      } catch (e) {
+        reporter.logger.warn('Failed persist profile', e)
+        req.context.profiling.chainFailed = true
+      }
+    }))
+  }
 
   function createProfileMessage (m, req) {
     m.timestamp = new Date().getTime()
@@ -58,14 +77,16 @@ module.exports = (reporter) => {
       req.context.profiling.lastOperation = lastOperation
     }
 
-    profilerAppendChain.set(req.context.rootId, profilerAppendChain.get(req.context.rootId).then(() => {
+    runInProfilerChain(() => {
+      if (req.context.profiling.logFilePath) {
+        return fs.appendFile(req.context.profiling.logFilePath, Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'))
+      }
+
       return reporter.blobStorage.append(
         req.context.profiling.entity.blobName,
         Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'), req
-      ).catch(e => {
-        reporter.logger.error('Failed to append to profile blob', e)
-      })
-    }))
+      )
+    }, req)
   }
 
   reporter.registerMainAction('profile', async (events, req) => {
@@ -76,8 +97,7 @@ module.exports = (reporter) => {
     req.context = req.context || {}
     req.context.rootId = reporter.generateRequestId()
     req.context.profiling = {
-      mode: profileMode == null ? 'full' : profileMode,
-      isAttached: true
+      mode: profileMode == null ? 'full' : profileMode
     }
     const profiler = new EventEmitter()
     profilersMap.set(req.context.rootId, profiler)
@@ -86,30 +106,36 @@ module.exports = (reporter) => {
   }
 
   reporter.beforeRenderWorkerAllocatedListeners.add('profiler', async (req) => {
-    profilerAppendChain.set(req.context.rootId, Promise.resolve())
-
     req.context.profiling = req.context.profiling || {}
-    req.context.profiling.lastOperation = null
-
-    if (!req.context.profiling.isAttached) {
-      const val = await reporter.settings.findValue('fullProfilerRunning', req)
-      if (val != null && JSON.parse(val) === true) {
-        req.context.profiling.isAttached = true
-        req.context.profiling.mode = 'full'
-      }
-    }
 
     if (req.context.profiling.mode == null) {
-      req.context.profiling.mode = 'standard'
+      const profilerSettings = await reporter.settings.findValue('profiler', req)
+      const defaultMode = reporter.options.profiler.defaultMode || 'standard'
+      req.context.profiling.mode = (profilerSettings != null && profilerSettings.mode != null) ? profilerSettings.mode : defaultMode
     }
+
+    profilerOperationsChainsMap.set(req.context.rootId, Promise.resolve())
+
+    req.context.profiling.lastOperation = null
 
     const blobName = `profiles/${req.context.rootId}.log`
 
-    const profile = await reporter.documentStore.collection('profiles').insert({
+    const profile = {
+      _id: reporter.documentStore.generateId(),
       timestamp: new Date(),
       state: 'queued',
-      mode: req.context.profiling.mode ? req.context.profiling.mode : 'standard',
+      mode: req.context.profiling.mode,
       blobName
+    }
+
+    if (!reporter.blobStorage.supportsAppend) {
+      const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.log`, '')
+      req.context.profiling.logFilePath = pathToFile
+    }
+
+    runInProfilerChain(async () => {
+      req.context.skipValidationFor = profile
+      await reporter.documentStore.collection('profiles').insert(profile, req)
     }, req)
 
     req.context.profiling.entity = profile
@@ -140,26 +166,31 @@ module.exports = (reporter) => {
 
     const template = await reporter.templates.resolveTemplate(req)
     if (template && template._id) {
+      req.context.resolvedTemplate = extend(true, {}, template)
       const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
       const blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
-      // store a copy to prevent side-effects
-      req.context.resolvedTemplate = extend(true, {}, template)
       update.templateShortid = template.shortid
 
       const originalBlobName = req.context.profiling.entity.blobName
       // we want to store the profile into blobName path reflecting the template path so we need to copy the blob to new path now
-      profilerAppendChain.set(req.context.rootId, profilerAppendChain.get(req.context.rootId)
-        .then(() => reporter.blobStorage.read(originalBlobName, req))
-        .then((content) => reporter.blobStorage.write(blobName, content, req))
-        .then(() => reporter.blobStorage.remove(originalBlobName, req)))
+      runInProfilerChain(async () => {
+        if (req.context.profiling.logFilePath == null) {
+          const content = await reporter.blobStorage.read(originalBlobName, req)
+          await reporter.blobStorage.write(blobName, content, req)
+          return reporter.blobStorage.remove(originalBlobName, req)
+        }
+      }, req)
 
       update.blobName = blobName
     }
 
-    await reporter.documentStore.collection('profiles').update({
-      _id: req.context.profiling.entity._id
-    }, {
-      $set: update
+    runInProfilerChain(() => {
+      req.context.skipValidationFor = update
+      return reporter.documentStore.collection('profiles').update({
+        _id: req.context.profiling.entity._id
+      }, {
+        $set: update
+      }, req)
     }, req)
 
     Object.assign(req.context.profiling.entity, update)
@@ -175,46 +206,35 @@ module.exports = (reporter) => {
     }, req)], req)
 
     res.meta.profileId = req.context.profiling?.entity?._id
-    profilersMap.delete(req.context.rootId)
-    const profilerBlobPersistPromise = profilerAppendChain.get(req.context.rootId)
-    profilerAppendChain.delete(req.context.rootId)
 
-    await reporter.documentStore.collection('profiles').update({
-      _id: req.context.profiling.entity._id
-    }, {
-      $set: {
+    runInProfilerChain(async () => {
+      if (req.context.profiling.logFilePath != null) {
+        const content = await fs.readFile(req.context.profiling.logFilePath)
+        await reporter.blobStorage.write(req.context.profiling.entity.blobName, content, req)
+        await fs.unlink(req.context.profiling.logFilePath)
+      }
+
+      const update = {
         state: 'success',
         finishedOn: new Date()
       }
-    }, req)
-    profilerBlobPersistPromise.finally(() => {
-      reporter.documentStore.collection('profiles').update({
+      req.context.skipValidationFor = update
+      await reporter.documentStore.collection('profiles').update({
         _id: req.context.profiling.entity._id
       }, {
-        $set: {
-          blobPersisted: true
-        }
-      }, req).catch((e) => reporter.logger.error('Failed to update profile blobPersisted', e))
-    })
+        $set: update
+      }, req)
+    }, req)
+
+    // we don't remove from profiler requests map, because the renderErrorListeners are invoked if the afterRenderListener fails
   })
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
     try {
       res.meta.profileId = req.context.profiling?.entity?._id
-      const profilerBlobPersistPromise = profilerAppendChain.get(req.context.rootId)
 
       if (req.context.profiling?.entity != null) {
-        await reporter.documentStore.collection('profiles').update({
-          _id: req.context.profiling.entity._id
-        }, {
-          $set: {
-            state: 'error',
-            finishedOn: new Date(),
-            error: e.toString()
-          }
-        }, req)
-
-        await emitProfiles([{
+        emitProfiles([{
           type: 'error',
           timestamp: new Date().getTime(),
           ...e,
@@ -222,20 +242,29 @@ module.exports = (reporter) => {
           stack: e.stack,
           message: e.message
         }], req)
+        runInProfilerChain(async () => {
+          if (req.context.profiling.logFilePath != null) {
+            const content = await fs.readFile(req.context.profiling.logFilePath, 'utf8')
+            await reporter.blobStorage.write(req.context.profiling.entity.blobName, content, req)
+            await fs.unlink(req.context.profiling.logFilePath)
+          }
 
-        profilerBlobPersistPromise.finally(() => {
-          reporter.documentStore.collection('profiles').update({
+          const update = {
+            state: 'error',
+            finishedOn: new Date(),
+            error: e.toString()
+          }
+          req.context.skipValidationFor = update
+          await reporter.documentStore.collection('profiles').update({
             _id: req.context.profiling.entity._id
           }, {
-            $set: {
-              blobPersisted: true
-            }
-          }, req).catch((e) => reporter.logger.error('Failed to update profile blobPersisted', e))
-        })
+            $set: update
+          }, req)
+        }, req)
       }
     } finally {
       profilersMap.delete(req.context.rootId)
-      profilerAppendChain.delete(req.context.rootId)
+      profilerOperationsChainsMap.delete(req.context.rootId)
     }
   })
 
@@ -259,8 +288,8 @@ module.exports = (reporter) => {
       clearInterval(profilesCleanupInterval)
     }
 
-    for (const key of profilerAppendChain.keys()) {
-      const profileAppendPromise = profilerAppendChain.get(key)
+    for (const key of profilerOperationsChainsMap.keys()) {
+      const profileAppendPromise = profilerOperationsChainsMap.get(key)
       if (profileAppendPromise) {
         await profileAppendPromise
       }

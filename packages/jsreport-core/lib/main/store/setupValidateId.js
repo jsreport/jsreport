@@ -3,10 +3,16 @@ module.exports = (reporter) => {
   reporter.initializeListeners.add('core-validate-id', () => {
     for (const c of Object.keys(reporter.documentStore.collections)) {
       reporter.documentStore.collection(c).beforeInsertListeners.add('validate-id', (doc, req) => {
-        return validateIdForStoreChange(reporter, c, doc._id, undefined, req)
+        if (req == null || req.context.skipValidationFor !== doc) {
+          return validateIdForStoreChange(reporter, c, doc._id, undefined, req)
+        }
       })
 
       reporter.documentStore.collection(c).beforeUpdateListeners.add('validate-id', async (q, update, opts, req) => {
+        if (req != null && req.context.skipValidationFor === update) {
+          return
+        }
+
         if (update.$set && opts && opts.upsert === true) {
           await validateIdForStoreChange(reporter, c, update.$set._id, undefined, req)
         }

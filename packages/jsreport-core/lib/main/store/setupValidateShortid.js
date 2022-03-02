@@ -31,6 +31,10 @@ module.exports = (reporter) => {
 }
 
 async function validateShortid (reporter, collectionName, doc, originalIdValue, req) {
+  if (req != null && req.context.skipValidationFor === doc) {
+    return
+  }
+
   const shortid = doc.shortid
 
   if (!shortid) {
