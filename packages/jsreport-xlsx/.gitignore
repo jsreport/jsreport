@@ -32,6 +32,7 @@ data
 jsreport.config.json
 
 .idea
+out.xlsx
 
 # studio/main.js
 # studio/main.js.map

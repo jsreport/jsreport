@@ -28,15 +28,32 @@ module.exports = (reporter, definition) => {
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)
   })
 
+  reporter.extensionsManager.recipes.push({
+    name: 'xlsx-next',
+    execute: (req, res) => require('./recipe-next')(reporter, definition, req, res)
+  })
+
   let helpersScript
+  let helpersNextScript
 
   reporter.initializeListeners.add(definition.name, async () => {
     helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
+    helpersNextScript = await fs.readFile(path.join(__dirname, '../static/helpersNext.js'), 'utf8')
   })
 
   reporter.registerHelpersListeners.add(definition.name, (req) => {
     if (req.template.recipe === 'xlsx') {
       return helpersScript
+    }
+
+    return helpersNextScript
+  })
+
+  reporter.beforeRenderListeners.insert({ before: 'templates' }, `${definition.name}-next`, (req) => {
+    if (req.template.recipe === 'xlsx-next' && !req.template.name && !req.template.shortid && !req.template.content) {
+      // templates extension otherwise complains that the template is empty
+      // but that is fine for this recipe
+      req.template.content = 'xlsx placeholder'
     }
   })
 
@@ -48,7 +65,7 @@ module.exports = (reporter, definition) => {
     const serialize = require('./serialize.js')
     const parse = serialize.parse
 
-    const findTemplate = async () => {
+    const findXlsxTemplate = async () => {
       if (
         (!req.template.xlsx || (!req.template.xlsx.templateAssetShortid && !req.template.xlsx.templateAsset))
       ) {
@@ -86,7 +103,7 @@ module.exports = (reporter, definition) => {
       return parse(docs[0].content)
     }
 
-    const template = await findTemplate()
+    const template = await findXlsxTemplate()
 
     req.data = req.data || {}
     req.data.$xlsxTemplate = template
