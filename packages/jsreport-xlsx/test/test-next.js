@@ -82,6 +82,30 @@ describe('xlsx-next', () => {
     should(sheet.A2.v).be.eql('Another lines John developer with Wick as lastname')
   })
 
+  it('variable replace styled', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx-next',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace-styled.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+  })
+
   it('variable replace syntax error', () => {
     const prom = reporter.render({
       template: {

@@ -66,9 +66,9 @@ module.exports = (files) => {
     // add <formulasUpdated> with a helper call so we can process and update
     // all the formulas references at the end of template processing
     const formulasUpdatedEl = sheetDoc.createElement('formulasUpdated')
-    const itemsEl = sheetDoc.createElement('items')
-    itemsEl.textContent = "{{xlsxSData type='formulas'}}"
-    formulasUpdatedEl.appendChild(itemsEl)
+    const formulasUpdatedItemsEl = sheetDoc.createElement('items')
+    formulasUpdatedItemsEl.textContent = "{{xlsxSData type='formulas'}}"
+    formulasUpdatedEl.appendChild(formulasUpdatedItemsEl)
     sheetDataEl.appendChild(formulasUpdatedEl)
 
     const mergeCellsEl = sheetDoc.getElementsByTagName('mergeCells')[0]
@@ -78,11 +78,11 @@ module.exports = (files) => {
       const mergeCellsUpdatedEl = sheetDoc.createElement('mergeCellsUpdated')
       // add <mergeCellsUpdated> with a helper call so we can process and update
       // all the merge cells references at the end of template processing
-      const itemsEl = sheetDoc.createElement('items')
+      const mergeCellsUpdatedItems = sheetDoc.createElement('items')
 
-      itemsEl.textContent = '{{xlsxSData type="mergeCells"}}'
+      mergeCellsUpdatedItems.textContent = '{{xlsxSData type="mergeCells"}}'
 
-      mergeCellsUpdatedEl.appendChild(itemsEl)
+      mergeCellsUpdatedEl.appendChild(mergeCellsUpdatedItems)
       sheetDataEl.appendChild(mergeCellsUpdatedEl)
     }
 
@@ -504,7 +504,9 @@ function getCellInfo (cellEl, sharedStringsEls) {
           throw new Error(`Unable to find shared string with index ${sharedIndex}`)
         }
 
-        const tEl = nodeListToArray(sharedStringEl.childNodes).find((el) => el.nodeName === 't')
+        // the "t" node can be also wrapped in <si> and <r> when the text is styled
+        // so we search for the first <t> node
+        const tEl = sharedStringEl.getElementsByTagName('t')[0]
 
         if (tEl != null) {
           value = tEl.textContent
