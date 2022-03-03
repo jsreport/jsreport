@@ -68,19 +68,19 @@ async function create (inputFolder, newOfficeFileType) {
     throw new Error('newOfficeFileType can not be empty')
   }
 
-  if (OFFICE_TYPES.includes(newOfficeFileType)) {
+  if (!OFFICE_TYPES.includes(newOfficeFileType)) {
     throw new Error(`newOfficeFileType is not have valid office extension, used: ${newOfficeFileType}`)
   }
 
   const inputFolderPath = path.resolve(desktopPath, inputFolder)
   const outputPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.zip`)
-  const finalDocxPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.docx`)
+  const finalOutputPath = path.join(desktopPath, `${path.basename(inputFolderPath)}-new.${newOfficeFileType}`)
 
   await ZFolder(inputFolderPath, outputPath)
 
-  await fs.promises.rename(outputPath, finalDocxPath)
+  await fs.promises.rename(outputPath, finalOutputPath)
 
-  console.log(`created into ${finalDocxPath}`)
+  console.log(`created into ${finalOutputPath}`)
 }
 
 async function getXMLFilesContent (dirPath) {
