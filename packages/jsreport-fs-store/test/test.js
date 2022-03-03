@@ -396,7 +396,7 @@ describe('provider', () => {
       fs.writeFileSync(path.join(tmpData, 'a.ff'), 'changing')
       fs.writeFileSync(path.join(tmpData, 'b.ff'), 'changing')
       fs.writeFileSync(path.join(tmpData, 'c.ff'), 'changing')
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1500))
       reloadCount.should.be.eql(1)
     })
 
