@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const os = require('os')
 const jsreport = require('@jsreport/jsreport-core')
 const tmpData = path.join(__dirname, 'tmpData')
 
@@ -103,6 +104,38 @@ describe('fileSystemBlobStorage', () => {
 
         fs.existsSync(targetPath).should.be.False()
       })
+    })
+  })
+
+  describe('with explicit blobStorage.dataDirectory', () => {
+    let reporter
+    const blobStorageDataDirectory = path.join(os.tmpdir(), 'jsreport', 'blobStorage')
+
+    beforeEach(async () => {
+      if (fs.existsSync(tmpData)) {
+        fs.rmSync(tmpData, { recursive: true })
+      }
+
+      reporter = jsreport({
+        store: { provider: 'fs' },
+        blobStorage: { provider: 'fs', dataDirectory: blobStorageDataDirectory }
+      }).use(require('../')({
+        dataDirectory: tmpData
+      }))
+
+      return reporter.init()
+    })
+
+    afterEach(async () => {
+      if (reporter) {
+        await reporter.close()
+      }
+      fs.rmSync(tmpData, { recursive: true })
+    })
+
+    it('write', async () => {
+      await reporter.blobStorage.write('someBlob', Buffer.from('hula'))
+      fs.readFileSync(path.join(blobStorageDataDirectory, 'someBlob')).toString().should.be.eql('hula')
     })
   })
 })

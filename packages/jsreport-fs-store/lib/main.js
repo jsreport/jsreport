@@ -26,13 +26,12 @@ module.exports = function (reporter, definition) {
   }
 
   if (reporter.options.blobStorage.provider === 'fs') {
-    if (
-      reporter.options.blobStorage.dataDirectory &&
-      !path.isAbsolute(reporter.options.blobStorage.dataDirectory)
-    ) {
-      reporter.options.blobStorage.dataDirectory = path.join(reporter.options.rootDirectory, reporter.options.blobStorage.dataDirectory)
-    } else {
+    if (reporter.options.blobStorage.dataDirectory == null) {
       reporter.options.blobStorage.dataDirectory = path.join(definition.options.dataDirectory, 'storage')
+    } else {
+      if (!path.isAbsolute(reporter.options.blobStorage.dataDirectory)) {
+        reporter.options.blobStorage.dataDirectory = path.join(reporter.options.rootDirectory, reporter.options.blobStorage.dataDirectory)
+      }
     }
     reporter.blobStorage.registerProvider(require('./blobStorageProvider')(reporter.options))
   }
