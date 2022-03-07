@@ -1,4 +1,5 @@
-const { nodeListToArray, isWorksheetFile, parseCellRef } = require('../utils')
+const path = require('path')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, parseCellRef } = require('../utils')
 const regexp = /{{#each ([^{}]{0,500})}}/
 
 module.exports = (files) => {
@@ -46,18 +47,22 @@ module.exports = (files) => {
   const sharedStringElsToClean = []
 
   for (const f of files.filter((f) => isWorksheetFile(f.path))) {
+    const sheetFilepath = f.path
+    const sheetFilename = path.posix.basename(sheetFilepath)
     const sheetDoc = f.doc
     const sheetDataEl = sheetDoc.getElementsByTagName('sheetData')[0]
 
     if (sheetDataEl == null) {
-      throw new Error(`Could not find sheet data for sheet at ${f.path}`)
+      throw new Error(`Could not find sheet data for sheet at ${sheetFilepath}`)
     }
 
-    const sheetInfo = getSheetInfo(f.path, workbookSheetsEls, workbookRelsEls)
+    const sheetInfo = getSheetInfo(sheetFilepath, workbookSheetsEls, workbookRelsEls)
 
     if (sheetInfo == null) {
-      throw new Error(`Could not find sheet info for sheet at ${f.path}`)
+      throw new Error(`Could not find sheet info for sheet at ${sheetFilepath}`)
     }
+
+    const sheetRelsDoc = files.find((file) => isWorksheetRelsFile(sheetFilename, file.path))?.doc
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
     processOpeningTag(sheetDoc, sheetDataEl, "{{#xlsxSData type='root'}}")
@@ -96,6 +101,39 @@ module.exports = (files) => {
 
       newDimensionEl.setAttribute('ref', `${refsParts[0]}:{{@meta.lastCellRef}}`)
       sheetDataEl.appendChild(newDimensionEl)
+    }
+
+    if (sheetRelsDoc != null) {
+      const relationshipEls = nodeListToArray(sheetRelsDoc.getElementsByTagName('Relationship'))
+      const tableRelEls = relationshipEls.filter((rel) => rel.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/table')
+
+      if (tableRelEls.length > 0) {
+        const newTablesUpdatedEl = sheetDoc.createElement('tablesUpdated')
+
+        for (const tableRelEl of tableRelEls) {
+          const newTableUpdatedEl = sheetDoc.createElement('tableUpdated')
+
+          const tablePath = path.join(path.posix.dirname(sheetFilepath), tableRelEl.getAttribute('Target'))
+
+          newTableUpdatedEl.setAttribute('file', tablePath)
+
+          const tableDoc = files.find((file) => file.path === tablePath)?.doc
+
+          newTableUpdatedEl.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRef='${tableDoc.documentElement.getAttribute('ref')}'}}`)
+
+          const autoFilterEl = tableDoc.getElementsByTagName('autoFilter')[0]
+
+          if (autoFilterEl != null) {
+            const newAutoFilterRef = sheetDoc.createElement('autoFilterRef')
+            newAutoFilterRef.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRef='${autoFilterEl.getAttribute('ref')}'}}`)
+            newTableUpdatedEl.appendChild(newAutoFilterRef)
+          }
+
+          newTablesUpdatedEl.appendChild(newTableUpdatedEl)
+        }
+
+        sheetDataEl.appendChild(newTablesUpdatedEl)
+      }
     }
 
     const rowsEls = nodeListToArray(sheetDataEl.getElementsByTagName('row'))

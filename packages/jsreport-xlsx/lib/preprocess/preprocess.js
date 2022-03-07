@@ -1,5 +1,5 @@
 const loop = require('./loop')
 
-module.exports = (files) => {
-  loop(files)
+module.exports = (files, meta) => {
+  loop(files, meta)
 }

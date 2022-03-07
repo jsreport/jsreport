@@ -2337,6 +2337,65 @@ describe('xlsx-next', () => {
     should(sheet.F5.v).be.False()
   })
 
+  it('table generated with loop', async () => {
+    const items = [{
+      name: 'Alexander',
+      lastname: 'Smith',
+      age: 32
+    }, {
+      name: 'John',
+      lastname: 'Doe',
+      age: 29
+    }, {
+      name: 'Jane',
+      lastname: 'Montana',
+      age: 23
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx-next',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'table.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        items
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    const files = await decompress()(result.content)
+
+    should(sheet.C3.v).be.eql(items[0].name)
+    should(sheet.D3.v).be.eql(items[0].lastname)
+    should(sheet.E3.v).be.eql(items[0].age)
+    should(sheet.C4.v).be.eql(items[1].name)
+    should(sheet.D4.v).be.eql(items[1].lastname)
+    should(sheet.E4.v).be.eql(items[1].age)
+    should(sheet.C5.v).be.eql(items[2].name)
+    should(sheet.D5.v).be.eql(items[2].lastname)
+    should(sheet.E5.v).be.eql(items[2].age)
+
+    const tableDoc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/tables/table1.xml').data.toString()
+    )
+
+    const tableRef = tableDoc.documentElement.getAttribute('ref')
+    const autoFilterRef = tableDoc.getElementsByTagName('autoFilter')[0]?.getAttribute('ref')
+
+    should(tableRef).be.eql('C2:E5')
+    should(autoFilterRef).be.eql('C2:E5')
+  })
+
   it('invoice', async () => {
     const result = await reporter.render({
       template: {
