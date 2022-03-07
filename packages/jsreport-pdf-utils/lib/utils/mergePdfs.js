@@ -14,29 +14,37 @@ function uint8ToString (u8a) {
   return c.join('')
 }
 
-// the back layer produced for example by chrome covers whole page with white rectangle
-// it is usually required to remove it to be able to put on behind headers/footers/watermarks
-// we search for this pattern:
-// 0 0 2000 3000 re
-// f
-// where 2000 > width and 3000 > height
-function includesBackgroundConver (str, width, height) {
-  let previousFragment = ''
-  for (const fragment of str.split('\n')) {
-    if (fragment === 'f') {
-      const rectangle = previousFragment.split(' ')
-      if (rectangle.length !== 5 || rectangle[0] !== '0' || rectangle[1] !== '0') {
-        return false
+// chrome typically adds a white rectangle to cover the whole page background
+// this needs to be removed in order the merged content to be visible
+// this is how it looks typically, we just remove re and f
+/*
+3.125 0 0 3.125 0 0 cm
+1 1 1 RG
+1 1 1 rg
+/G3 gs
+0 0 816 1056 re
+*/
+const steps = [/1 1 1 RG 1 1 1 rg/, /\/G3 gs/, /[0-9 ]+re/, /f/]
+function removeChromeWhiteBackgroundDefaultLayer (content) {
+  let stepPhase = 0
+  const lines = content.split('\n')
+
+  for (let i = 0; i < lines.length; i++) {
+    const fragment = lines[i]
+
+    if (fragment.match(steps[stepPhase])) {
+      if (stepPhase === steps.length - 1) {
+        lines.splice(i - 1, 2)
+        return lines.join('\n')
       }
-
-      const boxWidth = parseInt(rectangle[2])
-      const boxHeight = parseInt(rectangle[3])
-
-      return boxWidth > width && boxHeight > height
+      stepPhase++
+    } else {
+      if (stepPhase > 0 || fragment === 'f') {
+        return content
+      }
     }
-
-    previousFragment = fragment
   }
+  return content
 }
 
 function mergePage (finalDoc, contentPage, xobj, mergeToFront, pageHelpInfo) {
@@ -54,9 +62,8 @@ function mergePage (finalDoc, contentPage, xobj, mergeToFront, pageHelpInfo) {
     mergeStream.content = zlib.unzipSync(mergeStream.content).toString('latin1')
   }
 
-  if (includesBackgroundConver(mergeStream.content, xobj.width, xobj.height)) {
-    mergeStream.content = mergeStream.content.replace(/[0-9 ]+re\nf/, '')
-  }
+  mergeStream.content = removeChromeWhiteBackgroundDefaultLayer(mergeStream.content)
+
   mergeStream.content = zlib.deflateSync(Buffer.from(mergeStream.content, 'latin1'))
   mergeStream.object.prop('Length', mergeStream.content.length)
   mergeStream.object.prop('Filter', 'FlateDecode')
@@ -85,9 +92,7 @@ function mergePage (finalDoc, contentPage, xobj, mergeToFront, pageHelpInfo) {
   }
 
   if (pageHelpInfo.removeContentBackLayer) {
-    if (includesBackgroundConver(pageStream.content, xobj.width, xobj.height)) {
-      pageStream.content = pageStream.content.replace(/[0-9 ]+re\nf/, '')
-    }
+    pageStream.content = removeChromeWhiteBackgroundDefaultLayer(pageStream.content)
   }
   // the content stream typicaly modifies matrix and cursor during painting
   // we use "q" instruction to store the original state and "Q" to pop it back

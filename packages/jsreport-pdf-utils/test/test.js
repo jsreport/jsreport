@@ -6,6 +6,7 @@ const pdfjs = require('@jsreport/pdfjs')
 const { extractSignature } = require('@jsreport/node-signpdf/dist/helpers')
 const processText = require('../lib/utils/processText.js')
 const should = require('should')
+const zlib = require('zlib')
 
 describe('pdf utils', () => {
   let jsreport
@@ -801,6 +802,36 @@ describe('pdf utils', () => {
     parsedPdf.pages.should.have.length(2)
     parsedPdf.pages[0].text.includes('header').should.be.ok()
     parsedPdf.pages[1].text.includes('header').should.be.ok()
+  })
+
+  it('merge should remove the background layer also when margin is big', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'hello',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        chrome: {
+          marginTop: '8cm'
+        },
+        pdfOperations: [{
+          type: 'merge',
+          mergeWholeDocument: true,
+          template: {
+            content: '<h1 style=\'margin-top: 9cm\'>header</h1>>',
+            engine: 'handlebars',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+
+    const page = doc.catalog.get('Pages').object.properties.get('Kids')[0].object
+    const pageStream = page.properties.get('Contents').object.content
+    const pageContent = zlib.unzipSync(pageStream.content).toString('latin1')
+    pageContent.toString().should.not.containEql('\nf\n')
   })
 
   it('merge should should not fail when merged page has none fields annotations', async () => {
