@@ -113,11 +113,15 @@ module.exports = (files) => {
         for (const tableRelEl of tableRelEls) {
           const newTableUpdatedEl = sheetDoc.createElement('tableUpdated')
 
-          const tablePath = path.join(path.posix.dirname(sheetFilepath), tableRelEl.getAttribute('Target'))
+          const tablePath = path.posix.join(path.posix.dirname(sheetFilepath), tableRelEl.getAttribute('Target'))
 
           newTableUpdatedEl.setAttribute('file', tablePath)
 
           const tableDoc = files.find((file) => file.path === tablePath)?.doc
+
+          if (tableDoc == null) {
+            throw new Error(`Could not find table definition info for sheet at ${sheetFilepath}`)
+          }
 
           newTableUpdatedEl.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRef='${tableDoc.documentElement.getAttribute('ref')}'}}`)
 
