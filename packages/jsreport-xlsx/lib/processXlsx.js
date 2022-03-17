@@ -69,7 +69,6 @@ module.exports = (reporter) => async (inputs, req) => {
 
     await postprocess(files, meta)
 
-
     for (const f of files) {
       let shouldSerializeFromDoc = contentIsXML(f.data) && !isWorksheetFile(f.path)
 
