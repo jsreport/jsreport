@@ -12,7 +12,7 @@ const addRowsToBrowserFn = require('fs').readFileSync(path.join(__dirname, '../s
 const conversions = {}
 
 module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
-  const { tmpDir, htmlEngine, html, xlsxTemplateContent, chromeOptions, phantomOptions, cheerioOptions, conversionOptions } = inputs
+  const { timeout, tmpDir, htmlEngine, html, xlsxTemplateContent, chromeOptions, phantomOptions, cheerioOptions, conversionOptions } = inputs
   const logs = []
 
   try {
@@ -20,7 +20,7 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
       const chromeEval = chromePageEval({ ...chromeOptions.eval, puppeteer: htmlEngines.chrome })
 
       conversions.chrome = htmlToXlsx({
-        timeout: inputs.timeout,
+        timeout,
         ...chromeOptions.conversion,
         extract: browserBasedEval(tmpDir, chromeEval)
       })
@@ -31,6 +31,7 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
       const phantomEval = phantomPageEval({ ...phantomOptions.eval, phantomPath })
 
       conversions.phantom = htmlToXlsx({
+        timeout,
         ...phantomOptions.conversion,
         extract: browserBasedEval(tmpDir, phantomEval)
       })
@@ -40,6 +41,7 @@ module.exports = async function scriptHtmlToXlsxProcessing (inputs) {
       const cheerioPageEval = require('cheerio-page-eval')
 
       conversions.cheerio = htmlToXlsx({
+        timeout,
         ...cheerioOptions.conversion,
         extract: cheerioPageEval(tmpDir, opentype.loadSync(defaultFontPath))
       })
