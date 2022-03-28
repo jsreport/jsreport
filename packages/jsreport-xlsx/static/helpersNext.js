@@ -1,5 +1,33 @@
 /* eslint no-unused-vars: 0 */
 
+function xlsxChart (options) {
+  const Handlebars = require('handlebars')
+
+  if (options.hash.data == null) {
+    throw new Error('xlsxChart helper requires data parameter to be set')
+  }
+
+  if (!Array.isArray(options.hash.data.labels) || options.hash.data.labels.length === 0) {
+    throw new Error('xlsxChart helper requires data parameter with labels to be set, data.labels must be an array with items')
+  }
+
+  if (!Array.isArray(options.hash.data.datasets) || options.hash.data.datasets.length === 0) {
+    throw new Error('xlsxChart helper requires data parameter with datasets to be set, data.datasets must be an array with items')
+  }
+
+  if (
+    options.hash.options != null &&
+      (
+        typeof options.hash.options !== 'object' ||
+        Array.isArray(options.hash.options)
+      )
+  ) {
+    throw new Error('docxChart helper when options parameter is set, it should be an object')
+  }
+
+  return new Handlebars.SafeString(`$xlsxChart${Buffer.from(JSON.stringify(options.hash)).toString('base64')}$`)
+}
+
 function xlsxSData (data, options) {
   const Handlebars = require('handlebars')
   const optionsToUse = options == null ? data : options

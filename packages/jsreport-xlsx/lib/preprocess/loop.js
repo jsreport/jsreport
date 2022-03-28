@@ -62,6 +62,8 @@ module.exports = (files) => {
       throw new Error(`Could not find sheet info for sheet at ${sheetFilepath}`)
     }
 
+    const rowsEls = nodeListToArray(sheetDataEl.getElementsByTagName('row'))
+
     const sheetRelsDoc = files.find((file) => isWorksheetRelsFile(sheetFilename, file.path))?.doc
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
@@ -93,8 +95,8 @@ module.exports = (files) => {
 
     const dimensionEl = sheetDoc.getElementsByTagName('dimension')[0]
 
-    if (dimensionEl != null) {
-      // we add the dimension tag into the sheetData to be able to update
+    if (dimensionEl != null && rowsEls.length > 0) {
+      // if sheetData has rows we add the dimension tag into the sheetData to be able to update
       // the ref by the handlebars
       const newDimensionEl = sheetDoc.createElement('dimensionUpdated')
       const refsParts = dimensionEl.getAttribute('ref').split(':')
@@ -140,8 +142,6 @@ module.exports = (files) => {
       }
     }
 
-    const rowsEls = nodeListToArray(sheetDataEl.getElementsByTagName('row'))
-
     for (const rowEl of rowsEls) {
       let originalRowNumber = rowEl.getAttribute('r')
       const contentDetectCellElsToHandle = []
@@ -181,7 +181,7 @@ module.exports = (files) => {
           })
         }
 
-        const info = getCellInfo(cellEl, sharedStringsEls)
+        const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         if (
           info != null &&
@@ -251,7 +251,7 @@ module.exports = (files) => {
 
         // we should unset the cells that are using shared strings
         while (currentCell != null) {
-          const currentCellInfo = getCellInfo(currentCell, sharedStringsEls)
+          const currentCellInfo = getCellInfo(currentCell, sharedStringsEls, sheetFilepath)
 
           if (currentCellInfo != null) {
             if (currentCell === loopDetected.start.el) {
@@ -303,7 +303,7 @@ module.exports = (files) => {
       }
 
       for (const cellEl of contentDetectCellElsToHandle) {
-        const cellInfo = getCellInfo(cellEl, sharedStringsEls)
+        const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         cellEl.setAttribute('__detectCellContent__', 'true')
 
@@ -418,7 +418,7 @@ module.exports = (files) => {
 
       for (const { cellEl, cellRef } of formulaCellElsToHandle) {
         const newFormulaWrapperEl = sheetDoc.createElement('formulaUpdated')
-        const info = getCellInfo(cellEl, sharedStringsEls)
+        const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
         let fromLoop = false
 
         let formulaContent = `type='formula' originalCellRef='${cellRef}' originalFormula='${info.value}'`
@@ -482,7 +482,7 @@ function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {
   }
 }
 
-function getCellInfo (cellEl, sharedStringsEls) {
+function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
   let type
   let value
   let valueEl
@@ -543,7 +543,7 @@ function getCellInfo (cellEl, sharedStringsEls) {
         }
 
         if (sharedStringEl == null) {
-          throw new Error(`Unable to find shared string with index ${sharedIndex}`)
+          throw new Error(`Unable to find shared string with index ${sharedIndex}, sheet: ${sheetFilepath}`)
         }
 
         // the "t" node can be also wrapped in <si> and <r> when the text is styled
@@ -603,7 +603,7 @@ function getCellInfo (cellEl, sharedStringsEls) {
     }
 
     const vEl = childEls.find((el) => el.nodeName === 'v')
-    const excelNumberAndDecimalRegExp = /^\d+(\.\d+)?(E-\d+)?$/
+    const excelNumberAndDecimalRegExp = /^-?\d+(\.\d+)?(E-\d+)?$/
 
     // finally checking if the cell is number value
     if (type == null && vEl != null && excelNumberAndDecimalRegExp.test(vEl.textContent)) {
@@ -615,7 +615,7 @@ function getCellInfo (cellEl, sharedStringsEls) {
   }
 
   if (value == null) {
-    throw new Error('Expected value to be found in cell')
+    throw new Error(`Expected value to be found in cell, sheet: ${sheetFilepath}`)
   }
 
   return {
