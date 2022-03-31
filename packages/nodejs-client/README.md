@@ -1,4 +1,4 @@
-# @jsreport/nodejs-lient
+# @jsreport/nodejs-client
 
 [![NPM Version](http://img.shields.io/npm/v/@jsreport/nodejs-client.svg?style=flat-square)](https://npmjs.com/package/@jsreport/nodejs-client)
 

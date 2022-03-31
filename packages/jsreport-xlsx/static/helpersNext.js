@@ -1,5 +1,33 @@
 /* eslint no-unused-vars: 0 */
 
+function xlsxChart (options) {
+  const Handlebars = require('handlebars')
+
+  if (options.hash.data == null) {
+    throw new Error('xlsxChart helper requires data parameter to be set')
+  }
+
+  if (!Array.isArray(options.hash.data.labels) || options.hash.data.labels.length === 0) {
+    throw new Error('xlsxChart helper requires data parameter with labels to be set, data.labels must be an array with items')
+  }
+
+  if (!Array.isArray(options.hash.data.datasets) || options.hash.data.datasets.length === 0) {
+    throw new Error('xlsxChart helper requires data parameter with datasets to be set, data.datasets must be an array with items')
+  }
+
+  if (
+    options.hash.options != null &&
+      (
+        typeof options.hash.options !== 'object' ||
+        Array.isArray(options.hash.options)
+      )
+  ) {
+    throw new Error('docxChart helper when options parameter is set, it should be an object')
+  }
+
+  return new Handlebars.SafeString(`$xlsxChart${Buffer.from(JSON.stringify(options.hash)).toString('base64')}$`)
+}
+
 function xlsxSData (data, options) {
   const Handlebars = require('handlebars')
   const optionsToUse = options == null ? data : options
@@ -254,6 +282,87 @@ function xlsxSData (data, options) {
     return new Handlebars.SafeString(result)
   }
 
+  const getNewCellRef = (cellRefInput, loopIndex, mode = 'standalone', context) => {
+    const { updatedOriginalCells, loopItems } = context
+    let cellRef
+    let originCellRef
+
+    if (Array.isArray(cellRefInput)) {
+      originCellRef = cellRefInput[0]
+      cellRef = cellRefInput[1]
+    } else {
+      cellRef = cellRefInput
+    }
+
+    const parsedCellRef = parseCellRef(cellRef)
+    const parsedOriginCellRef = originCellRef != null ? parseCellRef(originCellRef) : undefined
+    const normalizedCellRef = cellRef.replace('$', '')
+    let newCellRef = updatedOriginalCells[normalizedCellRef]
+
+    if (newCellRef == null) {
+      // if not found on original cells then do a check if we find
+      // matched loop items for the referenced row number
+      const matchedLoopItems = getMatchedLoopItems(parsedCellRef.rowNumber, loopItems)
+
+      if (matchedLoopItems.length === 0) {
+        newCellRef = cellRef
+      } else {
+        const isLoopItem = matchedLoopItems.find((item) => item.start === parsedCellRef.rowNumber) != null
+        const originIsLoopItem = parsedOriginCellRef == null ? false : matchedLoopItems.find((item) => item.start === parsedOriginCellRef.rowNumber) != null
+
+        const getAfterIncrement = (parsedC, all = false) => {
+          let filteredItems
+
+          if (all) {
+            filteredItems = matchedLoopItems
+          } else {
+            filteredItems = matchedLoopItems.filter((item) => item.start < parsedCellRef.rowNumber)
+          }
+
+          let increment = filteredItems.reduce((acu, item) => {
+            return acu + item.length
+          }, 0)
+
+          increment += (filteredItems.length * -1)
+
+          return `${parsedC.lockedColumn ? '$' : ''}${parsedC.letter}${parsedC.lockedRow ? '$' : ''}${parsedC.rowNumber + increment}`
+        }
+
+        if (isLoopItem) {
+          let includeAll = false
+
+          if (
+            (type === 'newCellRef' && mode === 'rangeEnd') ||
+            (type === 'formulas' &&
+            originCellRef != null &&
+            !originIsLoopItem &&
+            mode === 'rangeEnd')
+          ) {
+            includeAll = true
+          }
+
+          newCellRef = getAfterIncrement(parsedCellRef, includeAll)
+        } else {
+          newCellRef = getAfterIncrement(parsedCellRef)
+        }
+      }
+    }
+
+    if (loopIndex != null) {
+      const parsedNewCellRef = parseCellRef(newCellRef)
+      let newRowNumber = parsedNewCellRef.rowNumber
+
+      // when in loop don't increase the row number for locked row references
+      if (!parsedNewCellRef.lockedRow) {
+        newRowNumber += loopIndex
+      }
+
+      newCellRef = `${parsedNewCellRef.lockedColumn ? '$' : ''}${parsedNewCellRef.letter}${parsedNewCellRef.lockedRow ? '$' : ''}${newRowNumber}`
+    }
+
+    return newCellRef
+  }
+
   if (
     arguments.length === 1 &&
     type === 'formulaIndex'
@@ -314,89 +423,19 @@ function xlsxSData (data, options) {
 
   if (
     arguments.length === 1 &&
-    (type === 'mergeCells' || type === 'formulas')
+    (type === 'newCellRef' || type === 'mergeCells' || type === 'formulas')
   ) {
+    const updatedOriginalCells = optionsToUse.data.meta.updatedOriginalCells
     const loopItems = optionsToUse.data.loopItems
-    const targetItems = type === 'mergeCells' ? optionsToUse.data.meta.mergeCells : optionsToUse.data.meta.formulas
+    let targetItems = []
     const updated = []
 
-    const getNewCellRef = (cellRefInput, loopIndex, mode = 'standalone') => {
-      let cellRef
-      let originCellRef
-
-      if (Array.isArray(cellRefInput)) {
-        originCellRef = cellRefInput[0]
-        cellRef = cellRefInput[1]
-      } else {
-        cellRef = cellRefInput
-      }
-
-      const parsedCellRef = parseCellRef(cellRef)
-      const parsedOriginCellRef = originCellRef != null ? parseCellRef(originCellRef) : undefined
-      const normalizedCellRef = cellRef.replace('$', '')
-      let newCellRef = optionsToUse.data.meta.updatedOriginalCells[normalizedCellRef]
-
-      if (newCellRef == null) {
-        // if not found on original cells then do a check if we find
-        // matched loop items for the referenced row number
-        const matchedLoopItems = getMatchedLoopItems(parsedCellRef.rowNumber, loopItems)
-
-        if (matchedLoopItems.length === 0) {
-          newCellRef = cellRef
-        } else {
-          const isLoopItem = matchedLoopItems.find((item) => item.start === parsedCellRef.rowNumber) != null
-          const originIsLoopItem = parsedOriginCellRef == null ? false : matchedLoopItems.find((item) => item.start === parsedOriginCellRef.rowNumber) != null
-
-          const getAfterIncrement = (parsedC, all = false) => {
-            let filteredItems
-
-            if (all) {
-              filteredItems = matchedLoopItems
-            } else {
-              filteredItems = matchedLoopItems.filter((item) => item.start < parsedCellRef.rowNumber)
-            }
-
-            let increment = filteredItems.reduce((acu, item) => {
-              return acu + item.length
-            }, 0)
-
-            increment += (filteredItems.length * -1)
-
-            return `${parsedC.lockedColumn ? '$' : ''}${parsedC.letter}${parsedC.lockedRow ? '$' : ''}${parsedC.rowNumber + increment}`
-          }
-
-          if (isLoopItem) {
-            let includeAll = false
-
-            if (
-              type === 'formulas' &&
-              originCellRef != null &&
-              !originIsLoopItem &&
-              mode === 'rangeEnd'
-            ) {
-              includeAll = true
-            }
-
-            newCellRef = getAfterIncrement(parsedCellRef, includeAll)
-          } else {
-            newCellRef = getAfterIncrement(parsedCellRef)
-          }
-        }
-      }
-
-      if (loopIndex != null) {
-        const parsedNewCellRef = parseCellRef(newCellRef)
-        let newRowNumber = parsedNewCellRef.rowNumber
-
-        // when in loop don't increase the row number for locked row references
-        if (!parsedNewCellRef.lockedRow) {
-          newRowNumber += loopIndex
-        }
-
-        newCellRef = `${parsedNewCellRef.lockedColumn ? '$' : ''}${parsedNewCellRef.letter}${parsedNewCellRef.lockedRow ? '$' : ''}${newRowNumber}`
-      }
-
-      return newCellRef
+    if (type === 'newCellRef') {
+      targetItems = [{ value: optionsToUse.hash.originalCellRef }]
+    } else if (type === 'mergeCells') {
+      targetItems = optionsToUse.data.meta.mergeCells
+    } else {
+      targetItems = optionsToUse.data.meta.formulas
     }
 
     for (const targetItem of targetItems) {
@@ -407,20 +446,27 @@ function xlsxSData (data, options) {
         const isRange = _startingCellRef != null
         let newCellRef
 
+        const ctx = {
+          updatedOriginalCells,
+          loopItems
+        }
+
         if (isRange) {
           const startingCellRef = _startingCellRef.slice(0, -1)
-          const newStartingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, startingCellRef] : startingCellRef, targetItem.loopIndex, 'rangeStart')
-          const newEndingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopIndex, 'rangeEnd')
+          const newStartingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, startingCellRef] : startingCellRef, targetItem.loopIndex, 'rangeStart', ctx)
+          const newEndingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopIndex, 'rangeEnd', ctx)
 
           return `${newStartingCellRef}:${newEndingCellRef}`
         } else {
-          newCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopIndex)
+          newCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopIndex, 'standalone', ctx)
         }
 
         return newCellRef
       })
 
-      if (type === 'mergeCells') {
+      if (type === 'newCellRef') {
+        updated.push(newValue)
+      } else if (type === 'mergeCells') {
         updated.push(`<mergeCell ref="${newValue}" />`)
       } else {
         updated.push(`<f>${newValue}</f>`)

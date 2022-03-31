@@ -1,4 +1,5 @@
-const { nodeListToArray, isWorksheetFile, parseCellRef } = require('../utils')
+const path = require('path')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, parseCellRef } = require('../utils')
 const regexp = /{{#each ([^{}]{0,500})}}/
 
 module.exports = (files) => {
@@ -46,18 +47,24 @@ module.exports = (files) => {
   const sharedStringElsToClean = []
 
   for (const f of files.filter((f) => isWorksheetFile(f.path))) {
+    const sheetFilepath = f.path
+    const sheetFilename = path.posix.basename(sheetFilepath)
     const sheetDoc = f.doc
     const sheetDataEl = sheetDoc.getElementsByTagName('sheetData')[0]
 
     if (sheetDataEl == null) {
-      throw new Error(`Could not find sheet data for sheet at ${f.path}`)
+      throw new Error(`Could not find sheet data for sheet at ${sheetFilepath}`)
     }
 
-    const sheetInfo = getSheetInfo(f.path, workbookSheetsEls, workbookRelsEls)
+    const sheetInfo = getSheetInfo(sheetFilepath, workbookSheetsEls, workbookRelsEls)
 
     if (sheetInfo == null) {
-      throw new Error(`Could not find sheet info for sheet at ${f.path}`)
+      throw new Error(`Could not find sheet info for sheet at ${sheetFilepath}`)
     }
+
+    const rowsEls = nodeListToArray(sheetDataEl.getElementsByTagName('row'))
+
+    const sheetRelsDoc = files.find((file) => isWorksheetRelsFile(sheetFilename, file.path))?.doc
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
     processOpeningTag(sheetDoc, sheetDataEl, "{{#xlsxSData type='root'}}")
@@ -66,9 +73,9 @@ module.exports = (files) => {
     // add <formulasUpdated> with a helper call so we can process and update
     // all the formulas references at the end of template processing
     const formulasUpdatedEl = sheetDoc.createElement('formulasUpdated')
-    const itemsEl = sheetDoc.createElement('items')
-    itemsEl.textContent = "{{xlsxSData type='formulas'}}"
-    formulasUpdatedEl.appendChild(itemsEl)
+    const formulasUpdatedItemsEl = sheetDoc.createElement('items')
+    formulasUpdatedItemsEl.textContent = "{{xlsxSData type='formulas'}}"
+    formulasUpdatedEl.appendChild(formulasUpdatedItemsEl)
     sheetDataEl.appendChild(formulasUpdatedEl)
 
     const mergeCellsEl = sheetDoc.getElementsByTagName('mergeCells')[0]
@@ -78,18 +85,18 @@ module.exports = (files) => {
       const mergeCellsUpdatedEl = sheetDoc.createElement('mergeCellsUpdated')
       // add <mergeCellsUpdated> with a helper call so we can process and update
       // all the merge cells references at the end of template processing
-      const itemsEl = sheetDoc.createElement('items')
+      const mergeCellsUpdatedItems = sheetDoc.createElement('items')
 
-      itemsEl.textContent = '{{xlsxSData type="mergeCells"}}'
+      mergeCellsUpdatedItems.textContent = '{{xlsxSData type="mergeCells"}}'
 
-      mergeCellsUpdatedEl.appendChild(itemsEl)
+      mergeCellsUpdatedEl.appendChild(mergeCellsUpdatedItems)
       sheetDataEl.appendChild(mergeCellsUpdatedEl)
     }
 
     const dimensionEl = sheetDoc.getElementsByTagName('dimension')[0]
 
-    if (dimensionEl != null) {
-      // we add the dimension tag into the sheetData to be able to update
+    if (dimensionEl != null && rowsEls.length > 0) {
+      // if sheetData has rows we add the dimension tag into the sheetData to be able to update
       // the ref by the handlebars
       const newDimensionEl = sheetDoc.createElement('dimensionUpdated')
       const refsParts = dimensionEl.getAttribute('ref').split(':')
@@ -98,7 +105,42 @@ module.exports = (files) => {
       sheetDataEl.appendChild(newDimensionEl)
     }
 
-    const rowsEls = nodeListToArray(sheetDataEl.getElementsByTagName('row'))
+    if (sheetRelsDoc != null) {
+      const relationshipEls = nodeListToArray(sheetRelsDoc.getElementsByTagName('Relationship'))
+      const tableRelEls = relationshipEls.filter((rel) => rel.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/table')
+
+      if (tableRelEls.length > 0) {
+        const newTablesUpdatedEl = sheetDoc.createElement('tablesUpdated')
+
+        for (const tableRelEl of tableRelEls) {
+          const newTableUpdatedEl = sheetDoc.createElement('tableUpdated')
+
+          const tablePath = path.posix.join(path.posix.dirname(sheetFilepath), tableRelEl.getAttribute('Target'))
+
+          newTableUpdatedEl.setAttribute('file', tablePath)
+
+          const tableDoc = files.find((file) => file.path === tablePath)?.doc
+
+          if (tableDoc == null) {
+            throw new Error(`Could not find table definition info for sheet at ${sheetFilepath}`)
+          }
+
+          newTableUpdatedEl.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRef='${tableDoc.documentElement.getAttribute('ref')}'}}`)
+
+          const autoFilterEl = tableDoc.getElementsByTagName('autoFilter')[0]
+
+          if (autoFilterEl != null) {
+            const newAutoFilterRef = sheetDoc.createElement('autoFilterRef')
+            newAutoFilterRef.setAttribute('ref', `{{xlsxSData type='newCellRef' originalCellRef='${autoFilterEl.getAttribute('ref')}'}}`)
+            newTableUpdatedEl.appendChild(newAutoFilterRef)
+          }
+
+          newTablesUpdatedEl.appendChild(newTableUpdatedEl)
+        }
+
+        sheetDataEl.appendChild(newTablesUpdatedEl)
+      }
+    }
 
     for (const rowEl of rowsEls) {
       let originalRowNumber = rowEl.getAttribute('r')
@@ -139,7 +181,7 @@ module.exports = (files) => {
           })
         }
 
-        const info = getCellInfo(cellEl, sharedStringsEls)
+        const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         if (
           info != null &&
@@ -209,7 +251,7 @@ module.exports = (files) => {
 
         // we should unset the cells that are using shared strings
         while (currentCell != null) {
-          const currentCellInfo = getCellInfo(currentCell, sharedStringsEls)
+          const currentCellInfo = getCellInfo(currentCell, sharedStringsEls, sheetFilepath)
 
           if (currentCellInfo != null) {
             if (currentCell === loopDetected.start.el) {
@@ -261,7 +303,7 @@ module.exports = (files) => {
       }
 
       for (const cellEl of contentDetectCellElsToHandle) {
-        const cellInfo = getCellInfo(cellEl, sharedStringsEls)
+        const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         cellEl.setAttribute('__detectCellContent__', 'true')
 
@@ -376,7 +418,7 @@ module.exports = (files) => {
 
       for (const { cellEl, cellRef } of formulaCellElsToHandle) {
         const newFormulaWrapperEl = sheetDoc.createElement('formulaUpdated')
-        const info = getCellInfo(cellEl, sharedStringsEls)
+        const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
         let fromLoop = false
 
         let formulaContent = `type='formula' originalCellRef='${cellRef}' originalFormula='${info.value}'`
@@ -440,7 +482,7 @@ function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {
   }
 }
 
-function getCellInfo (cellEl, sharedStringsEls) {
+function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
   let type
   let value
   let valueEl
@@ -501,10 +543,12 @@ function getCellInfo (cellEl, sharedStringsEls) {
         }
 
         if (sharedStringEl == null) {
-          throw new Error(`Unable to find shared string with index ${sharedIndex}`)
+          throw new Error(`Unable to find shared string with index ${sharedIndex}, sheet: ${sheetFilepath}`)
         }
 
-        const tEl = nodeListToArray(sharedStringEl.childNodes).find((el) => el.nodeName === 't')
+        // the "t" node can be also wrapped in <si> and <r> when the text is styled
+        // so we search for the first <t> node
+        const tEl = sharedStringEl.getElementsByTagName('t')[0]
 
         if (tEl != null) {
           value = tEl.textContent
@@ -559,7 +603,7 @@ function getCellInfo (cellEl, sharedStringsEls) {
     }
 
     const vEl = childEls.find((el) => el.nodeName === 'v')
-    const excelNumberAndDecimalRegExp = /^\d+(\.\d+)?(E-\d+)?$/
+    const excelNumberAndDecimalRegExp = /^-?\d+(\.\d+)?(E-\d+)?$/
 
     // finally checking if the cell is number value
     if (type == null && vEl != null && excelNumberAndDecimalRegExp.test(vEl.textContent)) {
@@ -571,7 +615,7 @@ function getCellInfo (cellEl, sharedStringsEls) {
   }
 
   if (value == null) {
-    throw new Error('Expected value to be found in cell')
+    throw new Error(`Expected value to be found in cell, sheet: ${sheetFilepath}`)
   }
 
   return {

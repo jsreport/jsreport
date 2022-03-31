@@ -120,6 +120,10 @@ function isWorksheetFile (filePath) {
   return path.posix.dirname(filePath) === 'xl/worksheets' && filePath.endsWith('.xml')
 }
 
+function isWorksheetRelsFile (sheetFilename, filePath) {
+  return filePath === `xl/worksheets/_rels/${sheetFilename}.rels`
+}
+
 function parseCellRef (cellRef) {
   const cellRefRegexp = /^(\$?[A-Z]+)(\$?\d+)$/
   const matches = cellRef.match(cellRefRegexp)
@@ -170,4 +174,5 @@ module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
 module.exports.nodeListToArray = nodeListToArray
 module.exports.isWorksheetFile = isWorksheetFile
+module.exports.isWorksheetRelsFile = isWorksheetRelsFile
 module.exports.parseCellRef = parseCellRef

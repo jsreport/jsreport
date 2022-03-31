@@ -228,5 +228,41 @@ module.exports = async (files) => {
         }
       )
     }
+
+    // check if we need to updates tables
+    sheetFile.data = await recursiveStringReplaceAsync(
+      sheetFile.data.toString(),
+      '<tablesUpdated>',
+      '</tablesUpdated>',
+      'g',
+      async (val, content, hasNestedMatch) => {
+        if (hasNestedMatch) {
+          return val
+        }
+
+        const doc = new DOMParser().parseFromString(val)
+        const tablesUpdatedEl = doc.documentElement
+        const tableUpdatedEls = nodeListToArray(tablesUpdatedEl.getElementsByTagName('tableUpdated'))
+
+        for (const tableUpdatedEl of tableUpdatedEls) {
+          const tableDoc = files.find((f) => f.path === tableUpdatedEl.getAttribute('file'))?.doc
+
+          if (tableDoc == null) {
+            continue
+          }
+
+          tableDoc.documentElement.setAttribute('ref', tableUpdatedEl.getAttribute('ref'))
+
+          const autoFilterEl = tableDoc.getElementsByTagName('autoFilter')[0]
+          const autoFilterRefUpdatedEl = nodeListToArray(tableUpdatedEl.childNodes).find((el) => el.nodeName === 'autoFilterRef')
+
+          if (autoFilterEl != null && autoFilterRefUpdatedEl != null) {
+            autoFilterEl.setAttribute('ref', autoFilterRefUpdatedEl.getAttribute('ref'))
+          }
+        }
+
+        return ''
+      }
+    )
   }
 }
