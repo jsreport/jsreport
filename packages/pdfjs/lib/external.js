@@ -19,6 +19,10 @@ module.exports = class ExternalDocument {
     if (acroFormRef) {
       this.acroFormObj = acroFormRef.object
     }
+    const namesRef = this.catalog.get('Names')
+    if (namesRef) {
+      this.namesObj = namesRef.object
+    }
 
     const info = parser.trailer.get('Info')
     if (info) {
@@ -77,6 +81,19 @@ module.exports = class ExternalDocument {
       await doc._writeObject(page)
 
       doc._pages.push(page.toReference())
+    }
+
+    if (this.namesObj) {
+      const namesObjects = []
+      Parser.addObjectsRecursive(namesObjects, this.namesObj)
+      for (const o of namesObjects) {
+        doc._registerObject(o)
+      }
+      const docNames = doc._namesObj.properties.get('EmbeddedFiles').get('Names')
+      doc._namesObj.properties.get('EmbeddedFiles').set('Names', new PDF.Array([
+        ...(this.namesObj.properties.get('EmbeddedFiles')?.get('Names') ?? []),
+        ...docNames
+      ]))
     }
 
     // merge in the acroform object

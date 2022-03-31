@@ -2,6 +2,7 @@ const removePages = require('./removePages')
 const mergePdfs = require('./mergePdfs')
 const parsePdf = require('./parsePdf')
 const addPages = require('./addPages')
+const addAttachment = require('./addAttachment')
 const { addSignaturePlaceholder, sign } = require('./sign')
 const processText = require('./processText')
 const pdfjs = require('@jsreport/pdfjs')
@@ -57,6 +58,10 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
 
     async removePages (pageNumbers) {
       currentBuffer = await removePages(currentBuffer, pageNumbers)
+    },
+
+    async addAttachment (buf, options) {
+      currentBuffer = await addAttachment(currentBuffer, buf, options)
     },
 
     toBuffer () {

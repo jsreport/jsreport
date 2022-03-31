@@ -106,9 +106,6 @@ class Document extends Readable {
     this._pagesObj = new PDF.Object('Pages')
     this._registerObject(this._pagesObj)
 
-    // init destinations name tree
-    this._destinations = new PDF.NameTree()
-
     // init outlines hierarchy
     this._outlines = []
 
@@ -147,6 +144,10 @@ class Document extends Readable {
 
     this._acroFormObj = new PDF.Object()
     this._acroFormObj.prop('Fields', new PDF.Array())
+
+    this._namesObj = new PDF.Object()
+    this._namesObj.prop('EmbeddedFiles', new PDF.Dictionary())
+    this._namesObj.properties.get('EmbeddedFiles').set('Names', new PDF.Array())
   }
 
   /// private API
@@ -586,12 +587,17 @@ class Document extends Readable {
       this._catalog = catalog
 
       catalog.prop('Pages', this._pagesObj.toReference())
-      if (this._destinations.length > 0) {
-        const destsObj = new PDF.Object()
-        destsObj.prop('Dests', this._destinations)
-        await this._writeObject(destsObj)
-        catalog.prop('Names', destsObj.toReference())
+
+      const namesObjects = []
+      Parser.addObjectsRecursive(namesObjects, this._namesObj)
+      for (const o of namesObjects) {
+        this._registerObject(o)
       }
+      for (const o of namesObjects) {
+        this._writeObject(o)
+      }
+      await this._writeObject(this._namesObj)
+      catalog.prop('Names', this._namesObj.toReference())
 
       if (this._destsObject) {
         await this._writeObject(this._destsObject)

@@ -7,6 +7,7 @@ const { extractSignature } = require('@jsreport/node-signpdf/dist/helpers')
 const processText = require('../lib/utils/processText.js')
 const should = require('should')
 const zlib = require('zlib')
+const { createHash } = require('crypto')
 
 describe('pdf utils', () => {
   let jsreport
@@ -2176,6 +2177,85 @@ describe('pdf utils', () => {
     const doc = new pdfjs.ExternalDocument(result.content)
     const acroForm = doc.catalog.get('AcroForm').object
     acroForm.properties.get('Fields').should.have.length(1)
+  })
+
+  it('jsreport.pdfUtils.addAttachment adds attachments to the pdf', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: 'content',
+        // content: `{{{pdfAttachment source=${Buffer.from('hello').toString('base64')}}}}`,
+        scripts: [{
+          content: `
+          async function afterRender(req, res) {
+            const jsreport = require('jsreport-proxy')  
+            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('first'), { name: 'first.txt', description: 'first description', modificationDate: new Date(), creationDate: new Date() })                   
+            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('second'), { name: 'second.txt' })                   
+          }
+          `
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+
+    const doc = new pdfjs.ExternalDocument(result.content)
+    const names = doc.catalog.get('Names').object
+    const embeddedFiles = names.properties.get('EmbeddedFiles')
+    const namesArray = embeddedFiles.get('Names')
+    namesArray[0].toString().should.be.eql('(first.txt)')
+    namesArray[2].toString().should.be.eql('(second.txt)')
+
+    const fileSpec = namesArray[1].object
+    fileSpec.properties.get('F').toString().should.be.eql('(first.txt)')
+    fileSpec.properties.get('Type').toString().should.be.eql('/Filespec')
+    fileSpec.properties.get('Desc').toString().should.be.eql('(first description)')
+
+    const ef = fileSpec.properties.get('EF')
+    const f = ef.get('F').object
+    f.properties.get('Filter').toString().should.be.eql('/FlateDecode')
+    f.properties.get('Type').toString().should.be.eql('/EmbeddedFile')
+    f.properties.get('Length').toString().should.be.eql('13')
+    f.properties.get('Params').get('CreationDate').toString().should.startWith('(D:')
+    f.properties.get('Params').get('ModDate').toString().should.startWith('(D:')
+    f.properties.get('Params').get('Size').toString().should.be.eql(Buffer.from('first').length + '')
+    f.properties.get('Params').get('CheckSum').toString().should.be.eql(`(${createHash('md5').update(Buffer.from('first')).digest('hex')})`)
+    zlib.inflateSync(f.content.content).toString().should.be.eql('first')
+  })
+
+  it('jsreport.pdfUtils.addAttachment adds attachments to the pdf and dont get broken with append', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: 'content',
+        scripts: [{
+          content: `
+          async function afterRender(req, res) {
+            const jsreport = require('jsreport-proxy')  
+            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('first'), { name: 'first.txt', description: 'first description' })                               
+          }
+          `
+        }],
+        pdfOperations: [{
+          type: 'append',
+          template: {
+            content: 'append',
+            engine: 'handlebars',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+
+    const doc = new pdfjs.ExternalDocument(result.content)
+    const names = doc.catalog.get('Names').object
+    const embeddedFiles = names.properties.get('EmbeddedFiles')
+    const namesArray = embeddedFiles.get('Names')
+    namesArray[0].toString().should.be.eql('(first.txt)')
   })
 
   describe('processText with pdf from alpine', () => {
