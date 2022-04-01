@@ -31,7 +31,7 @@ module.exports = (app, reporter, exposedOptions) => {
   reporter.extensionsManager.extensions.forEach((e) => app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth })))
 
   function httpRender (renderRequestContent, req, res, stream, next) {
-    res.setTimeout((reporter.options.reportTimeout + reporter.options.reportTimeoutMargin) * 1.2)
+    res.setTimeout((reporter.getReportTimeout(req) + reporter.options.reportTimeoutMargin) * 1.2)
     res.setHeader('X-XSS-Protection', 0)
 
     const renderRequest = typeof renderRequestContent === 'string'

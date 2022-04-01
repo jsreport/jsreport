@@ -28,7 +28,7 @@ module.exports = (reporter, definition, request, response) => {
 
   request.template.phantomImage.format = { format: request.template.phantomImage.imageType, quality: request.template.phantomImage.quality }
   request.template.phantomImage.html = response.content
-  request.template.phantomImage.timeout = reporter.options.reportTimeout
+  request.template.phantomImage.timeout = reporter.getReportTimeout(request)
 
   request.template.phantomImage.waitForJSVarName = 'JSREPORT_READY_TO_START'
 

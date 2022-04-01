@@ -50,7 +50,7 @@ module.exports = (reporter, definition, request, response) => {
 
   request.template.phantom.html = response.content.toString()
 
-  request.template.phantom.timeout = reporter.options.reportTimeout
+  request.template.phantom.timeout = reporter.getReportTimeout(request)
 
   if (request.template.phantom.customPhantomJS === true) {
     request.template.phantom.phantomPath = require.main.require('phantomjs-prebuilt').path

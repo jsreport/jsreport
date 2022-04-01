@@ -119,7 +119,7 @@ module.exports = async (reporter, definition, req, res) => {
 
   const result = await htmlToXlsxProcess(
     {
-      timeout: reporter.options.reportTimeout,
+      timeout: reporter.getReportTimeout(req),
       tmpDir: definition.options.tmpDir,
       htmlEngine: htmlToXlsxOptions.htmlEngine,
       html: res.content.toString(),

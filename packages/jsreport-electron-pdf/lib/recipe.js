@@ -39,7 +39,7 @@ module.exports = (reporter, definition) => async (request, response) => {
   }))
 
   request.template.electron = request.template.electron || {}
-  request.template.electron.timeout = reporter.options.reportTimeout
+  request.template.electron.timeout = reporter.getReportTimeout(request)
 
   reporter.logger.debug('Electron Pdf recipe start.', request)
 

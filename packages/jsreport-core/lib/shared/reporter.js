@@ -52,6 +52,22 @@ class Reporter extends EventEmitter {
   }
 
   /**
+   * @public Ensures that we get the proper report timeout in case when custom timeout per request was enabled
+   */
+  getReportTimeout (req) {
+    if (
+      this.options.enableRequestReportTimeout &&
+      req != null &&
+      req.options != null &&
+      req.options.timeout != null
+    ) {
+      return req.options.timeout
+    }
+
+    return this.options.reportTimeout
+  }
+
+  /**
    * Ensures that the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory) exists by doing a mkdir call
    *
    * @public

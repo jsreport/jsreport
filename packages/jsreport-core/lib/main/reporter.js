@@ -366,7 +366,7 @@ class MainReporter extends Reporter {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)
 
       worker = await this._workersManager.allocate(req, {
-        timeout: this.options.reportTimeout
+        timeout: this.getReportTimeout()
       })
 
       if (options.abortEmitter) {
@@ -389,7 +389,7 @@ class MainReporter extends Reporter {
           req,
           data: {}
         }, {
-          timeout: this.options.reportTimeout
+          timeout: this.getReportTimeout()
         })
         req = result
       }
@@ -407,15 +407,7 @@ class MainReporter extends Reporter {
         }
       }
 
-      let reportTimeout = this.options.reportTimeout
-
-      if (
-        this.options.enableRequestReportTimeout &&
-        req.options &&
-        req.options.timeout != null
-      ) {
-        reportTimeout = req.options.timeout
-      }
+      const reportTimeout = this.getReportTimeout(req)
 
       await this.beforeRenderListeners.fire(req, res, { worker })
 
@@ -577,7 +569,9 @@ class MainReporter extends Reporter {
       return
     }
 
-    const threshold = this.options.reportTimeout > 180000 ? this.options.reportTimeout : 180000
+    const reportTimeout = this.getReportTimeout()
+
+    const threshold = reportTimeout > 180000 ? reportTimeout : 180000
 
     this.logger.info(`Starting temp files cleanup with ${threshold}ms threshold`)
 

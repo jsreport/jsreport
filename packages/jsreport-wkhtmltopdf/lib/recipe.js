@@ -215,7 +215,7 @@ function conversion (reporter, definition, parameters, request) {
 
   reporter.logger.debug('wkhtmltopdf  ' + parameters.join(' '), request)
 
-  const timeout = reporter.options.reportTimeout
+  const timeout = reporter.getReportTimeout(request)
 
   const execOptions = Object.assign({}, definition.options.execOptions)
 
