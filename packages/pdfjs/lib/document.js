@@ -626,6 +626,9 @@ class Document extends Readable {
       const acroFormObjects = []
       Parser.addObjectsRecursive(acroFormObjects, this._acroFormObj)
       for (const o of acroFormObjects) {
+        this._registerObject(o)
+      }
+      for (const o of acroFormObjects) {
         this._writeObject(o)
       }
 

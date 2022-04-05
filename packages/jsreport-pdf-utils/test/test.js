@@ -1989,6 +1989,60 @@ describe('pdf utils', () => {
     resetField.properties.get('A').get('Type').toString().should.be.eql('/Action')
   })
 
+  it('pdfFormField with checkbox type', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: `
+        <div style='margin-left:300px;margin-top:200px'>
+        {{{pdfFormField name='test' type='checkbox' visualType='square' width='150px' height='20px'}}}
+        </span>
+      `
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+    const acroForm = doc.catalog.get('AcroForm').object
+    acroForm.properties.get('DR').get('Font').get('ZaDb').should.be.ok()
+
+    const field = acroForm.properties.get('Fields')[0].object
+    field.properties.get('AS').toString().should.be.eql('/Off')
+    field.properties.get('DA').toString().should.be.eql('(/ZaDb 0 Tf 0 g)')
+
+    const apDictionary = field.properties.get('AP')
+    const yes = apDictionary.get('N').get('Yes').object
+
+    const content = zlib.unzipSync(yes.content.content).toString('latin1')
+    content.should.containEql('(n)')
+    apDictionary.get('N').get('Off').object.should.be.ok()
+  })
+
+  it('pdfFormField with checkbox type with default value', async () => {
+    const result = await jsreport.render({
+      template: {
+        recipe: 'chrome-pdf',
+        engine: 'handlebars',
+        content: `
+        <div style='margin-left:300px;margin-top:200px'>
+        {{{pdfFormField name='test' value=true defaultValue=true type='checkbox' visualType='square' width='150px' height='20px'}}}
+        </span>
+      `
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', result.content)
+    const doc = new pdfjs.ExternalDocument(result.content)
+    const acroForm = doc.catalog.get('AcroForm').object
+    acroForm.properties.get('DR').get('Font').get('ZaDb').should.be.ok()
+
+    const field = acroForm.properties.get('Fields')[0].object
+    field.properties.get('V').toString().should.be.eql('/Yes')
+    field.properties.get('AS').toString().should.be.eql('/Yes')
+    field.properties.get('MK').get('CA').toString().should.be.eql('(n)')
+  })
+
   it('pdfFormField with custom font shouldnt other loose text', async () => {
     const result = await jsreport.render({
       template: {
