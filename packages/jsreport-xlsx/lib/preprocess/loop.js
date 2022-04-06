@@ -1,15 +1,18 @@
 const path = require('path')
+const { num2col } = require('xlsx-coordinates')
 const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, parseCellRef } = require('../utils')
 const regexp = /{{#each ([^{}]{0,500})}}/
 
 module.exports = (files) => {
-  const workbookDoc = files.find((file) => file.path === 'xl/workbook.xml')?.doc
+  const workbookPath = 'xl/workbook.xml'
+  const workbookDoc = files.find((file) => file.path === workbookPath)?.doc
   const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels')?.doc
   const sharedStringsDoc = files.find((f) => f.path === 'xl/sharedStrings.xml')?.doc
   const calcChainDoc = files.find((f) => f.path === 'xl/calcChain.xml')?.doc
 
   const workbookCalcPrEl = workbookDoc.getElementsByTagName('calcPr')[0]
 
+  let stylesInfo = {}
   let workbookSheetsEls = []
   let workbookRelsEls = []
   let sharedStringsEls = []
@@ -21,6 +24,19 @@ module.exports = (files) => {
 
   if (workbookRelsDoc != null) {
     workbookRelsEls = nodeListToArray(workbookRelsDoc.getElementsByTagName('Relationship'))
+
+    const styleRel = workbookRelsEls.find((el) => el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles')
+
+    if (styleRel != null) {
+      const stylePath = path.posix.join(path.posix.dirname(workbookPath), styleRel.getAttribute('Target'))
+      const stylesDoc = files.find((file) => file.path === stylePath)?.doc
+
+      if (stylesDoc != null) {
+        stylesInfo = {
+          doc: stylesDoc
+        }
+      }
+    }
   }
 
   if (sharedStringsDoc != null) {
@@ -51,6 +67,7 @@ module.exports = (files) => {
     const sheetFilename = path.posix.basename(sheetFilepath)
     const sheetDoc = f.doc
     const sheetDataEl = sheetDoc.getElementsByTagName('sheetData')[0]
+    const colsEl = sheetDoc.getElementsByTagName('cols')[0]
 
     if (sheetDataEl == null) {
       throw new Error(`Could not find sheet data for sheet at ${sheetFilepath}`)
@@ -62,12 +79,15 @@ module.exports = (files) => {
       throw new Error(`Could not find sheet info for sheet at ${sheetFilepath}`)
     }
 
+    const sheetRelsDoc = files.find((file) => isWorksheetRelsFile(sheetFilename, file.path))?.doc
     const rowsEls = nodeListToArray(sheetDataEl.getElementsByTagName('row'))
 
-    const sheetRelsDoc = files.find((file) => isWorksheetRelsFile(sheetFilename, file.path))?.doc
+    // looking for comments in the sheet
+    const resultAutofitConfigured = findAutofitConfigured(sheetFilepath, sheetDoc, sheetRelsDoc, files)
+    const isAutofitConfigured = resultAutofitConfigured != null
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
-    processOpeningTag(sheetDoc, sheetDataEl, "{{#xlsxSData type='root'}}")
+    processOpeningTag(sheetDoc, sheetDataEl, `{{#xlsxSData type='root'${isAutofitConfigured ? ' autofit=true' : ''}}}`)
     processClosingTag(sheetDoc, sheetDataEl, '{{/xlsxSData}}')
 
     // add <formulasUpdated> with a helper call so we can process and update
@@ -142,8 +162,35 @@ module.exports = (files) => {
       }
     }
 
+    if (isAutofitConfigured) {
+      const tEls = nodeListToArray(resultAutofitConfigured.commentEl.getElementsByTagName('t'))
+      let shouldRemoveComment = false
+
+      if (tEls[0].textContent.endsWith(':')) {
+        const remainingText = tEls.slice(1).map((el) => el.textContent).join('')
+        const expectedRegexp = /^\r?\n?{{xlsxColAutofit}}$/
+        shouldRemoveComment = expectedRegexp.test(remainingText)
+      }
+
+      if (shouldRemoveComment) {
+        resultAutofitConfigured.commentEl.parentNode.removeChild(resultAutofitConfigured.commentEl)
+        resultAutofitConfigured.shapeEl.parentNode.removeChild(resultAutofitConfigured.shapeEl)
+      }
+
+      const newAutofitEl = sheetDoc.createElement('autofitUpdated')
+      newAutofitEl.textContent = '{{xlsxSData type="autofit"}}'
+      sheetDataEl.appendChild(newAutofitEl)
+
+      if (colsEl == null) {
+        const newColsEl = sheetDoc.createElement('cols')
+        newColsEl.textContent = 'placeholder for autofit'
+        sheetDataEl.parentNode.insertBefore(newColsEl, sheetDataEl)
+      }
+    }
+
     for (const rowEl of rowsEls) {
       let originalRowNumber = rowEl.getAttribute('r')
+      const standardCellElsToHandle = []
       const contentDetectCellElsToHandle = []
       const mergeCellElsToHandle = []
       const calcCellElsToHandle = []
@@ -181,6 +228,17 @@ module.exports = (files) => {
           })
         }
 
+        // check if the cell starts a merge cell, if yes
+        // then queue it to process it later
+        const mergeCellEl = mergeCellEls.find((mergeCellEl) => {
+          const ref = mergeCellEl.getAttribute('ref')
+          return ref.startsWith(`${cellRef}:`)
+        })
+
+        if (mergeCellEl != null) {
+          mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref') })
+        }
+
         const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         if (
@@ -191,6 +249,8 @@ module.exports = (files) => {
           // only do content detection for the cells with handlebars
           if (info.value.includes('{{') && info.value.includes('}}')) {
             contentDetectCellElsToHandle.push(cellEl)
+          } else if (isAutofitConfigured) {
+            standardCellElsToHandle.push(cellEl)
           }
 
           if (
@@ -228,17 +288,6 @@ module.exports = (files) => {
             cellRef,
             cellEl
           })
-        }
-
-        // check if the cell starts a merge cell, if yes
-        // then queue it to process it later
-        const mergeCellEl = mergeCellEls.find((mergeCellEl) => {
-          const ref = mergeCellEl.getAttribute('ref')
-          return ref.startsWith(`${cellRef}:`)
-        })
-
-        if (mergeCellEl != null) {
-          mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref') })
         }
       }
 
@@ -302,6 +351,16 @@ module.exports = (files) => {
         processClosingTag(sheetDoc, rowEl.nextSibling, '{{/xlsxSData}}')
       }
 
+      for (const cellEl of standardCellElsToHandle) {
+        const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
+        const fontSize = findCellFontSize(cellEl, stylesInfo)
+
+        // wrap the cell <v> into wrapper so we can check the value size for
+        // auto-size logic
+        processOpeningTag(sheetDoc, cellEl.firstChild, `{{#xlsxSData type='cellValue' value="${cellInfo.value}" fontSize=${fontSize}}}`)
+        processClosingTag(sheetDoc, cellEl.firstChild.nextSibling, '{{/xlsxSData}}')
+      }
+
       for (const cellEl of contentDetectCellElsToHandle) {
         const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
@@ -326,15 +385,18 @@ module.exports = (files) => {
         const handlebarsRegexp = /{{{?(#[a-z]+ )?([a-z]+[^\n\r}]*)}?}}/g
         const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
         const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
+        const fontSize = findCellFontSize(cellEl, stylesInfo)
 
         if (isSingleMatch) {
           const match = matches[0]
           const expressionValue = match[2]
 
-          cellValueWrapperEl.textContent = `{{#xlsxSData type='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}}}`
+          cellValueWrapperEl.textContent = `{{#xlsxSData type='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}`
         } else {
-          cellValueWrapperEl.textContent = "{{#xlsxSData type='cellValue'}}"
+          cellValueWrapperEl.textContent = "{{#xlsxSData type='cellValue'"
         }
+
+        cellValueWrapperEl.textContent += ` fontSize=${fontSize}}}`
 
         if (!isSingleMatch) {
           rawEl.textContent = `{{#xlsxSData type='cellValueRaw' }}${newTextValue}{{/xlsxSData}}`
@@ -626,6 +688,50 @@ function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
   }
 }
 
+function findCellFontSize (cellEl, styleInfo) {
+  let styleId = cellEl.getAttribute('s')
+
+  if (styleId != null && styleId !== '') {
+    styleId = parseInt(styleId, 10)
+  } else {
+    styleId = 0
+  }
+
+  const cellXfsEls = styleInfo.cellXfsEls ?? nodeListToArray(styleInfo.doc.getElementsByTagName('cellXfs')[0]?.getElementsByTagName('xf'))
+  const cellStyleXfsEls = styleInfo.cellStyleXfsEls ?? nodeListToArray(styleInfo.doc.getElementsByTagName('cellStyleXfs')[0]?.getElementsByTagName('xf'))
+  const fontEls = styleInfo.fontEls ?? nodeListToArray(styleInfo.doc.getElementsByTagName('fonts')[0]?.getElementsByTagName('font'))
+
+  const selectedXfEl = cellXfsEls[styleId]
+
+  let fontId = selectedXfEl.getAttribute('fontId')
+  const applyFont = selectedXfEl.getAttribute('applyFont')
+  const xfId = selectedXfEl.getAttribute('xfId')
+
+  if (
+    applyFont == null ||
+    applyFont === '' ||
+    applyFont === '0'
+  ) {
+    const selectedStyleXfEl = cellStyleXfsEls[xfId]
+    const nestedFontId = selectedStyleXfEl.getAttribute('fontId')
+    const nestedApplyFont = selectedStyleXfEl.getAttribute('applyFont')
+
+    if (
+      nestedApplyFont == null ||
+      nestedApplyFont === '' ||
+      nestedApplyFont === '1'
+    ) {
+      fontId = nestedFontId
+    }
+  }
+
+  const fontEl = fontEls[fontId]
+  const sizeEl = fontEl.getElementsByTagName('sz')[0]
+
+  // size stored in xlsx is in pt
+  return parseFloat(sizeEl.getAttribute('val'))
+}
+
 function findCellElInCalcChain (sheetId, cellRef, calcChainEls) {
   const foundIndex = calcChainEls.findIndex((el) => {
     return el.getAttribute('r') === cellRef && el.getAttribute('i') === sheetId
@@ -638,6 +744,115 @@ function findCellElInCalcChain (sheetId, cellRef, calcChainEls) {
   const cellEl = calcChainEls[foundIndex]
 
   return cellEl
+}
+
+function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
+  let foundEl
+  const legacyDrawingEls = nodeListToArray(sheetDoc.getElementsByTagName('legacyDrawing'))
+  const relationshipEls = sheetRelsDoc == null ? [] : nodeListToArray(sheetRelsDoc.getElementsByTagName('Relationship'))
+  const commentRelEl = relationshipEls.find((el) => el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments')
+
+  let commentsDoc
+
+  if (commentRelEl != null) {
+    const commentsFilePath = path.posix.join(path.posix.dirname(sheetFilepath), commentRelEl.getAttribute('Target'))
+    commentsDoc = files.find((file) => file.path === commentsFilePath)?.doc
+  }
+
+  if (commentsDoc == null) {
+    return foundEl
+  }
+
+  const commentEls = nodeListToArray(commentsDoc.getElementsByTagName('comment'))
+
+  for (const legacyDrawingEl of legacyDrawingEls) {
+    const rId = legacyDrawingEl.getAttribute('r:id')
+
+    if (rId == null) {
+      continue
+    }
+
+    const relationshipEl = relationshipEls.find((el) => {
+      return el.getAttribute('Id') === rId && el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing'
+    })
+
+    if (relationshipEl == null) {
+      continue
+    }
+
+    const vmlDrawingFilePath = path.posix.join(path.posix.dirname(sheetFilepath), relationshipEl.getAttribute('Target'))
+    const vmlDrawingDoc = files.find((file) => file.path === vmlDrawingFilePath)?.doc
+
+    if (vmlDrawingDoc == null) {
+      continue
+    }
+
+    const vShapeEls = nodeListToArray(vmlDrawingDoc.getElementsByTagName('v:shape'))
+
+    for (const vShapeEl of vShapeEls) {
+      const vClientDataEl = vShapeEl.getElementsByTagName('x:ClientData')[0]
+
+      if (vClientDataEl == null) {
+        continue
+      }
+
+      const type = vClientDataEl.getAttribute('ObjectType')
+
+      if (type !== 'Note') {
+        continue
+      }
+
+      const vClientDataRowEl = vClientDataEl.getElementsByTagName('x:Row')[0]
+      const vClientDataColumnEl = vClientDataEl.getElementsByTagName('x:Column')[0]
+
+      if (vClientDataRowEl == null || vClientDataColumnEl == null) {
+        continue
+      }
+
+      const rowIdx = parseInt(vClientDataRowEl.textContent, 10)
+      const columnIdx = parseInt(vClientDataColumnEl.textContent, 10)
+
+      if (rowIdx !== 0 || columnIdx !== 0) {
+        continue
+      }
+
+      const expectedRef = `${num2col(columnIdx)}${rowIdx + 1}`
+
+      const commentEl = commentEls.find((el) => {
+        return el.getAttribute('ref') === expectedRef
+      })
+
+      if (commentEl == null) {
+        continue
+      }
+
+      const textEl = nodeListToArray(commentEl.childNodes).find((el) => el.nodeName === 'text')
+
+      if (textEl == null) {
+        continue
+      }
+
+      const tEls = nodeListToArray(textEl.getElementsByTagName('t'))
+
+      for (const tEl of tEls) {
+        if (tEl.textContent.startsWith('{{xlsxColAutofit')) {
+          foundEl = {
+            row: rowIdx,
+            column: columnIdx,
+            shapeEl: vShapeEl,
+            commentEl: commentEl
+          }
+          break
+        }
+      }
+
+      if (foundEl != null) {
+        break
+      }
+    }
+  }
+
+  return foundEl
 }
 
 function processOpeningTag (doc, refElement, helperCall) {

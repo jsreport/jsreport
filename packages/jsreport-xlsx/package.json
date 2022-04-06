@@ -39,6 +39,7 @@
     "msexcel-builder-extended": "0.0.8",
     "node.extend.without.arrays": "1.1.6",
     "semaphore-async-await": "1.5.1",
+    "string-pixel-width": "1.10.0",
     "string-replace-async": "2.0.0",
     "unescape": "1.0.1",
     "uuid": "8.3.2",

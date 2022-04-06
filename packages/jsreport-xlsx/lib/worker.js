@@ -19,6 +19,11 @@ module.exports = (reporter, definition) => {
     path: require.resolve('xml2js-preserve-spaces')
   })
 
+  reporter.options.sandbox.modules.push({
+    alias: 'string-pixel-width',
+    path: require.resolve('string-pixel-width')
+  })
+
   if (reporter.options.sandbox.allowedModules !== '*') {
     reporter.options.sandbox.allowedModules.push('path')
   }

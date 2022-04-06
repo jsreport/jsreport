@@ -1,5 +1,9 @@
 /* eslint no-unused-vars: 0 */
 
+function xlsxColAutofit (options) {
+  return ''
+}
+
 function xlsxChart (options) {
   const Handlebars = require('handlebars')
 
@@ -42,7 +46,12 @@ function xlsxSData (data, options) {
     type === 'root'
   ) {
     const newData = Handlebars.createFrame({})
+
     newData.meta = {
+      autofit: {
+        cols: {},
+        enabled: optionsToUse.hash.autofit === true
+      },
       mergeCells: [],
       formulas: [],
       updatedOriginalCells: {},
@@ -161,6 +170,9 @@ function xlsxSData (data, options) {
       newData.rowNumber = originalRowNumber + increment
     }
 
+    newData.columnLetter = null
+    newData.currentCellRef = null
+
     return optionsToUse.fn(this, { data: newData })
   }
 
@@ -202,6 +214,9 @@ function xlsxSData (data, options) {
       optionsToUse.data.meta.updatedOriginalCells[originalCellRef] = updatedCellRef
     }
 
+    optionsToUse.data.columnLetter = parsedOriginalCellRef.letter
+    optionsToUse.data.currentCellRef = updatedCellRef
+
     return updatedCellRef
   }
 
@@ -217,7 +232,31 @@ function xlsxSData (data, options) {
       newData.currentCellValueInfo.value = optionsToUse.hash.value
     }
 
-    return optionsToUse.fn(this, { data: newData })
+    const result = optionsToUse.fn(this, { data: newData })
+
+    if (newData.meta.autofit.enabled) {
+      const pixelWidth = require('string-pixel-width')
+      const fontSize = optionsToUse.hash.fontSize
+      const fontSizeInPx = fontSize * (96 / 72)
+      const currentValue = newData.currentCellValueInfo.value
+      const maxInfo = newData.meta.autofit.cols[newData.columnLetter]
+
+      const size = pixelWidth(currentValue, { font: 'Arial', size: fontSizeInPx })
+
+      if (maxInfo == null) {
+        newData.meta.autofit.cols[newData.columnLetter] = {
+          value: currentValue,
+          size
+        }
+      } else if (size > maxInfo.size) {
+        newData.meta.autofit.cols[newData.columnLetter] = {
+          value: currentValue,
+          size
+        }
+      }
+    }
+
+    return result
   }
 
   if (
@@ -280,6 +319,20 @@ function xlsxSData (data, options) {
     }
 
     return new Handlebars.SafeString(result)
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'autofit'
+  ) {
+    const result = []
+    const autofitInfo = optionsToUse.data.meta.autofit
+
+    for (const [colLetter, colInfo] of Object.entries(autofitInfo.cols)) {
+      result.push(`<col ref="${colLetter}" size="${colInfo.size}" />`)
+    }
+
+    return new Handlebars.SafeString(result.join('\n'))
   }
 
   const getNewCellRef = (cellRefInput, loopIndex, mode = 'standalone', context) => {
