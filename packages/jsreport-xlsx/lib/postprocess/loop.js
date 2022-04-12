@@ -316,7 +316,7 @@ module.exports = async (files) => {
           }
 
           for (const [colLetter, colPxSize] of Object.entries(autofitCols)) {
-            const colSizeInNumberCharactersMDW = colPxSize / 7
+            const colSizeInNumberCharactersMDW = (colPxSize / 6.5) + 2 // 2 is for padding
             const colNumber = col2num(colLetter) + 1
 
             const existingColEl = existingColEls.find((el) => (
