@@ -7,12 +7,22 @@ import storeMethods from '../../redux/methods'
 import { actions as settingsActions } from '../../redux/settings'
 import moment from 'moment'
 import * as configuration from '../../lib/configuration'
+import EntityRefSelect from '../../components/common/EntityRefSelect'
 
 class Profiler extends Component {
-  constructor () {
+  constructor (props) {
     super()
-    this.state = { profiles: [], fullProfilingEnabled: false }
+    this.state = { profiles: [], fullProfilingEnabled: false, filterState: props.tab.filterState, filterTemplatesShortids: [] }
   }
+
+  /* static getDerivedStateFromProps (props, state) {
+    if (props.tab.filterState !== state.filterState) {
+      return {
+        filterState: props.tab.filterState
+      }
+    }
+    return null
+  } */
 
   componentDidMount () {
     this.loadProfiles()
@@ -26,27 +36,49 @@ class Profiler extends Component {
   }
 
   async loadProfiles () {
-    const response = await api.get('/odata/profiles?$top=1000&$orderby=timestamp desc')
-    this.setState({
-      profiles: response.value.map(p => {
-        let template = storeMethods.getEntityByShortid(p.templateShortid, false)
+    if (this.profilesLoading) {
+      return
+    }
 
-        if (!template) {
-          template = { name: 'anonymous', path: 'anonymous' }
-        } else {
-          template = { ...template, path: storeMethods.resolveEntityPath(template) }
-        }
+    this.profilesLoading = true
+    try {
+      const url = '/odata/profiles?$top=500&$orderby=timestamp desc'
+      let filter = ''
+      if (this.state.filterState) {
+        filter += `&$filter=state eq '${this.state.filterState}'`
+      }
+      if (this.state.filterTemplatesShortids.length > 0) {
+        const templatesFilter = this.state.filterTemplatesShortids.map(s => `templateShortid eq '${s}'`).join(' or ')
+        filter += filter ? ` and (${templatesFilter})` : `&$filter=${templatesFilter}`
+      }
+      const response = await api.get(url + filter)
+      this.setState({
+        profiles: response.value.map(p => {
+          let template = storeMethods.getEntityByShortid(p.templateShortid, false)
 
-        return {
-          ...p,
-          template
-        }
+          if (!template) {
+            template = { name: 'anonymous', path: 'anonymous' }
+          } else {
+            template = { ...template, path: storeMethods.resolveEntityPath(template) }
+          }
+
+          return {
+            ...p,
+            template
+          }
+        })
       })
-    })
+    } finally {
+      this.profilesLoading = false
+    }
   }
 
   componentWillUnmount () {
     clearInterval(this._interval)
+  }
+
+  componentDidUpdate () {
+    this.loadProfiles()
   }
 
   stateStyle (state) {
@@ -68,6 +100,10 @@ class Profiler extends Component {
     }
 
     if (state === 'running') {
+      style.backgroundColor = '#007acc'
+    }
+
+    if (state === 'queued') {
       style.backgroundColor = '#007acc'
     }
 
@@ -162,6 +198,19 @@ class Profiler extends Component {
     })
   }
 
+  filterStateChanged (ev) {
+    this.setState({
+      filterState: ev.target.value === '__blank' ? null : ev.target.value
+    })
+  }
+
+  filterTemplatesChanged (selected) {
+    console.log('chaning', selected)
+    this.setState({
+      filterTemplatesShortids: selected.map((t) => t.shortid)
+    })
+  }
+
   render () {
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
@@ -202,6 +251,41 @@ class Profiler extends Component {
               />
               <span>Disabled profiling</span>
             </label>
+          </div>
+          <div>
+            <hr />
+          </div>
+          <div style={{ marginTop: '1rem' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>state</th>
+                  <th>templates</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ width: '7rem' }}>
+                    <select style={{ marginLeft: '0.5rem' }} defaultValue={this.state.filterState} onChange={(ev) => this.filterStateChanged(ev)}>
+                      <option value='__blank'> </option>
+                      <option>success</option>
+                      <option>error</option>
+                      <option>running</option>
+                      <option>queued</option>
+                    </select>
+                  </td>
+                  <td style={{ minWidth: '15rem' }}>
+                    <EntityRefSelect
+                      headingLabel='Select template'
+                      filter={(references) => ({ templates: references.templates })}
+                      value={this.state.filterTemplatesShortids}
+                      onChange={(selected) => this.filterTemplatesChanged(selected)}
+                      multiple
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
         {this.renderProfiles(this.state.profiles)}

@@ -28,7 +28,6 @@ const Reporter = require('../shared/reporter')
 const Request = require('./request')
 const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
-const Monitoring = require('./monitoring')
 const migrateXlsxTemplatesToAssets = require('./migration/xlsxTemplatesToAssets')
 const migrateResourcesToAssets = require('./migration/resourcesToAssets')
 const semver = require('semver')
@@ -184,7 +183,6 @@ class MainReporter extends Reporter {
       blobStorageActions(this)
       Templates(this)
       Profiler(this)
-      Monitoring(this)
 
       this.folders = Object.assign(this.folders, Folders(this))
 
@@ -270,8 +268,6 @@ class MainReporter extends Reporter {
       this.extensionsManager.engines.push({
         name: 'none'
       })
-
-      this.monitoring.init()
 
       this.logger.info('reporter initialized')
       this._initialized = true
