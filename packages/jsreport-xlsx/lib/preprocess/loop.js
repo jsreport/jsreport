@@ -188,8 +188,13 @@ module.exports = (files) => {
       }
     }
 
-    for (const rowEl of rowsEls) {
+    const loopsDetected = []
+
+    const lastRowIdx = rowsEls.length - 1
+
+    for (const [rowIdx, rowEl] of rowsEls.entries()) {
       let originalRowNumber = rowEl.getAttribute('r')
+      const isLastRow = rowIdx === lastRowIdx
       const standardCellElsToHandle = []
       const contentDetectCellElsToHandle = []
       const mergeCellElsToHandle = []
@@ -210,7 +215,6 @@ module.exports = (files) => {
       rowEl.setAttribute('r', "{{xlsxSData type='rowNumber'}}")
 
       const cellsEls = nodeListToArray(rowEl.getElementsByTagName('c'))
-      let loopDetected
 
       for (const cellEl of cellsEls) {
         const cellRef = cellEl.getAttribute('r')
@@ -239,6 +243,7 @@ module.exports = (files) => {
           mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref') })
         }
 
+        const currentLoopDetected = loopsDetected[loopsDetected.length - 1]
         const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
         if (
@@ -254,25 +259,33 @@ module.exports = (files) => {
           }
 
           if (
-            loopDetected != null &&
+            currentLoopDetected != null &&
             info.value.includes('{{/each}}')
           ) {
-            loopDetected.end = {
+            currentLoopDetected.end = {
               el: cellEl,
               cellRef,
-              info
+              info,
+              originalRowNumber
+            }
+
+            if (currentLoopDetected.end.originalRowNumber === currentLoopDetected.start.originalRowNumber) {
+              currentLoopDetected.type = 'row'
             }
           } else if (
             info.value.includes('{{#each') &&
             !info.value.includes('{{/each}}')
           ) {
-            loopDetected = {
+            loopsDetected.push({
+              // TODO: change this to "block" when we are to reveal the block loop support
+              type: 'row',
               start: {
                 el: cellEl,
                 cellRef,
-                info
+                info,
+                originalRowNumber
               }
-            }
+            })
           }
         } else if (
           info != null &&
@@ -291,19 +304,22 @@ module.exports = (files) => {
         }
       }
 
-      if (loopDetected != null && loopDetected.end == null) {
+      const rowLoops = loopsDetected.filter((l) => l.type === 'row' && l.start.originalRowNumber === originalRowNumber)
+      const invalidRowLoop = rowLoops.find((l) => l.end == null)
+
+      if (invalidRowLoop != null) {
         throw new Error(`Unable to find end of loop (#each) in ${f.path}. {{/each}} is missing`)
       }
 
-      if (loopDetected != null) {
-        let currentCell = loopDetected.start.el
+      for (const currentRowLoopDetected of rowLoops) {
+        let currentCell = currentRowLoopDetected.start.el
 
         // we should unset the cells that are using shared strings
         while (currentCell != null) {
           const currentCellInfo = getCellInfo(currentCell, sharedStringsEls, sheetFilepath)
 
           if (currentCellInfo != null) {
-            if (currentCell === loopDetected.start.el) {
+            if (currentCell === currentRowLoopDetected.start.el) {
               if (currentCellInfo.type === 's') {
                 sharedStringElsToClean.push(currentCellInfo.valueEl)
               } else {
@@ -311,7 +327,7 @@ module.exports = (files) => {
               }
             }
 
-            if (currentCell === loopDetected.end.el) {
+            if (currentCell === currentRowLoopDetected.end.el) {
               if (currentCellInfo.type === 's') {
                 sharedStringElsToClean.push(currentCellInfo.valueEl)
               } else {
@@ -320,25 +336,25 @@ module.exports = (files) => {
             }
           }
 
-          if (currentCell === loopDetected.end.el) {
+          if (currentCell === currentRowLoopDetected.end.el) {
             currentCell = null
           } else {
             currentCell = currentCell.nextSibling
           }
         }
 
-        const rowEl = loopDetected.start.el.parentNode
-        const loopHelperCall = loopDetected.start.info.value.match(regexp)[0]
+        const rowEl = currentRowLoopDetected.start.el.parentNode
+        const loopHelperCall = currentRowLoopDetected.start.info.value.match(regexp)[0]
 
-        if (loopDetected.start.el.previousSibling != null) {
+        if (currentRowLoopDetected.start.el.previousSibling != null) {
           // we include a if condition to preserve the cells that are before the each
           processOpeningTag(sheetDoc, cellsEls[0], '{{#if @first}}')
-          processClosingTag(sheetDoc, loopDetected.start.el.previousSibling, '{{/if}}')
+          processClosingTag(sheetDoc, currentRowLoopDetected.start.el.previousSibling, '{{/if}}')
         }
 
-        if (loopDetected.end.el.nextSibling != null) {
+        if (currentRowLoopDetected.end.el.nextSibling != null) {
           // we include a if condition to preserve the cells that are after the each
-          processOpeningTag(sheetDoc, loopDetected.end.el.nextSibling, '{{#if @first}}')
+          processOpeningTag(sheetDoc, currentRowLoopDetected.end.el.nextSibling, '{{#if @first}}')
           processClosingTag(sheetDoc, cellsEls[cellsEls.length - 1], '{{/if}}')
         }
 
@@ -349,6 +365,37 @@ module.exports = (files) => {
 
         // we want to put the loop wrapper around the row wrapper
         processClosingTag(sheetDoc, rowEl.nextSibling, '{{/xlsxSData}}')
+      }
+
+      const blockLoops = loopsDetected.filter((l) => l.type === 'block' && l.end?.originalRowNumber === originalRowNumber)
+
+      if (isLastRow) {
+        const invalidBlockLoop = blockLoops.find((l) => l.end == null)
+
+        if (invalidBlockLoop) {
+          throw new Error(`Unable to find end of block loop (#each) in ${f.path}. {{/each}} is missing`)
+        }
+      }
+
+      for (const currentBlockLoopDetected of blockLoops) {
+        // we should unset the cells that are using shared strings
+        // TODO: add implementation here
+
+        // TODO: add condition to render only on the left of block starting row
+
+        // TODO: add condition to render only on the right of block ending row
+
+        const startingRowEl = currentBlockLoopDetected.start.el.parentNode
+        const endingRowEl = currentBlockLoopDetected.end.el.parentNode
+        const loopHelperCall = currentBlockLoopDetected.start.info.value.match(regexp)[0]
+
+        // we want to put the loop wrapper around the start row wrapper
+        processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(regexp, (match, valueInsideEachCall) => {
+          return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${currentBlockLoopDetected.start.originalRowNumber} end=${currentBlockLoopDetected.end.originalRowNumber} }}`
+        }))
+
+        // we want to put the loop wrapper around the row wrapper
+        processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/xlsxSData}}')
       }
 
       for (const cellEl of standardCellElsToHandle) {
@@ -368,9 +415,12 @@ module.exports = (files) => {
 
         let newTextValue
 
-        if (loopDetected != null && cellEl === loopDetected.start.el) {
+        const isPartOfLoopStart = loopsDetected.find((l) => l.start.el === cellEl) != null
+        const isPartOfLoopEnd = loopsDetected.find((l) => l.end?.el === cellEl) != null
+
+        if (isPartOfLoopStart) {
           newTextValue = cellInfo.value.replace(regexp, '')
-        } else if (loopDetected != null && cellEl === loopDetected.end.el) {
+        } else if (isPartOfLoopEnd) {
           newTextValue = cellInfo.value.replace('{{/each}}', '')
         } else {
           newTextValue = cellInfo.value
@@ -428,9 +478,14 @@ module.exports = (files) => {
         let content = `type='mergeCell' originalCellRefRange='${ref}'`
         let fromLoop = false
 
+        const mergeStartCellRef = ref.split(':')[0]
+        const parsedMergeStart = parseCellRef(mergeStartCellRef)
+
+        const loopDetected = loopsDetected.find((l) => (
+          l.start.originalRowNumber === parsedMergeStart.rowNumber
+        ))
+
         if (loopDetected != null) {
-          const mergeStartCellRef = ref.split(':')[0]
-          const parsedMergeStart = parseCellRef(mergeStartCellRef)
           const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
 
@@ -483,10 +538,14 @@ module.exports = (files) => {
         const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
         let fromLoop = false
 
+        const parsedCell = parseCellRef(cellRef)
         let formulaContent = `type='formula' originalCellRef='${cellRef}' originalFormula='${info.value}'`
 
+        const loopDetected = loopsDetected.find((l) => (
+          l.start.originalRowNumber === parsedCell.rowNumber
+        ))
+
         if (loopDetected != null) {
-          const parsedCell = parseCellRef(cellRef)
           const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
 

@@ -66,6 +66,7 @@ function xlsxSData (data, options) {
     type === 'loop'
   ) {
     const start = optionsToUse.hash.start
+    const end = optionsToUse.hash.end
     const newData = Handlebars.createFrame(optionsToUse.data)
 
     if (start == null) {
@@ -84,7 +85,9 @@ function xlsxSData (data, options) {
     }
 
     newData.loopItems.push({
+      type: end == null ? 'row' : 'block',
       start,
+      end,
       length: targetData.length
     })
 
@@ -141,10 +144,23 @@ function xlsxSData (data, options) {
     } else {
       let increment = 0
 
-      const isLoopItem = matchedLoopItems.find((item) => item.start === originalRowNumber) != null
+      const currentLoopItem = matchedLoopItems.find((item) => {
+        if (item.type === 'block') {
+          return (
+            originalRowNumber >= item.start &&
+            originalRowNumber <= item.end
+          )
+        }
 
-      if (isLoopItem) {
+        return item.start === originalRowNumber
+      })
+
+      if (currentLoopItem) {
         const previousMatches = matchedLoopItems.filter((item) => {
+          if (item.type === 'block') {
+            return item.end < originalRowNumber
+          }
+
           return item.start < originalRowNumber
         })
 
@@ -152,15 +168,27 @@ function xlsxSData (data, options) {
 
         if (previousMatches.length > 0) {
           totalPrev = previousMatches.reduce((acu, item) => {
+            if (item.type === 'block') {
+              return acu + (((item.end - item.start) + 1) * item.length)
+            }
+
             return acu + item.length
           }, 0)
 
           totalPrev += (previousMatches.length * -1)
         }
 
-        increment = totalPrev + optionsToUse.data.index
+        if (currentLoopItem.type === 'block') {
+          increment = totalPrev + (((currentLoopItem.end - currentLoopItem.start) + 1) * optionsToUse.data.index)
+        } else {
+          increment = totalPrev + optionsToUse.data.index
+        }
       } else {
         increment = matchedLoopItems.reduce((acu, item) => {
+          if (item.type === 'block') {
+            return acu + (((item.end - item.start) + 1) * item.length)
+          }
+
           return acu + item.length
         }, 0)
 
@@ -361,6 +389,7 @@ function xlsxSData (data, options) {
         newCellRef = cellRef
       } else {
         const isLoopItem = matchedLoopItems.find((item) => item.start === parsedCellRef.rowNumber) != null
+
         const originIsLoopItem = parsedOriginCellRef == null ? false : matchedLoopItems.find((item) => item.start === parsedOriginCellRef.rowNumber) != null
 
         const getAfterIncrement = (parsedC, all = false) => {

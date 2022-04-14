@@ -664,6 +664,67 @@ describe('xlsx-next', () => {
     should(sheet['!ref']).be.eql(`C2:E${2 + items.length}`)
   })
 
+  it.skip('loop should repeat cells content that involves multiple rows', async () => {
+    const items = [{
+      name: 'Alexander',
+      lastname: 'Smith',
+      age: 32
+    }, {
+      name: 'John',
+      lastname: 'Doe',
+      age: 29
+    }, {
+      name: 'Jane',
+      lastname: 'Montana',
+      age: 23
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx-next',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'loop-multiple-rows.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        items
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql('')
+    should(sheet.B6.v).be.eql('')
+
+    should(sheet.C3.v).be.eql('Name')
+    should(sheet.D3.v).be.eql('Lastname')
+    should(sheet.E3.v).be.eql('Age')
+    should(sheet.C4.v).be.eql('Alexander')
+    should(sheet.D4.v).be.eql('Smith')
+    should(sheet.E4.v).be.eql(32)
+
+    should(sheet.C8.v).be.eql('Name')
+    should(sheet.D8.v).be.eql('Lastname')
+    should(sheet.E8.v).be.eql('Age')
+    should(sheet.C9.v).be.eql('John')
+    should(sheet.D9.v).be.eql('Doe')
+    should(sheet.E9.v).be.eql(29)
+
+    should(sheet.C13.v).be.eql('Name')
+    should(sheet.D13.v).be.eql('Lastname')
+    should(sheet.E13.v).be.eql('Age')
+    should(sheet.C14.v).be.eql('Jane')
+    should(sheet.D14.v).be.eql('Montana')
+    should(sheet.E14.v).be.eql(23)
+  })
+
   it('update existing merged cells after loop', async () => {
     const items = [{
       name: 'Alexander',
