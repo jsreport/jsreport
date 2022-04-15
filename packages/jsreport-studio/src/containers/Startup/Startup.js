@@ -195,7 +195,7 @@ class Startup extends Component {
 
     return (
       <div>
-        <h2>Failed requests <i className='fa fa-circle-o-notch fa-spin' style={{ display: loadingProfile ? 'inline-block' : 'none' }} /></h2>
+        <h2>last failed requests <i className='fa fa-circle-o-notch fa-spin' style={{ display: loadingProfile ? 'inline-block' : 'none' }} /></h2>
 
         <div>
           <table className='table'>
@@ -233,7 +233,7 @@ class Startup extends Component {
     const badgeStyle = {
       margin: '0.8rem',
       padding: '0.3rem',
-      width: '6.5rem',
+      width: '8.5rem',
       cursor: 'pointer'
     }
     const valueStyle = {
@@ -247,43 +247,42 @@ class Startup extends Component {
 
     return (
       <div>
-        <h2>Statistics</h2>
         <div style={{ display: 'flex' }}>
-          <button style={badgeStyle}>
+          <button className='button confirmation' style={badgeStyle}>
             <div style={labelStyle}>
-              templates
+              <i className='fa fa-file' />&nbsp;templates
             </div>
             <div style={valueStyle}>
               {this.state.stats.templates}
             </div>
           </button>
-          <button title='open profiler' style={badgeStyle} onClick={() => openProfiler('running')}>
+          <button className='button confirmation' title='open profiler' style={badgeStyle} onClick={() => openProfiler('running')}>
             <div style={labelStyle}>
-              running now
+              <i className='fa fa-play' />&nbsp; running
             </div>
             <div style={valueStyle}>
               {this.state.stats.running}
             </div>
           </button>
-          <button title='open profiler' style={badgeStyle} onClick={() => openProfiler('queued')}>
+          <button className='button confirmation' title='open profiler' style={badgeStyle} onClick={() => openProfiler('queued')}>
             <div style={labelStyle}>
-              queued now
+              <i className='fa fa-hourglass' />&nbsp; queued
             </div>
             <div style={valueStyle}>
               {this.state.stats.queued}
             </div>
           </button>
-          <button title='open profiler' style={badgeStyle} onClick={() => openProfiler('success')}>
+          <button className='button' title='open profiler' style={{ ...badgeStyle, backgroundColor: '#4CAF50' }} onClick={() => openProfiler('success')}>
             <div style={labelStyle}>
-              success last hour
+              <i className='fa fa-check' />&nbsp; last hour
             </div>
             <div style={valueStyle}>
               {this.state.stats.succesInHour}
             </div>
           </button>
-          <button title='open profiler' style={badgeStyle} onClick={() => openProfiler('error')}>
+          <button className='button' title='open profiler' style={{ ...badgeStyle, backgroundColor: '#da532c' }} onClick={() => openProfiler('error')}>
             <div style={labelStyle}>
-              failure last hour
+              <i className='fa fa-exclamation' />&nbsp; last hour
             </div>
             <div style={valueStyle}>
               {this.state.stats.failedInHour}
