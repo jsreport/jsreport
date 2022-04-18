@@ -23,6 +23,7 @@ describe('authentication', () => {
     })
     reporter.use(require('../')())
     reporter.use(require('@jsreport/jsreport-express')())
+    reporter.use(require('@jsreport/jsreport-studio')())
 
     await reporter.init()
 

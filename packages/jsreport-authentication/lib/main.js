@@ -235,58 +235,60 @@ function addPassport (reporter, app, admin, definition) {
     next()
   })
 
-  app.get('/login', (req, res, next) => {
-    if (!req.context.user) {
-      const viewModel = Object.assign({}, req.session.viewModel || {})
-      req.session.viewModel = null
-      return res.render(path.join(viewsPath, 'login.html'), {
-        viewModel: viewModel,
-        authServer: supportsAuthorizationServer
-          ? { name: authorizationServerAuth.name, autoConnect: req.query.authServerConnect != null }
-          : null,
-        options: reporter.options
-      })
-    } else {
-      next()
-    }
-  })
-
-  app.post('/login', bodyParser.urlencoded({ extended: true, limit: '2mb' }), (req, res, next) => {
-    if (req.query.returnUrl && absoluteUrlReg.test(req.query.returnUrl)) {
-      return res.status(400).end('Unsecure returnUrl')
-    }
-    req.session.viewModel = req.session.viewModel || {}
-
-    passport.authenticate('local', (err, user) => {
-      if (err && !err.authInfo) {
-        return next(err)
+  if (reporter.studio) {
+    app.get('/login', (req, res, next) => {
+      if (!req.context.user) {
+        const viewModel = Object.assign({}, req.session.viewModel || {})
+        req.session.viewModel = null
+        return res.render(path.join(viewsPath, 'login.html'), {
+          viewModel: viewModel,
+          authServer: supportsAuthorizationServer
+            ? { name: authorizationServerAuth.name, autoConnect: req.query.authServerConnect != null }
+            : null,
+          options: reporter.options
+        })
+      } else {
+        next()
       }
+    })
 
-      if (err || !user) {
-        const info = (err ? err.authInfo : undefined) || {}
-        req.session.viewModel.login = info.message
-        return res.redirect(reporter.options.appPath + '?returnUrl=' + encodeURIComponent(req.query.returnUrl || '/'))
+    app.post('/login', bodyParser.urlencoded({ extended: true, limit: '2mb' }), (req, res, next) => {
+      if (req.query.returnUrl && absoluteUrlReg.test(req.query.returnUrl)) {
+        return res.status(400).end('Unsecure returnUrl')
       }
+      req.session.viewModel = req.session.viewModel || {}
 
-      req.session.viewModel = {}
-
-      req.logIn(user, (err) => {
-        if (err) {
+      passport.authenticate('local', (err, user) => {
+        if (err && !err.authInfo) {
           return next(err)
         }
 
-        req.context.user = req.user = user
-        reporter.logger.info(`Logging in user ${user.name}`)
+        if (err || !user) {
+          const info = (err ? err.authInfo : undefined) || {}
+          req.session.viewModel.login = info.message
+          return res.redirect(reporter.options.appPath + '?returnUrl=' + encodeURIComponent(req.query.returnUrl || '/'))
+        }
 
-        return res.redirect(decodeURIComponent(req.query.returnUrl) || reporter.options.appPath)
-      })
-    })(req, res, next)
-  })
+        req.session.viewModel = {}
 
-  app.post('/logout', (req, res) => {
-    req.logout()
-    res.redirect(reporter.options.appPath)
-  })
+        req.logIn(user, (err) => {
+          if (err) {
+            return next(err)
+          }
+
+          req.context.user = req.user = user
+          reporter.logger.info(`Logging in user ${user.name}`)
+
+          return res.redirect(decodeURIComponent(req.query.returnUrl) || reporter.options.appPath)
+        })
+      })(req, res, next)
+    })
+
+    app.post('/logout', (req, res) => {
+      req.logout()
+      res.redirect(reporter.options.appPath)
+    })
+  }
 
   app.use((req, res, next) => {
     const apiAuthStrategies = ['basic']
@@ -467,6 +469,10 @@ function configureRoutes (reporter, app, admin, definition) {
     if (req.isAuthenticated() || req.isPublic) {
       return next()
     }
+    if (!reporter.studio) {
+      res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
+      return res.status(401).end()
+    }
 
     const viewModel = Object.assign({}, req.session.viewModel || {})
     req.session.viewModel = null
@@ -490,7 +496,7 @@ function configureRoutes (reporter, app, admin, definition) {
         return next()
       }
 
-      if (req.url.indexOf('/api') > -1 || req.url.indexOf('/odata') > -1) {
+      if (!reporter.studio || (req.url.indexOf('/api') > -1 || req.url.indexOf('/odata') > -1)) {
         res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
         return res.status(401).end()
       }
