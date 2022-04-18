@@ -1,5 +1,5 @@
 const extend = require('node.extend.without.arrays')
-const serialize = require('./serialize')
+const serialize = require('./transformation/serialize')
 
 module.exports = (reporter, definition) => {
   if (reporter.options.xlsx) {
@@ -26,10 +26,6 @@ module.exports = (reporter, definition) => {
 
   reporter.extensionsManager.recipes.push({
     name: 'xlsx'
-  })
-
-  reporter.extensionsManager.recipes.push({
-    name: 'xlsx-next'
   })
 
   reporter.documentStore.registerEntityType('XlsxTemplateType', {

@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import AssetUploadButton from './AssetUploadButton.js'
-import Studio, { FramePreview, TextEditor } from 'jsreport-studio'
+import Studio, { templateEditorModeResolvers, SplitPane, FramePreview, TextEditor } from 'jsreport-studio'
 import superagent from 'superagent'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import binaryExtensions from 'binary-extensions'
@@ -20,9 +20,15 @@ class AssetEditor extends Component {
   constructor (props) {
     super(props)
 
+    const defaultCodeActive = (
+      props.entity == null &&
+      props.codeEntity != null &&
+      Object.prototype.hasOwnProperty.call(props.codeEntity, 'content')
+    )
+
     this.state = {
       initialLoading: true,
-      helpersActive: false,
+      codeActive: defaultCodeActive,
       previewOpen: false,
       previewLoading: false
     }
@@ -194,7 +200,7 @@ class AssetEditor extends Component {
       this.setState({
         previewLoading: true,
         previewOpen: true,
-        helpersActive: false
+        codeActive: false
       })
     }
   }
@@ -232,8 +238,8 @@ class AssetEditor extends Component {
   }
 
   renderEditorToolbar () {
-    const { link, previewLoading, previewOpen, helpersActive } = this.state
-    const { entity, helpersEntity, displayName, icon, onDownload, onUpload } = this.props
+    const { link, previewLoading, previewOpen, codeActive } = this.state
+    const { entity, codeEntity, displayName, icon, onDownload, onUpload } = this.props
     const lazyPreview = this.getLazyPreviewStatus(entity)
     const previewEnabled = this.getPreviewEnabledStatus(entity)
     const embeddingCode = this.getEmbeddingCode(entity)
@@ -336,13 +342,13 @@ class AssetEditor extends Component {
               <i className='fa fa-times' />
             </button>
           )}
-          {helpersEntity != null && (
+          {codeEntity != null && (
             <button
-              className={`button ${helpersActive ? 'danger' : 'confirmation'}`}
+              className={`button ${codeActive ? 'danger' : 'confirmation'}`}
               onClick={() => this.setState((state) => {
                 const change = {}
 
-                if (state.helpersActive) {
+                if (state.codeActive) {
                   Studio.store.dispatch(Studio.entities.actions.flushUpdates())
                 } else {
                   change.previewOpen = false
@@ -350,9 +356,9 @@ class AssetEditor extends Component {
                   Studio.stopProgress()
                 }
 
-                return { helpersActive: !state.helpersActive, ...change }
+                return { codeActive: !state.codeActive, ...change }
               })}
-              title={`${helpersActive ? 'Hide' : 'Show'} helpers`}
+              title={`${codeActive ? 'Hide' : 'Show'} ${codeEntity.content != null ? 'content and helpers' : 'helpers'}`}
             >
               <i className='fa fa-code' />
             </button>
@@ -368,20 +374,43 @@ class AssetEditor extends Component {
   }
 
   renderEditorContent () {
-    const { entity, helpersEntity, emptyMessage, getPreviewContent, onUpdate } = this.props
-    const { helpersActive } = this.state
+    const { entity, codeEntity, emptyMessage, getPreviewContent, onUpdate } = this.props
+    const { codeActive } = this.state
 
-    if (helpersEntity != null && helpersActive) {
-      return (
-        <TextEditor
-          key={helpersEntity._id + '_helpers'}
-          name={helpersEntity._id + '_helpers'}
-          getFilename={() => `${helpersEntity.name} (helpers)`}
-          mode='javascript'
-          onUpdate={(v) => onUpdate(Object.assign({ _id: helpersEntity._id }, { helpers: v }))}
-          value={helpersEntity.helpers || ''}
-        />
-      )
+    const helpersEditor = (
+      <TextEditor
+        key={codeEntity._id + '_helpers'}
+        name={codeEntity._id + '_helpers'}
+        getFilename={() => `${codeEntity.name} (helpers)`}
+        mode='javascript'
+        onUpdate={(v) => onUpdate(Object.assign({ _id: codeEntity._id }, { helpers: v }))}
+        value={codeEntity.helpers || ''}
+      />
+    )
+
+    if (codeEntity != null && codeActive) {
+      if (Object.prototype.hasOwnProperty.call(codeEntity, 'content')) {
+        return (
+          <SplitPane
+            primary='second'
+            split='horizontal'
+            resizerClassName='resizer-horizontal'
+            defaultSize={(window.innerHeight * 0.2) + 'px'}
+          >
+            <TextEditor
+              key={codeEntity._id}
+              name={codeEntity._id}
+              getFilename={() => codeEntity.name}
+              mode={resolveTemplateEditorMode(codeEntity) || 'handlebars'}
+              onUpdate={(v) => onUpdate(Object.assign({ _id: entity._id }, { content: v }))}
+              value={codeEntity.content || ''}
+            />
+            {helpersEditor}
+          </SplitPane>
+        )
+      }
+
+      return helpersEditor
     }
 
     if (entity == null) {
@@ -516,6 +545,18 @@ class AssetEditor extends Component {
 
 AssetEditor.defaultProps = {
   icon: 'fa-file-o'
+}
+
+function resolveTemplateEditorMode (template) {
+  // eslint-disable-next-line
+  for (const k in templateEditorModeResolvers) {
+    const mode = templateEditorModeResolvers[k](template)
+    if (mode) {
+      return mode
+    }
+  }
+
+  return null
 }
 
 export default AssetEditor

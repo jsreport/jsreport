@@ -750,9 +750,11 @@ var AssetEditor = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, (AssetEditor.__proto__ || Object.getPrototypeOf(AssetEditor)).call(this, props));
 
+    var defaultCodeActive = props.entity == null && props.codeEntity != null && Object.prototype.hasOwnProperty.call(props.codeEntity, 'content');
+
     _this.state = {
       initialLoading: true,
-      helpersActive: false,
+      codeActive: defaultCodeActive,
       previewOpen: false,
       previewLoading: false
     };
@@ -1025,7 +1027,7 @@ var AssetEditor = function (_Component) {
         this.setState({
           previewLoading: true,
           previewOpen: true,
-          helpersActive: false
+          codeActive: false
         });
       }
     }
@@ -1093,10 +1095,10 @@ var AssetEditor = function (_Component) {
           link = _state.link,
           previewLoading = _state.previewLoading,
           previewOpen = _state.previewOpen,
-          helpersActive = _state.helpersActive;
+          codeActive = _state.codeActive;
       var _props = this.props,
           entity = _props.entity,
-          helpersEntity = _props.helpersEntity,
+          codeEntity = _props.codeEntity,
           displayName = _props.displayName,
           icon = _props.icon,
           onDownload = _props.onDownload,
@@ -1225,15 +1227,15 @@ var AssetEditor = function (_Component) {
             },
             _react2.default.createElement('i', { className: 'fa fa-times' })
           ),
-          helpersEntity != null && _react2.default.createElement(
+          codeEntity != null && _react2.default.createElement(
             'button',
             {
-              className: 'button ' + (helpersActive ? 'danger' : 'confirmation'),
+              className: 'button ' + (codeActive ? 'danger' : 'confirmation'),
               onClick: function onClick() {
                 return _this3.setState(function (state) {
                   var change = {};
 
-                  if (state.helpersActive) {
+                  if (state.codeActive) {
                     _jsreportStudio2.default.store.dispatch(_jsreportStudio2.default.entities.actions.flushUpdates());
                   } else {
                     change.previewOpen = false;
@@ -1241,10 +1243,10 @@ var AssetEditor = function (_Component) {
                     _jsreportStudio2.default.stopProgress();
                   }
 
-                  return _extends({ helpersActive: !state.helpersActive }, change);
+                  return _extends({ codeActive: !state.codeActive }, change);
                 });
               },
-              title: (helpersActive ? 'Hide' : 'Show') + ' helpers'
+              title: (codeActive ? 'Hide' : 'Show') + ' ' + (codeEntity.content != null ? 'content and helpers' : 'helpers')
             },
             _react2.default.createElement('i', { className: 'fa fa-code' })
           )
@@ -1274,26 +1276,53 @@ var AssetEditor = function (_Component) {
 
       var _props2 = this.props,
           entity = _props2.entity,
-          helpersEntity = _props2.helpersEntity,
+          codeEntity = _props2.codeEntity,
           emptyMessage = _props2.emptyMessage,
           getPreviewContent = _props2.getPreviewContent,
           _onUpdate = _props2.onUpdate;
-      var helpersActive = this.state.helpersActive;
+      var codeActive = this.state.codeActive;
 
 
-      if (helpersEntity != null && helpersActive) {
-        return _react2.default.createElement(_jsreportStudio.TextEditor, {
-          key: helpersEntity._id + '_helpers',
-          name: helpersEntity._id + '_helpers',
-          getFilename: function getFilename() {
-            return helpersEntity.name + ' (helpers)';
-          },
-          mode: 'javascript',
-          onUpdate: function onUpdate(v) {
-            return _onUpdate(Object.assign({ _id: helpersEntity._id }, { helpers: v }));
-          },
-          value: helpersEntity.helpers || ''
-        });
+      var helpersEditor = _react2.default.createElement(_jsreportStudio.TextEditor, {
+        key: codeEntity._id + '_helpers',
+        name: codeEntity._id + '_helpers',
+        getFilename: function getFilename() {
+          return codeEntity.name + ' (helpers)';
+        },
+        mode: 'javascript',
+        onUpdate: function onUpdate(v) {
+          return _onUpdate(Object.assign({ _id: codeEntity._id }, { helpers: v }));
+        },
+        value: codeEntity.helpers || ''
+      });
+
+      if (codeEntity != null && codeActive) {
+        if (Object.prototype.hasOwnProperty.call(codeEntity, 'content')) {
+          return _react2.default.createElement(
+            _jsreportStudio.SplitPane,
+            {
+              primary: 'second',
+              split: 'horizontal',
+              resizerClassName: 'resizer-horizontal',
+              defaultSize: window.innerHeight * 0.2 + 'px'
+            },
+            _react2.default.createElement(_jsreportStudio.TextEditor, {
+              key: codeEntity._id,
+              name: codeEntity._id,
+              getFilename: function getFilename() {
+                return codeEntity.name;
+              },
+              mode: resolveTemplateEditorMode(codeEntity) || 'handlebars',
+              onUpdate: function onUpdate(v) {
+                return _onUpdate(Object.assign({ _id: entity._id }, { content: v }));
+              },
+              value: codeEntity.content || ''
+            }),
+            helpersEditor
+          );
+        }
+
+        return helpersEditor;
       }
 
       if (entity == null) {
@@ -1442,6 +1471,18 @@ var AssetEditor = function (_Component) {
 AssetEditor.defaultProps = {
   icon: 'fa-file-o'
 };
+
+function resolveTemplateEditorMode(template) {
+  // eslint-disable-next-line
+  for (var k in _jsreportStudio.templateEditorModeResolvers) {
+    var mode = _jsreportStudio.templateEditorModeResolvers[k](template);
+    if (mode) {
+      return mode;
+    }
+  }
+
+  return null;
+}
 
 exports.default = AssetEditor;
 

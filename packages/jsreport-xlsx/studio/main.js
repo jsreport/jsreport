@@ -111,6 +111,34 @@ _jsreportStudio2.default.addPropertiesComponent(_XlsxTemplateProperties2.default
   return entity.__entitySet === 'templates' && entity.recipe === 'xlsx';
 });
 
+_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity) {
+  if (entity.__entitySet === 'templates' && entity.recipe === 'xlsx') {
+    var officeAsset = void 0;
+
+    if (entity.xlsx != null && entity.xlsx.templateAssetShortid != null) {
+      officeAsset = _jsreportStudio2.default.getEntityByShortid(entity.xlsx.templateAssetShortid, false);
+    }
+
+    return {
+      key: 'assets',
+      entity: officeAsset,
+      props: {
+        icon: 'fa-link',
+        embeddingCode: '',
+        codeEntity: {
+          _id: entity._id,
+          shortid: entity.shortid,
+          name: entity.name,
+          content: entity.content,
+          helpers: entity.helpers
+        },
+        displayName: 'xlsx asset: ' + (officeAsset != null ? officeAsset.name : '<none>'),
+        emptyMessage: 'No xlsx asset assigned, please add a reference to a xlsx asset in the properties'
+      }
+    };
+  }
+});
+
 _jsreportStudio2.default.runListeners.push(function (request, entities) {
   if (request.template.recipe !== 'xlsx') {
     return;
@@ -251,11 +279,6 @@ var XlsxTemplateProperties = function (_Component) {
         _react2.default.createElement(
           'div',
           { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'xlsx asset'
-          ),
           _react2.default.createElement(EntityRefSelect, {
             headingLabel: 'Select xlsx template',
             newLabel: 'New xlsx asset for template',
@@ -289,7 +312,7 @@ var XlsxTemplateProperties = function (_Component) {
     key: 'title',
     value: function title(entity, entities) {
       if (!entity.xlsx || !entity.xlsx.templateAssetShortid) {
-        return 'xlsx template';
+        return 'xlsx';
       }
 
       var foundAssets = XlsxTemplateProperties.selectAssets(entities).filter(function (e) {
@@ -297,12 +320,12 @@ var XlsxTemplateProperties = function (_Component) {
       });
 
       if (!foundAssets.length) {
-        return 'xlsx template';
+        return 'xlsx';
       }
 
       var name = foundAssets[0].name;
 
-      return 'xlsx template: ' + name;
+      return 'xlsx asset: ' + name;
     }
   }]);
 

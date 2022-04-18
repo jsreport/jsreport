@@ -3,6 +3,34 @@ import Studio from 'jsreport-studio'
 
 Studio.addPropertiesComponent(XlsxTemplateProperties.title, XlsxTemplateProperties, (entity) => entity.__entitySet === 'templates' && entity.recipe === 'xlsx')
 
+Studio.entityEditorComponentKeyResolvers.push((entity) => {
+  if (entity.__entitySet === 'templates' && entity.recipe === 'xlsx') {
+    let officeAsset
+
+    if (entity.xlsx != null && entity.xlsx.templateAssetShortid != null) {
+      officeAsset = Studio.getEntityByShortid(entity.xlsx.templateAssetShortid, false)
+    }
+
+    return {
+      key: 'assets',
+      entity: officeAsset,
+      props: {
+        icon: 'fa-link',
+        embeddingCode: '',
+        codeEntity: {
+          _id: entity._id,
+          shortid: entity.shortid,
+          name: entity.name,
+          content: entity.content,
+          helpers: entity.helpers
+        },
+        displayName: `xlsx asset: ${officeAsset != null ? officeAsset.name : '<none>'}`,
+        emptyMessage: 'No xlsx asset assigned, please add a reference to a xlsx asset in the properties'
+      }
+    }
+  }
+})
+
 Studio.runListeners.push((request, entities) => {
   if (request.template.recipe !== 'xlsx') {
     return

@@ -13,18 +13,18 @@ class XlsxTemplateProperties extends Component {
     if (
       (!entity.xlsx || !entity.xlsx.templateAssetShortid)
     ) {
-      return 'xlsx template'
+      return 'xlsx'
     }
 
     const foundAssets = XlsxTemplateProperties.selectAssets(entities).filter((e) => entity.xlsx != null && entity.xlsx.templateAssetShortid === e.shortid)
 
     if (!foundAssets.length) {
-      return 'xlsx template'
+      return 'xlsx'
     }
 
     const name = foundAssets[0].name
 
-    return 'xlsx template: ' + name
+    return 'xlsx asset: ' + name
   }
 
   componentDidMount () {
@@ -70,7 +70,6 @@ class XlsxTemplateProperties extends Component {
     return (
       <div className='properties-section'>
         <div className='form-group'>
-          <label>xlsx asset</label>
           <EntityRefSelect
             headingLabel='Select xlsx template'
             newLabel='New xlsx asset for template'

@@ -17,7 +17,12 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
       props: {
         icon: 'fa-link',
         embeddingCode: '',
-        helpersEntity: entity,
+        codeEntity: {
+          _id: entity._id,
+          shortid: entity.shortid,
+          name: entity.name,
+          helpers: entity.helpers
+        },
         displayName: `pptx asset: ${officeAsset != null ? officeAsset.name : '<none>'}`,
         emptyMessage: 'No pptx asset assigned, please add a reference to a pptx asset in the properties'
       }

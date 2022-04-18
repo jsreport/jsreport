@@ -33,7 +33,7 @@ declare class JsReportClient {
      * @param {RenderRequest} renderRequest
      * @returns {Promise<RenderResponse>}
      */
-    render(renderRequest: any): Promise<RenderResponse>;
+    render(renderRequest: RenderRequest): Promise<RenderResponse>;
     /**
      * Create new instance of the client, this is rarely needed and you can use the default in the most of the cases
      * @returns {JsReportClient}
