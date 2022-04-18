@@ -4206,6 +4206,99 @@ describe('xlsx-next', () => {
 
     sheet['!cols'][0].customwidth.should.be.eql('1')
     sheet['!cols'][0].width.should.be.Number()
+    sheet['!cols'][3].customwidth.should.be.eql('1')
+    sheet['!cols'][3].width.should.be.Number()
+
+    // verify that the comment containing the {{xlsxColAutofit}} was removed
+    const commentEls = nodeListToArray(commentsDoc.getElementsByTagName('comment'))
+
+    should(commentEls).not.matchAny((el) => {
+      el.getAttribute('ref').should.be.eql('A1')
+    })
+
+    should(commentEls).not.matchAny((el) => {
+      el.getAttribute('ref').should.be.eql('D1')
+    })
+
+    const shapeEls = nodeListToArray(vmlDrawingDoc.getElementsByTagName('v:shape'))
+
+    should(shapeEls).not.matchAny((el) => {
+      const clientDataEl = el.getElementsByTagName('x:ClientData')[0]
+      clientDataEl.getAttribute('ObjectType').should.be.eql('Note')
+      const clientRowEl = clientDataEl.getElementsByTagName('x:Row')[0]
+      clientRowEl.textContent.should.be.eql('0')
+      const clientColumnEl = clientDataEl.getElementsByTagName('x:Column')[0]
+      clientColumnEl.textContent.should.be.eql('0')
+    })
+
+    should(shapeEls).not.matchAny((el) => {
+      const clientDataEl = el.getElementsByTagName('x:ClientData')[0]
+      clientDataEl.getAttribute('ObjectType').should.be.eql('Note')
+      const clientRowEl = clientDataEl.getElementsByTagName('x:Row')[0]
+      clientRowEl.textContent.should.be.eql('0')
+      const clientColumnEl = clientDataEl.getElementsByTagName('x:Column')[0]
+      clientColumnEl.textContent.should.be.eql('3')
+    })
+  })
+
+  it('should autofit all cols if configured', async () => {
+    const items = [{
+      name: 'Alexander',
+      lastname: 'Smith'
+    }, {
+      name: 'John',
+      lastname: 'Doe'
+    }, {
+      name: 'Jane',
+      lastname: 'Montana'
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx-next',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'cols-autofit-all.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        items
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const vmlDrawingDoc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/drawings/vmlDrawing1.vml').data.toString()
+    )
+
+    const commentsDoc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/comments1.xml').data.toString()
+    )
+
+    const workbook = xlsx.read(result.content, {
+      cellStyles: true
+    })
+
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.A5.v).be.eql(items[0].name)
+    should(sheet.B5.v).be.eql(items[0].lastname)
+    should(sheet.A6.v).be.eql(items[1].name)
+    should(sheet.B6.v).be.eql(items[1].lastname)
+    should(sheet.A7.v).be.eql(items[2].name)
+    should(sheet.B7.v).be.eql(items[2].lastname)
+
+    should(sheet['!cols']).be.Array()
+
+    sheet['!cols'][0].customwidth.should.be.eql('1')
+    sheet['!cols'][0].width.should.be.Number()
     sheet['!cols'][1].customwidth.should.be.eql('1')
     sheet['!cols'][1].width.should.be.Number()
     sheet['!cols'][3].customwidth.should.be.eql('1')

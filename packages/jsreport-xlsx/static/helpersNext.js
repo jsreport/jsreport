@@ -1,6 +1,13 @@
 /* eslint no-unused-vars: 0 */
 
 function xlsxColAutofit (options) {
+  if (
+    options?.data?.meta?.autofit?.enabledFor?.length > 0 &&
+    options.hash.all === true
+  ) {
+    options.data.meta.autofit.enabledFor = [true]
+  }
+
   return ''
 }
 
@@ -50,7 +57,7 @@ function xlsxSData (data, options) {
     newData.meta = {
       autofit: {
         cols: {},
-        enabled: optionsToUse.hash.autofit === true
+        enabledFor: optionsToUse.hash.autofit != null ? optionsToUse.hash.autofit.split(',') : []
       },
       mergeCells: [],
       formulas: [],
@@ -261,8 +268,9 @@ function xlsxSData (data, options) {
     }
 
     const result = optionsToUse.fn(this, { data: newData })
+    const enabledForCol = newData.meta.autofit.enabledFor[0] === true ? true : newData.meta.autofit.enabledFor.includes(newData.columnLetter)
 
-    if (newData.meta.autofit.enabled) {
+    if (enabledForCol) {
       const pixelWidth = require('string-pixel-width')
       const fontSize = optionsToUse.hash.fontSize
       const fontSizeInPx = fontSize * (96 / 72)

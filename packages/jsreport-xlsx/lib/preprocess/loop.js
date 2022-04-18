@@ -84,10 +84,11 @@ module.exports = (files) => {
 
     // looking for comments in the sheet
     const resultAutofitConfigured = findAutofitConfigured(sheetFilepath, sheetDoc, sheetRelsDoc, files)
-    const isAutofitConfigured = resultAutofitConfigured != null
+    const isAutofitConfigured = resultAutofitConfigured.length > 0
+    const autoFitColLettersStr = resultAutofitConfigured.map((r) => num2col(r.column)).join(',')
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
-    processOpeningTag(sheetDoc, sheetDataEl, `{{#xlsxSData type='root'${isAutofitConfigured ? ' autofit=true' : ''}}}`)
+    processOpeningTag(sheetDoc, sheetDataEl, `{{#xlsxSData type='root'${isAutofitConfigured ? ` autofit="${autoFitColLettersStr}"` : ''}}}`)
     processClosingTag(sheetDoc, sheetDataEl, '{{/xlsxSData}}')
 
     // add <formulasUpdated> with a helper call so we can process and update
@@ -163,18 +164,26 @@ module.exports = (files) => {
     }
 
     if (isAutofitConfigured) {
-      const tEls = nodeListToArray(resultAutofitConfigured.commentEl.getElementsByTagName('t'))
-      let shouldRemoveComment = false
+      for (const conf of resultAutofitConfigured) {
+        const tEls = nodeListToArray(conf.commentEl.getElementsByTagName('t'))
+        let shouldRemoveComment = false
 
-      if (tEls[0].textContent.endsWith(':')) {
-        const remainingText = tEls.slice(1).map((el) => el.textContent).join('')
-        const expectedRegexp = /^\r?\n?{{xlsxColAutofit}}$/
-        shouldRemoveComment = expectedRegexp.test(remainingText)
-      }
+        const tCallEl = tEls.find((tEl) => tEl.textContent.startsWith('{{xlsxColAutofit'))
 
-      if (shouldRemoveComment) {
-        resultAutofitConfigured.commentEl.parentNode.removeChild(resultAutofitConfigured.commentEl)
-        resultAutofitConfigured.shapeEl.parentNode.removeChild(resultAutofitConfigured.shapeEl)
+        if (conf.row === 0 && conf.column === 0 && tCallEl != null) {
+          processOpeningTag(sheetDoc, sheetDataEl.firstChild, tCallEl.textContent)
+        }
+
+        if (tEls[0].textContent.endsWith(':')) {
+          const remainingText = tEls.slice(1).map((el) => el.textContent).join('')
+          const expectedRegexp = /^\r?\n?{{xlsxColAutofit( [^}]*)?}}$/
+          shouldRemoveComment = expectedRegexp.test(remainingText)
+        }
+
+        if (shouldRemoveComment) {
+          conf.commentEl.parentNode.removeChild(conf.commentEl)
+          conf.shapeEl.parentNode.removeChild(conf.shapeEl)
+        }
       }
 
       const newAutofitEl = sheetDoc.createElement('autofitUpdated')
@@ -806,7 +815,7 @@ function findCellElInCalcChain (sheetId, cellRef, calcChainEls) {
 }
 
 function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
-  let foundEl
+  const result = []
   const legacyDrawingEls = nodeListToArray(sheetDoc.getElementsByTagName('legacyDrawing'))
   const relationshipEls = sheetRelsDoc == null ? [] : nodeListToArray(sheetRelsDoc.getElementsByTagName('Relationship'))
   const commentRelEl = relationshipEls.find((el) => el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments')
@@ -819,7 +828,7 @@ function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
   }
 
   if (commentsDoc == null) {
-    return foundEl
+    return result
   }
 
   const commentEls = nodeListToArray(commentsDoc.getElementsByTagName('comment'))
@@ -871,7 +880,7 @@ function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
       const rowIdx = parseInt(vClientDataRowEl.textContent, 10)
       const columnIdx = parseInt(vClientDataColumnEl.textContent, 10)
 
-      if (rowIdx !== 0 || columnIdx !== 0) {
+      if (rowIdx !== 0) {
         continue
       }
 
@@ -895,23 +904,19 @@ function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
 
       for (const tEl of tEls) {
         if (tEl.textContent.startsWith('{{xlsxColAutofit')) {
-          foundEl = {
+          result.push({
             row: rowIdx,
             column: columnIdx,
             shapeEl: vShapeEl,
             commentEl: commentEl
-          }
+          })
           break
         }
-      }
-
-      if (foundEl != null) {
-        break
       }
     }
   }
 
-  return foundEl
+  return result
 }
 
 function processOpeningTag (doc, refElement, helperCall) {
