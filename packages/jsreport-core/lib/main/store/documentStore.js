@@ -372,6 +372,10 @@ const DocumentStore = (options, validator, encryption) => {
     },
 
     async beginTransaction (req) {
+      if (this.options.store.transactions.enabled === false) {
+        return
+      }
+
       if (req.context.storeTransaction && transactions.has(req.context.storeTransaction)) {
         throw new Error('Can not call store.beginTransaction when an active transaction already exists, make sure you are not calling store.beginTransaction more than once')
       }
@@ -386,6 +390,10 @@ const DocumentStore = (options, validator, encryption) => {
     },
 
     async commitTransaction (req) {
+      if (this.options.store.transactions.enabled === false) {
+        return
+      }
+
       const tranId = req.context.storeTransaction
       const tran = transactions.get(tranId)
 
@@ -400,6 +408,10 @@ const DocumentStore = (options, validator, encryption) => {
     },
 
     async rollbackTransaction (req) {
+      if (this.options.store.transactions.enabled === false) {
+        return
+      }
+
       const tranId = req.context.storeTransaction
       const tran = transactions.get(tranId)
 

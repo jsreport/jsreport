@@ -601,6 +601,36 @@ describe('document store', () => {
         })
       })
     })
+
+    describe('with store.transactions.enabled: false', () => {
+      let reporter
+      let store
+
+      beforeEach(async () => {
+        reporter = await init({
+          store: {
+            provider: 'memory',
+            transactions: {
+              enabled: false
+            }
+          }
+        })
+
+        store = reporter.documentStore
+      })
+
+      afterEach(() => reporter && reporter.close())
+
+      it('should not use transactions', async () => {
+        const req = core.Request({})
+        await store.beginTransaction(req)
+        await store.collection('foo').insert({ name: 'test' }, req)
+        await store.rollbackTransaction(req)
+
+        const t = await store.collection('foo').findOne({})
+        t.should.be.ok()
+      })
+    })
   })
 })
 
