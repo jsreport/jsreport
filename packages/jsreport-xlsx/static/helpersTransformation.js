@@ -5,83 +5,8 @@ const __xlsx = (function () {
   const contextMap = new Map()
   const fsproxy = this.fsproxy || require('fsproxy.js')
 
-  function print () {
-    const ctx = contextMap.get(this).ctx
-    ensureWorksheetOrder(ctx.root.$xlsxTemplate)
-    bufferedFlush(ctx.root)
-    return JSON.stringify({
-      $xlsxTemplate: ctx.root.$xlsxTemplate,
-      $files: ctx.root.$files || []
-    })
-  }
-
-  const worksheetOrder = {
-    sheetPr: -2,
-    dimension: -1,
-    sheetViews: 1,
-    sheetFormatPr: 2,
-    cols: 3,
-    sheetData: 4,
-    sheetCalcPr: 5,
-    sheetProtection: 6,
-    protectedRanges: 7,
-    scenarios: 8,
-    autoFilter: 9,
-    sortState: 10,
-    dataConsolidate: 11,
-    customSheetViews: 12,
-    mergeCells: 13,
-    phoneticPr: 14,
-    conditionalFormatting: 15,
-    dataValidations: 16,
-    hyperlinks: 17,
-    printOptions: 18,
-    pageMargins: 19,
-    pageSetup: 20,
-    headerFooter: 21,
-    rowBreaks: 22,
-    colBreaks: 23,
-    customProperties: 24,
-    cellWatches: 25,
-    ignoredErrors: 26,
-    smartTags: 27,
-    drawing: 28,
-    legacyDrawing: 29,
-    legacyDrawingHF: 30,
-    legacyDrawingHeaderFooter: 31,
-    drawingHeaderFooter: 32,
-    picture: 33,
-    oleObjects: 34,
-    controls: 35,
-    webPublishItems: 36,
-    tableParts: 37,
-    extLst: 38
-  }
-
-  function ensureWorksheetOrder (data) {
-    // eslint-disable-next-line no-unused-vars
-    for (const key in data) {
-      if (key.indexOf('xl/worksheets/') !== 0) {
-        continue
-      }
-
-      if (!data[key] || !data[key].worksheet) {
-        continue
-      }
-
-      const worksheet = data[key].worksheet
-      const sortedWorksheet = {}
-      Object.keys(worksheet).sort(function (a, b) {
-        if (!worksheetOrder[a]) return -1 // undefined in worksheetOrder goes at top of list
-        if (!worksheetOrder[b]) return 1
-        if (worksheetOrder[a] === worksheetOrder[b]) return 0
-        return worksheetOrder[a] > worksheetOrder[b] ? 1 : -1
-      }).forEach(function (a) {
-        sortedWorksheet[a] = worksheet[a]
-      })
-      data[key].worksheet = sortedWorksheet
-    }
-  }
+  // NOTE: this fn is a noop because we just want it for back-compatibility
+  function print () {}
 
   // get the value of object on js based path
   // supports simple paths as worksheet.rows[0]
@@ -146,18 +71,6 @@ const __xlsx = (function () {
     root.$files.push(fsproxy.write(root.$tempAutoCleanupDirectory, buf.data))
     buf.collection.push({ $$: root.$files.length - 1 })
     buf.data = ''
-  }
-
-  function bufferedFlush (root) {
-    const buffers = root.$buffers || {}
-
-    Object.keys(buffers).forEach(function (f) {
-      Object.keys(buffers[f]).forEach(function (k) {
-        if (buffers[f][k].data.length) {
-          flush(buffers[f][k], root)
-        }
-      })
-    })
   }
 
   function bufferedAppend (file, xmlPath, root, collection, data) {

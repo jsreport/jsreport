@@ -5,6 +5,7 @@ const should = require('should')
 const fs = require('fs')
 const _ = require('lodash')
 const jsreportConfig = require('../jsreport.config')
+const components = require('@jsreport/jsreport-components')
 const assets = require('@jsreport/jsreport-assets')
 const handlebars = require('@jsreport/jsreport-handlebars')
 const xlsxRecipe = require('../index')
@@ -235,6 +236,46 @@ describe('xlsx transformation', () => {
     } catch (e) {
       e.lineNumber.should.be.eql(1)
     }
+  })
+
+  it('should not need xlsxPrint helper call at the end', test('empty-no-xlsxPrint.handlebars', (workbook) => {
+    workbook.SheetNames.should.have.length(1)
+    workbook.SheetNames[0].should.be.eql('Sheet1')
+  }))
+
+  it('should be able to transform xlsx from previously generated xlsx from template', async () => {
+    const sheetName = 'foo'
+
+    const result = await reporter.render({
+      template: {
+        content: `
+          {{#xlsxMerge "xl/workbook.xml" "workbook.sheets[0].sheet[0]"}}
+          <sheet name="{{sheetName}}"/>
+          {{/xlsxMerge}}
+        `,
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        sheetName,
+        name: 'John'
+      }
+    })
+
+    const workbook = xlsx.read(result.content)
+    const currentSheetName = workbook.SheetNames[0]
+
+    currentSheetName.should.be.eql(sheetName)
+
+    const sheet = workbook.Sheets[currentSheetName]
+    should(sheet.A1.v).be.eql('Hello world John')
   })
 })
 
@@ -536,6 +577,54 @@ describe('excel recipe should not be broken by assets running after', () => {
     }).then((res) => {
       xlsx.read(res.content).SheetNames[0].should.be.eql('Sheet1')
     })
+  })
+})
+
+// https://github.com/jsreport/jsreport/issues/908
+describe('excel recipe should not be broken by components usage', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport()
+
+    reporter.use(handlebars())
+    reporter.use(xlsxRecipe())
+    reporter.use(components())
+
+    return reporter.init()
+  })
+
+  afterEach(() => {
+    if (reporter) {
+      return reporter.close()
+    }
+  })
+
+  it('should work with transformation code from component', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: `
+        {{#xlsxMerge "xl/workbook.xml" "workbook.sheets[0].sheet[0]"}}
+        <sheet name="{{sheetName}}"/>
+        {{/xlsxMerge}}
+      `,
+      engine: 'handlebars'
+    })
+
+    const sheetName = 'foo'
+
+    const res = await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        content: '{{{component "./c1"}}}'
+      },
+      data: {
+        sheetName
+      }
+    })
+
+    xlsx.read(res.content).SheetNames[0].should.be.eql(sheetName)
   })
 })
 

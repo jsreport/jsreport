@@ -40,11 +40,7 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.registerHelpersListeners.add(definition.name, (req) => {
-    if (req.context.xlsxReadyForTransformation) {
-      return helpersTransformationScript
-    }
-
-    return helpersGenerationScript
+    return `${helpersGenerationScript}\n\n${helpersTransformationScript}`
   })
 
   reporter.beforeRenderListeners.insert({ before: 'templates' }, `${definition.name}-next`, (req) => {
@@ -60,8 +56,6 @@ module.exports = (reporter, definition) => {
       return
     }
 
-    req.context.xlsxReadyForTransformation = false
-
     req.data = req.data || {}
     req.data.$xlsxOriginalContent = req.template.content
 
@@ -72,5 +66,8 @@ module.exports = (reporter, definition) => {
     req.data.$addBufferSize = definition.options.addBufferSize || 50000000
     req.data.$escapeAmp = definition.options.escapeAmp
     req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations
+    // this allows the data generated in the helpers to continue to be persisted outside of the sandbox
+    req.data.$files = []
+    req.data.$buffers = {}
   })
 }
