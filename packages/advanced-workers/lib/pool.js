@@ -27,7 +27,7 @@ module.exports = ({
       }
     },
 
-    async allocate () {
+    async allocate (data, opts) {
       const worker = this.workers.find(w => w.isBusy !== true)
       if (worker) {
         worker.isBusy = true
@@ -68,7 +68,17 @@ module.exports = ({
       }
 
       return new Promise((resolve, reject) => {
-        this.tasksQueue.push({ resolve, reject })
+        const task = { resolve, reject }
+        this.tasksQueue.push(task)
+        if (opts && opts.timeout) {
+          setTimeout(() => {
+            const taskIndex = this.tasksQueue.indexOf(task)
+            if (taskIndex !== -1) {
+              this.tasksQueue.splice(taskIndex, 1)
+              task.reject(new Error('Timeout when waiting for worker'))
+            }
+          }, opts.timeout).unref()
+        }
       })
     },
 

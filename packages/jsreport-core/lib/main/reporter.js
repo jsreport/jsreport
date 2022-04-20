@@ -353,6 +353,7 @@ class MainReporter extends Reporter {
     req.context.rootId = req.context.rootId || generateRequestId()
     req.context.id = req.context.rootId
     req.context.reportCounter = ++reportCounter
+    req.context.startTimestamp = new Date().getTime()
 
     let worker
     let workerAborted
@@ -362,7 +363,7 @@ class MainReporter extends Reporter {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)
 
       worker = await this._workersManager.allocate(req, {
-        timeout: this.getReportTimeout()
+        timeout: this.getReportTimeout(req)
       })
 
       if (options.abortEmitter) {
@@ -385,7 +386,7 @@ class MainReporter extends Reporter {
           req,
           data: {}
         }, {
-          timeout: this.getReportTimeout()
+          timeout: this.getReportTimeout(req)
         })
         req = result
       }
@@ -565,9 +566,7 @@ class MainReporter extends Reporter {
       return
     }
 
-    const reportTimeout = this.getReportTimeout()
-
-    const threshold = reportTimeout > 180000 ? reportTimeout : 180000
+    const threshold = this.options.reportTimeout > 180000 ? this.options.reportTimeout : 180000
 
     this.logger.info(`Starting temp files cleanup with ${threshold}ms threshold`)
 

@@ -55,16 +55,16 @@ class Reporter extends EventEmitter {
    * @public Ensures that we get the proper report timeout in case when custom timeout per request was enabled
    */
   getReportTimeout (req) {
+    const elapsedTime = req.context.startTimestamp ? (new Date().getTime() - req.context.startTimestamp) : 0
     if (
       this.options.enableRequestReportTimeout &&
-      req != null &&
       req.options != null &&
       req.options.timeout != null
     ) {
-      return req.options.timeout
+      return Math.max(0, req.options.timeout - elapsedTime)
     }
 
-    return this.options.reportTimeout
+    return Math.max(0, this.options.reportTimeout - elapsedTime)
   }
 
   /**

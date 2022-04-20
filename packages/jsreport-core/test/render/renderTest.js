@@ -480,7 +480,7 @@ describe('render (single timeout per request as req.options.timeout)', () => {
 
 function timeoutTests (asReqOption = false) {
   let reporter
-  const reportTimeout = 200
+  const reportTimeout = 500
   let renderOpts
 
   beforeEach(() => {
@@ -551,6 +551,37 @@ function timeoutTests (asReqOption = false) {
 
         req.template.content += ` ${resp.content}`
       }
+    })
+
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      },
+      options: renderOpts
+    }).should.be.rejectedWith(/Report timeout/)
+  })
+
+  it('should timeout when worker allocation takes time', async () => {
+    // warmup
+    await reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      },
+      options: renderOpts
+    })
+
+    const original = reporter._workersManager.allocate.bind(reporter._workersManager)
+    reporter._workersManager.allocate = async (...args) => {
+      await new Promise((resolve) => setTimeout(resolve, reportTimeout - 100))
+      return original(...args)
+    }
+
+    reporter.tests.beforeRenderListeners.add('test', async () => {
+      await new Promise((resolve) => setTimeout(resolve, reportTimeout - 100))
     })
 
     return reporter.render({

@@ -37,8 +37,8 @@ module.exports = (userOptions, {
       return this.pool.init()
     },
 
-    async allocate () {
-      return this.pool.allocate()
+    async allocate (data, opts) {
+      return this.pool.allocate(data, opts)
     },
 
     close () {

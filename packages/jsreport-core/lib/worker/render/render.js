@@ -126,8 +126,6 @@ module.exports = (reporter) => {
         response.meta.reportName = 'report'
       }
 
-      request.context.startTimestamp = new Date().getTime()
-
       if (parentReq == null) {
         reporter.requestModulesCache.set(request.context.rootId, Object.create(null))
       }

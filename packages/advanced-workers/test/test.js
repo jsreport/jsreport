@@ -194,6 +194,17 @@ describe('advanced workers', () => {
     }
   })
 
+  it('should throw on timeout during allocate', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'timeout.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+    workers.allocate()
+    await workers.allocate({}, { timeout: 10 }).should.be.rejectedWith(/Timeout/)
+  })
+
   it('should be able to abort running request', async () => {
     workers = Workers({ }, {
       workerModule: path.join(__dirname, 'workers', 'timeout.js'),
