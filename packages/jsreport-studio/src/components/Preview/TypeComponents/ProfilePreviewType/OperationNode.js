@@ -47,7 +47,11 @@ const OperationNode = React.memo(function OperationNode (props) {
     setTimeout(() => {
       try {
         const { res } = renderResult.getContent()
-        fileSaver.saveAs(res.content, `${res.meta.reportName}.${res.meta.fileExtension}`)
+        if (res.content.tooLarge === true) {
+          openModal('The response is too large to store in the profile. The response size profile can handle can be increased in the config profiler.maxResponseSize=100mb')
+        } else {
+          fileSaver.saveAs(res.content, `${res.meta.reportName}.${res.meta.fileExtension}`)
+        }
       } finally {
         progressStop()
         setDownloading(false)

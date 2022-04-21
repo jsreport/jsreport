@@ -72,15 +72,21 @@ class Profiler {
       let content = res.content
 
       if (content != null) {
-        if (isbinaryfile(content)) {
+        if (content.length > this.reporter.options.profiler.maxResponseSize) {
           content = {
-            content: res.content.toString('base64'),
-            encoding: 'base64'
+            tooLarge: true
           }
         } else {
-          content = {
-            content: createPatch('res', req.context.profiling.resLastVal ? req.context.profiling.resLastVal.toString() : '', res.content.toString(), 0),
-            encoding: 'diff'
+          if (isbinaryfile(content)) {
+            content = {
+              content: res.content.toString('base64'),
+              encoding: 'base64'
+            }
+          } else {
+            content = {
+              content: createPatch('res', req.context.profiling.resLastVal ? req.context.profiling.resLastVal.toString() : '', res.content.toString(), 0),
+              encoding: 'diff'
+            }
           }
         }
       }
@@ -93,7 +99,7 @@ class Profiler {
 
       m.req = { diff: createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0) }
 
-      req.context.profiling.resLastVal = (res.content == null || isbinaryfile(res.content)) ? null : res.content.toString()
+      req.context.profiling.resLastVal = (res.content == null || isbinaryfile(res.content) || content.tooLarge) ? null : res.content.toString()
       req.context.profiling.resMetaLastVal = stringifiedResMeta
       req.context.profiling.reqLastVal = stringifiedReq
     }

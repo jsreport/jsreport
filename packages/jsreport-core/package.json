@@ -37,6 +37,7 @@
     "ajv": "6.12.6",
     "app-root-path": "2.0.1",
     "async-replace": "1.0.1",
+    "bytes": "3.1.2",
     "camelcase": "5.0.0",
     "debug": "4.3.2",
     "decamelize": "2.0.0",

@@ -30,12 +30,20 @@ function getStateAtProfileOperation (operations, operationId, completed = false)
     currentState.reqContent = applyPatch(currentState.reqContent, event.req.diff)
     currentState.resMetaContent = applyPatch(currentState.resMetaContent, event.res.meta.diff)
 
+    if (currentState.resContentTooLarge) {
+      continue
+    }
+
     if (event.res.content) {
-      currentState.resContentEncoding = event.res.content.encoding
-      if (event.res.content.encoding === 'diff') {
-        currentState.resContent = applyPatch(currentState.resContent, event.res.content.content)
+      if (event.res.content.tooLarge) {
+        currentState.resContentTooLarge = true
       } else {
-        currentState.resContent = event.res.content.content
+        currentState.resContentEncoding = event.res.content.encoding
+        if (event.res.content.encoding === 'diff') {
+          currentState.resContent = applyPatch(currentState.resContent, event.res.content.content)
+        } else {
+          currentState.resContent = event.res.content.content
+        }
       }
     }
   }
@@ -60,11 +68,16 @@ function getStateAtProfileOperation (operations, operationId, completed = false)
   } catch (e) {
     console.error('Failed to parse req ' + currentState.reqContent)
   }
-
-  if (currentState.resContentEncoding === 'base64') {
-    result.res.content = b64toBlob(currentState.resContent, result.res.meta.contentType)
+  if (currentState.resContentTooLarge === true) {
+    result.res.content = {
+      tooLarge: true
+    }
   } else {
-    result.res.content = new Blob([currentState.resContent], { type: result.res.meta.contentType })
+    if (currentState.resContentEncoding === 'base64') {
+      result.res.content = b64toBlob(currentState.resContent, result.res.meta.contentType)
+    } else {
+      result.res.content = new Blob([currentState.resContent], { type: result.res.meta.contentType })
+    }
   }
 
   return result

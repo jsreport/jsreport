@@ -381,6 +381,32 @@ describe('profiler', () => {
     profiles[0].state.should.be.eql('success')
     profiles[1].state.should.be.eql('success')
   })
+
+  it('should skip diff when size gt profiler.maxResponseSize', async () => {
+    reporter.tests.beforeRenderEval((req, res, { reporter }) => {
+      reporter.extensionsManager.recipes.push({
+        name: 'profilerRecipe',
+        execute: (req, res) => {
+          res.content = Buffer.alloc(reporter.options.profiler.maxResponseSize + 1, 'x')
+        }
+      })
+    })
+
+    const renderReq = {
+      template: {
+        content: 'Hello',
+        engine: 'none',
+        recipe: 'profilerRecipe'
+      }
+    }
+
+    const profiler = reporter.attachProfiler(renderReq)
+    const events = []
+    profiler.on('profile', (m) => events.push(m))
+    await reporter.render(renderReq)
+    const renderEndEvent = events.find(e => e.type === 'operationEnd' && e.subtype === 'render')
+    renderEndEvent.res.content.tooLarge.should.be.true()
+  })
 })
 
 describe('profiler with timeout', () => {

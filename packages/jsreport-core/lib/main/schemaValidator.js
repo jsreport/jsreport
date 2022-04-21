@@ -3,6 +3,7 @@ const set = require('lodash.set')
 const hasOwn = require('has-own-deep')
 const unsetValue = require('unset-value')
 const ms = require('ms')
+const bytes = require('bytes')
 const Ajv = require('ajv')
 
 const validatorCollection = new WeakMap()
@@ -114,6 +115,35 @@ class SchemaValidator {
           }
 
           const newData = ms(data)
+
+          if (newData == null) {
+            return false
+          }
+
+          parentData[parentDataProperty] = newData
+
+          return true
+        }
+      }
+    })
+
+    validator.addKeyword('$jsreport-acceptsSize', {
+      modifying: true,
+      compile: (sch) => {
+        if (sch !== true) {
+          return () => true
+        }
+
+        return (data, dataPath, parentData, parentDataProperty) => {
+          if (typeof data !== 'string' && typeof data !== 'number') {
+            return false
+          }
+
+          if (typeof data === 'number') {
+            return true
+          }
+
+          const newData = bytes(data)
 
           if (newData == null) {
             return false
