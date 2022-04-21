@@ -37,7 +37,8 @@ function createDefaultStore (label) {
         error: (...args) => { debugLoggerEnabled && console.error(getLevelWithLabel('ERROR'), ...args) },
         warn: (...args) => { debugLoggerEnabled && console.warn(getLevelWithLabel('WARN'), ...args) },
         debug: (...args) => { debugLoggerEnabled && console.log(getLevelWithLabel('DEBUG'), ...args) }
-      }
+      },
+      store: { transactions: {} }
     },
     validator
   )

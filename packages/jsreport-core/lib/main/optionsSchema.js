@@ -125,6 +125,7 @@ module.exports.getRootSchemaOptions = () => ({
     },
     store: {
       type: 'object',
+      default: {},
       properties: {
         provider: { type: 'string', enum: ['memory'] },
         transactions: {
