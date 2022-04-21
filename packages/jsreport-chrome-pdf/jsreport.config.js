@@ -3,8 +3,8 @@ const chromeSchema = {
   type: 'object',
   properties: {
     allowLocalFilesAccess: { type: 'boolean' },
-    strategy: { type: 'string', default: 'chrome-pool' },
-    numberOfWorkers: { type: 'number', default: 1 },
+    strategy: { type: 'string' },
+    numberOfWorkers: { type: 'number' },
     puppeteerInstance: {
       description: 'Specifies a custom instance of puppeteer to use. you can pass here the export of require("puppeteer")'
     },

@@ -40,6 +40,11 @@ async function ensureMigrated (reporter) {
 module.exports = function (reporter, definition) {
   definition.options = Object.assign({}, reporter.options.chrome, definition.options)
 
+  // we cant apply the defaults in the jsreport.config.js, because user won't be able to change values in root chrome config
+  // it would be always overwriten by defaults from extensions.chrome-pdf
+  definition.options.strategy = definition.options.strategy || 'chrome-pool'
+  definition.options.numberOfWorkers = definition.options.numberOfWorkers || 1
+
   if (definition.options.allowLocalFilesAccess == null) {
     definition.options.allowLocalFilesAccess = reporter.options.allowLocalFilesAccess
   }
