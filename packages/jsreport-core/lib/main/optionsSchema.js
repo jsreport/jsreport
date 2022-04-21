@@ -125,12 +125,10 @@ module.exports.getRootSchemaOptions = () => ({
     },
     store: {
       type: 'object',
-      default: {},
       properties: {
         provider: { type: 'string', enum: ['memory'] },
         transactions: {
           type: 'object',
-          default: {},
           properties: {
             enabled: { type: 'boolean', default: true }
           }

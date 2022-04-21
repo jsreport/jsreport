@@ -372,7 +372,7 @@ const DocumentStore = (options, validator, encryption) => {
     },
 
     async beginTransaction (req) {
-      if (this.options.store.transactions.enabled === false) {
+      if (this.options.store?.transactions?.enabled === false) {
         return
       }
 
@@ -390,7 +390,7 @@ const DocumentStore = (options, validator, encryption) => {
     },
 
     async commitTransaction (req) {
-      if (this.options.store.transactions.enabled === false) {
+      if (this.options.store?.transactions?.enabled === false) {
         return
       }
 
@@ -408,7 +408,7 @@ const DocumentStore = (options, validator, encryption) => {
     },
 
     async rollbackTransaction (req) {
-      if (this.options.store.transactions.enabled === false) {
+      if (this.options.store?.transactions?.enabled === false) {
         return
       }
 
