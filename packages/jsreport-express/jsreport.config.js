@@ -18,7 +18,8 @@ const schemaProperties = {
       key: { type: 'string' },
       cert: { type: 'string' }
     }
-  }
+  },
+  externalCors: { type: 'boolean' },
 }
 
 module.exports = {
