@@ -228,7 +228,17 @@ class Startup extends Component {
   }
 
   renderBadges () {
-    const openProfiler = (state) => this.props.openTab({ key: 'ProfilerPage' + new Date().getTime(), editorComponentKey: 'profiler', title: 'Profiler', filterState: state })
+    const openProfiler = (state) => {
+      this.props.openTab({
+        key: 'ProfilerPage',
+        editorComponentKey: 'profiler',
+        title: 'Profiler',
+        filterState: state,
+        getProps: () => ({
+          key: `ProfilerPage-${state}`
+        })
+      })
+    }
 
     const badgeStyle = {
       margin: '0.8rem',

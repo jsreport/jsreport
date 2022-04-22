@@ -21,10 +21,25 @@ const reducer = createReducer({
 
 export default reducer.export()
 
-reducer.handleAction(ActionTypes.OPEN_TAB, (state, { tab }) => ({
-  ...state,
-  tabs: state.tabs.filter((t) => t.key === tab.key).length ? state.tabs : [...state.tabs, tab]
-}))
+reducer.handleAction(ActionTypes.OPEN_TAB, (state, { tab }) => {
+  const existingTabIndex = state.tabs.findIndex((t) => t.key === tab.key)
+  let newTabs
+
+  if (existingTabIndex !== -1) {
+    newTabs = [
+      ...state.tabs.slice(0, existingTabIndex),
+      tab,
+      ...state.tabs.slice(existingTabIndex + 1)
+    ]
+  } else {
+    newTabs = [...state.tabs, tab]
+  }
+
+  return {
+    ...state,
+    tabs: newTabs
+  }
+})
 
 reducer.handleAction(ActionTypes.OPEN_NEW_TAB, (state, { tab, activateTab = true }) => {
   const newState = {

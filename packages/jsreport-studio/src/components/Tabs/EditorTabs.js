@@ -78,9 +78,17 @@ class EditorTabs extends Component {
       entity = editorComponentResult.entity
     }
 
-    const editorProps = {
+    const customProps = {
       ...(typeof t.tab.getProps === 'function' ? t.tab.getProps() : {}),
-      ...editorComponentResult.props,
+      ...editorComponentResult.props
+    }
+
+    if (customProps.key == null) {
+      customProps.key = t.tab.key
+    }
+
+    const editorProps = {
+      ...customProps,
       entity,
       tab: _omit(t.tab, ['getEntity', 'getProps', 'update']),
       ref: (el) => { this[`${t.tab.key}Ref`] = el },

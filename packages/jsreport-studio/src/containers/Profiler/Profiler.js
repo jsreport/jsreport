@@ -15,15 +15,6 @@ class Profiler extends Component {
     this.state = { profiles: [], fullProfilingEnabled: false, filterState: props.tab.filterState, filterTemplatesShortids: [] }
   }
 
-  /* static getDerivedStateFromProps (props, state) {
-    if (props.tab.filterState !== state.filterState) {
-      return {
-        filterState: props.tab.filterState
-      }
-    }
-    return null
-  } */
-
   componentDidMount () {
     this.loadProfiles()
     this._interval = setInterval(() => this.loadProfiles(), 5000)
