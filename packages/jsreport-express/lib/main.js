@@ -140,12 +140,14 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
     })
   }
 
-  app.options('*', (req, res) => {
-    require('cors')({
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'MERGE'],
-      origin: true
-    })(req, res)
-  })
+  if(!definition.options.externalCors) {  
+    app.options('*', (req, res) => {
+      require('cors')({
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'MERGE'],
+        origin: true
+      })(req, res)
+    })
+  }
 
   app.use(cookieParser())
   app.use(bodyParser.urlencoded({ extended: true, limit: definition.options.inputRequestLimit || '50mb' }))
@@ -156,11 +158,14 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
     limit: definition.options.inputRequestLimit || '50mb',
     type: '*/*'
   }))
-
-  app.use(cors())
+  if(!definition.options.externalCors) {
+    app.use(cors())
+  }
 
   app.use((req, res, next) => {
-    res.setHeader('Access-Control-Expose-Headers', '*')
+    if(!definition.options.externalCors) {
+      res.setHeader('Access-Control-Expose-Headers', '*')
+    }
 
     if (definition.options.responseHeaders) {
       res.set(definition.options.responseHeaders)
@@ -229,7 +234,8 @@ module.exports = function (reporter, definition) {
     hostname: reporter.options.hostname,
     httpPort: reporter.options.httpPort,
     httpsPort: reporter.options.httpsPort,
-    certificate: reporter.options.certificate
+    certificate: reporter.options.certificate,
+    externalCors: false
   }, definition.options)
 
   reporter.options.hostname = definition.options.hostname
