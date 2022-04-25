@@ -140,12 +140,14 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
     })
   }
 
-  app.options('*', (req, res) => {
-    require('cors')({
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'MERGE'],
-      origin: true
-    })(req, res)
-  })
+  if (definition.options.cors?.enabled !== false) {
+    app.options('*', (req, res) => {
+      require('cors')({
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'MERGE'],
+        origin: true
+      })(req, res)
+    })
+  }
 
   app.use(cookieParser())
   app.use(bodyParser.urlencoded({ extended: true, limit: definition.options.inputRequestLimit || '50mb' }))
@@ -157,10 +159,14 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
     type: '*/*'
   }))
 
-  app.use(cors())
+  if (definition.options.cors?.enabled !== false) {
+    app.use(cors())
+  }
 
   app.use((req, res, next) => {
-    res.setHeader('Access-Control-Expose-Headers', '*')
+    if (definition.options.cors?.enabled !== false) {
+      res.setHeader('Access-Control-Expose-Headers', '*')
+    }
 
     if (definition.options.responseHeaders) {
       res.set(definition.options.responseHeaders)

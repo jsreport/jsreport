@@ -260,6 +260,16 @@ describe('express', () => {
     const events = eventsRes.data.toString().split('\n').filter(l => l).map(l => JSON.parse(l))
     events.length.should.be.greaterThan(0)
   })
+
+  it('should enable cors by default', async () => {
+    await supertest(jsreport.express.app)
+      .get('/api/version')
+      .expect('Access-Control-Expose-Headers', '*')
+
+    await supertest(jsreport.express.app)
+      .options('/api/version')
+      .expect('access-control-allow-methods', 'GET,POST,PUT,DELETE,PATCH,MERGE')
+  })
 })
 
 describe('express with appPath and mountOnAppPath config', () => {
@@ -486,5 +496,35 @@ describe('express port', () => {
 
     await jsreport.init()
     jsreport.express.server.address().port.should.be.eql(5488)
+  })
+})
+
+describe('express with disabled cors', () => {
+  let jsreport
+  beforeEach(() => {
+    jsreport = JsReport({
+      extensions: {
+        express: {
+          cors: {
+            enabled: false
+          }
+        }
+      }
+    })
+      .use(require('../')())
+
+    return jsreport.init()
+  })
+
+  afterEach(async () => {
+    await jsreport.close()
+  })
+
+  it('should return no access-control headers', async () => {
+    const r = await supertest(jsreport.express.server)
+      .get('/api/version')
+
+    r.headers.should.not.have.property('access-control-allow-origin')
+    r.headers.should.not.have.property('access-control-allow-methods')
   })
 })

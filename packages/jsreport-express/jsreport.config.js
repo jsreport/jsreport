@@ -50,6 +50,12 @@ module.exports = {
           },
           responseHeaders: {
             type: 'object'
+          },
+          cors: {
+            type: 'object',
+            properties: {
+              enabled: { type: 'boolean', default: true }
+            }
           }
         }
       }
