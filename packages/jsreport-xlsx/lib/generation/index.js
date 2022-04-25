@@ -4,12 +4,6 @@ const processXlsx = require('./processXlsx')
 let defaultXlsxWorkbook
 
 module.exports = async (reporter, definition, req, res) => {
-  if (req.template.engine !== 'handlebars') {
-    throw reporter.createError('xlsx recipe can run only with handlebars', {
-      statusCode: 400
-    })
-  }
-
   let templateAsset
 
   if (
@@ -49,6 +43,12 @@ module.exports = async (reporter, definition, req, res) => {
     throw reporter.createError('Unable to find xlsx template for xlsx recipe execution', {
       statusCode: 400
     })
+  }
+
+  if (req.template.engine !== 'handlebars') {
+    const { pathToFile: outputPath } = await reporter.writeTempFile((uuid) => `${uuid}.xlsx`, templateAsset.content)
+    reporter.logger.debug('xlsx generation skipped. template engine is not handlebars')
+    return outputPath
   }
 
   reporter.logger.info('xlsx generation is starting', req)
