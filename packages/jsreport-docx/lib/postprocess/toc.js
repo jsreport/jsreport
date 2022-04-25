@@ -1,12 +1,15 @@
 const { DOMParser } = require('@xmldom/xmldom')
 const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
-const { nodeListToArray, serializeXml } = require('../utils')
+const { nodeListToArray, findDefaultStyleIdForName, serializeXml } = require('../utils')
 
 module.exports = async (files) => {
+  const stylesFile = files.find(f => f.path === 'word/styles.xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const titles = []
 
   const listIds = new Map()
+
+  const tocStyleIdRegExp = /^([^\d]+)(\d+)/
 
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
@@ -18,6 +21,15 @@ module.exports = async (files) => {
         return val
       }
 
+      let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
+      const tocTitleMatch = tocStyleIdRegExp.exec(tocTitlePrefix)
+
+      if (tocTitleMatch != null && tocTitleMatch[1] != null) {
+        tocTitlePrefix = tocTitleMatch[1]
+      } else {
+        throw new Error('Could not find default style for heading')
+      }
+
       const paragraphEl = new DOMParser().parseFromString(val).documentElement.firstChild
       const title = { level: 1 }
 
@@ -26,7 +38,7 @@ module.exports = async (files) => {
       if (pPrEl != null) {
         const pStyleEl = nodeListToArray(pPrEl.childNodes).find((el) => el.nodeName === 'w:pStyle')
         const numPrEl = nodeListToArray(pPrEl.childNodes).find((el) => el.nodeName === 'w:numPr')
-        const titleRegexp = /^Ttulo(\d+)$/
+        const titleRegexp = new RegExp(`^${tocTitlePrefix}(\\d+)$`)
 
         if (pStyleEl != null) {
           const result = titleRegexp.exec(pStyleEl.getAttribute('w:val'))
@@ -95,6 +107,13 @@ module.exports = async (files) => {
         return val
       }
 
+      let tocAlternativeTitlePrefix = findDefaultStyleIdForName(stylesFile, 'toc 1')
+      const tocAlternativeTitleMatch = tocStyleIdRegExp.exec(tocAlternativeTitlePrefix)
+
+      if (tocAlternativeTitleMatch != null && tocAlternativeTitleMatch[1] != null) {
+        tocAlternativeTitlePrefix = tocAlternativeTitleMatch[1]
+      }
+
       const sdtContentEl = new DOMParser().parseFromString(val).documentElement
       const paragraphEls = nodeListToArray(sdtContentEl.childNodes).filter((el) => el.nodeName === 'w:p')
       const paragraphRefEl = paragraphEls.find((pEl) => nodeListToArray(pEl.childNodes).find((cEl) => cEl.nodeName === 'w:hyperlink') != null)
@@ -123,7 +142,11 @@ module.exports = async (files) => {
               const pStyleEl = nodeListToArray(childNode.childNodes).find((el) => el.nodeName === 'w:pStyle')
 
               if (pStyleEl != null) {
-                pStyleEl.setAttribute('w:val', `TDC${titleInfo.level}`)
+                if (tocAlternativeTitlePrefix == null) {
+                  throw new Error('Could not find default style for toc heading')
+                }
+
+                pStyleEl.setAttribute('w:val', `${tocAlternativeTitlePrefix}${titleInfo.level}`)
               }
 
               if (itemNumber >= 10) {

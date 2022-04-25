@@ -1,6 +1,7 @@
-const { nodeListToArray } = require('../utils')
+const { nodeListToArray, findDefaultStyleIdForName } = require('../utils')
 
 module.exports = (files) => {
+  const stylesFile = files.find(f => f.path === 'word/styles.xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml').doc
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
   const paragraphEls = nodeListToArray(documentFile.getElementsByTagName('w:p'))
@@ -14,6 +15,22 @@ module.exports = (files) => {
     maxBookmarkId = null
   }
 
+  const tocStyleIdRegExp = /^([^\d]+)(\d+)/
+
+  let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
+
+  if (tocTitlePrefix == null) {
+    return
+  }
+
+  const tocTitleMatch = tocStyleIdRegExp.exec(tocTitlePrefix)
+
+  if (tocTitleMatch != null && tocTitleMatch[1] != null) {
+    tocTitlePrefix = tocTitleMatch[1]
+  } else {
+    throw new Error('Could not find default style for heading')
+  }
+
   paragraphEls.forEach((paragraphEl) => {
     const pPrEl = nodeListToArray(paragraphEl.childNodes).find((el) => el.nodeName === 'w:pPr')
     let hasTOCTitle = false
@@ -23,7 +40,7 @@ module.exports = (files) => {
     }
 
     const pStyleEl = nodeListToArray(pPrEl.childNodes).find((el) => el.nodeName === 'w:pStyle')
-    const titleRegexp = /^Ttulo(\d+)$/
+    const titleRegexp = new RegExp(`^${tocTitlePrefix}(\\d+)$`)
 
     if (pStyleEl != null) {
       const result = titleRegexp.exec(pStyleEl.getAttribute('w:val'))
@@ -39,7 +56,7 @@ module.exports = (files) => {
       const textNode = clonedParagraphEl.getElementsByTagName('w:t')[0]
 
       // we verify that bookmark exists on title elements, if not there it means that we have to create it
-      if (textNode != null && textNode.parentNode.previousSibling.nodeName !== 'w:bookmarkStart') {
+      if (textNode != null && textNode.parentNode.previousSibling?.nodeName !== 'w:bookmarkStart') {
         const rNode = textNode.parentNode
         const bookmarkStartEl = documentFile.createElement('w:bookmarkStart')
         const bookmarkEndEl = documentFile.createElement('w:bookmarkEnd')

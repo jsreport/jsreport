@@ -1569,8 +1569,6 @@ describe('docx', () => {
         return
       }
 
-      console.log(text)
-
       if (text.includes('blue') || text.includes('red')) {
         wshdEl.getAttribute('w:fill').should.be.eql(targetColors.two)
       } else if (
@@ -2544,6 +2542,40 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(path.join(__dirname, 'toc.docx'))
+          }
+        }
+      },
+      data: {
+        chapters: [{
+          chapter: 'chapter1'
+        }, {
+          chapter: 'chapter2'
+        }, {
+          chapter: 'chapter3'
+        }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    const parts = text.split('\n').filter((t) => t)
+
+    parts[1].should.be.eql('chapter1\t1')
+    parts[2].should.be.eql('chapter2\t1')
+    parts[3].should.be.eql('chapter3\t1')
+    parts[4].should.be.eql('chapter1')
+    parts[6].should.be.eql('chapter2')
+    parts[8].should.be.eql('chapter3')
+  })
+
+  it('should update TOC (english)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'toc-english.docx'))
           }
         }
       },

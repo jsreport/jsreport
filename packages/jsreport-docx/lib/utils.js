@@ -114,6 +114,26 @@ function getChartEl (drawingEl) {
   return chartDrawingEl
 }
 
+module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph') => {
+  const styleEls = nodeListToArray(stylesDoc.getElementsByTagName('w:style'))
+
+  const styleEl = styleEls.find((styleEl) => {
+    const wNameEl = nodeListToArray(styleEl.childNodes).find((el) => el.nodeName === 'w:name')
+
+    return (
+      styleEl.getAttribute('w:type') === type &&
+      wNameEl != null &&
+      wNameEl.getAttribute('w:val') === name
+    )
+  })
+
+  if (!styleEl) {
+    return
+  }
+
+  return styleEl.getAttribute('w:styleId')
+}
+
 module.exports.contentIsXML = (content) => {
   if (!Buffer.isBuffer(content) && typeof content !== 'string') {
     return false
