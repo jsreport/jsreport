@@ -729,7 +729,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 _binaryExtensions2.default.push('p12');
 
-// Studio.api currently always open dialogs on failures and that is what we don't want, so arbitrary implementaiton here
+// Studio.api currently always open dialogs on failures and that is what we don't want, so arbitrary implementation here
 var getTextFromApi = function getTextFromApi(path) {
   return new Promise(function (resolve, reject) {
     var request = _superagent2.default.get(_jsreportStudio2.default.resolveUrl(path));
@@ -1283,20 +1283,20 @@ var AssetEditor = function (_Component) {
       var codeActive = this.state.codeActive;
 
 
-      var helpersEditor = _react2.default.createElement(_jsreportStudio.TextEditor, {
-        key: codeEntity._id + '_helpers',
-        name: codeEntity._id + '_helpers',
-        getFilename: function getFilename() {
-          return codeEntity.name + ' (helpers)';
-        },
-        mode: 'javascript',
-        onUpdate: function onUpdate(v) {
-          return _onUpdate(Object.assign({ _id: codeEntity._id }, { helpers: v }));
-        },
-        value: codeEntity.helpers || ''
-      });
-
       if (codeEntity != null && codeActive) {
+        var helpersEditor = _react2.default.createElement(_jsreportStudio.TextEditor, {
+          key: codeEntity._id + '_helpers',
+          name: codeEntity._id + '_helpers',
+          getFilename: function getFilename() {
+            return codeEntity.name + ' (helpers)';
+          },
+          mode: 'javascript',
+          onUpdate: function onUpdate(v) {
+            return _onUpdate(Object.assign({ _id: codeEntity._id }, { helpers: v }));
+          },
+          value: codeEntity.helpers || ''
+        });
+
         if (Object.prototype.hasOwnProperty.call(codeEntity, 'content')) {
           return _react2.default.createElement(
             _jsreportStudio.SplitPane,
@@ -1314,7 +1314,7 @@ var AssetEditor = function (_Component) {
               },
               mode: resolveTemplateEditorMode(codeEntity) || 'handlebars',
               onUpdate: function onUpdate(v) {
-                return _onUpdate(Object.assign({ _id: entity._id }, { content: v }));
+                return _onUpdate(Object.assign({ _id: codeEntity._id }, { content: v }));
               },
               value: codeEntity.content || ''
             }),

@@ -8,7 +8,7 @@ import style from './AssetEditor.css'
 
 binaryExtensions.push('p12')
 
-// Studio.api currently always open dialogs on failures and that is what we don't want, so arbitrary implementaiton here
+// Studio.api currently always open dialogs on failures and that is what we don't want, so arbitrary implementation here
 const getTextFromApi = (path) => {
   return new Promise((resolve, reject) => {
     const request = superagent.get(Studio.resolveUrl(path))
@@ -377,18 +377,18 @@ class AssetEditor extends Component {
     const { entity, codeEntity, emptyMessage, getPreviewContent, onUpdate } = this.props
     const { codeActive } = this.state
 
-    const helpersEditor = (
-      <TextEditor
-        key={codeEntity._id + '_helpers'}
-        name={codeEntity._id + '_helpers'}
-        getFilename={() => `${codeEntity.name} (helpers)`}
-        mode='javascript'
-        onUpdate={(v) => onUpdate(Object.assign({ _id: codeEntity._id }, { helpers: v }))}
-        value={codeEntity.helpers || ''}
-      />
-    )
-
     if (codeEntity != null && codeActive) {
+      const helpersEditor = (
+        <TextEditor
+          key={codeEntity._id + '_helpers'}
+          name={codeEntity._id + '_helpers'}
+          getFilename={() => `${codeEntity.name} (helpers)`}
+          mode='javascript'
+          onUpdate={(v) => onUpdate(Object.assign({ _id: codeEntity._id }, { helpers: v }))}
+          value={codeEntity.helpers || ''}
+        />
+      )
+
       if (Object.prototype.hasOwnProperty.call(codeEntity, 'content')) {
         return (
           <SplitPane
@@ -402,7 +402,7 @@ class AssetEditor extends Component {
               name={codeEntity._id}
               getFilename={() => codeEntity.name}
               mode={resolveTemplateEditorMode(codeEntity) || 'handlebars'}
-              onUpdate={(v) => onUpdate(Object.assign({ _id: entity._id }, { content: v }))}
+              onUpdate={(v) => onUpdate(Object.assign({ _id: codeEntity._id }, { content: v }))}
               value={codeEntity.content || ''}
             />
             {helpersEditor}
