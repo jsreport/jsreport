@@ -243,8 +243,11 @@ function docxTable (data, options) {
 function docxStyle (options) {
   const Handlebars = require('handlebars')
 
+  const textColor = options.hash.textColor || ''
+  const backgroundColor = options.hash.backgroundColor || ''
+
   return new Handlebars.SafeString(
-    `<docxStyle id="${options.hash.id}" textColor="${options.hash.textColor}" />`
+    `<docxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" />`
   )
 }
 

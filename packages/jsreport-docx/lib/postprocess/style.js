@@ -4,7 +4,18 @@ const { nodeListToArray, serializeXml } = require('../utils')
 // see the preprocess/styles.js for some explanation
 
 function color (doc, wR, currentStyleEl) {
+  let wp = wR.parentNode
+
+  while (wp != null && wp.nodeName !== 'w:p') {
+    wp = wp.parentNode
+  }
+
+  if (!wp) {
+    throw new Error('Could not find paragraph node for styles')
+  }
+
   let wRpr = wR.getElementsByTagName('w:rPr')[0]
+
   if (!wRpr) {
     wRpr = doc.createElement('w:rPr')
     if (wR.childNodes.length === 0) {
@@ -13,13 +24,48 @@ function color (doc, wR, currentStyleEl) {
       wR.insertBefore(wRpr, wR.getElementsByTagName('w:t')[0])
     }
   }
-  let color = wRpr.getElementsByTagName('w:color')[0]
-  if (!color) {
-    color = doc.createElement('w:color')
-    wRpr.appendChild(color)
+
+  const currentBackgroundColor = currentStyleEl.getAttribute('backgroundColor')
+
+  if (currentBackgroundColor != null && currentBackgroundColor !== '') {
+    let wpPr = wp.getElementsByTagName('w:pPr')[0]
+
+    if (!wpPr) {
+      wpPr = doc.createElement('w:pPr')
+      wp.insertBefore(wpPr, wp.firstChild)
+    }
+
+    let wshd = wpPr.getElementsByTagName('w:shd')[0]
+
+    if (!wshd) {
+      wshd = doc.createElement('w:shd')
+      wpPr.insertBefore(wshd, wpPr.firstChild)
+    }
+
+    wshd.setAttribute('w:val', 'clear')
+    wshd.setAttribute('w:color', 'auto')
+    wshd.setAttribute('w:fill', currentBackgroundColor)
+    wshd.removeAttribute('w:themeColor')
+    wshd.removeAttribute('w:themeTint')
+    wshd.removeAttribute('w:themeShade')
+    wshd.removeAttribute('w:themeFill')
+    wshd.removeAttribute('w:themeFillTint')
+    wshd.removeAttribute('w:themeFillShade')
   }
-  color.setAttribute('w:val', currentStyleEl.getAttribute('textColor'))
-  color.removeAttribute('w:themeColor')
+
+  const currentTextColor = currentStyleEl.getAttribute('textColor')
+
+  if (currentTextColor != null && currentTextColor !== '') {
+    let color = wRpr.getElementsByTagName('w:color')[0]
+
+    if (!color) {
+      color = doc.createElement('w:color')
+      wRpr.appendChild(color)
+    }
+
+    color.setAttribute('w:val', currentTextColor)
+    color.removeAttribute('w:themeColor')
+  }
 }
 
 module.exports = (files) => {
