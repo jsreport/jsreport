@@ -10,6 +10,7 @@ const assets = require('@jsreport/jsreport-assets')
 const handlebars = require('@jsreport/jsreport-handlebars')
 const xlsxRecipe = require('../index')
 const jsonToXml = require('../lib/transformation/jsonToXml')
+const { decompress } = require('@jsreport/office')
 
 describe('xlsx transformation', () => {
   let reporter
@@ -238,6 +239,27 @@ describe('xlsx transformation', () => {
     }
   })
 
+  it('should be able to call xlsxAddImage with {#asset {{variable}} @encoding=base64}', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'test.png',
+      content: Buffer.from('foo')
+    })
+
+    const res = await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        helpers: 'function variable() { return "test.png" }',
+        content: `{{#xlsxAddImage "test" "sheet1.xml" 0 0 1 1}}{#asset {{variable}} @encoding=base64}{{/xlsxAddImage}}
+        {{{xlsxPrint}}}`
+      }
+    })
+
+    const files = await decompress()(res.content)
+    const image = files.find(f => f.path === 'xl/media/test.png')
+    image.data.toString().should.be.eql('foo')
+  })
+
   it('should not need xlsxPrint helper call at the end', test('empty-no-xlsxPrint.handlebars', (workbook) => {
     workbook.SheetNames.should.have.length(1)
     workbook.SheetNames[0].should.be.eql('Sheet1')
@@ -252,6 +274,7 @@ describe('xlsx transformation', () => {
           {{#xlsxMerge "xl/workbook.xml" "workbook.sheets[0].sheet[0]"}}
           <sheet name="{{sheetName}}"/>
           {{/xlsxMerge}}
+          {{{xlsxPrint}}}
         `,
         engine: 'handlebars',
         recipe: 'xlsx',
@@ -607,6 +630,7 @@ describe('excel recipe should not be broken by components usage', () => {
         {{#xlsxMerge "xl/workbook.xml" "workbook.sheets[0].sheet[0]"}}
         <sheet name="{{sheetName}}"/>
         {{/xlsxMerge}}
+        {{{xlsxPrint}}}
       `,
       engine: 'handlebars'
     })

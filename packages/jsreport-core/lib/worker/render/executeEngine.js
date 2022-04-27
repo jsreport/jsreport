@@ -126,6 +126,10 @@ module.exports = (reporter) => {
         wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
       }
 
+      data.__asyncHelpersPromise = () => {
+        return Promise.all([...asyncResultMap.keys()].map((k) => asyncResultMap.get(k)))
+      }
+
       let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
       const resolvedResultsMap = new Map()
       while (asyncResultMap.size > 0) {
@@ -143,7 +147,10 @@ module.exports = (reporter) => {
       }
 
       return {
-        content: contentResult
+        // handlebars escapes single brackets before execution to prevent errors on {#aset}
+        // we need to unescape them later here, because at the moment the engine.execute finishes
+        // the async helpers aren't executed yet
+        content: engine.unescape ? engine.unescape(contentResult) : contentResult
       }
     }
 

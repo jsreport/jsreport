@@ -25,6 +25,7 @@ module.exports = (reporter, definition) => {
     compile: (...args) => lazyGetEngine().compile(...args),
     execute: (...args) => lazyGetEngine().execute(...args),
     createContext: (...args) => lazyGetEngine().createContext(...args),
-    onRequire: (...args) => lazyGetEngine().onRequire(...args)
+    onRequire: (...args) => lazyGetEngine().onRequire(...args),
+    unescape: (...args) => lazyGetEngine().unescape(...args)
   })
 }

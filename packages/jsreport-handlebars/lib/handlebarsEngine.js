@@ -63,12 +63,9 @@ module.exports = (opts = {}) => {
         }
       }
 
-      let result = template(data)
-
-      result = result.replace(pattern, '}')
-
-      return result
-    }
+      return template(data)
+    },
+    unescape: (str) => str.replace(pattern, '}')
   }
 }
 
