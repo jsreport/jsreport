@@ -116,7 +116,7 @@ module.exports = (reporter) => {
 
     const functionNames = getTopLevelFunctions(userCode)
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
-    const executionCode = `;(async () => { ${userCode}; ${functionsCode} })()
+    const executionCode = `;(async () => { ${userCode} \n\n;${functionsCode} })()
         .then((topLevelFunctions) => {
           const mergedTopLevelFunctions = { ...topLevelFunctions, ...__topLevelFunctions }
 

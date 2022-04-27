@@ -1,4 +1,4 @@
-require('should')
+const should = require('should')
 const jsreport = require('../../index')
 
 describe('sandbox', () => {
@@ -611,5 +611,16 @@ describe('sandbox', () => {
       }
     })
     res.content.toString().should.be.eql('foo')
+  })
+
+  it('should not fail if code ends with comments', async () => {
+    return should(reporter.render({
+      template: {
+        engine: 'none',
+        content: 'test',
+        recipe: 'html',
+        helpers: '// await'
+      }
+    })).not.be.rejected()
   })
 })
