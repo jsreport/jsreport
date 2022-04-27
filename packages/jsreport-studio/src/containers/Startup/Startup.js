@@ -156,7 +156,7 @@ class Startup extends Component {
       <div>
         <h2>Last requests
           <button className='button confirmation' onClick={() => openTab({ key: 'ProfilerPage', editorComponentKey: 'profiler', title: 'Profiler' })}><i className='fa fa-play' /> open profiler</button>
-          <i className='fa fa-circle-o-notch fa-spin' style={{ display: loadingProfile ? 'inline-block' : 'none' }} />
+          <i className='fa fa-circle-o-notch fa-spin' style={{ marginLeft: '0.5rem', display: loadingProfile ? 'inline-block' : 'none' }} />
         </h2>
 
         <div>
@@ -282,7 +282,7 @@ class Startup extends Component {
               {this.state.stats.queued}
             </div>
           </button>
-          <button className='button' title='open profiler' style={{ ...badgeStyle, backgroundColor: '#4CAF50' }} onClick={() => openProfiler('success')}>
+          <button className='button' title='maximally is eql to config profiler.maxProfilesHistory (click to open profiler)' style={{ ...badgeStyle, backgroundColor: '#4CAF50' }} onClick={() => openProfiler('success')}>
             <div style={labelStyle}>
               <i className='fa fa-check' />&nbsp; last hour
             </div>
@@ -290,7 +290,7 @@ class Startup extends Component {
               {this.state.stats.succesInHour}
             </div>
           </button>
-          <button className='button' title='open profiler' style={{ ...badgeStyle, backgroundColor: '#da532c' }} onClick={() => openProfiler('error')}>
+          <button className='button' title='maximally is eql to config profiler.maxProfilesHistory (click to open profiler)' style={{ ...badgeStyle, backgroundColor: '#da532c' }} onClick={() => openProfiler('error')}>
             <div style={labelStyle}>
               <i className='fa fa-exclamation' />&nbsp; last hour
             </div>
