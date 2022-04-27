@@ -260,7 +260,7 @@ describe('xlsx transformation', () => {
     image.data.toString().should.be.eql('foo')
   })
 
-  it('should not need xlsxPrint helper call at the end', test('empty-no-xlsxPrint.handlebars', (workbook) => {
+  it('should not need xlsxPrint helper call at the end if there is no transformation code', test('empty-no-xlsxPrint.handlebars', (workbook) => {
     workbook.SheetNames.should.have.length(1)
     workbook.SheetNames[0].should.be.eql('Sheet1')
   }))
