@@ -14,6 +14,7 @@ module.exports = (reporter) => {
   reporter.templatingEngines = { cache }
 
   const executionFnParsedParamsMap = new Map()
+  const executionAsyncResultsMap = new Map()
 
   const templatingEnginesEvaluate = async (mainCall, { engine, content, helpers, data }, { entity, entitySet }, req) => {
     const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
@@ -28,19 +29,23 @@ module.exports = (reporter) => {
       executionFnParsedParamsMap.set(req.context.id, new Map())
     }
 
+    const executionId = nanoid(7)
+
     try {
       const res = await executeEngine({
         engine: engineImpl,
         content,
         helpers,
         data
-      }, { handleErrors: false, entity, entitySet }, req)
+      }, { executionId, handleErrors: false, entity, entitySet }, req)
 
       return res.content
     } finally {
       if (mainCall) {
         executionFnParsedParamsMap.delete(req.context.id)
       }
+
+      executionAsyncResultsMap.delete(executionId)
     }
   }
 
@@ -54,6 +59,12 @@ module.exports = (reporter) => {
     proxy.templatingEngines = {
       evaluate: async (executionInfo, entityInfo) => {
         return templatingEnginesEvaluate(false, executionInfo, entityInfo, req)
+      },
+      waitForAsyncHelpers: async () => {
+        if (context.__executionId != null && executionAsyncResultsMap.has(context.__executionId)) {
+          const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
+          return Promise.all([...asyncResultMap.keys()].map((k) => asyncResultMap.get(k)))
+        }
       }
     }
   })
@@ -64,6 +75,8 @@ module.exports = (reporter) => {
     req.data.__rootDirectory = reporter.options.rootDirectory
     req.data.__parentModuleDirectory = reporter.options.parentModuleDirectory
 
+    const executionId = nanoid(7)
+
     try {
       return await executeEngine({
         engine,
@@ -71,16 +84,18 @@ module.exports = (reporter) => {
         helpers: req.template.helpers,
         data: req.data
       }, {
+        executionId,
         handleErrors: true,
         entity: req.template,
         entitySet: 'templates'
       }, req)
     } finally {
       executionFnParsedParamsMap.delete(req.context.id)
+      executionAsyncResultsMap.delete(executionId)
     }
   }
 
-  async function executeEngine ({ engine, content, helpers, data }, { handleErrors, entity, entitySet }, req) {
+  async function executeEngine ({ engine, content, helpers, data }, { executionId, handleErrors, entity, entitySet }, req) {
     let entityPath
 
     if (entity._id) {
@@ -104,9 +119,14 @@ module.exports = (reporter) => {
     const joinedHelpers = systemHelpersStr + '\n' + (helpers || '')
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
-    const executionFn = async ({ require, console, topLevelFunctions }) => {
+    const executionFn = async ({ require, console, topLevelFunctions, context }) => {
       const asyncResultMap = new Map()
-      executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions })
+
+      context.__executionId = executionId
+
+      executionAsyncResultsMap.set(executionId, asyncResultMap)
+      executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions, context })
+
       const key = `template:${content}:${engine.name}`
 
       if (!cache.has(key)) {
@@ -126,10 +146,6 @@ module.exports = (reporter) => {
         wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
       }
 
-      data.__asyncHelpersPromise = () => {
-        return Promise.all([...asyncResultMap.keys()].map((k) => asyncResultMap.get(k)))
-      }
-
       let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
       const resolvedResultsMap = new Map()
       while (asyncResultMap.size > 0) {
@@ -147,7 +163,7 @@ module.exports = (reporter) => {
       }
 
       return {
-        // handlebars escapes single brackets before execution to prevent errors on {#aset}
+        // handlebars escapes single brackets before execution to prevent errors on {#asset}
         // we need to unescape them later here, because at the moment the engine.execute finishes
         // the async helpers aren't executed yet
         content: engine.unescape ? engine.unescape(contentResult) : contentResult
@@ -157,9 +173,9 @@ module.exports = (reporter) => {
     // executionFnParsedParamsMap is there to cache parsed components helpers to speed up longer loops
     // we store there for the particular request and component a promise and only the first component gets compiled
     if (executionFnParsedParamsMap.get(req.context.id).has(executionFnParsedParamsKey)) {
-      const { require, console, topLevelFunctions } = await (executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).promise)
+      const { require, console, topLevelFunctions, context } = await (executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).promise)
 
-      return executionFn({ require, console, topLevelFunctions })
+      return executionFn({ require, console, topLevelFunctions, context })
     } else {
       const awaiter = {}
       awaiter.promise = new Promise((resolve) => {

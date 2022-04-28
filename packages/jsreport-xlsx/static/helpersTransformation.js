@@ -4,12 +4,13 @@
 const __xlsx = (function () {
   const contextMap = new Map()
   const fsproxy = this.fsproxy || require('fsproxy.js')
+  const jsreport = require('jsreport-proxy')
 
   // we need to serialize into string, to ensure all the async helpers results in the output are properly extracted
   // it wouldn't work when async helper result is stored in the data
   async function print () {
     const ctx = contextMap.get(this).ctx
-    await ctx.root.__asyncHelpersPromise
+    await jsreport.templatingEngines.waitForAsyncHelpers()
     ensureWorksheetOrder(ctx.root.$xlsxTemplate)
     bufferedFlush(ctx.root)
     return JSON.stringify({

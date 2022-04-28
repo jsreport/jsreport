@@ -37,7 +37,7 @@ module.exports = (reporter) => async (inputs, req) => {
       return xmlStr.replace(/<xlsxRemove>/g, '').replace(/<\/xlsxRemove>/g, '')
     }).join('$$$xlsxFile$$$')
 
-    reporter.logger.debug('Starting child request to render xlsx dynamic parts', req)
+    reporter.logger.debug('Starting child request to render xlsx dynamic parts for generation step', req)
 
     const { content: newContent } = await reporter.render({
       template: {

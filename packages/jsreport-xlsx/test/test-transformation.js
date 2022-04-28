@@ -630,7 +630,6 @@ describe('excel recipe should not be broken by components usage', () => {
         {{#xlsxMerge "xl/workbook.xml" "workbook.sheets[0].sheet[0]"}}
         <sheet name="{{sheetName}}"/>
         {{/xlsxMerge}}
-        {{{xlsxPrint}}}
       `,
       engine: 'handlebars'
     })
@@ -641,7 +640,10 @@ describe('excel recipe should not be broken by components usage', () => {
       template: {
         recipe: 'xlsx',
         engine: 'handlebars',
-        content: '{{{component "./c1"}}}'
+        content: `
+          {{{component "./c1"}}}
+          {{{xlsxPrint}}}
+        `
       },
       data: {
         sheetName
