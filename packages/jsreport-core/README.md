@@ -282,6 +282,15 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.5.0
+
+- fix parsing issue of code with comment in the sandbox (helpers, scripts)
+- improve profiling when there is big data
+- make transactions support in store configurable
+- improve timeout for the whole request
+- fix applying req.options.timeout when enableRequestReportTimeout is true
+- optimization regarding profile persistence
+
 ### 3.4.2
 
 - update dep `vm2` to fix security vulnerability in sandbox

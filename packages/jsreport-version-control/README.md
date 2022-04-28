@@ -9,6 +9,10 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 3.1.1
+
+- add missing changes column to fix migration
+
 ### 3.1.0
 
 update deps to fix npm audit warnings

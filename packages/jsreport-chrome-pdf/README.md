@@ -29,6 +29,10 @@ chrome-image
 
 ## Changelog
 
+### 3.1.1
+
+- fix not applying the root chrome config
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

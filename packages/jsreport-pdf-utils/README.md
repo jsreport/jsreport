@@ -7,6 +7,12 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.4.0
+
+- add support for checkboxes in pdf
+- add support for attachments in pdf
+- remove only the white default chrome background when merging
+
 ### 3.3.0
 
 - improve merge of document with annotations

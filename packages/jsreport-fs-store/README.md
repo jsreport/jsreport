@@ -18,6 +18,11 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 3.2.0
+
+- properly support absolute path in blobStorage.dataDirectory
+- various optimizations regarding profiler persistence
+
 ### 3.1.0
 
 - add fs-store ignore option to ignore directories/files during the load

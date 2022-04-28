@@ -7,6 +7,10 @@ See https://jsreport.net/learn/child-templates
 
 ## Changelog
 
+### 3.0.2
+
+- update deps to fix npm vulnerabilities report
+
 ### 3.0.0-beta.1
 
 Initial release for jsreport v3

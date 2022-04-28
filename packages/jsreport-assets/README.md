@@ -8,6 +8,11 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.4.0
+
+- fix asset link click from xlsx template preview
+- update to improve the display of templates with xlsx in studio
+
 ### 3.3.0
 
 fix studio usage of old property `scope`, new one: `sharedHelpersScope`

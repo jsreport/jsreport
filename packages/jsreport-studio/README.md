@@ -18,6 +18,12 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.5.0
+
+- improve the Profiler page
+- improve the display of profile with big data
+- improve the Startup page
+
 ### 3.4.0
 
 - fix exe compilation

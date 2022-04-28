@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 3.2.0
+
+- update to support new api for office asset display
+
 ### 3.0.1
 
 - fix errorLine in stack trace when propagating from pptx

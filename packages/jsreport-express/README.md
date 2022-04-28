@@ -7,6 +7,11 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.4.0
+
+- add option `extensions.express.cors.enabled` to enable/disable cors handling in jsreport
+- fix applying req.options.timeout when enableRequestReportTimeout is true
+
 ### 3.3.1
 
 update multer to fix npm audit warning

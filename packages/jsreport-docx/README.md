@@ -7,6 +7,11 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.3.0
+
+- make TOC logic to work with documents created with other languages
+- add backgroundColor support for docxStyle
+
 ### 3.2.0
 
 - update table of contents in docx

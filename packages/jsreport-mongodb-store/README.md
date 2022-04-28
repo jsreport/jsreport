@@ -48,6 +48,10 @@ You can also pass connection uri like this
 
 ## Changelog
 
+### 3.1.0
+
+- optimizations regarding profiler persistence
+
 ### 3.0.1
 
 don't fail when removing not existing blob

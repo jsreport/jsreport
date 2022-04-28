@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 3.3.0
+
+- disable studio login page when studio extension is disabled
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

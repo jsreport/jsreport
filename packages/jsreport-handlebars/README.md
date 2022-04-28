@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/handlebars
 
 ## Changelog
 
+### 3.1.0
+
+- engine expose new `.unescape` method
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-studio",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "jsreport templates editor and designer",
   "keywords": [
     "jsreport"
@@ -51,8 +51,8 @@
     "serve-static": "1.14.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.4.2",
-    "@jsreport/jsreport-express": "3.3.1",
+    "@jsreport/jsreport-core": "3.5.0",
+    "@jsreport/jsreport-express": "3.4.0",
     "@jsreport/studio-dev": "3.1.0",
     "@seznam/compose-react-refs": "1.0.4",
     "babel-eslint": "10.0.2",

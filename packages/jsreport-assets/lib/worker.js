@@ -1,5 +1,5 @@
 const util = require('util')
-const asyncReplace = util.promisify(require('async-replace'))
+const asyncReplace = util.promisify(require('async-replace-with-limit'))
 const { readAsset } = require('./assetsShared')
 const test = /{#asset ([^{}]{0,500})}/g
 const imageTest = /\.(jpeg|jpg|gif|png|svg)$/
