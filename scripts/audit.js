@@ -68,10 +68,14 @@ for (const ext of extensionsList) {
 
   const args = ['install', '--legacy-peer-deps', '--ignore-scripts']
 
+  console.log('\n===== dependencies install started =====')
+
   const { error: npmInstallError, status: npmInstallStatus } = spawnSync('npm', args, {
     cwd: path.join(process.cwd(), 'packages', packagesInWorkspace.get(ext)),
     stdio: 'inherit'
   })
+
+  console.log('\n===== dependencies install finished (logs above) =====')
 
   if (npmInstallError || npmInstallStatus === 1) {
     console.error('Command failed to run')
