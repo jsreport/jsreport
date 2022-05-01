@@ -92,7 +92,7 @@ module.exports = (reporter) => async (inputs, req) => {
       xlsxFilePath: outputPath
     }
   } catch (e) {
-    throw reporter.createError('Error while executing xlsx-next recipe', {
+    throw reporter.createError('Error while executing xlsx recipe', {
       original: e,
       weak: true
     })
