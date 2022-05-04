@@ -45,7 +45,7 @@
     "file-type": "11.1.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.4.0",
+    "@jsreport/jsreport-assets": "3.4.1",
     "@jsreport/jsreport-chrome-pdf": "3.1.1",
     "@jsreport/jsreport-core": "3.5.0",
     "@jsreport/studio-dev": "3.1.0",

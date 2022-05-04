@@ -22,6 +22,10 @@
 
 ## Changelog
 
+### 3.2.0
+
+- update extensions deps
+
 ### 3.1.0
 
 - update samples

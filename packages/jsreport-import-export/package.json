@@ -40,7 +40,7 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.4.0",
+    "@jsreport/jsreport-assets": "3.4.1",
     "@jsreport/jsreport-authentication": "3.3.0",
     "@jsreport/jsreport-authorization": "3.2.0",
     "@jsreport/jsreport-cli": "3.1.0",

@@ -42,7 +42,7 @@
     "pdfjs-dist": "2.12.313"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.4.0",
+    "@jsreport/jsreport-assets": "3.4.1",
     "@jsreport/jsreport-child-templates": "3.0.2",
     "@jsreport/jsreport-chrome-pdf": "3.1.1",
     "@jsreport/jsreport-core": "3.5.0",

@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.4.1
+
+- make asset editor component's code active display configurable
+
 ### 3.4.0
 
 - fix asset link click from xlsx template preview
