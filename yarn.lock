@@ -2868,11 +2868,6 @@ async-replace-with-limit@2.0.0:
   dependencies:
     async "3.2.3"
 
-async@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/async/-/async-0.9.0.tgz#ac3613b1da9bed1b47510bb4651b8931e47146c7"
-  integrity sha1-rDYTsdqb7RtHUQu0ZRuJMeRxRsc=
-
 async@0.9.x, async@~0.9.0:
   version "0.9.2"
   resolved "https://registry.yarnpkg.com/async/-/async-0.9.2.tgz#aea74d5e61c1f899613bf64bda66d4c78f2fd17d"
@@ -19226,12 +19221,12 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2 || 2 || 3 || 4"
 
-winser-with-api@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/winser-with-api/-/winser-with-api-1.0.1.tgz#df5a9c6a722069415265e1a58459934e1fb6ed8f"
-  integrity sha512-+0OoYE5rnevOK+JBzTL69xHp1VO2WHgTDyUFAMDYXCPgurcS2Mbn5FoolwdrtyOvW5N2Vs0geUVhOFABtlgy1Q==
+winser-with-api@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/winser-with-api/-/winser-with-api-1.0.2.tgz#f54442c7d730507694e51b665d3d6c0e3c6485cd"
+  integrity sha512-7y/74uRct7onnbBR0yiXca0nLQspKNyH1MzDU9IzAJqamcKu4Gz+SBuSo84Gz8zMuNHdFUzV1VJ0AoBFp/9emg==
   dependencies:
-    async "0.9.0"
+    async "3.2.3"
     object-assign "4.1.1"
     stdio "0.2.2"
 
