@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scheduling
 
 ## Changelog
 
+### 3.0.2
+
+- update deps to fix npm audit
+
 ### 3.0.1
 
 - refactor ListenerCollection usage for better stack traces

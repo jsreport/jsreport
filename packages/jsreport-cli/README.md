@@ -7,6 +7,14 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 3.1.2
+
+- update deps to fix npm audit
+
+### 3.1.1
+
+- update deps to fix npm audit
+
 ### 3.1.0
 
 internal refactor (use latest version of yargs)

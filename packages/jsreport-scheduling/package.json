@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-scheduling",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "jsreport extension for scheduling background rendering jobs",
   "keywords": [
     "jsreport",
@@ -30,10 +30,10 @@
   },
   "dependencies": {
     "cron-parser": "2.7.3",
-    "moment": "2.29.1"
+    "moment": "2.29.3"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "3.3.0",
+    "@jsreport/jsreport-authentication": "3.3.1",
     "@jsreport/jsreport-authorization": "3.2.0",
     "@jsreport/jsreport-core": "3.5.0",
     "@jsreport/jsreport-reports": "3.0.3",

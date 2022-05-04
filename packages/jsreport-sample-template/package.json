@@ -25,7 +25,7 @@
     "build": "node lib/prepublish.js && jsreport-studio-build",
     "prepublish": "npm run build",
     "start": "jsreport-studio-start --httpPort 4300",
-    "test:all": "npm run build && mocha test --timeout 20000 && standard"
+    "test": "npm run build && mocha test --timeout 20000 && standard"
   },
   "dependencies": {
     "lodash.omit": "4.5.0"

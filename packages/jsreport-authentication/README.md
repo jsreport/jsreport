@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 3.3.1
+
+- update ejs to fix npm audit warning
+
 ### 3.3.0
 
 - disable studio login page when studio extension is disabled

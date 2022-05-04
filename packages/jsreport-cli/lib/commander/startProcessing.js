@@ -1,5 +1,5 @@
 const yargs = require('yargs')
-const prompt = require('prompt-tmp')
+const prompt = require('prompt')
 const startCommand = require('./startCommand')
 const jsreportInstance = require('./jsreportInstance')
 const cliPackageJson = require('../../package.json')
