@@ -1384,6 +1384,32 @@
   resolved "https://registry.yarnpkg.com/@js-joda/core/-/core-3.2.0.tgz#3e61e21b7b2b8a6be746df1335cf91d70db2a273"
   integrity sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==
 
+"@jsreport/jsreport-cli@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@jsreport/jsreport-cli/-/jsreport-cli-3.1.0.tgz#b73938a4e441872929979625f102fd9971b27d96"
+  integrity sha512-J5PB/mF0B2TglHvASkgbD8VgGIa77uA3wm6mHR9qiyRHItXbpmP0a/VOAM/xAZ6Bdfwc6/i9uzM+UIwtF2+bNA==
+  dependencies:
+    "@jsreport/nodejs-client" "3.0.0"
+    chalk "2.4.2"
+    cliui "7.0.4"
+    inquirer "8.2.0"
+    ip-address "5.8.9"
+    is-absolute-url "2.1.0"
+    is-promise "2.1.0"
+    liftoff "3.1.0"
+    lockfile "1.0.4"
+    lodash.omit "4.5.0"
+    nanoid "3.2.0"
+    npm-install-package "2.1.0"
+    nssocket "0.6.0"
+    once "1.4.0"
+    prompt-tmp "1.0.0"
+    semver "5.6.0"
+    silent-spawn "0.4.0"
+    yargs "17.3.1"
+  optionalDependencies:
+    winser-with-api "1.0.1"
+
 "@jsreport/mingo@2.4.1":
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@jsreport/mingo/-/mingo-2.4.1.tgz#019ff48079a3ffeff2a5d8f1380386b921a0fc81"
@@ -2867,6 +2893,11 @@ async-replace-with-limit@2.0.0:
   integrity sha512-MIRGonDyqMmdKauC3iW4u9WEk0vIcUKkAlyN4yiKmvpzE2wFfN8u1OtlCZr/Fow/f37SkUEmvY+Rsc7VDY4HHA==
   dependencies:
     async "3.2.3"
+
+async@0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/async/-/async-0.9.0.tgz#ac3613b1da9bed1b47510bb4651b8931e47146c7"
+  integrity sha1-rDYTsdqb7RtHUQu0ZRuJMeRxRsc=
 
 async@0.9.x, async@~0.9.0:
   version "0.9.2"
@@ -19220,6 +19251,15 @@ wide-align@^1.1.0:
   integrity sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==
   dependencies:
     string-width "^1.0.2 || 2 || 3 || 4"
+
+winser-with-api@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/winser-with-api/-/winser-with-api-1.0.1.tgz#df5a9c6a722069415265e1a58459934e1fb6ed8f"
+  integrity sha512-+0OoYE5rnevOK+JBzTL69xHp1VO2WHgTDyUFAMDYXCPgurcS2Mbn5FoolwdrtyOvW5N2Vs0geUVhOFABtlgy1Q==
+  dependencies:
+    async "0.9.0"
+    object-assign "4.1.1"
+    stdio "0.2.2"
 
 winser-with-api@1.0.2:
   version "1.0.2"
