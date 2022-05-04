@@ -20,11 +20,11 @@ class AssetEditor extends Component {
   constructor (props) {
     super(props)
 
-    const defaultCodeActive = (
-      props.entity == null &&
-      props.codeEntity != null &&
-      Object.prototype.hasOwnProperty.call(props.codeEntity, 'content')
-    )
+    let defaultCodeActive = false
+
+    if (props.codeEntity != null && props.initialCodeActive != null) {
+      defaultCodeActive = props.initialCodeActive
+    }
 
     this.state = {
       initialLoading: true,

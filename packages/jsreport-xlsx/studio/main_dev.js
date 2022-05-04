@@ -11,12 +11,22 @@ Studio.entityEditorComponentKeyResolvers.push((entity) => {
       officeAsset = Studio.getEntityByShortid(entity.xlsx.templateAssetShortid, false)
     }
 
+    let initialCodeActive = true
+
+    if (
+      officeAsset != null &&
+      (entity.content == null || entity.content === '')
+    ) {
+      initialCodeActive = false
+    }
+
     return {
       key: 'assets',
       entity: officeAsset,
       props: {
         icon: 'fa-link',
         embeddingCode: '',
+        initialCodeActive,
         codeEntity: {
           _id: entity._id,
           shortid: entity.shortid,

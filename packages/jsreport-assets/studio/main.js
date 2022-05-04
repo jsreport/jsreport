@@ -750,7 +750,11 @@ var AssetEditor = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, (AssetEditor.__proto__ || Object.getPrototypeOf(AssetEditor)).call(this, props));
 
-    var defaultCodeActive = props.entity == null && props.codeEntity != null && Object.prototype.hasOwnProperty.call(props.codeEntity, 'content');
+    var defaultCodeActive = false;
+
+    if (props.codeEntity != null && props.initialCodeActive != null) {
+      defaultCodeActive = props.initialCodeActive;
+    }
 
     _this.state = {
       initialLoading: true,

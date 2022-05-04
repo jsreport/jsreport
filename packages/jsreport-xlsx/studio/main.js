@@ -119,12 +119,19 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
       officeAsset = _jsreportStudio2.default.getEntityByShortid(entity.xlsx.templateAssetShortid, false);
     }
 
+    var initialCodeActive = true;
+
+    if (officeAsset != null && (entity.content == null || entity.content === '')) {
+      initialCodeActive = false;
+    }
+
     return {
       key: 'assets',
       entity: officeAsset,
       props: {
         icon: 'fa-link',
         embeddingCode: '',
+        initialCodeActive: initialCodeActive,
         codeEntity: {
           _id: entity._id,
           shortid: entity.shortid,
