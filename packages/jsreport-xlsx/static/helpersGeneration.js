@@ -321,9 +321,23 @@ function xlsxSData (data, options) {
 
     if (cellValue == null) {
       cellType = 'inlineStr'
-    } else if (typeof cellValue === 'boolean') {
+    } else if (
+      typeof cellValue === 'boolean' ||
+      (
+        cellValue != null &&
+        typeof cellValue === 'object' &&
+        Object.prototype.toString.call(cellValue) === '[object Boolean]'
+      )
+    ) {
       cellType = 'b'
-    } else if (typeof cellValue === 'number') {
+    } else if (
+      typeof cellValue === 'number' ||
+      (
+        cellValue != null &&
+        typeof cellValue === 'object' &&
+        Object.prototype.toString.call(cellValue) === '[object Number]'
+      )
+    ) {
       cellType = 'n'
     } else {
       cellType = 'inlineStr'

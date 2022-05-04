@@ -2400,6 +2400,42 @@ describe('xlsx generation', () => {
     should(sheet.F5.v).be.False()
   })
 
+  it('loop should generate cell numbers when using this in handlebars', async () => {
+    const numbers = [1, 2, 3, 4, 5]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'loop-numbers-and-this.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        numbers
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.A1.v).be.eql(numbers[0])
+    should(sheet.A1.t).be.eql('n')
+    should(sheet.A2.v).be.eql(numbers[1])
+    should(sheet.A2.t).be.eql('n')
+    should(sheet.A3.v).be.eql(numbers[2])
+    should(sheet.A3.t).be.eql('n')
+    should(sheet.A4.v).be.eql(numbers[3])
+    should(sheet.A4.t).be.eql('n')
+    should(sheet.A5.v).be.eql(numbers[4])
+    should(sheet.A5.t).be.eql('n')
+  })
+
   it('table generated with loop', async () => {
     const items = [{
       name: 'Alexander',
