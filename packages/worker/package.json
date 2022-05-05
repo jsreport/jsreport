@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/worker",
-  "version": "3.2.0",
+  "version": "3.5.0",
   "private": true,
   "description": "Sandbox jsreport execution into extra process",
   "license": "MIT",
@@ -49,7 +49,7 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-docker-workers": "3.2.0",
+    "@jsreport/jsreport-docker-workers": "3.5.0",
     "mocha": "8.3.2",
     "should": "13.2.3",
     "standard": "16.0.4",

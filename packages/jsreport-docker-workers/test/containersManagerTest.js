@@ -97,9 +97,11 @@ describe('containers manager', () => {
   })
 
   it('release should warmup last used container', (done) => {
+    containersManager.containersPool.containers[1].lastUsed = new Date(Date.now() - 5000)
     containersManager.containersPool.containers[1].tenant = 'x'
     containersManager.containersPool.containers[1].restart = done
     const container = containersManager.containersPool.containers[0]
+    container.lastUsed = new Date()
     container.numberOfRequests = 1
     containersManager.release(container)
   })
