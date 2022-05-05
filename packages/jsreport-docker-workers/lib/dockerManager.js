@@ -5,13 +5,14 @@ const ip = require('ip')
 
 module.exports = (reporter, {
   discriminatorPath,
+  containerParallelRequestsLimit,
   pingServersInterval,
   pingHealthyInterval,
   container,
   subnet,
   network,
+  busyQueueWaitingTimeout,
   numberOfWorkers,
-  containerParallelRequestsLimit,
   customContainersPoolFactory
 }, workerOptions, workerSystemOptions) => {
   reporter.options.ip = reporter.options.ip || ip.address()
@@ -25,10 +26,11 @@ module.exports = (reporter, {
 
   const containersManager = createContainersManager({
     hostIp: reporter.options.ip,
-    container,
-    subnet,
     network,
+    subnet,
     numberOfWorkers,
+    container,
+    busyQueueWaitingTimeout,
     logger: reporter.logger,
     tempDirectory: reporter.options.tempDirectory,
     containerParallelRequestsLimit,

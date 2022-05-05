@@ -76,13 +76,11 @@ module.exports = ({
       return container
     }
 
-    logger.debug(`No docker container previously assigned, searching by LRU (discriminator: ${tenant})`)
+    logger.debug(`No docker container previously assigned, searching by oldest available (discriminator: ${tenant})`)
 
-    // make sure we get the first container for brand new containers
-    container = containersPool.containers.reduce((prev, current) =>
-      (prev.lastUsed < current.lastUsed || (!prev.lastUsed && !current.lastUsed)) ? prev : current)
+    container = getNextOldContainer(containersPool.containers)
 
-    logger.debug(`LRU container is ${container.id} (discriminator: ${tenant})`)
+    logger.debug(`Oldest available container is ${container.id} (discriminator: ${tenant})`)
 
     if (container.numberOfRequests > 0) {
       logger.debug(`All docker containers are busy, queuing work and waiting for a worker to be available (discriminator: ${tenant})`)
@@ -130,12 +128,35 @@ module.exports = ({
     return container
   }
 
+  function getNextOldContainer (containers) {
+    // the logic here to pick the oldest available container is to consider two criteria, in order:
+    // 1.- filter the containers that are not in use or are the ones with the least number of requests
+    // 2.- from the filtered container obtained from previous step find the oldest used
+    const leastNumberOfRequests = Math.min.apply(null, containers.map((c) => c.numberOfRequests))
+    const targetContainers = containers.filter((c) => c.numberOfRequests === leastNumberOfRequests)
+
+    const container = targetContainers.reduce((prev, current) => {
+      if (
+        (!prev.lastUsed && !current.lastUsed) ||
+        (!prev.lastUsed && current.lastUsed)
+      ) {
+        return prev
+      } else if (prev.lastUsed && !current.lastUsed) {
+        return current
+      } else {
+        return prev.lastUsed < current.lastUsed ? prev : current
+      }
+    })
+
+    return container
+  }
+
   async function warmupNextOldContainer () {
     if (warmupPolicy === false) {
       return
     }
 
-    const container = containersPool.containers.reduce((prev, current) => (prev.lastUsed < current.lastUsed) ? prev : current)
+    const container = getNextOldContainer(containersPool.containers)
 
     if (!container || container.numberOfRequests > 0 || !container.tenant) {
       return
