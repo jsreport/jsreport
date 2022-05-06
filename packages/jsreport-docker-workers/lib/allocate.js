@@ -80,7 +80,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
         }
       }, {
         systemAction: 'allocate',
-        timeout: opts.timeout
+        timeout: container.remote ? opts.timeout * 1.2 : opts.timeout
       })
     } catch (e) {
       await containersManager.release(container)
