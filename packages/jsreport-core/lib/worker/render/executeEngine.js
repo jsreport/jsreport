@@ -60,6 +60,33 @@ module.exports = (reporter) => {
       evaluate: async (executionInfo, entityInfo) => {
         return templatingEnginesEvaluate(false, executionInfo, entityInfo, req)
       },
+      waitForAsyncHelper: async (maybeAsyncContent) => {
+        if (
+          context.__executionId == null ||
+          !executionAsyncResultsMap.has(context.__executionId) ||
+          typeof maybeAsyncContent !== 'string'
+        ) {
+          return maybeAsyncContent
+        }
+
+        const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
+        const asyncHelperResultRegExp = /{#asyncHelperResult ([^{}]+)}/
+        let content = maybeAsyncContent
+        let matchResult
+
+        do {
+          if (matchResult != null) {
+            const matchedPart = matchResult[0]
+            const asyncResultId = matchResult[1]
+            const result = await asyncResultMap.get(asyncResultId)
+            content = `${content.slice(0, matchResult.index)}${result}${content.slice(matchResult.index + matchedPart.length)}`
+          }
+
+          matchResult = content.match(asyncHelperResultRegExp)
+        } while (matchResult != null)
+
+        return content
+      },
       waitForAsyncHelpers: async () => {
         if (context.__executionId != null && executionAsyncResultsMap.has(context.__executionId)) {
           const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)

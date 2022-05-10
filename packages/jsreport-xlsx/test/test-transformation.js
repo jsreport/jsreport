@@ -265,6 +265,39 @@ describe('xlsx transformation', () => {
     workbook.SheetNames[0].should.be.eql('Sheet1')
   }))
 
+  it('should be able to execute async helper inside block helper', async () => {
+    const stylesXML = `
+      <x:styleSheet xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" xmlns:x15="http://schemas.microsoft.com/office/spreadsheetml/2010/11/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:x16r2="http://schemas.microsoft.com/office/spreadsheetml/2015/02/main" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" mc:Ignorable="x14ac x16r2 xr" xmlns:x="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+        <x:numFmts count="4">
+          <x:numFmt numFmtId="164" formatCode="#,##0.00_);[Red](#,##0.00);&quot; - &quot;;" />
+          <x:numFmt numFmtId="165" formatCode="&quot;$&quot;#,##0.00_);[Red](&quot;$&quot;#,##0.00);&quot;- &quot;;" />
+          <x:numFmt numFmtId="166" formatCode="#,##0.00_);[Red](#,##0);&quot; - &quot;;" />
+          <x:numFmt numFmtId="167" formatCode="&quot;$&quot;#,##0.00_);[Red](&quot;$&quot;#,##0);&quot;- &quot;;" />
+        </x:numFmts>
+      </x:styleSheet>
+    `
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'styles.xml',
+      content: Buffer.from(stylesXML)
+    })
+
+    const res = await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        helpers: '',
+        content: `{{#xlsxReplace "xl/styles.xml"}}{{asset "./styles.xml"}}{{/xlsxReplace}}
+        {{{xlsxPrint}}}`
+      }
+    })
+
+    const files = await decompress()(res.content)
+    const styles = files.find(f => f.path === 'xl/styles.xml')
+
+    styles.data.toString().should.containEql('x:numFmts count="4"')
+  })
+
   it('should be able to transform xlsx from previously generated xlsx from template', async () => {
     const sheetName = 'foo'
 

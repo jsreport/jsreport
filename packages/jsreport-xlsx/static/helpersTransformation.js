@@ -10,9 +10,19 @@ const __xlsx = (function () {
   // it wouldn't work when async helper result is stored in the data
   async function print () {
     const ctx = contextMap.get(this).ctx
+
     await jsreport.templatingEngines.waitForAsyncHelpers()
+
+    const $workQueue = ctx.root.$workQueue || []
+
+    // process all the work pending
+    for (const $work of $workQueue) {
+      await $work.execute($work.ctx, $work.tagCtx, ...$work.params)
+    }
+
     ensureWorksheetOrder(ctx.root.$xlsxTemplate)
     bufferedFlush(ctx.root)
+
     return JSON.stringify({
       $xlsxTemplate: ctx.root.$xlsxTemplate,
       $files: ctx.root.$files || []
@@ -105,44 +115,57 @@ const __xlsx = (function () {
     const ctx = contextMap.get(this).ctx
     const tagCtx = contextMap.get(this).tagCtx
 
-    if (typeof path === 'string') {
-      const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
-      const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
-      const pathOfLastFragment = path.substring(lastFragmentIndex)
-      const holder = evalGet(ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
-      this.$replacedValue = evalGet(holder, pathOfLastFragment)
-      let contentToReplace = tagCtx.render(ctx.data)
-      try {
-        contentToReplace = xml2jsonUnwrap(contentToReplace)
-      } catch (e) {
-        // not xml, it is ok, put it as the string value inside
-      }
+    enqueueWork({ ctx, tagCtx, params: [filePath, path] }, async function (ctx, tagCtx, filePath, path) {
+      if (typeof path === 'string') {
+        const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
+        const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
+        const pathOfLastFragment = path.substring(lastFragmentIndex)
+        const holder = evalGet(ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
 
-      evalSet(holder, pathOfLastFragment, contentToReplace)
-    } else {
-      ctx.root.$xlsxTemplate[filePath] = xml2json(tagCtx.render(ctx.data))
-    }
+        this.$replacedValue = evalGet(holder, pathOfLastFragment)
+
+        let contentToReplace = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+
+        try {
+          contentToReplace = xml2jsonUnwrap(contentToReplace)
+        } catch (e) {
+          // not xml, it is ok, put it as the string value inside
+        }
+
+        evalSet(holder, pathOfLastFragment, contentToReplace)
+      } else {
+        const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+        ctx.root.$xlsxTemplate[filePath] = xml2json(content)
+      }
+    })
 
     return ''
   }
 
   function remove (filePath, path, index) {
     const ctx = contextMap.get(this).ctx
-    const obj = ctx.root.$xlsxTemplate[filePath]
-    const collection = evalGet(obj, path)
-    ctx.root.$removedItem = collection[index]
-    collection.splice(index, 1)
+
+    enqueueWork({ ctx, params: [filePath, path, index] }, async function (ctx, tagCtx, filePath, path, index) {
+      const obj = ctx.root.$xlsxTemplate[filePath]
+      const collection = evalGet(obj, path)
+      ctx.root.$removedItem = collection[index]
+      collection.splice(index, 1)
+    })
+
     return ''
   }
 
   function merge (filePath, path) {
     const ctx = contextMap.get(this).ctx
     const tagCtx = contextMap.get(this).tagCtx
-    const json = xml2jsonUnwrap(escape(tagCtx.render(ctx.data), ctx.root))
 
-    const mergeTarget = evalGet(ctx.root.$xlsxTemplate[filePath], path)
+    enqueueWork({ ctx, tagCtx, params: [filePath, path] }, async function (ctx, tagCtx, filePath, path) {
+      const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+      const json = xml2jsonUnwrap(escape(content, ctx.root))
+      const mergeTarget = evalGet(ctx.root.$xlsxTemplate[filePath], path)
+      _.merge(mergeTarget, json)
+    })
 
-    _.merge(mergeTarget, json)
     return ''
   }
 
@@ -178,6 +201,19 @@ const __xlsx = (function () {
     }
   }
 
+  function enqueueWork ({ ctx, tagCtx, params }, executeFn) {
+    const root = ctx.root
+
+    root.$workQueue = root.$workQueue || []
+
+    root.$workQueue.push({
+      ctx,
+      tagCtx,
+      params,
+      execute: executeFn
+    })
+  }
+
   function escape (xml, root) {
     if (root.$escapeAmp === false) {
       return xml
@@ -190,16 +226,22 @@ const __xlsx = (function () {
   function add (filePath, xmlPath) {
     const ctx = contextMap.get(this).ctx
     const tagCtx = contextMap.get(this).tagCtx
-    const obj = ctx.root.$xlsxTemplate[filePath]
-    const collection = safeGet(obj, xmlPath)
 
-    const xml = escape(tagCtx.render(ctx.data).trim(), ctx.root)
-    if (collection.length < ctx.root.$numberOfParsedAddIterations) {
-      collection.push(xml2jsonUnwrap(xml))
-      return ''
-    }
+    enqueueWork({ ctx, tagCtx, params: [filePath, xmlPath] }, async function (ctx, tagCtx, filePath, xmlPath) {
+      const obj = ctx.root.$xlsxTemplate[filePath]
+      const collection = safeGet(obj, xmlPath)
+      const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
 
-    bufferedAppend(filePath, xmlPath, ctx.root, collection, xml)
+      const xml = escape(content.trim(), ctx.root)
+
+      if (collection.length < ctx.root.$numberOfParsedAddIterations) {
+        collection.push(xml2jsonUnwrap(xml))
+        return ''
+      }
+
+      bufferedAppend(filePath, xmlPath, ctx.root, collection, xml)
+    })
+
     return ''
   }
 
@@ -231,36 +273,44 @@ const __xlsx = (function () {
   function addSheet (name) {
     const ctx = contextMap.get(this).ctx
     const tagCtx = contextMap.get(this).tagCtx
-    const id = ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
-    const fileName = 'sheet' + id
-    const fileFullName = fileName + '.xml'
-    const path = 'xl/worksheets/' + fileFullName
 
-    ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
-      $: {
-        PartName: '/' + path,
-        ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
-      }
+    enqueueWork({ ctx, tagCtx, params: [name] }, async function (ctx, tagCtx, name) {
+      const id = ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
+      const fileName = 'sheet' + id
+      const fileFullName = fileName + '.xml'
+      const path = 'xl/worksheets/' + fileFullName
+
+      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
+        $: {
+          PartName: '/' + path,
+          ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
+        }
+      })
+
+      ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets[0].sheet.push({
+        $: {
+          name: name,
+          sheetId: id + '',
+          'r:id': fileName
+        }
+      })
+
+      ctx.root.$xlsxTemplate['xl/_rels/workbook.xml.rels'].Relationships.Relationship.push({
+        $: {
+          Id: fileName,
+          Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
+          Target: 'worksheets/' + fileFullName
+        }
+      })
+
+      const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+      ctx.root.$xlsxTemplate[path] = { worksheet: xml2jsonUnwrap(content) }
     })
-    ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets[0].sheet.push({
-      $: {
-        name: name,
-        sheetId: id + '',
-        'r:id': fileName
-      }
-    })
-    ctx.root.$xlsxTemplate['xl/_rels/workbook.xml.rels'].Relationships.Relationship.push({
-      $: {
-        Id: fileName,
-        Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
-        Target: 'worksheets/' + fileFullName
-      }
-    })
-    ctx.root.$xlsxTemplate[path] = { worksheet: xml2jsonUnwrap(tagCtx.render(ctx.data)) }
+
+    return ''
   }
 
-  function ensureDrawingOnSheet (sheetFullName) {
-    const ctx = contextMap.get(this).ctx
+  function ensureDrawingOnSheet (ctx, sheetFullName) {
     let drawingFullName
 
     const worksheet = ctx.root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
@@ -315,9 +365,7 @@ const __xlsx = (function () {
     return drawingFullName
   }
 
-  function ensureRelOnSheet (sheetFullName) {
-    const ctx = contextMap.get(this).ctx
-
+  function ensureRelOnSheet (ctx, sheetFullName) {
     ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] =
       ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] || {
         Relationships: {
@@ -332,59 +380,65 @@ const __xlsx = (function () {
   function addImage (imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
     const ctx = contextMap.get(this).ctx
     const tagCtx = contextMap.get(this).tagCtx
-    const name = imageName + '.png'
 
-    if (!ctx.root.$xlsxTemplate['xl/media/' + name]) {
-      ctx.root.$xlsxTemplate['xl/media/' + name] = tagCtx.render(ctx.data)
-    }
+    enqueueWork({ ctx, tagCtx, params: [imageName, sheetFullName, fromCol, fromRow, toCol, toRow] }, async function (ctx, tagCtx, imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
+      const name = imageName + '.png'
 
-    if (!ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
-      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.push({
-        $: {
-          Extension: 'png',
-          ContentType: 'image/png'
-        }
-      })
-    }
-
-    ensureRelOnSheet.call(this, sheetFullName)
-    const drawingFullName = ensureDrawingOnSheet.call(this, sheetFullName)
-
-    const drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
-    ctx.root.$xlsxTemplate[drawingRelPath] =
-      ctx.root.$xlsxTemplate[drawingRelPath] || {
-        Relationships: {
-          $: { xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships' },
-          Relationship: []
-        }
+      if (!ctx.root.$xlsxTemplate['xl/media/' + name]) {
+        const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+        ctx.root.$xlsxTemplate['xl/media/' + name] = content
       }
 
-    const relNumber = ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
-    const relName = 'rId' + relNumber
+      if (!ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
+        ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.push({
+          $: {
+            Extension: 'png',
+            ContentType: 'image/png'
+          }
+        })
+      }
 
-    if (!ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
-      ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
-        $: {
-          Id: relName,
-          Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
-          Target: '../media/' + name
+      ensureRelOnSheet(ctx, sheetFullName)
+      const drawingFullName = ensureDrawingOnSheet(ctx, sheetFullName)
+
+      const drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
+      ctx.root.$xlsxTemplate[drawingRelPath] =
+        ctx.root.$xlsxTemplate[drawingRelPath] || {
+          Relationships: {
+            $: { xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships' },
+            Relationship: []
+          }
         }
-      })
-    }
 
-    const drawing = ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
-    drawing['xdr:wsDr']['xdr:twoCellAnchor'] = drawing['xdr:wsDr']['xdr:twoCellAnchor'] || []
+      const relNumber = ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
+      const relName = 'rId' + relNumber
 
-    drawing['xdr:wsDr']['xdr:twoCellAnchor'].push(xml2jsonUnwrap(
-      '<xdr:twoCellAnchor><xdr:from><xdr:col>' + fromCol +
-      '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + fromRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>' +
-      toCol + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + toRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr>' +
-      '<xdr:cNvPr id="' + relNumber + '" name="Picture"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill>' +
-      '<a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="' + relName + '"><a:extLst>' +
-      '<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" ' +
-      'val="0"/></a:ext></a:extLst></a:blip><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" ' +
-      'cy="0"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>'
-    ))
+      if (!ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
+        ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
+          $: {
+            Id: relName,
+            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+            Target: '../media/' + name
+          }
+        })
+      }
+
+      const drawing = ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
+      drawing['xdr:wsDr']['xdr:twoCellAnchor'] = drawing['xdr:wsDr']['xdr:twoCellAnchor'] || []
+
+      drawing['xdr:wsDr']['xdr:twoCellAnchor'].push(xml2jsonUnwrap(
+        '<xdr:twoCellAnchor><xdr:from><xdr:col>' + fromCol +
+        '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + fromRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>' +
+        toCol + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + toRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr>' +
+        '<xdr:cNvPr id="' + relNumber + '" name="Picture"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill>' +
+        '<a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="' + relName + '"><a:extLst>' +
+        '<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" ' +
+        'val="0"/></a:ext></a:extLst></a:blip><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" ' +
+        'cy="0"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>'
+      ))
+    })
+
+    return ''
   }
 
   const _ = require('lodash')
