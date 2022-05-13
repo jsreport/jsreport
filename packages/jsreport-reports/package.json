@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-reports",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "jsreport extension adding support for storing rendering outputs for later use",
   "keywords": [
     "jsreport"

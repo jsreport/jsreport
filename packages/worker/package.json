@@ -28,7 +28,7 @@
     "@jsreport/jsreport-npm": "3.1.1",
     "@jsreport/jsreport-pdf-utils": "3.4.0",
     "@jsreport/jsreport-pptx": "3.2.0",
-    "@jsreport/jsreport-reports": "3.0.3",
+    "@jsreport/jsreport-reports": "3.0.4",
     "@jsreport/jsreport-scripts": "3.2.0",
     "@jsreport/jsreport-static-pdf": "3.0.0",
     "@jsreport/jsreport-text": "3.0.0",

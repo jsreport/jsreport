@@ -36,7 +36,7 @@
     "@jsreport/jsreport-authentication": "3.3.1",
     "@jsreport/jsreport-authorization": "3.2.0",
     "@jsreport/jsreport-core": "3.5.0",
-    "@jsreport/jsreport-reports": "3.0.3",
+    "@jsreport/jsreport-reports": "3.0.4",
     "@jsreport/studio-dev": "3.1.0",
     "cron-builder": "0.3.0",
     "cronstrue": "1.64.0",

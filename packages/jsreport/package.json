@@ -65,7 +65,7 @@
     "@jsreport/jsreport-pdf-utils": "3.4.0",
     "@jsreport/jsreport-pptx": "3.2.0",
     "@jsreport/jsreport-public-templates": "3.0.0",
-    "@jsreport/jsreport-reports": "3.0.3",
+    "@jsreport/jsreport-reports": "3.0.4",
     "@jsreport/jsreport-sample-template": "3.2.0",
     "@jsreport/jsreport-scheduling": "3.0.2",
     "@jsreport/jsreport-scripts": "3.2.0",

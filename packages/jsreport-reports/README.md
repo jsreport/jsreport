@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 3.0.4
+
+- fix async rendering execution
+
 ### 3.0.3
 
 - fix for passing data to async reports
