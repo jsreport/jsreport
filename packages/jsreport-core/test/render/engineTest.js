@@ -449,6 +449,106 @@ describe('engine', () => {
     })).be.rejectedWith(/threw with non-Error/)
   })
 
+  it('should fail with helper that tries to avoid sandbox (using global context)', async () => {
+    try {
+      await reporter.render({
+        template: {
+          content: '',
+          helpers: `
+            function a() {
+              const ForeignFunction = this.constructor.constructor;
+              const process1 = ForeignFunction("return process")();
+              const require1 = process1.mainModule.require;
+              const console1 = require1("console");
+              const fs1 = require1("fs");
+              console1.log(fs1.statSync('.'))
+            }
+          `,
+          engine: 'helpers',
+          recipe: 'html'
+        }
+      })
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('read properties of null')
+    }
+  })
+
+  it('should fail with helper that tries to avoid sandbox from this and __proto__ (using global context #2)', async () => {
+    try {
+      await reporter.render({
+        template: {
+          content: '',
+          helpers: `
+            function a() {
+              const ForeignFunction = this.__proto__.constructor.constructor;
+              const process1 = ForeignFunction("return process")();
+              const require1 = process1.mainModule.require;
+              const console1 = require1("console");
+              const fs1 = require1("fs");
+              console1.log(fs1.statSync('.'))
+            }
+          `,
+          engine: 'helpers',
+          recipe: 'html'
+        }
+      })
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('read properties of null')
+    }
+  })
+
+  it('should fail with helper that tries to avoid sandbox from arguments (using global context #3)', async () => {
+    try {
+      await reporter.render({
+        template: {
+          content: '',
+          helpers: `
+            function a(options) {
+              const ForeignFunction = options.constructor.constructor
+              const process1 = ForeignFunction("return process")();
+              const require1 = process1.mainModule.require;
+              const console1 = require1("console");
+              const fs1 = require1("fs");
+              console1.log(fs1.statSync('.'))
+            }
+          `,
+          engine: 'helpers',
+          recipe: 'html'
+        }
+      })
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('read properties of null')
+    }
+  })
+
+  it('should fail with helper that tries to avoid sandbox (using objects exposed in global context)', async () => {
+    try {
+      await reporter.render({
+        template: {
+          content: '',
+          helpers: `
+            function a() {
+              const ForeignFunction = require.constructor;
+              const process1 = ForeignFunction("return process")();
+              const require1 = process1.mainModule.require;
+              const console1 = require1("console");
+              const fs1 = require1("fs");
+              console1.log(fs1.statSync('.'))
+            }
+          `,
+          engine: 'helpers',
+          recipe: 'html'
+        }
+      })
+      throw new Error('It should have failed')
+    } catch (e) {
+      e.message.should.containEql('is not defined')
+    }
+  })
+
   it('should cache the templating engines', async () => {
     const templateContent = 'content'
 
