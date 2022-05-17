@@ -5,7 +5,7 @@
  */
 const path = require('path')
 const { Readable } = require('stream')
-const Reaper = require('reap2')
+const Reaper = require('@jsreport/reap')
 const optionsLoad = require('./optionsLoad')
 const { createLogger, configureLogger, silentLogs } = require('./logger')
 const checkEntityName = require('./validateEntityName')

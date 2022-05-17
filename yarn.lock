@@ -3960,10 +3960,10 @@ base@^0.11.1:
     mixin-deep "^1.2.0"
     pascalcase "^0.1.1"
 
-batch@~0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/batch/-/batch-0.4.0.tgz#bffe40bc117b73942da155bc77d8a36a21a6ac58"
-  integrity sha1-v/5AvBF7c5QtoVW8d9ijaiGmrFg=
+batch@0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/batch/-/batch-0.6.1.tgz#dc34314f4e679318093fc760272525f94bf25c16"
+  integrity sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw==
 
 bcrypt-pbkdf@^1.0.0:
   version "1.0.2"
@@ -4481,11 +4481,6 @@ bytes@3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.1.2.tgz#8b0beeb98605adf1b128fa4386403c009e0221a5"
   integrity sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==
-
-bytes@~0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/bytes/-/bytes-0.2.1.tgz#555b08abcb063f8975905302523e4cd4ffdfdf31"
-  integrity sha1-VVsIq8sGP4l1kFMCUj5M1P/f3zE=
 
 cacache@^12.0.2:
   version "12.0.4"
@@ -5284,13 +5279,6 @@ commander@^7.2.0:
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-7.2.0.tgz#a36cb57d0b501ce108e4d20559a150a391d97ab7"
   integrity sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==
-
-commander@~1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-1.2.0.tgz#fd5713bfa153c7d6cc599378a5ab4c45c535029e"
-  integrity sha1-/VcTv6FTx9bMWZN4patMRcU1Ap4=
-  dependencies:
-    keypress "0.1.x"
 
 commander@~2.14.1:
   version "2.14.1"
@@ -15701,17 +15689,6 @@ readdirrec@2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/readdirrec/-/readdirrec-2.3.1.tgz#595d6f56a8c24e9d00e0169ee0eec15446ce3531"
   integrity sha512-NVt1o1XkoHYEm4/qGgHYbM8fnaAa+dNGN2G6IeCCuUhC8SFeL7rbv8VVltxxltS23b2UCM+2Mh+QPiLQ+Rxj7Q==
-
-reap2@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/reap2/-/reap2-1.0.1.tgz#d5b419192b30a3150042935268ae81fd76a7e98a"
-  integrity sha512-BTnQc7Q35NOfgcP64YbqzkVS7TT9Q1lekTzhgkgDbebVQPg8+Tur70voDuN8w4uDoiTgq22MeJ+EqWy4074jNQ==
-  dependencies:
-    batch "~0.4.0"
-    bytes "~0.2.1"
-    commander "~1.2.0"
-    debug "*"
-    ms "0.7.1"
 
 rechoir@^0.6.2:
   version "0.6.2"

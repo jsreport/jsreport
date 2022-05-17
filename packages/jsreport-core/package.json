@@ -56,7 +56,7 @@
     "nanoid": "3.2.0",
     "nconf": "0.12.0",
     "node.extend.without.arrays": "1.1.6",
-    "reap2": "1.0.1",
+    "@jsreport/reap": "0.1.0",
     "semver": "7.3.5",
     "serializator": "1.0.2",
     "stack-trace": "0.0.10",
