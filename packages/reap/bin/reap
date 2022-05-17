@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var Reaper = require('..');
+var program = require('commander');
+var pkg = require('../package.json');
+var bytes = require('bytes');
+var path = require('path');
+var ms = require('ms');
+
+// options
+
+program
+  .usage('[options] <dirs>')
+  .option('-t, --threshold <ms>', 'file unlink threshold [1 hour]', '1 hour')
+  .option('-s, --single', 'run a single time and exit')
+  .parse(process.argv);
+
+// threshold
+
+var threshold = ms(program.threshold);
+
+// dirs
+
+var dirs = program.args;
+if (!dirs.length) throw new Error('<dirs> required');
+
+// setup
+
+var reaper = new Reaper({ threshold: threshold });
+
+dirs.forEach(function(dir){
+  reaper.watch(dir);
+});
+
+// reap
+
+reaper.on('remove', function(file){
+  console.log('  rm %s %s', file.path, bytes(file.size));
+});
+
+function run() {
+  reaper.start(function(err, files){
+    if (err) throw err;
+    console.log();
+    console.log('  %d files', files.length);
+    console.log('  %s total', bytes(files.reduce(size, 0)));
+    console.log();
+  });
+}
+
+run();
+
+if (!program.single) setInterval(run, threshold);
+
+function size(sum, file) {
+  return sum + file.size;
+}

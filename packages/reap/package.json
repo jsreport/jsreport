@@ -1,0 +1,39 @@
+{
+  "name": "reap2",
+  "version": "1.0.0",
+  "description": "Resolved Security Vulnerability of the original reap module https://www.npmjs.com/package/reap",
+  "main": "index.js",
+  "dependencies": {
+    "batch": "~0.4.0",
+    "bytes": "~0.2.1",
+    "commander": "~1.2.0",
+    "debug": "*",
+    "ms": "0.7.1"
+  },
+  "bundleDependencies": false,
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "deprecated": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kamesh95/reap.git"
+  },
+  "keywords": [
+    "reap",
+    "gc",
+    "reaper",
+    "tmp",
+    "temporary"
+  ],
+  "author": "kamesh95",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kamesh95/reap/issues"
+  },
+  "homepage": "https://github.com/kamesh95/reap#readme"
+}
