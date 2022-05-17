@@ -72,7 +72,7 @@ class Profiler {
       let content = res.content
 
       if (content != null) {
-        if (content.length > this.reporter.options.profiler.maxResponseSize) {
+        if (content.length > this.reporter.options.profiler.maxDiffSize) {
           content = {
             tooLarge: true
           }
@@ -97,7 +97,12 @@ class Profiler {
 
       const stringifiedReq = JSON.stringify({ template: req.template, data: req.data }, null, 2)
 
-      m.req = { diff: createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0) }
+      m.req = { }
+      if (stringifiedReq.length * 4 > this.reporter.options.profiler.maxDiffSize) {
+        m.req.tooLarge = true
+      } else {
+        m.req.diff = createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0)
+      }
 
       req.context.profiling.resLastVal = (res.content == null || isbinaryfile(res.content) || content.tooLarge) ? null : res.content.toString()
       req.context.profiling.resMetaLastVal = stringifiedResMeta

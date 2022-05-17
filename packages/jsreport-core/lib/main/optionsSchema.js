@@ -182,7 +182,7 @@ module.exports.getRootSchemaOptions = () => ({
           '$jsreport-acceptsDuration': true,
           default: '1m'
         },
-        maxResponseSize: {
+        maxDiffSize: {
           type: ['string', 'number'],
           '$jsreport-acceptsSize': true,
           default: '50mb'

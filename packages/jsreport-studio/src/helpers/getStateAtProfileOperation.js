@@ -27,7 +27,12 @@ function getStateAtProfileOperation (operations, operationId, completed = false)
   }
 
   for (const event of eventsToDiff) {
-    currentState.reqContent = applyPatch(currentState.reqContent, event.req.diff)
+    if (currentState.reqTooLarge || event.req.tooLarge) {
+      currentState.reqTooLarge = true
+    } else {
+      currentState.reqContent = applyPatch(currentState.reqContent, event.req.diff)
+    }
+
     currentState.resMetaContent = applyPatch(currentState.resMetaContent, event.res.meta.diff)
 
     if (currentState.resContentTooLarge) {
@@ -63,11 +68,16 @@ function getStateAtProfileOperation (operations, operationId, completed = false)
     result.res.meta.fileExtension = 'txt'
   }
 
-  try {
-    result.req = JSON.parse(currentState.reqContent)
-  } catch (e) {
-    console.error('Failed to parse req ' + currentState.reqContent)
+  if (currentState.reqTooLarge) {
+    result.req = { tooLarge: true }
+  } else {
+    try {
+      result.req = JSON.parse(currentState.reqContent)
+    } catch (e) {
+      console.error('Failed to parse req ' + currentState.reqContent)
+    }
   }
+
   if (currentState.resContentTooLarge === true) {
     result.res.content = {
       tooLarge: true

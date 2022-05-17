@@ -141,7 +141,8 @@ class ProfilerInspectModal extends Component {
 
   render () {
     const isLoading = this.state.content == null
-    const reqActionsEnabled = this.state.content != null
+    const reqTooLarge = this.state.content != null && this.state.content.req != null && this.state.content.req.tooLarge === true
+    const reqActionsEnabled = this.state.content != null && this.state.content.req != null && this.state.content.req.tooLarge !== true
     const resActionsEnabled = this.state.content != null && this.state.content.res != null && this.state.content.res.content !== null && this.state.content.res.content.size > 0
 
     return (
@@ -151,7 +152,7 @@ class ProfilerInspectModal extends Component {
           <h5>
             <b>Request state actions</b>
           </h5>
-          <div>
+          <div title={reqTooLarge === true ? 'The request was too large to diff and store in profile. You can increase the maximum size using config profiler.maxDiffSize' : ''}>
             <button
               className={`button confirmation ${(reqActionsEnabled && this.state.content.req.template.recipe) ? '' : 'disabled'}`}
               style={{ marginLeft: 0 }}

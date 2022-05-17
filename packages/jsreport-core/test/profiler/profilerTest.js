@@ -6,7 +6,11 @@ describe('profiler', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport()
+    reporter = jsreport({
+      profiler: {
+        maxDiffSize: '1mb'
+      }
+    })
     reporter.use(jsreport.tests.listeners())
     return reporter.init()
   })
@@ -382,12 +386,12 @@ describe('profiler', () => {
     profiles[1].state.should.be.eql('success')
   })
 
-  it('should skip diff when size gt profiler.maxResponseSize', async () => {
+  it('should skip diff when response size gt profiler.maxDiffSize', async () => {
     reporter.tests.beforeRenderEval((req, res, { reporter }) => {
       reporter.extensionsManager.recipes.push({
         name: 'profilerRecipe',
         execute: (req, res) => {
-          res.content = Buffer.alloc(reporter.options.profiler.maxResponseSize + 1, 'x')
+          res.content = Buffer.alloc(reporter.options.profiler.maxDiffSize + 1, 'x')
         }
       })
     })
@@ -406,6 +410,26 @@ describe('profiler', () => {
     await reporter.render(renderReq)
     const renderEndEvent = events.find(e => e.type === 'operationEnd' && e.subtype === 'render')
     renderEndEvent.res.content.tooLarge.should.be.true()
+  })
+
+  it('should skip diff when request size gt profiler.maxDiffSize', async () => {
+    const renderReq = {
+      template: {
+        content: 'Hello',
+        engine: 'none',
+        recipe: 'html'
+      },
+      data: {
+        str: '#'.repeat(reporter.options.profiler.maxDiffSize + 1)
+      }
+    }
+
+    const profiler = reporter.attachProfiler(renderReq)
+    const events = []
+    profiler.on('profile', (m) => events.push(m))
+    await reporter.render(renderReq)
+    const renderStartEvent = events.find(e => e.type === 'operationStart' && e.subtype === 'render')
+    renderStartEvent.req.tooLarge.should.be.true()
   })
 })
 
