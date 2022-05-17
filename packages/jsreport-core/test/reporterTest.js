@@ -176,7 +176,6 @@ describe('reporter', () => {
           module: 'winston-loggly-bulk',
           transport: 'Loggly',
           level: 'info',
-          silent: true,
           subdomain: 'test',
           token: 'really-long-token-you-got-from-loggly',
           auth: {

@@ -166,6 +166,9 @@ function configureLogger (logger, _transports) {
   }
 
   for (const { TransportClass, options } of transportsToAdd) {
+    if (options.silent) {
+      continue
+    }
     const transportInstance = new TransportClass(options)
 
     const existingTransport = logger.transports.find((t) => t.name === transportInstance.name)
