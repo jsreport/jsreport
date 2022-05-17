@@ -16,11 +16,6 @@
     "reaper",
     "tmp",
     "temporary"
-  ],
-  "author": "kamesh95",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kamesh95/reap/issues"
-  },
-  "homepage": "https://github.com/kamesh95/reap#readme"
+  ],  
+  "license": "MIT" 
 }
