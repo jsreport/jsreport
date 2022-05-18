@@ -75,6 +75,7 @@ function getExtensionsInOrder (extensions) {
 function getPriorityOrder () {
   return [
     '@bjrmatos/pkg',
+    '@jsreport/reap',
     'serializator',
     'chrome-page-eval',
     'phantom-page-eval',
