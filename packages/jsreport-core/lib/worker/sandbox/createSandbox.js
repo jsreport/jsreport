@@ -19,6 +19,7 @@ module.exports = (_sandbox, options = {}) => {
     propertiesConfig = {},
     globalModules = [],
     allowedModules = [],
+    safeExecution,
     requireMap
   } = options
 
@@ -65,7 +66,7 @@ module.exports = (_sandbox, options = {}) => {
       }
     }
 
-    if (allowAllModules || allowedModules === '*') {
+    if (!safeExecution || allowAllModules || allowedModules === '*') {
       return doRequire(moduleName, requirePaths, modulesCache)
     }
 
@@ -111,14 +112,27 @@ module.exports = (_sandbox, options = {}) => {
     require: (m) => _require(m, { context: _sandbox })
   })
 
-  const vm = new VM()
+  let safeVM
+  let vmSandbox
 
-  // delete the vm.sandbox.global because it introduces json stringify issues
-  // and we don't need such global in context
-  delete vm.sandbox.global
+  if (safeExecution) {
+    safeVM = new VM()
 
-  for (const name in sandbox) {
-    vm.setGlobal(name, sandbox[name])
+    // delete the vm.sandbox.global because it introduces json stringify issues
+    // and we don't need such global in context
+    delete safeVM.sandbox.global
+
+    for (const name in sandbox) {
+      safeVM.setGlobal(name, sandbox[name])
+    }
+
+    vmSandbox = safeVM.sandbox
+  } else {
+    vmSandbox = originalVM.createContext(undefined)
+
+    for (const name in sandbox) {
+      vmSandbox[name] = sandbox[name]
+    }
   }
 
   // processing top level props because getter/setter descriptors
@@ -127,49 +141,73 @@ module.exports = (_sandbox, options = {}) => {
     const currentConfig = propsConfig[key]
 
     if (currentConfig.root && currentConfig.root.sandboxReadOnly) {
-      readOnlyProp(vm.sandbox, key, [], customProxies, { onlyTopLevel: true })
+      readOnlyProp(vmSandbox, key, [], customProxies, { onlyTopLevel: true })
     }
   })
 
   const sourceFilesInfo = new Map()
 
   return {
-    sandbox: vm.sandbox,
+    sandbox: vmSandbox,
     console: _console,
     sourceFilesInfo,
     restore: () => {
-      return restoreProperties(vm.sandbox, originalValues, proxiesInVM, customProxies)
+      return restoreProperties(vmSandbox, originalValues, proxiesInVM, customProxies)
     },
-    safeRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
+    sandboxRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
     run: async (code, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
-      const script = new VMScript(code, filename)
+      let run
 
       if (filename != null && source != null) {
         sourceFilesInfo.set(filename, { filename, source, entity, entitySet, errorLineNumberOffset })
       }
 
-      // NOTE: if we need to upgrade vm2 we will need to check the source of this function
-      // in vm2 repo and see if we need to change this,
-      // we needed to override this method because we want "displayErrors" to be true in order
-      // to show nice error when the compile of a script fails
-      script._compile = function (prefix, suffix) {
-        return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
-          __proto__: null,
-          filename: this.filename,
+      if (safeExecution) {
+        const script = new VMScript(code, filename)
+
+        // NOTE: if we need to upgrade vm2 we will need to check the source of this function
+        // in vm2 repo and see if we need to change this,
+        // we needed to override this method because we want "displayErrors" to be true in order
+        // to show nice error when the compile of a script fails
+        script._compile = function (prefix, suffix) {
+          return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
+            __proto__: null,
+            filename: this.filename,
+            displayErrors: true,
+            lineOffset: this.lineOffset,
+            columnOffset: this.columnOffset,
+            // THIS FN WAS TAKEN FROM vm2 source, nothing special here
+            importModuleDynamically: () => {
+              // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
+              // eslint-disable-next-line no-throw-literal
+              throw 'Dynamic imports are not allowed.'
+            }
+          })
+        }
+
+        run = async () => {
+          return safeVM.run(script)
+        }
+      } else {
+        const script = new originalVM.Script(code, {
+          filename,
           displayErrors: true,
-          lineOffset: this.lineOffset,
-          columnOffset: this.columnOffset,
-          // THIS FN WAS TAKEN FROM vm2 source, nothing special here
           importModuleDynamically: () => {
             // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
             // eslint-disable-next-line no-throw-literal
             throw 'Dynamic imports are not allowed.'
           }
         })
+
+        run = async () => {
+          return script.runInContext(vmSandbox, {
+            displayErrors: true
+          })
+        }
       }
 
       try {
-        const result = await vm.run(script)
+        const result = await run()
         return result
       } catch (e) {
         decorateErrorMessage(e, sourceFilesInfo)
@@ -183,7 +221,7 @@ module.exports = (_sandbox, options = {}) => {
 function doRequire (moduleName, requirePaths = [], modulesCache) {
   const searchedPaths = []
 
-  function safeRequire (require, modulePath) {
+  function optimizedRequire (require, modulePath) {
     // save the current module cache, we will use this to restore the cache to the
     // original values after the require finish
     const originalModuleCache = Object.assign(Object.create(null), require.cache)
@@ -238,13 +276,13 @@ function doRequire (moduleName, requirePaths = [], modulesCache) {
     }
   }
 
-  let result = safeRequire(require, moduleName)
+  let result = optimizedRequire(require, moduleName)
 
   if (!result) {
     let pathsSearched = 0
 
     while (!result && pathsSearched < requirePaths.length) {
-      result = safeRequire(require, path.join(requirePaths[pathsSearched], moduleName))
+      result = optimizedRequire(require, path.join(requirePaths[pathsSearched], moduleName))
       pathsSearched++
     }
   }

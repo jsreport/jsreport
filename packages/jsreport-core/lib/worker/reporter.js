@@ -111,14 +111,14 @@ class WorkerReporter extends Reporter {
     this._proxyRegistrationFns.push(registrationFn)
   }
 
-  createProxy ({ req, runInSandbox, context, getTopLevelFunctions, safeRequire }) {
+  createProxy ({ req, runInSandbox, context, getTopLevelFunctions, sandboxRequire }) {
     const proxyInstance = {}
     for (const fn of this._proxyRegistrationFns) {
       fn(proxyInstance, req, {
         runInSandbox,
         context,
         getTopLevelFunctions,
-        safeRequire
+        sandboxRequire
       })
     }
     return proxyInstance

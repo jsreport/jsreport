@@ -200,6 +200,10 @@ class MainReporter extends Reporter {
 
       await this.extensionsManager.init()
 
+      if (!this.options.sandbox.enabled) {
+        this.logger.info('User code sandboxing is disabled, users can potentially penetrate the local system if you allow code from external users to be part of your reports')
+      }
+
       this.logger.info(`Using general timeout for rendering (reportTimeout: ${this.options.reportTimeout})`)
 
       if (this.options.store.provider === 'memory') {

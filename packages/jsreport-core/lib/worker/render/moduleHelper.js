@@ -12,7 +12,7 @@ module.exports = (reporter) => {
     helpersScript = await fs.readFile(path.join(__dirname, '../../static/helpers.js'), 'utf8')
   })
 
-  reporter.extendProxy((proxy, req, { safeRequire }) => {
+  reporter.extendProxy((proxy, req, { sandboxRequire }) => {
     proxy.module = async (module) => {
       if (!reporter.options.allowLocalFilesAccess && reporter.options.sandbox.allowedModules !== '*') {
         if (reporter.options.sandbox.allowedModules.indexOf(module) === -1) {

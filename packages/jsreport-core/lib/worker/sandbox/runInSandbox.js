@@ -1,10 +1,12 @@
 const LRU = require('lru-cache')
 const stackTrace = require('stack-trace')
 const { customAlphabet } = require('nanoid')
-const safeSandbox = require('./safeSandbox')
+const createSandbox = require('./createSandbox')
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 
 module.exports = (reporter) => {
+  const functionsCache = LRU(reporter.options.sandbox.cache)
+
   return ({
     manager = {},
     context,
@@ -29,13 +31,14 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { sourceFilesInfo, run, restore, sandbox, safeRequire } = safeSandbox(context, {
+    const { sourceFilesInfo, run, restore, sandbox, sandboxRequire } = createSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
       formatError: (error, moduleName) => {
         error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
       },
+      safeExecution: reporter.options.sandbox.enabled,
       modulesCache: reporter.requestModulesCache.get(req.context.rootId),
       globalModules: reporter.options.sandbox.nativeModules || [],
       allowedModules: reporter.options.sandbox.allowedModules,
@@ -62,7 +65,15 @@ module.exports = (reporter) => {
       }
     })
 
-    jsreportProxy = reporter.createProxy({ req, runInSandbox: run, context: sandbox, getTopLevelFunctions, safeRequire })
+    jsreportProxy = reporter.createProxy({
+      req,
+      runInSandbox: run,
+      context: sandbox,
+      getTopLevelFunctions: (code) => {
+        return getTopLevelFunctions(functionsCache, code)
+      },
+      sandboxRequire
+    })
 
     jsreportProxy.currentPath = async () => {
       // we get the current path by throwing an error, which give us a stack trace
@@ -115,7 +126,7 @@ module.exports = (reporter) => {
     // be passed in options
     manager.restore = restore
 
-    const functionNames = getTopLevelFunctions(userCode)
+    const functionNames = getTopLevelFunctions(functionsCache, userCode)
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
     const executionCode = `;(async () => { ${userCode} \n\n;${functionsCode} })()
         .then((topLevelFunctions) => {
@@ -181,12 +192,11 @@ function handleError (reporter, errValue) {
   })
 }
 
-const functionsCache = LRU({ max: 100 })
-function getTopLevelFunctions (code) {
+function getTopLevelFunctions (cache, code) {
   const key = `functions:${code}`
 
-  if (functionsCache.has(key)) {
-    return functionsCache.get(key)
+  if (cache.has(key)) {
+    return cache.get(key)
   }
 
   // lazy load to speed up boot
@@ -224,6 +234,6 @@ function getTopLevelFunctions (code) {
     return []
   }
 
-  functionsCache.set(key, names)
+  cache.set(key, names)
   return names
 }

@@ -77,6 +77,7 @@ module.exports.getRootSchemaOptions = () => ({
     },
     sandbox: {
       type: 'object',
+      default: {},
       properties: {
         allowedModules: {
           anyOf: [{
@@ -89,11 +90,13 @@ module.exports.getRootSchemaOptions = () => ({
         },
         cache: {
           type: 'object',
+          default: {},
           properties: {
-            max: { type: 'number' },
-            enabled: { type: 'boolean' }
+            max: { type: 'number', default: 100 },
+            enabled: { type: 'boolean', default: true }
           }
-        }
+        },
+        enabled: { type: 'boolean', default: true }
       }
     },
     workers: {

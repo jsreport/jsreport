@@ -9,7 +9,7 @@ const LRU = require('lru-cache')
 const { nanoid } = require('nanoid')
 
 module.exports = (reporter) => {
-  const cache = LRU(reporter.options.sandbox.cache || { max: 100 })
+  const cache = LRU(reporter.options.sandbox.cache)
 
   reporter.templatingEngines = { cache }
 

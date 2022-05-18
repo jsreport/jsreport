@@ -22,7 +22,7 @@ module.exports = (reporter, definition) => {
     helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
-  reporter.extendProxy((proxy, req, { safeRequire }) => {
+  reporter.extendProxy((proxy, req, { sandboxRequire }) => {
     proxy.npm = {
       async require (module) {
         if (!module || !module.includes('@')) {
@@ -65,7 +65,7 @@ module.exports = (reporter, definition) => {
             }, req)
           }
 
-          return safeRequire(modulePath)
+          return sandboxRequire(modulePath)
         } finally {
           requireLock.release()
         }
