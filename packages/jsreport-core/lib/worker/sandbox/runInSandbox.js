@@ -20,93 +20,8 @@ module.exports = (reporter) => {
     // we use dynamic name because of the potential nested vm2 execution in the jsreportProxy.assets.require
     // it may turn out it is a bad approach in assets so we gonna delete it here
     const executionFnName = `${nanoid()}_executionFn`
-    const exposeFromContextFnName = `${nanoid()}_exposeFromContextFn`
 
     context[executionFnName] = executionFn
-
-    context[exposeFromContextFnName] = function (key) {
-      // NOTE: we do this only to increase performance.
-      // when doing lot/heavy calls to some helper functions there is big
-      // slowdown by having to execute reflections and proxy calls in the vm2,
-      // to avoid this we take the original function in internal sandbox context,
-      // the one that was not intercepted with proxies and expose that for the engines
-      const fn = _context[key]
-      const valProxies = new WeakMap()
-
-      const newFn = function (...args) {
-        const wrapWithProxy = (value) => {
-          if (
-            value != null &&
-            (typeof value === 'object' || typeof value === 'function')
-          ) {
-            if (valProxies.has(value)) {
-              return valProxies.get(value)
-            }
-
-            const originalValue = value
-
-            const prox = new Proxy(originalValue, {
-              __proto__: null,
-              get (target, propName, receiver) {
-                // prevents access to constructor hacks
-                if (propName === 'constructor') {
-                  return null
-                }
-
-                if (propName === '__proto__') {
-                  // eslint-disable-next-line no-proto
-                  return null
-                }
-
-                // fix Object.prototype.toString.call when done
-                // with proxies
-                if (propName === Symbol.toStringTag) {
-                  const regexp = /\[object (.+)\]/
-                  return Object.prototype.toString.call(originalValue).match(regexp)[1]
-                }
-
-                const propValue = Reflect.get(target, propName)
-
-                // fix .toString call
-                if (typeof propValue === 'function') {
-                  return new Proxy(propValue, {
-                    apply: (target, thisArg, args) => {
-                      return target.call(prox === thisArg ? originalValue : thisArg, ...args)
-                    }
-                  })
-                }
-
-                return Reflect.get(...arguments)
-              }
-            })
-
-            valProxies.set(value, prox)
-
-            return prox
-          }
-
-          return value
-        }
-
-        const newThis = wrapWithProxy(this)
-        const newArgs = args.map((arg) => wrapWithProxy(arg))
-
-        return fn.call(newThis, ...newArgs)
-      }
-
-      Object.defineProperty(newFn, 'name', {
-        value: fn.name,
-        writable: false
-      })
-
-      Object.defineProperty(newFn, 'length', {
-        value: fn.length,
-        writable: false
-      })
-
-      return newFn
-    }
-
     context.__appDirectory = reporter.options.appDirectory
     context.__rootDirectory = reporter.options.rootDirectory
     context.__parentModuleDirectory = reporter.options.parentModuleDirectory
@@ -114,7 +29,7 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { sourceFilesInfo, run, restore, sandbox, _context, safeRequire } = safeSandbox(context, {
+    const { sourceFilesInfo, run, restore, sandbox, safeRequire } = safeSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
@@ -210,11 +125,6 @@ module.exports = (reporter) => {
           // so helpers can call other helpers (from shared asset helpers, or .registerHelpers call from proxy)
           for (const [topLevelFnName, topLevelFn] of Object.entries(mergedTopLevelFunctions)) {
             this[topLevelFnName] = topLevelFn
-          }
-
-          for (const key of Object.keys(mergedTopLevelFunctions)) {
-            const newFn = ${exposeFromContextFnName}(key)
-            mergedTopLevelFunctions[key] = newFn
           }
 
           return ${executionFnName}({

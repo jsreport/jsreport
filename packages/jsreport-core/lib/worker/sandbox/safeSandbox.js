@@ -135,7 +135,6 @@ module.exports = (_sandbox, options = {}) => {
 
   return {
     sandbox: vm.sandbox,
-    _context: vm._context,
     console: _console,
     sourceFilesInfo,
     restore: () => {

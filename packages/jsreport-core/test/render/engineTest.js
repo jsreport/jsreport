@@ -470,7 +470,7 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('read properties of null')
+      e.message.should.containEql('is not defined')
     }
   })
 
@@ -495,7 +495,7 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('read properties of null')
+      e.message.should.containEql('is not defined')
     }
   })
 
@@ -520,7 +520,7 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('read properties of null')
+      e.message.should.containEql('is not defined')
     }
   })
 

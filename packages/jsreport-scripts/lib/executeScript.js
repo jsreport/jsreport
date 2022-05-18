@@ -61,19 +61,19 @@ module.exports = async function executeScript (reporter, { script, method, onBef
     onBeforeExecute(Object.keys(topLevelFunctions))
 
     try {
-      if (method === 'beforeRender' && context.beforeRender) {
-        if (context.beforeRender.length === 3) {
-          await promisify(context.beforeRender)(context.__request, context.__response)
+      if (method === 'beforeRender' && topLevelFunctions.beforeRender) {
+        if (topLevelFunctions.beforeRender.length === 3) {
+          await promisify(topLevelFunctions.beforeRender)(context.__request, context.__response)
         } else {
-          await context.beforeRender(context.__request, context.__response)
+          await topLevelFunctions.beforeRender(context.__request, context.__response)
         }
       }
 
-      if (method === 'afterRender' && context.afterRender) {
-        if (context.afterRender.length === 3) {
-          await promisify(context.afterRender)(context.__request, context.__response)
+      if (method === 'afterRender' && topLevelFunctions.afterRender) {
+        if (topLevelFunctions.afterRender.length === 3) {
+          await promisify(topLevelFunctions.afterRender)(context.__request, context.__response)
         } else {
-          await context.afterRender(context.__request, context.__response)
+          await topLevelFunctions.afterRender(context.__request, context.__response)
         }
       }
     } catch (e) {
