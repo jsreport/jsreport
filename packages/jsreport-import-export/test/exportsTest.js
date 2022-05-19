@@ -83,13 +83,13 @@ describe('rest api', () => {
     return request(reporter.express.app)
       .post('/api/import')
       .attach('wrong.jsrexport', path.join(__dirname, 'exportsTest.js'))
-      .expect(500, /Unable to read export file/)
+      .expect(400, /Unable to read export file/)
   })
 
   it('should return meaningfully message when there is no multipart part', () => {
     return request(reporter.express.app)
       .post('/api/import')
-      .expect(500, /Unable to read export file/)
+      .expect(400, /Unable to read export file/)
   })
 })
 
@@ -104,7 +104,7 @@ describe('import-export', () => {
     common(fsStore, (reporter) => reporter.use(require('@jsreport/jsreport-fs-store')()))
   })
 
-  describe.only('mongodb store', () => {
+  describe('mongodb store', () => {
     common(mongo, (reporter) => reporter.use(require('@jsreport/jsreport-mongodb-store')()))
   })
 

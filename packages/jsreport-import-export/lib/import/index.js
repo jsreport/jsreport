@@ -13,7 +13,19 @@ async function processImport (reporter, exportFilePath, opts, req) {
     reporter.logger.debug('import is reading export file')
   }
 
-  const { entities: entitiesInExportFile, metadata } = await unzipEntities(exportFilePath)
+  let unzippingRes
+  try {
+    unzippingRes = await unzipEntities(exportFilePath)
+  } catch (e) {
+    throw reporter.createError('Unable to read export file', {
+      original: e,
+      status: 400,
+      weak: true
+    })
+  }
+
+  const entitiesInExportFile = unzippingRes.entities
+  const metadata = unzippingRes.metadata
 
   let targetFolder
   let targetFolderPath

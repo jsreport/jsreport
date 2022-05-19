@@ -75,7 +75,7 @@ module.exports = (reporter, definition) => {
     })
 
     app.post('/api/import', (req, res) => {
-      parseMultipart(multer)(req, res, (err, exportFilePath) => {
+      parseMultipart(reporter, multer)(req, res, (err, exportFilePath) => {
         if (err) {
           return res.error(err)
         }
@@ -112,7 +112,7 @@ module.exports = (reporter, definition) => {
     })
 
     app.post('/api/validate-import', (req, res) => {
-      parseMultipart(multer)(req, res, (err, exportFilePath) => {
+      parseMultipart(reporter, multer)(req, res, (err, exportFilePath) => {
         if (err) {
           return res.error(err)
         }

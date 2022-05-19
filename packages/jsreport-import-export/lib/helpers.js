@@ -117,10 +117,13 @@ module.exports.zipEntities = (entities, metadata) => {
   return archive
 }
 
-module.exports.parseMultipart = (multer) => (req, res, cb) => {
+module.exports.parseMultipart = (reporter, multer) => (req, res, cb) => {
   multer.any()(req, res, (err) => {
     if (err) {
-      return cb(new Error('Unable to read export file key from multipart stream'))
+      return cb(reporter.createError('Unable to read export file key from multipart stream', {
+        statusCode: 400,
+        weak: true
+      }))
     }
 
     function findFirstFile () {
@@ -134,7 +137,10 @@ module.exports.parseMultipart = (multer) => (req, res, cb) => {
     const file = findFirstFile()
 
     if (!file) {
-      return cb(new Error('Unable to read export file key from multipart stream'))
+      return cb(reporter.createError('Unable to read export file key from multipart stream', {
+        statusCode: 400,
+        weak: true
+      }))
     }
 
     cb(null, file.path)

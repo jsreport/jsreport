@@ -5,7 +5,7 @@ const normalizePath = require('./normalizePath')
 
 const description = 'Export the entities of the specified jsreport instance into an export file'
 const command = 'export'
-const positionalArgs = '<exportFile>'
+const positionalArgs = '[exportFile]'
 
 exports.command = `${command} ${positionalArgs}`
 exports.description = description
