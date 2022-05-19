@@ -4,7 +4,7 @@ const fs = require('fs').promises
 module.exports = (reporter, definition) => {
   let helpersScript
 
-  reporter.registerHelpersListeners.add(definition.name, (req) => {
+  reporter.registerHelpersListeners.add(definition.name, () => {
     return helpersScript
   })
 

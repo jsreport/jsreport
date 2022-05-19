@@ -14,7 +14,7 @@ module.exports = (reporter, definition) => {
 
   let helpersScript
 
-  reporter.registerHelpersListeners.add(`${definition.name}-helpers`, (req) => {
+  reporter.registerHelpersListeners.add(`${definition.name}-helpers`, () => {
     return helpersScript
   })
 

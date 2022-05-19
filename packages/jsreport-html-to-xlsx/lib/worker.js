@@ -20,10 +20,8 @@ module.exports = (reporter, definition) => {
     htmlToXlsxHelpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
   })
 
-  reporter.registerHelpersListeners.add('htmlToXlsx', (req) => {
-    if (req.template.recipe === 'html-to-xlsx') {
-      return htmlToXlsxHelpers
-    }
+  reporter.registerHelpersListeners.add('htmlToXlsx', () => {
+    return htmlToXlsxHelpers
   })
 
   reporter.beforeRenderListeners.insert({ after: 'data' }, 'htmlToXlsx', async (req) => {

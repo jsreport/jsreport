@@ -151,54 +151,27 @@ module.exports = (_sandbox, options = {}) => {
     sandbox: vmSandbox,
     console: _console,
     sourceFilesInfo,
+    compileScript: (code, filename) => {
+      return doCompileScript(code, filename, safeExecution)
+    },
     restore: () => {
       return restoreProperties(vmSandbox, originalValues, proxiesInVM, customProxies)
     },
     sandboxRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
-    run: async (code, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
+    run: async (codeOrScript, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
       let run
 
       if (filename != null && source != null) {
         sourceFilesInfo.set(filename, { filename, source, entity, entitySet, errorLineNumberOffset })
       }
 
+      const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
+
       if (safeExecution) {
-        const script = new VMScript(code, filename)
-
-        // NOTE: if we need to upgrade vm2 we will need to check the source of this function
-        // in vm2 repo and see if we need to change this,
-        // we needed to override this method because we want "displayErrors" to be true in order
-        // to show nice error when the compile of a script fails
-        script._compile = function (prefix, suffix) {
-          return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
-            __proto__: null,
-            filename: this.filename,
-            displayErrors: true,
-            lineOffset: this.lineOffset,
-            columnOffset: this.columnOffset,
-            // THIS FN WAS TAKEN FROM vm2 source, nothing special here
-            importModuleDynamically: () => {
-              // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
-              // eslint-disable-next-line no-throw-literal
-              throw 'Dynamic imports are not allowed.'
-            }
-          })
-        }
-
         run = async () => {
           return safeVM.run(script)
         }
       } else {
-        const script = new originalVM.Script(code, {
-          filename,
-          displayErrors: true,
-          importModuleDynamically: () => {
-            // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
-            // eslint-disable-next-line no-throw-literal
-            throw 'Dynamic imports are not allowed.'
-          }
-        })
-
         run = async () => {
           return script.runInContext(vmSandbox, {
             displayErrors: true
@@ -216,6 +189,49 @@ module.exports = (_sandbox, options = {}) => {
       }
     }
   }
+}
+
+function doCompileScript (code, filename, safeExecution) {
+  let script
+
+  if (safeExecution) {
+    script = new VMScript(code, filename)
+
+    // NOTE: if we need to upgrade vm2 we will need to check the source of this function
+    // in vm2 repo and see if we need to change this,
+    // we needed to override this method because we want "displayErrors" to be true in order
+    // to show nice error when the compile of a script fails
+    script._compile = function (prefix, suffix) {
+      return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
+        __proto__: null,
+        filename: this.filename,
+        displayErrors: true,
+        lineOffset: this.lineOffset,
+        columnOffset: this.columnOffset,
+        // THIS FN WAS TAKEN FROM vm2 source, nothing special here
+        importModuleDynamically: () => {
+          // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
+          // eslint-disable-next-line no-throw-literal
+          throw 'Dynamic imports are not allowed.'
+        }
+      })
+    }
+
+    // do the compilation
+    script._compileVM()
+  } else {
+    script = new originalVM.Script(code, {
+      filename,
+      displayErrors: true,
+      importModuleDynamically: () => {
+        // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
+        // eslint-disable-next-line no-throw-literal
+        throw 'Dynamic imports are not allowed.'
+      }
+    })
+  }
+
+  return script
 }
 
 function doRequire (moduleName, requirePaths = [], modulesCache) {

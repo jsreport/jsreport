@@ -4,7 +4,7 @@ const path = require('path')
 module.exports = (reporter) => {
   let helpersScript
 
-  reporter.registerHelpersListeners.add('core-helpers', (req) => {
+  reporter.registerHelpersListeners.add('core-helpers', () => {
     return helpersScript
   })
 

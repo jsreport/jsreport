@@ -137,10 +137,11 @@ class WorkerReporter extends Reporter {
     manager,
     context,
     userCode,
+    initFn,
     executionFn,
+    currentPath,
     onRequire,
     propertiesConfig,
-    currentPath,
     errorLineNumberOffset
   }, req) {
     // we flush before running code in sandbox because it can potentially
@@ -152,10 +153,11 @@ class WorkerReporter extends Reporter {
       manager,
       context,
       userCode,
+      initFn,
       executionFn,
+      currentPath,
       onRequire,
       propertiesConfig,
-      currentPath,
       errorLineNumberOffset
     }, req)
   }

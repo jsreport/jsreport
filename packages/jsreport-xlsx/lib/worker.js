@@ -39,7 +39,7 @@ module.exports = (reporter, definition) => {
     helpersTransformationScript = await fs.readFile(path.join(__dirname, '../static/helpersTransformation.js'), 'utf8')
   })
 
-  reporter.registerHelpersListeners.add(definition.name, (req) => {
+  reporter.registerHelpersListeners.add(definition.name, () => {
     return `${helpersGenerationScript}\n\n${helpersTransformationScript}`
   })
 

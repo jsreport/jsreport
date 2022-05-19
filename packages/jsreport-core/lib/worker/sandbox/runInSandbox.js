@@ -7,10 +7,11 @@ const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 module.exports = (reporter) => {
   const functionsCache = LRU(reporter.options.sandbox.cache)
 
-  return ({
+  return async ({
     manager = {},
     context,
     userCode,
+    initFn,
     executionFn,
     currentPath,
     onRequire,
@@ -31,7 +32,7 @@ module.exports = (reporter) => {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { sourceFilesInfo, run, restore, sandbox, sandboxRequire } = createSandbox(context, {
+    const { sourceFilesInfo, run, compileScript, restore, sandbox, sandboxRequire } = createSandbox(context, {
       onLog: (log) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
@@ -65,13 +66,15 @@ module.exports = (reporter) => {
       }
     })
 
+    const _getTopLevelFunctions = (code) => {
+      return getTopLevelFunctions(functionsCache, code)
+    }
+
     jsreportProxy = reporter.createProxy({
       req,
       runInSandbox: run,
       context: sandbox,
-      getTopLevelFunctions: (code) => {
-        return getTopLevelFunctions(functionsCache, code)
-      },
+      getTopLevelFunctions: _getTopLevelFunctions,
       sandboxRequire
     })
 
@@ -125,6 +128,17 @@ module.exports = (reporter) => {
     // we don't attach these methods to the sandbox, and instead share them through a "manager" object that should
     // be passed in options
     manager.restore = restore
+
+    if (typeof initFn === 'function') {
+      const initScriptInfo = await initFn(_getTopLevelFunctions, compileScript)
+
+      if (initScriptInfo) {
+        await run(initScriptInfo.script, {
+          filename: initScriptInfo.filename || 'sandbox-init.js',
+          source: initScriptInfo.source
+        })
+      }
+    }
 
     const functionNames = getTopLevelFunctions(functionsCache, userCode)
     const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`

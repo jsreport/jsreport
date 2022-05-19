@@ -8,7 +8,7 @@ module.exports = (reporter, definition) => {
     return require('./componentPreview')(data, reporter, req)
   })
 
-  reporter.registerHelpersListeners.add('components', (req) => {
+  reporter.registerHelpersListeners.add('components', () => {
     return componentHelpers
   })
 

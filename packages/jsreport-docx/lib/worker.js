@@ -17,7 +17,7 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  reporter.registerHelpersListeners.add('docx', async (req) => {
+  reporter.registerHelpersListeners.add('docx', async () => {
     return helpersScript
   })
 

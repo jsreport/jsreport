@@ -80,7 +80,7 @@ module.exports = (reporter, definition) => {
     })
   })
 
-  reporter.registerHelpersListeners.add(definition.name, (req) => {
+  reporter.registerHelpersListeners.add(definition.name, () => {
     return helpersScript
   })
 

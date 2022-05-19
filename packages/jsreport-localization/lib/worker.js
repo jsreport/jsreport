@@ -8,7 +8,7 @@ module.exports = async (reporter, definition) => {
     helpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
   })
 
-  reporter.registerHelpersListeners.add(definition.name, (req) => {
+  reporter.registerHelpersListeners.add(definition.name, () => {
     return helpers
   })
 

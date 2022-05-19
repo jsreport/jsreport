@@ -9,9 +9,10 @@ const LRU = require('lru-cache')
 const { nanoid } = require('nanoid')
 
 module.exports = (reporter) => {
-  const cache = LRU(reporter.options.sandbox.cache)
+  const templatesCache = LRU(reporter.options.sandbox.cache)
+  let systemHelpersCache
 
-  reporter.templatingEngines = { cache }
+  reporter.templatingEngines = { cache: templatesCache }
 
   const executionFnParsedParamsMap = new Map()
   const executionAsyncResultsMap = new Map()
@@ -129,22 +130,46 @@ module.exports = (reporter) => {
       entityPath = await reporter.folders.resolveEntityPath(entity, entitySet, req)
     }
 
-    const registerResults = await reporter.registerHelpersListeners.fire(req)
-    const systemHelpers = []
+    const normalizedHelpers = `${helpers || ''}`
+    const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${normalizedHelpers}`
 
-    for (const result of registerResults) {
-      if (result == null) {
-        continue
+    const initFn = async (getTopLevelFunctions, compileScript) => {
+      if (systemHelpersCache != null) {
+        return systemHelpersCache
       }
 
-      if (typeof result === 'string') {
-        systemHelpers.push(result)
+      const registerResults = await reporter.registerHelpersListeners.fire()
+      const systemHelpers = []
+
+      for (const result of registerResults) {
+        if (result == null) {
+          continue
+        }
+
+        if (typeof result === 'string') {
+          systemHelpers.push(result)
+        }
       }
+
+      const systemHelpersStr = systemHelpers.join('\n')
+
+      const functionNames = getTopLevelFunctions(systemHelpersStr)
+
+      const userCode = `(async () => { ${systemHelpersStr};
+      __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
+      })()`
+
+      const filename = 'system-helpers.js'
+      const script = compileScript(userCode, filename)
+
+      systemHelpersCache = {
+        filename,
+        source: systemHelpersStr,
+        script
+      }
+
+      return systemHelpersCache
     }
-
-    const systemHelpersStr = systemHelpers.join('\n')
-    const joinedHelpers = systemHelpersStr + '\n' + (helpers || '')
-    const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${joinedHelpers}`
 
     const executionFn = async ({ require, console, topLevelFunctions, context }) => {
       const asyncResultMap = new Map()
@@ -156,17 +181,16 @@ module.exports = (reporter) => {
 
       const key = `template:${content}:${engine.name}`
 
-      if (!cache.has(key)) {
+      if (!templatesCache.has(key)) {
         try {
-          cache.set(key, engine.compile(content, { require }))
+          templatesCache.set(key, engine.compile(content, { require }))
         } catch (e) {
           e.property = 'content'
           throw e
         }
       }
 
-      const compiledTemplate = cache.get(key)
-
+      const compiledTemplate = templatesCache.get(key)
       const wrappedTopLevelFunctions = {}
 
       for (const h of Object.keys(topLevelFunctions)) {
@@ -174,7 +198,9 @@ module.exports = (reporter) => {
       }
 
       let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
+
       const resolvedResultsMap = new Map()
+
       while (asyncResultMap.size > 0) {
         await Promise.all([...asyncResultMap.keys()].map(async (k) => {
           resolvedResultsMap.set(k, `${await asyncResultMap.get(k)}`)
@@ -205,14 +231,16 @@ module.exports = (reporter) => {
       return executionFn({ require, console, topLevelFunctions, context })
     } else {
       const awaiter = {}
+
       awaiter.promise = new Promise((resolve) => {
         awaiter.resolve = resolve
       })
+
       executionFnParsedParamsMap.get(req.context.id).set(executionFnParsedParamsKey, awaiter)
     }
 
     if (reporter.options.sandbox.cache && reporter.options.sandbox.cache.enabled === false) {
-      cache.reset()
+      templatesCache.reset()
     }
 
     try {
@@ -220,10 +248,10 @@ module.exports = (reporter) => {
         context: {
           ...(engine.createContext ? engine.createContext() : {})
         },
-        userCode: joinedHelpers,
+        userCode: normalizedHelpers,
+        initFn,
         executionFn,
         currentPath: entityPath,
-        errorLineNumberOffset: systemHelpersStr.split('\n').length,
         onRequire: (moduleName, { context }) => {
           if (engine.onRequire) {
             return engine.onRequire(moduleName, { context })
