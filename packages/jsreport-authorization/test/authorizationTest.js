@@ -158,6 +158,13 @@ describe('authorization', () => {
     templates[0].content.should.be.eql('hello')
   })
 
+  it('req with no user should be able to remove entities', async () => {
+    await createTemplate(req1())
+    return reporter.documentStore.collection('templates').remove({
+      name: 'template'
+    }, reporter.Request({}))
+  })
+
   it('authorizeRequest should return false when user is not authorized', async () => {
     const requestAuth = await reporter.authorization.authorizeRequest({ context: { } })
     should(requestAuth).not.be.ok()

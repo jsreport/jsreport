@@ -63,7 +63,7 @@ function defaultAuth (collection, req) {
   }
 
   if (!req.context.user) {
-    return false
+    return true
   }
 
   if (req.context.user.isAdmin) {
