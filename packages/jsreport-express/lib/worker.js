@@ -14,24 +14,25 @@ module.exports = (reporter, definition) => {
     reporter.beforeRenderListeners.insert(0, 'express', (req, res) => {
       res.meta.headers = {}
     })
-  })
 
-  reporter.afterRenderListeners.add('express', (req, res) => {
-    res.meta.headers['Content-Type'] = res.meta.contentType
+    reporter.afterRenderListeners.add('express', (req, res) => {
+      console.log('setting headers')
+      res.meta.headers['Content-Type'] = res.meta.contentType
 
-    if (!res.meta.headers['Content-Disposition']) {
-      res.meta.reportName = isInvalidASCII(res.meta.reportName) ? 'report' : res.meta.reportName
+      if (!res.meta.headers['Content-Disposition']) {
+        res.meta.reportName = isInvalidASCII(res.meta.reportName) ? 'report' : res.meta.reportName
 
-      res.meta.headers['Content-Disposition'] = `inline;filename=${res.meta.reportName}.${res.meta.fileExtension}`
+        res.meta.headers['Content-Disposition'] = `inline;filename=${res.meta.reportName}.${res.meta.fileExtension}`
 
-      if (req.options['Content-Disposition']) {
-        res.meta.headers['Content-Disposition'] = req.options['Content-Disposition']
+        if (req.options['Content-Disposition']) {
+          res.meta.headers['Content-Disposition'] = req.options['Content-Disposition']
+        }
+
+        if (req.options.download) {
+          res.meta.headers['Content-Disposition'] = res.meta.headers['Content-Disposition'].replace('inline;', 'attachment;')
+        }
       }
-
-      if (req.options.download) {
-        res.meta.headers['Content-Disposition'] = res.meta.headers['Content-Disposition'].replace('inline;', 'attachment;')
-      }
-    }
+    })
   })
 }
 
