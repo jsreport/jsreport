@@ -651,6 +651,19 @@ describe('engine', () => {
 
     should(res.content.toString()).be.eql('foo')
   })
+
+  it('should be able to run system helper from the top level of template helper', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: 'const staticValue = toJS({ a: 1 }); function a() { return staticValue }',
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).containEql('JSON.parse(')
+  })
 })
 
 function createReporter (options) {

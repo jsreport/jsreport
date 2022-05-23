@@ -155,8 +155,11 @@ module.exports = (reporter) => {
 
       const functionNames = getTopLevelFunctions(systemHelpersStr)
 
+      const exposeSystemHelpersCode = `for (const fName of ${JSON.stringify(functionNames)}) { this[fName] = __topLevelFunctions[fName] }`
+
+      // we sync the __topLevelFunctions with system helpers and expose it immediately to the global context
       const userCode = `(async () => { ${systemHelpersStr};
-      __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}
+      __topLevelFunctions = {...__topLevelFunctions, ${functionNames.map(h => `"${h}": ${h}`).join(',')}}; ${exposeSystemHelpersCode}
       })()`
 
       const filename = 'system-helpers.js'
