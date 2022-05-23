@@ -16,7 +16,6 @@ module.exports = (reporter, definition) => {
     })
 
     reporter.afterRenderListeners.add('express', (req, res) => {
-      console.log('setting headers')
       res.meta.headers['Content-Type'] = res.meta.contentType
 
       if (!res.meta.headers['Content-Disposition']) {
