@@ -282,4 +282,20 @@ describe('advanced workers', () => {
     })
     await worker.release()
   })
+
+  it('should return decorated error when worker unexpectedly exits', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'unexpectedExit.js'),
+      numberOfWorkers: 1
+    })
+    await workers.init()
+
+    try {
+      const worker = await workers.allocate()
+      await worker.execute({})
+      throw new Error('should have failed')
+    } catch (e) {
+      e.message.should.containEql('Worker unexpectedly exited')
+    }
+  })
 })

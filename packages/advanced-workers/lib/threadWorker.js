@@ -102,6 +102,15 @@ module.exports = ({
     exited = true
     if (closingAwaiter && !closingAwaiter.isSettled) {
       closingAwaiter.resolve()
+    } else {
+      if (currentAsyncAwaiter && !currentAsyncAwaiter.isSettled) {
+        const err = new Error('Worker unexpectedly exited')
+        err.code = 'WORKER_CRASHED'
+        currentAsyncAwaiter.resolve({
+          workerCrashed: true,
+          err
+        })
+      }
     }
     worker.unref()
   })
