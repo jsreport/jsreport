@@ -6,7 +6,7 @@ describe('moduleHelper test with allowLocalFileAccess true', () => {
 
   beforeEach(async () => {
     reporter = core({
-      allowLocalFilesAccess: true,
+      trustUserCode: true,
       rootDirectory: __dirname
     })
     reporter.use({
@@ -30,7 +30,7 @@ describe('moduleHelper test with allowLocalFileAccess true', () => {
         engine: 'helpers',
         content: 'foo',
         recipe: 'html',
-        helpers: `function a(helpers) { 
+        helpers: `function a(helpers) {
             return helpers.module('lodash.omit')
         }`
       }
@@ -65,7 +65,7 @@ describe('moduleHelper test with allow local files access false', () => {
         engine: 'helpers',
         content: 'foo',
         recipe: 'html',
-        helpers: `function a(helpers) { 
+        helpers: `function a(helpers) {
             return helpers.module('lodash.omit')
         }`
       }

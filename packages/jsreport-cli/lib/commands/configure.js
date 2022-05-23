@@ -46,62 +46,9 @@ exports.handler = async (argv) => {
 
     const questions = [
       {
-        type: 'confirm',
-        name: 'serverEnabled',
-        message: 'Do you want to enable web server?',
-        default: true
-      },
-      {
-        type: 'list',
-        name: 'serverProtocol',
-        message: 'Which protocol should web server use?',
-        choices: [{
-          name: 'http',
-          value: 'http'
-        }, {
-          name: 'https',
-          value: 'https'
-        }, {
-          name: 'http and https (http will redirect to https)',
-          value: 'http-and-https'
-        }],
-        default: 0,
-        when: (answers) => {
-          return answers.serverEnabled
-        }
-      },
-      {
-        type: 'input',
-        name: 'serverHttpsKey',
-        message: 'To use https you need a key file, specify the path to this file:',
-        default: 'certificates/server.key',
-        when: (answers) => {
-          return answers.serverProtocol === 'https' || answers.serverProtocol === 'http-and-https'
-        }
-      },
-      {
-        type: 'input',
-        name: 'serverHttpsCert',
-        message: 'To use https you need a cert file, specify the path to this file:',
-        default: 'certificates/server.cert',
-        when: (answers) => {
-          return answers.serverProtocol === 'https' || answers.serverProtocol === 'http-and-https'
-        }
-      },
-      {
         type: 'input',
         name: 'serverPort',
-        message: (answers) => {
-          let msg
-
-          if (answers.serverProtocol === 'http-and-https') {
-            msg = 'Specify the http port for web server:'
-          } else {
-            msg = 'Specify the ' + answers.serverProtocol + ' port for web server:'
-          }
-
-          return msg
-        },
+        message: 'Specify the http port for web server:',
         default: 5488,
         validate: (input) => {
           const valid = !isNaN(parseInt(input, 10))
@@ -114,42 +61,13 @@ exports.handler = async (argv) => {
         },
         filter: (input) => {
           return parseInt(input, 10)
-        },
-        when: (answers) => {
-          return answers.serverEnabled
-        }
-      },
-      {
-        type: 'input',
-        name: 'serverHttpsPort',
-        message: (answers) => {
-          return 'Specify the https port for web server:'
-        },
-        default: 5489,
-        validate: (input) => {
-          const valid = !isNaN(parseInt(input, 10))
-
-          if (valid) {
-            return true
-          }
-
-          return 'port must be a valid number'
-        },
-        filter: (input) => {
-          return parseInt(input, 10)
-        },
-        when: (answers) => {
-          return answers.serverEnabled && answers.serverProtocol === 'http-and-https'
         }
       },
       {
         type: 'confirm',
         name: 'serverAuthEnabled',
         message: 'Do you want to enable authentication in web server?',
-        default: false,
-        when: (answers) => {
-          return answers.serverEnabled
-        }
+        default: false
       },
       {
         type: 'input',
@@ -196,29 +114,10 @@ exports.handler = async (argv) => {
         }
       },
       {
-        type: 'list',
-        name: 'store',
-        message: 'Do you want to persist jsreport objects and logs on disk?',
-        choices: [{
-          name: 'Yes templates and logs will be saved on disk',
-          value: 'fs',
-          short: 'Yes everything saved on disk'
-        }, {
-          name: 'Yes, but without log files.',
-          value: 'fs-without-log',
-          short: 'Yes, but logs won\'t be written on disk'
-        }, {
-          name: 'No, objects will live in memory until process is finished',
-          value: 'memory',
-          short: 'No, only memory will be used'
-        }],
-        default: 0
-      },
-      {
         type: 'confirm',
-        name: 'allowLocalFilesAccess',
-        message: 'Can jsreport trust the rendering requests and allow access to local files and modules?',
-        default: true
+        name: 'trustUserCode',
+        message: 'Do you trust the user code and want to disable sandboxing? (sandboxing slightly degrades performance but adds security when running external code)',
+        default: false
       },
       {
         type: 'input',
@@ -261,96 +160,45 @@ exports.handler = async (argv) => {
   logger.debug('answers:')
   logger.debug(JSON.stringify(answers, null, 2))
 
-  if (!answers.serverEnabled) {
-    extensionsConf.express = {
+  config.httpPort = answers.serverPort
+
+  if (answers.serverAuthEnabled) {
+    extensionsConf.authentication = {
+      cookieSession: {
+        secret: answers.serverAuthCookieSecret
+      },
+      admin: {
+        username: answers.serverAuthUsername,
+        password: answers.serverAuthPassword
+      },
+      enabled: true
+    }
+  } else {
+    extensionsConf.authentication = {
+      cookieSession: {},
+      admin: {
+        username: 'admin',
+        password: 'password'
+      },
       enabled: false
     }
   }
 
-  if (answers.serverEnabled) {
-    if (answers.serverProtocol === 'http-and-https') {
-      config.httpPort = answers.serverPort
-      config.httpsPort = answers.serverHttpsPort
-
-      config.certificate = {
-        key: answers.serverHttpsKey,
-        cert: answers.serverHttpsCert
-      }
-    } else {
-      config[answers.serverProtocol === 'http' ? 'httpPort' : 'httpsPort'] = answers.serverPort
-
-      if (answers.serverProtocol === 'https') {
-        config.certificate = {
-          key: answers.serverHttpsKey,
-          cert: answers.serverHttpsCert
-        }
-      }
-    }
-
-    if (answers.serverAuthEnabled) {
-      extensionsConf.authentication = {
-        cookieSession: {
-          secret: answers.serverAuthCookieSecret
-        },
-        admin: {
-          username: answers.serverAuthUsername,
-          password: answers.serverAuthPassword
-        },
-        enabled: true
-      }
-    } else {
-      extensionsConf.authentication = {
-        cookieSession: {},
-        admin: {
-          username: 'admin',
-          password: 'password'
-        },
-        enabled: false
-      }
-    }
+  config.store = {
+    provider: 'fs'
   }
 
-  if (answers.store === 'fs') {
-    config.store = {
-      provider: 'fs'
-    }
-
-    config.blobStorage = {
-      provider: 'fs'
-    }
-
-    config.logger = {
-      console: { transport: 'console', level: 'debug' },
-      file: { transport: 'file', level: 'info', filename: 'logs/reporter.log' },
-      error: { transport: 'file', level: 'error', filename: 'logs/error.log' }
-    }
-  } else if (answers.store === 'fs-without-log') {
-    config.store = {
-      provider: 'fs'
-    }
-
-    config.blobStorage = {
-      provider: 'fs'
-    }
-
-    config.logger = {
-      console: { transport: 'console', level: 'debug' }
-    }
-  } else {
-    config.store = {
-      provider: 'memory'
-    }
-
-    config.blobStorage = {
-      provider: 'memory'
-    }
-
-    config.logger = {
-      console: { transport: 'console', level: 'debug' }
-    }
+  config.blobStorage = {
+    provider: 'fs'
   }
 
-  config.allowLocalFilesAccess = answers.allowLocalFilesAccess === true
+  config.logger = {
+    console: { transport: 'console', level: 'debug' },
+    file: { transport: 'file', level: 'info', filename: 'logs/reporter.log' },
+    error: { transport: 'file', level: 'error', filename: 'logs/error.log' }
+  }
+
+  config.trustUserCode = answers.trustUserCode === true
 
   if (answers.createExamples) {
     extensionsConf['sample-template'] = {

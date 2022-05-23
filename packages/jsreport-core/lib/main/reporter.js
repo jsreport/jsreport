@@ -90,8 +90,8 @@ class MainReporter extends Reporter {
     return this
   }
 
-  async extensionsLoad (opts) {
-    const appliedConfigFile = await optionsLoad({
+  async extensionsLoad (_opts = {}) {
+    const [explicitOptions, appliedConfigFile] = await optionsLoad({
       defaults: this.defaults,
       options: this.options,
       validator: this.optionsValidator,
@@ -105,6 +105,8 @@ class MainReporter extends Reporter {
     if (this.options.logger && this.options.logger.silent === true) {
       silentLogs(this.logger)
     }
+
+    const { onConfigDetails, ...opts } = _opts
 
     this.logger.info(`Initializing jsreport (version: ${this.version}, configuration file: ${appliedConfigFile || 'none'}, nodejs: ${process.versions.node})`)
 
@@ -128,6 +130,10 @@ class MainReporter extends Reporter {
 
     if (!rootOptionsValidation.valid) {
       throw new Error(`options contain values that does not match the defined full root schema. ${rootOptionsValidation.fullErrorMessage}`)
+    }
+
+    if (typeof onConfigDetails === 'function') {
+      onConfigDetails(explicitOptions)
     }
 
     return this
@@ -157,6 +163,7 @@ class MainReporter extends Reporter {
    */
   async init () {
     this.closing = this.closed = false
+
     if (this._initialized || this._initializing) {
       throw new Error('jsreport already initialized or just initializing. Make sure init is called only once')
     }
@@ -175,7 +182,14 @@ class MainReporter extends Reporter {
 
     try {
       this._registerLogMainAction()
-      await this.extensionsLoad()
+
+      let explicitOptions
+
+      await this.extensionsLoad({
+        onConfigDetails: (_explicitOptions) => {
+          explicitOptions = _explicitOptions
+        }
+      })
 
       this.documentStore = DocumentStore(Object.assign({}, this.options, { logger: this.logger }), this.entityTypeValidator, this.encryption)
       documentStoreActions(this)
@@ -200,8 +214,12 @@ class MainReporter extends Reporter {
 
       await this.extensionsManager.init()
 
-      if (!this.options.sandbox.enabled) {
-        this.logger.info('User code sandboxing is disabled, users can potentially penetrate the local system if you allow code from external users to be part of your reports')
+      if (this.options.trustUserCode) {
+        this.logger.info('Code sandboxing is disabled, users can potentially penetrate the local system if you allow code from external users to be part of your reports')
+      }
+
+      if (explicitOptions.trustUserCode == null && explicitOptions.allowLocalFilesAccess != null) {
+        this.logger.warn('options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead')
       }
 
       this.logger.info(`Using general timeout for rendering (reportTimeout: ${this.options.reportTimeout})`)

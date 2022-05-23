@@ -20,7 +20,7 @@ describe('sample', function () {
 
     reporter = jsreport({
       rootDirectory: __dirname,
-      allowLocalFilesAccess: true,
+      trustUserCode: true,
       store: { provider: 'fs' }
     })
 

@@ -675,7 +675,7 @@ function commonLocalFilesAllowed (strategy, imageExecution) {
 
   beforeEach(async () => {
     reporter = JsReport({
-      allowLocalFilesAccess: true
+      trustUserCode: true
     })
     reporter.use(require('../')({
       strategy,
@@ -693,7 +693,7 @@ function commonLocalFilesAllowed (strategy, imageExecution) {
     }
   })
 
-  it('should allow access to local files when allowLocalFilesAccess', async () => {
+  it('should allow access to local files when trustUserCode is enabled', async () => {
     const request = {
       template: {
         content: `
@@ -710,7 +710,7 @@ function commonLocalFilesAllowed (strategy, imageExecution) {
     JSON.stringify(res.meta.logs).should.not.containEql('ERR_ACCESS_DENIED')
   })
 
-  it('should allow access to local files with file protocol when allowLocalFilesAccess', async () => {
+  it('should allow access to local files with file protocol when trustUserCode is enabled', async () => {
     const request = {
       template: {
         content: `

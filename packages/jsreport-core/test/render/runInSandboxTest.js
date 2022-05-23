@@ -4,25 +4,32 @@ const jsreport = require('../../index')
 describe('sandbox', () => {
   let reporter
 
-  beforeEach(async () => {
-    reporter = jsreport()
-    reporter.use(jsreport.tests.listeners())
+  describe('safe', () => {
+    beforeEach(async () => {
+      reporter = jsreport()
+      reporter.use(jsreport.tests.listeners())
 
-    await reporter.init()
+      await reporter.init()
+    })
+
+    common(true)
+  })
+
+  describe('unsafe', () => {
+    beforeEach(async () => {
+      reporter = jsreport({ trustUserCode: true })
+      reporter.use(jsreport.tests.listeners())
+
+      await reporter.init()
+    })
+
+    common(false)
   })
 
   afterEach(async () => {
     if (reporter) {
       await reporter.close()
     }
-  })
-
-  describe('safe', () => {
-    common(true)
-  })
-
-  describe('unsafe', () => {
-    common(false)
   })
 
   function common (safe) {

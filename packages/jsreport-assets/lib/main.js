@@ -20,7 +20,7 @@ module.exports = function (reporter, definition) {
     splitIntoDirectories: true
   })
 
-  if (reporter.options.allowLocalFilesAccess === true && !definition.options.allowedFiles && definition.options.searchOnDiskIfNotFoundInStore == null) {
+  if (reporter.options.trustUserCode === true && !definition.options.allowedFiles && definition.options.searchOnDiskIfNotFoundInStore == null) {
     definition.options.allowedFiles = '**/*.*'
     definition.options.searchOnDiskIfNotFoundInStore = true
   }

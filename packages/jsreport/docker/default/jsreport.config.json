@@ -22,7 +22,7 @@
             "filename": "logs/error.log"
         }
     },
-    "allowLocalFilesAccess": true,
+    "trustUserCode": true,
     "reportTimeout": 60000,
     "workers": {
         "numberOfWorkers": 3

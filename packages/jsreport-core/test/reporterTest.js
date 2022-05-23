@@ -678,7 +678,7 @@ describe('reporter', () => {
   })
 
   it('should parse env options and sanitize earlier options with schema into reporter options when loadConfig', async () => {
-    process.env.allowLocalFilesAccess = 'true'
+    process.env.trustUserCode = 'true'
     reporter = core({
       discover: false,
       rootDirectory: path.join(__dirname),
@@ -686,7 +686,7 @@ describe('reporter', () => {
     })
 
     reporter.afterConfigLoaded((r) => {
-      r.options.allowLocalFilesAccess.should.be.eql(true)
+      r.options.trustUserCode.should.be.eql(true)
     })
 
     await reporter.init()

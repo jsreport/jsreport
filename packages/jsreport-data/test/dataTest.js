@@ -9,7 +9,7 @@ describe('data', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      allowLocalFilesAccess: true
+      trustUserCode: true
     })
     reporter.use(handlebars())
     reporter.use(data())

@@ -94,7 +94,7 @@ describe('help command', () => {
 
     should(stdout).containEql('Configuration format description')
     should(stdout).containEql('"extensions": <object> {')
-    should(stdout).containEql('"allowLocalFilesAccess": <boolean>')
+    should(stdout).containEql('"trustUserCode": <boolean>')
     should(stdout).containEql('"tempDirectory": <string>')
   })
 

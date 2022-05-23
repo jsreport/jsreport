@@ -57,7 +57,7 @@ module.exports = function (reporter, definition) {
   definition.options.execOptions.maxBuffer = definition.options.execOptions.maxBuffer || (1000 * 1024)
 
   if (definition.options.allowLocalFilesAccess == null) {
-    definition.options.allowLocalFilesAccess = reporter.options.allowLocalFilesAccess
+    definition.options.allowLocalFilesAccess = reporter.options.trustUserCode
   }
 
   definition.options.wkhtmltopdfVersions = definition.options.wkhtmltopdfVersions = [{ version: wkhtmltopdf.version }]

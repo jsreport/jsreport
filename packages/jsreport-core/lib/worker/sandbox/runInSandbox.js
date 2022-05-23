@@ -37,9 +37,9 @@ module.exports = (reporter) => {
         reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp })
       },
       formatError: (error, moduleName) => {
-        error.message += ` To be able to require custom modules you need to add to configuration { "allowLocalFilesAccess": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
+        error.message += ` To be able to require custom modules you need to add to configuration { "trustUserCode": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
       },
-      safeExecution: reporter.options.sandbox.enabled,
+      safeExecution: reporter.options.trustUserCode === false,
       modulesCache: reporter.requestModulesCache.get(req.context.rootId),
       globalModules: reporter.options.sandbox.nativeModules || [],
       allowedModules: reporter.options.sandbox.allowedModules,

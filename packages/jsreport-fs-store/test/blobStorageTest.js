@@ -5,7 +5,7 @@ const jsreport = require('@jsreport/jsreport-core')
 const tmpData = path.join(__dirname, 'tmpData')
 
 describe('fileSystemBlobStorage', () => {
-  describe('when options.allowLocalFilesAccess=false', () => {
+  describe('when options.trustUserCode=false', () => {
     let reporter
 
     beforeEach(async () => {
@@ -15,7 +15,7 @@ describe('fileSystemBlobStorage', () => {
 
       reporter = jsreport({
         store: { provider: 'fs' },
-        allowLocalFilesAccess: false
+        trustUserCode: false
       }).use(require('../')({
         dataDirectory: tmpData
       }))
@@ -48,7 +48,7 @@ describe('fileSystemBlobStorage', () => {
     })
   })
 
-  describe('when options.allowLocalFilesAccess=true', () => {
+  describe('when options.trustUserCode=true', () => {
     let reporter
 
     beforeEach(async () => {
@@ -58,7 +58,7 @@ describe('fileSystemBlobStorage', () => {
 
       reporter = jsreport({
         store: { provider: 'fs' },
-        allowLocalFilesAccess: true
+        trustUserCode: true
       }).use(require('../')({
         dataDirectory: tmpData
       }))

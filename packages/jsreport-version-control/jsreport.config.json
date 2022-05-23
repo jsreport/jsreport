@@ -1,6 +1,6 @@
 {
   "httpPort": 5488,
-  "allowLocalFilesAccess": false,
+  "trustUserCode": false,
   "store": {
     "provider": "fs"
   },

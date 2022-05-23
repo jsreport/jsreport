@@ -48,7 +48,7 @@ module.exports = (options) => {
 }
 
 function checkPathIsInsideDirectory (options, directory, blobName) {
-  if (options.allowLocalFilesAccess === true) {
+  if (options.trustUserCode === true) {
     return
   }
 

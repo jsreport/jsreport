@@ -29,9 +29,9 @@ module.exports = (reporter, definition) => {
           throw reporter.createError(`require of module ${module} was rejected. The parameter needs to be in format packageName@version`, { status: 400 })
         }
 
-        if (!reporter.options.allowLocalFilesAccess && definition.options.allowedModules !== '*') {
+        if (!reporter.options.trustUserCode && definition.options.allowedModules !== '*') {
           if (!definition.options.allowedModules || !definition.options.allowedModules.includes(module)) {
-            throw reporter.createError(`require of npm module ${module} was rejected. Either set allowLocalFilesAccess=true or extensions.npm.allowLocalModules='*' or extensions.npm.allowLocalModules=['${module}'] `, { status: 400 })
+            throw reporter.createError(`require of npm module ${module} was rejected. Either set trustUserCode=true or extensions.npm.allowLocalModules='*' or extensions.npm.allowLocalModules=['${module}'] `, { status: 400 })
           }
         }
 

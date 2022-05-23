@@ -13,7 +13,7 @@ module.exports = (reporter, definition) => {
   definition.options = Object.assign({}, reporter.options.phantom, definition.options)
 
   if (definition.options.allowLocalFilesAccess == null) {
-    definition.options.allowLocalFilesAccess = reporter.options.allowLocalFilesAccess
+    definition.options.allowLocalFilesAccess = reporter.options.trustUserCode
   }
 
   reporter.extensionsManager.recipes.push({

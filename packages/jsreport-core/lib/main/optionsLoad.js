@@ -39,6 +39,7 @@ async function optionsLoad ({
     loadConfigResult = await loadConfig(defaults, options, false)
   }
 
+  const explicitOptions = loadConfigResult[0]
   const appliedConfigFile = loadConfigResult[1]
 
   options.loadConfig = shouldLoadExternalConfig
@@ -79,9 +80,16 @@ async function optionsLoad ({
   options.store = options.store || { provider: 'memory' }
 
   options.sandbox = options.sandbox || {}
-  if (options.allowLocalFilesAccess === true) {
+
+  // NOTE: handling back-compatible introduction of "trustUserCode" option, "allowLocalFilesAccess" is deprecated
+  if (explicitOptions.allowLocalFilesAccess === true && explicitOptions.trustUserCode == null) {
+    options.trustUserCode = true
+  }
+
+  if (options.trustUserCode === true) {
     options.sandbox.allowedModules = '*'
   }
+
   options.sandbox.nativeModules = options.sandbox.nativeModules || []
   options.sandbox.modules = options.sandbox.modules || []
   options.sandbox.allowedModules = options.sandbox.allowedModules || []
@@ -98,7 +106,7 @@ async function optionsLoad ({
     fs.mkdirSync(options.tempCoreDirectory, { recursive: true })
   }
 
-  return appliedConfigFile
+  return [explicitOptions, appliedConfigFile]
 }
 
 /**

@@ -1872,13 +1872,13 @@ describe('isAssetPathValid', () => {
   })
 })
 
-describe('assets with allowLocalFilesAccess', () => {
+describe('assets with trustUserCode enabled', () => {
   let reporter
 
   beforeEach(() => {
     reporter = Reporter({
       rootDirectory: process.cwd(),
-      allowLocalFilesAccess: true
+      trustUserCode: true
     })
       .use(require('@jsreport/jsreport-jsrender')())
       .use(require('@jsreport/jsreport-handlebars')())

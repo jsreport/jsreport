@@ -7,7 +7,7 @@
 module.exports = function (reporter, definition) {
   definition.options = Object.assign({}, reporter.options.phantom, definition.options)
   definition.options.strategy = definition.options.strategy || 'dedicated-process'
-  definition.options.allowLocalFilesAccess = definition.options.allowLocalFilesAccess != null ? definition.options.allowLocalFilesAccess : reporter.options.allowLocalFilesAccess
+  definition.options.allowLocalFilesAccess = definition.options.allowLocalFilesAccess != null ? definition.options.allowLocalFilesAccess : reporter.options.trustUserCode
 
   reporter.extensionsManager.recipes.push({
     name: 'phantom-image'

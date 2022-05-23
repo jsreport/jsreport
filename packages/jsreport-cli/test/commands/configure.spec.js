@@ -29,9 +29,7 @@ describe('configure command', () => {
     const answers = {
       env: 'dev',
       reportTimeout: 60000,
-      serverEnabled: false,
-      store: 'memory',
-      allowLocalFilesAccess: false,
+      trustUserCode: false,
       createExamples: false
     }
 
@@ -46,22 +44,29 @@ describe('configure command', () => {
     const result = JSON.parse(stdout.slice(stdout.indexOf('{'), stdout.lastIndexOf('}') + 1))
 
     should(result).be.eql({
-      allowLocalFilesAccess: false,
+      trustUserCode: false,
       store: {
-        provider: 'memory'
+        provider: 'fs'
       },
       blobStorage: {
-        provider: 'memory'
+        provider: 'fs'
       },
       logger: {
-        console: { transport: 'console', level: 'debug' }
+        console: { transport: 'console', level: 'debug' },
+        file: { transport: 'file', level: 'info', filename: 'logs/reporter.log' },
+        error: { transport: 'file', level: 'error', filename: 'logs/error.log' }
       },
       reportTimeout: 60000,
       workers: {
         numberOfWorkers: 2
       },
       extensions: {
-        express: {
+        authentication: {
+          cookieSession: {},
+          admin: {
+            username: 'admin',
+            password: 'password'
+          },
           enabled: false
         }
       }
@@ -72,9 +77,7 @@ describe('configure command', () => {
     const answers = {
       env: 'dev',
       reportTimeout: 60000,
-      serverEnabled: false,
-      store: 'memory',
-      allowLocalFilesAccess: false,
+      trustUserCode: false,
       createExamples: false
     }
 
@@ -89,22 +92,29 @@ describe('configure command', () => {
     should(stdout).containEql('config saved in')
 
     const expectedConfig = {
-      allowLocalFilesAccess: false,
+      trustUserCode: false,
       store: {
-        provider: 'memory'
+        provider: 'fs'
       },
       blobStorage: {
-        provider: 'memory'
+        provider: 'fs'
       },
       logger: {
-        console: { transport: 'console', level: 'debug' }
+        console: { transport: 'console', level: 'debug' },
+        file: { transport: 'file', level: 'info', filename: 'logs/reporter.log' },
+        error: { transport: 'file', level: 'error', filename: 'logs/error.log' }
       },
       reportTimeout: 60000,
       workers: {
         numberOfWorkers: 2
       },
       extensions: {
-        express: {
+        authentication: {
+          cookieSession: {},
+          admin: {
+            username: 'admin',
+            password: 'password'
+          },
           enabled: false
         }
       }
@@ -120,15 +130,12 @@ describe('configure command', () => {
     const answers = {
       env: 'dev',
       reportTimeout: 60000,
-      serverEnabled: true,
-      serverProtocol: 'http',
       serverPort: 7500,
       serverAuthEnabled: true,
       serverAuthCookieSecret: '<<secret  here>>',
       serverAuthUsername: 'test',
       serverAuthPassword: 'test-pass',
-      store: 'fs',
-      allowLocalFilesAccess: true,
+      trustUserCode: true,
       createExamples: true,
       fastStrategies: true
     }
@@ -145,7 +152,7 @@ describe('configure command', () => {
 
     const expectedConfig = {
       httpPort: 7500,
-      allowLocalFilesAccess: true,
+      trustUserCode: true,
       reportTimeout: 60000,
       extensions: {
         authentication: {

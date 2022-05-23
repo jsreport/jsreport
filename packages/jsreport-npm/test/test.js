@@ -9,7 +9,7 @@ describe('npm', function () {
   beforeEach(async () => {
     reporter = Reporter({
       rootDirectory: process.cwd(),
-      allowLocalFilesAccess: true,
+      trustUserCode: true,
       workers: {
         numberOfWorkers: 1
       }
@@ -108,13 +108,13 @@ describe('npm', function () {
   })
 })
 
-describe('npm with disabled allowLocalFilesAccess', function () {
+describe('npm with disabled trustUserCode', function () {
   let reporter
 
   beforeEach(() => {
     reporter = Reporter({
       rootDirectory: process.cwd(),
-      allowLocalFilesAccess: false
+      trustUserCode: false
     })
       .use(require('@jsreport/jsreport-handlebars')())
       .use(require('../')())
@@ -139,13 +139,13 @@ describe('npm with disabled allowLocalFilesAccess', function () {
   })
 })
 
-describe('npm with disabled allowLocalFilesAccess but enabled npm.allowedModules[]', function () {
+describe('npm with disabled trustUserCode but enabled npm.allowedModules[]', function () {
   let reporter
 
   beforeEach(() => {
     reporter = Reporter({
       rootDirectory: process.cwd(),
-      allowLocalFilesAccess: false
+      trustUserCode: false
     })
       .use(require('@jsreport/jsreport-handlebars')())
       .use(require('../')({
@@ -172,13 +172,13 @@ describe('npm with disabled allowLocalFilesAccess but enabled npm.allowedModules
   })
 })
 
-describe('npm with disabled allowLocalFilesAccess but enabled npm.allowedModules=*', function () {
+describe('npm with disabled trustUserCode but enabled npm.allowedModules=*', function () {
   let reporter
 
   beforeEach(() => {
     reporter = Reporter({
       rootDirectory: process.cwd(),
-      allowLocalFilesAccess: false
+      trustUserCode: false
     })
       .use(require('@jsreport/jsreport-handlebars')())
       .use(require('../')({
