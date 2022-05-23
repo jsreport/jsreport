@@ -129,6 +129,7 @@ module.exports = (_sandbox, options = {}) => {
     vmSandbox = safeVM.sandbox
   } else {
     vmSandbox = originalVM.createContext(undefined)
+    vmSandbox.Buffer = Buffer
 
     for (const name in sandbox) {
       vmSandbox[name] = sandbox[name]

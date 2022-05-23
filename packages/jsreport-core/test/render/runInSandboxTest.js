@@ -546,6 +546,29 @@ describe('sandbox', () => {
       res.content.toString().should.containEql('foo')
     })
 
+    it('should be able to use Buffer', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: "this.result = Buffer.from('xxx').toString()",
+          executionFn: ({ context }) => {
+            return context.result
+          }
+        }, req)
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      should(res.content.toString()).be.eql('xxx')
+    })
+
     if (safe) {
       it('should prevent constructor hacks', async () => {
         reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
