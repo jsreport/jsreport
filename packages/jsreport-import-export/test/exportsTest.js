@@ -28,7 +28,7 @@ const postgres = {
       host: 'localhost',
       port: 5432,
       database: 'jsreport',
-      user: 'postgres',
+      user: 'jsreport',
       password: 'foo'
     }
   }
