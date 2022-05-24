@@ -139,7 +139,6 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo,
           rawData: body
         }
 
-        console.log(`file completed: ${part.name}, ${part.filename}`)
         onFileFound(part)
 
         parsingProgress.state = 'initial'
