@@ -119,7 +119,7 @@ class Reports {
         const { report, content } = await findReport(req.params.id, req)
         res.setHeader('Content-Type', report.contentType)
         res.setHeader('File-Extension', report.fileExtension)
-        res.setHeader('Content-Disposition', `attachment; filename="${report.name}.${report.fileExtension}"`)
+        res.setHeader('Content-Disposition', `attachment; filename="${report.reportName}.${report.fileExtension}"`)
         res.send(content)
       } catch (e) {
         next(e)
