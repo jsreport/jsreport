@@ -50,104 +50,110 @@ async function parseStreamingMultipart (response, onFile) {
 export default parseStreamingMultipart
 
 function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo, onFileFound) {
-  const chunk = concatUInt8Array(parsingProgress.pending, buffer)
-  let rest
+  let chunk = concatUInt8Array(parsingProgress.pending, buffer)
 
-  if (parsingProgress.state === 'initial') {
-    const boundaryDelimiterBuf = boundaryInfo.delimiterBuf
-    const boundaryDelimiterByteLength = boundaryDelimiterBuf.byteLength
-    const finalBoundaryDelimiterBuf = boundaryInfo.finalDelimiterBuf
-    let results = []
+  do {
+    let rest
 
-    // check the expected bytes that should contain the boundary delimiters
-    const expectedBoundaryBuf = chunk.slice(0, boundaryDelimiterByteLength)
+    if (parsingProgress.state === 'initial') {
+      const boundaryDelimiterBuf = boundaryInfo.delimiterBuf
+      const boundaryDelimiterByteLength = boundaryDelimiterBuf.byteLength
+      const finalBoundaryDelimiterBuf = boundaryInfo.finalDelimiterBuf
+      let results = []
 
-    if (arrayBufferEqual(expectedBoundaryBuf.buffer, boundaryDelimiterBuf.buffer)) {
-      results = parseUntilDelimiter(chunk.slice(boundaryDelimiterByteLength), concatUInt8Array(NEW_LINE_BUF, NEW_LINE_BUF))
-    } else {
-      if (arrayBufferEqual(chunk.buffer, finalBoundaryDelimiterBuf.buffer)) {
-        results = null
+      // check the expected bytes that should contain the boundary delimiters
+      const expectedBoundaryBuf = chunk.slice(0, boundaryDelimiterByteLength)
+
+      if (arrayBufferEqual(expectedBoundaryBuf.buffer, boundaryDelimiterBuf.buffer)) {
+        results = parseUntilDelimiter(chunk.slice(boundaryDelimiterByteLength), concatUInt8Array(NEW_LINE_BUF, NEW_LINE_BUF))
+      } else {
+        if (arrayBufferEqual(chunk.buffer, finalBoundaryDelimiterBuf.buffer)) {
+          results = null
+          parsingProgress.pending = new Uint8Array(0)
+        } else if (chunk.length > boundaryDelimiterByteLength) {
+          console.warn(`Got a invalid chunk at parse streaming multi-part data, did not found correct header boundary delimiter, found: "${new TextDecoder().decode(expectedBoundaryBuf)}", expected: "${new TextDecoder().decode(boundaryDelimiterBuf)}"`)
+          throw new Error('Got Invalid chunk while trying to parse multi-part file entry')
+        }
+      }
+
+      if (results == null) {
+        return
+      }
+
+      if (results.length === 0) {
+        parsingProgress.pending = chunk
+      } else {
+        const headers = textDecoder.decode(results[0])
+
+        rest = results[1]
+
+        const parsedHeaders = parseHeaders(headers)
+
+        const contentLengthHeader = parsedHeaders['content-length']
+
+        if (contentLengthHeader === undefined) {
+          throw new Error('Invalid MultiPart Response, no content-length header')
+        }
+
+        const contentLength = parseInt(contentLengthHeader, 10)
+
+        if (isNaN(contentLength)) {
+          throw new Error('Invalid MultiPart Response, could not parse content-length')
+        }
+
+        const contentDisposition = parsedHeaders['content-disposition']
+
+        const [contentDispositionType, contentDispositionParams] = parseContentDisposition(contentDisposition)
+
+        parsingProgress.state = 'header'
+        parsingProgress.meta.name = contentDispositionParams.name
+        parsingProgress.meta.filename = contentDispositionParams.filename
+        parsingProgress.meta.contentDispositionType = contentDispositionType
+        parsingProgress.meta.contentType = parsedHeaders['content-type']
+        parsingProgress.meta.contentLength = contentLength
+        parsingProgress.meta.headers = parsedHeaders
         parsingProgress.pending = new Uint8Array(0)
-      } else if (chunk.length > boundaryDelimiterByteLength) {
-        console.warn(`Got a invalid chunk at parse streaming multi-part data, did not found correct header boundary delimiter, found: "${new TextDecoder().decode(expectedBoundaryBuf)}", expected: "${new TextDecoder().decode(boundaryDelimiterBuf)}"`)
-        throw new Error('Got Invalid chunk while trying to parse multi-part file entry')
+      }
+    } else if (parsingProgress.state === 'header') {
+      if (chunk.length < parsingProgress.meta.contentLength) {
+        parsingProgress.pending = chunk
+      } else {
+        const finalBoundaryDelimiterBuf = boundaryInfo.finalDelimiterBuf
+        const body = chunk.slice(0, parsingProgress.meta.contentLength)
+
+        rest = chunk.slice(parsingProgress.meta.contentLength)
+
+        if (
+          arrayBufferEqual(rest.buffer, finalBoundaryDelimiterBuf.buffer)
+        ) {
+          rest = undefined
+        }
+
+        const part = {
+          name: parsingProgress.meta.name,
+          filename: parsingProgress.meta.filename,
+          contentDispositionType: parsingProgress.meta.contentDispositionType,
+          contentType: parsingProgress.meta.contentType,
+          contentLength: parsingProgress.meta.contentLength,
+          headers: parsingProgress.meta.headers,
+          rawData: body
+        }
+
+        console.log(`file completed: ${part.name}, ${part.filename}`)
+        onFileFound(part)
+
+        parsingProgress.state = 'initial'
+        parsingProgress.meta = {}
+        parsingProgress.pending = new Uint8Array(0)
       }
     }
 
-    if (results == null) {
-      return
-    }
-
-    if (results.length === 0) {
-      parsingProgress.pending = chunk
+    if (rest && rest.length > 0) {
+      chunk = concatUInt8Array(parsingProgress.pending, rest)
     } else {
-      const headers = textDecoder.decode(results[0])
-
-      rest = results[1]
-
-      const parsedHeaders = parseHeaders(headers)
-
-      const contentLengthHeader = parsedHeaders['content-length']
-
-      if (contentLengthHeader === undefined) {
-        throw new Error('Invalid MultiPart Response, no content-length header')
-      }
-
-      const contentLength = parseInt(contentLengthHeader, 10)
-
-      if (isNaN(contentLength)) {
-        throw new Error('Invalid MultiPart Response, could not parse content-length')
-      }
-
-      const contentDisposition = parsedHeaders['content-disposition']
-
-      const [contentDispositionType, contentDispositionParams] = parseContentDisposition(contentDisposition)
-
-      parsingProgress.state = 'header'
-      parsingProgress.meta.name = contentDispositionParams.name
-      parsingProgress.meta.filename = contentDispositionParams.filename
-      parsingProgress.meta.contentDispositionType = contentDispositionType
-      parsingProgress.meta.contentType = parsedHeaders['content-type']
-      parsingProgress.meta.contentLength = contentLength
-      parsingProgress.meta.headers = parsedHeaders
-      parsingProgress.pending = new Uint8Array(0)
+      chunk = undefined
     }
-  } else if (parsingProgress.state === 'header') {
-    if (chunk.length < parsingProgress.meta.contentLength) {
-      parsingProgress.pending = chunk
-    } else {
-      const finalBoundaryDelimeterBuf = boundaryInfo.finalDelimiterBuf
-      const body = chunk.slice(0, parsingProgress.meta.contentLength)
-
-      rest = chunk.slice(parsingProgress.meta.contentLength)
-
-      if (
-        arrayBufferEqual(rest.buffer, finalBoundaryDelimeterBuf.buffer)
-      ) {
-        rest = undefined
-      }
-
-      const part = {
-        name: parsingProgress.meta.name,
-        filename: parsingProgress.meta.filename,
-        contentDispositionType: parsingProgress.meta.contentDispositionType,
-        contentType: parsingProgress.meta.contentType,
-        contentLength: parsingProgress.meta.contentLength,
-        headers: parsingProgress.meta.headers,
-        rawData: body
-      }
-
-      onFileFound(part)
-
-      parsingProgress.state = 'initial'
-      parsingProgress.meta = {}
-      parsingProgress.pending = new Uint8Array(0)
-    }
-  }
-
-  if (rest && rest.length > 0) {
-    parseMultipartHttp(parsingProgress, textDecoder, rest, boundaryInfo, onFileFound)
-  }
+  } while (chunk && chunk.length > 0)
 }
 
 function parseUntilDelimiter (chunk, delimiterChunk) {
