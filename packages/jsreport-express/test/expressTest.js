@@ -155,7 +155,10 @@ describe('express', () => {
   it('/odata endpoint should not return non visible properties of entity', async () => {
     await jsreport.documentStore.collection('demos').insert({
       name: 'test',
-      secret: 'secret'
+      secret: 'secret',
+      nested: {
+        password: 'secret'
+      }
     })
 
     return supertest(jsreport.express.app)
@@ -165,6 +168,7 @@ describe('express', () => {
         res.body.value.should.have.length(1)
         res.body.value[0].name.should.be.eql('test')
         res.body.value[0].should.not.have.property('secret')
+        res.body.value[0].nested.should.not.have.property('password')
       })
   })
 

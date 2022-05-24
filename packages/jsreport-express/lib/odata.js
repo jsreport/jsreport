@@ -1,16 +1,38 @@
 const ODataServer = require('simple-odata-server')
-const omit = require('lodash.omit')
+const unset = require('lodash.unset')
+
+function collectHiddenPropertiesInType (model, entityType, hiddenProps, baseName) {
+  Object.keys(entityType).forEach((p) => {
+    const currentPath = baseName !== '' ? baseName + '.' + p : p
+    if (entityType[p].visible === false) {
+      hiddenProps.push(currentPath)
+    } else {
+      if (entityType[p].type.startsWith(model.namespace)) {
+        const complexType = model.complexTypes[entityType[p].type.replace(`${model.namespace}.`, '')]
+        collectHiddenPropertiesInType(model, complexType, hiddenProps, currentPath)
+      }
+    }
+  })
+
+  return hiddenProps
+}
+
+function collectHiddenProperties (model) {
+  const hiddenProps = {}
+  Object.keys(model.entitySets).forEach((es) => {
+    const entitySet = model.entitySets[es]
+    const entityTypeName = entitySet.entityType.replace(`${model.namespace}.`, '')
+    const entityType = model.entityTypes[entityTypeName]
+    hiddenProps[es] = []
+    collectHiddenPropertiesInType(model, entityType, hiddenProps[es], '')
+  })
+  return hiddenProps
+}
 
 module.exports = (reporter) => {
   const odataServer = ODataServer()
 
-  const hiddenProps = {}
-  Object.keys(reporter.documentStore.model.entitySets).forEach((es) => {
-    const entitySet = reporter.documentStore.model.entitySets[es]
-    const entityTypeName = entitySet.entityType.replace(`${reporter.documentStore.model.namespace}.`, '')
-    const entityType = reporter.documentStore.model.entityTypes[entityTypeName]
-    hiddenProps[es] = Object.keys(entityType).filter((p) => entityType[p].visible === false)
-  })
+  const hiddenProps = collectHiddenProperties(reporter.documentStore.model)
 
   odataServer
     .model(reporter.documentStore.model)
@@ -59,14 +81,25 @@ module.exports = (reporter) => {
 
       if (!query.$inlinecount) {
         return Promise.resolve(cursor.toArray())
-          .then((items) => items.map((i) => omit(i, hiddenProps[col])))
+          .then((items) => items.map((i) => {
+            for (const p of hiddenProps[col]) {
+              unset(i, p)
+            }
+            return i
+          }))
           .then((result) => cb(null, result), (err) => cb(err))
       }
 
       Promise.resolve(cursor.toArray().then((res) => {
         return reporter.documentStore.collection(col).find(query.$filter, localReq).count().then((c) => {
+          // lodash doesnt support deep opmit
+          for (const r of res) {
+            for (const p of hiddenProps[col]) {
+              unset(r, p)
+            }
+          }
           return {
-            value: res.map((i) => omit(i, hiddenProps[col])),
+            value: res,
             count: c
           }
         })
