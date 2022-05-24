@@ -31,6 +31,10 @@ chrome-image
 
 ### 3.1.1
 
+- changes to enable new `trustUserCode` option
+
+### 3.1.1
+
 - fix not applying the root chrome config
 
 ### 3.0.0-beta.1

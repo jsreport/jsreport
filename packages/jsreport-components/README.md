@@ -7,6 +7,10 @@ See https://jsreport.net/learn/components
 
 ## Changelog
 
+### 3.2.1
+
+- changes to enable caching of system helpers
+
 ### 3.0.0-beta.1
 
 Initial release

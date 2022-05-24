@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.4.1
+
+- changes to enable caching of system helpers
+
 ### 3.4.0
 
 - add support for checkboxes in pdf

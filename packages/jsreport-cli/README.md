@@ -7,6 +7,11 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 3.2.0
+
+- change the configure command questions to fit better with new `trustUserCode` option
+- changes to enable new `trustUserCode` option
+
 ### 3.1.2
 
 - update deps to fix npm audit

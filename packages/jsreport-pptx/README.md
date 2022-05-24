@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 3.2.1
+
+- changes to enable caching of system helpers
+
 ### 3.2.0
 
 - update to support new api for office asset display

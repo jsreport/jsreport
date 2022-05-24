@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 3.2.2
+
+- changes to enable caching of system helpers
+
 ### 3.2.1
 
 - fix not considering `reportTimeout` for the recipe execution

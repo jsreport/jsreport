@@ -7,6 +7,11 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.4.1
+
+- filter out nested properties with visible false from odata outputs
+- fix extensions not being able to modify meta.headers in afterRender
+
 ### 3.4.0
 
 - add option `extensions.express.cors.enabled` to enable/disable cors handling in jsreport

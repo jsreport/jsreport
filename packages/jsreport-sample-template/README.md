@@ -22,6 +22,10 @@
 
 ## Changelog
 
+### 3.2.1
+
+- update samples to mention new `trustUserCode` option
+
 ### 3.2.0
 
 - update extensions deps

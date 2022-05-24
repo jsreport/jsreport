@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 3.2.1
+
+- fix xlsx block helpers not working with asset call in helper body
+
 ### 3.2.0
 
 - add support for generating xlsx based on handlebars tags present directly in a xlsx template file

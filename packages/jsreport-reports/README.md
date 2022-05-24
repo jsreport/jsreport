@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 3.0.5
+
+- fix return of proper filename for the report
+
 ### 3.0.4
 
 - fix async rendering execution

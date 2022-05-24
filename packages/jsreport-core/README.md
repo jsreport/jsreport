@@ -282,6 +282,15 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.6.0
+
+- improve handling of worker exit
+- add a way to disable the safe execution and prevent the performance penalty
+- cache system helpers function
+- `profiler.maxDiffSize` applies to both req and res
+- improved the support for running jsreport as serverless function
+- added new apis in `jsreport-proxy` for better working with async helpers
+
 ### 3.5.0
 
 - fix parsing issue of code with comment in the sandbox (helpers, scripts)

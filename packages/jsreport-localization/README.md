@@ -7,6 +7,10 @@ See https://jsreport.net/learn/localization
 
 ## Changelog
 
+### 3.2.1
+
+- changes to enable caching of system helpers
+
 ### 3.2.0
 
 accept object for localize function and propagate req.template.localization to the child templates

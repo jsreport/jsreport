@@ -18,6 +18,11 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.6.0
+
+- fix Maximum call stack error when rendering a report that produces a lot of logs
+- improvements to handle reports that produce big profiles
+
 ### 3.5.0
 
 - improve the Profiler page

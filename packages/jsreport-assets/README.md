@@ -8,6 +8,11 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.4.2
+
+- changes to enable new `trustUserCode` option
+- changes to enable caching of system helpers
+
 ### 3.4.1
 
 - make asset editor component's code active display configurable

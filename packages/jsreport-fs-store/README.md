@@ -18,6 +18,11 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 3.2.1
+
+- fix external entities changes sync reload
+- changes to enable new `trustUserCode` option
+
 ### 3.2.0
 
 - properly support absolute path in blobStorage.dataDirectory

@@ -29,7 +29,7 @@ The most simple scenario. You have html report but you want to additionally add 
 
 
 ## Drill down to sub report
-Also very common scenario. The report is too complex to display at once and you want let the users to drill down to particular sections. 
+Also very common scenario. The report is too complex to display at once and you want let the users to drill down to particular sections.
 
 The master template can contain several links to the detail drill down. Every link can then render different template and also push additional information through data property.
 ```html
@@ -87,39 +87,45 @@ The last example shows how to use the [jsreport borwser client](http://jsreport.
     var template;
     var templateName = 'My editable report template';
     var data = { foo: '...' };
-    
+
     //load template definition so we can edit it's content
     jsreport.getTemplateByName(templateName).then(function(r) {
        template = r;
     });
- 
+
     //also render into the preview pane
-    jsreport.render('reportBox', { 
-      template: { name: templateName }, 
-      data: data 
+    jsreport.render('reportBox', {
+      template: { name: templateName },
+      data: data
     });
-    
+
     //open editor with the edited template content
     function edit() {
         tinymce.init({ selector:'#editorBox' });
         tinyMCE.activeEditor.setContent(template.content);
     }
-    
+
     //save the template with updated content and preview
     function refresh() {
         template.content = tinyMCE.activeEditor.getContent()
         tinyMCE.activeEditor.destroy();
         document.getElementById('editorBox').innerHTML = '';
         jsreport.updateTemplate(template).then(function() {
-            jsreport.render('reportBox', { 
-	            template: { name: templateName }, 
+            jsreport.render('reportBox', {
+	            template: { name: templateName },
 	            data: data
-	        });    
+	        });
         });
-    }    
-    
+    }
+
 </script>
 ```
+
+## Changelog
+
+### 3.1.1
+
+- changes to enable caching of system helpers
 
 ## License
 MIT

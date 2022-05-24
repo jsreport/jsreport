@@ -7,6 +7,11 @@ See https://jsreport.net/learn/npm
 
 ## Changelog
 
+### 3.1.2
+
+- changes to enable new `trustUserCode` option
+- changes to enable caching of system helpers
+
 ### 3.1.1
 
 add package.json to path when checking module existence

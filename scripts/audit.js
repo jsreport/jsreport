@@ -24,7 +24,7 @@ if (args[0] === 'clean') {
     }
   }
 
-  const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync('yarn', ['install', '--check-files'], {
+  const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync('yarn', ['install', '--force'], {
     cwd: process.cwd(),
     stdio: 'inherit'
   })

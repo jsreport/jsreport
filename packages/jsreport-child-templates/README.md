@@ -7,6 +7,10 @@ See https://jsreport.net/learn/child-templates
 
 ## Changelog
 
+### 3.0.3
+
+- changes to enable caching of system helpers
+
 ### 3.0.2
 
 - update deps to fix npm vulnerabilities report

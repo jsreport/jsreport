@@ -32,7 +32,7 @@
     "stream-to-array": "2.3.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.5.0",
+    "@jsreport/jsreport-core": "3.6.0",
     "@jsreport/studio-dev": "3.1.0",
     "electron": "1.6.6",
     "in-publish": "2.0.1",
