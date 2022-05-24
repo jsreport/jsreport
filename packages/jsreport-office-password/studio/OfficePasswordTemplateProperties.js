@@ -24,12 +24,12 @@ class OfficePasswordTemplateProperties extends Component {
 
     return (
       <div className='properties-section'>
-        <div className='form-group'>
+        <div className='form-group' title='The entity needs to be saved in order to make the change effect.'>
           <label>Password</label>
           <input
             type='password'
             value={password}
-            onChange={(v) => changeOfficePassword({ passwordRaw: v.target.value })}
+            onChange={(v) => changeOfficePassword({ passwordRaw: v.target.value, passwordFilled: v.target.value !== '' })}
           />
         </div>
         <div className='form-group'>

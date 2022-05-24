@@ -16,9 +16,8 @@ module.exports = function (reporter, definition) {
 
       if (password == null) {
         if (!req.template.officePassword.passwordSecure) {
-          throw reporter.createError('password was not set, you must supply a password when office-password is enabled', {
-            statusCode: 4000
-          })
+          reporter.logger.debug('Skipping office-password generation because password was not filled', req)
+          return
         }
 
         try {

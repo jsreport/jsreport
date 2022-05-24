@@ -168,7 +168,7 @@ var OfficePasswordTemplateProperties = function (_Component) {
         { className: 'properties-section' },
         _react2.default.createElement(
           'div',
-          { className: 'form-group' },
+          { className: 'form-group', title: 'The entity needs to be saved in order to make the change effect.' },
           _react2.default.createElement(
             'label',
             null,
@@ -178,7 +178,7 @@ var OfficePasswordTemplateProperties = function (_Component) {
             type: 'password',
             value: password,
             onChange: function onChange(v) {
-              return changeOfficePassword({ passwordRaw: v.target.value });
+              return changeOfficePassword({ passwordRaw: v.target.value, passwordFilled: v.target.value !== '' });
             }
           })
         ),
