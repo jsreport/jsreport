@@ -98,9 +98,13 @@ module.exports = ({
           blobStorageDirectory,
           transaction: this.transaction,
           logger,
-          onModification: (e) => {
-            this.emit('external-modification', e)
-            return this.queue.push(() => lock(this.fs, () => this.reload()))
+          onModification: async (e) => {
+            try {
+              await this.queue.push(() => lock(this.fs, () => this.reload()))
+              this.emit('external-modification', e)
+            } catch (e) {
+              logger.warn('Failed to reload fs store after external modification', e)
+            }
           }
         })
       }
