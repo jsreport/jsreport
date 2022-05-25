@@ -53,7 +53,7 @@ describe('wkhtmltopdf with local', function () {
   beforeEach(function () {
     reporter = jsreport()
     reporter.use(wkhtmltopdf({
-      trustUserCode: true
+      allowLocalFilesAccess: true
     }))
 
     return reporter.init()

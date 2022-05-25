@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-office-password",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "jsreport extension adding password protection to office reports",
   "keywords": [
     "jsreport",

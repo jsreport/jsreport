@@ -10,3 +10,9 @@ See the docs http://jsreport.net/learn/office-password
 ```
 npm i @jsreport/jsreport-office-password
 ```
+
+## Changelog
+
+### 3.0.1
+
+- clear office password in studio
