@@ -1496,3 +1496,33 @@ describe('scripts', () => {
     })
   }
 })
+
+describe('scripts with trustUserCode', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = JsReport({
+      trustUserCode: true
+    })
+      .use(require('../')())
+
+    return reporter.init()
+  })
+
+  it('should be able to clone req.data', () => {
+    return reporter.render({
+      template: {
+        content: 'hello',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{
+          content: `
+          function beforeRender(req, res) {
+            req.data = Object.assign({}, req.data)
+          }          
+          `
+        }]
+      }
+    })
+  })
+})
