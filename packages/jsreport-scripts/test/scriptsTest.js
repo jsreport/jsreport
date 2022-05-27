@@ -1519,7 +1519,7 @@ describe('scripts with trustUserCode', () => {
           content: `
           function beforeRender(req, res) {
             req.data = Object.assign({}, req.data)
-          }          
+          }
           `
         }]
       }

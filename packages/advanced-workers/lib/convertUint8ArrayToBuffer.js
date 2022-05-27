@@ -7,7 +7,7 @@ module.exports = function convertUint8ArrayToBuffer (obj) {
   }
 
   for (const [key, value] of Object.entries(obj)) {
-    if (isStrictUint8Array(value)) {
+    if (isUint8Array(value)) {
       obj[key] = typeArrayToBuffer(value)
     } else if (isObject(value)) {
       convertUint8ArrayToBuffer(value)
@@ -17,18 +17,12 @@ module.exports = function convertUint8ArrayToBuffer (obj) {
   }
 }
 
-function isStrictUint8Array (input) {
-  return Object.prototype.toString.call(input) === '[object Uint8Array]' && input.constructor === Uint8Array
+function isUint8Array (input) {
+  return Object.prototype.toString.call(input) === '[object Uint8Array]'
 }
 
 function isObject (input) {
-  if (Object.prototype.toString.call(input) !== '[object Object]') {
-    return false
-  }
-
-  const prototype = Object.getPrototypeOf(input)
-
-  return prototype === null || prototype === Object.prototype
+  return Object.prototype.toString.call(input) === '[object Object]'
 }
 
 function typeArrayToBuffer (input) {

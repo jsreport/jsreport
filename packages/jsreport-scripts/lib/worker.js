@@ -139,6 +139,12 @@ class Scripts {
 
     const scriptExecResult = await (require('./executeScript')(this.reporter, { script, method, onBeforeExecute }, req, res))
 
+    if (scriptExecResult.error) {
+      throw this.reporter.createError(scriptExecResult.error.message, {
+        weak: true
+      })
+    }
+
     if (scriptExecResult.shouldRunAfterRender) {
       script.shouldRunAfterRender = true
     }

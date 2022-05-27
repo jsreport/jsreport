@@ -9,7 +9,6 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   }
 
   const requestContextMetaConfig = reporter.getRequestContextMetaConfig() || {}
-
   const originalData = req.data
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
@@ -155,11 +154,5 @@ module.exports = async function executeScript (reporter, { script, method, onBef
 }
 
 function isObject (input) {
-  if (Object.prototype.toString.call(input) !== '[object Object]') {
-    return false
-  }
-
-  const prototype = Object.getPrototypeOf(input)
-
-  return prototype === null || prototype === Object.prototype
+  return Object.prototype.toString.call(input) === '[object Object]'
 }
