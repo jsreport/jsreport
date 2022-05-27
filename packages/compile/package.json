@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-cli": "3.2.0",
-    "@jsreport/jsreport-core": "3.6.0",
+    "@jsreport/jsreport-core": "3.6.1",
     "fs-extra": "2.1.2",
     "mocha": "3.2.0",
     "should": "11.2.1",

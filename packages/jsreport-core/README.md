@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.6.1
+
+- update @jsreport/advanced-workers to fix bug with cloning req.data when `trustUserCode` is true
+
 ### 3.6.0
 
 - improve handling of worker exit

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 3.2.1
+
+- fix cannot propagate req.data object changes from sandbox when trustUserCode is true
+
 ### 3.0.1
 
 - use relative path to the currently evaluated entity (use script path as the current entity path)
