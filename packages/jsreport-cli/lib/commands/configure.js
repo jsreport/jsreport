@@ -143,10 +143,7 @@ exports.handler = async (argv) => {
         type: 'confirm',
         name: 'createExamples',
         message: 'Would you like that we create some default examples for you?',
-        default: true,
-        when: (answers) => {
-          return answers.store === 'fs' || answers.store.indexOf('fs') === 0
-        }
+        default: true
       }
     ]
 
