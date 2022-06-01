@@ -130,7 +130,7 @@ module.exports = (reporter) => {
         reporter.requestModulesCache.set(request.context.rootId, Object.create(null))
       }
 
-      reporter.logger.info(`Starting rendering request ${request.context.reportCounter} (user: ${(request.context.user ? request.context.user.username : 'null')})`, request)
+      reporter.logger.info(`Starting rendering request ${request.context.reportCounter} (user: ${(request.context.user ? request.context.user.name : 'null')})`, request)
 
       // TODO
       /* if (reporter.entityTypeValidator.getSchema('TemplateType') != null) {
