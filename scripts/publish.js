@@ -66,7 +66,8 @@ if (extraneousDeps.length > 0) {
 
     const { error: yarnBuildError, status: yarnBuildStatus } = spawnSync(buildCommand[0], buildCommand.slice(1), {
       cwd: process.cwd(),
-      stdio: 'inherit'
+      stdio: 'inherit',
+      shell: true
     })
 
     if (yarnBuildError || yarnBuildStatus === 1) {
@@ -87,6 +88,7 @@ if (extraneousDeps.length > 0) {
 
     const { error: yarnTestError, status: yarnTestStatus } = spawnSync(testCommand[0], testCommand.slice(1), {
       cwd: process.cwd(),
+      shell: true,
       stdio: 'inherit'
     })
 
@@ -142,9 +144,11 @@ if (extraneousDeps.length > 0) {
 
   console.log(`\nrunning ${installCommand.join(' ')} to normalize node_modules tree after version update`)
 
-  const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync(installCommand[0], installCommand.slice(1), {
+  const { error: yarnInstallError, status: yarnInstallStatus } =
+  (installCommand[0], installCommand.slice(1), {
     cwd: process.cwd(),
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell: true
   })
 
   if (yarnInstallError || yarnInstallStatus === 1) {
@@ -182,7 +186,8 @@ if (extraneousDeps.length > 0) {
 
     const { error: publishError, status: publishStatus } = spawnSync(publishCommand[0], publishCommand.slice(1), {
       cwd: path.join(process.cwd(), 'packages', targetPkgFoldername),
-      stdio: 'inherit'
+      stdio: 'inherit',
+      shell: true
     })
 
     if (publishError || publishStatus === 1) {

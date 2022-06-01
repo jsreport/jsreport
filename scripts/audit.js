@@ -26,7 +26,8 @@ if (args[0] === 'clean') {
 
   const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync('yarn', ['install', '--force'], {
     cwd: process.cwd(),
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell: true
   })
 
   if (yarnInstallError || yarnInstallStatus === 1) {
@@ -72,7 +73,8 @@ for (const ext of extensionsList) {
 
   const { error: npmInstallError, status: npmInstallStatus } = spawnSync('npm', args, {
     cwd: path.join(process.cwd(), 'packages', packagesInWorkspace.get(ext)),
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell: true
   })
 
   console.log('\n===== dependencies install finished (logs above) =====')
@@ -89,7 +91,8 @@ for (const ext of extensionsList) {
 
   const { error: auditError, stdout, status: auditStatus } = spawnSync('npm', ['audit', '--omit', 'dev'], {
     cwd: path.join(process.cwd(), 'packages', packagesInWorkspace.get(ext)),
-    stdio: 'pipe'
+    stdio: 'pipe',
+    shell: true
   })
 
   const output = stdout != null ? stdout.toString().trim() : ''

@@ -33,7 +33,8 @@ if (targetPkg != null && targetPkg !== '') {
   console.log(`running ${commands.join(' ')}`)
 
   const { stdout, stderr, error, status } = spawnSync(commands[0], commands.slice(1), {
-    stdio: 'pipe'
+    stdio: 'pipe',
+    shell: true
   })
 
   if (error || status === 1) {
@@ -70,7 +71,8 @@ if (targetPkg != null && targetPkg !== '') {
   console.log(`running ${commands.join(' ')}`)
 
   const { stdout, stderr, error, status } = spawnSync(commands[0], commands.slice(1), {
-    stdio: 'pipe'
+    stdio: 'pipe',
+    shell: true
   })
 
   if (error || status === 1) {
