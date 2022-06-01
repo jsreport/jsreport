@@ -3,6 +3,10 @@ module.exports = {
   main: 'lib/main.js',
   worker: 'lib/worker.js',
   optionsSchema: {
+    migrateAuthenticationUsernameProp: {
+      type: 'boolean',
+      default: true
+    },
     extensions: {
       authentication: {
         type: 'object',
