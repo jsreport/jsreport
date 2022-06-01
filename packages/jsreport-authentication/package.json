@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-authentication",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "jsreport extension adding user authentication",
   "keywords": [
     "jsreport",
