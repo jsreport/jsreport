@@ -109,6 +109,9 @@ describe('xlsx transformation', () => {
     })
     xlsx.read(res.content).Sheets.Sheet1.A1.should.be.ok()
     xlsx.read(res.content).Sheets.Sheet1.A1000.should.be.ok()
+
+    xlsx.read(res.content).Sheets.Sheet1.B1.v.should.be.eql('0')
+    xlsx.read(res.content).Sheets.Sheet1.B1000.v.should.be.eql('999')
   })
 
   it('xlsxReplace replace-sheet', test('replace-sheet.handlebars', (workbook) => {

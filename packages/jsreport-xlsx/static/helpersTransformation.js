@@ -477,8 +477,12 @@ const __xlsx = (function () {
         }
 
         if (options.fn) {
+          const newOptionsParam = {
+            data: Handlebars.createFrame(options.data), // eslint-disable-line
+            blockParams: options.blockParams
+          }
           extraInfo.tagCtx = {
-            render: options.fn
+            render: (data) => options.fn(data, newOptionsParam)
           }
         }
 
