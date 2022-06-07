@@ -24,18 +24,34 @@ module.exports = (reporter) => {
   const profilerOperationsChainsMap = new Map()
   const profilerLogRequestMap = new Map()
 
-  function runInProfilerChain (fn, req) {
+  function runInProfilerChain (fnOrOptions, req) {
     if (req.context.profiling.mode === 'disabled') {
       return
     }
 
+    let fn
+    let cleanFn
+
+    if (typeof fnOrOptions === 'function') {
+      fn = fnOrOptions
+    } else {
+      fn = fnOrOptions.fn
+      cleanFn = fnOrOptions.cleanFn
+    }
+
     profilerOperationsChainsMap.set(req.context.rootId, profilerOperationsChainsMap.get(req.context.rootId).then(async () => {
+      if (cleanFn) {
+        cleanFn()
+      }
+
       if (req.context.profiling.chainFailed) {
         return
       }
 
       try {
-        await fn()
+        if (fn) {
+          await fn()
+        }
       } catch (e) {
         reporter.logger.warn('Failed persist profile', e)
         req.context.profiling.chainFailed = true
@@ -192,6 +208,7 @@ module.exports = (reporter) => {
 
     runInProfilerChain(() => {
       req.context.skipValidationFor = update
+
       return reporter.documentStore.collection('profiles').update({
         _id: req.context.profiling.entity._id
       }, {
@@ -226,7 +243,9 @@ module.exports = (reporter) => {
         state: 'success',
         finishedOn: new Date()
       }
+
       req.context.skipValidationFor = update
+
       await reporter.documentStore.collection('profiles').update({
         _id: req.context.profiling.entity._id
       }, {
@@ -234,49 +253,49 @@ module.exports = (reporter) => {
       }, req)
     }, req)
 
-    // we don't remove from profiler requests map, because the renderErrorListeners are invoked if the afterRenderListener fails
+    // we don't clean the profiler maps here, we do it later in main reporter .render,
+    // because the renderErrorListeners can be invoked if the afterRenderListener fails
   })
 
   reporter.renderErrorListeners.add('profiler', async (req, res, e) => {
-    try {
-      res.meta.profileId = req.context.profiling?.entity?._id
+    res.meta.profileId = req.context.profiling?.entity?._id
 
-      if (req.context.profiling?.entity != null) {
-        emitProfiles({
-          events: [{
-            type: 'error',
-            timestamp: new Date().getTime(),
-            ...e,
-            id: generateRequestId(),
-            stack: e.stack,
-            message: e.message
-          }]
+    if (req.context.profiling?.entity != null) {
+      emitProfiles({
+        events: [{
+          type: 'error',
+          timestamp: new Date().getTime(),
+          ...e,
+          id: generateRequestId(),
+          stack: e.stack,
+          message: e.message
+        }]
+      }, req)
+
+      runInProfilerChain(async () => {
+        if (req.context.profiling.logFilePath != null) {
+          const content = await fs.readFile(req.context.profiling.logFilePath, 'utf8')
+          await reporter.blobStorage.write(req.context.profiling.entity.blobName, content, req)
+          await fs.unlink(req.context.profiling.logFilePath)
+        }
+
+        const update = {
+          state: 'error',
+          finishedOn: new Date(),
+          error: e.toString()
+        }
+
+        req.context.skipValidationFor = update
+
+        await reporter.documentStore.collection('profiles').update({
+          _id: req.context.profiling.entity._id
+        }, {
+          $set: update
         }, req)
+      }, req)
 
-        runInProfilerChain(async () => {
-          if (req.context.profiling.logFilePath != null) {
-            const content = await fs.readFile(req.context.profiling.logFilePath, 'utf8')
-            await reporter.blobStorage.write(req.context.profiling.entity.blobName, content, req)
-            await fs.unlink(req.context.profiling.logFilePath)
-          }
-
-          const update = {
-            state: 'error',
-            finishedOn: new Date(),
-            error: e.toString()
-          }
-          req.context.skipValidationFor = update
-          await reporter.documentStore.collection('profiles').update({
-            _id: req.context.profiling.entity._id
-          }, {
-            $set: update
-          }, req)
-        }, req)
-      }
-    } finally {
-      profilersMap.delete(req.context.rootId)
-      profilerOperationsChainsMap.delete(req.context.rootId)
-      profilerLogRequestMap.delete(req.context.rootId)
+      // we don't clean the profiler maps here, we do it later in main reporter .render,
+      // we do this to ensure a single and clear order
     }
   })
 
@@ -328,6 +347,7 @@ module.exports = (reporter) => {
   }
 
   let profilesCleanupInterval
+
   reporter.initializeListeners.add('profiler', async () => {
     reporter.documentStore.collection('profiles').beforeRemoveListeners.add('profiles', async (query, req) => {
       const profiles = await reporter.documentStore.collection('profiles').find(query, req)
@@ -339,6 +359,7 @@ module.exports = (reporter) => {
 
     profilesCleanupInterval = setInterval(profilesCleanup, reporter.options.profiler.cleanupInterval)
     profilesCleanupInterval.unref()
+
     await profilesCleanup()
   })
 
@@ -353,15 +374,23 @@ module.exports = (reporter) => {
         await profileAppendPromise
       }
     }
+
+    profilersMap.clear()
+    profilerOperationsChainsMap.clear()
+    profilerLogRequestMap.clear()
   })
 
   let profilesCleanupRunning = false
+
   async function profilesCleanup () {
     if (profilesCleanupRunning) {
       return
     }
+
     profilesCleanupRunning = true
+
     let lastRemoveError
+
     try {
       const profiles = await reporter.documentStore.collection('profiles').find({}).sort({ timestamp: -1 })
       const profilesToRemove = profiles.slice(reporter.options.profiler.maxProfilesHistory)
@@ -388,5 +417,27 @@ module.exports = (reporter) => {
     if (lastRemoveError) {
       reporter.logger.warn('Profile cleanup failed for some entities, last error:', lastRemoveError)
     }
+  }
+
+  return function cleanProfileInRequest (req) {
+    // - req.context.profiling is empty only on an early error
+    // that happens before setting the profiler.
+    // - when profiling.mode is "disabled" there is no profiler chain to append
+    // in both cases we want the clean code to happen immediately
+    if (req.context.profiling?.entity == null || req.context.profiling?.mode === 'disabled') {
+      profilersMap.delete(req.context.rootId)
+      profilerOperationsChainsMap.delete(req.context.rootId)
+      profilerLogRequestMap.delete(req.context.rootId)
+      return
+    }
+
+    // this will get executed always even if some fn in the chain fails
+    runInProfilerChain({
+      cleanFn: () => {
+        profilersMap.delete(req.context.rootId)
+        profilerOperationsChainsMap.delete(req.context.rootId)
+        profilerLogRequestMap.delete(req.context.rootId)
+      }
+    }, req)
   }
 }
