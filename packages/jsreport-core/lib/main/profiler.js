@@ -1,4 +1,5 @@
 const EventEmitter = require('events')
+const winston = require('winston')
 const extend = require('node.extend.without.arrays')
 const generateRequestId = require('../shared/generateRequestId')
 const fs = require('fs/promises')
@@ -20,8 +21,9 @@ module.exports = (reporter) => {
   })
 
   const profilersMap = new Map()
-
   const profilerOperationsChainsMap = new Map()
+  const profilerLogRequestMap = new Map()
+
   function runInProfilerChain (fn, req) {
     if (req.context.profiling.mode === 'disabled') {
       return
@@ -54,7 +56,7 @@ module.exports = (reporter) => {
     return m
   }
 
-  function emitProfiles (events, req) {
+  function emitProfiles ({ events, log = true }, req) {
     if (events.length === 0) {
       return
     }
@@ -63,7 +65,9 @@ module.exports = (reporter) => {
 
     for (const m of events) {
       if (m.type === 'log') {
-        reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp })
+        if (log) {
+          reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp, fromEmitProfile: true })
+        }
       } else {
         lastOperation = m
       }
@@ -90,7 +94,7 @@ module.exports = (reporter) => {
   }
 
   reporter.registerMainAction('profile', async (events, req) => {
-    return emitProfiles(events, req)
+    return emitProfiles({ events }, req)
   })
 
   reporter.attachProfiler = (req, profileMode) => {
@@ -149,14 +153,16 @@ module.exports = (reporter) => {
 
     req.context.profiling.profileStartOperationId = profileStartOperation.operationId
 
-    emitProfiles([profileStartOperation], req)
+    emitProfiles({ events: [profileStartOperation] }, req)
 
-    emitProfiles([createProfileMessage({
-      type: 'log',
-      level: 'info',
-      message: `Render request ${req.context.reportCounter} queued for execution and waiting for availible worker`,
-      previousOperationId: profileStartOperation.operationId
-    }, req)], req)
+    emitProfiles({
+      events: [createProfileMessage({
+        type: 'log',
+        level: 'info',
+        message: `Render request ${req.context.reportCounter} queued for execution and waiting for available worker`,
+        previousOperationId: profileStartOperation.operationId
+      }, req)]
+    }, req)
   })
 
   reporter.beforeRenderListeners.add('profiler', async (req, res) => {
@@ -197,13 +203,15 @@ module.exports = (reporter) => {
   })
 
   reporter.afterRenderListeners.add('profiler', async (req, res) => {
-    emitProfiles([createProfileMessage({
-      type: 'operationEnd',
-      doDiffs: false,
-      previousEventId: req.context.profiling.lastEventId,
-      previousOperationId: req.context.profiling.lastOperationId,
-      operationId: req.context.profiling.profileStartOperationId
-    }, req)], req)
+    emitProfiles({
+      events: [createProfileMessage({
+        type: 'operationEnd',
+        doDiffs: false,
+        previousEventId: req.context.profiling.lastEventId,
+        previousOperationId: req.context.profiling.lastOperationId,
+        operationId: req.context.profiling.profileStartOperationId
+      }, req)]
+    }, req)
 
     res.meta.profileId = req.context.profiling?.entity?._id
 
@@ -234,14 +242,17 @@ module.exports = (reporter) => {
       res.meta.profileId = req.context.profiling?.entity?._id
 
       if (req.context.profiling?.entity != null) {
-        emitProfiles([{
-          type: 'error',
-          timestamp: new Date().getTime(),
-          ...e,
-          id: generateRequestId(),
-          stack: e.stack,
-          message: e.message
-        }], req)
+        emitProfiles({
+          events: [{
+            type: 'error',
+            timestamp: new Date().getTime(),
+            ...e,
+            id: generateRequestId(),
+            stack: e.stack,
+            message: e.message
+          }]
+        }, req)
+
         runInProfilerChain(async () => {
           if (req.context.profiling.logFilePath != null) {
             const content = await fs.readFile(req.context.profiling.logFilePath, 'utf8')
@@ -265,8 +276,56 @@ module.exports = (reporter) => {
     } finally {
       profilersMap.delete(req.context.rootId)
       profilerOperationsChainsMap.delete(req.context.rootId)
+      profilerLogRequestMap.delete(req.context.rootId)
     }
   })
+
+  const configuredPreviously = reporter.logger.__profilerConfigured__ === true
+
+  if (!configuredPreviously) {
+    const originalLog = reporter.logger.log
+
+    // we want to catch the original request
+    reporter.logger.log = function (level, msg, ...splat) {
+      const [meta] = splat
+
+      if (typeof meta === 'object' && meta !== null && meta.context?.rootId != null) {
+        profilerLogRequestMap.set(meta.context.rootId, meta)
+      }
+
+      return originalLog.call(this, level, msg, ...splat)
+    }
+
+    const mainLogsToProfile = winston.format((info) => {
+      // propagate the request logs occurring on main to the profile
+      if (info.rootId != null && info.fromEmitProfile == null && profilerLogRequestMap.has(info.rootId)) {
+        const req = profilerLogRequestMap.get(info.rootId)
+
+        emitProfiles({
+          events: [createProfileMessage({
+            type: 'log',
+            level: info.level,
+            message: info.message,
+            previousOperationId: req.context.profiling.lastOperationId
+          }, req)],
+          log: false
+        }, req)
+      }
+
+      if (info.fromEmitProfile != null) {
+        delete info.fromEmitProfile
+      }
+
+      return info
+    })
+
+    reporter.logger.format = winston.format.combine(
+      reporter.logger.format,
+      mainLogsToProfile()
+    )
+
+    reporter.logger.__profilerConfigured__ = true
+  }
 
   let profilesCleanupInterval
   reporter.initializeListeners.add('profiler', async () => {
