@@ -357,10 +357,14 @@ module.exports = (reporter) => {
       }
     })
 
-    profilesCleanupInterval = setInterval(profilesCleanup, reporter.options.profiler.cleanupInterval)
+    function profilesCleanupExec () {
+      return reporter._profilesCleanup()
+    }
+
+    profilesCleanupInterval = setInterval(profilesCleanupExec, reporter.options.profiler.cleanupInterval)
     profilesCleanupInterval.unref()
 
-    await profilesCleanup()
+    await reporter._profilesCleanup()
   })
 
   reporter.closeListeners.add('profiler', async () => {
@@ -382,7 +386,7 @@ module.exports = (reporter) => {
 
   let profilesCleanupRunning = false
 
-  async function profilesCleanup () {
+  reporter._profilesCleanup = async function profilesCleanup () {
     if (profilesCleanupRunning) {
       return
     }
