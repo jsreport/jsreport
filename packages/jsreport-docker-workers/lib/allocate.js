@@ -85,7 +85,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     } catch (e) {
       await containersManager.release(container)
       reporter.logger.warn(`Error while trying to allocate worker in container ${container.id} (${container.url}): ${e.stack}`)
-      throw reporter.createError('Unable to allocate worker')
+      throw reporter.createError('Unable to allocate worker', { ...e })
     }
 
     return {

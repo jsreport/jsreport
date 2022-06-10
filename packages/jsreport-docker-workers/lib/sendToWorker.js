@@ -39,7 +39,9 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
         } catch (err) {
           isDone = true
           if (!err.response?.data) {
-            return reject(new Error('Error when communicating with worker: ' + err.message))
+            const error = new Error('Error when communicating with worker: ' + err.message)
+            Object.assign(error, { ...err })
+            return reject(error)
           }
 
           try {
@@ -48,7 +50,9 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
             Object.assign(workerError, errorData)
             return reject(workerError)
           } catch (e) {
-            return reject(new Error('Error when communicating with worker: ' + err.response.data))
+            const error = new Error('Error when communicating with worker: ' + err.response.data)
+            Object.assign(error, { ...e })
+            return reject(error)
           }
         }
 
