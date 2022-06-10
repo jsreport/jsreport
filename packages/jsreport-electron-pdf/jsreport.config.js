@@ -4,8 +4,7 @@ const electronSchema = {
   properties: {
     strategy: {
       type: 'string',
-      enum: ['dedicated-process', 'electron-ipc', 'electron-server'],
-      default: 'dedicated-process'
+      enum: ['dedicated-process', 'electron-ipc', 'electron-server']
     },
     numberOfWorkers: { type: 'number' },
     pingTimeout: { type: 'number' },

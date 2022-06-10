@@ -11,6 +11,7 @@ const defaultPhantomjsVersion = '1.9.8'
 
 module.exports = (reporter, definition) => {
   definition.options = Object.assign({}, reporter.options.phantom, definition.options)
+  definition.options.strategy = definition.options.strategy || 'dedicated-process'
 
   if (definition.options.allowLocalFilesAccess == null) {
     definition.options.allowLocalFilesAccess = reporter.options.trustUserCode
