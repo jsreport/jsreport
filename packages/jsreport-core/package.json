@@ -22,7 +22,8 @@
     "lib",
     "index.js",
     "test/store/common.js",
-    "test/blobStorage/common.js"
+    "test/blobStorage/common.js",
+    "test/extensions/validExtensions/listeners"
   ],
   "scripts": {
     "test": "mocha --timeout 5000 --recursive test --exit && standard",

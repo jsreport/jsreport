@@ -25,5 +25,5 @@ module.exports.createDefaultLoggerFormat = createDefaultLoggerFormat
 module.exports.tests = {
   documentStore: () => require('./test/store/common.js'),
   blobStorage: () => require('./test/blobStorage/common.js'),
-  listeners: () => require('./test/extensions/validExtensions/listeners/jsreport.config')
+  listeners: () => require('./test/extensions/validExtensions/listeners/jsreport.dontdiscover.config')
 }

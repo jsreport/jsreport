@@ -9,7 +9,7 @@ describe('listeners extension', () => {
     reporter = jsreport({
       rootDirectory: path.join(__dirname, 'validExtensions')
     })
-    reporter.use(require('./validExtensions/listeners/jsreport.config.js'))
+    reporter.use(require('./validExtensions/listeners/jsreport.dontdiscover.config.js'))
     return reporter.init()
   })
 
