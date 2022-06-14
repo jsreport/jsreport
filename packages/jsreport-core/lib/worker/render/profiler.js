@@ -36,7 +36,10 @@ class Profiler {
       if (profilingInfo) {
         const batch = profilingInfo.batch
         profilingInfo.batch = []
-        await this.reporter.executeMainAction('profile', batch, profilingInfo.req).catch((e) => this.reporter.logger.error(e, profilingInfo.req))
+
+        if (batch.length > 0) {
+          await this.reporter.executeMainAction('profile', batch, profilingInfo.req).catch((e) => this.reporter.logger.error(e, profilingInfo.req))
+        }
       }
     }
   }
@@ -158,7 +161,10 @@ class Profiler {
       const profilingInfo = this.profiledRequestsMap.get(req.context.rootId)
       if (profilingInfo) {
         this.profiledRequestsMap.delete(req.context.rootId)
-        await this.reporter.executeMainAction('profile', profilingInfo.batch, req)
+
+        if (profilingInfo.batch.length > 0) {
+          await this.reporter.executeMainAction('profile', profilingInfo.batch, req)
+        }
       }
     }
   }
