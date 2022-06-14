@@ -22,6 +22,7 @@ module.exports = (reporter) => {
 
   const profilersMap = new Map()
   const profilerOperationsChainsMap = new Map()
+  const profilerRequestMap = new Map()
   const profilerLogRequestMap = new Map()
 
   function runInProfilerChain (fnOrOptions, req) {
@@ -37,6 +38,12 @@ module.exports = (reporter) => {
     } else {
       fn = fnOrOptions.fn
       cleanFn = fnOrOptions.cleanFn
+    }
+
+    // this only happens when rendering remote delegated requests on docker workers
+    // there won't be operations chain because the request started from another server
+    if (!profilerOperationsChainsMap.has(req.context.rootId)) {
+      return
     }
 
     profilerOperationsChainsMap.set(req.context.rootId, profilerOperationsChainsMap.get(req.context.rootId).then(async () => {
@@ -109,8 +116,33 @@ module.exports = (reporter) => {
     }, req)
   }
 
-  reporter.registerMainAction('profile', async (events, req) => {
-    return emitProfiles({ events }, req)
+  reporter.registerMainAction('profile', async (eventsOrOptions, _req) => {
+    let req = _req
+
+    // if there is request stored here then take it, this is needed
+    // for docker workers remote requests, so the emitProfile can work
+    // with the real render request object
+    if (profilerRequestMap.has(req.context.rootId) && req.__isJsreportRequest__ == null) {
+      req = profilerRequestMap.get(req.context.rootId)
+    }
+
+    let events
+    let log
+
+    if (Array.isArray(eventsOrOptions)) {
+      events = eventsOrOptions
+    } else {
+      events = eventsOrOptions.events
+      log = eventsOrOptions.log
+    }
+
+    const params = { events }
+
+    if (log != null) {
+      params.log = log
+    }
+
+    return emitProfiles(params, req)
   })
 
   reporter.attachProfiler = (req, profileMode) => {
@@ -186,7 +218,12 @@ module.exports = (reporter) => {
       state: 'running'
     }
 
+    // we set the request here because this listener will container the req which
+    // the .render() starts
+    profilerRequestMap.set(req.context.rootId, req)
+
     const template = await reporter.templates.resolveTemplate(req)
+
     if (template && template._id) {
       req.context.resolvedTemplate = extend(true, {}, template)
       const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
@@ -381,6 +418,7 @@ module.exports = (reporter) => {
 
     profilersMap.clear()
     profilerOperationsChainsMap.clear()
+    profilerRequestMap.clear()
     profilerLogRequestMap.clear()
   })
 
@@ -431,6 +469,7 @@ module.exports = (reporter) => {
     if (req.context.profiling?.entity == null || req.context.profiling?.mode === 'disabled') {
       profilersMap.delete(req.context.rootId)
       profilerOperationsChainsMap.delete(req.context.rootId)
+      profilerRequestMap.delete(req.context.rootId)
       profilerLogRequestMap.delete(req.context.rootId)
       return
     }
@@ -440,6 +479,7 @@ module.exports = (reporter) => {
       cleanFn: () => {
         profilersMap.delete(req.context.rootId)
         profilerOperationsChainsMap.delete(req.context.rootId)
+        profilerRequestMap.delete(req.context.rootId)
         profilerLogRequestMap.delete(req.context.rootId)
       }
     }, req)

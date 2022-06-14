@@ -1,5 +1,6 @@
-const createDockerManager = require('./dockerManager')
 const serializator = require('serializator')
+const _sendToWorker = require('./sendToWorker')
+const createDockerManager = require('./dockerManager')
 const express = require('express')
 
 module.exports = (reporter, definition) => {
@@ -31,7 +32,14 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.on('after-authentication-express-routes', () => {
-    reporter.express.app.post('/api/worker-docker-manager', reporter.dockerManager.executeWorker.bind(reporter.dockerManager))
+    reporter.express.app.post('/api/worker-docker-manager', async (req, res, next) => {
+      try {
+        const result = await reporter.dockerManager.executeWorker(typeof req.body === 'string' ? serializator.parse(req.body) : req.body)
+        res.status(201).send(serializator.serialize(result))
+      } catch (e) {
+        next(e)
+      }
+    })
   })
 
   const workerRequestMap = new Map()
@@ -40,43 +48,9 @@ module.exports = (reporter, definition) => {
       return reporter.express.app.post('/api/worker-docker-manager', express.text(), async (req, res, next) => {
         try {
           const reqBody = serializator.parse(req.body)
+          const result = await reporter.dockerManager.executeWorker(reqBody)
 
-          if (reqBody.systemAction === 'allocate') {
-            const worker = await reporter.dockerManager.allocate({
-              context: reqBody.req.context
-            }, {
-              timeout: reqBody.timeout
-            })
-
-            workerRequestMap.set(reqBody.req.context.rootId, worker)
-            res.status(201).send('{}')
-            return
-          }
-
-          if (reqBody.systemAction === 'release') {
-            const worker = workerRequestMap.get(reqBody.req.context.rootId)
-            try {
-              await worker.release()
-            } finally {
-              workerRequestMap.delete(reqBody.req.context.rootId)
-            }
-            res.status(201).send('{}')
-            return
-          }
-
-          if (reqBody.systemAction === 'execute') {
-            const worker = workerRequestMap.get(reqBody.req.context.rootId)
-            const result = await worker.execute(reqBody, {
-              executeMain: async (data) => {
-                return reporter._invokeMainAction(data, reqBody.req)
-              },
-              timeout: reqBody.timeout + definition.options.reportTimeoutMargin
-            })
-            res.status(201).send(serializator.serialize(result))
-            return
-          }
-
-          throw reporter.createError('Unknown worker action ' + reqBody.systemAction)
+          res.status(201).send(serializator.serialize(result))
         } catch (e) {
           next(e)
         }
@@ -86,6 +60,100 @@ module.exports = (reporter, definition) => {
 
   reporter.registerWorkersManagerFactory((options, systemOptions) => {
     reporter.dockerManager = createDockerManager(reporter, definition.options, options, systemOptions)
+
+    reporter.dockerManager.getWorkerHttpOptions = function ({ remote }) {
+      if (remote && reporter.authentication) {
+        const authOptions = reporter.options.extensions.authentication
+
+        return {
+          auth: {
+            username: authOptions.admin.username,
+            password: authOptions.admin.password
+          }
+        }
+      }
+    }
+
+    reporter.dockerManager.executeWorker = async function executeWorker (payload) {
+      const { systemAction } = payload
+
+      if (systemAction === 'allocate') {
+        const { req, timeout } = payload
+
+        const worker = await reporter.dockerManager.allocate({
+          context: req.context
+        }, {
+          timeout
+        })
+
+        workerRequestMap.set(req.context.rootId, worker)
+        return {}
+      }
+
+      if (systemAction === 'release') {
+        const { req } = payload
+
+        const worker = workerRequestMap.get(req.context.rootId)
+        try {
+          await worker.release()
+        } finally {
+          workerRequestMap.delete(req.context.rootId)
+        }
+
+        return {}
+      }
+
+      if (systemAction === 'execute') {
+        const { req, originUrl, timeout } = payload
+
+        const sendToWorker = _sendToWorker(reporter, { remote: true })
+
+        const worker = workerRequestMap.get(req.context.rootId)
+        const result = await worker.execute(payload, {
+          executeMain: async (data) => {
+            const result = await reporter._invokeMainAction(data, req)
+
+            if (data.actionName === 'profile') {
+              // send the profile data to the server which received the request.
+              // it will make sure to store the profile data and stream it to the studio
+              await sendToWorker(originUrl, {
+                req: {
+                  context: {
+                    rootId: req.context.rootId
+                  }
+                },
+                data
+              }, {
+                systemAction: 'profile',
+                timeout
+              })
+            }
+
+            return result
+          },
+          timeout: timeout + definition.options.reportTimeoutMargin
+        })
+
+        return result
+      }
+
+      if (systemAction === 'profile') {
+        const { req, data } = payload
+
+        // we make sure that we don't duplicate the logs
+        // the logging is done in the remote server, here
+        // on the origin server we just care about the profile saving
+        data.data = {
+          events: data.data,
+          log: false
+        }
+
+        return reporter._invokeMainAction(data, req)
+      }
+
+      throw reporter.createError(`Unknown worker action ${systemAction}`)
+    }
+
     reporter.closeListeners.add('docker-workers', reporter.dockerManager.close)
     return reporter.dockerManager
   })

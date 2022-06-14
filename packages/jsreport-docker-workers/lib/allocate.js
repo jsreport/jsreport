@@ -1,5 +1,5 @@
 const get = require('lodash.get')
-const sendToWorker = require('./sendToWorker')
+const _sendToWorker = require('./sendToWorker')
 
 module.exports = ({ reporter, containersManager, ip, stack, serversChecker, discriminatorPath }) => {
   containersManager.onRecycle(({ container, originalTenant }) => {
@@ -62,6 +62,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
   }
 
   return async (req, opts = {}) => {
+    const serverPort = reporter.express ? reporter.express.server.address().port : null
     const discriminator = get(req, discriminatorPath)
 
     if (discriminator == null) {
@@ -72,6 +73,16 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
       discriminator,
       req
     })
+
+    const sendToWorkerOpts = {
+      remote: container.remote === true
+    }
+
+    if (sendToWorkerOpts.remote) {
+      sendToWorkerOpts.originUrl = `http://${ip}:${serverPort}/api/worker-docker-manager`
+    }
+
+    const sendToWorker = _sendToWorker(reporter, sendToWorkerOpts)
 
     try {
       await sendToWorker(container.url, {
@@ -84,7 +95,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
       })
     } catch (e) {
       await containersManager.release(container)
-      reporter.logger.warn(`Error while trying to allocate worker in container ${container.id} (${container.url}): ${e.stack}`)
+      reporter.logger.warn(`Error while trying to allocate worker in container${container.remote ? '' : ` ${container.id}`} (${container.url}): ${e.stack}`)
       throw reporter.createError('Unable to allocate worker', { ...e })
     }
 
