@@ -34,7 +34,7 @@
     "form-data": "2.3.3",
     "lodash.isequal": "4.5.0",
     "lodash.omit": "4.5.0",
-    "multer": "1.4.4",
+    "multer": "1.4.4-lts.1",
     "p-reduce": "2.1.0",
     "stream-to-array": "2.3.0",
     "yauzl": "2.10.0"
