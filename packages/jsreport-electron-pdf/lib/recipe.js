@@ -75,8 +75,14 @@ module.exports = (reporter, definition) => async (request, response) => {
   response.meta.numberOfPages = numberOfPages
 
   if (Array.isArray(result.logs)) {
-    result.logs.forEach((msg) => {
-      reporter.logger[msg.level](msg.message, { timestamp: msg.timestamp.getTime(), ...request })
+    result.logs.forEach((log) => {
+      const meta = { timestamp: log.timestamp.getTime(), ...request }
+
+      if (log.userLevel) {
+        meta.userLevel = true
+      }
+
+      reporter.logger[log.level](log.message, meta)
     })
   }
 

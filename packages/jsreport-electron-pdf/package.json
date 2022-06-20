@@ -27,7 +27,7 @@
     "test": "mocha test/test.js --timeout 7000 && standard"
   },
   "dependencies": {
-    "electron-html-to": "2.6.0",
+    "electron-html-to": "2.6.1",
     "lodash.pickby": "4.6.0",
     "stream-to-array": "2.3.0"
   },
