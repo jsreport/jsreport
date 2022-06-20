@@ -4537,13 +4537,12 @@ builtin-status-codes@^3.0.0:
   resolved "https://registry.yarnpkg.com/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz#85982878e21b98e1c66425e03d0174788f569ee8"
   integrity sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==
 
-busboy@^0.2.11:
-  version "0.2.14"
-  resolved "https://registry.yarnpkg.com/busboy/-/busboy-0.2.14.tgz#6c2a622efcf47c57bbbe1e2a9c37ad36c7925453"
-  integrity sha512-InWFDomvlkEj+xWLBfU3AvnbVYqeTWmQopiW0tWWEy5yehYm2YkGEc59sUmw/4ty5Zj/b0WHGs1LgecuBSBGrg==
+busboy@^1.0.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/busboy/-/busboy-1.6.0.tgz#966ea36a9502e43cdb9146962523b92f531f6893"
+  integrity sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==
   dependencies:
-    dicer "0.2.5"
-    readable-stream "1.1.x"
+    streamsearch "^1.1.0"
 
 bytes@1:
   version "1.0.0"
@@ -6484,14 +6483,6 @@ devtools-protocol@0.0.948846:
   resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.948846.tgz#bff47e2d1dba060130fa40ed2e5f78b916ba285f"
   integrity sha512-5fGyt9xmMqUl2VI7+rnUkKCiAQIpLns8sfQtTENy5L70ktbNw0Z3TFJ1JoFNYdx/jffz4YXU45VF75wKZD7sZQ==
 
-dicer@0.2.5:
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/dicer/-/dicer-0.2.5.tgz#5996c086bb33218c812c090bddc09cd12facb70f"
-  integrity sha512-FDvbtnq7dzlPz0wyYlOExifDEZcu8h+rErEXgfxqmLfRfC/kJidEFh4+effJRO3P0xmfqyPbSMG0LveNRfTKVg==
-  dependencies:
-    readable-stream "1.1.x"
-    streamsearch "0.1.2"
-
 diff-match-patch@1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/diff-match-patch/-/diff-match-patch-1.0.5.tgz#abb584d5f10cd1196dfc55aa03701592ae3f7b37"
@@ -6848,10 +6839,10 @@ electron-download@^3.0.1:
     semver "^5.3.0"
     sumchecker "^1.2.0"
 
-electron-html-to@2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/electron-html-to/-/electron-html-to-2.6.0.tgz#67c5420085e2617a3d69da74f2ed5cb110b44925"
-  integrity sha512-f+15eGjmYlirdjzBDIlMJ1USjSuL7A8nnq86o93gE97rUNUrbegqinHGZlXSuMPF9gqQ/2ZCJNHUHU91bff3fg==
+electron-html-to@2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/electron-html-to/-/electron-html-to-2.6.1.tgz#f9154516007faf4a606e227aa298732ab11f49e4"
+  integrity sha512-UPt6WYvtjmj5N+CzVCBG0NXDErFPokmEKSOvyAKhFa7HePNeHrqHteEh6KzT2lUnVqSYI+MO/8v3NHhMKe35YA==
   dependencies:
     body "5.1.0"
     debug "2.2.0"
@@ -12948,17 +12939,16 @@ mssql@7.2.0:
     tarn "^3.0.1"
     tedious "^11.0.7"
 
-multer@1.4.4:
-  version "1.4.4"
-  resolved "https://registry.yarnpkg.com/multer/-/multer-1.4.4.tgz#e2bc6cac0df57a8832b858d7418ccaa8ebaf7d8c"
-  integrity sha512-2wY2+xD4udX612aMqMcB8Ws2Voq6NIUPEtD1be6m411T4uDH/VtL9i//xvcyFlTVfRdaBsk7hV5tgrGQqhuBiw==
+multer@1.4.4-lts.1:
+  version "1.4.4-lts.1"
+  resolved "https://registry.yarnpkg.com/multer/-/multer-1.4.4-lts.1.tgz#24100f701a4611211cfae94ae16ea39bb314e04d"
+  integrity sha512-WeSGziVj6+Z2/MwQo3GvqzgR+9Uc+qt8SwHKh3gvNPiISKfsMfG4SvCOFYlxxgkXt7yIV2i1yczehm0EOKIxIg==
   dependencies:
     append-field "^1.0.0"
-    busboy "^0.2.11"
+    busboy "^1.0.0"
     concat-stream "^1.5.2"
     mkdirp "^0.5.4"
     object-assign "^4.1.1"
-    on-finished "^2.3.0"
     type-is "^1.6.4"
     xtend "^4.0.0"
 
@@ -14337,10 +14327,10 @@ pgpass@1.x:
   dependencies:
     split2 "^4.1.0"
 
-phantom-html-to-pdf@0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/phantom-html-to-pdf/-/phantom-html-to-pdf-0.6.1.tgz#dd318cd5699a283cc16cc274eb4fd11a839de40a"
-  integrity sha512-ic1fsO5SuKGKH3Gwdm+twrQvo/TjCpo523gSCV1CZ8nNgrKe+pI628TmRFEgjp4bN9ueo5asn6ZLGffpUvNFLA==
+phantom-html-to-pdf@0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/phantom-html-to-pdf/-/phantom-html-to-pdf-0.6.2.tgz#1f5cae314faa7712a403d3451f76091b4554cd3a"
+  integrity sha512-Jlcguo8AObmQOb3/RL4NpynInmILg75nDiixg9WGcNKCseMWXDbi+f+ig2clo/4X80OwMMRenB4j3uzwD+po1w==
   dependencies:
     lodash "4.17.11"
     object-assign "4.1.1"
@@ -14349,10 +14339,10 @@ phantom-html-to-pdf@0.6.1:
   optionalDependencies:
     phantomjs "1.9.20"
 
-phantom-page-eval@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/phantom-page-eval/-/phantom-page-eval-2.0.0.tgz#71e9dd4798e50341ecb44bc185a4ddea0c9ea96e"
-  integrity sha512-X2PK6WJKg2lQgy+Av03N9qlLdy8l8JAWYtzLVw7GELm+SG1vmkl6LqhR4WEyKhfNgmuyxtv/CvDU5GvyYH0Gdw==
+phantom-page-eval@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/phantom-page-eval/-/phantom-page-eval-2.0.1.tgz#486840fa77b61da20258b027a1dad47b257f4ad5"
+  integrity sha512-AP+sD0X1ZiJl7MypQShEsCVGBfTx66lx/boLws7qbgcuoqCuxxzGju698iOuXddQXGD9XQscJv3S/i/iHNjwqQ==
   dependencies:
     debug "3.1.0"
     nanoid "3.2.0"
@@ -15775,16 +15765,6 @@ read@1.0.x:
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@1.1.x, readable-stream@~1.1.9:
-  version "1.1.14"
-  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-1.1.14.tgz#7cf4c54ef648e3813084c636dd2079e166c081d9"
-  integrity sha512-+MeVjFf4L44XUkhM1eYbD8fyEsxcV81pqMSR5gblfcLCHfZvbrqy4/qYHE+/R5HoBUT11WV5O08Cr1n3YXkWVQ==
-  dependencies:
-    core-util-is "~1.0.0"
-    inherits "~2.0.1"
-    isarray "0.0.1"
-    string_decoder "~0.10.x"
-
 "readable-stream@2 || 3", readable-stream@^3.0.2, readable-stream@^3.1.1, readable-stream@^3.4.0, readable-stream@^3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.6.0.tgz#337bbda3adc0706bd3e024426a286d4b4b2c9198"
@@ -15798,6 +15778,16 @@ readable-stream@1.1.x, readable-stream@~1.1.9:
   version "1.0.34"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-1.0.34.tgz#125820e34bc842d2f2aaafafe4c2916ee32c157c"
   integrity sha512-ok1qVCJuRkNmvebYikljxJA/UEsKwLl2nI1OmaqAu4/UE+h0wKCHok4XkL/gvi39OacXvw59RJUOFUkDib2rHg==
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "0.0.1"
+    string_decoder "~0.10.x"
+
+readable-stream@~1.1.9:
+  version "1.1.14"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-1.1.14.tgz#7cf4c54ef648e3813084c636dd2079e166c081d9"
+  integrity sha512-+MeVjFf4L44XUkhM1eYbD8fyEsxcV81pqMSR5gblfcLCHfZvbrqy4/qYHE+/R5HoBUT11WV5O08Cr1n3YXkWVQ==
   dependencies:
     core-util-is "~1.0.0"
     inherits "~2.0.1"
@@ -17545,10 +17535,10 @@ streamifier@0.1.1:
   resolved "https://registry.yarnpkg.com/streamifier/-/streamifier-0.1.1.tgz#97e98d8fa4d105d62a2691d1dc07e820db8dfc4f"
   integrity sha512-zDgl+muIlWzXNsXeyUfOk9dChMjlpkq0DRsxujtYPgyJ676yQ8jEm6zzaaWHFDg5BNcLuif0eD2MTyJdZqXpdg==
 
-streamsearch@0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/streamsearch/-/streamsearch-0.1.2.tgz#808b9d0e56fc273d809ba57338e929919a1a9f1a"
-  integrity sha512-jos8u++JKm0ARcSUTAZXOVC0mSox7Bhn6sBgty73P1f3JGf7yG2clTbBNHUdde/kdvP2FESam+vM6l8jBrNxHA==
+streamsearch@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/streamsearch/-/streamsearch-1.1.0.tgz#404dd1e2247ca94af554e841a8ef0eaa238da764"
+  integrity sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==
 
 strict-uri-encode@^1.0.0:
   version "1.1.0"
