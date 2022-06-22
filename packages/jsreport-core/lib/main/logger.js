@@ -6,6 +6,7 @@ const Transport = require('winston-transport')
 const debug = require('debug')('jsreport')
 const createDefaultLoggerFormat = require('./createDefaultLoggerFormat')
 const createNormalizeMetaLoggerFormat = require('./createNormalizeMetaLoggerFormat')
+const Request = require('./request')
 
 const defaultLoggerFormat = createDefaultLoggerFormat()
 const defaultLoggerFormatWithTimestamp = createDefaultLoggerFormat({ timestamp: true })
@@ -179,6 +180,26 @@ function configureLogger (logger, _transports) {
     }
 
     logger.add(transportInstance)
+  }
+
+  const originalLog = logger.log
+
+  // we want to normalize the req has httpIncomingRequest early
+  // otherwise we will get serialization issues when trying to
+  // log http.IncomingRequest
+  logger.log = function (level, msg, ...splat) {
+    const [meta] = splat
+
+    if (
+      typeof meta === 'object' &&
+      meta !== null &&
+      meta.context != null &&
+      meta.socket != null
+    ) {
+      splat[0] = Request(meta)
+    }
+
+    return originalLog.call(this, level, msg, ...splat)
   }
 
   logger.__configured__ = true

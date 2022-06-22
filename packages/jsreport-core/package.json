@@ -17,6 +17,12 @@
     "name": "Jan Blaha",
     "email": "jan.blaha@hotmail.com"
   },
+  "maintainers": [
+    {
+      "name": "pofider",
+      "email": "jan.blaha@hotmail.com"
+    }
+  ],
   "main": "index.js",
   "files": [
     "lib",
@@ -35,6 +41,7 @@
     "@babel/traverse": "7.12.9",
     "@jsreport/advanced-workers": "1.2.3",
     "@jsreport/mingo": "2.4.1",
+    "@jsreport/reap": "0.1.0",
     "ajv": "6.12.6",
     "app-root-path": "3.0.0",
     "bytes": "3.1.2",
@@ -57,7 +64,6 @@
     "nanoid": "3.2.0",
     "nconf": "0.12.0",
     "node.extend.without.arrays": "1.1.6",
-    "@jsreport/reap": "0.1.0",
     "semver": "7.3.5",
     "serializator": "1.0.2",
     "stack-trace": "0.0.10",
@@ -78,12 +84,6 @@
   "engines": {
     "node": ">=16.11"
   },
-  "maintainers": [
-    {
-      "name": "pofider",
-      "email": "jan.blaha@hotmail.com"
-    }
-  ],
   "standard": {
     "env": {
       "mocha": true
