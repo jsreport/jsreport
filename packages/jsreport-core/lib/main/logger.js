@@ -5,10 +5,11 @@ const winston = require('winston')
 const Transport = require('winston-transport')
 const debug = require('debug')('jsreport')
 const createDefaultLoggerFormat = require('./createDefaultLoggerFormat')
-const normalizeMetaFromLogs = require('../shared/normalizeMetaFromLogs')
+const createNormalizeMetaLoggerFormat = require('./createNormalizeMetaLoggerFormat')
 
 const defaultLoggerFormat = createDefaultLoggerFormat()
 const defaultLoggerFormatWithTimestamp = createDefaultLoggerFormat({ timestamp: true })
+const normalizeMetaLoggerFormat = createNormalizeMetaLoggerFormat()
 
 function createLogger () {
   const logger = winston.createLogger(getConfigurationOptions())
@@ -184,21 +185,6 @@ function configureLogger (logger, _transports) {
 }
 
 function getConfigurationOptions () {
-  const normalizeMeta = winston.format((info) => {
-    const { level, message, ...meta } = info
-    const newMeta = normalizeMetaFromLogs(level, message, meta)
-
-    if (newMeta != null) {
-      return {
-        level,
-        message,
-        ...newMeta
-      }
-    }
-
-    return info
-  })
-
   return {
     levels: {
       error: 0,
@@ -207,7 +193,7 @@ function getConfigurationOptions () {
       debug: 3
     },
     format: winston.format.combine(
-      normalizeMeta(),
+      normalizeMetaLoggerFormat(),
       defaultLoggerFormatWithTimestamp()
     ),
     transports: [new DebugTransport()]
@@ -231,6 +217,7 @@ class DebugTransport extends Transport {
 
     this.format = options.format || winston.format.combine(
       winston.format.colorize(),
+      normalizeMetaLoggerFormat(),
       defaultLoggerFormat()
     )
 
