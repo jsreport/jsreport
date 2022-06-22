@@ -30,6 +30,23 @@ function deepSet (doc, path, val) {
   }
 }
 
+function deepHasOwnProperty (doc, path) {
+  const paths = path.split('.')
+  let has = false
+
+  for (let i = 0; i < paths.length && doc; i++) {
+    has = Object.prototype.hasOwnProperty.call(doc, paths[i])
+
+    if (!has) {
+      break
+    }
+
+    doc = doc[paths[i]]
+  }
+
+  return has
+}
+
 function serialize (obj, prettify = true) {
   const originalDateToJSON = Date.prototype.toJSON
   // Keep track of the fact that this is a Date object
@@ -146,6 +163,7 @@ function deepEqual (x, y, isRootCall = true) {
 module.exports.deepGet = deepGet
 module.exports.deepSet = deepSet
 module.exports.deepDelete = deepDelete
+module.exports.deepHasOwnProperty = deepHasOwnProperty
 module.exports.serialize = serialize
 module.exports.parse = parse
 module.exports.deepEqual = deepEqual

@@ -11,7 +11,7 @@ describe('version control http API', () => {
   describe('without authentication', () => {
     beforeEach(async () => {
       jsreport = JsReport()
-      jsreport.use(require('@jsreport/jsreport-express')({ httpPort: 5000 }))
+      jsreport.use(require('@jsreport/jsreport-express')({ httpPort: 5002 }))
       jsreport.use(require('../')())
       await jsreport.init()
     })
@@ -24,7 +24,7 @@ describe('version control http API', () => {
 
     beforeEach(async () => {
       jsreport = JsReport()
-      jsreport.use(require('@jsreport/jsreport-express')({ httpPort: 5000 }))
+      jsreport.use(require('@jsreport/jsreport-express')({ httpPort: 5002 }))
       jsreport.use(require('@jsreport/jsreport-authentication')({
         cookieSession: {
           secret: 'secret'

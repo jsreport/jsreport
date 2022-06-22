@@ -4,7 +4,7 @@
  */
 const extend = require('node.extend.without.arrays')
 const isbinaryfile = require('isbinaryfile')
-const { serialize, parse, deepGet, deepSet, deepDelete } = require('./customUtils')
+const { serialize, parse, deepGet, deepSet, deepDelete, deepHasOwnProperty } = require('./customUtils')
 const sortVersions = require('../shared/sortVersions')
 const diff = require('./diff.js')
 
@@ -72,8 +72,38 @@ function applyPatch (doc, patch, entitySet, documentModel) {
       }
     }
   })
-  // important to do deep merge, because config can have { chrome: {} } and shallow merge wouldthe headerTemplate previously set
-  extend(true, doc, parse(diff.applyPatch(serializeConfig(doc, entitySet, documentModel), patch.config)))
+
+  const patchResult = diff.applyPatch(serializeConfig(doc, entitySet, documentModel), patch.config)
+
+  // patch was not applied, because it was not compatible with object state
+  if (patchResult === false) {
+    return
+  }
+
+  const baseDoc = {}
+
+  documentModel.entitySets[entitySet].entityType.documentProperties.forEach((prop) => {
+    if (deepHasOwnProperty(doc, prop.path)) {
+      deepSet(baseDoc, prop.path, deepGet(doc, prop.path))
+    }
+  })
+
+  // important to do deep merge, because config can have { chrome: {} } and shallow merge would remove the headerTemplate previously set
+  const newDoc = extend(true, baseDoc, parse(patchResult))
+
+  const docProps = Object.keys(doc)
+  const newDocProps = Object.keys(newDoc)
+
+  const toRemove = docProps.filter((p) => !newDocProps.includes(p))
+  const toAddUpdate = newDocProps.filter((p) => !toRemove.includes(p))
+
+  for (const propName of toAddUpdate) {
+    doc[propName] = newDoc[propName]
+  }
+
+  for (const propName of toRemove) {
+    delete doc[propName]
+  }
 }
 
 function createPatch ({

@@ -262,7 +262,7 @@ module.exports = (reporter, options) => {
 
     async commit (message, preview, req) {
       if (!message) {
-        throw new Error('Missing message for version controll commit')
+        throw new Error('Missing message for version control commit')
       }
 
       reporter.logger.debug(`Version control commit: ${message}`)

@@ -159,7 +159,7 @@ module.exports = (jsreport, reload = () => {}) => {
     should(diff.find(d => d.path === '/foo/content')).be.ok()
   })
 
-  it('should deal with mutiple line endings during revert', async () => {
+  it('should deal with multiple line endings during revert', async () => {
     const req = jsreport().Request({})
 
     await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html', content: 'a' }, req)
