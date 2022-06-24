@@ -22,7 +22,7 @@ module.exports = (jsreport, reload = () => {}) => {
     templates.should.have.length(0)
   })
 
-  it('revert should recover localy removed file', async () => {
+  it('revert should recover locally removed file', async () => {
     const req = jsreport().Request({})
     await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }, req)
     await jsreport().versionControl.commit('1', undefined, req)
@@ -78,6 +78,39 @@ module.exports = (jsreport, reload = () => {}) => {
     await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { folder: { shortid: 'a' } } }, req)
     await jsreport().versionControl.commit('2', undefined, req)
     await jsreport().versionControl.checkout(commit1._id, req)
+    await jsreport().versionControl.revert(req)
+  })
+
+  it('revert should process folders parents first and the child folders later', async () => {
+    const req = jsreport().Request({})
+
+    await jsreport().documentStore.collection('folders').beforeUpdateListeners.add('test', async (q, doc, res) => {
+      if (doc.$set.folder) {
+        const f = await jsreport().documentStore.collection('folders').findOne({ shortid: doc.$set.folder.shortid }, req)
+        if (!f) {
+          throw new Error('Folder not found')
+        }
+      }
+    })
+
+    await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }, req)
+    await jsreport().versionControl.commit('1', undefined, req)
+    await jsreport().documentStore.collection('folders').insert({ name: 'a', shortid: 'a' }, req)
+    await jsreport().documentStore.collection('templates').update({ name: 'foo' }, { $set: { folder: { shortid: 'a' } } }, req)
+    await jsreport().versionControl.commit('2', undefined, req)
+
+    await jsreport().documentStore.collection('folders').insert({ name: 'd', shortid: 'd' }, req)
+    await jsreport().documentStore.collection('folders').insert({ name: 'c', shortid: 'c', folder: { shortid: 'd' } }, req)
+    await jsreport().documentStore.collection('folders').insert({ name: 'b', shortid: 'b', folder: { shortid: 'c' } }, req)
+    await jsreport().documentStore.collection('folders').update({ name: 'a' }, { $set: { folder: { shortid: 'b' } } }, req)
+
+    await jsreport().versionControl.commit('3', undefined, req)
+
+    await jsreport().documentStore.collection('folders').remove({ name: 'a' }, req)
+    await jsreport().documentStore.collection('folders').remove({ name: 'b' }, req)
+    await jsreport().documentStore.collection('folders').remove({ name: 'c' }, req)
+    await jsreport().documentStore.collection('folders').remove({ name: 'd' }, req)
+
     await jsreport().versionControl.revert(req)
   })
 

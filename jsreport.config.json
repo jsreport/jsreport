@@ -20,6 +20,9 @@
       "numberOfWorkers": 3
     },
     "authentication": {
+      "cookieSession": {
+        "secret": "a secret"
+      },
       "admin": {
         "username": "admin",
         "password": "password"

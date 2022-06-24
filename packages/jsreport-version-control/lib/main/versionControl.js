@@ -111,7 +111,14 @@ module.exports = (reporter, options) => {
         return folder
       }))
 
-      for (const folder of existingFolders.filter((f) => !state.find((s) => s.entityId === f._id))) {
+      const notFoundFoldersPathSortedDesc = existingFolders.filter((f) => !state.find((s) => s.entityId === f._id)).sort((a, b) => {
+        const aLevel = a.__entityPath.split('/')
+        const bLevel = b.__entityPath.split('/')
+
+        return bLevel.length - aLevel.length
+      })
+
+      for (const folder of notFoundFoldersPathSortedDesc) {
         // if not found we try to search by entity path, if we found it, it means that the id changed
         // and we just need to update the entity later
         const existsByPath = state.find((s) => s.entitySet === 'folders' && s.path === folder.__entityPath)
@@ -128,9 +135,25 @@ module.exports = (reporter, options) => {
         await reporter.documentStore.collection('folders').remove({ _id: folder._id }, req)
       }
 
+      const folderGroupsInState = groupFoldersStateByLevel(state.filter(e => e.entitySet === 'folders'))
+
+      if (folderGroupsInState[-1] != null && folderGroupsInState[-1].length > 0) {
+        throw new Error(`Inconsistency detected, folders ${folderGroupsInState[-1].length} not found in version control state`)
+      }
+
+      const sortedLevelsASC = Object.keys(folderGroupsInState).map((l) => parseInt(l, 10)).sort((a, b) => a - b)
+
+      const foldersInStatePathSortedAsc = []
+
+      for (const level of sortedLevelsASC) {
+        foldersInStatePathSortedAsc.push(...folderGroupsInState[level])
+      }
+
       // folders needs go first because of validations in fs store
-      // we can't move entity to a folder that doesn't yet exist
-      for (const e of state.filter(e => e.entitySet === 'folders')) {
+      // we can't move entity to a folder that doesn't yet exist,
+      // and also the folders should be processed in order, so a child folder
+      // does not tried to be inserted before parent folder
+      for (const e of foldersInStatePathSortedAsc) {
         const shouldUpdateWithStoreId = updateBecauseIdChange.find((s) => s.entityId === e.entityId && s.entitySet === e.entitySet)
 
         const updateReq = reporter.Request(req)
@@ -361,7 +384,7 @@ module.exports = (reporter, options) => {
 
     async checkout (commitId, req) {
       if (!commitId) {
-        throw new Error('Missing commitId for version controll checkout')
+        throw new Error('Missing commitId for version control checkout')
       }
 
       const versionsToCheckout = await reporter.documentStore.collection('versions').find({ _id: commitId }, req)
@@ -392,4 +415,37 @@ module.exports = (reporter, options) => {
       return persistChanges(state, req)
     }
   })
+}
+
+function groupFoldersStateByLevel (foldersState) {
+  // group folders by level
+  const groups = {}
+
+  foldersState.forEach((fState) => {
+    let level = 0
+    let currentFolder = fState.entity
+
+    while (currentFolder != null) {
+      if (currentFolder.folder != null) {
+        const foundFolderState = foldersState.find((f) => f.entity.shortid === currentFolder.folder.shortid)
+
+        if (foundFolderState != null) {
+          level++
+          currentFolder = foundFolderState.entity
+        } else {
+          // folders with invalid hierarchy get inserted into -1 level
+          level = -1
+          currentFolder = null
+          break
+        }
+      } else {
+        currentFolder = null
+      }
+    }
+
+    groups[level] = groups[level] || []
+    groups[level].push(fState)
+  })
+
+  return groups
 }
