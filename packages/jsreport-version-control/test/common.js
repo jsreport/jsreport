@@ -1,7 +1,7 @@
 const should = require('should')
 
 module.exports = (jsreport, reload = () => {}) => {
-  it('revert should remove uncommited changes', async () => {
+  it('revert should remove uncommitted changes', async () => {
     const req = jsreport().Request({})
     await jsreport().documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' }, req)
     await jsreport().versionControl.commit('1', undefined, req)

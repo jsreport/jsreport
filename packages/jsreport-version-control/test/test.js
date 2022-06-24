@@ -6,7 +6,7 @@ describe('version control', () => {
   let jsreport
 
   beforeEach(async () => {
-    jsreport = JsReport()
+    jsreport = JsReport({ reportTimeout: 99999999 })
     jsreport.use(require('@jsreport/jsreport-data')())
     jsreport.use(require('@jsreport/jsreport-chrome-pdf')())
     jsreport.use(require('@jsreport/jsreport-assets')())
@@ -141,6 +141,36 @@ describe('version control', () => {
 
     const asset = await jsreport.documentStore.collection('assets').findOne({ name: 'foo' }, req)
     should(asset.content).be.null()
+  })
+
+  it('big document delete revert of not a binary file should restore it fine', async () => {
+    const longArray = []
+    for (let i = 0; i < 600 * 1024; i++) {
+      longArray.push(i)
+    }
+
+    const data = {
+      longArray
+    }
+
+    const bigContent = JSON.stringify(data)
+
+    const req = jsreport.Request({})
+
+    await jsreport.documentStore.collection('data').insert({ name: 'foo', dataJson: JSON.stringify({}) }, req)
+
+    await jsreport.versionControl.commit('1', undefined, req)
+
+    await jsreport.documentStore.collection('data').update({ name: 'foo' }, { $set: { dataJson: bigContent } }, req)
+
+    await jsreport.versionControl.commit('2', undefined, req)
+
+    await jsreport.documentStore.collection('data').remove({ name: 'foo' }, req)
+
+    await jsreport.versionControl.revert(req)
+
+    const dataEntity = await jsreport.documentStore.collection('data').findOne({ name: 'foo' }, req)
+    should(dataEntity.dataJson).be.eql(bigContent)
   })
 })
 

@@ -63,7 +63,16 @@ function applyPatch (doc, patch, entitySet, documentModel) {
   patch.documentProperties.forEach((p) => {
     const prevVal = deepGet(doc, p.path) || ''
     if (p.type === 'bigfile') {
-      deepSet(doc, p.path, p.patch ? Buffer.from(p.patch, 'base64') : null)
+      const patchBufContent = p.patch ? Buffer.from(p.patch, 'base64') : null
+      let propContent = patchBufContent
+
+      const docPropDef = documentModel.entitySets[entitySet].entityType.documentProperties.find((dp) => dp.path === p.path)
+
+      if (propContent != null && docPropDef != null && docPropDef.type.type === 'Edm.String') {
+        propContent = propContent.toString()
+      }
+
+      deepSet(doc, p.path, propContent)
     } else {
       if (Buffer.isBuffer(prevVal)) {
         deepSet(doc, p.path, Buffer.from(diff.applyPatch(prevVal.toString('base64'), p.patch), 'base64'))
