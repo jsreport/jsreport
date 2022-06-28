@@ -18,7 +18,7 @@ module.exports = (files) => {
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
 
   const ifOpeningBlockRegExp = /^({{#if\s[^}]+}})/
-  const ifClosingBlockRegExp = /^({{\/if}})/
+  const ifClosingBlockRegExp = /({{\/if}})/
 
   let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
 
