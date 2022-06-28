@@ -17,6 +17,8 @@ module.exports = (files) => {
 
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
 
+  const ifBlockRegExp = /^({{#if\s[^}]+}})/
+
   let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
 
   if (tocTitlePrefix == null) {
@@ -52,6 +54,23 @@ module.exports = (files) => {
     }
 
     if (hasTOCTitle) {
+      const originalTextNode = paragraphEl.getElementsByTagName('w:t')[0]
+
+      // pre-process headings to move `{{#if cond}}` block helper to new paragraph right before if at the very begining of heading and matching `{{/if}}` is not in the same paragraph
+      if (originalTextNode != null && originalTextNode.textContent != null && originalTextNode.textContent.startsWith("{{#if ") && !originalTextNode.textContent.includes("{{/if}}")) {
+        const ifBlockHelper = ifBlockRegExp.exec(originalTextNode.textContent)[0]
+
+        // remove `{{#if cond}}` from heading to new paragraph right before
+        originalTextNode.textContent = originalTextNode.textContent.substring(ifBlockHelper.length)
+        const ifBlockPEl = documentFile.createElement('w:p')
+        const ifBlockREl = documentFile.createElement('w:r')
+        const ifBlockTEl = documentFile.createElement('w:t')
+        ifBlockTEl.textContent = ifBlockHelper
+        ifBlockREl.appendChild(ifBlockTEl)
+        ifBlockPEl.appendChild(ifBlockREl)
+        paragraphEl.parentNode.parentNode.insertBefore(ifBlockPEl, paragraphEl)
+      }
+
       const clonedParagraphEl = paragraphEl.cloneNode(true)
       const textNode = clonedParagraphEl.getElementsByTagName('w:t')[0]
 
@@ -81,6 +100,6 @@ module.exports = (files) => {
   }
 }
 
-function randomInteger (min, max) {
+function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
