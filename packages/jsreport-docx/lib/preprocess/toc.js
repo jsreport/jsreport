@@ -74,7 +74,7 @@ module.exports = (files) => {
         ifBlockTEl.textContent = ifOpeningBlockHelper[0]
         ifBlockREl.appendChild(ifBlockTEl)
         ifBlockPEl.appendChild(ifBlockREl)
-        paragraphEl.parentNode.parentNode.insertBefore(ifBlockPEl, paragraphEl)
+        paragraphEl.parentNode.insertBefore(ifBlockPEl, paragraphEl)
       }
 
       const clonedParagraphEl = paragraphEl.cloneNode(true)
