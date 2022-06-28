@@ -17,7 +17,8 @@ module.exports = (files) => {
 
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
 
-  const ifBlockRegExp = /^({{#if\s[^}]+}})/
+  const ifOpeningBlockRegExp = /^({{#if\s[^}]+}})/
+  const ifClosingBlockRegExp = /^({{\/if}})/
 
   let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
 
@@ -56,16 +57,21 @@ module.exports = (files) => {
     if (hasTOCTitle) {
       const originalTextNode = paragraphEl.getElementsByTagName('w:t')[0]
 
-      // pre-process headings to move `{{#if cond}}` block helper to new paragraph right before if at the very begining of heading and matching `{{/if}}` is not in the same paragraph
-      if (originalTextNode != null && originalTextNode.textContent != null && originalTextNode.textContent.startsWith("{{#if ") && !originalTextNode.textContent.includes("{{/if}}")) {
-        const ifBlockHelper = ifBlockRegExp.exec(originalTextNode.textContent)[0]
+      // pre-process headings to move `{{#if cond}}` opening block helpers to new paragraphs right before if they are at the very begining of the heading and matching `{{/if}}` closing block helpers are not in the same paragraph
+      while (originalTextNode != null && originalTextNode.textContent != null && originalTextNode.textContent.startsWith("{{#if ")) {
+        const ifOpeningBlockHelper = originalTextNode.textContent.match(ifOpeningBlockRegExp)
+        const ifClosingBlockHelper = originalTextNode.textContent.match(ifClosingBlockRegExp)
+        if (ifOpeningBlockHelper == null || (ifClosingBlockHelper != null && (ifOpeningBlockHelper.length == ifClosingBlockHelper.length))) {
+          // leave heading untouched as the number of opening and closing block helpers are matching
+          break
+        }
 
         // remove `{{#if cond}}` from heading to new paragraph right before
-        originalTextNode.textContent = originalTextNode.textContent.substring(ifBlockHelper.length)
+        originalTextNode.textContent = originalTextNode.textContent.substring(ifOpeningBlockHelper[0].length)
         const ifBlockPEl = documentFile.createElement('w:p')
         const ifBlockREl = documentFile.createElement('w:r')
         const ifBlockTEl = documentFile.createElement('w:t')
-        ifBlockTEl.textContent = ifBlockHelper
+        ifBlockTEl.textContent = ifOpeningBlockHelper[0]
         ifBlockREl.appendChild(ifBlockTEl)
         ifBlockPEl.appendChild(ifBlockREl)
         paragraphEl.parentNode.parentNode.insertBefore(ifBlockPEl, paragraphEl)
