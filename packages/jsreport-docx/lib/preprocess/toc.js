@@ -55,26 +55,30 @@ module.exports = (files) => {
     }
 
     if (hasTOCTitle) {
-      const originalTextNode = paragraphEl.getElementsByTagName('w:t')[0]
+      const originalTextNodes = paragraphEl.getElementsByTagName('w:t')
+      if (originalTextNodes) {
+        for (var i = 0; i < originalTextNodes.length; i++) {
+          const originalTextNode = originalTextNodes[i]
+          // pre-process headings to move `{{#if cond}}` opening block helpers to new paragraphs right before if they are at the very begining of the heading and matching `{{/if}}` closing block helpers are not in the same paragraph
+          while (originalTextNode != null && originalTextNode.textContent != null && originalTextNode.textContent.startsWith("{{#if ")) {
+            const ifOpeningBlockHelper = originalTextNode.textContent.match(ifOpeningBlockRegExp)
+            const ifClosingBlockHelper = originalTextNode.textContent.match(ifClosingBlockRegExp)
+            if (ifOpeningBlockHelper == null || (ifClosingBlockHelper != null && (ifOpeningBlockHelper.length == ifClosingBlockHelper.length))) {
+              // leave heading untouched as the number of opening and closing block helpers are matching
+              break
+            }
 
-      // pre-process headings to move `{{#if cond}}` opening block helpers to new paragraphs right before if they are at the very begining of the heading and matching `{{/if}}` closing block helpers are not in the same paragraph
-      while (originalTextNode != null && originalTextNode.textContent != null && originalTextNode.textContent.startsWith("{{#if ")) {
-        const ifOpeningBlockHelper = originalTextNode.textContent.match(ifOpeningBlockRegExp)
-        const ifClosingBlockHelper = originalTextNode.textContent.match(ifClosingBlockRegExp)
-        if (ifOpeningBlockHelper == null || (ifClosingBlockHelper != null && (ifOpeningBlockHelper.length == ifClosingBlockHelper.length))) {
-          // leave heading untouched as the number of opening and closing block helpers are matching
-          break
+            // remove `{{#if cond}}` from heading to new paragraph right before
+            originalTextNode.textContent = originalTextNode.textContent.substring(ifOpeningBlockHelper[0].length)
+            const ifBlockPEl = documentFile.createElement('w:p')
+            const ifBlockREl = documentFile.createElement('w:r')
+            const ifBlockTEl = documentFile.createElement('w:t')
+            ifBlockTEl.textContent = ifOpeningBlockHelper[0]
+            ifBlockREl.appendChild(ifBlockTEl)
+            ifBlockPEl.appendChild(ifBlockREl)
+            paragraphEl.parentNode.insertBefore(ifBlockPEl, paragraphEl)
+          }
         }
-
-        // remove `{{#if cond}}` from heading to new paragraph right before
-        originalTextNode.textContent = originalTextNode.textContent.substring(ifOpeningBlockHelper[0].length)
-        const ifBlockPEl = documentFile.createElement('w:p')
-        const ifBlockREl = documentFile.createElement('w:r')
-        const ifBlockTEl = documentFile.createElement('w:t')
-        ifBlockTEl.textContent = ifOpeningBlockHelper[0]
-        ifBlockREl.appendChild(ifBlockTEl)
-        ifBlockPEl.appendChild(ifBlockREl)
-        paragraphEl.parentNode.insertBefore(ifBlockPEl, paragraphEl)
       }
 
       const clonedParagraphEl = paragraphEl.cloneNode(true)
