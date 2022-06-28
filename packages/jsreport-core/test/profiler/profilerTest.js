@@ -438,7 +438,7 @@ describe('profiler with timeout', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      reportTimeout: 100,
+      reportTimeout: 50,
       reportTimeoutMargin: 0
     })
     reporter.use(jsreport.tests.listeners())
@@ -447,7 +447,7 @@ describe('profiler with timeout', () => {
 
   afterEach(() => reporter.close())
 
-  it('should persist profile when request timesout', async () => {
+  it('should persist profile when request timeout', async () => {
     reporter.tests.afterRenderEval = (fn) => {
       return new Promise((resolve) => setTimeout(resolve, 200))
     }
@@ -469,8 +469,8 @@ describe('profiler with timeout', () => {
 
     const content = await reporter.blobStorage.read(profile.blobName)
     const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
-    const errorMesage = events.find(m => m.type === 'error')
-    should(errorMesage).be.ok()
+    const errorMessage = events.find(m => m.type === 'error')
+    should(errorMessage).be.ok()
   })
 })
 
