@@ -17,9 +17,6 @@ module.exports = (files) => {
 
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
 
-  const ifOpeningBlockRegExp = /^({{#if\s[^}]+}})/
-  const ifClosingBlockRegExp = /({{\/if}})/
-
   let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
 
   if (tocTitlePrefix == null) {
@@ -34,7 +31,7 @@ module.exports = (files) => {
     throw new Error('Could not find default style for heading')
   }
 
-  paragraphEls.forEach((paragraphEl) => {
+  paragraphEls.forEach((paragraphEl, paragraphIdx) => {
     const pPrEl = nodeListToArray(paragraphEl.childNodes).find((el) => el.nodeName === 'w:pPr')
     let hasTOCTitle = false
 
@@ -55,31 +52,94 @@ module.exports = (files) => {
     }
 
     if (hasTOCTitle) {
-      const originalTextNodes = paragraphEl.getElementsByTagName('w:t')
-      if (originalTextNodes) {
-        for (var i = 0; i < originalTextNodes.length; i++) {
-          const originalTextNode = originalTextNodes[i]
-          // pre-process headings to move `{{#if cond}}` opening block helpers to new paragraphs right before if they are at the very begining of the heading and matching `{{/if}}` closing block helpers are not in the same paragraph
-          while (originalTextNode != null && originalTextNode.textContent != null && originalTextNode.textContent.startsWith("{{#if ")) {
-            const ifOpeningBlockHelper = originalTextNode.textContent.match(ifOpeningBlockRegExp)
-            const ifClosingBlockHelper = originalTextNode.textContent.match(ifClosingBlockRegExp)
-            if (ifOpeningBlockHelper == null || (ifClosingBlockHelper != null && (ifOpeningBlockHelper.length == ifClosingBlockHelper.length))) {
-              // leave heading untouched as the number of opening and closing block helpers are matching
-              break
+      let evaluated = false
+      let startIfNode
+
+      const getIfOpeningBlockRegExp = () => /{{#if\s[^}]+}}/g
+      const getIfClosingBlockRegExp = () => /{{\/if}}/g
+
+      do {
+        evaluated = true
+
+        const originalMeaningfulTextNodes = nodeListToArray(paragraphEl.getElementsByTagName('w:t')).filter((t) => {
+          return t.textContent != null && t.textContent.trim() !== ''
+        })
+
+        if (originalMeaningfulTextNodes.length === 0) {
+          break
+        }
+
+        startIfNode = originalMeaningfulTextNodes[0].textContent.startsWith('{{#if ') ? originalMeaningfulTextNodes[0] : undefined
+
+        if (startIfNode == null) {
+          break
+        }
+
+        // pre-process headings to move `{{#if cond}}` opening block helpers to new level right before
+        // the current paragraph if they are at the very beginning of the heading and
+        // matching `{{/if}}` closing block helpers it is on the next paragraph
+        const ifOpeningBlockHelperMatches = paragraphEl.textContent.match(getIfOpeningBlockRegExp()) || []
+        const ifClosingBlockHelperMatches = paragraphEl.textContent.match(getIfClosingBlockRegExp()) || []
+
+        // leave heading untouched as the number of opening and closing block helpers are matching
+        if (
+          ifOpeningBlockHelperMatches.length === 0 ||
+          (Math.abs(ifOpeningBlockHelperMatches.length - ifClosingBlockHelperMatches.length) !== 1)
+        ) {
+          break
+        }
+
+        const nextParagraphEl = paragraphEls[paragraphIdx + 1]
+
+        if (nextParagraphEl == null) {
+          break
+        }
+
+        const nextParagraphTextNodes = nodeListToArray(nextParagraphEl.getElementsByTagName('w:t'))
+
+        let closeIfTextMatchInfo
+
+        for (const nptNode of nextParagraphTextNodes) {
+          const childIfClosingBlockHelperMatches = [...nptNode.textContent.matchAll(getIfClosingBlockRegExp())]
+
+          if (childIfClosingBlockHelperMatches != null && childIfClosingBlockHelperMatches.length === 1) {
+            closeIfTextMatchInfo = {
+              node: nptNode,
+              match: childIfClosingBlockHelperMatches[0]
             }
 
-            // remove `{{#if cond}}` from heading to new paragraph right before
-            originalTextNode.textContent = originalTextNode.textContent.substring(ifOpeningBlockHelper[0].length)
-            const ifBlockPEl = documentFile.createElement('w:p')
-            const ifBlockREl = documentFile.createElement('w:r')
-            const ifBlockTEl = documentFile.createElement('w:t')
-            ifBlockTEl.textContent = ifOpeningBlockHelper[0]
-            ifBlockREl.appendChild(ifBlockTEl)
-            ifBlockPEl.appendChild(ifBlockREl)
-            paragraphEl.parentNode.insertBefore(ifBlockPEl, paragraphEl)
+            break
           }
         }
-      }
+
+        if (closeIfTextMatchInfo == null) {
+          break
+        }
+
+        // start the normalization
+
+        // remove `{{#if cond}}` from heading and insert it as tmp block before the current paragraph
+        startIfNode.textContent = startIfNode.textContent.slice(ifOpeningBlockHelperMatches[0].length)
+
+        const fakeOpenIfElement = documentFile.createElement('docxRemove')
+        fakeOpenIfElement.textContent = ifOpeningBlockHelperMatches[0]
+
+        paragraphEl.parentNode.insertBefore(fakeOpenIfElement, paragraphEl)
+
+        // remove `{{/if}}` from next paragraph and insert it as tmp block before
+        // the paragraph that contains the close if
+        const fakeCloseIfElement = documentFile.createElement('docxRemove')
+
+        closeIfTextMatchInfo.node.textContent = `${
+          closeIfTextMatchInfo.node.textContent.slice(0, closeIfTextMatchInfo.match.index)
+        }${
+          closeIfTextMatchInfo.node.textContent.slice(closeIfTextMatchInfo.match.index + closeIfTextMatchInfo.match[0].length)
+        }`
+
+        fakeCloseIfElement.textContent = '{{/if}}'
+
+        nextParagraphEl.parentNode.insertBefore(fakeCloseIfElement, nextParagraphEl)
+      } while (!evaluated)
 
       const clonedParagraphEl = paragraphEl.cloneNode(true)
       const textNode = clonedParagraphEl.getElementsByTagName('w:t')[0]
@@ -110,6 +170,6 @@ module.exports = (files) => {
   }
 }
 
-function randomInteger(min, max) {
+function randomInteger (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
