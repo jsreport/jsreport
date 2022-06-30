@@ -16,7 +16,7 @@ async function main () {
     const command = args[0]
 
     if (command === 'extract') {
-      await extract(args[1])
+      await extract(args[1], args[2])
     } else if (command === 'create') {
       await create(args[1], args[2])
     } else {
@@ -28,9 +28,13 @@ async function main () {
   }
 }
 
-async function extract (officePathArg) {
+async function extract (officePathArg, noFormatArg) {
   if (!officePathArg) {
     throw new Error('officePath can not be empty')
+  }
+
+  if (noFormatArg != null && noFormatArg !== 'noformat') {
+    throw new Error('noFormatArg when specified it can only be "noformat"')
   }
 
   const isValidOfficeExtension = OFFICE_TYPES.map((type) => `.${type}`).some((ext) => {
@@ -49,18 +53,23 @@ async function extract (officePathArg) {
   await extractZip(officePath, { dir: outputPath })
 
   const xmlFiles = await getXMLFilesContent(outputPath)
+  const noFormat = noFormatArg === 'noformat'
 
   for (const { fullPath, content } of xmlFiles) {
-    const xmlFormatted = format(content, {
-      indentation: '  ',
-      collapseContent: true,
-      lineSeparator: '\n'
-    })
+    let contentToWrite = content
 
-    await fs.promises.writeFile(fullPath, xmlFormatted)
+    if (!noFormat) {
+      contentToWrite = format(content, {
+        indentation: '  ',
+        collapseContent: true,
+        lineSeparator: '\n'
+      })
+    }
+
+    await fs.promises.writeFile(fullPath, contentToWrite)
   }
 
-  console.log(`extracted into ${outputPath}`)
+  console.log(`extracted into ${outputPath}${noFormat ? ' (not formatted)' : ''}`)
 }
 
 async function create (inputFolder, newOfficeFileType) {
