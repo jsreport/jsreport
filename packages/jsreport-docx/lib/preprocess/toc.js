@@ -82,32 +82,44 @@ module.exports = (files) => {
         const ifClosingBlockHelperMatches = paragraphEl.textContent.match(getIfClosingBlockRegExp()) || []
 
         // leave heading untouched as the number of opening and closing block helpers are matching
-        if (
-          ifOpeningBlockHelperMatches.length === 0 ||
-          (Math.abs(ifOpeningBlockHelperMatches.length - ifClosingBlockHelperMatches.length) !== 1)
-        ) {
+        if (ifOpeningBlockHelperMatches.length === ifClosingBlockHelperMatches.length) {
           break
         }
 
-        const nextParagraphEl = paragraphEls[paragraphIdx + 1]
+        // inspect next paragraphs and search for the exact close if for this node
+        const nextParagraphEls = paragraphEls.slice(paragraphIdx + 1)
 
-        if (nextParagraphEl == null) {
+        if (nextParagraphEls.length === 0) {
           break
         }
-
-        const nextParagraphTextNodes = nodeListToArray(nextParagraphEl.getElementsByTagName('w:t'))
 
         let closeIfTextMatchInfo
+        let openedIfTags = ifOpeningBlockHelperMatches.length - ifClosingBlockHelperMatches.length
 
-        for (const nptNode of nextParagraphTextNodes) {
-          const childIfClosingBlockHelperMatches = [...nptNode.textContent.matchAll(getIfClosingBlockRegExp())]
+        for (const nextParagraphEl of nextParagraphEls) {
+          const nextParagraphTextNodes = nodeListToArray(nextParagraphEl.getElementsByTagName('w:t'))
 
-          if (childIfClosingBlockHelperMatches != null && childIfClosingBlockHelperMatches.length === 1) {
-            closeIfTextMatchInfo = {
-              node: nptNode,
-              match: childIfClosingBlockHelperMatches[0]
+          for (const nptNode of nextParagraphTextNodes) {
+            const childIfOpeningBlockHelperMatches = [...nptNode.textContent.matchAll(getIfOpeningBlockRegExp())]
+            const childIfClosingBlockHelperMatches = [...nptNode.textContent.matchAll(getIfClosingBlockRegExp())]
+
+            openedIfTags += childIfOpeningBlockHelperMatches.length
+            openedIfTags -= childIfClosingBlockHelperMatches.length
+
+            if (openedIfTags === 0) {
+              closeIfTextMatchInfo = {
+                paragraphNode: nextParagraphEl,
+                node: nptNode,
+                // this only works fine when the close if node does not contain another close if node in there,
+                // there can be other text there, but not other close if node
+                match: childIfClosingBlockHelperMatches[0]
+              }
+
+              break
             }
+          }
 
+          if (closeIfTextMatchInfo != null) {
             break
           }
         }
@@ -138,7 +150,16 @@ module.exports = (files) => {
 
         fakeCloseIfElement.textContent = '{{/if}}'
 
-        nextParagraphEl.parentNode.insertBefore(fakeCloseIfElement, nextParagraphEl)
+        closeIfTextMatchInfo.paragraphNode.parentNode.insertBefore(fakeCloseIfElement, closeIfTextMatchInfo.paragraphNode)
+
+        const newMeaningfulTextNodes = nodeListToArray(paragraphEl.getElementsByTagName('w:t')).filter((t) => {
+          return t.textContent != null && t.textContent.trim() !== ''
+        })
+
+        // if the new text content in paragraph start with if the do again the same normalization
+        if (newMeaningfulTextNodes.length > 0 && newMeaningfulTextNodes[0].textContent.startsWith('{{#if ')) {
+          evaluated = false
+        }
       } while (!evaluated)
 
       const clonedParagraphEl = paragraphEl.cloneNode(true)
