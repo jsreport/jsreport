@@ -480,7 +480,7 @@ describe('render (single timeout per request as req.options.timeout)', () => {
 
 function timeoutTests (asReqOption = false) {
   let reporter
-  const reportTimeout = 500
+  const reportTimeout = 1000
   let renderOpts
 
   beforeEach(() => {

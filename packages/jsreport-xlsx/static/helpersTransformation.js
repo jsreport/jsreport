@@ -9,23 +9,14 @@ const __xlsx = (function () {
   // we need to serialize into string, to ensure all the async helpers results in the output are properly extracted
   // it wouldn't work when async helper result is stored in the data
   async function print () {
-    const ctx = contextMap.get(this).ctx
-
     await jsreport.templatingEngines.waitForAsyncHelpers()
-
-    const $workQueue = ctx.root.$workQueue || []
-
-    // process all the work pending
-    for (const $work of $workQueue) {
-      await $work.execute($work.ctx, $work.tagCtx, ...$work.params)
-    }
-
-    ensureWorksheetOrder(ctx.root.$xlsxTemplate)
-    bufferedFlush(ctx.root)
+    const { options } = contextMap.get(this)
+    ensureWorksheetOrder(options.data.root.$xlsxTemplate)
+    bufferedFlush(options.data.root)
 
     return JSON.stringify({
-      $xlsxTemplate: ctx.root.$xlsxTemplate,
-      $files: ctx.root.$files || []
+      $xlsxTemplate: options.data.root.$xlsxTemplate,
+      $files: options.data.root.$files || []
     })
   }
 
@@ -111,62 +102,79 @@ const __xlsx = (function () {
     return new Function('obj', 'val', fn)(obj, val)
   }
 
-  function replace (filePath, path) {
-    const ctx = contextMap.get(this).ctx
-    const tagCtx = contextMap.get(this).tagCtx
+  async function replace (filePath, path) {
+    const { context, options } = contextMap.get(this)
 
-    enqueueWork({ ctx, tagCtx, params: [filePath, path] }, async function (ctx, tagCtx, filePath, path) {
-      if (typeof path === 'string') {
-        const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
-        const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
-        const pathOfLastFragment = path.substring(lastFragmentIndex)
-        const holder = evalGet(ctx.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
+    if (typeof path === 'string') {
+      const lastFragmentIndex = Math.max(path.lastIndexOf('.'), path.lastIndexOf('['))
+      const pathWithoutLastFragment = path.substring(0, lastFragmentIndex)
+      const pathOfLastFragment = path.substring(lastFragmentIndex)
+      const holder = evalGet(options.data.root.$xlsxTemplate[filePath], pathWithoutLastFragment)
 
-        this.$replacedValue = evalGet(holder, pathOfLastFragment)
+      this.$replacedValue = evalGet(holder, pathOfLastFragment)
 
-        let contentToReplace = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+      const content = options.fn(context)
 
+      if (content != null && typeof content.then === 'function') {
+        return content.then(jsreport.templatingEngines.waitForAsyncHelper).then(processResult)
+      } else {
+        return processResult(content)
+      }
+
+      function processResult (content) {
         try {
-          contentToReplace = xml2jsonUnwrap(contentToReplace)
+          content = xml2jsonUnwrap(content)
         } catch (e) {
           // not xml, it is ok, put it as the string value inside
         }
 
-        evalSet(holder, pathOfLastFragment, contentToReplace)
-      } else {
-        const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
-        ctx.root.$xlsxTemplate[filePath] = xml2json(content)
+        evalSet(holder, pathOfLastFragment, content)
+        return ''
       }
-    })
+    } else {
+      const content = options.fn(context)
 
-    return ''
+      if (content != null && typeof content.then === 'function') {
+        return content.then(jsreport.templatingEngines.waitForAsyncHelper).then(processResult)
+      } else {
+        return processResult(content)
+      }
+
+      function processResult (content) {
+        options.data.root.$xlsxTemplate[filePath] = xml2json(content)
+        return ''
+      }
+    }
   }
 
   function remove (filePath, path, index) {
-    const ctx = contextMap.get(this).ctx
+    const { options } = contextMap.get(this)
 
-    enqueueWork({ ctx, params: [filePath, path, index] }, async function (ctx, tagCtx, filePath, path, index) {
-      const obj = ctx.root.$xlsxTemplate[filePath]
-      const collection = evalGet(obj, path)
-      ctx.root.$removedItem = collection[index]
-      collection.splice(index, 1)
-    })
+    const obj = options.data.root.$xlsxTemplate[filePath]
+    const collection = evalGet(obj, path)
+    options.data.root.$removedItem = collection[index]
+    collection.splice(index, 1)
 
     return ''
   }
 
-  function merge (filePath, path) {
-    const ctx = contextMap.get(this).ctx
-    const tagCtx = contextMap.get(this).tagCtx
+  async function merge (filePath, path) {
+    const { context, options } = contextMap.get(this)
 
-    enqueueWork({ ctx, tagCtx, params: [filePath, path] }, async function (ctx, tagCtx, filePath, path) {
-      const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
-      const json = xml2jsonUnwrap(escape(content, ctx.root))
-      const mergeTarget = evalGet(ctx.root.$xlsxTemplate[filePath], path)
+    const content = options.fn(context)
+    if (content != null && typeof content.then === 'function') {
+      return content.then(jsreport.templatingEngines.waitForAsyncHelper).then(processResult)
+    } else {
+      return processResult(content)
+    }
+
+    function processResult (content) {
+      const json = xml2jsonUnwrap(escape(content, options.data.root))
+      const mergeTarget = evalGet(options.data.root.$xlsxTemplate[filePath], path)
       _.merge(mergeTarget, json)
-    })
 
-    return ''
+      return ''
+    }
   }
 
   function flush (buf, root) {
@@ -201,19 +209,6 @@ const __xlsx = (function () {
     }
   }
 
-  function enqueueWork ({ ctx, tagCtx, params }, executeFn) {
-    const root = ctx.root
-
-    root.$workQueue = root.$workQueue || []
-
-    root.$workQueue.push({
-      ctx,
-      tagCtx,
-      params,
-      execute: executeFn
-    })
-  }
-
   function escape (xml, root) {
     if (root.$escapeAmp === false) {
       return xml
@@ -224,25 +219,30 @@ const __xlsx = (function () {
   }
 
   function add (filePath, xmlPath) {
-    const ctx = contextMap.get(this).ctx
-    const tagCtx = contextMap.get(this).tagCtx
+    const { context, options } = contextMap.get(this)
 
-    enqueueWork({ ctx, tagCtx, params: [filePath, xmlPath] }, async function (ctx, tagCtx, filePath, xmlPath) {
-      const obj = ctx.root.$xlsxTemplate[filePath]
-      const collection = safeGet(obj, xmlPath)
-      const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
+    const obj = options.data.root.$xlsxTemplate[filePath]
+    const collection = safeGet(obj, xmlPath)
+    const content = options.fn(context)
 
-      const xml = escape(content.trim(), ctx.root)
+    if (content != null && typeof content.then === 'function') {
+      return content.then(jsreport.templatingEngines.waitForAsyncHelper).then(processResult)
+    } else {
+      return processResult(content)
+    }
 
-      if (collection.length < ctx.root.$numberOfParsedAddIterations) {
+    function processResult (content) {
+      const xml = escape(content.trim(), options.data.root)
+
+      if (collection.length < options.data.root.$numberOfParsedAddIterations) {
         collection.push(xml2jsonUnwrap(xml))
         return ''
       }
 
-      bufferedAppend(filePath, xmlPath, ctx.root, collection, xml)
-    })
+      bufferedAppend(filePath, xmlPath, options.data.root, collection, xml)
 
-    return ''
+      return ''
+    }
   }
 
   /**
@@ -270,56 +270,62 @@ const __xlsx = (function () {
     return obj
   }
 
-  function addSheet (name) {
-    const ctx = contextMap.get(this).ctx
-    const tagCtx = contextMap.get(this).tagCtx
+  async function addSheet (name) {
+    const { context, options } = contextMap.get(this)
 
-    enqueueWork({ ctx, tagCtx, params: [name] }, async function (ctx, tagCtx, name) {
-      const id = ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
-      const fileName = 'sheet' + id
-      const fileFullName = fileName + '.xml'
-      const path = 'xl/worksheets/' + fileFullName
+    const id = options.data.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets.length + 1
+    const fileName = 'sheet' + id
+    const fileFullName = fileName + '.xml'
+    const path = 'xl/worksheets/' + fileFullName
 
-      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
-        $: {
-          PartName: '/' + path,
-          ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
-        }
-      })
-
-      ctx.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets[0].sheet.push({
-        $: {
-          name: name,
-          sheetId: id + '',
-          'r:id': fileName
-        }
-      })
-
-      ctx.root.$xlsxTemplate['xl/_rels/workbook.xml.rels'].Relationships.Relationship.push({
-        $: {
-          Id: fileName,
-          Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
-          Target: 'worksheets/' + fileFullName
-        }
-      })
-
-      const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
-      ctx.root.$xlsxTemplate[path] = { worksheet: xml2jsonUnwrap(content) }
+    options.data.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
+      $: {
+        PartName: '/' + path,
+        ContentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml'
+      }
     })
 
-    return ''
+    options.data.root.$xlsxTemplate['xl/workbook.xml'].workbook.sheets[0].sheet.push({
+      $: {
+        name: name,
+        sheetId: id + '',
+        'r:id': fileName
+      }
+    })
+
+    options.data.root.$xlsxTemplate['xl/_rels/workbook.xml.rels'].Relationships.Relationship.push({
+      $: {
+        Id: fileName,
+        Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet',
+        Target: 'worksheets/' + fileFullName
+      }
+    })
+
+    const content = options.fn(context)
+
+    if (content != null && typeof content.then === 'function') {
+      return content.then(jsreport.templatingEngines.waitForAsyncHelper).then(processResult)
+    } else {
+      return processResult(content)
+    }
+
+    function processResult (content) {
+      options.data.root.$xlsxTemplate[path] = { worksheet: xml2jsonUnwrap(content) }
+
+      return ''
+    }
   }
 
-  function ensureDrawingOnSheet (ctx, sheetFullName) {
+  function ensureDrawingOnSheet (root, sheetFullName) {
     let drawingFullName
 
-    const worksheet = ctx.root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
+    const worksheet = root.$xlsxTemplate['xl/worksheets/' + sheetFullName].worksheet
     if (worksheet.drawing) {
       const drawings = Array.isArray(worksheet.drawing) ? worksheet.drawing : [worksheet.drawing]
 
       for (const drawing of drawings) {
         const rid = drawing.$['r:id']
-        ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.forEach(function (r) {
+        root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.forEach(function (r) {
           if (r.$.Id === rid) {
             drawingFullName = r.$.Target.replace('../drawings/', '')
           }
@@ -327,7 +333,7 @@ const __xlsx = (function () {
       }
     } else {
       let numberOfDrawings = 0
-      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.forEach(function (o) {
+      root.$xlsxTemplate['[Content_Types].xml'].Types.Override.forEach(function (o) {
         numberOfDrawings += o.$.PartName.indexOf('/xl/drawings') === -1 ? 0 : 1
       })
 
@@ -340,7 +346,7 @@ const __xlsx = (function () {
         }
       }
 
-      ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.push({
+      root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'].Relationships.Relationship.push({
         $: {
           Id: drawingName,
           Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing',
@@ -348,14 +354,14 @@ const __xlsx = (function () {
         }
       })
 
-      ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
+      root.$xlsxTemplate['[Content_Types].xml'].Types.Override.push({
         $: {
           PartName: '/xl/drawings/' + drawingFullName,
           ContentType: 'application/vnd.openxmlformats-officedocument.drawing+xml'
         }
       })
 
-      ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName] = {
+      root.$xlsxTemplate['xl/drawings/' + drawingFullName] = {
         'xdr:wsDr': xml2jsonUnwrap(
           '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ' +
           'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"></xdr:wsDr>')
@@ -365,9 +371,9 @@ const __xlsx = (function () {
     return drawingFullName
   }
 
-  function ensureRelOnSheet (ctx, sheetFullName) {
-    ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] =
-      ctx.root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] || {
+  function ensureRelOnSheet (root, sheetFullName) {
+    root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] =
+      root.$xlsxTemplate['xl/worksheets/_rels/' + sheetFullName + '.rels'] || {
         Relationships: {
           $: {
             xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships'
@@ -377,57 +383,49 @@ const __xlsx = (function () {
       }
   }
 
-  function addImage (imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
-    const ctx = contextMap.get(this).ctx
-    const tagCtx = contextMap.get(this).tagCtx
+  async function addImage (imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
+    const { context, options } = contextMap.get(this)
+    const name = imageName + '.png'
 
-    enqueueWork({ ctx, tagCtx, params: [imageName, sheetFullName, fromCol, fromRow, toCol, toRow] }, async function (ctx, tagCtx, imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
-      const name = imageName + '.png'
+    if (!options.data.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
+      options.data.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.push({
+        $: {
+          Extension: 'png',
+          ContentType: 'image/png'
+        }
+      })
+    }
 
-      if (!ctx.root.$xlsxTemplate['xl/media/' + name]) {
-        const content = await jsreport.templatingEngines.waitForAsyncHelper(tagCtx.render(ctx.data))
-        ctx.root.$xlsxTemplate['xl/media/' + name] = content
-      }
+    ensureRelOnSheet(options.data.root, sheetFullName)
+    const drawingFullName = ensureDrawingOnSheet(options.data.root, sheetFullName)
 
-      if (!ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
-        ctx.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.push({
-          $: {
-            Extension: 'png',
-            ContentType: 'image/png'
-          }
-        })
-      }
-
-      ensureRelOnSheet(ctx, sheetFullName)
-      const drawingFullName = ensureDrawingOnSheet(ctx, sheetFullName)
-
-      const drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
-      ctx.root.$xlsxTemplate[drawingRelPath] =
-        ctx.root.$xlsxTemplate[drawingRelPath] || {
+    const drawingRelPath = 'xl/drawings/_rels/' + drawingFullName + '.rels'
+    options.data.root.$xlsxTemplate[drawingRelPath] =
+        options.data.root.$xlsxTemplate[drawingRelPath] || {
           Relationships: {
             $: { xmlns: 'http://schemas.openxmlformats.org/package/2006/relationships' },
             Relationship: []
           }
         }
 
-      const relNumber = ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
-      const relName = 'rId' + relNumber
+    const relNumber = options.data.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.length + 1
+    const relName = 'rId' + relNumber
 
-      if (!ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
-        ctx.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
-          $: {
-            Id: relName,
-            Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
-            Target: '../media/' + name
-          }
-        })
-      }
+    if (!options.data.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.filter(function (r) { return r.$.Id === imageName }).length) {
+      options.data.root.$xlsxTemplate[drawingRelPath].Relationships.Relationship.push({
+        $: {
+          Id: relName,
+          Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+          Target: '../media/' + name
+        }
+      })
+    }
 
-      const drawing = ctx.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
-      drawing['xdr:wsDr']['xdr:twoCellAnchor'] = drawing['xdr:wsDr']['xdr:twoCellAnchor'] || []
+    const drawing = options.data.root.$xlsxTemplate['xl/drawings/' + drawingFullName]
+    drawing['xdr:wsDr']['xdr:twoCellAnchor'] = drawing['xdr:wsDr']['xdr:twoCellAnchor'] || []
 
-      drawing['xdr:wsDr']['xdr:twoCellAnchor'].push(xml2jsonUnwrap(
-        '<xdr:twoCellAnchor><xdr:from><xdr:col>' + fromCol +
+    drawing['xdr:wsDr']['xdr:twoCellAnchor'].push(xml2jsonUnwrap(
+      '<xdr:twoCellAnchor><xdr:from><xdr:col>' + fromCol +
         '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + fromRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>' +
         toCol + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + toRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr>' +
         '<xdr:cNvPr id="' + relNumber + '" name="Picture"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill>' +
@@ -435,8 +433,21 @@ const __xlsx = (function () {
         '<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" ' +
         'val="0"/></a:ext></a:extLst></a:blip><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" ' +
         'cy="0"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:twoCellAnchor>'
-      ))
-    })
+    ))
+
+    if (!options.data.root.$xlsxTemplate['xl/media/' + name]) {
+      const content = options.fn(context)
+      if (content != null && typeof content.then === 'function') {
+        return content.then(jsreport.templatingEngines.waitForAsyncHelper).then(processResult)
+      } else {
+        return processResult(content)
+      }
+
+      function processResult (content) {
+        options.data.root.$xlsxTemplate['xl/media/' + name] = content
+        return ''
+      }
+    }
 
     return ''
   }
@@ -470,31 +481,27 @@ const __xlsx = (function () {
         // handlebars
         const options = arguments[arguments.length - 1]
         const extraInfo = {
-          ctx: {
-            root: options.data.root,
-            data: this
-          }
+          context: this,
+          options: { ...options }
         }
 
         if (options.fn) {
+          // todo: do we need this
           const newOptionsParam = {
             data: Handlebars.createFrame(options.data), // eslint-disable-line
             blockParams: options.blockParams
           }
-          extraInfo.tagCtx = {
-            render: (data) => options.fn(data, newOptionsParam)
-          }
+          extraInfo.options.fn = (data) => options.fn(data, newOptionsParam)
         }
 
         contextMap.set(this, extraInfo)
       } else {
         const extraInfo = {
-          ctx: this.ctx,
-          tagCtx: this.tagCtx
-        }
-
-        if (this.tagCtx) {
-          extraInfo.ctx.data = this.tagCtx.view.data
+          context: this.tagCtx ? this.tagCtx.view.data : null,
+          options: {
+            data: this.ctx,
+            fn: this.tagCtx ? (ctx) => this.tagCtx.render(ctx) : null
+          }
         }
 
         contextMap.set(this, extraInfo)

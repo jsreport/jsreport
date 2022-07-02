@@ -4,11 +4,12 @@
 const pattern = /%}%/g
 
 module.exports = (opts = {}) => {
-  const handlebars = require(opts.handlebarsModulePath)
+  const hb = require(opts.handlebarsModulePath)
+  const asyncHelpers = require('../async-helpers')
 
   return {
     compile: (html, { require, context }) => {
-      const handlebarsInstance = handlebars.create()
+      const handlebarsInstance = require('handlebars')
       const results = matchRecursiveRegExp(html, '{', '}', 'g')
       let changed = 0
 
@@ -41,8 +42,8 @@ module.exports = (opts = {}) => {
         throw e
       }
     },
-    createContext: () => {
-      const handlebarsInstance = handlebars.create()
+    createContext: (req) => {
+      const handlebarsInstance = req.context.asyncHandlebars ? asyncHelpers(hb) : hb.create()
       return {
         handlebars: handlebarsInstance,
         Handlebars: handlebarsInstance
@@ -53,7 +54,7 @@ module.exports = (opts = {}) => {
         return context.handlebars
       }
     },
-    execute: (templateSpec, helpers, data, { require }) => {
+    execute: async (templateSpec, helpers, data, { require, req }) => {
       const handlebarsInstance = require('handlebars')
       const template = handlebarsInstance.template(templateSpec)
 
@@ -63,9 +64,41 @@ module.exports = (opts = {}) => {
         }
       }
 
+      if (handlebarsInstance.asyncHelpers === true) {
+        // if the promise in async mode isn't resolved, for backcompatibility we use the backcompatible hack with {#asyncResult}
+        handlebarsInstance.wrapHelperResult = (p) => {
+          if (p != null && typeof p.then === 'function') {
+            p.toString = () => {
+              return require('jsreport-proxy').templatingEngines.createAsyncHelperResult(p)
+            }
+          }
+
+          return p
+        }
+      }
+
       return template(data)
     },
-    unescape: (str) => str.replace(pattern, '}')
+    unescape: (str) => str.replace(pattern, '}'),
+    wrapHelper: (fn, { context }) => {
+      // this is only called in the asyncmode and used to automatically skip escaping for async helper calls
+      // this is for back compatibility, where by accident {{asset}} calls aren't escaped
+      return function (...args) {
+        const fnResult = fn.call(this, ...args)
+
+        if (fnResult == null || typeof fnResult.then !== 'function') {
+          return fnResult
+        }
+
+        return fnResult.then((r) => {
+          if (typeof r === 'string') {
+            return new context.Handlebars.SafeString(r)
+          } else {
+            return r
+          }
+        })
+      }
+    }
   }
 }
 

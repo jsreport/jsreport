@@ -15,6 +15,7 @@ module.exports = async (reporter, definition, req, res) => {
 
   reporter.logger.debug('Parsing xlsx content', req)
 
+  req.context.asyncHandlebars = true
   const contentString = await reporter.templatingEngines.evaluate({
     engine: req.template.engine,
     content: req.data.$xlsxOriginalContent,
@@ -24,6 +25,7 @@ module.exports = async (reporter, definition, req, res) => {
     entity: req.template,
     entitySet: 'templates'
   }, req)
+  req.context.asyncHandlebars = false
 
   // we need to call afterTemplatingEnginesExecutedListeners to ensure the assets are extracted
   const fakeRes = { content: Buffer.from(contentString) }

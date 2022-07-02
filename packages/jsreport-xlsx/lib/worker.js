@@ -51,23 +51,25 @@ module.exports = (reporter, definition) => {
     }
   })
 
-  reporter.beforeRenderListeners.insert({ after: 'data' }, definition.name, async (req) => {
-    if (req.template.recipe !== 'xlsx') {
-      return
-    }
+  reporter.initializeListeners.add(definition.name, () => {
+    reporter.beforeRenderListeners.add(definition.name, async (req) => {
+      if (req.template.recipe !== 'xlsx') {
+        return
+      }
 
-    req.data = req.data || {}
-    req.data.$xlsxOriginalContent = req.template.content
+      req.data = req.data || {}
 
-    req.template.content = ''
+      req.data.$xlsxOriginalContent = req.template.content
+      req.template.content = ''
 
-    req.data.$xlsxModuleDirname = path.join(__dirname, '../')
-    req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
-    req.data.$addBufferSize = definition.options.addBufferSize || 50000000
-    req.data.$escapeAmp = definition.options.escapeAmp
-    req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations
-    // this allows the data generated in the helpers to continue to be persisted outside of the sandbox
-    req.data.$files = []
-    req.data.$buffers = {}
+      req.data.$xlsxModuleDirname = path.join(__dirname, '../')
+      req.data.$tempAutoCleanupDirectory = reporter.options.tempAutoCleanupDirectory
+      req.data.$addBufferSize = definition.options.addBufferSize || 50000000
+      req.data.$escapeAmp = definition.options.escapeAmp
+      req.data.$numberOfParsedAddIterations = definition.options.numberOfParsedAddIterations == null ? 50 : definition.options.numberOfParsedAddIterations
+      // this allows the data generated in the helpers to continue to be persisted outside of the sandbox
+      req.data.$files = []
+      req.data.$buffers = {}
+    })
   })
 }

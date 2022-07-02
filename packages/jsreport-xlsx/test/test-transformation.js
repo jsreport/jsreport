@@ -8,11 +8,12 @@ const jsreportConfig = require('../jsreport.config')
 const components = require('@jsreport/jsreport-components')
 const assets = require('@jsreport/jsreport-assets')
 const handlebars = require('@jsreport/jsreport-handlebars')
+const jsrender = require('@jsreport/jsreport-jsrender')
 const xlsxRecipe = require('../index')
 const jsonToXml = require('../lib/transformation/jsonToXml')
 const { decompress } = require('@jsreport/office')
 
-describe('xlsx transformation', () => {
+describe('xlsx transformation handlebars', () => {
   let reporter
 
   beforeEach(() => {
@@ -21,6 +22,7 @@ describe('xlsx transformation', () => {
     reporter.use(handlebars())
     reporter.use(assets())
     reporter.use(xlsxRecipe())
+    reporter.use(require('@jsreport/jsreport-data')())
 
     return reporter.init()
   })
@@ -166,8 +168,7 @@ describe('xlsx transformation', () => {
     workbook.Sheets.Sheet1.A1.v.should.be.eql(1)
   })
 
-  // TODO
-  it.skip('should return iframe in preview', async () => {
+  it('should return iframe in preview', async () => {
     const res = await reporter.render({
       options: {
         preview: true
@@ -182,9 +183,7 @@ describe('xlsx transformation', () => {
     res.content.toString().should.containEql('iframe')
   })
 
-  // TODO: this is crashing on FATAL ERROR: v8::FromJust Maybe value is Nothing.
-  // strange is that if you put to jsreport-office a console.log after axios post, it doesn't crash
-  it.skip('should return iframe in preview with title including template name', async () => {
+  it('should return iframe in preview with title including template name', async () => {
     await reporter.documentStore.collection('templates').insert({ name: 'foo', engine: 'none', recipe: 'html' })
     const res = await reporter.render({
       options: {
@@ -301,6 +300,63 @@ describe('xlsx transformation', () => {
     styles.data.toString().should.containEql('x:numFmts count="4"')
   })
 
+  it('should have consistent set in the xlsxTemplate variable after async call', async () => {
+    await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        helpers: `
+        function checkRows(opts) {                 
+          const rowsLength = opts.data.root.$xlsxTemplate['xl/worksheets/sheet1.xml'].worksheet.sheetData[0].row.length
+          if (rowsLength !== 1) {
+            throw new Error('should have 1 row, has ' + rowsLength)
+          }
+        }
+        `,
+        content: `
+        {{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
+        <row>
+          <c t="inlineStr"><is><t>1</t></is></c>  
+        </row>
+        {{/xlsxAdd}}
+        {{checkRows}}
+        {{{xlsxPrint}}}`
+      }
+    })
+  })
+
+  it('should work with none awaited options.fn calls', async () => {
+    const res = await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        content: `
+        {{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
+        <row>
+            {{#columns}}
+            <c t="inlineStr"><is><t>{{this}}</t></is></c>
+            {{/columns}}
+        </row>
+        {{/xlsxAdd}}    
+        {{{xlsxPrint}}}`,
+        helpers: `
+      function columns(options) {
+        let r = ''
+        for (let i = 0; i < 3; i++) {
+            // old no await
+            r += options.fn(i)
+        }      
+        return r
+      }`
+      }
+    })
+
+    const workbook = xlsx.read(res.content)
+    workbook.Sheets.Sheet1.A1.v.should.be.eql('0')
+    workbook.Sheets.Sheet1.B1.v.should.be.eql('1')
+    workbook.Sheets.Sheet1.C1.v.should.be.eql('2')
+  })
+
   it('should be able to transform xlsx from previously generated xlsx from template', async () => {
     const sheetName = 'foo'
 
@@ -336,6 +392,71 @@ describe('xlsx transformation', () => {
     const sheet = workbook.Sheets[currentSheetName]
     should(sheet.A1.v).be.eql('Hello world John')
   })
+
+  it('should replace extract asset old syntax before templating engines', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'sheet1.xml',
+      content: `
+      <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac xr xr2 xr3" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr2="http://schemas.microsoft.com/office/spreadsheetml/2015/revision2" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" xr:uid="{E3BB72C6-2E74-4885-B282-BAE0DA2077D8}">
+      <dimension ref="A1"/>
+      <sheetViews><sheetView tabSelected="1" workbookViewId="0"/></sheetViews>
+      <sheetFormatPr defaultRowHeight="14.4" x14ac:dyDescent="0.3"/>
+      <sheetData><row r="1" spans="1:1" x14ac:dyDescent="0.3"><c t="inlineStr"><is><t>Hello world</t></is></c></row></sheetData>
+      <pageMargins left="0.7" right="0.7" top="0.78740157499999996" bottom="0.78740157499999996" header="0.3" footer="0.3"/>
+      </worksheet>
+      `
+    })
+    const res = await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        content: `
+        {{#xlsxReplace "xl/worksheets/sheet1.xml"}}
+          {#asset sheet1.xml}}
+        {{/xlsxReplace}}
+        {{{xlsxPrint}}}
+        `
+      }
+    })
+    xlsx.read(res.content).Sheets.Sheet1.A1.v.should.be.eql('Hello world')
+  })
+})
+
+describe('xlsx transformation jsrender', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport()
+
+    reporter.use(jsrender())
+    reporter.use(assets())
+    reporter.use(xlsxRecipe())
+
+    return reporter.init()
+  })
+
+  afterEach(() => {
+    if (reporter) {
+      return reporter.close()
+    }
+  })
+
+  const test = (contentName, assertion) => {
+    return () => reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'jsrender',
+        content: fs.readFileSync(path.join(__dirname, 'content', contentName), 'utf8')
+      }
+    }).then((res) => {
+      assertion(xlsx.read(res.content))
+    })
+  }
+
+  it('xlsxAdd add-row', test('add-row.jsrender', (workbook) => {
+    workbook.Sheets.Sheet1.A1.should.be.ok()
+  }))
 })
 
 describe('excel recipe with previewInExcelOnline false', () => {
@@ -677,7 +798,7 @@ describe('excel recipe should not be broken by components usage', () => {
         recipe: 'xlsx',
         engine: 'handlebars',
         content: `
-          {{{component "./c1"}}}
+          {{component "./c1"}}
           {{{xlsxPrint}}}
         `
       },

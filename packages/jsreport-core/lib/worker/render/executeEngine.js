@@ -93,6 +93,12 @@ module.exports = (reporter) => {
           const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
           return Promise.all([...asyncResultMap.keys()].map((k) => asyncResultMap.get(k)))
         }
+      },
+      createAsyncHelperResult: (v) => {
+        const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
+        const asyncResultId = nanoid(7)
+        asyncResultMap.set(asyncResultId, v)
+        return `{#asyncHelperResult ${asyncResultId}}`
       }
     }
   })
@@ -197,7 +203,11 @@ module.exports = (reporter) => {
       const wrappedTopLevelFunctions = {}
 
       for (const h of Object.keys(topLevelFunctions)) {
-        wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
+        if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
+          wrappedTopLevelFunctions[h] = engine.wrapHelper(topLevelFunctions[h], { context })
+        } else {
+          wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
+        }
       }
 
       let contentResult = await engine.execute(compiledTemplate, wrappedTopLevelFunctions, data, { require })
@@ -249,7 +259,7 @@ module.exports = (reporter) => {
     try {
       return await reporter.runInSandbox({
         context: {
-          ...(engine.createContext ? engine.createContext() : {})
+          ...(engine.createContext ? engine.createContext(req) : {})
         },
         userCode: normalizedHelpers,
         initFn,
