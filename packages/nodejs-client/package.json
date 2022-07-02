@@ -25,7 +25,7 @@
     "mimic-response": "2.1.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "3.3.1",
+    "@jsreport/jsreport-authentication": "3.3.2",
     "@jsreport/jsreport-core": "3.6.1",
     "@jsreport/jsreport-express": "3.4.1",
     "@jsreport/jsreport-jsrender": "3.0.0",

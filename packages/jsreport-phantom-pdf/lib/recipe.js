@@ -99,7 +99,13 @@ module.exports = (reporter, definition, request, response) => {
     return util.promisify(conversion)(request.template.phantom)
   }).then(function (res) {
     res.logs.forEach(function (m) {
-      reporter.logger[m.level](m.message, { timestamp: m.timestamp.getTime(), ...request })
+      const meta = { timestamp: m.timestamp.getTime(), ...request }
+
+      if (m.userLevel) {
+        meta.userLevel = true
+      }
+
+      reporter.logger[m.level](m.message, meta)
     })
 
     response.meta.contentType = 'application/pdf'

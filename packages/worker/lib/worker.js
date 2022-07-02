@@ -3,6 +3,7 @@ const fs = require('fs')
 const Koa = require('koa')
 const nconf = require('nconf')
 const serializator = require('serializator')
+const ListenerCollection = require('listener-collection')
 const WorkersManager = require('@jsreport/advanced-workers')
 const WorkerRequest = require('./workerRequest')
 const { Lock } = require('semaphore-async-await')
@@ -11,6 +12,8 @@ process.env.DEBUG = 'worker'
 const debug = require('debug')('worker')
 const bootstrapFiles = []
 const currentRequests = {}
+
+const workerInitListeners = new ListenerCollection()
 
 const rootDir = path.join(__dirname, '../bootstrap')
 
@@ -116,6 +119,9 @@ module.exports = (options = {}) => {
         })
         const workerSystemOptions = reqBody.workerSystemOptions
         workerSystemOptions.workerModule = require.resolve('@jsreport/jsreport-core/lib/worker/workerHandler.js')
+
+        await workerInitListeners.fire(workerOptions, workerSystemOptions)
+
         workersManager = WorkersManager(workerOptions, workerSystemOptions)
         await workersManager.init()
         ctx.body = '{}'
@@ -198,7 +204,17 @@ module.exports = (options = {}) => {
     }
   })
 
-  Promise.all(bootstrapExports.map((bootstrapFn) => bootstrapFn({ todo: true })))
+  Promise.all(bootstrapExports.map((bootstrapFn) => bootstrapFn({
+    options,
+    eventsManager: {
+      addWorkerInitListener (...args) {
+        workerInitListeners.add(...args)
+      },
+      removeInitListener (...args) {
+        workerInitListeners.remove(...args)
+      }
+    }
+  })))
 
   return ({
     async init () {

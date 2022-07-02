@@ -2688,6 +2688,84 @@ describe('docx', () => {
     parts[26].should.be.eql('chapter 3.1.1')
   })
 
+  it('should be able to remove TOC Title without producing corrupted document if title is wrapped in condition with closing if on next paragraph', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    const files = await decompress()(result.content)
+    const documentXML = files.find(f => f.path === 'word/document.xml').data.toString()
+
+    should(documentXML.includes('<TOCTitle>')).be.false()
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
+  it('should be able to remove TOC Title without producing corrupted document if title is wrapped in condition with closing if on next paragraph (with other condition inside title)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove2.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    const files = await decompress()(result.content)
+
+    const documentXML = files.find(f => f.path === 'word/document.xml').data.toString()
+
+    should(documentXML.includes('<TOCTitle>')).be.false()
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
+  it('should be able to remove TOC Title without producing corrupted document if title is wrapped in condition with closing if on some next paragraph', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove3.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const files = await decompress()(result.content)
+
+    const documentXML = files.find(f => f.path === 'word/document.xml').data.toString()
+
+    should(documentXML.includes('<TOCTitle>')).be.false()
+
+    const text = (await extractor.extract(result.content)).getBody()
+    const parts = text.split('\n').filter((t) => t)
+
+    parts.should.have.length(4)
+
+    parts[0].should.be.eql('Title1')
+    parts[1].should.be.eql('Some text')
+    parts[2].should.be.eql('Title1.1.1')
+    parts[3].should.be.eql('Some text')
+  })
+
   it('chart', async () => {
     const labels = ['Jan', 'Feb', 'March']
     const datasets = [{

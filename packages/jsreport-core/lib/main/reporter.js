@@ -196,7 +196,8 @@ class MainReporter extends Reporter {
       this.blobStorage = BlobStorage(this, this.options)
       blobStorageActions(this)
       Templates(this)
-      Profiler(this)
+
+      this._cleanProfileInRequest = Profiler(this)
 
       this.folders = Object.assign(this.folders, Folders(this))
 
@@ -472,11 +473,17 @@ class MainReporter extends Reporter {
       }, req)
 
       Object.assign(res, responseResult)
+
       await this.afterRenderListeners.fire(req, res)
+
       res.stream = Readable.from(res.content)
+
+      this._cleanProfileInRequest(req)
+
       return res
     } catch (err) {
       await this._handleRenderError(req, res, err)
+      this._cleanProfileInRequest(req)
       throw err
     } finally {
       if (worker && !workerAborted && !dontCloseProcessing) {

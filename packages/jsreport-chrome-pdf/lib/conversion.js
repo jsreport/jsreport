@@ -10,7 +10,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
   }
   const browser = await getBrowser()
 
-  function pageLog (level, message) {
+  function pageLog (level, message, userLevel = false) {
     const maxLogEntrySize = 1000
     let newMsg = message
 
@@ -18,7 +18,13 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       newMsg = `${newMsg.substring(0, maxLogEntrySize)}...`
     }
 
-    reporter.logger[level](newMsg, { timestamp: new Date().getTime(), ...req })
+    const meta = { timestamp: new Date().getTime(), ...req }
+
+    if (userLevel) {
+      meta.userLevel = true
+    }
+
+    reporter.logger[level](newMsg, meta)
   }
 
   function trimUrl (url) {
@@ -82,10 +88,10 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
             }
 
             return r
-          }).join(' '))
-        }).catch(() => pageLog('debug', text))
+          }).join(' '), true)
+        }).catch(() => pageLog('debug', text, true))
       } else {
-        pageLog('debug', text)
+        pageLog('debug', text, true)
       }
     })
 

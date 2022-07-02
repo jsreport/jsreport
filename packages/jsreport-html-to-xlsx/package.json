@@ -40,7 +40,7 @@
     "nanoid": "3.2.0",
     "node.extend.without.arrays": "1.1.6",
     "opentype.js": "1.1.0",
-    "phantom-page-eval": "2.0.0"
+    "phantom-page-eval": "2.0.1"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.6.1",

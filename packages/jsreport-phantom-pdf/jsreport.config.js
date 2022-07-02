@@ -2,7 +2,7 @@
 const schema = {
   type: 'object',
   properties: {
-    strategy: { type: 'string', enum: ['dedicated-process', 'phantom-server'], default: 'dedicated-process' },
+    strategy: { type: 'string', enum: ['dedicated-process', 'phantom-server'] },
     numberOfWorkers: { type: 'number' },
     allowLocalFilesAccess: { type: 'boolean' },
     defaultPhantomjsVersion: { type: 'string' },

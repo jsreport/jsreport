@@ -18,18 +18,22 @@ module.exports = (reporter, admin) => {
   })
 
   reporter.initializeListeners.add('repository', async () => {
-    const users = await reporter.documentStore.collection('users').find({ name: null })
-    if (users.length) {
-      reporter.logger.info('Store contains user entities with deprecated username, migrating to name...')
-    }
-    for (const user of users) {
-      await reporter.documentStore.collection('users').update({
-        _id: user._id
-      }, {
-        $set: {
-          name: user.username
-        }
-      })
+    if (reporter.options.migrateAuthenticationUsernameProp !== false) {
+      const users = await reporter.documentStore.collection('users').find({ name: null })
+
+      if (users.length) {
+        reporter.logger.info('Store contains user entities with deprecated username, migrating to name...')
+      }
+
+      for (const user of users) {
+        await reporter.documentStore.collection('users').update({
+          _id: user._id
+        }, {
+          $set: {
+            name: user.username
+          }
+        })
+      }
     }
 
     if (reporter.authorization) {

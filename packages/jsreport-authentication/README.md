@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 3.3.2
+
+- add option to disable users .username -> name migration
+
 ### 3.3.1
 
 - update ejs to fix npm audit warning

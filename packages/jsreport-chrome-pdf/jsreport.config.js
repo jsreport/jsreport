@@ -30,6 +30,10 @@ module.exports = {
   main: 'lib/main.js',
   worker: 'lib/worker.js',
   optionsSchema: {
+    migrateChromeNetworkIdleProp: {
+      type: 'boolean',
+      default: true
+    },
     chrome: { ...chromeSchema },
     extensions: {
       'chrome-pdf': { ...chromeSchema }

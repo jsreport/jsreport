@@ -42,7 +42,7 @@ async function check (reporter, collection, req, authAction) {
 
   if (res !== true) {
     if (req.context.user) {
-      reporter.logger.warn(`User ${req.context.user.username} not authorized for ${collection.entitySet}`)
+      reporter.logger.warn(`User ${req.context.user.name} not authorized for ${collection.entitySet}`)
     }
 
     throw reporter.authorization.createAuthorizationError(collection.entitySet)

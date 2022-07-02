@@ -8,6 +8,10 @@ const os = require('os')
 const numCPUs = os.cpus().length
 
 async function ensureMigrated (reporter) {
+  if (reporter.options.migrateChromeNetworkIdleProp === false) {
+    return
+  }
+
   const migrated = await reporter.settings.findValue('chrome-network-idle-migrated')
 
   if (migrated) {

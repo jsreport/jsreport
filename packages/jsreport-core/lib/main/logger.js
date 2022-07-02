@@ -5,10 +5,12 @@ const winston = require('winston')
 const Transport = require('winston-transport')
 const debug = require('debug')('jsreport')
 const createDefaultLoggerFormat = require('./createDefaultLoggerFormat')
-const normalizeMetaFromLogs = require('../shared/normalizeMetaFromLogs')
+const createNormalizeMetaLoggerFormat = require('./createNormalizeMetaLoggerFormat')
+const Request = require('./request')
 
 const defaultLoggerFormat = createDefaultLoggerFormat()
 const defaultLoggerFormatWithTimestamp = createDefaultLoggerFormat({ timestamp: true })
+const normalizeMetaLoggerFormat = createNormalizeMetaLoggerFormat()
 
 function createLogger () {
   const logger = winston.createLogger(getConfigurationOptions())
@@ -180,25 +182,30 @@ function configureLogger (logger, _transports) {
     logger.add(transportInstance)
   }
 
+  const originalLog = logger.log
+
+  // we want to normalize the req has httpIncomingRequest early
+  // otherwise we will get serialization issues when trying to
+  // log http.IncomingRequest
+  logger.log = function (level, msg, ...splat) {
+    const [meta] = splat
+
+    if (
+      typeof meta === 'object' &&
+      meta !== null &&
+      meta.context != null &&
+      meta.socket != null
+    ) {
+      splat[0] = Request(meta)
+    }
+
+    return originalLog.call(this, level, msg, ...splat)
+  }
+
   logger.__configured__ = true
 }
 
 function getConfigurationOptions () {
-  const normalizeMeta = winston.format((info) => {
-    const { level, message, ...meta } = info
-    const newMeta = normalizeMetaFromLogs(level, message, meta)
-
-    if (newMeta != null) {
-      return {
-        level,
-        message,
-        ...newMeta
-      }
-    }
-
-    return info
-  })
-
   return {
     levels: {
       error: 0,
@@ -207,7 +214,7 @@ function getConfigurationOptions () {
       debug: 3
     },
     format: winston.format.combine(
-      normalizeMeta(),
+      normalizeMetaLoggerFormat(),
       defaultLoggerFormatWithTimestamp()
     ),
     transports: [new DebugTransport()]
@@ -231,6 +238,7 @@ class DebugTransport extends Transport {
 
     this.format = options.format || winston.format.combine(
       winston.format.colorize(),
+      normalizeMetaLoggerFormat(),
       defaultLoggerFormat()
     )
 

@@ -1,8 +1,35 @@
 const axios = require('axios')
 const serializator = require('serializator')
 
-module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
-  data = { ...data, timeout, systemAction }
+module.exports = (reporter, { remote = false, originUrl } = {}) => {
+  return function sendToWorker (url, data, _options = {}) {
+    const options = { ..._options }
+
+    const customHttpOptions = reporter.dockerManager.getWorkerHttpOptions({ remote })
+
+    const newHttpOptions = {
+      ...options.httpOptions,
+      ...customHttpOptions,
+      headers: Object.assign({}, options.httpOptions?.headers, customHttpOptions?.headers)
+    }
+
+    if (originUrl != null) {
+      options.originUrl = originUrl
+    }
+
+    options.httpOptions = newHttpOptions
+
+    return _sendToWorker(url, data, options)
+  }
+}
+
+async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, systemAction, httpOptions = {} }) {
+  let data = { ..._data, timeout, systemAction }
+
+  if (originUrl != null) {
+    data.originUrl = originUrl
+  }
+
   return new Promise((resolve, reject) => {
     let isDone = false
 
@@ -21,8 +48,9 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
       while (true && !isDone) {
         const stringBody = serializator.serialize(data)
         let res
+
         try {
-          res = await axios({
+          const requestConfig = {
             method: 'POST',
             url,
             maxContentLength: Infinity,
@@ -31,15 +59,24 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
             transformResponse: [data => data],
             headers: {
               'Content-Type': 'text/plain',
-              'Content-Length': Buffer.byteLength(stringBody)
+              'Content-Length': Buffer.byteLength(stringBody),
+              ...httpOptions.headers
             },
             data: stringBody,
             timeout: timeout
-          })
+          }
+
+          if (httpOptions.auth) {
+            requestConfig.auth = httpOptions.auth
+          }
+
+          res = await axios(requestConfig)
         } catch (err) {
           isDone = true
           if (!err.response?.data) {
-            return reject(new Error('Error when communicating with worker: ' + err.message))
+            const error = new Error('Error when communicating with worker: ' + err.message)
+            Object.assign(error, { ...err })
+            return reject(error)
           }
 
           try {
@@ -48,7 +85,9 @@ module.exports = async (url, data, { executeMain, timeout, systemAction }) => {
             Object.assign(workerError, errorData)
             return reject(workerError)
           } catch (e) {
-            return reject(new Error('Error when communicating with worker: ' + err.response.data))
+            const error = new Error('Error when communicating with worker: ' + err.response.data)
+            Object.assign(error, { ...e })
+            return reject(error)
           }
         }
 

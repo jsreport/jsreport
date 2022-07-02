@@ -16,7 +16,7 @@ module.exports = (reporter, definition) => {
       if (req.template.content.indexOf(replacedBase) !== -1) {
         reporter.logger.debug('Base url injected: ' + replacedBase, req)
       } else {
-        reporter.logger.debug('Base url not injected because the html format was not recognised.', req)
+        reporter.logger.debug('Base url not injected because the html format was not recognized.', req)
       }
     } else {
       reporter.logger.debug('Base url not specified, skipping its injection.', req)
