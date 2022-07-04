@@ -39,6 +39,7 @@
     "@babel/code-frame": "7.12.13",
     "@babel/parser": "7.14.4",
     "@babel/traverse": "7.12.9",
+    "@colors/colors": "1.5.0",
     "@jsreport/advanced-workers": "1.2.3",
     "@jsreport/mingo": "2.4.1",
     "@jsreport/reap": "0.1.0",

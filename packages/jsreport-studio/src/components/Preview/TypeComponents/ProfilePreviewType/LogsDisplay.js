@@ -31,7 +31,7 @@ const LogsDisplay = React.memo(function LogsDisplay (props) {
 
     logsElements.push(
       <div id={getLogNodeId(i)} className={`${styles.profileLogItem} ${logClassificationClass}`} key={i}>
-        <span className={`${styles.profileLogItemLevel} ${styles[log.level]}`}>{log.level}</span>
+        <span className={`${styles.profileLogItemLevel} ${styles[log.level]} ${log.meta != null && log.meta.userLevel ? styles.userLevel : ''}`}>{log.level}</span>
         <span
           className={styles.profileLogItemTime}
           title={new Intl.DateTimeFormat(navigator.language,
@@ -51,7 +51,7 @@ const LogsDisplay = React.memo(function LogsDisplay (props) {
           {relativeTime}
         </span>
         <span
-          className={styles.profileLogItemMessage}
+          className={`${styles.profileLogItemMessage} ${log.meta != null && log.meta.userLevel ? styles.userLevel : ''}`}
           title={log.message}
         >
           {log.message}

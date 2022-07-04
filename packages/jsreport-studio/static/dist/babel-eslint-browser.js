@@ -11376,7 +11376,7 @@ defineType("ExportDefaultDeclaration", {
   aliases: ["Statement", "Declaration", "ModuleDeclaration", "ExportDeclaration"],
   fields: {
     declaration: {
-      validate: (0, _utils.assertNodeType)("FunctionDeclaration", "TSDeclareFunction", "ClassDeclaration", "Expression")
+      validate: (0, _utils.assertNodeType)("FunctionDeclaration", "ClassDeclaration", "Expression")
     },
     exportKind: (0, _utils.validateOptional)((0, _utils.assertOneOf)("value"))
   }
@@ -29185,7 +29185,7 @@ var babylonToEspree = __webpack_require__(304);
 var parse = __webpack_require__(311).parse;
 var tt = __webpack_require__(311).tokTypes;
 var traverse = __webpack_require__(316).default;
-var codeFrameColumns = __webpack_require__(377).codeFrameColumns;
+var codeFrameColumns = __webpack_require__(378).codeFrameColumns;
 
 module.exports = function (code, options) {
   var legacyDecorators = options.ecmaFeatures && options.ecmaFeatures.legacyDecorators;
@@ -30260,8 +30260,8 @@ var toUnenumerable = function toUnenumerable(object, key) {
 };
 
 function toESTreeLocation(node) {
-  toUnenumerable(node.loc.start, "index");
-  toUnenumerable(node.loc.end, "index");
+  node.loc.start && toUnenumerable(node.loc.start, "index");
+  node.loc.end && toUnenumerable(node.loc.end, "index");
   return node;
 }
 
@@ -30713,6 +30713,12 @@ var estree = function estree(superClass) {
       key: 'finishNodeAt',
       value: function finishNodeAt(node, type, endLoc) {
         return toESTreeLocation((0, _get18.default)(_class.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class.prototype), 'finishNodeAt', this).call(this, node, type, endLoc));
+      }
+    }, {
+      key: 'resetStartLocation',
+      value: function resetStartLocation(node, start, startLoc) {
+        (0, _get18.default)(_class.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class.prototype), 'resetStartLocation', this).call(this, node, start, startLoc);
+        toESTreeLocation(node);
       }
     }, {
       key: 'resetEndLocation',
@@ -39799,6 +39805,8 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseFunctionOrConstructorType',
       value: function tsParseFunctionOrConstructorType(type, abstract) {
+        var _this34 = this;
+
         var node = this.startNode();
 
         if (type === "TSConstructorType") {
@@ -39807,27 +39815,29 @@ var typescript = function typescript(superClass) {
           this.next();
         }
 
-        this.tsFillSignature(19, node);
+        this.tsInAllowConditionalTypesContext(function () {
+          return _this34.tsFillSignature(19, node);
+        });
         return this.finishNode(node, type);
       }
     }, {
       key: 'tsParseLiteralTypeNode',
       value: function tsParseLiteralTypeNode() {
-        var _this34 = this;
+        var _this35 = this;
 
         var node = this.startNode();
 
         node.literal = function () {
-          switch (_this34.state.type) {
+          switch (_this35.state.type) {
             case 130:
             case 131:
             case 129:
             case 85:
             case 86:
-              return _this34.parseExprAtom();
+              return _this35.parseExprAtom();
 
             default:
-              throw _this34.unexpected();
+              throw _this35.unexpected();
           }
         }();
 
@@ -39980,14 +39990,14 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseInferType',
       value: function tsParseInferType() {
-        var _this35 = this;
+        var _this36 = this;
 
         var node = this.startNode();
         this.expectContextual(112);
         var typeParameter = this.startNode();
         typeParameter.name = this.tsParseTypeParameterName();
         typeParameter.constraint = this.tsTryParse(function () {
-          return _this35.tsParseConstraintForInferType();
+          return _this36.tsParseConstraintForInferType();
         });
         node.typeParameter = this.finishNode(typeParameter, "TSTypeParameter");
         return this.finishNode(node, "TSInferType");
@@ -39995,11 +40005,11 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseConstraintForInferType',
       value: function tsParseConstraintForInferType() {
-        var _this36 = this;
+        var _this37 = this;
 
         if (this.eat(81)) {
           var constraint = this.tsInDisallowConditionalTypesContext(function () {
-            return _this36.tsParseType();
+            return _this37.tsParseType();
           });
 
           if (this.state.inDisallowConditionalTypesContext || !this.match(17)) {
@@ -40010,11 +40020,11 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseTypeOperatorOrHigher',
       value: function tsParseTypeOperatorOrHigher() {
-        var _this37 = this;
+        var _this38 = this;
 
         var isTypeOperator = tokenIsTSTypeOperator(this.state.type) && !this.state.containsEsc;
         return isTypeOperator ? this.tsParseTypeOperator() : this.isContextual(112) ? this.tsParseInferType() : this.tsInAllowConditionalTypesContext(function () {
-          return _this37.tsParseArrayTypeOrHigher();
+          return _this38.tsParseArrayTypeOrHigher();
         });
       }
     }, {
@@ -40119,51 +40129,51 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseTypeOrTypePredicateAnnotation',
       value: function tsParseTypeOrTypePredicateAnnotation(returnToken) {
-        var _this38 = this;
+        var _this39 = this;
 
         return this.tsInType(function () {
-          var t = _this38.startNode();
-          _this38.expect(returnToken);
-          var node = _this38.startNode();
-          var asserts = !!_this38.tsTryParse(_this38.tsParseTypePredicateAsserts.bind(_this38));
+          var t = _this39.startNode();
+          _this39.expect(returnToken);
+          var node = _this39.startNode();
+          var asserts = !!_this39.tsTryParse(_this39.tsParseTypePredicateAsserts.bind(_this39));
 
-          if (asserts && _this38.match(78)) {
-            var thisTypePredicate = _this38.tsParseThisTypeOrThisTypePredicate();
+          if (asserts && _this39.match(78)) {
+            var thisTypePredicate = _this39.tsParseThisTypeOrThisTypePredicate();
 
             if (thisTypePredicate.type === "TSThisType") {
               node.parameterName = thisTypePredicate;
               node.asserts = true;
               node.typeAnnotation = null;
-              thisTypePredicate = _this38.finishNode(node, "TSTypePredicate");
+              thisTypePredicate = _this39.finishNode(node, "TSTypePredicate");
             } else {
-              _this38.resetStartLocationFromNode(thisTypePredicate, node);
+              _this39.resetStartLocationFromNode(thisTypePredicate, node);
               thisTypePredicate.asserts = true;
             }
 
             t.typeAnnotation = thisTypePredicate;
-            return _this38.finishNode(t, "TSTypeAnnotation");
+            return _this39.finishNode(t, "TSTypeAnnotation");
           }
 
-          var typePredicateVariable = _this38.tsIsIdentifier() && _this38.tsTryParse(_this38.tsParseTypePredicatePrefix.bind(_this38));
+          var typePredicateVariable = _this39.tsIsIdentifier() && _this39.tsTryParse(_this39.tsParseTypePredicatePrefix.bind(_this39));
 
           if (!typePredicateVariable) {
             if (!asserts) {
-              return _this38.tsParseTypeAnnotation(false, t);
+              return _this39.tsParseTypeAnnotation(false, t);
             }
 
-            node.parameterName = _this38.parseIdentifier();
+            node.parameterName = _this39.parseIdentifier();
             node.asserts = asserts;
             node.typeAnnotation = null;
-            t.typeAnnotation = _this38.finishNode(node, "TSTypePredicate");
-            return _this38.finishNode(t, "TSTypeAnnotation");
+            t.typeAnnotation = _this39.finishNode(node, "TSTypePredicate");
+            return _this39.finishNode(t, "TSTypeAnnotation");
           }
 
-          var type = _this38.tsParseTypeAnnotation(false);
+          var type = _this39.tsParseTypeAnnotation(false);
           node.parameterName = typePredicateVariable;
           node.typeAnnotation = type;
           node.asserts = asserts;
-          t.typeAnnotation = _this38.finishNode(node, "TSTypePredicate");
-          return _this38.finishNode(t, "TSTypeAnnotation");
+          t.typeAnnotation = _this39.finishNode(node, "TSTypePredicate");
+          return _this39.finishNode(t, "TSTypeAnnotation");
         });
       }
     }, {
@@ -40217,21 +40227,21 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseTypeAnnotation',
       value: function tsParseTypeAnnotation() {
-        var _this39 = this;
+        var _this40 = this;
 
         var eatColon = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
         var t = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.startNode();
 
         this.tsInType(function () {
-          if (eatColon) _this39.expect(14);
-          t.typeAnnotation = _this39.tsParseType();
+          if (eatColon) _this40.expect(14);
+          t.typeAnnotation = _this40.tsParseType();
         });
         return this.finishNode(t, "TSTypeAnnotation");
       }
     }, {
       key: 'tsParseType',
       value: function tsParseType() {
-        var _this40 = this;
+        var _this41 = this;
 
         assert(this.state.inType);
         var type = this.tsParseNonConditionalType();
@@ -40243,15 +40253,15 @@ var typescript = function typescript(superClass) {
         var node = this.startNodeAtNode(type);
         node.checkType = type;
         node.extendsType = this.tsInDisallowConditionalTypesContext(function () {
-          return _this40.tsParseNonConditionalType();
+          return _this41.tsParseNonConditionalType();
         });
         this.expect(17);
         node.trueType = this.tsInAllowConditionalTypesContext(function () {
-          return _this40.tsParseType();
+          return _this41.tsParseType();
         });
         this.expect(14);
         node.falseType = this.tsInAllowConditionalTypesContext(function () {
-          return _this40.tsParseType();
+          return _this41.tsParseType();
         });
         return this.finishNode(node, "TSConditionalType");
       }
@@ -40296,18 +40306,18 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseHeritageClause',
       value: function tsParseHeritageClause(token) {
-        var _this41 = this;
+        var _this42 = this;
 
         var originalStartLoc = this.state.startLoc;
         var delimitedList = this.tsParseDelimitedList("HeritageClauseElement", function () {
-          var node = _this41.startNode();
-          node.expression = _this41.tsParseEntityName();
+          var node = _this42.startNode();
+          node.expression = _this42.tsParseEntityName();
 
-          if (_this41.match(47)) {
-            node.typeParameters = _this41.tsParseTypeArguments();
+          if (_this42.match(47)) {
+            node.typeParameters = _this42.tsParseTypeArguments();
           }
 
-          return _this41.finishNode(node, "TSExpressionWithTypeArguments");
+          return _this42.finishNode(node, "TSExpressionWithTypeArguments");
         });
 
         if (!delimitedList.length) {
@@ -40352,21 +40362,21 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseTypeAliasDeclaration',
       value: function tsParseTypeAliasDeclaration(node) {
-        var _this42 = this;
+        var _this43 = this;
 
         node.id = this.parseIdentifier();
         this.checkIdentifier(node.id, BIND_TS_TYPE);
         node.typeAnnotation = this.tsInType(function () {
-          node.typeParameters = _this42.tsTryParseTypeParameters(_this42.tsParseInOutModifiers.bind(_this42));
-          _this42.expect(29);
+          node.typeParameters = _this43.tsTryParseTypeParameters(_this43.tsParseInOutModifiers.bind(_this43));
+          _this43.expect(29);
 
-          if (_this42.isContextual(111) && _this42.lookahead().type !== 16) {
-            var _node8 = _this42.startNode();
-            _this42.next();
-            return _this42.finishNode(_node8, "TSIntrinsicKeyword");
+          if (_this43.isContextual(111) && _this43.lookahead().type !== 16) {
+            var _node8 = _this43.startNode();
+            _this43.next();
+            return _this43.finishNode(_node8, "TSIntrinsicKeyword");
           }
 
-          return _this42.tsParseType();
+          return _this43.tsParseType();
         });
         this.semicolon();
         return this.finishNode(node, "TSTypeAliasDeclaration");
@@ -40427,29 +40437,29 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsExpectThenParseType',
       value: function tsExpectThenParseType(token) {
-        var _this43 = this;
+        var _this44 = this;
 
         return this.tsDoThenParseType(function () {
-          return _this43.expect(token);
+          return _this44.expect(token);
         });
       }
     }, {
       key: 'tsNextThenParseType',
       value: function tsNextThenParseType() {
-        var _this44 = this;
+        var _this45 = this;
 
         return this.tsDoThenParseType(function () {
-          return _this44.next();
+          return _this45.next();
         });
       }
     }, {
       key: 'tsDoThenParseType',
       value: function tsDoThenParseType(cb) {
-        var _this45 = this;
+        var _this46 = this;
 
         return this.tsInType(function () {
           cb();
-          return _this45.tsParseType();
+          return _this46.tsParseType();
         });
       }
     }, {
@@ -40616,7 +40626,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsTryParseDeclare',
       value: function tsTryParseDeclare(nany) {
-        var _this46 = this;
+        var _this47 = this;
 
         if (this.isLineTerminator()) {
           return;
@@ -40633,46 +40643,46 @@ var typescript = function typescript(superClass) {
         return this.tsInAmbientContext(function () {
           if (starttype === 68) {
             nany.declare = true;
-            return _this46.parseFunctionStatement(nany, false, true);
+            return _this47.parseFunctionStatement(nany, false, true);
           }
 
           if (starttype === 80) {
             nany.declare = true;
-            return _this46.parseClass(nany, true, false);
+            return _this47.parseClass(nany, true, false);
           }
 
           if (starttype === 122) {
-            return _this46.tsParseEnumDeclaration(nany, {
+            return _this47.tsParseEnumDeclaration(nany, {
               declare: true
             });
           }
 
           if (starttype === 109) {
-            return _this46.tsParseAmbientExternalModuleDeclaration(nany);
+            return _this47.tsParseAmbientExternalModuleDeclaration(nany);
           }
 
           if (starttype === 75 || starttype === 74) {
-            if (!_this46.match(75) || !_this46.isLookaheadContextual("enum")) {
+            if (!_this47.match(75) || !_this47.isLookaheadContextual("enum")) {
               nany.declare = true;
-              return _this46.parseVarStatement(nany, kind || _this46.state.value, true);
+              return _this47.parseVarStatement(nany, kind || _this47.state.value, true);
             }
 
-            _this46.expect(75);
-            return _this46.tsParseEnumDeclaration(nany, {
+            _this47.expect(75);
+            return _this47.tsParseEnumDeclaration(nany, {
               const: true,
               declare: true
             });
           }
 
           if (starttype === 125) {
-            var result = _this46.tsParseInterfaceDeclaration(nany, {
+            var result = _this47.tsParseInterfaceDeclaration(nany, {
               declare: true
             });
             if (result) return result;
           }
 
           if (tokenIsIdentifier(starttype)) {
-            return _this46.tsParseDeclaration(nany, _this46.state.value, true);
+            return _this47.tsParseDeclaration(nany, _this47.state.value, true);
           }
         });
       }
@@ -40767,7 +40777,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsTryParseGenericAsyncArrowFunction',
       value: function tsTryParseGenericAsyncArrowFunction(startPos, startLoc) {
-        var _this47 = this;
+        var _this48 = this;
 
         if (!this.match(47)) {
           return undefined;
@@ -40776,11 +40786,11 @@ var typescript = function typescript(superClass) {
         var oldMaybeInArrowParameters = this.state.maybeInArrowParameters;
         this.state.maybeInArrowParameters = true;
         var res = this.tsTryParseAndCatch(function () {
-          var node = _this47.startNodeAt(startPos, startLoc);
-          node.typeParameters = _this47.tsParseTypeParameters();
-          (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseFunctionParams', _this47).call(_this47, node);
-          node.returnType = _this47.tsTryParseTypeOrTypePredicateAnnotation();
-          _this47.expect(19);
+          var node = _this48.startNodeAt(startPos, startLoc);
+          node.typeParameters = _this48.tsParseTypeParameters();
+          (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseFunctionParams', _this48).call(_this48, node);
+          node.returnType = _this48.tsTryParseTypeOrTypePredicateAnnotation();
+          _this48.expect(19);
           return node;
         });
         this.state.maybeInArrowParameters = oldMaybeInArrowParameters;
@@ -40803,13 +40813,13 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsParseTypeArguments',
       value: function tsParseTypeArguments() {
-        var _this48 = this;
+        var _this49 = this;
 
         var node = this.startNode();
         node.params = this.tsInType(function () {
-          return _this48.tsInNoContext(function () {
-            _this48.expect(47);
-            return _this48.tsParseDelimitedList("TypeParametersOrArguments", _this48.tsParseType.bind(_this48));
+          return _this49.tsInNoContext(function () {
+            _this49.expect(47);
+            return _this49.tsParseDelimitedList("TypeParametersOrArguments", _this49.tsParseType.bind(_this49));
           });
         });
 
@@ -40936,11 +40946,11 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'tsCheckForInvalidTypeCasts',
       value: function tsCheckForInvalidTypeCasts(items) {
-        var _this49 = this;
+        var _this50 = this;
 
         items.forEach(function (node) {
           if ((node == null ? void 0 : node.type) === "TSTypeCastExpression") {
-            _this49.raise(TSErrors.UnexpectedTypeAnnotation, {
+            _this50.raise(TSErrors.UnexpectedTypeAnnotation, {
               at: node.typeAnnotation
             });
           }
@@ -40972,7 +40982,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseSubscript',
       value: function parseSubscript(base, startPos, startLoc, noCalls, state) {
-        var _this50 = this;
+        var _this51 = this;
 
         if (!this.hasPrecedingLineBreak() && this.match(35)) {
           this.state.canStartJSXElement = false;
@@ -40997,50 +41007,50 @@ var typescript = function typescript(superClass) {
         if (this.match(47) || this.match(51)) {
           var missingParenErrorLoc = void 0;
           var result = this.tsTryParseAndCatch(function () {
-            if (!noCalls && _this50.atPossibleAsyncArrow(base)) {
-              var asyncArrowFn = _this50.tsTryParseGenericAsyncArrowFunction(startPos, startLoc);
+            if (!noCalls && _this51.atPossibleAsyncArrow(base)) {
+              var asyncArrowFn = _this51.tsTryParseGenericAsyncArrowFunction(startPos, startLoc);
 
               if (asyncArrowFn) {
                 return asyncArrowFn;
               }
             }
 
-            var typeArguments = _this50.tsParseTypeArgumentsInExpression();
-            if (!typeArguments) throw _this50.unexpected();
+            var typeArguments = _this51.tsParseTypeArgumentsInExpression();
+            if (!typeArguments) throw _this51.unexpected();
 
-            if (isOptionalCall && !_this50.match(10)) {
-              missingParenErrorLoc = _this50.state.curPosition();
-              throw _this50.unexpected();
+            if (isOptionalCall && !_this51.match(10)) {
+              missingParenErrorLoc = _this51.state.curPosition();
+              throw _this51.unexpected();
             }
 
-            if (tokenIsTemplate(_this50.state.type)) {
-              var _result = _this50.parseTaggedTemplateExpression(base, startPos, startLoc, state);
+            if (tokenIsTemplate(_this51.state.type)) {
+              var _result = _this51.parseTaggedTemplateExpression(base, startPos, startLoc, state);
               _result.typeParameters = typeArguments;
               return _result;
             }
 
-            if (!noCalls && _this50.eat(10)) {
-              var _node9 = _this50.startNodeAt(startPos, startLoc);
+            if (!noCalls && _this51.eat(10)) {
+              var _node9 = _this51.startNodeAt(startPos, startLoc);
               _node9.callee = base;
-              _node9.arguments = _this50.parseCallExpressionArguments(11, false);
-              _this50.tsCheckForInvalidTypeCasts(_node9.arguments);
+              _node9.arguments = _this51.parseCallExpressionArguments(11, false);
+              _this51.tsCheckForInvalidTypeCasts(_node9.arguments);
               _node9.typeParameters = typeArguments;
 
               if (state.optionalChainMember) {
                 _node9.optional = isOptionalCall;
               }
 
-              return _this50.finishCallExpression(_node9, state.optionalChainMember);
+              return _this51.finishCallExpression(_node9, state.optionalChainMember);
             }
 
-            if (tsTokenCanStartExpression(_this50.state.type) && _this50.state.type !== 10) {
-              throw _this50.unexpected();
+            if (tsTokenCanStartExpression(_this51.state.type) && _this51.state.type !== 10) {
+              throw _this51.unexpected();
             }
 
-            var node = _this50.startNodeAt(startPos, startLoc);
+            var node = _this51.startNodeAt(startPos, startLoc);
             node.expression = base;
             node.typeParameters = typeArguments;
-            return _this50.finishNode(node, "TSInstantiationExpression");
+            return _this51.finishNode(node, "TSInstantiationExpression");
           });
 
           if (missingParenErrorLoc) {
@@ -41280,7 +41290,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseClassMember',
       value: function parseClassMember(classBody, member, state) {
-        var _this51 = this;
+        var _this52 = this;
 
         var modifiers = ["declare", "private", "public", "protected", "override", "abstract", "readonly", "static"];
         this.tsParseModifiers({
@@ -41292,19 +41302,19 @@ var typescript = function typescript(superClass) {
         });
 
         var callParseClassMemberWithIsStatic = function callParseClassMemberWithIsStatic() {
-          if (_this51.tsIsStartOfStaticBlocks()) {
-            _this51.next();
-            _this51.next();
+          if (_this52.tsIsStartOfStaticBlocks()) {
+            _this52.next();
+            _this52.next();
 
-            if (_this51.tsHasSomeModifiers(member, modifiers)) {
-              _this51.raise(TSErrors.StaticBlockCannotHaveModifier, {
-                at: _this51.state.curPosition()
+            if (_this52.tsHasSomeModifiers(member, modifiers)) {
+              _this52.raise(TSErrors.StaticBlockCannotHaveModifier, {
+                at: _this52.state.curPosition()
               });
             }
 
-            _this51.parseClassStaticBlock(classBody, member);
+            _this52.parseClassStaticBlock(classBody, member);
           } else {
-            _this51.parseClassMemberWithIsStatic(classBody, member, state, !!member.static);
+            _this52.parseClassMemberWithIsStatic(classBody, member, state, !!member.static);
           }
         };
 
@@ -41399,14 +41409,14 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseConditional',
       value: function parseConditional(expr, startPos, startLoc, refExpressionErrors) {
-        var _this52 = this;
+        var _this53 = this;
 
         if (!this.state.maybeInArrowParameters || !this.match(17)) {
           return (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseConditional', this).call(this, expr, startPos, startLoc, refExpressionErrors);
         }
 
         var result = this.tryParse(function () {
-          return (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseConditional', _this52).call(_this52, expr, startPos, startLoc);
+          return (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseConditional', _this53).call(_this53, expr, startPos, startLoc);
         });
 
         if (!result.node) {
@@ -41442,11 +41452,11 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseExportDeclaration',
       value: function parseExportDeclaration(node) {
-        var _this53 = this;
+        var _this54 = this;
 
         if (!this.state.isAmbientContext && this.isContextual(121)) {
           return this.tsInAmbientContext(function () {
-            return _this53.parseExportDeclaration(node);
+            return _this54.parseExportDeclaration(node);
           });
         }
 
@@ -41639,7 +41649,7 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseMaybeAssign',
       value: function parseMaybeAssign() {
-        var _this54 = this;
+        var _this55 = this;
 
         for (var _len11 = arguments.length, args = Array(_len11), _key11 = 0; _key11 < _len11; _key11++) {
           args[_key11] = arguments[_key11];
@@ -41656,7 +41666,7 @@ var typescript = function typescript(superClass) {
           jsx = this.tryParse(function () {
             var _get9;
 
-            return (_get9 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', _this54)).call.apply(_get9, [_this54].concat(args));
+            return (_get9 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', _this55)).call.apply(_get9, [_this55].concat(args));
           }, state);
           if (!jsx.error) return jsx.node;
           var context = this.state.context;
@@ -41674,32 +41684,25 @@ var typescript = function typescript(superClass) {
           return (_get10 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', this)).call.apply(_get10, [this].concat(args));
         }
 
+        if (!state || state === this.state) state = this.state.clone();
         var typeParameters = void 0;
-        state = state || this.state.clone();
         var arrow = this.tryParse(function (abort) {
           var _get11;
 
-          var _expr$extra, _typeParameters, _expr$typeParameters$;
+          var _expr$extra, _typeParameters;
 
-          typeParameters = _this54.tsParseTypeParameters();
-          var expr = (_get11 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', _this54)).call.apply(_get11, [_this54].concat(args));
+          typeParameters = _this55.tsParseTypeParameters();
+          var expr = (_get11 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', _this55)).call.apply(_get11, [_this55].concat(args));
 
           if (expr.type !== "ArrowFunctionExpression" || (_expr$extra = expr.extra) != null && _expr$extra.parenthesized) {
             abort();
           }
 
           if (((_typeParameters = typeParameters) == null ? void 0 : _typeParameters.params.length) !== 0) {
-            _this54.resetStartLocationFromNode(expr, typeParameters);
+            _this55.resetStartLocationFromNode(expr, typeParameters);
           }
 
           expr.typeParameters = typeParameters;
-
-          if (_this54.hasPlugin("jsx") && expr.typeParameters.params.length === 1 && !((_expr$typeParameters$ = expr.typeParameters.extra) != null && _expr$typeParameters$.trailingComma)) {
-            var parameter = expr.typeParameters.params[0];
-
-            if (!parameter.constraint) ;
-          }
-
           return expr;
         }, state);
 
@@ -41713,7 +41716,7 @@ var typescript = function typescript(superClass) {
           typeCast = this.tryParse(function () {
             var _get12;
 
-            return (_get12 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', _this54)).call.apply(_get12, [_this54].concat(args));
+            return (_get12 = (0, _get18.default)(_class4.prototype.__proto__ || (0, _getPrototypeOf2.default)(_class4.prototype), 'parseMaybeAssign', _this55)).call.apply(_get12, [_this55].concat(args));
           }, state);
           if (!typeCast.error) return typeCast.node;
         }
@@ -41762,12 +41765,12 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'parseArrow',
       value: function parseArrow(node) {
-        var _this55 = this;
+        var _this56 = this;
 
         if (this.match(14)) {
           var result = this.tryParse(function (abort) {
-            var returnType = _this55.tsParseTypeOrTypePredicateAnnotation(14);
-            if (_this55.canInsertSemicolon() || !_this55.match(19)) abort();
+            var returnType = _this56.tsParseTypeOrTypePredicateAnnotation(14);
+            if (_this56.canInsertSemicolon() || !_this56.match(19)) abort();
             return returnType;
           });
           if (result.aborted) return;
@@ -42020,11 +42023,11 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'shouldParseArrow',
       value: function shouldParseArrow(params) {
-        var _this56 = this;
+        var _this57 = this;
 
         if (this.match(14)) {
           return params.every(function (expr) {
-            return _this56.isAssignable(expr, true);
+            return _this57.isAssignable(expr, true);
           });
         }
 
@@ -42043,11 +42046,11 @@ var typescript = function typescript(superClass) {
     }, {
       key: 'jsxParseOpeningElementAfterName',
       value: function jsxParseOpeningElementAfterName(node) {
-        var _this57 = this;
+        var _this58 = this;
 
         if (this.match(47) || this.match(51)) {
           var typeArguments = this.tsTryParseAndCatch(function () {
-            return _this57.tsParseTypeArgumentsInExpression();
+            return _this58.tsParseTypeArgumentsInExpression();
           });
           if (typeArguments) node.typeParameters = typeArguments;
         }
@@ -42747,9 +42750,9 @@ function validatePlugins(plugins) {
         throw new Error("Cannot combine importAssertions and moduleAttributes plugins.");
       }
 
-      var moduleAttributesVerionPluginOption = getPluginOption(plugins, "moduleAttributes", "version");
+      var moduleAttributesVersionPluginOption = getPluginOption(plugins, "moduleAttributes", "version");
 
-      if (moduleAttributesVerionPluginOption !== "may-2020") {
+      if (moduleAttributesVersionPluginOption !== "may-2020") {
         throw new Error("The 'moduleAttributes' plugin requires a 'version' option," + " representing the last proposal update. Currently, the" + " only supported value is 'may-2020'.");
       }
     }
@@ -42995,7 +42998,7 @@ var LValParser = function (_NodeUtils) {
   }, {
     key: 'isAssignable',
     value: function isAssignable(node, isBinding) {
-      var _this61 = this;
+      var _this62 = this;
 
       switch (node.type) {
         case "Identifier":
@@ -43009,7 +43012,7 @@ var LValParser = function (_NodeUtils) {
           {
             var last = node.properties.length - 1;
             return node.properties.every(function (prop, i) {
-              return prop.type !== "ObjectMethod" && (i === last || prop.type !== "SpreadElement") && _this61.isAssignable(prop);
+              return prop.type !== "ObjectMethod" && (i === last || prop.type !== "SpreadElement") && _this62.isAssignable(prop);
             });
           }
 
@@ -43021,7 +43024,7 @@ var LValParser = function (_NodeUtils) {
 
         case "ArrayExpression":
           return node.elements.every(function (element) {
-            return element === null || _this61.isAssignable(element);
+            return element === null || _this62.isAssignable(element);
           });
 
         case "AssignmentExpression":
@@ -43477,16 +43480,16 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'parseExpression',
     value: function parseExpression(disallowIn, refExpressionErrors) {
-      var _this63 = this;
+      var _this64 = this;
 
       if (disallowIn) {
         return this.disallowInAnd(function () {
-          return _this63.parseExpressionBase(refExpressionErrors);
+          return _this64.parseExpressionBase(refExpressionErrors);
         });
       }
 
       return this.allowInAnd(function () {
-        return _this63.parseExpressionBase(refExpressionErrors);
+        return _this64.parseExpressionBase(refExpressionErrors);
       });
     }
   }, {
@@ -43513,19 +43516,19 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'parseMaybeAssignDisallowIn',
     value: function parseMaybeAssignDisallowIn(refExpressionErrors, afterLeftParse) {
-      var _this64 = this;
+      var _this65 = this;
 
       return this.disallowInAnd(function () {
-        return _this64.parseMaybeAssign(refExpressionErrors, afterLeftParse);
+        return _this65.parseMaybeAssign(refExpressionErrors, afterLeftParse);
       });
     }
   }, {
     key: 'parseMaybeAssignAllowIn',
     value: function parseMaybeAssignAllowIn(refExpressionErrors, afterLeftParse) {
-      var _this65 = this;
+      var _this66 = this;
 
       return this.allowInAnd(function () {
-        return _this65.parseMaybeAssign(refExpressionErrors, afterLeftParse);
+        return _this66.parseMaybeAssign(refExpressionErrors, afterLeftParse);
       });
     }
   }, {
@@ -43732,7 +43735,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'parseExprOpRightExpr',
     value: function parseExprOpRightExpr(op, prec) {
-      var _this66 = this;
+      var _this67 = this;
 
       var startPos = this.state.start;
       var startLoc = this.state.startLoc;
@@ -43742,23 +43745,23 @@ var ExpressionParser = function (_LValParser) {
           switch (this.getPluginOption("pipelineOperator", "proposal")) {
             case "hack":
               return this.withTopicBindingContext(function () {
-                return _this66.parseHackPipeBody();
+                return _this67.parseHackPipeBody();
               });
 
             case "smart":
               return this.withTopicBindingContext(function () {
-                if (_this66.prodParam.hasYield && _this66.isContextual(105)) {
-                  throw _this66.raise(Errors.PipeBodyIsTighter, {
-                    at: _this66.state.startLoc
+                if (_this67.prodParam.hasYield && _this67.isContextual(105)) {
+                  throw _this67.raise(Errors.PipeBodyIsTighter, {
+                    at: _this67.state.startLoc
                   });
                 }
 
-                return _this66.parseSmartPipelineBodyInStyle(_this66.parseExprOpBaseRightExpr(op, prec), startPos, startLoc);
+                return _this67.parseSmartPipelineBodyInStyle(_this67.parseExprOpBaseRightExpr(op, prec), startPos, startLoc);
               });
 
             case "fsharp":
               return this.withSoloAwaitPermittingContext(function () {
-                return _this66.parseFSharpPipelineBody(prec);
+                return _this67.parseFSharpPipelineBody(prec);
               });
           }
 
@@ -45284,7 +45287,7 @@ var ExpressionParser = function (_LValParser) {
   }, {
     key: 'parseFunctionBody',
     value: function parseFunctionBody(node, allowExpression) {
-      var _this67 = this;
+      var _this68 = this;
 
       var isMethod = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
@@ -45300,19 +45303,19 @@ var ExpressionParser = function (_LValParser) {
         this.state.labels = [];
         this.prodParam.enter(this.prodParam.currentFlags() | PARAM_RETURN);
         node.body = this.parseBlock(true, false, function (hasStrictModeDirective) {
-          var nonSimple = !_this67.isSimpleParamList(node.params);
+          var nonSimple = !_this68.isSimpleParamList(node.params);
 
           if (hasStrictModeDirective && nonSimple) {
-            _this67.raise(Errors.IllegalLanguageModeDirective, {
+            _this68.raise(Errors.IllegalLanguageModeDirective, {
               at: (node.kind === "method" || node.kind === "constructor") && !!node.key ? node.key.loc.end : node
             });
           }
 
-          var strictModeChanged = !oldStrict && _this67.state.strict;
-          _this67.checkParams(node, !_this67.state.strict && !allowExpression && !isMethod && !nonSimple, allowExpression, strictModeChanged);
+          var strictModeChanged = !oldStrict && _this68.state.strict;
+          _this68.checkParams(node, !_this68.state.strict && !allowExpression && !isMethod && !nonSimple, allowExpression, strictModeChanged);
 
-          if (_this67.state.strict && node.id) {
-            _this67.checkIdentifier(node.id, BIND_OUTSIDE, strictModeChanged);
+          if (_this68.state.strict && node.id) {
+            _this68.checkIdentifier(node.id, BIND_OUTSIDE, strictModeChanged);
           }
         });
         this.prodParam.exit();
@@ -46394,12 +46397,12 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseDoStatement',
     value: function parseDoStatement(node) {
-      var _this69 = this;
+      var _this70 = this;
 
       this.next();
       this.state.labels.push(loopLabel);
       node.body = this.withSmartMixTopicForbiddingContext(function () {
-        return _this69.parseStatement("do");
+        return _this70.parseStatement("do");
       });
       this.state.labels.pop();
       this.expect(92);
@@ -46605,7 +46608,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseTryStatement',
     value: function parseTryStatement(node) {
-      var _this70 = this;
+      var _this71 = this;
 
       this.next();
       node.block = this.parseBlock();
@@ -46625,7 +46628,7 @@ var StatementParser = function (_ExpressionParser) {
         }
 
         clause.body = this.withSmartMixTopicForbiddingContext(function () {
-          return _this70.parseBlock(false, false);
+          return _this71.parseBlock(false, false);
         });
         this.scope.exit();
         node.handler = this.finishNode(clause, "CatchClause");
@@ -46654,13 +46657,13 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseWhileStatement',
     value: function parseWhileStatement(node) {
-      var _this71 = this;
+      var _this72 = this;
 
       this.next();
       node.test = this.parseHeaderExpression();
       this.state.labels.push(loopLabel);
       node.body = this.withSmartMixTopicForbiddingContext(function () {
-        return _this71.parseStatement("while");
+        return _this72.parseStatement("while");
       });
       this.state.labels.pop();
       return this.finishNode(node, "WhileStatement");
@@ -46668,7 +46671,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseWithStatement',
     value: function parseWithStatement(node) {
-      var _this72 = this;
+      var _this73 = this;
 
       if (this.state.strict) {
         this.raise(Errors.StrictWith, {
@@ -46679,7 +46682,7 @@ var StatementParser = function (_ExpressionParser) {
       this.next();
       node.object = this.parseHeaderExpression();
       node.body = this.withSmartMixTopicForbiddingContext(function () {
-        return _this72.parseStatement("with");
+        return _this73.parseStatement("with");
       });
       return this.finishNode(node, "WithStatement");
     }
@@ -46834,7 +46837,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseFor',
     value: function parseFor(node, init) {
-      var _this73 = this;
+      var _this74 = this;
 
       node.init = init;
       this.semicolon(false);
@@ -46843,7 +46846,7 @@ var StatementParser = function (_ExpressionParser) {
       node.update = this.match(11) ? null : this.parseExpression();
       this.expect(11);
       node.body = this.withSmartMixTopicForbiddingContext(function () {
-        return _this73.parseStatement("for");
+        return _this74.parseStatement("for");
       });
       this.scope.exit();
       this.state.labels.pop();
@@ -46852,7 +46855,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseForIn',
     value: function parseForIn(node, init, awaitAt) {
-      var _this74 = this;
+      var _this75 = this;
 
       var isForIn = this.match(58);
       this.next();
@@ -46883,7 +46886,7 @@ var StatementParser = function (_ExpressionParser) {
       node.right = isForIn ? this.parseExpression() : this.parseMaybeAssignAllowIn();
       this.expect(11);
       node.body = this.withSmartMixTopicForbiddingContext(function () {
-        return _this74.parseStatement("for");
+        return _this75.parseStatement("for");
       });
       this.scope.exit();
       this.state.labels.pop();
@@ -46936,7 +46939,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseFunction',
     value: function parseFunction(node) {
-      var _this75 = this;
+      var _this76 = this;
 
       var statement = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : FUNC_NO_FLAGS;
       var isAsync = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
@@ -46969,7 +46972,7 @@ var StatementParser = function (_ExpressionParser) {
 
       this.parseFunctionParams(node, false);
       this.withSmartMixTopicForbiddingContext(function () {
-        _this75.parseFunctionBodyAndFinish(node, isStatement ? "FunctionDeclaration" : "FunctionExpression");
+        _this76.parseFunctionBodyAndFinish(node, isStatement ? "FunctionDeclaration" : "FunctionExpression");
       });
       this.prodParam.exit();
       this.scope.exit();
@@ -47030,7 +47033,7 @@ var StatementParser = function (_ExpressionParser) {
   }, {
     key: 'parseClassBody',
     value: function parseClassBody(hadSuperClass, oldStrict) {
-      var _this76 = this;
+      var _this77 = this;
 
       this.classScope.enter();
       var state = {
@@ -47042,34 +47045,34 @@ var StatementParser = function (_ExpressionParser) {
       classBody.body = [];
       this.expect(5);
       this.withSmartMixTopicForbiddingContext(function () {
-        while (!_this76.match(8)) {
-          if (_this76.eat(13)) {
+        while (!_this77.match(8)) {
+          if (_this77.eat(13)) {
             if (decorators.length > 0) {
-              throw _this76.raise(Errors.DecoratorSemicolon, {
-                at: _this76.state.lastTokEndLoc
+              throw _this77.raise(Errors.DecoratorSemicolon, {
+                at: _this77.state.lastTokEndLoc
               });
             }
 
             continue;
           }
 
-          if (_this76.match(26)) {
-            decorators.push(_this76.parseDecorator());
+          if (_this77.match(26)) {
+            decorators.push(_this77.parseDecorator());
             continue;
           }
 
-          var member = _this76.startNode();
+          var member = _this77.startNode();
 
           if (decorators.length) {
             member.decorators = decorators;
-            _this76.resetStartLocationFromNode(member, decorators[0]);
+            _this77.resetStartLocationFromNode(member, decorators[0]);
             decorators = [];
           }
 
-          _this76.parseClassMember(classBody, member, state);
+          _this77.parseClassMember(classBody, member, state);
 
           if (member.kind === "constructor" && member.decorators && member.decorators.length > 0) {
-            _this76.raise(Errors.DecoratorConstructor, {
+            _this77.raise(Errors.DecoratorConstructor, {
               at: member
             });
           }
@@ -48173,13 +48176,13 @@ var Parser = function (_StatementParser) {
 
     options = getOptions(options);
 
-    var _this77 = (0, _possibleConstructorReturn3.default)(this, (Parser.__proto__ || (0, _getPrototypeOf2.default)(Parser)).call(this, options, input));
+    var _this78 = (0, _possibleConstructorReturn3.default)(this, (Parser.__proto__ || (0, _getPrototypeOf2.default)(Parser)).call(this, options, input));
 
-    _this77.options = options;
-    _this77.initializeScopes();
-    _this77.plugins = pluginsMap(_this77.options.plugins);
-    _this77.filename = options.sourceFilename;
-    return _this77;
+    _this78.options = options;
+    _this78.initializeScopes();
+    _this78.plugins = pluginsMap(_this78.options.plugins);
+    _this78.filename = options.sourceFilename;
+    return _this78;
   }
 
   (0, _createClass3.default)(Parser, [{
@@ -49820,17 +49823,17 @@ var t = _t;
 
 var _cache = __webpack_require__(319);
 
-var _generator = __webpack_require__(337);
+var _generator = __webpack_require__(338);
 
-var NodePath_ancestry = __webpack_require__(372);
+var NodePath_ancestry = __webpack_require__(373);
 
-var NodePath_inference = __webpack_require__(373);
+var NodePath_inference = __webpack_require__(374);
 
-var NodePath_replacement = __webpack_require__(376);
+var NodePath_replacement = __webpack_require__(377);
 
-var NodePath_evaluation = __webpack_require__(394);
+var NodePath_evaluation = __webpack_require__(395);
 
-var NodePath_conversion = __webpack_require__(395);
+var NodePath_conversion = __webpack_require__(396);
 
 var NodePath_introspection = __webpack_require__(406);
 
@@ -50045,6 +50048,9 @@ var NodePath = function () {
 }();
 
 (0, _assign2.default)(NodePath.prototype, NodePath_ancestry, NodePath_inference, NodePath_replacement, NodePath_evaluation, NodePath_conversion, NodePath_introspection, NodePath_context, NodePath_removal, NodePath_modification, NodePath_family, NodePath_comments);
+{
+  NodePath.prototype._guessExecutionStatusRelativeToDifferentFunctions = NodePath_introspection._guessExecutionStatusRelativeTo;
+}
 
 var _iteratorNormalCompletion = true;
 var _didIteratorError = false;
@@ -50815,7 +50821,7 @@ var _index = __webpack_require__(316);
 
 var _binding = __webpack_require__(333);
 
-var _globals = __webpack_require__(335);
+var _globals = __webpack_require__(336);
 
 var _t = __webpack_require__(42);
 
@@ -52420,9 +52426,9 @@ var Scope = function () {
           path = this.path;
 
       do {
-        var isKey = path.key === "key";
+        var shouldSkip = path.key === "key" || path.listKey === "decorators";
         path = path.parentPath;
-        if (isKey && path.isMethod()) path = path.parentPath;
+        if (shouldSkip && path.isMethod()) path = path.parentPath;
         if (path && path.isScope()) parent = path;
       } while (path && !parent);
 
@@ -52453,10 +52459,6 @@ Scope.contextVariables = ["arguments", "undefined", "Infinity", "NaN"];
 "use strict";
 
 
-var _getIterator2 = __webpack_require__(55);
-
-var _getIterator3 = _interopRequireDefault(_getIterator2);
-
 var _classCallCheck2 = __webpack_require__(249);
 
 var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
@@ -52478,8 +52480,9 @@ var _helperSplitExportDeclaration = __webpack_require__(334);
 
 var _t = __webpack_require__(42);
 
-var VISITOR_KEYS = _t.VISITOR_KEYS,
-    assignmentExpression = _t.assignmentExpression,
+var _helperEnvironmentVisitor = __webpack_require__(335);
+
+var assignmentExpression = _t.assignmentExpression,
     identifier = _t.identifier,
     toExpression = _t.toExpression,
     variableDeclaration = _t.variableDeclaration,
@@ -52495,7 +52498,11 @@ var renameVisitor = {
   },
   Scope: function Scope(path, state) {
     if (!path.scope.bindingIdentifierEquals(state.oldName, state.binding.identifier)) {
-      skipAllButComputedMethodKey(path);
+      path.skip();
+
+      if (path.isMethod()) {
+        (0, _helperEnvironmentVisitor.requeueComputedKeyAndDecorators)(path);
+      }
     }
   },
   "AssignmentExpression|Declaration|VariableDeclarator": function AssignmentExpressionDeclarationVariableDeclarator(path, state) {
@@ -52603,40 +52610,6 @@ var Renamer = function () {
 }();
 
 exports.default = Renamer;
-
-function skipAllButComputedMethodKey(path) {
-  if (!path.isMethod() || !path.node.computed) {
-    path.skip();
-    return;
-  }
-
-  var keys = VISITOR_KEYS[path.type];
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = (0, _getIterator3.default)(keys), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var key = _step.value;
-
-      if (key !== "key") path.skipKey(key);
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-}
 
 /***/ }),
 /* 333 */
@@ -52823,16 +52796,105 @@ function splitExportDeclaration(exportDeclaration) {
 "use strict";
 
 
-module.exports = __webpack_require__(336);
+var _getIterator2 = __webpack_require__(55);
+
+var _getIterator3 = _interopRequireDefault(_getIterator2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+exports.requeueComputedKeyAndDecorators = requeueComputedKeyAndDecorators;
+exports.skipAllButComputedKey = skipAllButComputedKey;
+
+function skipAllButComputedKey(path) {
+  path.skip();
+
+  if (path.node.computed) {
+    path.context.maybeQueue(path.get("key"));
+  }
+}
+
+function requeueComputedKeyAndDecorators(path) {
+  var context = path.context,
+      node = path.node;
+
+
+  if (node.computed) {
+    context.maybeQueue(path.get("key"));
+  }
+
+  if (node.decorators) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = (0, _getIterator3.default)(path.get("decorators")), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var decorator = _step.value;
+
+        context.maybeQueue(decorator);
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  }
+}
+
+var visitor = {
+  FunctionParent: function FunctionParent(path) {
+    if (path.isArrowFunctionExpression()) {
+      return;
+    } else {
+      path.skip();
+
+      if (path.isMethod()) {
+        requeueComputedKeyAndDecorators(path);
+      }
+    }
+  },
+  Property: function Property(path) {
+    if (path.isObjectProperty()) {
+      return;
+    }
+
+    path.skip();
+    requeueComputedKeyAndDecorators(path);
+  }
+};
+var _default = visitor;
+exports.default = _default;
 
 /***/ }),
 /* 336 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(337);
+
+/***/ }),
+/* 337 */
 /***/ (function(module) {
 
 module.exports = {"builtin":{"Array":false,"ArrayBuffer":false,"Atomics":false,"BigInt":false,"BigInt64Array":false,"BigUint64Array":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"globalThis":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"SharedArrayBuffer":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"es5":{"Array":false,"Boolean":false,"constructor":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"propertyIsEnumerable":false,"RangeError":false,"ReferenceError":false,"RegExp":false,"String":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false},"es2015":{"Array":false,"ArrayBuffer":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"es2017":{"Array":false,"ArrayBuffer":false,"Atomics":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"SharedArrayBuffer":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"browser":{"AbortController":false,"AbortSignal":false,"addEventListener":false,"alert":false,"AnalyserNode":false,"Animation":false,"AnimationEffectReadOnly":false,"AnimationEffectTiming":false,"AnimationEffectTimingReadOnly":false,"AnimationEvent":false,"AnimationPlaybackEvent":false,"AnimationTimeline":false,"applicationCache":false,"ApplicationCache":false,"ApplicationCacheErrorEvent":false,"atob":false,"Attr":false,"Audio":false,"AudioBuffer":false,"AudioBufferSourceNode":false,"AudioContext":false,"AudioDestinationNode":false,"AudioListener":false,"AudioNode":false,"AudioParam":false,"AudioProcessingEvent":false,"AudioScheduledSourceNode":false,"AudioWorkletGlobalScope ":false,"AudioWorkletNode":false,"AudioWorkletProcessor":false,"BarProp":false,"BaseAudioContext":false,"BatteryManager":false,"BeforeUnloadEvent":false,"BiquadFilterNode":false,"Blob":false,"BlobEvent":false,"blur":false,"BroadcastChannel":false,"btoa":false,"BudgetService":false,"ByteLengthQueuingStrategy":false,"Cache":false,"caches":false,"CacheStorage":false,"cancelAnimationFrame":false,"cancelIdleCallback":false,"CanvasCaptureMediaStreamTrack":false,"CanvasGradient":false,"CanvasPattern":false,"CanvasRenderingContext2D":false,"ChannelMergerNode":false,"ChannelSplitterNode":false,"CharacterData":false,"clearInterval":false,"clearTimeout":false,"clientInformation":false,"ClipboardEvent":false,"close":false,"closed":false,"CloseEvent":false,"Comment":false,"CompositionEvent":false,"confirm":false,"console":false,"ConstantSourceNode":false,"ConvolverNode":false,"CountQueuingStrategy":false,"createImageBitmap":false,"Credential":false,"CredentialsContainer":false,"crypto":false,"Crypto":false,"CryptoKey":false,"CSS":false,"CSSConditionRule":false,"CSSFontFaceRule":false,"CSSGroupingRule":false,"CSSImportRule":false,"CSSKeyframeRule":false,"CSSKeyframesRule":false,"CSSMediaRule":false,"CSSNamespaceRule":false,"CSSPageRule":false,"CSSRule":false,"CSSRuleList":false,"CSSStyleDeclaration":false,"CSSStyleRule":false,"CSSStyleSheet":false,"CSSSupportsRule":false,"CustomElementRegistry":false,"customElements":false,"CustomEvent":false,"DataTransfer":false,"DataTransferItem":false,"DataTransferItemList":false,"defaultstatus":false,"defaultStatus":false,"DelayNode":false,"DeviceMotionEvent":false,"DeviceOrientationEvent":false,"devicePixelRatio":false,"dispatchEvent":false,"document":false,"Document":false,"DocumentFragment":false,"DocumentType":false,"DOMError":false,"DOMException":false,"DOMImplementation":false,"DOMMatrix":false,"DOMMatrixReadOnly":false,"DOMParser":false,"DOMPoint":false,"DOMPointReadOnly":false,"DOMQuad":false,"DOMRect":false,"DOMRectReadOnly":false,"DOMStringList":false,"DOMStringMap":false,"DOMTokenList":false,"DragEvent":false,"DynamicsCompressorNode":false,"Element":false,"ErrorEvent":false,"event":false,"Event":false,"EventSource":false,"EventTarget":false,"external":false,"fetch":false,"File":false,"FileList":false,"FileReader":false,"find":false,"focus":false,"FocusEvent":false,"FontFace":false,"FontFaceSetLoadEvent":false,"FormData":false,"frameElement":false,"frames":false,"GainNode":false,"Gamepad":false,"GamepadButton":false,"GamepadEvent":false,"getComputedStyle":false,"getSelection":false,"HashChangeEvent":false,"Headers":false,"history":false,"History":false,"HTMLAllCollection":false,"HTMLAnchorElement":false,"HTMLAreaElement":false,"HTMLAudioElement":false,"HTMLBaseElement":false,"HTMLBodyElement":false,"HTMLBRElement":false,"HTMLButtonElement":false,"HTMLCanvasElement":false,"HTMLCollection":false,"HTMLContentElement":false,"HTMLDataElement":false,"HTMLDataListElement":false,"HTMLDetailsElement":false,"HTMLDialogElement":false,"HTMLDirectoryElement":false,"HTMLDivElement":false,"HTMLDListElement":false,"HTMLDocument":false,"HTMLElement":false,"HTMLEmbedElement":false,"HTMLFieldSetElement":false,"HTMLFontElement":false,"HTMLFormControlsCollection":false,"HTMLFormElement":false,"HTMLFrameElement":false,"HTMLFrameSetElement":false,"HTMLHeadElement":false,"HTMLHeadingElement":false,"HTMLHRElement":false,"HTMLHtmlElement":false,"HTMLIFrameElement":false,"HTMLImageElement":false,"HTMLInputElement":false,"HTMLLabelElement":false,"HTMLLegendElement":false,"HTMLLIElement":false,"HTMLLinkElement":false,"HTMLMapElement":false,"HTMLMarqueeElement":false,"HTMLMediaElement":false,"HTMLMenuElement":false,"HTMLMetaElement":false,"HTMLMeterElement":false,"HTMLModElement":false,"HTMLObjectElement":false,"HTMLOListElement":false,"HTMLOptGroupElement":false,"HTMLOptionElement":false,"HTMLOptionsCollection":false,"HTMLOutputElement":false,"HTMLParagraphElement":false,"HTMLParamElement":false,"HTMLPictureElement":false,"HTMLPreElement":false,"HTMLProgressElement":false,"HTMLQuoteElement":false,"HTMLScriptElement":false,"HTMLSelectElement":false,"HTMLShadowElement":false,"HTMLSlotElement":false,"HTMLSourceElement":false,"HTMLSpanElement":false,"HTMLStyleElement":false,"HTMLTableCaptionElement":false,"HTMLTableCellElement":false,"HTMLTableColElement":false,"HTMLTableElement":false,"HTMLTableRowElement":false,"HTMLTableSectionElement":false,"HTMLTemplateElement":false,"HTMLTextAreaElement":false,"HTMLTimeElement":false,"HTMLTitleElement":false,"HTMLTrackElement":false,"HTMLUListElement":false,"HTMLUnknownElement":false,"HTMLVideoElement":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"IdleDeadline":false,"IIRFilterNode":false,"Image":false,"ImageBitmap":false,"ImageBitmapRenderingContext":false,"ImageCapture":false,"ImageData":false,"indexedDB":false,"innerHeight":false,"innerWidth":false,"InputEvent":false,"IntersectionObserver":false,"IntersectionObserverEntry":false,"Intl":false,"isSecureContext":false,"KeyboardEvent":false,"KeyframeEffect":false,"KeyframeEffectReadOnly":false,"length":false,"localStorage":false,"location":true,"Location":false,"locationbar":false,"matchMedia":false,"MediaDeviceInfo":false,"MediaDevices":false,"MediaElementAudioSourceNode":false,"MediaEncryptedEvent":false,"MediaError":false,"MediaKeyMessageEvent":false,"MediaKeySession":false,"MediaKeyStatusMap":false,"MediaKeySystemAccess":false,"MediaList":false,"MediaQueryList":false,"MediaQueryListEvent":false,"MediaRecorder":false,"MediaSettingsRange":false,"MediaSource":false,"MediaStream":false,"MediaStreamAudioDestinationNode":false,"MediaStreamAudioSourceNode":false,"MediaStreamEvent":false,"MediaStreamTrack":false,"MediaStreamTrackEvent":false,"menubar":false,"MessageChannel":false,"MessageEvent":false,"MessagePort":false,"MIDIAccess":false,"MIDIConnectionEvent":false,"MIDIInput":false,"MIDIInputMap":false,"MIDIMessageEvent":false,"MIDIOutput":false,"MIDIOutputMap":false,"MIDIPort":false,"MimeType":false,"MimeTypeArray":false,"MouseEvent":false,"moveBy":false,"moveTo":false,"MutationEvent":false,"MutationObserver":false,"MutationRecord":false,"name":false,"NamedNodeMap":false,"NavigationPreloadManager":false,"navigator":false,"Navigator":false,"NetworkInformation":false,"Node":false,"NodeFilter":false,"NodeIterator":false,"NodeList":false,"Notification":false,"OfflineAudioCompletionEvent":false,"OfflineAudioContext":false,"offscreenBuffering":false,"OffscreenCanvas":true,"onabort":true,"onafterprint":true,"onanimationend":true,"onanimationiteration":true,"onanimationstart":true,"onappinstalled":true,"onauxclick":true,"onbeforeinstallprompt":true,"onbeforeprint":true,"onbeforeunload":true,"onblur":true,"oncancel":true,"oncanplay":true,"oncanplaythrough":true,"onchange":true,"onclick":true,"onclose":true,"oncontextmenu":true,"oncuechange":true,"ondblclick":true,"ondevicemotion":true,"ondeviceorientation":true,"ondeviceorientationabsolute":true,"ondrag":true,"ondragend":true,"ondragenter":true,"ondragleave":true,"ondragover":true,"ondragstart":true,"ondrop":true,"ondurationchange":true,"onemptied":true,"onended":true,"onerror":true,"onfocus":true,"ongotpointercapture":true,"onhashchange":true,"oninput":true,"oninvalid":true,"onkeydown":true,"onkeypress":true,"onkeyup":true,"onlanguagechange":true,"onload":true,"onloadeddata":true,"onloadedmetadata":true,"onloadstart":true,"onlostpointercapture":true,"onmessage":true,"onmessageerror":true,"onmousedown":true,"onmouseenter":true,"onmouseleave":true,"onmousemove":true,"onmouseout":true,"onmouseover":true,"onmouseup":true,"onmousewheel":true,"onoffline":true,"ononline":true,"onpagehide":true,"onpageshow":true,"onpause":true,"onplay":true,"onplaying":true,"onpointercancel":true,"onpointerdown":true,"onpointerenter":true,"onpointerleave":true,"onpointermove":true,"onpointerout":true,"onpointerover":true,"onpointerup":true,"onpopstate":true,"onprogress":true,"onratechange":true,"onrejectionhandled":true,"onreset":true,"onresize":true,"onscroll":true,"onsearch":true,"onseeked":true,"onseeking":true,"onselect":true,"onstalled":true,"onstorage":true,"onsubmit":true,"onsuspend":true,"ontimeupdate":true,"ontoggle":true,"ontransitionend":true,"onunhandledrejection":true,"onunload":true,"onvolumechange":true,"onwaiting":true,"onwheel":true,"open":false,"openDatabase":false,"opener":false,"Option":false,"origin":false,"OscillatorNode":false,"outerHeight":false,"outerWidth":false,"PageTransitionEvent":false,"pageXOffset":false,"pageYOffset":false,"PannerNode":false,"parent":false,"Path2D":false,"PaymentAddress":false,"PaymentRequest":false,"PaymentRequestUpdateEvent":false,"PaymentResponse":false,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceLongTaskTiming":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceNavigationTiming":false,"PerformanceObserver":false,"PerformanceObserverEntryList":false,"PerformancePaintTiming":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"PeriodicWave":false,"Permissions":false,"PermissionStatus":false,"personalbar":false,"PhotoCapabilities":false,"Plugin":false,"PluginArray":false,"PointerEvent":false,"PopStateEvent":false,"postMessage":false,"Presentation":false,"PresentationAvailability":false,"PresentationConnection":false,"PresentationConnectionAvailableEvent":false,"PresentationConnectionCloseEvent":false,"PresentationConnectionList":false,"PresentationReceiver":false,"PresentationRequest":false,"print":false,"ProcessingInstruction":false,"ProgressEvent":false,"PromiseRejectionEvent":false,"prompt":false,"PushManager":false,"PushSubscription":false,"PushSubscriptionOptions":false,"queueMicrotask":false,"RadioNodeList":false,"Range":false,"ReadableStream":false,"registerProcessor":false,"RemotePlayback":false,"removeEventListener":false,"Request":false,"requestAnimationFrame":false,"requestIdleCallback":false,"resizeBy":false,"ResizeObserver":false,"ResizeObserverEntry":false,"resizeTo":false,"Response":false,"RTCCertificate":false,"RTCDataChannel":false,"RTCDataChannelEvent":false,"RTCDtlsTransport":false,"RTCIceCandidate":false,"RTCIceGatherer":false,"RTCIceTransport":false,"RTCPeerConnection":false,"RTCPeerConnectionIceEvent":false,"RTCRtpContributingSource":false,"RTCRtpReceiver":false,"RTCRtpSender":false,"RTCSctpTransport":false,"RTCSessionDescription":false,"RTCStatsReport":false,"RTCTrackEvent":false,"screen":false,"Screen":false,"screenLeft":false,"ScreenOrientation":false,"screenTop":false,"screenX":false,"screenY":false,"ScriptProcessorNode":false,"scroll":false,"scrollbars":false,"scrollBy":false,"scrollTo":false,"scrollX":false,"scrollY":false,"SecurityPolicyViolationEvent":false,"Selection":false,"self":false,"ServiceWorker":false,"ServiceWorkerContainer":false,"ServiceWorkerRegistration":false,"sessionStorage":false,"setInterval":false,"setTimeout":false,"ShadowRoot":false,"SharedWorker":false,"SourceBuffer":false,"SourceBufferList":false,"speechSynthesis":false,"SpeechSynthesisEvent":false,"SpeechSynthesisUtterance":false,"StaticRange":false,"status":false,"statusbar":false,"StereoPannerNode":false,"stop":false,"Storage":false,"StorageEvent":false,"StorageManager":false,"styleMedia":false,"StyleSheet":false,"StyleSheetList":false,"SubtleCrypto":false,"SVGAElement":false,"SVGAngle":false,"SVGAnimatedAngle":false,"SVGAnimatedBoolean":false,"SVGAnimatedEnumeration":false,"SVGAnimatedInteger":false,"SVGAnimatedLength":false,"SVGAnimatedLengthList":false,"SVGAnimatedNumber":false,"SVGAnimatedNumberList":false,"SVGAnimatedPreserveAspectRatio":false,"SVGAnimatedRect":false,"SVGAnimatedString":false,"SVGAnimatedTransformList":false,"SVGAnimateElement":false,"SVGAnimateMotionElement":false,"SVGAnimateTransformElement":false,"SVGAnimationElement":false,"SVGCircleElement":false,"SVGClipPathElement":false,"SVGComponentTransferFunctionElement":false,"SVGDefsElement":false,"SVGDescElement":false,"SVGDiscardElement":false,"SVGElement":false,"SVGEllipseElement":false,"SVGFEBlendElement":false,"SVGFEColorMatrixElement":false,"SVGFEComponentTransferElement":false,"SVGFECompositeElement":false,"SVGFEConvolveMatrixElement":false,"SVGFEDiffuseLightingElement":false,"SVGFEDisplacementMapElement":false,"SVGFEDistantLightElement":false,"SVGFEDropShadowElement":false,"SVGFEFloodElement":false,"SVGFEFuncAElement":false,"SVGFEFuncBElement":false,"SVGFEFuncGElement":false,"SVGFEFuncRElement":false,"SVGFEGaussianBlurElement":false,"SVGFEImageElement":false,"SVGFEMergeElement":false,"SVGFEMergeNodeElement":false,"SVGFEMorphologyElement":false,"SVGFEOffsetElement":false,"SVGFEPointLightElement":false,"SVGFESpecularLightingElement":false,"SVGFESpotLightElement":false,"SVGFETileElement":false,"SVGFETurbulenceElement":false,"SVGFilterElement":false,"SVGForeignObjectElement":false,"SVGGElement":false,"SVGGeometryElement":false,"SVGGradientElement":false,"SVGGraphicsElement":false,"SVGImageElement":false,"SVGLength":false,"SVGLengthList":false,"SVGLinearGradientElement":false,"SVGLineElement":false,"SVGMarkerElement":false,"SVGMaskElement":false,"SVGMatrix":false,"SVGMetadataElement":false,"SVGMPathElement":false,"SVGNumber":false,"SVGNumberList":false,"SVGPathElement":false,"SVGPatternElement":false,"SVGPoint":false,"SVGPointList":false,"SVGPolygonElement":false,"SVGPolylineElement":false,"SVGPreserveAspectRatio":false,"SVGRadialGradientElement":false,"SVGRect":false,"SVGRectElement":false,"SVGScriptElement":false,"SVGSetElement":false,"SVGStopElement":false,"SVGStringList":false,"SVGStyleElement":false,"SVGSVGElement":false,"SVGSwitchElement":false,"SVGSymbolElement":false,"SVGTextContentElement":false,"SVGTextElement":false,"SVGTextPathElement":false,"SVGTextPositioningElement":false,"SVGTitleElement":false,"SVGTransform":false,"SVGTransformList":false,"SVGTSpanElement":false,"SVGUnitTypes":false,"SVGUseElement":false,"SVGViewElement":false,"TaskAttributionTiming":false,"Text":false,"TextDecoder":false,"TextEncoder":false,"TextEvent":false,"TextMetrics":false,"TextTrack":false,"TextTrackCue":false,"TextTrackCueList":false,"TextTrackList":false,"TimeRanges":false,"toolbar":false,"top":false,"Touch":false,"TouchEvent":false,"TouchList":false,"TrackEvent":false,"TransitionEvent":false,"TreeWalker":false,"UIEvent":false,"URL":false,"URLSearchParams":false,"ValidityState":false,"visualViewport":false,"VisualViewport":false,"VTTCue":false,"WaveShaperNode":false,"WebAssembly":false,"WebGL2RenderingContext":false,"WebGLActiveInfo":false,"WebGLBuffer":false,"WebGLContextEvent":false,"WebGLFramebuffer":false,"WebGLProgram":false,"WebGLQuery":false,"WebGLRenderbuffer":false,"WebGLRenderingContext":false,"WebGLSampler":false,"WebGLShader":false,"WebGLShaderPrecisionFormat":false,"WebGLSync":false,"WebGLTexture":false,"WebGLTransformFeedback":false,"WebGLUniformLocation":false,"WebGLVertexArrayObject":false,"WebSocket":false,"WheelEvent":false,"window":false,"Window":false,"Worker":false,"WritableStream":false,"XMLDocument":false,"XMLHttpRequest":false,"XMLHttpRequestEventTarget":false,"XMLHttpRequestUpload":false,"XMLSerializer":false,"XPathEvaluator":false,"XPathExpression":false,"XPathResult":false,"XSLTProcessor":false},"worker":{"addEventListener":false,"applicationCache":false,"atob":false,"Blob":false,"BroadcastChannel":false,"btoa":false,"Cache":false,"caches":false,"clearInterval":false,"clearTimeout":false,"close":true,"console":false,"fetch":false,"FileReaderSync":false,"FormData":false,"Headers":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"ImageData":false,"importScripts":true,"indexedDB":false,"location":false,"MessageChannel":false,"MessagePort":false,"name":false,"navigator":false,"Notification":false,"onclose":true,"onconnect":true,"onerror":true,"onlanguagechange":true,"onmessage":true,"onoffline":true,"ononline":true,"onrejectionhandled":true,"onunhandledrejection":true,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"postMessage":true,"Promise":false,"queueMicrotask":false,"removeEventListener":false,"Request":false,"Response":false,"self":true,"ServiceWorkerRegistration":false,"setInterval":false,"setTimeout":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false,"WebSocket":false,"Worker":false,"WorkerGlobalScope":false,"XMLHttpRequest":false},"node":{"__dirname":false,"__filename":false,"Buffer":false,"clearImmediate":false,"clearInterval":false,"clearTimeout":false,"console":false,"exports":true,"global":false,"Intl":false,"module":false,"process":false,"queueMicrotask":false,"require":false,"setImmediate":false,"setInterval":false,"setTimeout":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false},"commonjs":{"exports":true,"global":false,"module":false,"require":false},"amd":{"define":false,"require":false},"mocha":{"after":false,"afterEach":false,"before":false,"beforeEach":false,"context":false,"describe":false,"it":false,"mocha":false,"run":false,"setup":false,"specify":false,"suite":false,"suiteSetup":false,"suiteTeardown":false,"teardown":false,"test":false,"xcontext":false,"xdescribe":false,"xit":false,"xspecify":false},"jasmine":{"afterAll":false,"afterEach":false,"beforeAll":false,"beforeEach":false,"describe":false,"expect":false,"fail":false,"fdescribe":false,"fit":false,"it":false,"jasmine":false,"pending":false,"runs":false,"spyOn":false,"spyOnProperty":false,"waits":false,"waitsFor":false,"xdescribe":false,"xit":false},"jest":{"afterAll":false,"afterEach":false,"beforeAll":false,"beforeEach":false,"describe":false,"expect":false,"fdescribe":false,"fit":false,"it":false,"jest":false,"pit":false,"require":false,"test":false,"xdescribe":false,"xit":false,"xtest":false},"qunit":{"asyncTest":false,"deepEqual":false,"equal":false,"expect":false,"module":false,"notDeepEqual":false,"notEqual":false,"notOk":false,"notPropEqual":false,"notStrictEqual":false,"ok":false,"propEqual":false,"QUnit":false,"raises":false,"start":false,"stop":false,"strictEqual":false,"test":false,"throws":false},"phantomjs":{"console":true,"exports":true,"phantom":true,"require":true,"WebPage":true},"couch":{"emit":false,"exports":false,"getRow":false,"log":false,"module":false,"provides":false,"require":false,"respond":false,"send":false,"start":false,"sum":false},"rhino":{"defineClass":false,"deserialize":false,"gc":false,"help":false,"importClass":false,"importPackage":false,"java":false,"load":false,"loadClass":false,"Packages":false,"print":false,"quit":false,"readFile":false,"readUrl":false,"runCommand":false,"seal":false,"serialize":false,"spawn":false,"sync":false,"toint32":false,"version":false},"nashorn":{"__DIR__":false,"__FILE__":false,"__LINE__":false,"com":false,"edu":false,"exit":false,"java":false,"Java":false,"javafx":false,"JavaImporter":false,"javax":false,"JSAdapter":false,"load":false,"loadWithNewGlobal":false,"org":false,"Packages":false,"print":false,"quit":false},"wsh":{"ActiveXObject":true,"Enumerator":true,"GetObject":true,"ScriptEngine":true,"ScriptEngineBuildVersion":true,"ScriptEngineMajorVersion":true,"ScriptEngineMinorVersion":true,"VBArray":true,"WScript":true,"WSH":true,"XDomainRequest":true},"jquery":{"$":false,"jQuery":false},"yui":{"YAHOO":false,"YAHOO_config":false,"YUI":false,"YUI_config":false},"shelljs":{"cat":false,"cd":false,"chmod":false,"config":false,"cp":false,"dirs":false,"echo":false,"env":false,"error":false,"exec":false,"exit":false,"find":false,"grep":false,"ln":false,"ls":false,"mkdir":false,"mv":false,"popd":false,"pushd":false,"pwd":false,"rm":false,"sed":false,"set":false,"target":false,"tempdir":false,"test":false,"touch":false,"which":false},"prototypejs":{"$":false,"$$":false,"$A":false,"$break":false,"$continue":false,"$F":false,"$H":false,"$R":false,"$w":false,"Abstract":false,"Ajax":false,"Autocompleter":false,"Builder":false,"Class":false,"Control":false,"Draggable":false,"Draggables":false,"Droppables":false,"Effect":false,"Element":false,"Enumerable":false,"Event":false,"Field":false,"Form":false,"Hash":false,"Insertion":false,"ObjectRange":false,"PeriodicalExecuter":false,"Position":false,"Prototype":false,"Scriptaculous":false,"Selector":false,"Sortable":false,"SortableObserver":false,"Sound":false,"Template":false,"Toggle":false,"Try":false},"meteor":{"_":false,"$":false,"Accounts":false,"AccountsClient":false,"AccountsCommon":false,"AccountsServer":false,"App":false,"Assets":false,"Blaze":false,"check":false,"Cordova":false,"DDP":false,"DDPRateLimiter":false,"DDPServer":false,"Deps":false,"EJSON":false,"Email":false,"HTTP":false,"Log":false,"Match":false,"Meteor":false,"Mongo":false,"MongoInternals":false,"Npm":false,"Package":false,"Plugin":false,"process":false,"Random":false,"ReactiveDict":false,"ReactiveVar":false,"Router":false,"ServiceConfiguration":false,"Session":false,"share":false,"Spacebars":false,"Template":false,"Tinytest":false,"Tracker":false,"UI":false,"Utils":false,"WebApp":false,"WebAppInternals":false},"mongo":{"_isWindows":false,"_rand":false,"BulkWriteResult":false,"cat":false,"cd":false,"connect":false,"db":false,"getHostName":false,"getMemInfo":false,"hostname":false,"ISODate":false,"listFiles":false,"load":false,"ls":false,"md5sumFile":false,"mkdir":false,"Mongo":false,"NumberInt":false,"NumberLong":false,"ObjectId":false,"PlanCache":false,"print":false,"printjson":false,"pwd":false,"quit":false,"removeFile":false,"rs":false,"sh":false,"UUID":false,"version":false,"WriteResult":false},"applescript":{"$":false,"Application":false,"Automation":false,"console":false,"delay":false,"Library":false,"ObjC":false,"ObjectSpecifier":false,"Path":false,"Progress":false,"Ref":false},"serviceworker":{"addEventListener":false,"applicationCache":false,"atob":false,"Blob":false,"BroadcastChannel":false,"btoa":false,"Cache":false,"caches":false,"CacheStorage":false,"clearInterval":false,"clearTimeout":false,"Client":false,"clients":false,"Clients":false,"close":true,"console":false,"ExtendableEvent":false,"ExtendableMessageEvent":false,"fetch":false,"FetchEvent":false,"FileReaderSync":false,"FormData":false,"Headers":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"ImageData":false,"importScripts":false,"indexedDB":false,"location":false,"MessageChannel":false,"MessagePort":false,"name":false,"navigator":false,"Notification":false,"onclose":true,"onconnect":true,"onerror":true,"onfetch":true,"oninstall":true,"onlanguagechange":true,"onmessage":true,"onmessageerror":true,"onnotificationclick":true,"onnotificationclose":true,"onoffline":true,"ononline":true,"onpush":true,"onpushsubscriptionchange":true,"onrejectionhandled":true,"onsync":true,"onunhandledrejection":true,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"postMessage":true,"Promise":false,"queueMicrotask":false,"registration":false,"removeEventListener":false,"Request":false,"Response":false,"self":false,"ServiceWorker":false,"ServiceWorkerContainer":false,"ServiceWorkerGlobalScope":false,"ServiceWorkerMessageEvent":false,"ServiceWorkerRegistration":false,"setInterval":false,"setTimeout":false,"skipWaiting":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false,"WebSocket":false,"WindowClient":false,"Worker":false,"WorkerGlobalScope":false,"XMLHttpRequest":false},"atomtest":{"advanceClock":false,"fakeClearInterval":false,"fakeClearTimeout":false,"fakeSetInterval":false,"fakeSetTimeout":false,"resetTimeouts":false,"waitsForPromise":false},"embertest":{"andThen":false,"click":false,"currentPath":false,"currentRouteName":false,"currentURL":false,"fillIn":false,"find":false,"findAll":false,"findWithAssert":false,"keyEvent":false,"pauseTest":false,"resumeTest":false,"triggerEvent":false,"visit":false,"wait":false},"protractor":{"$":false,"$$":false,"browser":false,"by":false,"By":false,"DartObject":false,"element":false,"protractor":false},"shared-node-browser":{"clearInterval":false,"clearTimeout":false,"console":false,"setInterval":false,"setTimeout":false,"URL":false,"URLSearchParams":false},"webextensions":{"browser":false,"chrome":false,"opr":false},"greasemonkey":{"cloneInto":false,"createObjectIn":false,"exportFunction":false,"GM":false,"GM_addStyle":false,"GM_deleteValue":false,"GM_getResourceText":false,"GM_getResourceURL":false,"GM_getValue":false,"GM_info":false,"GM_listValues":false,"GM_log":false,"GM_openInTab":false,"GM_registerMenuCommand":false,"GM_setClipboard":false,"GM_setValue":false,"GM_xmlhttpRequest":false,"unsafeWindow":false},"devtools":{"$":false,"$_":false,"$$":false,"$0":false,"$1":false,"$2":false,"$3":false,"$4":false,"$x":false,"chrome":false,"clear":false,"copy":false,"debug":false,"dir":false,"dirxml":false,"getEventListeners":false,"inspect":false,"keys":false,"monitor":false,"monitorEvents":false,"profile":false,"profileEnd":false,"queryObjects":false,"table":false,"undebug":false,"unmonitor":false,"unmonitorEvents":false,"values":false}};
 
 /***/ }),
-/* 337 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52874,9 +52936,9 @@ Object.defineProperty(exports, "__esModule", {
 exports.CodeGenerator = void 0;
 exports.default = generate;
 
-var _sourceMap = __webpack_require__(338);
+var _sourceMap = __webpack_require__(339);
 
-var _printer = __webpack_require__(350);
+var _printer = __webpack_require__(351);
 
 var Generator = function (_printer$default) {
   (0, _inherits3.default)(Generator, _printer$default);
@@ -52986,7 +53048,7 @@ function generate(ast, opts, code) {
 }
 
 /***/ }),
-/* 338 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53015,7 +53077,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _genMapping = __webpack_require__(339);
+var _genMapping = __webpack_require__(340);
 
 var SourceMap = function () {
   function SourceMap(opts, code) {
@@ -53080,7 +53142,7 @@ var SourceMap = function () {
 exports.default = SourceMap;
 
 /***/ }),
-/* 339 */
+/* 340 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53101,7 +53163,7 @@ var _typeof3 = _interopRequireDefault(_typeof2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 (function (global, factory) {
-    ( false ? undefined : (0, _typeof3.default)(exports)) === 'object' && typeof module !== 'undefined' ? factory(exports, __webpack_require__(340), __webpack_require__(341), __webpack_require__(348)) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [exports, __webpack_require__(340), __webpack_require__(341), __webpack_require__(348)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    ( false ? undefined : (0, _typeof3.default)(exports)) === 'object' && typeof module !== 'undefined' ? factory(exports, __webpack_require__(341), __webpack_require__(342), __webpack_require__(349)) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [exports, __webpack_require__(341), __webpack_require__(342), __webpack_require__(349)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : (undefined);
@@ -53355,7 +53417,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 //# sourceMappingURL=gen-mapping.umd.js.map
 
 /***/ }),
-/* 340 */
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53439,7 +53501,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 //# sourceMappingURL=set-array.umd.js.map
 
 /***/ }),
-/* 341 */
+/* 342 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53613,10 +53675,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     Object.defineProperty(exports, '__esModule', { value: true });
 });
 //# sourceMappingURL=sourcemap-codec.umd.js.map
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(342).Buffer))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(343).Buffer))
 
 /***/ }),
-/* 342 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53634,7 +53696,7 @@ var _defineProperty = __webpack_require__(43);
 
 var _defineProperty2 = _interopRequireDefault(_defineProperty);
 
-var _species = __webpack_require__(343);
+var _species = __webpack_require__(344);
 
 var _species2 = _interopRequireDefault(_species);
 
@@ -53644,9 +53706,9 @@ var _symbol2 = _interopRequireDefault(_symbol);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var base64 = __webpack_require__(345);
-var ieee754 = __webpack_require__(346);
-var isArray = __webpack_require__(347);
+var base64 = __webpack_require__(346);
+var ieee754 = __webpack_require__(347);
+var isArray = __webpack_require__(348);
 
 exports.Buffer = Buffer;
 exports.SlowBuffer = SlowBuffer;
@@ -55374,20 +55436,20 @@ function isnan(val) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(259)))
 
 /***/ }),
-/* 343 */
+/* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = { "default": __webpack_require__(344), __esModule: true };
+module.exports = { "default": __webpack_require__(345), __esModule: true };
 
 /***/ }),
-/* 344 */
+/* 345 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(90).f('species');
 
 
 /***/ }),
-/* 345 */
+/* 346 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55515,7 +55577,7 @@ function fromByteArray(uint8) {
 }
 
 /***/ }),
-/* 346 */
+/* 347 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55608,7 +55670,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 };
 
 /***/ }),
-/* 347 */
+/* 348 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55621,7 +55683,7 @@ module.exports = Array.isArray || function (arr) {
 };
 
 /***/ }),
-/* 348 */
+/* 349 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55642,7 +55704,7 @@ var _typeof3 = _interopRequireDefault(_typeof2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 (function (global, factory) {
-    ( false ? undefined : (0, _typeof3.default)(exports)) === 'object' && typeof module !== 'undefined' ? factory(exports, __webpack_require__(341), __webpack_require__(349)) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [exports, __webpack_require__(341), __webpack_require__(349)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    ( false ? undefined : (0, _typeof3.default)(exports)) === 'object' && typeof module !== 'undefined' ? factory(exports, __webpack_require__(342), __webpack_require__(350)) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [exports, __webpack_require__(342), __webpack_require__(350)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : (undefined);
@@ -56176,7 +56238,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 //# sourceMappingURL=trace-mapping.umd.js.map
 
 /***/ }),
-/* 349 */
+/* 350 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56389,7 +56451,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 //# sourceMappingURL=resolve-uri.umd.js.map
 
 /***/ }),
-/* 350 */
+/* 351 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56407,7 +56469,7 @@ var _stringify = __webpack_require__(152);
 
 var _stringify2 = _interopRequireDefault(_stringify);
 
-var _isInteger = __webpack_require__(351);
+var _isInteger = __webpack_require__(352);
 
 var _isInteger2 = _interopRequireDefault(_isInteger);
 
@@ -56430,13 +56492,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _buffer = __webpack_require__(355);
+var _buffer = __webpack_require__(356);
 
-var n = __webpack_require__(356);
+var n = __webpack_require__(357);
 
 var _t = __webpack_require__(42);
 
-var generatorFunctions = __webpack_require__(359);
+var generatorFunctions = __webpack_require__(360);
 
 var isProgram = _t.isProgram,
     isFile = _t.isFile,
@@ -57053,31 +57115,31 @@ function commaSeparator() {
 }
 
 /***/ }),
-/* 351 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = { "default": __webpack_require__(352), __esModule: true };
-
-/***/ }),
 /* 352 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(353);
-module.exports = __webpack_require__(9).Number.isInteger;
-
+module.exports = { "default": __webpack_require__(353), __esModule: true };
 
 /***/ }),
 /* 353 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// 20.1.2.3 Number.isInteger(number)
-var $export = __webpack_require__(7);
-
-$export($export.S, 'Number', { isInteger: __webpack_require__(354) });
+__webpack_require__(354);
+module.exports = __webpack_require__(9).Number.isInteger;
 
 
 /***/ }),
 /* 354 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// 20.1.2.3 Number.isInteger(number)
+var $export = __webpack_require__(7);
+
+$export($export.S, 'Number', { isInteger: __webpack_require__(355) });
+
+
+/***/ }),
+/* 355 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 20.1.2.3 Number.isInteger(number)
@@ -57089,7 +57151,7 @@ module.exports = function isInteger(it) {
 
 
 /***/ }),
-/* 355 */
+/* 356 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57390,7 +57452,7 @@ var Buffer = function () {
 exports.default = Buffer;
 
 /***/ }),
-/* 356 */
+/* 357 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57418,9 +57480,9 @@ exports.needsWhitespace = needsWhitespace;
 exports.needsWhitespaceAfter = needsWhitespaceAfter;
 exports.needsWhitespaceBefore = needsWhitespaceBefore;
 
-var whitespace = __webpack_require__(357);
+var whitespace = __webpack_require__(358);
 
-var parens = __webpack_require__(358);
+var parens = __webpack_require__(359);
 
 var _t = __webpack_require__(42);
 
@@ -57562,7 +57624,7 @@ function needsParens(node, parent, printStack) {
 }
 
 /***/ }),
-/* 357 */
+/* 358 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -57784,7 +57846,7 @@ exports.list = list;
 });
 
 /***/ }),
-/* 358 */
+/* 359 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58157,7 +58219,7 @@ function isFirstInContext(printStack, _ref) {
 }
 
 /***/ }),
-/* 359 */
+/* 360 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58177,7 +58239,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _templateLiterals = __webpack_require__(360);
+var _templateLiterals = __webpack_require__(361);
 
 (0, _keys2.default)(_templateLiterals).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58190,7 +58252,7 @@ var _templateLiterals = __webpack_require__(360);
   });
 });
 
-var _expressions = __webpack_require__(361);
+var _expressions = __webpack_require__(362);
 
 (0, _keys2.default)(_expressions).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58203,7 +58265,7 @@ var _expressions = __webpack_require__(361);
   });
 });
 
-var _statements = __webpack_require__(362);
+var _statements = __webpack_require__(363);
 
 (0, _keys2.default)(_statements).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58216,7 +58278,7 @@ var _statements = __webpack_require__(362);
   });
 });
 
-var _classes = __webpack_require__(363);
+var _classes = __webpack_require__(364);
 
 (0, _keys2.default)(_classes).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58229,7 +58291,7 @@ var _classes = __webpack_require__(363);
   });
 });
 
-var _methods = __webpack_require__(364);
+var _methods = __webpack_require__(365);
 
 (0, _keys2.default)(_methods).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58242,7 +58304,7 @@ var _methods = __webpack_require__(364);
   });
 });
 
-var _modules = __webpack_require__(365);
+var _modules = __webpack_require__(366);
 
 (0, _keys2.default)(_modules).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58255,7 +58317,7 @@ var _modules = __webpack_require__(365);
   });
 });
 
-var _types = __webpack_require__(366);
+var _types = __webpack_require__(367);
 
 (0, _keys2.default)(_types).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58268,7 +58330,7 @@ var _types = __webpack_require__(366);
   });
 });
 
-var _flow = __webpack_require__(368);
+var _flow = __webpack_require__(369);
 
 (0, _keys2.default)(_flow).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58281,7 +58343,7 @@ var _flow = __webpack_require__(368);
   });
 });
 
-var _base = __webpack_require__(369);
+var _base = __webpack_require__(370);
 
 (0, _keys2.default)(_base).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58294,7 +58356,7 @@ var _base = __webpack_require__(369);
   });
 });
 
-var _jsx = __webpack_require__(370);
+var _jsx = __webpack_require__(371);
 
 (0, _keys2.default)(_jsx).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58307,7 +58369,7 @@ var _jsx = __webpack_require__(370);
   });
 });
 
-var _typescript = __webpack_require__(371);
+var _typescript = __webpack_require__(372);
 
 (0, _keys2.default)(_typescript).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -58321,7 +58383,7 @@ var _typescript = __webpack_require__(371);
 });
 
 /***/ }),
-/* 360 */
+/* 361 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58360,7 +58422,7 @@ function TemplateLiteral(node) {
 }
 
 /***/ }),
-/* 361 */
+/* 362 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -58398,7 +58460,7 @@ exports.YieldExpression = void 0;
 
 var _t = __webpack_require__(42);
 
-var n = __webpack_require__(356);
+var n = __webpack_require__(357);
 
 var isCallExpression = _t.isCallExpression,
     isLiteral = _t.isLiteral,
@@ -58718,7 +58780,7 @@ function ModuleExpression(node) {
 }
 
 /***/ }),
-/* 362 */
+/* 363 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59086,7 +59148,7 @@ function VariableDeclarator(node) {
 }
 
 /***/ }),
-/* 363 */
+/* 364 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59304,7 +59366,7 @@ function StaticBlock(node) {
 }
 
 /***/ }),
-/* 364 */
+/* 365 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59459,7 +59521,7 @@ function hasTypesOrComments(node, param) {
 }
 
 /***/ }),
-/* 365 */
+/* 366 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59708,7 +59770,7 @@ function ImportNamespaceSpecifier(node) {
 }
 
 /***/ }),
-/* 366 */
+/* 367 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -59758,7 +59820,7 @@ exports.TupleExpression = TupleExpression;
 
 var _t = __webpack_require__(42);
 
-var _jsesc = __webpack_require__(367);
+var _jsesc = __webpack_require__(368);
 
 var isAssignmentPattern = _t.isAssignmentPattern,
     isIdentifier = _t.isIdentifier;
@@ -60010,7 +60072,7 @@ function PipelinePrimaryTopicReference() {
 }
 
 /***/ }),
-/* 367 */
+/* 368 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60327,10 +60389,10 @@ var jsesc = function jsesc(argument, options) {
 jsesc.version = '2.5.2';
 
 module.exports = jsesc;
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(342).Buffer))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(343).Buffer))
 
 /***/ }),
-/* 368 */
+/* 369 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -60426,9 +60488,9 @@ exports._variance = _variance;
 
 var _t = __webpack_require__(42);
 
-var _modules = __webpack_require__(365);
+var _modules = __webpack_require__(366);
 
-var _types2 = __webpack_require__(366);
+var _types2 = __webpack_require__(367);
 
 var isDeclareExportDeclaration = _t.isDeclareExportDeclaration,
     isStatement = _t.isStatement;
@@ -61157,7 +61219,7 @@ function OptionalIndexedAccessType(node) {
 }
 
 /***/ }),
-/* 369 */
+/* 370 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61258,7 +61320,7 @@ function Placeholder(node) {
 }
 
 /***/ }),
-/* 370 */
+/* 371 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -61457,7 +61519,7 @@ function JSXClosingFragment() {
 }
 
 /***/ }),
-/* 371 */
+/* 372 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62307,7 +62369,7 @@ function tsPrintClassMemberModifiers(node, isField) {
 }
 
 /***/ }),
-/* 372 */
+/* 373 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62572,7 +62634,7 @@ function inType() {
 }
 
 /***/ }),
-/* 373 */
+/* 374 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62598,7 +62660,7 @@ exports.getTypeAnnotation = getTypeAnnotation;
 exports.isBaseType = isBaseType;
 exports.isGenericType = isGenericType;
 
-var inferers = __webpack_require__(374);
+var inferers = __webpack_require__(375);
 
 var _t = __webpack_require__(42);
 
@@ -62620,10 +62682,16 @@ var anyTypeAnnotation = _t.anyTypeAnnotation,
 
 
 function getTypeAnnotation() {
-  if (this.typeAnnotation) return this.typeAnnotation;
-  var type = this._getTypeAnnotation() || anyTypeAnnotation();
+  var type = this.getData("typeAnnotation");
+
+  if (type != null) {
+    return type;
+  }
+
+  type = this._getTypeAnnotation() || anyTypeAnnotation();
   if (isTypeAnnotation(type)) type = type.typeAnnotation;
-  return this.typeAnnotation = type;
+  this.setData("typeAnnotation", type);
+  return type;
 }
 
 var typeAnnotationInferringNodes = new _weakSet2.default();
@@ -62764,7 +62832,7 @@ function isGenericType(genericName) {
 }
 
 /***/ }),
-/* 374 */
+/* 375 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -62805,7 +62873,7 @@ exports.VariableDeclarator = VariableDeclarator;
 
 var _t = __webpack_require__(42);
 
-var _infererReference = __webpack_require__(375);
+var _infererReference = __webpack_require__(376);
 
 var BOOLEAN_BINARY_OPERATORS = _t.BOOLEAN_BINARY_OPERATORS,
     BOOLEAN_UNARY_OPERATORS = _t.BOOLEAN_UNARY_OPERATORS,
@@ -63029,7 +63097,7 @@ function resolveCall(callee) {
 }
 
 /***/ }),
-/* 375 */
+/* 376 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63271,7 +63339,7 @@ function getConditionalAnnotation(binding, path, name) {
 }
 
 /***/ }),
-/* 376 */
+/* 377 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63293,7 +63361,7 @@ exports.replaceWith = replaceWith;
 exports.replaceWithMultiple = replaceWithMultiple;
 exports.replaceWithSourceString = replaceWithSourceString;
 
-var _codeFrame = __webpack_require__(377);
+var _codeFrame = __webpack_require__(378);
 
 var _index = __webpack_require__(316);
 
@@ -63305,7 +63373,7 @@ var _parser = __webpack_require__(311);
 
 var _t = __webpack_require__(42);
 
-var _helperHoistVariables = __webpack_require__(393);
+var _helperHoistVariables = __webpack_require__(394);
 
 var FUNCTION_TYPES = _t.FUNCTION_TYPES,
     arrowFunctionExpression = _t.arrowFunctionExpression,
@@ -63567,7 +63635,7 @@ function replaceInline(nodes) {
 }
 
 /***/ }),
-/* 377 */
+/* 378 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63585,7 +63653,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.codeFrameColumns = codeFrameColumns;
 exports.default = _default;
 
-var _highlight = __webpack_require__(378);
+var _highlight = __webpack_require__(379);
 
 var deprecationWarningShown = false;
 
@@ -63751,7 +63819,7 @@ function _default(rawLines, lineNumber, colNumber) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(105)))
 
 /***/ }),
-/* 378 */
+/* 379 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63761,7 +63829,7 @@ var _getIterator2 = __webpack_require__(55);
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
 
-var _regenerator = __webpack_require__(379);
+var _regenerator = __webpack_require__(380);
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
 
@@ -63778,11 +63846,11 @@ exports.default = highlight;
 exports.getChalk = getChalk;
 exports.shouldHighlight = shouldHighlight;
 
-var _jsTokens = __webpack_require__(382);
+var _jsTokens = __webpack_require__(383);
 
 var _helperValidatorIdentifier = __webpack_require__(122);
 
-var _chalk = __webpack_require__(383);
+var _chalk = __webpack_require__(384);
 
 var sometimesKeywords = new _set2.default(["as", "async", "from", "get", "of", "set"]);
 
@@ -63935,14 +64003,14 @@ function highlight(code) {
 }
 
 /***/ }),
-/* 379 */
+/* 380 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(380);
+module.exports = __webpack_require__(381);
 
 
 /***/ }),
-/* 380 */
+/* 381 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -63967,7 +64035,7 @@ var oldRuntime = hadRuntime && g.regeneratorRuntime;
 // Force reevalutation of runtime.js.
 g.regeneratorRuntime = undefined;
 
-module.exports = __webpack_require__(381);
+module.exports = __webpack_require__(382);
 
 if (hadRuntime) {
   // Restore the original runtime.
@@ -63983,7 +64051,7 @@ if (hadRuntime) {
 
 
 /***/ }),
-/* 381 */
+/* 382 */
 /***/ (function(module, exports) {
 
 /**
@@ -64716,7 +64784,7 @@ if (hadRuntime) {
 
 
 /***/ }),
-/* 382 */
+/* 383 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64740,7 +64808,7 @@ exports.matchToToken = function (match) {
 };
 
 /***/ }),
-/* 383 */
+/* 384 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64784,11 +64852,11 @@ var _set2 = _interopRequireDefault(_set);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var escapeStringRegexp = __webpack_require__(384);
-var ansiStyles = __webpack_require__(385);
-var stdoutColor = __webpack_require__(391).stdout;
+var escapeStringRegexp = __webpack_require__(385);
+var ansiStyles = __webpack_require__(386);
+var stdoutColor = __webpack_require__(392).stdout;
 
-var template = __webpack_require__(392);
+var template = __webpack_require__(393);
 
 var isSimpleWindowsTerm = process.platform === 'win32' && !(process.env.TERM || '').toLowerCase().startsWith('xterm');
 
@@ -65210,7 +65278,7 @@ function _inspect(input, depth) {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(105)))
 
 /***/ }),
-/* 384 */
+/* 385 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65227,7 +65295,7 @@ module.exports = function (str) {
 };
 
 /***/ }),
-/* 385 */
+/* 386 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65255,7 +65323,7 @@ var _map2 = _interopRequireDefault(_map);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var colorConvert = __webpack_require__(387);
+var colorConvert = __webpack_require__(388);
 
 var wrapAnsi16 = function wrapAnsi16(fn, offset) {
 	return function () {
@@ -65492,10 +65560,10 @@ Object.defineProperty(module, 'exports', {
 	enumerable: true,
 	get: assembleStyles
 });
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(386)(module)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(387)(module)))
 
 /***/ }),
-/* 386 */
+/* 387 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -65523,7 +65591,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 387 */
+/* 388 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65539,8 +65607,8 @@ var _keys2 = _interopRequireDefault(_keys);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var conversions = __webpack_require__(388);
-var route = __webpack_require__(390);
+var conversions = __webpack_require__(389);
+var route = __webpack_require__(391);
 
 var convert = {};
 
@@ -65619,14 +65687,14 @@ models.forEach(function (fromModel) {
 module.exports = convert;
 
 /***/ }),
-/* 388 */
+/* 389 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 /* MIT license */
-var cssKeywords = __webpack_require__(389);
+var cssKeywords = __webpack_require__(390);
 
 // NOTE: conversions should only return primitive values (i.e. arrays, or
 //       values that give correct `typeof` results).
@@ -66472,7 +66540,7 @@ convert.rgb.gray = function (rgb) {
 };
 
 /***/ }),
-/* 389 */
+/* 390 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66630,7 +66698,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 390 */
+/* 391 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66642,7 +66710,7 @@ var _keys2 = _interopRequireDefault(_keys);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var conversions = __webpack_require__(388);
+var conversions = __webpack_require__(389);
 
 /*
 	this function routes a model to all other models.
@@ -66740,7 +66808,7 @@ module.exports = function (fromModel) {
 };
 
 /***/ }),
-/* 391 */
+/* 392 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66752,7 +66820,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 392 */
+/* 393 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67074,7 +67142,7 @@ function _inspect(input, depth) {
 }
 
 /***/ }),
-/* 393 */
+/* 394 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67188,7 +67256,7 @@ function hoistVariables(path, emit) {
 }
 
 /***/ }),
-/* 394 */
+/* 395 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67671,7 +67739,7 @@ function evaluate() {
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(259)))
 
 /***/ }),
-/* 395 */
+/* 396 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -67694,7 +67762,7 @@ exports.unwrapFunctionEnvironment = unwrapFunctionEnvironment;
 
 var _t = __webpack_require__(42);
 
-var _helperEnvironmentVisitor = __webpack_require__(396);
+var _helperEnvironmentVisitor = __webpack_require__(335);
 
 var _helperFunctionName = __webpack_require__(397);
 
@@ -68215,79 +68283,6 @@ function getScopeInformation(fnPath) {
     superCalls: superCalls
   };
 }
-
-/***/ }),
-/* 396 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _defineProperty2 = __webpack_require__(160);
-
-var _defineProperty3 = _interopRequireDefault(_defineProperty2);
-
-var _getIterator2 = __webpack_require__(55);
-
-var _getIterator3 = _interopRequireDefault(_getIterator2);
-
-var _default2;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-exports.skipAllButComputedKey = skipAllButComputedKey;
-
-var _t = __webpack_require__(42);
-
-var VISITOR_KEYS = _t.VISITOR_KEYS,
-    staticBlock = _t.staticBlock;
-
-
-function skipAllButComputedKey(path) {
-  if (!path.node.computed) {
-    path.skip();
-    return;
-  }
-
-  var keys = VISITOR_KEYS[path.type];
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = (0, _getIterator3.default)(keys), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var key = _step.value;
-
-      if (key !== "key") path.skipKey(key);
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-}
-
-var skipKey = (staticBlock ? "StaticBlock|" : "") + "ClassPrivateProperty|TypeAnnotation|FunctionDeclaration|FunctionExpression";
-var _default = (_default2 = {}, (0, _defineProperty3.default)(_default2, skipKey, function (path) {
-  return path.skip();
-}), (0, _defineProperty3.default)(_default2, "Method|ClassProperty", function MethodClassProperty(path) {
-  skipAllButComputedKey(path);
-}), _default2);
-exports.default = _default;
 
 /***/ }),
 /* 397 */
@@ -68887,7 +68882,7 @@ var _t = __webpack_require__(42);
 
 var _parser = __webpack_require__(311);
 
-var _codeFrame = __webpack_require__(377);
+var _codeFrame = __webpack_require__(378);
 
 var isCallExpression = _t.isCallExpression,
     isExpressionStatement = _t.isExpressionStatement,
@@ -69334,9 +69329,13 @@ var _getIterator2 = __webpack_require__(55);
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
 
-var _weakSet = __webpack_require__(322);
+var _set = __webpack_require__(125);
 
-var _weakSet2 = _interopRequireDefault(_weakSet);
+var _set2 = _interopRequireDefault(_set);
+
+var _map = __webpack_require__(171);
+
+var _map2 = _interopRequireDefault(_map);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -69344,7 +69343,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports._guessExecutionStatusRelativeTo = _guessExecutionStatusRelativeTo;
-exports._guessExecutionStatusRelativeToDifferentFunctions = _guessExecutionStatusRelativeToDifferentFunctions;
 exports._resolve = _resolve;
 exports.canHaveVariableDeclarationOrExpression = canHaveVariableDeclarationOrExpression;
 exports.canSwapBetweenExpressionAndStatement = canSwapBetweenExpressionAndStatement;
@@ -69571,20 +69569,24 @@ function isExecutionUncertainInList(paths, maxIndex) {
 }
 
 function _guessExecutionStatusRelativeTo(target) {
+  return _guessExecutionStatusRelativeToCached(this, target, new _map2.default());
+}
+
+function _guessExecutionStatusRelativeToCached(base, target, cache) {
   var funcParent = {
-    this: getOuterFunction(this),
+    this: getOuterFunction(base),
     target: getOuterFunction(target)
   };
 
   if (funcParent.target.node !== funcParent.this.node) {
-    return this._guessExecutionStatusRelativeToDifferentFunctions(funcParent.target);
+    return _guessExecutionStatusRelativeToDifferentFunctionsCached(base, funcParent.target, cache);
   }
 
   var paths = {
     target: target.getAncestry(),
-    this: this.getAncestry()
+    this: base.getAncestry()
   };
-  if (paths.target.indexOf(this) >= 0) return "after";
+  if (paths.target.indexOf(base) >= 0) return "after";
   if (paths.this.indexOf(target) >= 0) return "before";
   var commonPath = void 0;
   var commonIndex = {
@@ -69628,9 +69630,9 @@ function _guessExecutionStatusRelativeTo(target) {
   return keyPosition.target > keyPosition.this ? "before" : "after";
 }
 
-var executionOrderCheckedNodes = new _weakSet2.default();
+var executionOrderCheckedNodes = new _set2.default();
 
-function _guessExecutionStatusRelativeToDifferentFunctions(target) {
+function _guessExecutionStatusRelativeToDifferentFunctionsInternal(base, target, cache) {
   if (!target.isFunctionDeclaration() || target.parentPath.isExportDeclaration()) {
     return "unknown";
   }
@@ -69660,14 +69662,16 @@ function _guessExecutionStatusRelativeToDifferentFunctions(target) {
       if (executionOrderCheckedNodes.has(path.node)) continue;
       executionOrderCheckedNodes.add(path.node);
 
-      var status = this._guessExecutionStatusRelativeTo(path);
+      try {
+        var status = _guessExecutionStatusRelativeToCached(base, path, cache);
 
-      executionOrderCheckedNodes.delete(path.node);
-
-      if (allStatus && allStatus !== status) {
-        return "unknown";
-      } else {
-        allStatus = status;
+        if (allStatus && allStatus !== status) {
+          return "unknown";
+        } else {
+          allStatus = status;
+        }
+      } finally {
+        executionOrderCheckedNodes.delete(path.node);
       }
     }
   } catch (err) {
@@ -69686,6 +69690,21 @@ function _guessExecutionStatusRelativeToDifferentFunctions(target) {
   }
 
   return allStatus;
+}
+
+function _guessExecutionStatusRelativeToDifferentFunctionsCached(base, target, cache) {
+  var nodeMap = cache.get(base.node);
+
+  if (!nodeMap) {
+    cache.set(base.node, nodeMap = new _map2.default());
+  } else if (nodeMap.has(target.node)) {
+    return nodeMap.get(target.node);
+  }
+
+  var result = _guessExecutionStatusRelativeToDifferentFunctionsInternal(base, target, cache);
+
+  nodeMap.set(target.node, result);
+  return result;
 }
 
 function resolve(dangerous, resolved) {
@@ -70017,7 +70036,11 @@ function stop() {
 function setScope() {
   if (this.opts && this.opts.noScope) return;
   var path = this.parentPath;
-  if (this.key === "key" && path.isMethod()) path = path.parentPath;
+
+  if ((this.key === "key" || this.listKey === "decorators") && path.isMethod()) {
+    path = path.parentPath;
+  }
+
   var target = void 0;
 
   while (path && !target) {

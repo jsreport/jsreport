@@ -241,6 +241,11 @@
   white-space: break-spaces;
 }
 
+.profileLogItemLevel.userLevel,
+.profileLogItemMessage.userLevel {
+  color: #1fdede;
+}
+
 .profileLogItemLevel,
 .profileLogItemTime {
   text-overflow: ellipsis;
