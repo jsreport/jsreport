@@ -99,19 +99,23 @@ module.exports = (files) => {
         for (const nextParagraphEl of nextParagraphEls) {
           const nextParagraphTextNodes = nodeListToArray(nextParagraphEl.getElementsByTagName('w:t'))
 
-          for (const nptNode of nextParagraphTextNodes) {
+          for (const [nptIndex, nptNode] of nextParagraphTextNodes.entries()) {
             const childIfOpeningBlockHelperMatches = [...nptNode.textContent.matchAll(getIfOpeningBlockRegExp())]
             const childIfClosingBlockHelperMatches = [...nptNode.textContent.matchAll(getIfClosingBlockRegExp())]
 
             openedIfTags += childIfOpeningBlockHelperMatches.length
             openedIfTags -= childIfClosingBlockHelperMatches.length
 
-            if (openedIfTags === 0) {
+            const remainingTextNodesInParagraph = nextParagraphTextNodes.slice(nptIndex + 1)
+
+            // we match only when found the close if and also there is no more text nodes in the paragraph
+            // that contain the close if
+            if (openedIfTags === 0 && remainingTextNodesInParagraph.length === 0) {
               closeIfTextMatchInfo = {
                 paragraphNode: nextParagraphEl,
                 node: nptNode,
-                // this only works fine when the close if node does not contain another close if node in there,
-                // there can be other text there, but not other close if node
+                // this only works fine when the close if node does not contain another close if (like "{{/if}}{{/if}}") node in there,
+                // and also there is no more text on the same text node after the close if (like "{{/if}}something"), that won't work
                 match: childIfClosingBlockHelperMatches[0]
               }
 
@@ -150,7 +154,7 @@ module.exports = (files) => {
 
         fakeCloseIfElement.textContent = '{{/if}}'
 
-        closeIfTextMatchInfo.paragraphNode.parentNode.insertBefore(fakeCloseIfElement, closeIfTextMatchInfo.paragraphNode)
+        closeIfTextMatchInfo.paragraphNode.parentNode.insertBefore(fakeCloseIfElement, closeIfTextMatchInfo.paragraphNode.nextSibling)
 
         const newMeaningfulTextNodes = nodeListToArray(paragraphEl.getElementsByTagName('w:t')).filter((t) => {
           return t.textContent != null && t.textContent.trim() !== ''

@@ -2766,6 +2766,29 @@ describe('docx', () => {
     parts[3].should.be.eql('Some text')
   })
 
+  it('should be able to remove TOC Title without producing corrupted document when closing if is on same line of chart', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove4.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const files = await decompress()(result.content)
+
+    const documentXML = files.find(f => f.path === 'word/document.xml').data.toString()
+
+    should(documentXML.includes('<TOCTitle>')).be.false()
+  })
+
   it('chart', async () => {
     const labels = ['Jan', 'Feb', 'March']
     const datasets = [{
@@ -3472,6 +3495,52 @@ describe('docx', () => {
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
 
     chartTitleEl.textContent.should.be.eql(chartTitle)
+  })
+
+  it('TOC Title close if handling should not modify context blocks for other elements like chart', async () => {
+    const labels = ['Q1', 'Q2', 'Q3', 'Q4']
+
+    const datasets = [{
+      label: 'Apples',
+      data: [100, 50, 10, 70]
+    }, {
+      label: 'Oranges',
+      data: [20, 30, 20, 40]
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-block-check.docx'))
+          }
+        }
+      },
+      data: {
+        fruits: {
+          labels,
+          datasets
+        }
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/charts/chart1.xml').data.toString()
+    )
+
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    dataElements.forEach((dataEl, idx) => {
+      dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
+      nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(labels)
+      nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
+    })
   })
 
   it('scatter chart', async () => {
