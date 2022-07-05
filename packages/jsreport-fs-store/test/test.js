@@ -961,7 +961,7 @@ describe('cluster', () => {
     should.exists(doc)
   })
 
-  it('corrupted journal should cause reload', async () => {
+  it('sync with corrupted journal should cause reload and fs.journal cleanup', async () => {
     await store1.collection('templates').insert({
       name: 'a'
     })
@@ -971,6 +971,17 @@ describe('cluster', () => {
       name: 'a'
     })
     doc.name.should.be.eql('a')
+    const journalContent = fs.readFileSync(path.join(tmpData, 'fs.journal')).toString()
+    journalContent.should.containEql('reload')
+    journalContent.should.not.containEql('corrupted')
+  })
+
+  it('clean with corrupted journal should cause reload and fs.journal cleanup', async () => {
+    fs.writeFileSync(path.join(tmpData, 'fs.journal'), 'corrupted')
+    await store1.provider.journal.clean()
+    const journalContent = fs.readFileSync(path.join(tmpData, 'fs.journal')).toString()
+    journalContent.should.containEql('reload')
+    journalContent.should.not.containEql('corrupted')
   })
 })
 

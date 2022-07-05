@@ -39,7 +39,7 @@ module.exports = ({
         return
       }
 
-      return this._appendToJournal('insert', doc)
+      return this._writeToJournal('insert', doc)
     },
 
     update (doc, opts) {
@@ -47,7 +47,7 @@ module.exports = ({
         return
       }
 
-      return this._appendToJournal('update', doc)
+      return this._writeToJournal('update', doc)
     },
 
     remove (doc, opts) {
@@ -55,12 +55,12 @@ module.exports = ({
         return
       }
 
-      return this._appendToJournal('remove', { _id: doc._id, $entitySet: doc.$entitySet })
+      return this._writeToJournal('remove', { _id: doc._id, $entitySet: doc.$entitySet })
     },
 
     async commit () {
       this.lastVersion = await loadVersion()
-      return this._appendToJournal('reload', { })
+      return this._writeToJournal('reload', { })
     },
 
     async sync () {
@@ -132,7 +132,7 @@ module.exports = ({
         logger.warn('fs journal is corrupted, reloading', e)
 
         this.lastVersion = currentVersion
-        await this._appendToJournal('reload', { })
+        await this._writeToJournal('reload', { }, false)
 
         return reload()
       } finally {
@@ -145,15 +145,21 @@ module.exports = ({
       clearInterval(this.syncInterval)
     },
 
-    async _appendToJournal (operation, doc) {
+    async _writeToJournal (operation, doc, append = true) {
       this.lastVersion += 1
 
-      await fs.appendFile('fs.journal', serialize({
+      const contentToWrite = serialize({
         operation,
         timestamp: new Date(),
         version: this.lastVersion,
         doc
-      }, false) + '\n')
+      }, false) + '\n'
+
+      if (append) {
+        await fs.appendFile('fs.journal', contentToWrite)
+      } else {
+        await fs.writeFile('fs.journal', contentToWrite)
+      }
 
       await fs.writeFile('fs.version', this.lastVersion.toString())
 
@@ -189,7 +195,8 @@ module.exports = ({
           this.lastSync = new Date()
         }
       } catch (e) {
-        logger.warn('Cleaning fs journal failed', e)
+        logger.warn('Cleaning fs journal failed, will reload', e)
+        try { await this._writeToJournal('reload', { }, false) } catch (e) { logger.warn('Failed to write to journal file', e) }
       }
     }
   }
