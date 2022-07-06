@@ -99,7 +99,7 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
 
   if (typeof children === 'function') {
     return children({
-      // we render the root tree with a wraper div to be able to
+      // we render the root tree with a wrapper div to be able to
       // calculate some things for the drag and drop interactions
       renderDefaultTree,
       renderTree: (...args) => (

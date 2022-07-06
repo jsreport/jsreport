@@ -46,7 +46,7 @@ export default function useEntityTree (main, {
   const [highlightedArea, setHighlightedArea] = useState(null)
   const [currentEntities, setFilter] = useFilteredEntities(entities)
 
-  const { isNodeCollapsed, toogleNodeCollapse, collapseHandler } = useCollapsed({
+  const { isNodeCollapsed, toggleNodeCollapse, collapseHandler } = useCollapsed({
     listRef
   })
 
@@ -62,7 +62,7 @@ export default function useEntityTree (main, {
     hierarchyMove(sourceInfo, targetInfo, shouldCopy, false, true).then((result) => {
       if (targetInfo.shortid != null) {
         const targetEntity = storeMethods.getEntityByShortid(targetInfo.shortid)
-        toogleNodeCollapse(listRef.current.entityNodesById[targetEntity._id], false)
+        toggleNodeCollapse(listRef.current.entityNodesById[targetEntity._id], false)
       }
 
       if (!result || result.duplicatedEntity !== true) {
@@ -78,7 +78,7 @@ export default function useEntityTree (main, {
         shouldCopy
       })
     })
-  }, [hierarchyMove, toogleNodeCollapse, listRef])
+  }, [hierarchyMove, toggleNodeCollapse, listRef])
 
   const isValidHierarchyTarget = useCallback((sourceNode, targetNode) => {
     const containersInHierarchyForTarget = []
@@ -262,13 +262,13 @@ export default function useEntityTree (main, {
         return
       }
 
-      const hierachyEntityTitleDimensions = hierarchyEntityTitleDOMNode.getBoundingClientRect()
+      const hierarchyEntityTitleDimensions = hierarchyEntityTitleDOMNode.getBoundingClientRect()
 
       newHighlightedArea.label = {
-        top: hierachyEntityTitleDimensions.top,
-        left: hierachyEntityTitleDimensions.left,
-        width: hierachyEntityTitleDimensions.width,
-        height: hierachyEntityTitleDimensions.height
+        top: hierarchyEntityTitleDimensions.top,
+        left: hierarchyEntityTitleDimensions.left,
+        width: hierarchyEntityTitleDimensions.width,
+        height: hierarchyEntityTitleDimensions.height
       }
 
       let containerTargetIsCollapsed = false
@@ -292,10 +292,10 @@ export default function useEntityTree (main, {
         const hierarchyEntityDimensions = hierarchyEntityDOMNode.getBoundingClientRect()
 
         newHighlightedArea.hierarchy = {
-          top: hierachyEntityTitleDimensions.top + (hierachyEntityTitleDimensions.height + 4),
-          left: hierachyEntityTitleDimensions.left,
+          top: hierarchyEntityTitleDimensions.top + (hierarchyEntityTitleDimensions.height + 4),
+          left: hierarchyEntityTitleDimensions.left,
           width: `${paddingByLevelInTree}rem`,
-          height: hierarchyEntityDimensions.height - (hierachyEntityTitleDimensions.height + 4)
+          height: hierarchyEntityDimensions.height - (hierarchyEntityTitleDimensions.height + 4)
         }
       }
     }
@@ -339,7 +339,7 @@ export default function useEntityTree (main, {
       onRename,
       onNewEntity: (node, ...params) => {
         if (node && node.isEntitySet !== true) {
-          toogleNodeCollapse(node, false)
+          toggleNodeCollapse(node, false)
         }
 
         onNewEntity(...params)
@@ -387,13 +387,13 @@ export default function useEntityTree (main, {
         if (isEntity) {
           openTab({ _id: node.data._id })
         } else if (isGroup || isGroupEntity) {
-          toogleNodeCollapse(node)
+          toggleNodeCollapse(node)
         }
 
         clearContextMenu()
       },
       onNodeDragOver: dragOverNode,
-      onNodeCollapse: toogleNodeCollapse,
+      onNodeCollapse: toggleNodeCollapse,
       onContextMenu: showContextMenu,
       onClearContextMenu: clearContextMenu,
       onSetClipboard: (newClipboard) => {
@@ -450,7 +450,7 @@ export default function useEntityTree (main, {
     openTab,
     getContextMenuItems,
     isNodeCollapsed,
-    toogleNodeCollapse,
+    toggleNodeCollapse,
     dragOverNode,
     showContextMenu,
     clearContextMenu,

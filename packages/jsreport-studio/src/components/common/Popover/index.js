@@ -14,7 +14,7 @@ const Popover = (props) => {
   } = props
 
   const stylesForWrapper = {}
-  const stylesForTrianguleWrapper = {}
+  const stylesForTriangleWrapper = {}
   let marginTopWrapper
 
   if (topWrapper == null) {
@@ -31,7 +31,7 @@ const Popover = (props) => {
 
   if (color) {
     stylesForWrapper.backgroundColor = color
-    stylesForTrianguleWrapper.borderBottomColor = color
+    stylesForTriangleWrapper.borderBottomColor = color
   }
 
   return (
@@ -46,7 +46,7 @@ const Popover = (props) => {
                     ? (
                       <div className={style.popoverContentWrapper} style={stylesForWrapper}>
                         {triangle && <div className={style.popoverTriangleShadow} />}
-                        {triangle && <div className={style.popoverTriangle} style={stylesForTrianguleWrapper} />}
+                        {triangle && <div className={style.popoverTriangle} style={stylesForTriangleWrapper} />}
                         {children}
                       </div>
                       )
@@ -55,7 +55,7 @@ const Popover = (props) => {
                           ? (
                             <div>
                               <div className={style.popoverTriangleShadow} />
-                              <div className={style.popoverTriangle} style={stylesForTrianguleWrapper} />
+                              <div className={style.popoverTriangle} style={stylesForTriangleWrapper} />
                               {children}
                             </div>
                             )

@@ -55,7 +55,7 @@ export default function useContextMenu (contextMenuRef) {
 
         // handle quirk in firefox that fires and additional click event during
         // contextmenu event, this code prevents the context menu to
-        // inmediatly be closed after being shown in firefox
+        // immediately be closed after being shown in firefox
         if (button === LEFT_CLICK) {
           clearContextMenu()
         }
