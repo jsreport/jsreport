@@ -189,7 +189,6 @@ describe('profiler', () => {
     } catch (e) {
 
     }
-    await new Promise(resolve => setTimeout(resolve, 100))
 
     let profile
     while (true) {
@@ -252,32 +251,20 @@ describe('profiler', () => {
       }
     })
 
-    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    let profile = await reporter.documentStore.collection('profiles').findOne({})
+    while (true) {
+      profile = await reporter.documentStore.collection('profiles').findOne({})
+      if (profile != null && profile.state === 'success') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    }
     const content = await reporter.blobStorage.read(profile.blobName)
 
     const events = content.toString().split('\n').filter(l => l).map(JSON.parse)
     for (const m of events.filter(m => m.type !== 'log' && m.doDiffs !== false)) {
       should(m.req).be.ok()
     }
-  })
-
-  it('should persist profiles log also when blobStorage doesnt support appends', async () => {
-    reporter.blobStorage._provider.append = null
-
-    await reporter.render({
-      template: {
-        engine: 'none',
-        recipe: 'html',
-        content: 'Hello'
-      }
-    })
-
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    const profile = await reporter.documentStore.collection('profiles').findOne({})
-    const content = await reporter.blobStorage.read(profile.blobName)
-
-    should(content.toString().split('\n').length > 1).be.true()
   })
 
   it('should persist no profile entity when settings profiler.mode is disabled ', async () => {
@@ -430,6 +417,34 @@ describe('profiler', () => {
     await reporter.render(renderReq)
     const renderStartEvent = events.find(e => e.type === 'operationStart' && e.subtype === 'render')
     renderStartEvent.req.tooLarge.should.be.true()
+  })
+})
+
+describe('profiler with custom blobStorage', () => {
+  let reporter
+
+  beforeEach(async () => {
+    reporter = jsreport()
+    reporter.use(jsreport.tests.listeners())
+    await reporter.init()
+    reporter.blobStorage.write = (blobName, buffer) => ('xxx-' + blobName)
+  })
+
+  afterEach(() => reporter.close())
+
+  it('should use blobName returned from the blobStorage.write', async () => {
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    profile.blobName.startsWith('xxx-').should.be.true()
   })
 })
 

@@ -352,11 +352,13 @@ module.exports = (reporter, options) => {
         throw new Error('Can not save an empty commit, there are no changes to commit')
       }
 
+      let blobName = `versions/${newCommit.message.replace(/[^a-zA-Z0-9]/g, '')}${nanoid()}.json`
+      blobName = await reporter.blobStorage.write(blobName, Buffer.from(JSON.stringify(newCommit.changes)))
       const version = await reporter.documentStore.collection('versions').insert({
         ...omit(newCommit, 'changes'),
-        blobName: `versions/${newCommit.message.replace(/[^a-zA-Z0-9]/g, '')}${nanoid()}.json`
+        blobName
       }, req)
-      await reporter.blobStorage.write(version.blobName, Buffer.from(JSON.stringify(newCommit.changes)))
+
       version.changes = newCommit.changes
       return version
     },

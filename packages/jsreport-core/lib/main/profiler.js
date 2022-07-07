@@ -105,14 +105,7 @@ module.exports = (reporter) => {
     }
 
     runInProfilerChain(() => {
-      if (req.context.profiling.logFilePath) {
-        return fs.appendFile(req.context.profiling.logFilePath, Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'))
-      }
-
-      return reporter.blobStorage.append(
-        req.context.profiling.entity.blobName,
-        Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'), req
-      )
+      return fs.appendFile(req.context.profiling.logFilePath, Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'))
     }, req)
   }
 
@@ -170,20 +163,15 @@ module.exports = (reporter) => {
 
     req.context.profiling.lastOperation = null
 
-    const blobName = `profiles/${req.context.rootId}.log`
-
     const profile = {
       _id: reporter.documentStore.generateId(),
       timestamp: new Date(),
       state: 'queued',
-      mode: req.context.profiling.mode,
-      blobName
+      mode: req.context.profiling.mode
     }
 
-    if (!reporter.blobStorage.supportsAppend) {
-      const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.log`, '')
-      req.context.profiling.logFilePath = pathToFile
-    }
+    const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.log`, '')
+    req.context.profiling.logFilePath = pathToFile
 
     runInProfilerChain(async () => {
       req.context.skipValidationFor = profile
@@ -223,24 +211,10 @@ module.exports = (reporter) => {
     profilerRequestMap.set(req.context.rootId, req)
 
     const template = await reporter.templates.resolveTemplate(req)
-
     if (template && template._id) {
       req.context.resolvedTemplate = extend(true, {}, template)
-      const templatePath = await reporter.folders.resolveEntityPath(template, 'templates', req)
-      const blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
+
       update.templateShortid = template.shortid
-
-      const originalBlobName = req.context.profiling.entity.blobName
-      // we want to store the profile into blobName path reflecting the template path so we need to copy the blob to new path now
-      runInProfilerChain(async () => {
-        if (req.context.profiling.logFilePath == null) {
-          const content = await reporter.blobStorage.read(originalBlobName, req)
-          await reporter.blobStorage.write(blobName, content, req)
-          return reporter.blobStorage.remove(originalBlobName, req)
-        }
-      }, req)
-
-      update.blobName = blobName
     }
 
     runInProfilerChain(() => {
@@ -270,15 +244,21 @@ module.exports = (reporter) => {
     res.meta.profileId = req.context.profiling?.entity?._id
 
     runInProfilerChain(async () => {
-      if (req.context.profiling.logFilePath != null) {
-        const content = await fs.readFile(req.context.profiling.logFilePath)
-        await reporter.blobStorage.write(req.context.profiling.entity.blobName, content, req)
-        await fs.unlink(req.context.profiling.logFilePath)
+      let blobName = `profiles/${req.context.rootId}.log`
+
+      if (req.context.resolvedTemplate) {
+        const templatePath = await reporter.folders.resolveEntityPath(req.context.resolvedTemplate, 'templates', req)
+        blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
       }
+
+      const content = await fs.readFile(req.context.profiling.logFilePath)
+      blobName = await reporter.blobStorage.write(blobName, content, req)
+      await fs.unlink(req.context.profiling.logFilePath)
 
       const update = {
         state: 'success',
-        finishedOn: new Date()
+        finishedOn: new Date(),
+        blobName
       }
 
       req.context.skipValidationFor = update
@@ -310,16 +290,24 @@ module.exports = (reporter) => {
       }, req)
 
       runInProfilerChain(async () => {
-        if (req.context.profiling.logFilePath != null) {
-          const content = await fs.readFile(req.context.profiling.logFilePath, 'utf8')
-          await reporter.blobStorage.write(req.context.profiling.entity.blobName, content, req)
-          await fs.unlink(req.context.profiling.logFilePath)
-        }
-
         const update = {
           state: 'error',
           finishedOn: new Date(),
           error: e.toString()
+        }
+
+        if (req.context.profiling.logFilePath != null) {
+          let blobName = `profiles/${req.context.rootId}.log`
+
+          if (req.context.resolvedTemplate) {
+            const templatePath = await reporter.folders.resolveEntityPath(req.context.resolvedTemplate, 'templates', req)
+            blobName = `profiles/${templatePath.substring(1)}/${req.context.rootId}.log`
+          }
+
+          const content = await fs.readFile(req.context.profiling.logFilePath)
+          blobName = await reporter.blobStorage.write(blobName, content, req)
+          await fs.unlink(req.context.profiling.logFilePath)
+          update.blobName = blobName
         }
 
         req.context.skipValidationFor = update
@@ -390,7 +378,9 @@ module.exports = (reporter) => {
       const profiles = await reporter.documentStore.collection('profiles').find(query, req)
 
       for (const profile of profiles) {
-        await reporter.blobStorage.remove(profile.blobName)
+        if (profile.blobName != null) {
+          await reporter.blobStorage.remove(profile.blobName)
+        }
       }
     })
 

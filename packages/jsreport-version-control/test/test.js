@@ -174,6 +174,26 @@ describe('version control', () => {
   })
 })
 
+describe('version control with custom blobStorage', () => {
+  let jsreport
+
+  beforeEach(async () => {
+    jsreport = JsReport({ reportTimeout: 99999999 })
+    jsreport.use(require('../')())
+    await jsreport.init()
+    jsreport.blobStorage.write = (blobName) => 'xxx-' + blobName
+  })
+
+  afterEach(() => jsreport && jsreport.close())
+
+  it('commit changes should be persisted to the blob', async () => {
+    const req = jsreport.Request({})
+    await jsreport.documentStore.collection('templates').insert({ name: 'foo', content: '1', helpers: '1', engine: 'none', recipe: 'html' }, req)
+    const commit = await jsreport.versionControl.commit('my first commit', undefined, req)
+    commit.blobName.startsWith('xxx-').should.be.true()
+  })
+})
+
 describe('version control props migration', () => {
   let jsreport
 
