@@ -404,6 +404,7 @@ export default function useEntityTree (main, {
       main,
       allEntities: entities,
       paddingByLevel: paddingByLevelInTree,
+      editSelection,
       selectable,
       selectionMode,
       contextMenu,

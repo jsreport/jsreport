@@ -29,10 +29,15 @@ Studio.addToolbarComponent((props) => (
 Studio.addEntityTreeContextMenuItemsResolver(({
   node,
   entity,
+  editSelection,
   isRoot,
   isGroupEntity,
   getAllEntitiesInHierarchy
 }) => {
+  if (editSelection != null) {
+    return
+  }
+
   const items = []
 
   if (isRoot) {

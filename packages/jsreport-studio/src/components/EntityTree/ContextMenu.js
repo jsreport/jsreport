@@ -14,6 +14,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
   getContextMenuItems
 }, ref) {
   const {
+    editSelection,
     selectable,
     clipboard,
     onNewEntity,
@@ -21,6 +22,8 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onRemove,
     onClone,
     onRename,
+    hasEditSelection,
+    isNodeEditSelected,
     onClearContextMenu,
     onClearEditSelect,
     onSetClipboard,
@@ -36,13 +39,16 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
   const isGroupEntity = isRoot ? false : checkIsGroupEntityNode(node)
   const containerStyle = {}
 
-  let menuItems = []
+  const menuItems = []
+
+  const editSelectionContextMenu = node != null && hasEditSelection() && isNodeEditSelected(node) && editSelection.length > 1
 
   const resolverParam = {
     node,
     clipboard,
     entity,
     entitySets,
+    editSelection: editSelectionContextMenu ? editSelection : null,
     isRoot,
     isGroup,
     isGroupEntity,
@@ -58,10 +64,30 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onRemove
   }
 
+  const getEditSelectionMenuItem = () => ({
+    key: 'EditSelectionCount',
+    title: `${editSelection.length} item(s) selected`,
+    icon: 'fa-list',
+    onClick: () => false
+  })
+
   if (getContextMenuItems != null) {
-    menuItems = getContextMenuItems(Object.assign({}, resolverParam, {
+    if (editSelectionContextMenu) {
+      menuItems.push(getEditSelectionMenuItem())
+
+      menuItems.push({
+        key: 'separator-group-edit-selection',
+        separator: true
+      })
+    }
+
+    const customItems = getContextMenuItems(Object.assign({}, resolverParam, {
       isGroupEntity: isGroupEntity != null ? isGroupEntity : false
     }))
+
+    if (customItems != null && customItems.length > 0) {
+      menuItems.push(...customItems)
+    }
   } else {
     const contextMenuResults = entityTreeContextMenuItemsResolvers.map((resolver) => {
       return resolver(resolverParam)
@@ -69,6 +95,13 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
 
     const groupItems = []
     const singleItems = []
+
+    if (editSelectionContextMenu) {
+      groupItems.push({
+        grouped: true,
+        items: [getEditSelectionMenuItem()]
+      })
+    }
 
     contextMenuResults.forEach((r) => {
       if (r == null) {

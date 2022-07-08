@@ -112,11 +112,16 @@ export default () => {
     node,
     entity,
     entitySets,
+    editSelection,
     isRoot,
     isGroupEntity,
     getVisibleEntitySetsInTree,
     onNewEntity
   }) => {
+    if (editSelection != null) {
+      return
+    }
+
     const items = []
 
     if (isRoot || isGroupEntity) {
@@ -163,6 +168,7 @@ export default () => {
     node,
     clipboard,
     entity,
+    editSelection,
     isRoot,
     isGroupEntity,
     disabledClassName,
@@ -176,7 +182,7 @@ export default () => {
   }) => {
     const items = []
 
-    if (!isRoot) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Definition',
         title: 'Definition',
@@ -187,7 +193,7 @@ export default () => {
       })
     }
 
-    if (isGroupEntity) {
+    if (isGroupEntity && editSelection == null) {
       items.push({
         key: 'Edit',
         title: 'Edit',
@@ -198,7 +204,7 @@ export default () => {
       })
     }
 
-    if (!isRoot) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Rename',
         title: 'Rename',
@@ -209,7 +215,7 @@ export default () => {
       })
     }
 
-    if (!isRoot) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Clone',
         title: 'Clone',
@@ -220,7 +226,7 @@ export default () => {
       })
     }
 
-    if (!isRoot && isGroupEntity) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Cut',
         title: 'Cut',
@@ -254,7 +260,10 @@ export default () => {
       })
     }
 
-    if (isRoot || isGroupEntity) {
+    if (
+      (isRoot || isGroupEntity) &&
+      editSelection == null
+    ) {
       items.push({
         key: 'Paste',
         title: 'Paste',
