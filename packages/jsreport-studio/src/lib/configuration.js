@@ -102,8 +102,6 @@ export let triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) 
 
 export let referencesLoader = null
 
-export let removeHandler = null
-
 export let locationResolver = null
 
 export let extensions = []

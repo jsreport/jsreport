@@ -9,7 +9,7 @@ import { createGetReferencesSelector } from '../../redux/entities/selectors'
 import { createGetActiveEntitySelector } from '../../redux/editor/selectors'
 import { openModal } from '../../helpers/openModal'
 import getCloneName from '../../../shared/getCloneName'
-import { entitySets, entityTreeWrapperComponents, removeHandler } from '../../lib/configuration'
+import { entitySets, entityTreeWrapperComponents } from '../../lib/configuration'
 import styles from './EntityTreeBox.css'
 
 const EntityTreeBox = () => {
@@ -51,10 +51,6 @@ const EntityTreeBox = () => {
   }, [])
 
   const executeRemoveHandling = useCallback(function executeRemoveHandling (id, children) {
-    if (removeHandler) {
-      return removeHandler(id, children)
-    }
-
     openModal(DeleteConfirmationModal, { _id: id, childrenIds: children })
   }, [])
 

@@ -307,17 +307,6 @@ class Studio {
   }
 
   /**
-   * Override the default entity remove behavior
-   * (id) => {})
-   * @param {Function} fn
-   */
-  // eslint-disable-next-line accessor-pairs
-  set removeHandler (fn) {
-    // eslint-disable-next-line no-import-assign
-    configuration.removeHandler = fn
-  }
-
-  /**
    * Set additional custom header to all api calls
    * @param {String} key
    * @param {String} value
