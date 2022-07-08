@@ -124,7 +124,7 @@ export function getNodeTitleDOMId (entity) {
   return `${nodeDOMId}--title`
 }
 
-export function getAllEntitiesInHierarchy (node, includeRoot = false, onlyDirectChildren = false, allEntities) {
+export function getAllEntitiesInHierarchy (node, includeRoot, onlyDirectChildren, allEntities) {
   const entities = allEntities == null ? [] : allEntities
 
   if (!node) {

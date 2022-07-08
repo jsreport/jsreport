@@ -173,6 +173,8 @@ export default () => {
     isGroupEntity,
     disabledClassName,
     getAllEntitiesInHierarchy,
+    getEntityNodeById,
+    getNormalizedEditSelection,
     setClipboard,
     releaseClipboardTo,
     onOpen,
@@ -289,8 +291,30 @@ export default () => {
         title: 'Delete',
         icon: 'fa-trash',
         onClick: () => {
-          const children = getAllEntitiesInHierarchy(node)
-          onRemove(entity._id, children.length > 0 ? children : undefined)
+          let toRemove
+
+          if (editSelection == null) {
+            const children = getAllEntitiesInHierarchy(node)
+
+            toRemove = {
+              id: entity._id,
+              childrenIds: children.length > 0 ? children : undefined
+            }
+          } else {
+            const editSelectionNormalized = getNormalizedEditSelection(editSelection)
+
+            toRemove = editSelectionNormalized.map((selectedId) => {
+              const nodeOfSelected = getEntityNodeById(selectedId)
+              const children = getAllEntitiesInHierarchy(nodeOfSelected)
+
+              return {
+                id: selectedId,
+                childrenIds: children.length > 0 ? children : undefined
+              }
+            })
+          }
+
+          onRemove(toRemove)
         }
       })
     }

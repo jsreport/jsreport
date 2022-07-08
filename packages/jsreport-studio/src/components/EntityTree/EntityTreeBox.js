@@ -50,8 +50,8 @@ const EntityTreeBox = () => {
     openModal(modalToOpen, options)
   }, [])
 
-  const executeRemoveHandling = useCallback(function executeRemoveHandling (id, children) {
-    openModal(DeleteConfirmationModal, { _id: id, childrenIds: children })
+  const executeRemoveHandling = useCallback(function executeRemoveHandling (toRemove) {
+    openModal(DeleteConfirmationModal, { toRemove })
   }, [])
 
   let entityTreeEl = null

@@ -1,9 +1,10 @@
-import React, { useState, useContext, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useContext, useRef, useEffect } from 'react'
 import classNames from 'classnames'
 import ReactDOM from 'react-dom'
 import EntityTreeContext from './EntityTreeContext'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { checkIsGroupNode, checkIsGroupEntityNode, getAllEntitiesInHierarchy } from './utils'
+import storeMethods from '../../redux/methods'
 import { entitySets, entityTreeContextMenuItemsResolvers } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
@@ -27,12 +28,49 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onClearContextMenu,
     onClearEditSelect,
     onSetClipboard,
-    onReleaseClipboardTo
+    onReleaseClipboardTo,
+    getEntityNodeById
   } = useContext(EntityTreeContext)
 
   if (selectable && getContextMenuItems == null) {
     return null
   }
+
+  const getNormalizedEditSelection = useCallback((_editSelection) => {
+    if (editSelection == null) {
+      return null
+    }
+
+    const normalized = []
+    const nodeCache = Object.create(null)
+    const childrenCache = Object.create(null)
+
+    const allEntitiesSelected = editSelection.map((selectedId) => storeMethods.getEntityById(selectedId))
+    const foldersSelected = allEntitiesSelected.filter((entitySelected) => entitySelected.__entitySet === 'folders')
+
+    for (const folderSelected of foldersSelected) {
+      const nodeOfSelected = getEntityNodeById(folderSelected._id)
+
+      nodeCache[folderSelected._id] = nodeOfSelected
+
+      const children = getAllEntitiesInHierarchy(nodeOfSelected)
+
+      childrenCache[folderSelected._id] = children
+    }
+
+    for (const entitySelected of allEntitiesSelected) {
+      const found = Object.keys(childrenCache).some((folderId) => {
+        const children = childrenCache[folderId]
+        return children.find((id) => id === entitySelected._id) != null
+      })
+
+      if (!found) {
+        normalized.push(entitySelected._id)
+      }
+    }
+
+    return normalized
+  }, [getEntityNodeById])
 
   const isRoot = entity == null
   const isGroup = isRoot ? false : checkIsGroupNode(node) && !checkIsGroupEntityNode(node)
@@ -55,6 +93,8 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     disabledClassName: styles.disabled,
     getVisibleEntitySetsInTree,
     getAllEntitiesInHierarchy,
+    getEntityNodeById,
+    getNormalizedEditSelection,
     setClipboard: onSetClipboard,
     releaseClipboardTo: onReleaseClipboardTo,
     onNewEntity,

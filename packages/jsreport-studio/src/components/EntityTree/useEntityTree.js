@@ -528,6 +528,9 @@ export default function useEntityTree (main, {
 
         return active
       },
+      getEntityNodeById: (id) => {
+        return listRef.current.entityNodesById[id]
+      },
       getContextMenuItems
     }
   }, [
@@ -556,7 +559,8 @@ export default function useEntityTree (main, {
     showContextMenu,
     clearContextMenu,
     copyOrMoveEntity,
-    contextMenuRef
+    contextMenuRef,
+    listRef
   ])
 
   return {
