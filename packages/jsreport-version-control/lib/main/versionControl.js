@@ -353,7 +353,7 @@ module.exports = (reporter, options) => {
       }
 
       let blobName = `versions/${newCommit.message.replace(/[^a-zA-Z0-9]/g, '')}${nanoid()}.json`
-      blobName = await reporter.blobStorage.write(blobName, Buffer.from(JSON.stringify(newCommit.changes)))
+      blobName = await reporter.blobStorage.write(blobName, Buffer.from(JSON.stringify(newCommit.changes)), req)
       const version = await reporter.documentStore.collection('versions').insert({
         ...omit(newCommit, 'changes'),
         blobName
