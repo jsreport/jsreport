@@ -6,6 +6,7 @@ import { previewComponents } from '../../lib/configuration'
 
 const reducer = createReducer({
   tabs: [],
+  editSelection: null,
   activeTabKey: null,
   lastActiveTemplateKey: null,
   running: null,
@@ -101,6 +102,62 @@ reducer.handleAction(ActionTypes.ACTIVATE_TAB, (state, action) => {
     ...state,
     activeTabKey: action.key,
     lastActiveTemplateKey: newTab.entitySet === 'templates' ? newTab._id : state.lastActiveTemplateKey
+  }
+})
+
+reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
+  const { id, payload } = action
+  const { value, defaultItems } = payload
+
+  let newEditSelection = state.editSelection
+
+  if (newEditSelection == null) {
+    newEditSelection = []
+
+    if (Array.isArray(defaultItems)) {
+      newEditSelection = [...defaultItems]
+    }
+  }
+
+  const existingIndex = newEditSelection.findIndex((selectedId) => selectedId === id)
+
+  const updateSelection = (selectedItems, selectedValue, targetIndex) => {
+    let newSelection
+
+    if (selectedValue === true) {
+      if (targetIndex === -1) {
+        newSelection = [...selectedItems, id]
+      }
+    } else {
+      newSelection = [
+        ...selectedItems.slice(0, targetIndex),
+        ...selectedItems.slice(targetIndex + 1)
+      ]
+    }
+
+    if (newSelection == null) {
+      return selectedItems
+    }
+
+    return newSelection
+  }
+
+  if (value === true || value === false) {
+    newEditSelection = updateSelection(newEditSelection, value, existingIndex)
+  } else if (value == null) {
+    newEditSelection = updateSelection(newEditSelection, existingIndex === -1, existingIndex)
+  }
+
+  return {
+    ...state,
+    editSelection: newEditSelection
+  }
+})
+
+reducer.handleAction(ActionTypes.EDIT_SELECT_CLEAR, (state, action) => {
+  return {
+    ...state,
+    editSelection: null
   }
 })
 

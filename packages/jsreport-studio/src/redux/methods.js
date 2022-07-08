@@ -19,6 +19,9 @@ const methods = {
   getSettingsByKey (key, shouldThrow = true) {
     return getValueByKey(store.getState().settings, key, shouldThrow)
   },
+  getEditorEditSelection () {
+    return store.getState().editor.editSelection
+  },
   getEditorUndockMode () {
     return store.getState().editor.undockMode
   },

@@ -28,10 +28,13 @@ export default function useEntityTree (main, {
   selectable,
   selectionMode,
   entities,
+  editSelection,
   selected,
   activeEntity,
   getContextMenuItems,
   openTab,
+  editSelect,
+  clearEditSelect,
   hierarchyMove,
   onNewEntity,
   onRemove,
@@ -57,6 +60,77 @@ export default function useEntityTree (main, {
       registerCollapseEntityHandler(collapseHandler)
     }
   }, [main, collapseHandler])
+
+  // handle click outside of tree list and ESC keypress to clear editSelection
+  useEffect(() => {
+    if (!main) {
+      return
+    }
+
+    function tryClearFromClick (ev) {
+      const LEFT_CLICK = 1
+      const button = ev.which || ev.button
+
+      if (ev.target.type === 'file') {
+        return
+      }
+
+      if (listRef.current == null || listRef.current.node == null) {
+        return
+      }
+
+      if (editSelection == null) {
+        return
+      }
+
+      ev.preventDefault()
+
+      if (
+        !listRef.current.node.contains(ev.target)
+      ) {
+        // only stop propagation when the click does not come from context menu,
+        // if it comes from context menu we want to clear selection and also close context menu
+        // at the same time
+        if (contextMenuRef.current == null || !contextMenuRef.current.contains(ev.target)) {
+          ev.stopPropagation()
+        }
+
+        // handle quirk in firefox that fires and additional click event during
+        // contextmenu event, this code prevents the context menu to
+        // immediately be closed after being shown in firefox.
+        // only clear edit selection if there is no context menu
+        if (
+          button === LEFT_CLICK &&
+          contextMenuRef.current == null
+        ) {
+          clearEditSelect()
+        }
+      }
+    }
+
+    function tryClearFromKey (ev) {
+      if (listRef.current == null || listRef.current.node == null) {
+        return
+      }
+
+      if (editSelection == null) {
+        return
+      }
+
+      // we only want to clear on ESC when there is no context menu
+      if (contextMenuRef.current == null && ev.which === 27) {
+        clearEditSelect()
+      }
+    }
+
+    window.addEventListener('click', tryClearFromClick, true)
+    window.addEventListener('keydown', tryClearFromKey)
+
+    return () => {
+      window.removeEventListener('click', tryClearFromClick, true)
+      window.removeEventListener('keydown', tryClearFromKey)
+    }
+  }, [main, listRef, contextMenuRef, editSelection])
 
   const copyOrMoveEntity = useCallback((sourceInfo, targetInfo, shouldCopy = false) => {
     hierarchyMove(sourceInfo, targetInfo, shouldCopy, false, true).then((result) => {
@@ -327,6 +401,7 @@ export default function useEntityTree (main, {
 
   const sharedValues = useMemo(() => {
     return {
+      main,
       allEntities: entities,
       paddingByLevel: paddingByLevelInTree,
       selectable,
@@ -379,6 +454,16 @@ export default function useEntityTree (main, {
 
         onSelectionChanged(newSelected)
       },
+      onNodeEditSelect: (node) => {
+        const isGroupEntity = checkIsGroupEntityNode(node)
+        const isEntity = !isGroupEntity && !checkIsGroupNode(node)
+
+        if (isEntity || isGroupEntity) {
+          editSelect(node.data._id, { initializeWithActive: true })
+        }
+
+        clearContextMenu()
+      },
       onNodeClick: (node) => {
         const isGroup = checkIsGroupNode(node)
         const isGroupEntity = checkIsGroupEntityNode(node)
@@ -396,6 +481,7 @@ export default function useEntityTree (main, {
       onNodeCollapse: toggleNodeCollapse,
       onContextMenu: showContextMenu,
       onClearContextMenu: clearContextMenu,
+      onClearEditSelect: clearEditSelect,
       onSetClipboard: (newClipboard) => {
         setClipboard(newClipboard)
       },
@@ -414,9 +500,19 @@ export default function useEntityTree (main, {
 
         setClipboard(null)
       },
+      hasEditSelection: () => {
+        return editSelection != null
+      },
       isNodeCollapsed,
       isNodeSelected: (node) => {
         return selected[node.data._id] === true
+      },
+      isNodeEditSelected: (node) => {
+        if (editSelection == null) {
+          return false
+        }
+
+        return editSelection.find((id) => node.data._id === id) != null
       },
       isNodeActive: (node) => {
         let active = false
@@ -434,7 +530,9 @@ export default function useEntityTree (main, {
       getContextMenuItems
     }
   }, [
+    main,
     entities,
+    editSelection,
     paddingByLevelInTree,
     selectable,
     selectionMode,
@@ -448,6 +546,8 @@ export default function useEntityTree (main, {
     onRemove,
     onSelectionChanged,
     openTab,
+    editSelect,
+    clearEditSelect,
     getContextMenuItems,
     isNodeCollapsed,
     toggleNodeCollapse,

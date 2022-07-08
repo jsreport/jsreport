@@ -22,6 +22,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onClone,
     onRename,
     onClearContextMenu,
+    onClearEditSelect,
     onSetClipboard,
     onReleaseClipboardTo
   } = useContext(EntityTreeContext)
@@ -159,6 +160,8 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
                     }
                   }
 
+                  // we want to clear also the edit selection when an action is handled
+                  onClearEditSelect()
                   onClearContextMenu()
                 }}
               >

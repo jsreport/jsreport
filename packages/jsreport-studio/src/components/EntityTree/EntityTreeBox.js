@@ -17,6 +17,7 @@ const EntityTreeBox = () => {
   const getActiveEntity = useMemo(createGetActiveEntitySelector, [])
   const references = useSelector(getReferences)
   const activeEntity = useSelector(getActiveEntity)
+  const editSelection = useSelector(state => state.editor.editSelection)
 
   const executeNewHandling = useCallback(function executeNewHandling (es, options) {
     if (entitySets[es].onNew) {
@@ -76,6 +77,7 @@ const EntityTreeBox = () => {
     onClone: executeCloneHandling,
     onRemove: executeRemoveHandling,
     activeEntity,
+    editSelection,
     entities: references
   }
 

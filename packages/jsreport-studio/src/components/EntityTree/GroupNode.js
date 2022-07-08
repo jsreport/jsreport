@@ -7,16 +7,22 @@ import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle, checkIsGrou
 import { entitySets } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
+const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
+
 const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDragging, renderTree }) => {
   const {
+    main,
     paddingByLevel,
     selectable,
     contextMenu,
     contextMenuRef,
     getContextMenuItems,
     isNodeCollapsed,
+    hasEditSelection,
+    isNodeEditSelected,
     isNodeActive,
     onNewEntity,
+    onNodeEditSelect,
     onNodeClick,
     onContextMenu
   } = useContext(EntityTreeContext)
@@ -49,7 +55,7 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
 
   const containerClass = classNames(styles.link, {
     [styles.focused]: isContextMenuActive,
-    [styles.active]: isActive && !isDragging,
+    [styles.active]: hasEditSelection() ? isNodeEditSelected(node) && !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })
 
@@ -79,9 +85,21 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
         style={{ paddingLeft: `${(depth + 1) * paddingByLevel}rem` }}
         onClick={(ev) => {
           if (selectable) { return }
+
           ev.preventDefault()
           ev.stopPropagation()
-          onNodeClick(node)
+
+          // handles ctrl/CMD + click
+          if (
+            main &&
+            groupIsEntity &&
+            ((!isMac() && ev.ctrlKey) ||
+            (isMac() && ev.metaKey))
+          ) {
+            onNodeEditSelect(node)
+          } else {
+            onNodeClick(node)
+          }
         }}
         onContextMenu={(ev) => {
           if (!groupIsEntity) {

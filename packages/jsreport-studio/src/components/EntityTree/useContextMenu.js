@@ -36,7 +36,7 @@ export default function useContextMenu (contextMenuRef) {
   }, [])
 
   useEffect(() => {
-    function handleGlobalClick (ev) {
+    function tryClearFromClick (ev) {
       const LEFT_CLICK = 1
       const button = ev.which || ev.button
 
@@ -62,10 +62,10 @@ export default function useContextMenu (contextMenuRef) {
       }
     }
 
-    window.addEventListener('click', handleGlobalClick, true)
+    window.addEventListener('click', tryClearFromClick, true)
 
     return () => {
-      window.removeEventListener('click', handleGlobalClick, true)
+      window.removeEventListener('click', tryClearFromClick, true)
     }
   }, [contextMenuRef, contextMenu, clearContextMenu])
 

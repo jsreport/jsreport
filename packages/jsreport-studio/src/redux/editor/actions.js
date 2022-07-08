@@ -164,12 +164,45 @@ export function openNewTab ({ entitySet, entity, name }, activate = true) {
 
 export function activateTab (id) {
   return (dispatch, getState) => {
+    if (getState().editor.editSelection != null) {
+      dispatch(clearEditSelect())
+    }
+
     dispatch({
       type: ActionTypes.ACTIVATE_TAB,
       key: id
     })
 
     dispatch(updateHistory())
+  }
+}
+
+export function editSelect (id, options = {}) {
+  return (dispatch, getState) => {
+    const payload = {}
+
+    // true or false, null for toggle
+    payload.value = options.value
+
+    if (options.initializeWithActive === true) {
+      const entity = selectors.getActiveEntity(getState().editor.activeTabKey, getState().editor.tabs, getState().entities)
+
+      if (entity != null) {
+        payload.defaultItems = [entity._id]
+      }
+    }
+
+    dispatch({
+      type: ActionTypes.EDIT_SELECT,
+      id,
+      payload
+    })
+  }
+}
+
+export function clearEditSelect () {
+  return {
+    type: ActionTypes.EDIT_SELECT_CLEAR
   }
 }
 
