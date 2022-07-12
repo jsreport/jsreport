@@ -206,7 +206,7 @@ module.exports = (client, options, db) => {
       _convertBufferAndIds(q)
       _convertBufferAndIds(u)
 
-      return res.upsertedCount || res.modifiedCount
+      return res.upsertedCount || res.matchedCount
     },
 
     async remove (entitySet, q, opts = {}) {

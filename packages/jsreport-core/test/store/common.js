@@ -228,7 +228,7 @@ function collectionTests (store, isInternal, runTransactions) {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
     await getCollection(colName).insert({ name: '1', engine: 'none', recipe: 'a' })
-    await getCollection(colName).insert({ name: '2', engine: 'none', recipe: 'a' })
+    await getCollection(colName).insert({ name: '2', engine: 'test2', recipe: 'a' })
     const res = await getCollection(colName).update({ recipe: 'a' }, { $set: { engine: 'test2' } })
     res.should.be.eql(2)
   })
