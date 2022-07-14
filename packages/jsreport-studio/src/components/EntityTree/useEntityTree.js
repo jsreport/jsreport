@@ -133,7 +133,10 @@ export default function useEntityTree (main, {
   }, [main, listRef, contextMenuRef, editSelection])
 
   const copyOrMoveEntity = useCallback((sourceInfo, targetInfo, shouldCopy = false) => {
-    hierarchyMove(sourceInfo, targetInfo, shouldCopy, false, true).then((result) => {
+    const isSingleSource = Array.isArray(sourceInfo) ? sourceInfo.length === 1 : true
+
+    // we only want to retry/show the replace modal when doing single source action
+    hierarchyMove(sourceInfo, targetInfo, shouldCopy, false, isSingleSource).then((result) => {
       if (targetInfo.shortid != null) {
         const targetEntity = storeMethods.getEntityByShortid(targetInfo.shortid)
         toggleNodeCollapse(listRef.current.entityNodesById[targetEntity._id], false)
@@ -143,14 +146,18 @@ export default function useEntityTree (main, {
         return
       }
 
-      openModal(HierarchyReplaceEntityModal, {
-        sourceId: sourceInfo.id,
-        targetShortId: targetInfo.shortid,
-        targetChildren: targetInfo.children,
-        existingEntity: result.existingEntity,
-        existingEntityEntitySet: result.existingEntityEntitySet,
-        shouldCopy
-      })
+      if (isSingleSource) {
+        const singleSource = Array.isArray(sourceInfo) ? sourceInfo[0] : sourceInfo
+
+        openModal(HierarchyReplaceEntityModal, {
+          sourceId: singleSource.id,
+          targetShortId: targetInfo.shortid,
+          targetChildren: targetInfo.children,
+          existingEntity: result.existingEntity,
+          existingEntityEntitySet: result.existingEntityEntitySet,
+          shouldCopy
+        })
+      }
     })
   }, [hierarchyMove, toggleNodeCollapse, listRef])
 
@@ -491,10 +498,7 @@ export default function useEntityTree (main, {
           return
         }
 
-        copyOrMoveEntity({
-          id: clipboard.entityId,
-          entitySet: clipboard.entitySet
-        }, {
+        copyOrMoveEntity(clipboard.source, {
           shortid: destination.shortid,
           children: destination.children
         }, clipboard.action === 'copy')

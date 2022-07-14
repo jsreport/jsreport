@@ -250,102 +250,119 @@ export function hierarchyMove (source, target, shouldCopy = false, replace = fal
   return async function (dispatch, getState) {
     let response
 
-    let sourceEntity = entities.selectors.getById(getState().entities, source.id)
+    const isSingleSource = Array.isArray(source) ? source.length === 1 : true
+    const sourceList = isSingleSource ? [source] : source
 
-    if (sourceEntity.__isNew || sourceEntity.__isDirty) {
-      dispatch(entities.actions.flushUpdates())
+    const newOrDirtyEntities = []
+    const resOfEntities = []
 
-      sourceEntity = entities.selectors.getById(getState().entities, source.id)
+    for (const sourceInfo of sourceList) {
+      let sourceEntity = entities.selectors.getById(getState().entities, sourceInfo.id)
 
-      dispatch(entities.actions.update(Object.assign({}, sourceEntity, {
-        folder: target.shortid != null ? { shortid: target.shortid } : null
-      })))
-    } else {
-      try {
-        dispatch(entities.actions.apiStart())
+      if (sourceEntity.__isNew || sourceEntity.__isDirty) {
+        dispatch(entities.actions.flushUpdates())
 
-        response = await api.post('/studio/hierarchyMove', {
-          data: {
-            source: {
-              entitySet: source.entitySet,
-              id: source.id,
-              onlyChildren: source.onlyChildren
-            },
-            target: {
-              shortid: target.shortid,
-              updateReferences: target.updateReferences
-            },
-            copy: shouldCopy === true,
-            replace: replace === true
-          }
-        })
+        sourceEntity = entities.selectors.getById(getState().entities, sourceInfo.id)
 
-        if (replace === true) {
-          if (Array.isArray(target.children)) {
-            const sourceEntity = entities.selectors.getById(getState().entities, source.id, false)
+        dispatch(entities.actions.update(Object.assign({}, sourceEntity, {
+          folder: target.shortid != null ? { shortid: target.shortid } : null
+        })))
 
-            let childTargetId
-            const childTargetChildren = []
+        sourceEntity = entities.selectors.getById(getState().entities, sourceInfo.id)
 
-            const allFoldersInsideTarget = target.children.reduce((acu, childId) => {
-              const childEntity = entities.selectors.getById(getState().entities, childId, false)
-
-              if (
-                ((target.shortid == null && childEntity.folder == null) ||
-                (target.shortid != null && childEntity.folder.shortid === target.shortid)) &&
-                childEntity.name === sourceEntity.name
-              ) {
-                childTargetId = childEntity._id
-              }
-
-              if (childEntity.__entitySet === 'folders') {
-                acu.push(childEntity.shortid)
-              }
-
-              return acu
-            }, [])
-
-            target.children.forEach((childId) => {
-              const childEntity = entities.selectors.getById(getState().entities, childId, false)
-
-              if (childEntity.folder && allFoldersInsideTarget.indexOf(childEntity.folder.shortid) !== -1) {
-                childTargetChildren.push(childEntity._id)
-              }
-            })
-
-            if (childTargetId) {
-              dispatch(entities.actions.removeExisting(childTargetId, childTargetChildren))
-            }
-          }
-        }
-
-        response.items.forEach((item) => {
-          dispatch(entities.actions.addExisting(item))
-        })
-
-        dispatch(entities.actions.apiDone())
-      } catch (e) {
-        if (retry && e.code === 'DUPLICATED_ENTITY' && e.existingEntityEntitySet !== 'folders') {
-          dispatch(entities.actions.apiDone())
-
-          return {
-            duplicatedEntity: true,
-            existingEntity: e.existingEntity,
-            existingEntityEntitySet: e.existingEntityEntitySet
-          }
-        }
-
-        dispatch(entities.actions.apiFailed(e))
+        newOrDirtyEntities.push(sourceEntity)
+      } else {
+        resOfEntities.push(sourceEntity)
       }
-
-      if (target.updateReferences) {
-        // refresh target
-        const targetEntity = entities.selectors.getByShortid(getState().entities, target.shortid)
-        await entities.actions.load(targetEntity._id, true)(dispatch, getState)
-      }
-
-      return response.items
     }
+
+    if (resOfEntities.length === 0) {
+      return
+    }
+
+    try {
+      dispatch(entities.actions.apiStart())
+
+      response = await api.post('/studio/hierarchyMove', {
+        data: {
+          source,
+          target: {
+            shortid: target.shortid,
+            updateReferences: target.updateReferences
+          },
+          copy: shouldCopy === true,
+          replace: replace === true
+        }
+      })
+
+      if (replace === true && isSingleSource) {
+        const singleSource = Array.isArray(source) ? source[0] : source
+
+        if (Array.isArray(target.children)) {
+          const sourceEntityLatest = entities.selectors.getById(getState().entities, singleSource.id, false)
+
+          let childTargetId
+          const childTargetChildren = []
+
+          const allFoldersInsideTarget = target.children.reduce((acu, childId) => {
+            const childEntity = entities.selectors.getById(getState().entities, childId, false)
+
+            if (
+              ((target.shortid == null && childEntity.folder == null) ||
+              (target.shortid != null && childEntity.folder.shortid === target.shortid)) &&
+              childEntity.name === sourceEntityLatest.name
+            ) {
+              childTargetId = childEntity._id
+            }
+
+            if (childEntity.__entitySet === 'folders') {
+              acu.push(childEntity.shortid)
+            }
+
+            return acu
+          }, [])
+
+          target.children.forEach((childId) => {
+            const childEntity = entities.selectors.getById(getState().entities, childId, false)
+
+            if (childEntity.folder && allFoldersInsideTarget.indexOf(childEntity.folder.shortid) !== -1) {
+              childTargetChildren.push(childEntity._id)
+            }
+          })
+
+          if (childTargetId) {
+            dispatch(entities.actions.removeExisting(childTargetId, childTargetChildren))
+          }
+        }
+      }
+
+      response.items.forEach((item) => {
+        dispatch(entities.actions.addExisting(item))
+      })
+
+      dispatch(entities.actions.apiDone())
+    } catch (e) {
+      if (retry && e.code === 'DUPLICATED_ENTITY' && e.existingEntityEntitySet !== 'folders') {
+        dispatch(entities.actions.apiDone())
+
+        return {
+          duplicatedEntity: true,
+          existingEntity: e.existingEntity,
+          existingEntityEntitySet: e.existingEntityEntitySet
+        }
+      }
+
+      dispatch(entities.actions.apiFailed(e))
+      return
+    }
+
+    if (target.updateReferences) {
+      // refresh target
+      const targetEntity = entities.selectors.getByShortid(getState().entities, target.shortid)
+      await entities.actions.load(targetEntity._id, true)(dispatch, getState)
+    }
+
+    return response.items
   }
 }
 

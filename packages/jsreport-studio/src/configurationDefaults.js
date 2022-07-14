@@ -37,6 +37,7 @@ import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePrevi
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
 import { openModal } from './helpers/openModal'
 import { openTab } from './redux/editor/actions'
+import storeMethods from './redux/methods'
 
 export default () => {
   configuration.sharedComponents.TextEditor = TextEditor
@@ -240,7 +241,13 @@ export default () => {
             return false
           }
 
-          setClipboard({ action: 'move', entityId: entity._id, entitySet: entity.__entitySet })
+          setClipboard({
+            action: 'move',
+            source: {
+              id: entity._id,
+              entitySet: entity.__entitySet
+            }
+          })
         }
       })
     }
@@ -257,7 +264,31 @@ export default () => {
             return false
           }
 
-          setClipboard({ action: 'copy', entityId: entity._id, entitySet: entity.__entitySet })
+          if (editSelection == null) {
+            setClipboard({
+              action: 'copy',
+              source: {
+                id: entity._id,
+                entitySet: entity.__entitySet
+              }
+            })
+          } else {
+            const editSelectionNormalized = getNormalizedEditSelection(editSelection)
+
+            const source = editSelectionNormalized.map((selectedId) => {
+              const entity = storeMethods.getEntityById(selectedId)
+
+              return {
+                id: entity._id,
+                entitySet: entity.__entitySet
+              }
+            })
+
+            setClipboard({
+              action: 'copy',
+              source
+            })
+          }
         }
       })
     }
