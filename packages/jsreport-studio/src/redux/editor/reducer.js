@@ -7,6 +7,7 @@ import { previewComponents } from '../../lib/configuration'
 const reducer = createReducer({
   tabs: [],
   editSelection: null,
+  lastEditSelectionFocused: null,
   activeTabKey: null,
   lastActiveTemplateKey: null,
   running: null,
@@ -110,12 +111,15 @@ reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
   const { value, defaultItems } = payload
 
   let newEditSelection = state.editSelection
+  let newLastEditSelectionFocused = state.lastEditSelectionFocused
 
   if (newEditSelection == null) {
     newEditSelection = []
+    newLastEditSelectionFocused = null
 
     if (Array.isArray(defaultItems)) {
       newEditSelection = [...defaultItems]
+      newLastEditSelectionFocused = newEditSelection[newEditSelection.length - 1]
     }
   }
 
@@ -143,21 +147,25 @@ reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
   }
 
   if (value === true || value === false) {
+    newLastEditSelectionFocused = id
     newEditSelection = updateSelection(newEditSelection, value, existingIndex)
   } else if (value == null) {
+    newLastEditSelectionFocused = id
     newEditSelection = updateSelection(newEditSelection, existingIndex === -1, existingIndex)
   }
 
   return {
     ...state,
-    editSelection: newEditSelection
+    editSelection: newEditSelection,
+    lastEditSelectionFocused: newLastEditSelectionFocused
   }
 })
 
 reducer.handleAction(ActionTypes.EDIT_SELECT_CLEAR, (state, action) => {
   return {
     ...state,
-    editSelection: null
+    editSelection: null,
+    lastEditSelectionFocused: null
   }
 })
 

@@ -29,6 +29,7 @@ export default function useEntityTree (main, {
   selectionMode,
   entities,
   editSelection,
+  lastEditSelectionFocused,
   selected,
   activeEntity,
   getContextMenuItems,
@@ -54,6 +55,19 @@ export default function useEntityTree (main, {
   })
 
   const { contextMenu, showContextMenu, clearContextMenu } = useContextMenu(contextMenuRef)
+
+  const editSelectEntityAboveOrBellow = useCallback((entityId, action) => {
+    const relativeEntitiesNodes = listRef.current.getRelativeEntitiesById(entityId)
+    const index = relativeEntitiesNodes.findIndex((node) => node.data._id === entityId)
+    const limit = action === 'up' ? 0 : relativeEntitiesNodes.length - 1
+
+    if (index !== limit) {
+      const targetIndex = action === 'up' ? index - 1 : index + 1
+      const targetEntityNode = relativeEntitiesNodes[targetIndex]
+      // we just want to toggle the above entity
+      editSelect(targetEntityNode.data._id)
+    }
+  }, [listRef, editSelect])
 
   useEffect(() => {
     if (main) {
@@ -108,7 +122,7 @@ export default function useEntityTree (main, {
       }
     }
 
-    function tryClearFromKey (ev) {
+    function trySelectOrClearFromKey (ev) {
       if (listRef.current == null || listRef.current.node == null) {
         return
       }
@@ -121,16 +135,30 @@ export default function useEntityTree (main, {
       if (contextMenuRef.current == null && ev.which === 27) {
         clearEditSelect()
       }
+
+      // if node that has edit selection enabled has focus then handle arrows keys
+      if (
+        lastEditSelectionFocused != null &&
+        ev.target.dataset != null &&
+        (ev.target.dataset.editSelectionEnabled === 'true' || ev.target.dataset.editSelectionEnabled === true) &&
+        document.activeElement === ev.target
+      ) {
+        if (ev.shiftKey && ev.which === 38) {
+          editSelectEntityAboveOrBellow(lastEditSelectionFocused, 'up')
+        } else if (ev.shiftKey && ev.which === 40) {
+          editSelectEntityAboveOrBellow(lastEditSelectionFocused, 'down')
+        }
+      }
     }
 
     window.addEventListener('click', tryClearFromClick, true)
-    window.addEventListener('keydown', tryClearFromKey)
+    window.addEventListener('keydown', trySelectOrClearFromKey)
 
     return () => {
       window.removeEventListener('click', tryClearFromClick, true)
-      window.removeEventListener('keydown', tryClearFromKey)
+      window.removeEventListener('keydown', trySelectOrClearFromKey)
     }
-  }, [main, listRef, contextMenuRef, editSelection])
+  }, [main, listRef, contextMenuRef, editSelection, lastEditSelectionFocused, editSelectEntityAboveOrBellow, clearEditSelect])
 
   const copyOrMoveEntity = useCallback((sourceInfo, targetInfo, shouldCopy = false) => {
     const isSingleSource = Array.isArray(sourceInfo) ? sourceInfo.length === 1 : true
@@ -514,6 +542,10 @@ export default function useEntityTree (main, {
       },
       isNodeEditSelected: (node) => {
         if (editSelection == null) {
+          return false
+        }
+
+        if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
           return false
         }
 

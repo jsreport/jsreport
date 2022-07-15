@@ -18,6 +18,7 @@ const EntityTreeBox = () => {
   const references = useSelector(getReferences)
   const activeEntity = useSelector(getActiveEntity)
   const editSelection = useSelector(state => state.editor.editSelection)
+  const lastEditSelectionFocused = useSelector(state => state.editor.lastEditSelectionFocused)
 
   const executeNewHandling = useCallback(function executeNewHandling (es, options) {
     if (entitySets[es].onNew) {
@@ -74,6 +75,7 @@ const EntityTreeBox = () => {
     onRemove: executeRemoveHandling,
     activeEntity,
     editSelection,
+    lastEditSelectionFocused,
     entities: references
   }
 

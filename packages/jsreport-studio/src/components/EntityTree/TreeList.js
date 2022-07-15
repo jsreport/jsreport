@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle } from 'react'
+import React, { useRef, useCallback, useImperativeHandle } from 'react'
 import ReactList from 'react-list'
 import TreeNode from './TreeNode'
 import {
@@ -13,12 +13,29 @@ import { entitySets } from '../../lib/configuration.js'
 
 const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref) {
   const containerRef = useRef(null)
+  const allNodesByNodeIdRef = useRef({})
+  const rootEntityNodesRef = useRef([])
+  const parentNodesByIdRef = useRef({})
   const entityNodesByIdRef = useRef({})
+
+  const getRelativeEntitiesById = useCallback(function getRelativeEntitiesById (id) {
+    const parentNode = parentNodesByIdRef.current[id]
+    const foundInRoot = parentNode == null ? rootEntityNodesRef.current.find((node) => node.data._id === id) != null : false
+
+    if (parentNode != null) {
+      return parentNode.items.filter((item) => !checkIsGroupNode(item) || checkIsGroupEntityNode(item))
+    } else if (foundInRoot) {
+      return rootEntityNodesRef.current
+    }
+
+    return []
+  }, [])
 
   useImperativeHandle(ref, () => ({
     entityNodesById: entityNodesByIdRef.current,
+    getRelativeEntitiesById,
     node: containerRef.current
-  }))
+  }), [getRelativeEntitiesById])
 
   /*
     When a render callback (function as child) is passed it means that an extension
@@ -56,6 +73,9 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
 
   const renderTree = (nodeList, depth = 0, parentId, treeIsDraggable) => {
     if (depth === 0) {
+      allNodesByNodeIdRef.current = {}
+      rootEntityNodesRef.current = []
+      parentNodesByIdRef.current = {}
       entityNodesByIdRef.current = {}
     }
 
@@ -70,8 +90,19 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
         ...node
       }
 
+      allNodesByNodeIdRef.current[nodeId] = newNode
+
       if (isGroupEntityNode || !isGroupNode) {
         entityNodesByIdRef.current[node.data._id] = newNode
+
+        if (
+          parentId != null &&
+          allNodesByNodeIdRef.current[parentId] != null
+        ) {
+          parentNodesByIdRef.current[node.data._id] = allNodesByNodeIdRef.current[parentId]
+        } else {
+          rootEntityNodesRef.current.push(newNode)
+        }
       }
 
       return newNode

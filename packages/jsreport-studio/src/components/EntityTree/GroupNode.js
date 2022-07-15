@@ -78,10 +78,19 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
     [styles.collapsed]: isCollapsed
   })
 
+  const editSelectionEnabledProps = {}
+
+  if (main && groupIsEntity) {
+    editSelectionEnabledProps['data-edit-selection-enabled'] = true
+    // tabIndex is used to make the label focusable, so it can get focus when click on it
+    editSelectionEnabledProps.tabIndex = '-1'
+  }
+
   return (
     <div id={id}>
       <div
         className={containerClass}
+        {...editSelectionEnabledProps}
         style={{ paddingLeft: `${(depth + 1) * paddingByLevel}rem` }}
         onClick={(ev) => {
           if (selectable) { return }

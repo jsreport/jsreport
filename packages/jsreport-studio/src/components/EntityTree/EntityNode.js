@@ -62,11 +62,20 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
 
   const selectId = `select-${node.id}`
 
+  const editSelectionEnabledProps = {}
+
+  if (main) {
+    editSelectionEnabledProps['data-edit-selection-enabled'] = true
+    // tabIndex is used to make the label focusable, so it can get focus when click on it
+    editSelectionEnabledProps.tabIndex = '-1'
+  }
+
   return (
     <label
       key={entity._id}
       id={id}
       className={containerClass}
+      {...editSelectionEnabledProps}
       htmlFor={selectId}
       style={{ display: 'block', userSelect: 'none', paddingLeft: `${(depth + 1) * paddingByLevel + 0.6}rem` }}
       onClick={(e) => {
