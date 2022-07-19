@@ -86,7 +86,15 @@ function browserBasedEval (tmpDir, extractImplementation) {
       ...restOptions
     })
 
-    const { result, instance } = extractInfo
+    let result
+    let instance
+
+    if (extractInfo.instance) {
+      instance = extractInfo.instance
+      result = extractInfo.result
+    } else {
+      result = extractInfo
+    }
 
     const tables = Array.isArray(result) ? result : [result]
 
@@ -113,13 +121,16 @@ function browserBasedEval (tmpDir, extractImplementation) {
               }
             }
 
-            if (tableIdx === tablesLastIndex) {
+            if (tableIdx === tablesLastIndex && instance != null) {
               await instance.destroy()
             }
 
             resolve()
           } catch (e) {
-            await instance.destroy()
+            if (instance != null) {
+              await instance.destroy()
+            }
+
             reject(e)
           }
         })
