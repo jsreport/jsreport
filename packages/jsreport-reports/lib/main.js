@@ -220,7 +220,7 @@ class Reports {
   }
 
   async _handleRenderError (request, response, e) {
-    if (request.options.reports != null) {
+    if (request.options?.reports != null) {
       this.reporter.logger.info(`Async report render finished with error ${request.options.reports._id}`)
       await this.reporter.documentStore.collection('reports').update({
         _id: request.options.reports._id
