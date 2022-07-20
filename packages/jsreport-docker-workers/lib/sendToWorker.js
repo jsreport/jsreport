@@ -1,7 +1,7 @@
 const axios = require('axios')
 const serializator = require('serializator')
 
-module.exports = (reporter, { remote = false, originUrl } = {}) => {
+module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } = {}) => {
   return function sendToWorker (url, data, _options = {}) {
     const options = { ..._options }
 
@@ -18,6 +18,10 @@ module.exports = (reporter, { remote = false, originUrl } = {}) => {
     }
 
     options.httpOptions = newHttpOptions
+
+    if (options.timeout != null && reportTimeoutMargin != null) {
+      options.timeout = options.timeout + reportTimeoutMargin
+    }
 
     return _sendToWorker(url, data, options)
   }

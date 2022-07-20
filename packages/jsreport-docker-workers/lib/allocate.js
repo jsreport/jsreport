@@ -1,7 +1,7 @@
 const get = require('lodash.get')
 const _sendToWorker = require('./sendToWorker')
 
-module.exports = ({ reporter, containersManager, ip, stack, serversChecker, discriminatorPath }) => {
+module.exports = ({ reporter, containersManager, ip, stack, serversChecker, discriminatorPath, reportTimeoutMargin }) => {
   containersManager.onRecycle(({ container, originalTenant }) => {
     return reporter.documentStore.internalCollection('tenantWorkers').remove({
       ip,
@@ -75,7 +75,8 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
     })
 
     const sendToWorkerOpts = {
-      remote: container.remote === true
+      remote: container.remote === true,
+      reportTimeoutMargin
     }
 
     if (sendToWorkerOpts.remote) {

@@ -11,6 +11,7 @@ module.exports = (reporter, {
   container,
   subnet,
   network,
+  reportTimeoutMargin,
   busyQueueWaitingTimeout,
   numberOfWorkers,
   customContainersPoolFactory
@@ -42,7 +43,13 @@ module.exports = (reporter, {
   })
 
   const allocate = Allocate({
-    reporter, containersManager, ip: reporter.options.ip, stack: reporter.options.stack, serversChecker, discriminatorPath
+    reporter,
+    containersManager,
+    ip: reporter.options.ip,
+    stack: reporter.options.stack,
+    serversChecker,
+    discriminatorPath,
+    reportTimeoutMargin
   })
 
   function onSIGTERM () {
