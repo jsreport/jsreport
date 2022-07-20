@@ -22,11 +22,11 @@ async function evaluateAssets (reporter, definition, stringToReplace, req) {
   const replacedAssets = []
 
   function convert (str, p1, offset, s, done) {
-    const assetName = (p1.indexOf(' @') !== -1) ? p1.substring(0, p1.indexOf(' @')) : p1
+    const assetName = ((p1.indexOf(' @') !== -1) ? p1.substring(0, p1.indexOf(' @')) : p1).trim()
 
     let encoding = 'utf8'
     if (p1.indexOf(' @') !== -1) {
-      const paramRaw = p1.replace(assetName, '').replace(' @', '')
+      const paramRaw = (p1.replace(assetName, '').replace(' @', '')).trim()
 
       if (paramRaw.split('=').length !== 2) {
         throw new Error('Wrong asset param specification, should be {#asset name @encoding=base64}')

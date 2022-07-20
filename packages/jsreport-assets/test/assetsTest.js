@@ -49,6 +49,38 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract static asset with leading space in name', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{#asset  foo.html}',
+        recipe: 'html',
+        engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract static asset with trailing space in name', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{#asset foo.html }',
+        recipe: 'html',
+        engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql('hello')
+  })
+
   it('should extract static asset which is marked as shared helper', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
@@ -514,6 +546,36 @@ describe('assets', function () {
     } catch (e) {
       e.message.should.not.be.eql('should fail')
     }
+  })
+
+  it('should extract static asset with leading space and @encoding specified', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+    const res = await reporter.render({
+      template: {
+        content: '{#asset  foo.html @encoding=base64}',
+        recipe: 'html',
+        engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql(Buffer.from('hello').toString('base64'))
+  })
+
+  it('should extract static asset with trailing space and @encoding specified', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+    const res = await reporter.render({
+      template: {
+        content: '{#asset foo.html  @encoding=base64}',
+        recipe: 'html',
+        engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql(Buffer.from('hello').toString('base64'))
   })
 
   it('should extract static asset with name dynamically constructed by templating engine', async () => {
@@ -1113,6 +1175,38 @@ describe('assets', function () {
       const res = await reporter.render({
         template: {
           content: '{#asset /foo.html}',
+          recipe: 'html',
+          engine: 'none'
+        }
+      })
+      res.content.toString().should.be.eql('hello')
+    })
+
+    it('should resolve asset using folders absolute path and leading space {#asset /foo.html}', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.html',
+        content: 'hello'
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{#asset  /foo.html}',
+          recipe: 'html',
+          engine: 'none'
+        }
+      })
+      res.content.toString().should.be.eql('hello')
+    })
+
+    it('should resolve asset using folders absolute path and trailing space {#asset /foo.html}', async () => {
+      await reporter.documentStore.collection('assets').insert({
+        name: 'foo.html',
+        content: 'hello'
+      })
+
+      const res = await reporter.render({
+        template: {
+          content: '{#asset /foo.html }',
           recipe: 'html',
           engine: 'none'
         }
