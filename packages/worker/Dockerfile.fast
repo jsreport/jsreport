@@ -1,4 +1,4 @@
-FROM jsreport/worker
+FROM jsreport/worker:local
 
 COPY --chown=jsreport:jsreport packages /app/packages
 COPY --chown=jsreport:jsreport packages/worker /app
