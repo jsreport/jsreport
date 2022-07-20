@@ -1,9 +1,10 @@
-import React, { useState, useContext, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useContext, useRef, useEffect } from 'react'
 import classNames from 'classnames'
 import ReactDOM from 'react-dom'
 import EntityTreeContext from './EntityTreeContext'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { checkIsGroupNode, checkIsGroupEntityNode, getAllEntitiesInHierarchy } from './utils'
+import storeMethods from '../../redux/methods'
 import { entitySets, entityTreeContextMenuItemsResolvers } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
@@ -14,6 +15,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
   getContextMenuItems
 }, ref) {
   const {
+    editSelection,
     selectable,
     clipboard,
     onNewEntity,
@@ -21,33 +23,78 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onRemove,
     onClone,
     onRename,
+    hasEditSelection,
+    isNodeEditSelected,
     onClearContextMenu,
+    onClearEditSelect,
     onSetClipboard,
-    onReleaseClipboardTo
+    onReleaseClipboardTo,
+    getEntityNodeById
   } = useContext(EntityTreeContext)
 
   if (selectable && getContextMenuItems == null) {
     return null
   }
 
+  const getNormalizedEditSelection = useCallback((_editSelection) => {
+    if (editSelection == null) {
+      return null
+    }
+
+    const normalized = []
+    const nodeCache = Object.create(null)
+    const childrenCache = Object.create(null)
+
+    const allEntitiesSelected = editSelection.map((selectedId) => storeMethods.getEntityById(selectedId))
+    const foldersSelected = allEntitiesSelected.filter((entitySelected) => entitySelected.__entitySet === 'folders')
+
+    for (const folderSelected of foldersSelected) {
+      const nodeOfSelected = getEntityNodeById(folderSelected._id)
+
+      nodeCache[folderSelected._id] = nodeOfSelected
+
+      const children = getAllEntitiesInHierarchy(nodeOfSelected)
+
+      childrenCache[folderSelected._id] = children
+    }
+
+    for (const entitySelected of allEntitiesSelected) {
+      const found = Object.keys(childrenCache).some((folderId) => {
+        const children = childrenCache[folderId]
+        return children.find((id) => id === entitySelected._id) != null
+      })
+
+      if (!found) {
+        normalized.push(entitySelected._id)
+      }
+    }
+
+    return normalized
+  }, [getEntityNodeById])
+
   const isRoot = entity == null
   const isGroup = isRoot ? false : checkIsGroupNode(node) && !checkIsGroupEntityNode(node)
   const isGroupEntity = isRoot ? false : checkIsGroupEntityNode(node)
   const containerStyle = {}
 
-  let menuItems = []
+  const menuItems = []
+
+  const editSelectionContextMenu = node != null && hasEditSelection() && isNodeEditSelected(node) && editSelection.length > 1
 
   const resolverParam = {
     node,
     clipboard,
     entity,
     entitySets,
+    editSelection: editSelectionContextMenu ? editSelection : null,
     isRoot,
     isGroup,
     isGroupEntity,
     disabledClassName: styles.disabled,
     getVisibleEntitySetsInTree,
     getAllEntitiesInHierarchy,
+    getEntityNodeById,
+    getNormalizedEditSelection,
     setClipboard: onSetClipboard,
     releaseClipboardTo: onReleaseClipboardTo,
     onNewEntity,
@@ -57,10 +104,30 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onRemove
   }
 
+  const getEditSelectionMenuItem = () => ({
+    key: 'EditSelectionCount',
+    title: `${editSelection.length} item(s) selected`,
+    icon: 'fa-list',
+    onClick: () => false
+  })
+
   if (getContextMenuItems != null) {
-    menuItems = getContextMenuItems(Object.assign({}, resolverParam, {
+    if (editSelectionContextMenu) {
+      menuItems.push(getEditSelectionMenuItem())
+
+      menuItems.push({
+        key: 'separator-group-edit-selection',
+        separator: true
+      })
+    }
+
+    const customItems = getContextMenuItems(Object.assign({}, resolverParam, {
       isGroupEntity: isGroupEntity != null ? isGroupEntity : false
     }))
+
+    if (customItems != null && customItems.length > 0) {
+      menuItems.push(...customItems)
+    }
   } else {
     const contextMenuResults = entityTreeContextMenuItemsResolvers.map((resolver) => {
       return resolver(resolverParam)
@@ -68,6 +135,13 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
 
     const groupItems = []
     const singleItems = []
+
+    if (editSelectionContextMenu) {
+      groupItems.push({
+        grouped: true,
+        items: [getEditSelectionMenuItem()]
+      })
+    }
 
     contextMenuResults.forEach((r) => {
       if (r == null) {
@@ -159,6 +233,8 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
                     }
                   }
 
+                  // we want to clear also the edit selection when an action is handled
+                  onClearEditSelect()
                   onClearContextMenu()
                 }}
               >

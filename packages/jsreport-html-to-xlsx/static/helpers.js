@@ -98,5 +98,7 @@
     return result
   }
 
-  global.htmlToXlsxEachRows = jsrenderHandlebarsCompatibility(eachRows)
+  const htmlToXlsxEachRows = jsrenderHandlebarsCompatibility(eachRows)
+
+  global.__topLevelFunctions = { ...global.__topLevelFunctions, htmlToXlsxEachRows }
 })(this)

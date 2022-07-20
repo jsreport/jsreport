@@ -37,6 +37,7 @@ import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePrevi
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
 import { openModal } from './helpers/openModal'
 import { openTab } from './redux/editor/actions'
+import storeMethods from './redux/methods'
 
 export default () => {
   configuration.sharedComponents.TextEditor = TextEditor
@@ -112,11 +113,16 @@ export default () => {
     node,
     entity,
     entitySets,
+    editSelection,
     isRoot,
     isGroupEntity,
     getVisibleEntitySetsInTree,
     onNewEntity
   }) => {
+    if (editSelection != null) {
+      return
+    }
+
     const items = []
 
     if (isRoot || isGroupEntity) {
@@ -163,10 +169,13 @@ export default () => {
     node,
     clipboard,
     entity,
+    editSelection,
     isRoot,
     isGroupEntity,
     disabledClassName,
     getAllEntitiesInHierarchy,
+    getEntityNodeById,
+    getNormalizedEditSelection,
     setClipboard,
     releaseClipboardTo,
     onOpen,
@@ -176,7 +185,7 @@ export default () => {
   }) => {
     const items = []
 
-    if (!isRoot) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Definition',
         title: 'Definition',
@@ -187,7 +196,7 @@ export default () => {
       })
     }
 
-    if (isGroupEntity) {
+    if (isGroupEntity && editSelection == null) {
       items.push({
         key: 'Edit',
         title: 'Edit',
@@ -198,7 +207,7 @@ export default () => {
       })
     }
 
-    if (!isRoot) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Rename',
         title: 'Rename',
@@ -209,7 +218,7 @@ export default () => {
       })
     }
 
-    if (!isRoot) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Clone',
         title: 'Clone',
@@ -220,7 +229,7 @@ export default () => {
       })
     }
 
-    if (!isRoot && isGroupEntity) {
+    if (!isRoot && editSelection == null) {
       items.push({
         key: 'Cut',
         title: 'Cut',
@@ -232,7 +241,13 @@ export default () => {
             return false
           }
 
-          setClipboard({ action: 'move', entityId: entity._id, entitySet: entity.__entitySet })
+          setClipboard({
+            action: 'move',
+            source: {
+              id: entity._id,
+              entitySet: entity.__entitySet
+            }
+          })
         }
       })
     }
@@ -249,12 +264,39 @@ export default () => {
             return false
           }
 
-          setClipboard({ action: 'copy', entityId: entity._id, entitySet: entity.__entitySet })
+          if (editSelection == null) {
+            setClipboard({
+              action: 'copy',
+              source: {
+                id: entity._id,
+                entitySet: entity.__entitySet
+              }
+            })
+          } else {
+            const editSelectionNormalized = getNormalizedEditSelection(editSelection)
+
+            const source = editSelectionNormalized.map((selectedId) => {
+              const entity = storeMethods.getEntityById(selectedId)
+
+              return {
+                id: entity._id,
+                entitySet: entity.__entitySet
+              }
+            })
+
+            setClipboard({
+              action: 'copy',
+              source
+            })
+          }
         }
       })
     }
 
-    if (isRoot || isGroupEntity) {
+    if (
+      (isRoot || isGroupEntity) &&
+      editSelection == null
+    ) {
       items.push({
         key: 'Paste',
         title: 'Paste',
@@ -280,8 +322,30 @@ export default () => {
         title: 'Delete',
         icon: 'fa-trash',
         onClick: () => {
-          const children = getAllEntitiesInHierarchy(node)
-          onRemove(entity._id, children.length > 0 ? children : undefined)
+          let toRemove
+
+          if (editSelection == null) {
+            const children = getAllEntitiesInHierarchy(node)
+
+            toRemove = {
+              id: entity._id,
+              childrenIds: children.length > 0 ? children : undefined
+            }
+          } else {
+            const editSelectionNormalized = getNormalizedEditSelection(editSelection)
+
+            toRemove = editSelectionNormalized.map((selectedId) => {
+              const nodeOfSelected = getEntityNodeById(selectedId)
+              const children = getAllEntitiesInHierarchy(nodeOfSelected)
+
+              return {
+                id: selectedId,
+                childrenIds: children.length > 0 ? children : undefined
+              }
+            })
+          }
+
+          onRemove(toRemove)
         }
       })
     }

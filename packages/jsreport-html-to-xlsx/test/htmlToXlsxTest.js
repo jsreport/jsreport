@@ -397,4 +397,38 @@ describe('html to xlsx', () => {
       err.lineNumber.should.be.eql(3)
     }
   })
+
+  it('should work when using htmlToXlsxEachRows helper', async () => {
+    const request = {
+      template: {
+        content: `
+          <table>
+            {{#htmlToXlsxEachRows people}}
+              <tr>
+                <td>{{name}}</td>
+                <td>{{address}}</td>
+              </tr>
+            {{/htmlToXlsxEachRows}}
+          </table>
+        `,
+        recipe: 'html-to-xlsx',
+        engine: 'handlebars',
+        htmlToXlsx: {
+          htmlEngine: 'chrome'
+        }
+      },
+      data: {
+        people: [{
+          name: 'Joe',
+          address: 'test'
+        }, {
+          name: 'Kurt',
+          address: 'test2'
+        }]
+      }
+    }
+
+    const response = await reporter.render(request)
+    response.content.toString().should.containEql('PK')
+  })
 })

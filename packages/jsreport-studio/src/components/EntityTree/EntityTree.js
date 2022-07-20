@@ -19,6 +19,8 @@ const EntityTree = ({
   selectionMode,
   selected,
   activeEntity,
+  editSelection,
+  lastEditSelectionFocused,
   entities,
   getContextMenuItems,
   onNewEntity,
@@ -32,6 +34,14 @@ const EntityTree = ({
 
   const openTab = useCallback((...params) => {
     return dispatch(editorActions.openTab(...params))
+  }, [dispatch])
+
+  const editSelect = useCallback((...params) => {
+    return dispatch(editorActions.editSelect(...params))
+  }, [dispatch])
+
+  const clearEditSelect = useCallback((...params) => {
+    return dispatch(editorActions.clearEditSelect(...params))
   }, [dispatch])
 
   const hierarchyMove = useCallback((...params) => {
@@ -54,10 +64,14 @@ const EntityTree = ({
     selectable,
     selectionMode,
     entities,
+    editSelection,
+    lastEditSelectionFocused,
     selected,
     activeEntity,
     getContextMenuItems,
     openTab,
+    editSelect,
+    clearEditSelect,
     hierarchyMove,
     onNewEntity,
     onRemove,

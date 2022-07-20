@@ -333,6 +333,7 @@ module.exports = (reporter, definition) => {
           const doc = await reporter.documentStore.collection(e.__entitySet).serializeProperties([e])
           Object.assign(e, doc[0])
         }
+
         res.status(200).json({
           items: updatedItems
         })

@@ -28,10 +28,14 @@ export default function useEntityTree (main, {
   selectable,
   selectionMode,
   entities,
+  editSelection,
+  lastEditSelectionFocused,
   selected,
   activeEntity,
   getContextMenuItems,
   openTab,
+  editSelect,
+  clearEditSelect,
   hierarchyMove,
   onNewEntity,
   onRemove,
@@ -46,11 +50,24 @@ export default function useEntityTree (main, {
   const [highlightedArea, setHighlightedArea] = useState(null)
   const [currentEntities, setFilter] = useFilteredEntities(entities)
 
-  const { isNodeCollapsed, toogleNodeCollapse, collapseHandler } = useCollapsed({
+  const { isNodeCollapsed, toggleNodeCollapse, collapseHandler } = useCollapsed({
     listRef
   })
 
   const { contextMenu, showContextMenu, clearContextMenu } = useContextMenu(contextMenuRef)
+
+  const editSelectEntityAboveOrBellow = useCallback((entityId, action) => {
+    const relativeEntitiesNodes = listRef.current.getRelativeEntitiesById(entityId)
+    const index = relativeEntitiesNodes.findIndex((node) => node.data._id === entityId)
+    const limit = action === 'up' ? 0 : relativeEntitiesNodes.length - 1
+
+    if (index !== limit) {
+      const targetIndex = action === 'up' ? index - 1 : index + 1
+      const targetEntityNode = relativeEntitiesNodes[targetIndex]
+      // we just want to toggle the above entity
+      editSelect(targetEntityNode.data._id)
+    }
+  }, [listRef, editSelect])
 
   useEffect(() => {
     if (main) {
@@ -58,27 +75,119 @@ export default function useEntityTree (main, {
     }
   }, [main, collapseHandler])
 
+  // handle click outside of tree list and ESC keypress to clear editSelection
+  useEffect(() => {
+    if (!main) {
+      return
+    }
+
+    function tryClearFromClick (ev) {
+      const LEFT_CLICK = 1
+      const button = ev.which || ev.button
+
+      if (ev.target.type === 'file') {
+        return
+      }
+
+      if (listRef.current == null || listRef.current.node == null) {
+        return
+      }
+
+      if (editSelection == null) {
+        return
+      }
+
+      ev.preventDefault()
+
+      if (
+        !listRef.current.node.contains(ev.target)
+      ) {
+        // only stop propagation when the click does not come from context menu,
+        // if it comes from context menu we want to clear selection and also close context menu
+        // at the same time
+        if (contextMenuRef.current == null || !contextMenuRef.current.contains(ev.target)) {
+          ev.stopPropagation()
+        }
+
+        // handle quirk in firefox that fires and additional click event during
+        // contextmenu event, this code prevents the context menu to
+        // immediately be closed after being shown in firefox.
+        // only clear edit selection if there is no context menu
+        if (
+          button === LEFT_CLICK &&
+          contextMenuRef.current == null
+        ) {
+          clearEditSelect()
+        }
+      }
+    }
+
+    function trySelectOrClearFromKey (ev) {
+      if (listRef.current == null || listRef.current.node == null) {
+        return
+      }
+
+      if (editSelection == null) {
+        return
+      }
+
+      // we only want to clear on ESC when there is no context menu
+      if (contextMenuRef.current == null && ev.which === 27) {
+        clearEditSelect()
+      }
+
+      // if node that has edit selection enabled has focus then handle arrows keys
+      if (
+        lastEditSelectionFocused != null &&
+        ev.target.dataset != null &&
+        (ev.target.dataset.editSelectionEnabled === 'true' || ev.target.dataset.editSelectionEnabled === true) &&
+        document.activeElement === ev.target
+      ) {
+        if (ev.shiftKey && ev.which === 38) {
+          editSelectEntityAboveOrBellow(lastEditSelectionFocused, 'up')
+        } else if (ev.shiftKey && ev.which === 40) {
+          editSelectEntityAboveOrBellow(lastEditSelectionFocused, 'down')
+        }
+      }
+    }
+
+    window.addEventListener('click', tryClearFromClick, true)
+    window.addEventListener('keydown', trySelectOrClearFromKey)
+
+    return () => {
+      window.removeEventListener('click', tryClearFromClick, true)
+      window.removeEventListener('keydown', trySelectOrClearFromKey)
+    }
+  }, [main, listRef, contextMenuRef, editSelection, lastEditSelectionFocused, editSelectEntityAboveOrBellow, clearEditSelect])
+
   const copyOrMoveEntity = useCallback((sourceInfo, targetInfo, shouldCopy = false) => {
-    hierarchyMove(sourceInfo, targetInfo, shouldCopy, false, true).then((result) => {
+    const isSingleSource = Array.isArray(sourceInfo) ? sourceInfo.length === 1 : true
+
+    // we only want to retry/show the replace modal when doing single source action
+    hierarchyMove(sourceInfo, targetInfo, shouldCopy, false, isSingleSource).then((result) => {
       if (targetInfo.shortid != null) {
         const targetEntity = storeMethods.getEntityByShortid(targetInfo.shortid)
-        toogleNodeCollapse(listRef.current.entityNodesById[targetEntity._id], false)
+        toggleNodeCollapse(listRef.current.entityNodesById[targetEntity._id], false)
       }
 
       if (!result || result.duplicatedEntity !== true) {
         return
       }
 
-      openModal(HierarchyReplaceEntityModal, {
-        sourceId: sourceInfo.id,
-        targetShortId: targetInfo.shortid,
-        targetChildren: targetInfo.children,
-        existingEntity: result.existingEntity,
-        existingEntityEntitySet: result.existingEntityEntitySet,
-        shouldCopy
-      })
+      if (isSingleSource) {
+        const singleSource = Array.isArray(sourceInfo) ? sourceInfo[0] : sourceInfo
+
+        openModal(HierarchyReplaceEntityModal, {
+          sourceId: singleSource.id,
+          targetShortId: targetInfo.shortid,
+          targetChildren: targetInfo.children,
+          existingEntity: result.existingEntity,
+          existingEntityEntitySet: result.existingEntityEntitySet,
+          shouldCopy
+        })
+      }
     })
-  }, [hierarchyMove, toogleNodeCollapse, listRef])
+  }, [hierarchyMove, toggleNodeCollapse, listRef])
 
   const isValidHierarchyTarget = useCallback((sourceNode, targetNode) => {
     const containersInHierarchyForTarget = []
@@ -262,13 +371,13 @@ export default function useEntityTree (main, {
         return
       }
 
-      const hierachyEntityTitleDimensions = hierarchyEntityTitleDOMNode.getBoundingClientRect()
+      const hierarchyEntityTitleDimensions = hierarchyEntityTitleDOMNode.getBoundingClientRect()
 
       newHighlightedArea.label = {
-        top: hierachyEntityTitleDimensions.top,
-        left: hierachyEntityTitleDimensions.left,
-        width: hierachyEntityTitleDimensions.width,
-        height: hierachyEntityTitleDimensions.height
+        top: hierarchyEntityTitleDimensions.top,
+        left: hierarchyEntityTitleDimensions.left,
+        width: hierarchyEntityTitleDimensions.width,
+        height: hierarchyEntityTitleDimensions.height
       }
 
       let containerTargetIsCollapsed = false
@@ -292,10 +401,10 @@ export default function useEntityTree (main, {
         const hierarchyEntityDimensions = hierarchyEntityDOMNode.getBoundingClientRect()
 
         newHighlightedArea.hierarchy = {
-          top: hierachyEntityTitleDimensions.top + (hierachyEntityTitleDimensions.height + 4),
-          left: hierachyEntityTitleDimensions.left,
+          top: hierarchyEntityTitleDimensions.top + (hierarchyEntityTitleDimensions.height + 4),
+          left: hierarchyEntityTitleDimensions.left,
           width: `${paddingByLevelInTree}rem`,
-          height: hierarchyEntityDimensions.height - (hierachyEntityTitleDimensions.height + 4)
+          height: hierarchyEntityDimensions.height - (hierarchyEntityTitleDimensions.height + 4)
         }
       }
     }
@@ -327,8 +436,10 @@ export default function useEntityTree (main, {
 
   const sharedValues = useMemo(() => {
     return {
+      main,
       allEntities: entities,
       paddingByLevel: paddingByLevelInTree,
+      editSelection,
       selectable,
       selectionMode,
       contextMenu,
@@ -339,7 +450,7 @@ export default function useEntityTree (main, {
       onRename,
       onNewEntity: (node, ...params) => {
         if (node && node.isEntitySet !== true) {
-          toogleNodeCollapse(node, false)
+          toggleNodeCollapse(node, false)
         }
 
         onNewEntity(...params)
@@ -379,6 +490,16 @@ export default function useEntityTree (main, {
 
         onSelectionChanged(newSelected)
       },
+      onNodeEditSelect: (node) => {
+        const isGroupEntity = checkIsGroupEntityNode(node)
+        const isEntity = !isGroupEntity && !checkIsGroupNode(node)
+
+        if (isEntity || isGroupEntity) {
+          editSelect(node.data._id, { initializeWithActive: true })
+        }
+
+        clearContextMenu()
+      },
       onNodeClick: (node) => {
         const isGroup = checkIsGroupNode(node)
         const isGroupEntity = checkIsGroupEntityNode(node)
@@ -387,15 +508,16 @@ export default function useEntityTree (main, {
         if (isEntity) {
           openTab({ _id: node.data._id })
         } else if (isGroup || isGroupEntity) {
-          toogleNodeCollapse(node)
+          toggleNodeCollapse(node)
         }
 
         clearContextMenu()
       },
       onNodeDragOver: dragOverNode,
-      onNodeCollapse: toogleNodeCollapse,
+      onNodeCollapse: toggleNodeCollapse,
       onContextMenu: showContextMenu,
       onClearContextMenu: clearContextMenu,
+      onClearEditSelect: clearEditSelect,
       onSetClipboard: (newClipboard) => {
         setClipboard(newClipboard)
       },
@@ -404,19 +526,30 @@ export default function useEntityTree (main, {
           return
         }
 
-        copyOrMoveEntity({
-          id: clipboard.entityId,
-          entitySet: clipboard.entitySet
-        }, {
+        copyOrMoveEntity(clipboard.source, {
           shortid: destination.shortid,
           children: destination.children
         }, clipboard.action === 'copy')
 
         setClipboard(null)
       },
+      hasEditSelection: () => {
+        return editSelection != null
+      },
       isNodeCollapsed,
       isNodeSelected: (node) => {
         return selected[node.data._id] === true
+      },
+      isNodeEditSelected: (node) => {
+        if (editSelection == null) {
+          return false
+        }
+
+        if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
+          return false
+        }
+
+        return editSelection.find((id) => node.data._id === id) != null
       },
       isNodeActive: (node) => {
         let active = false
@@ -431,10 +564,15 @@ export default function useEntityTree (main, {
 
         return active
       },
+      getEntityNodeById: (id) => {
+        return listRef.current.entityNodesById[id]
+      },
       getContextMenuItems
     }
   }, [
+    main,
     entities,
+    editSelection,
     paddingByLevelInTree,
     selectable,
     selectionMode,
@@ -448,14 +586,17 @@ export default function useEntityTree (main, {
     onRemove,
     onSelectionChanged,
     openTab,
+    editSelect,
+    clearEditSelect,
     getContextMenuItems,
     isNodeCollapsed,
-    toogleNodeCollapse,
+    toggleNodeCollapse,
     dragOverNode,
     showContextMenu,
     clearContextMenu,
     copyOrMoveEntity,
-    contextMenuRef
+    contextMenuRef,
+    listRef
   ])
 
   return {

@@ -6,6 +6,8 @@ import { previewComponents } from '../../lib/configuration'
 
 const reducer = createReducer({
   tabs: [],
+  editSelection: null,
+  lastEditSelectionFocused: null,
   activeTabKey: null,
   lastActiveTemplateKey: null,
   running: null,
@@ -101,6 +103,69 @@ reducer.handleAction(ActionTypes.ACTIVATE_TAB, (state, action) => {
     ...state,
     activeTabKey: action.key,
     lastActiveTemplateKey: newTab.entitySet === 'templates' ? newTab._id : state.lastActiveTemplateKey
+  }
+})
+
+reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
+  const { id, payload } = action
+  const { value, defaultItems } = payload
+
+  let newEditSelection = state.editSelection
+  let newLastEditSelectionFocused = state.lastEditSelectionFocused
+
+  if (newEditSelection == null) {
+    newEditSelection = []
+    newLastEditSelectionFocused = null
+
+    if (Array.isArray(defaultItems)) {
+      newEditSelection = [...defaultItems]
+      newLastEditSelectionFocused = newEditSelection[newEditSelection.length - 1]
+    }
+  }
+
+  const existingIndex = newEditSelection.findIndex((selectedId) => selectedId === id)
+
+  const updateSelection = (selectedItems, selectedValue, targetIndex) => {
+    let newSelection
+
+    if (selectedValue === true) {
+      if (targetIndex === -1) {
+        newSelection = [...selectedItems, id]
+      }
+    } else {
+      newSelection = [
+        ...selectedItems.slice(0, targetIndex),
+        ...selectedItems.slice(targetIndex + 1)
+      ]
+    }
+
+    if (newSelection == null) {
+      return selectedItems
+    }
+
+    return newSelection
+  }
+
+  if (value === true || value === false) {
+    newLastEditSelectionFocused = id
+    newEditSelection = updateSelection(newEditSelection, value, existingIndex)
+  } else if (value == null) {
+    newLastEditSelectionFocused = id
+    newEditSelection = updateSelection(newEditSelection, existingIndex === -1, existingIndex)
+  }
+
+  return {
+    ...state,
+    editSelection: newEditSelection,
+    lastEditSelectionFocused: newLastEditSelectionFocused
+  }
+})
+
+reducer.handleAction(ActionTypes.EDIT_SELECT_CLEAR, (state, action) => {
+  return {
+    ...state,
+    editSelection: null,
+    lastEditSelectionFocused: null
   }
 })
 

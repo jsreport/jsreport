@@ -15,7 +15,7 @@ export default function useCollapsed ({
     return collapsedNodes[node.id] == null ? true : collapsedNodes[node.id] === true
   }, [collapsedNodes])
 
-  const toogleNodeCollapse = useCallback((node, forceState) => {
+  const toggleNodeCollapse = useCallback((node, forceState) => {
     const nodesToProcess = Array.isArray(node) ? node : [node]
 
     if (nodesToProcess.length === 0) {
@@ -77,14 +77,14 @@ export default function useCollapsed ({
       }
     }
 
-    toogleNodeCollapse(toCollapse.map((folder) => {
+    toggleNodeCollapse(toCollapse.map((folder) => {
       return listRef.current.entityNodesById[folder._id]
     }), state)
-  }, [listRef, toogleNodeCollapse])
+  }, [listRef, toggleNodeCollapse])
 
   return {
     isNodeCollapsed,
-    toogleNodeCollapse,
+    toggleNodeCollapse,
     collapseHandler
   }
 }

@@ -33,7 +33,7 @@ export const getByShortid = (entities, shortid, shouldThrow = true) => {
 export const createGetByShortidSelector = () => {
   return createSelector(
     [getEntities, (_, props) => props.shortid],
-    (entities, shortid) => getById(entities, shortid, false)
+    (entities, shortid) => getByShortid(entities, shortid, false)
   )
 }
 

@@ -9,7 +9,7 @@ import { createGetReferencesSelector } from '../../redux/entities/selectors'
 import { createGetActiveEntitySelector } from '../../redux/editor/selectors'
 import { openModal } from '../../helpers/openModal'
 import getCloneName from '../../../shared/getCloneName'
-import { entitySets, entityTreeWrapperComponents, removeHandler } from '../../lib/configuration'
+import { entitySets, entityTreeWrapperComponents } from '../../lib/configuration'
 import styles from './EntityTreeBox.css'
 
 const EntityTreeBox = () => {
@@ -17,6 +17,8 @@ const EntityTreeBox = () => {
   const getActiveEntity = useMemo(createGetActiveEntitySelector, [])
   const references = useSelector(getReferences)
   const activeEntity = useSelector(getActiveEntity)
+  const editSelection = useSelector(state => state.editor.editSelection)
+  const lastEditSelectionFocused = useSelector(state => state.editor.lastEditSelectionFocused)
 
   const executeNewHandling = useCallback(function executeNewHandling (es, options) {
     if (entitySets[es].onNew) {
@@ -49,12 +51,8 @@ const EntityTreeBox = () => {
     openModal(modalToOpen, options)
   }, [])
 
-  const executeRemoveHandling = useCallback(function executeRemoveHandling (id, children) {
-    if (removeHandler) {
-      return removeHandler(id, children)
-    }
-
-    openModal(DeleteConfirmationModal, { _id: id, childrenIds: children })
+  const executeRemoveHandling = useCallback(function executeRemoveHandling (toRemove) {
+    openModal(DeleteConfirmationModal, { toRemove })
   }, [])
 
   let entityTreeEl = null
@@ -76,6 +74,8 @@ const EntityTreeBox = () => {
     onClone: executeCloneHandling,
     onRemove: executeRemoveHandling,
     activeEntity,
+    editSelection,
+    lastEditSelectionFocused,
     entities: references
   }
 

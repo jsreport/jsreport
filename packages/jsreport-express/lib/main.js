@@ -75,7 +75,7 @@ const prepareStartExpressApp = function (reporter, app, config) {
 
     // second start https server
 
-    // suport cert and relative path to rootdir
+    // support cert and relative path to rootdir
     if (config.certificate.cert && fs.existsSync(path.join(reporter.options.rootDirectory, config.certificate.cert))) {
       config.certificate.cert = path.join(reporter.options.rootDirectory, config.certificate.cert)
     }

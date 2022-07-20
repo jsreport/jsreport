@@ -8,15 +8,21 @@ import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle } from './ut
 import { entitySets } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
+const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
+
 const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) => {
   const {
+    main,
     paddingByLevel,
     selectable,
     allEntities,
     contextMenu,
     contextMenuRef,
+    hasEditSelection,
+    isNodeEditSelected,
     isNodeActive,
     getContextMenuItems,
+    onNodeEditSelect,
     onNodeClick,
     onContextMenu
   } = useContext(EntityTreeContext)
@@ -40,7 +46,7 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
 
   const containerClass = classNames(styles.link, {
     [styles.focused]: isContextMenuActive,
-    [styles.active]: isActive && !isDragging,
+    [styles.active]: hasEditSelection() ? isNodeEditSelected(node) && !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })
 
@@ -56,14 +62,36 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
 
   const selectId = `select-${node.id}`
 
+  const editSelectionEnabledProps = {}
+
+  if (main) {
+    editSelectionEnabledProps['data-edit-selection-enabled'] = true
+    // tabIndex is used to make the label focusable, so it can get focus when click on it
+    editSelectionEnabledProps.tabIndex = '-1'
+  }
+
   return (
     <label
       key={entity._id}
       id={id}
       className={containerClass}
+      {...editSelectionEnabledProps}
       htmlFor={selectId}
       style={{ display: 'block', userSelect: 'none', paddingLeft: `${(depth + 1) * paddingByLevel + 0.6}rem` }}
-      onClick={() => !selectable && onNodeClick(node)}
+      onClick={(e) => {
+        if (selectable) { return }
+
+        // handles ctrl/CMD + click
+        if (
+          main &&
+          ((!isMac() && e.ctrlKey) ||
+          (isMac() && e.metaKey))
+        ) {
+          onNodeEditSelect(node)
+        } else {
+          onNodeClick(node)
+        }
+      }}
       onContextMenu={(ev) => onContextMenu(ev, entity)}
     >
       {renderEntityTreeItemComponents('container', { entity, entities: allEntities }, [

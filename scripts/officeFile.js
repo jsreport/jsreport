@@ -6,6 +6,10 @@ const extractZip = require('extract-zip')
 const ZFolder = require('zfolder')
 const format = require('xml-formatter')
 
+// NOTE: resources to better understand the openxml spec:
+// - http://officeopenxml.com/WPstyleParStyles.php
+// - https://c-rex.net/projects/samples/ooxml/e1/Part4/OOXML_P4_DOCX_shd_topic_ID0E1CNM.html?hl=w%3Ashd
+
 const OFFICE_TYPES = ['docx', 'pptx', 'xlsx']
 
 const desktopPath = path.join(os.homedir(), 'Desktop')

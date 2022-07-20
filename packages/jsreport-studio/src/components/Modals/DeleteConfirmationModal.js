@@ -3,7 +3,8 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { entitySets } from '../../lib/configuration.js'
 import { actions as entitiesActions } from '../../redux/entities'
-import { createGetByIdSelector } from '../../redux/entities/selectors.js'
+import { createGetByIdSelector } from '../../redux/entities/selectors'
+import storeMethods from '../../redux/methods'
 
 class DeleteConfirmationModal extends Component {
   constructor (props) {
@@ -12,9 +13,14 @@ class DeleteConfirmationModal extends Component {
     this.cancelRef = React.createRef()
   }
 
-  remove () {
+  async remove () {
+    const { entitiesToRemove } = this.props
+
     this.props.close()
-    this.props.remove(this.props.entity._id, this.props.options.childrenIds)
+
+    for (const item of entitiesToRemove) {
+      await this.props.remove(item.entity._id, item.childrenIds)
+    }
   }
 
   cancel () {
@@ -26,25 +32,65 @@ class DeleteConfirmationModal extends Component {
   }
 
   render () {
-    const { entity } = this.props
+    const { entitiesToRemove } = this.props
 
-    if (!entity) {
+    if (!entitiesToRemove || entitiesToRemove.length === 0) {
       return null
     }
 
-    let entityDisplay
+    const isSingleDelete = entitiesToRemove.length === 1
+    let content
 
-    if (entity.name) {
-      entityDisplay = entity.name
+    const contentStyle = {
+      maxWidth: '350px'
+    }
+
+    const getEntitySetDisplayName = (entitySet) => entitySets[entitySet].visibleName || entitySet
+
+    if (isSingleDelete) {
+      const entity = entitiesToRemove[0].entity
+      let entityDisplay
+
+      if (entity.name) {
+        entityDisplay = storeMethods.resolveEntityPath(entity)
+      } else {
+        entityDisplay = `entity with _id: ${entity._id}`
+      }
+
+      content = (
+        <div style={contentStyle}>
+          Are you sure you want to delete&nbsp;<b>{entityDisplay}</b>&nbsp;({getEntitySetDisplayName(entity.__entitySet)})?
+        </div>
+      )
     } else {
-      entityDisplay = `entity with _id: ${entity._id}`
+      content = (
+        <div style={contentStyle}>
+          Are you sure you want to delete the following entities ({entitiesToRemove.length})?
+          <ul>
+            {entitiesToRemove.map(item => {
+              const entity = item.entity
+              let entityDisplay
+
+              if (entity.name) {
+                entityDisplay = storeMethods.resolveEntityPath(entity)
+              } else {
+                entityDisplay = `entity with _id: ${entity._id}`
+              }
+
+              return (
+                <li key={item.entity._id}>
+                  <b>{entityDisplay}</b>&nbsp;({getEntitySetDisplayName(entity.__entitySet)})
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )
     }
 
     return (
       <div>
-        <div>
-          Are you sure you want to delete&nbsp;<b>{entityDisplay}</b>&nbsp;({entitySets[entity.__entitySet].visibleName || entity.__entitySet})?
-        </div>
+        {content}
         <div className='button-bar'>
           <button
             className='button danger'
@@ -73,9 +119,28 @@ DeleteConfirmationModal.propTypes = {
 function makeMapStateToProps () {
   const getById = createGetByIdSelector()
 
-  return (state, props) => ({
-    entity: getById(state, { id: props.options._id })
-  })
+  return (state, props) => {
+    const toRemove = props.options.toRemove
+    const entitiesToRemove = []
+
+    if (!Array.isArray(toRemove)) {
+      entitiesToRemove.push({
+        entity: getById(state, { id: toRemove.id }),
+        childrenIds: toRemove.childrenIds
+      })
+    } else {
+      const toRemoveItems = toRemove.map((item) => ({
+        entity: getById(state, { id: item.id }),
+        childrenIds: item.childrenIds
+      }))
+
+      entitiesToRemove.push(...toRemoveItems)
+    }
+
+    return {
+      entitiesToRemove
+    }
+  }
 }
 
 export default connect(
