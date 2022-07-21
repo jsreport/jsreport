@@ -8,8 +8,12 @@ const argv = argsParser(process.argv.slice(2), {
   // additionally to config args, we expect any option passed to "stats." to be parsed
   string: ['config', 'name'],
   boolean: ['verbose'],
+  array: ['removeSourceMapUrl'],
   alias: {
     verbose: ['v']
+  },
+  default: {
+    removeSourceMapUrl: []
   },
   coerce: {
     stats: function (arg) {
@@ -51,7 +55,9 @@ if (argv.config) {
     throw new Error(`Error while trying to use config in ${argv.config}: ${e.message}`)
   }
 } else {
-  config = extensionBuildConfig(argv.name)
+  config = extensionBuildConfig(argv.name, {
+    removeSourceMapUrl: argv.removeSourceMapUrl
+  })
 }
 
 webpack(config, (err, stats) => {
