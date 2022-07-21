@@ -177,8 +177,9 @@ function getElementsFromOperations (operations, errorEvent) {
       // the global error with unknown operation is typically a timeout, so we keep blinking what was running
       [styles.running]: !operation.endEvent && operation.startEvent.subtype !== 'render' && erroredOperation == null && (i !== 0 || operations.length === 1),
       [styles.error]: erroredOperation === operation,
-      [styles.profileEndNode]: i === 0
+      [styles.profileStartNode]: i === 0
     })
+
     const node = {
       id: operation.id,
       data: {
