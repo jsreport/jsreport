@@ -21,32 +21,35 @@ class Resizer extends Component {
       collapse,
       collapsedText,
       renderCollapsedIcon,
-      collapsable
+      collapsable,
+      buttons
     } = this.props
 
     const classes = ['Resizer', split, className]
 
-    let toggleButtonEl
+    let toggleButtonEl = null
 
-    if (collapsed) {
-      toggleButtonEl = (
-        <div className='pane-holder' onClick={(e) => collapse(false)}>
-          {renderCollapsedIcon != null && (
-            renderCollapsedIcon()
-          )}
-          {collapsedText}
-        </div>
-      )
-    } else {
-      toggleButtonEl = (
-        <div
-          title='Minimize pane'
-          className={'docker ' + (collapsable === 'first' ? 'left' : '')}
-          onClick={(e) => collapse(true)}
-        >
-          <i className={'fa ' + (collapsable === 'first' ? 'fa-long-arrow-left' : 'fa-long-arrow-right')} />
-        </div>
-      )
+    if (buttons) {
+      if (collapsed) {
+        toggleButtonEl = (
+          <div className='pane-holder' onClick={(e) => collapse(false)}>
+            {renderCollapsedIcon != null && (
+              renderCollapsedIcon()
+            )}
+            {collapsedText}
+          </div>
+        )
+      } else {
+        toggleButtonEl = (
+          <div
+            title='Minimize pane'
+            className={'docker ' + (collapsable === 'first' ? 'left' : '')}
+            onClick={(e) => collapse(true)}
+          >
+            <i className={'fa ' + (collapsable === 'first' ? 'fa-long-arrow-left' : 'fa-long-arrow-right')} />
+          </div>
+        )
+      }
     }
 
     return (

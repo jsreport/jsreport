@@ -291,7 +291,8 @@ class SplitPane extends Component {
       resizerClassName,
       renderCollapsedIcon,
       collapsedText,
-      collapsable
+      collapsable,
+      buttons = true
     } = this.props
 
     const { collapsed } = this.state
@@ -340,6 +341,7 @@ class SplitPane extends Component {
           collapsed={collapsed}
           split={split}
           collapse={this.collapse}
+          buttons={buttons}
         />
         {this.renderPane(
           'second',

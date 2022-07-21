@@ -31,6 +31,7 @@ class TemplateEditor extends Component {
         primary='second'
         split='horizontal'
         resizerClassName='resizer-horizontal'
+        buttons={false}
         defaultSize={(window.innerHeight * 0.2) + 'px'}
       >
         <TextEditor
