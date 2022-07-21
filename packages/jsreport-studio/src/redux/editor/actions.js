@@ -622,14 +622,8 @@ export function run (params = {}, opts = {}) {
 
             storedPreviewData = previewData
 
-            const completed = pendingFiles.length === 0
-
             const updateChanges = {
               data: previewData
-            }
-
-            if (completed) {
-              updateChanges.completed = completed
             }
 
             dispatch(updatePreview(previewId, updateChanges))
@@ -695,6 +689,10 @@ export function run (params = {}, opts = {}) {
           }
         })
       })
+
+      if (targetType === 'preview') {
+        dispatch(updatePreview(previewId, { data: previewData, completed: true }))
+      }
     } catch (error) {
       if (targetType === 'download') {
         openModal(ErrorModal, { title: 'Download Error', error })
