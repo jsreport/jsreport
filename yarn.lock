@@ -14327,14 +14327,14 @@ pgpass@1.x:
   dependencies:
     split2 "^4.1.0"
 
-phantom-html-to-pdf@0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/phantom-html-to-pdf/-/phantom-html-to-pdf-0.6.2.tgz#1f5cae314faa7712a403d3451f76091b4554cd3a"
-  integrity sha512-Jlcguo8AObmQOb3/RL4NpynInmILg75nDiixg9WGcNKCseMWXDbi+f+ig2clo/4X80OwMMRenB4j3uzwD+po1w==
+phantom-html-to-pdf@0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/phantom-html-to-pdf/-/phantom-html-to-pdf-0.7.0.tgz#7dab06a4871791ae64c5e7fa74425962d72ca581"
+  integrity sha512-Dz9ULe55yYRN0awXJcprHGJrfHOwCb13kG/kjPGHeK59DSs894Z1FOwmjPSUNFiXDvYKAkGlEeaIT9wDzZ164g==
   dependencies:
     lodash "4.17.11"
     object-assign "4.1.1"
-    phantom-workers "0.5.0"
+    phantom-workers "0.6.0"
     uuid "3.3.2"
   optionalDependencies:
     phantomjs "1.9.20"
@@ -14347,10 +14347,10 @@ phantom-page-eval@2.0.1:
     debug "3.1.0"
     nanoid "3.2.0"
 
-phantom-workers@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/phantom-workers/-/phantom-workers-0.5.0.tgz#cf21461ee617a1ecfab73ae07e56cfd8e91c0194"
-  integrity sha512-P/6NY4siDpjuRxiFPZzE8YC/ULFqKTNu022q/ivpe2ZhVrkxrcgfPa+zx6b2PA7CZ3RumrSNSFtERtHwxVPySA==
+phantom-workers@0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/phantom-workers/-/phantom-workers-0.6.0.tgz#f04c99dd6072af2e6673170d20ab42448a51ce24"
+  integrity sha512-u+iOQu665xkZslEDum/rcAtIXCLHwVfy7fk0inqOO06Uzyl/K3KUVm6PtjWBNyzVRxWvWLJ5iV4pg9cY2DDVhw==
   dependencies:
     lodash.find "4.6.0"
     object-assign "4.1.1"

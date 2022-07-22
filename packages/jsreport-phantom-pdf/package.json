@@ -20,7 +20,7 @@
   ],
   "license": "LGPL",
   "dependencies": {
-    "phantom-html-to-pdf": "0.6.2",
+    "phantom-html-to-pdf": "0.7.0",
     "stream-to-array": "2.3.0"
   },
   "author": "Jan Blaha",
