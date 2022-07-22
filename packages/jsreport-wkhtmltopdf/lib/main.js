@@ -53,7 +53,7 @@ module.exports = function (reporter, definition) {
   })
 
   definition.options.execOptions = definition.options.execOptions || {}
-  definition.options.execOptions.env = extend(true, {}, process.env, definition.options.execOptions)
+  definition.options.execOptions.env = extend(true, {}, process.env, definition.options.execOptions.env)
   definition.options.execOptions.maxBuffer = definition.options.execOptions.maxBuffer || (1000 * 1024)
 
   if (definition.options.allowLocalFilesAccess == null) {
