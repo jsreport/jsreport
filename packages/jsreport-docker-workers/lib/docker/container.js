@@ -157,10 +157,15 @@ module.exports = class Container {
         throw new Error('Error when initializing worker ' + err.message)
       }
 
-      const errorData = JSON.parse(err.response.data)
-      const workerError = new Error(errorData.message)
-      workerError.stack = errorData.stack
-      throw workerError
+      let jsonError = null
+      try {
+        jsonError = JSON.parse(err.response.data)
+        const workerError = new Error(jsonError.message)
+        workerError.stack = jsonError.stack
+        throw workerError
+      } catch (e) {
+        throw new Error(`Error when initializing worker ${err.response.data}`)
+      }
     }
   }
 }
