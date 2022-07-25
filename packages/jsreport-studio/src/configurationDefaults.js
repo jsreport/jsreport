@@ -28,6 +28,7 @@ import NewFolderModal from './components/Modals/NewFolderModal'
 import EntityDefinitionModal from './components/Modals/EntityDefinitionModal'
 import ConcurrentUpdateErrorModal from './components/Modals/ConcurrentUpdateErrorModal'
 import DownloadPreviewAction from './components/Preview/MenuActions/DownloadAction'
+import DownloadLogsAction from './components/Preview/MenuActions/DownloadLogsAction'
 import DownloadProfilePreviewAction from './components/Preview/MenuActions/DownloadProfileAction'
 import UploadProfilePreviewAction from './components/Preview/MenuActions/UploadProfileAction'
 import OpenNewTabPreviewAction from './components/Preview/MenuActions/OpenNewTabAction'
@@ -507,6 +508,8 @@ export default () => {
     component: ProfilePreviewType,
     tabs: [{ name: 'profile', title: 'profile' }],
     actions: [{
+      component: DownloadLogsAction
+    }, {
       component: DownloadProfilePreviewAction
     }, {
       component: UploadProfilePreviewAction
@@ -519,6 +522,8 @@ export default () => {
     tabs: [{ name: 'report', title: 'report' }, { name: 'profile', title: 'profile' }],
     actions: [{
       component: DownloadPreviewAction
+    }, {
+      component: DownloadLogsAction
     }, {
       component: DownloadProfilePreviewAction
     }, {
