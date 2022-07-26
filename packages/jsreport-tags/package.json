@@ -36,7 +36,7 @@
     "jsreport.config.js"
   ],
   "scripts": {
-    "build": "jsreport-studio-build",
+    "build": "jsreport-studio-build --removeSourceMapUrl=main.js",
     "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 4300",
     "test": "mocha test --timeout 5000 && standard",

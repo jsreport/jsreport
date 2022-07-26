@@ -76,19 +76,23 @@
   padding-right: 0.6rem;
 }
 
+.profileOperationNode {
+  cursor: pointer !important;
+  border-radius: 1px !important;
+}
+
+.profileStandardNodeContent {
+  word-break: break-all;
+}
+
 .profileStartNode {
   cursor: pointer !important;
-  width: 35px !important;
+  width: 50px !important;
   border-radius: 50% !important;
 }
 
 .profileStartNodeLabel {
   margin-right: -2px;
-}
-
-.profileOperationNode {
-  cursor: pointer !important;
-  border-radius: 1px !important;
 }
 
 .profileEndNode {

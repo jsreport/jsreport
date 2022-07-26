@@ -2,16 +2,23 @@ import { useCallback } from 'react'
 import { useDispatch } from 'react-redux'
 import { actions } from '../../../redux/editor'
 
-const ClearAction = ({ closeMenu }) => {
+const ClearAction = ({ completed, closeMenu }) => {
   const dispatch = useDispatch()
 
   const clearPreview = useCallback(() => {
     dispatch(actions.clearPreview())
   }, [dispatch])
 
+  const enabled = completed
+
   return (
     <div
+      className={enabled ? '' : 'disabled'}
       onClick={() => {
+        if (!enabled) {
+          return
+        }
+
         clearPreview()
         closeMenu()
       }}

@@ -70,9 +70,9 @@ const OperationNode = React.memo(function OperationNode (props) {
     </button>
   )
 
-  const Error = <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span>
+  const Error = () => <span className={styles.profileEndNodeLabel} title='report ended with error'><i className='fa fa-times' /></span>
 
-  const formatedTime = new Intl.DateTimeFormat(navigator.language,
+  const formattedTime = new Intl.DateTimeFormat(navigator.language,
     {
       year: 'numeric',
       month: 'numeric',
@@ -85,18 +85,34 @@ const OperationNode = React.memo(function OperationNode (props) {
     }
   ).format(timestamp)
 
+  let type = 'standard'
+
+  if (renderResult != null) {
+    type = 'download'
+  } else if (error != null && end) {
+    type = 'error'
+  } else if (isMainProfileNode) {
+    type = 'start'
+  }
+
+  const renderNodeContent = () => {
+    if (type === 'download') {
+      return Download(renderResult)
+    } else if (type === 'error') {
+      return Error()
+    } else if (type === 'start') {
+      return <span id={id}><i className={`fa fa-play ${styles.profileStartNodeLabel}`} /></span>
+    }
+
+    return <span>{data.label}</span>
+  }
+
   return (
     // eslint-disable-next-line
     <Fragment>
       <Handle type='target' position={targetPosition} isConnectable={isConnectable} />
-      <div id={id} title={formatedTime}>
-        {renderResult != null
-          ? Download(renderResult)
-          : (error != null && end)
-              ? Error()
-              : isMainProfileNode
-                ? <span id={id}><i className={`fa fa-play ${styles.profileStartNodeLabel}`} /></span>
-                : <span>{data.label}</span>}
+      <div id={id} title={formattedTime} className={type === 'standard' ? styles.profileStandardNodeContent : ''}>
+        {renderNodeContent()}
       </div>
       <Handle type='source' position={sourcePosition} isConnectable={isConnectable} />
       <div

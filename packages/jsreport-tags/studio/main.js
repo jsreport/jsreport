@@ -2324,7 +2324,7 @@ function mitt(all                 ) {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (mitt);
-//# sourceMappingURL=mitt.es.js.map
+//# mitt.es.js.map
 
 
 /***/ }),

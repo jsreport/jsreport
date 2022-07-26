@@ -155,6 +155,7 @@ function getElementsFromOperations (operations, errorEvent) {
   const defaultPosition = { x: 0, y: 0 }
 
   const needsEndNode = []
+  let lastNode
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
@@ -177,8 +178,9 @@ function getElementsFromOperations (operations, errorEvent) {
       // the global error with unknown operation is typically a timeout, so we keep blinking what was running
       [styles.running]: !operation.endEvent && operation.startEvent.subtype !== 'render' && erroredOperation == null && (i !== 0 || operations.length === 1),
       [styles.error]: erroredOperation === operation,
-      [styles.profileEndNode]: i === 0
+      [styles.profileStartNode]: i === 0
     })
+
     const node = {
       id: operation.id,
       data: {
@@ -195,6 +197,7 @@ function getElementsFromOperations (operations, errorEvent) {
       className: nodeClass
     }
 
+    lastNode = node
     elements.push(node)
   }
 
@@ -224,6 +227,35 @@ function getElementsFromOperations (operations, errorEvent) {
     elements.push(createEdge(operation.endEvent.previousOperationId, endNodeId, {
       data: {
         outputId: operation.id,
+        inputId: null
+      }
+    }))
+  }
+
+  // adding end node error if the render finished with error
+  if (erroredOperation != null && lastNode != null && erroredOperation.id === lastNode.id) {
+    const endNodeClass = classNames('react-flow__node-default', styles.profileOperationNode, styles.profileEndNode)
+    const endNodeId = `${erroredOperation.id}-end`
+
+    const endNode = {
+      id: endNodeId,
+      data: {
+        time: getTime(erroredOperation, endTimestamp),
+        timeCost: getTimeCost(erroredOperation, startTimestamp, endTimestamp),
+        isFullRequestProfilingEnabled: operations[0].startEvent.data.mode === 'full',
+        error: errorEvent,
+        end: true
+      },
+      position: defaultPosition,
+      type: 'operation',
+      className: endNodeClass
+    }
+
+    elements.push(endNode)
+
+    elements.push(createEdge(lastNode.id, endNodeId, {
+      data: {
+        outputId: lastNode.id,
         inputId: null
       }
     }))

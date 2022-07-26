@@ -3,10 +3,10 @@ import ReportPreviewType from './ReportPreviewType'
 import ProfilePreviewType from './ProfilePreviewType/ProfilePreviewType'
 
 function ReportProfilePreviewType (props) {
-  const { activeTab } = props
+  const { activeTab, completed } = props
 
   // NOTE: we need these styles instead of just display: none
-  // because it seems that iframe have weird behaviour when it goes to
+  // because it seems that iframe have weird behavior when it goes to
   // display none and then display to visible, the content stays invisible,
   // so we need to make the content "invisible" without display: none.
   // also when the tab is not visible we use top, left, right, bottom to 0
@@ -28,13 +28,13 @@ function ReportProfilePreviewType (props) {
         className='block'
         style={activeTab === 'report' ? undefined : { ...inactiveStyles }}
       >
-        <ReportPreviewType id={props.id} data={props.data} />
+        <ReportPreviewType id={props.id} data={props.data} completed={completed} />
       </div>
       <div
         className='block'
         style={activeTab === 'profile' ? undefined : { ...inactiveStyles }}
       >
-        <ProfilePreviewType id={props.id} data={props.data} />
+        <ProfilePreviewType id={props.id} data={props.data} completed={completed} />
       </div>
     </Fragment>
   )

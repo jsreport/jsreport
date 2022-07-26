@@ -14,6 +14,16 @@
   "author": {
     "name": "Jan Blaha"
   },
+  "maintainers": [
+    {
+      "name": "pofider",
+      "email": "jan.blaha@hotmail.com"
+    },
+    {
+      "name": "BJR Matos ",
+      "email": "bjrmatos@gmail.com"
+    }
+  ],
   "main": "index.js",
   "bin": {
     "jsreport-studio-build": "./bin/build.js",
@@ -26,6 +36,7 @@
     "last 2 version"
   ],
   "dependencies": {
+    "@rbarilani/remove-source-map-url-webpack-plugin": "0.1.0",
     "autoprefixer": "9.5.1",
     "babel-core": "6.26.3",
     "babel-loader": "7.1.5",
@@ -62,15 +73,5 @@
   },
   "engines": {
     "node": ">=16.11"
-  },
-  "maintainers": [
-    {
-      "email": "jan.blaha@hotmail.com",
-      "name": "pofider"
-    },
-    {
-      "email": "bjrmatos@gmail.com",
-      "name": "BJR Matos "
-    }
-  ]
+  }
 }

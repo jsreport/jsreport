@@ -13,7 +13,7 @@ import getLogNodeId from './getLogNodeId'
 import styles from '../../Preview.css'
 
 const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
-  const { data } = props
+  const { data, completed } = props
   const { template, profileOperations, profileLogs, profileErrorEvent } = data
   const [activeElement, setActiveElement] = useState(null)
   const prevActiveElement = usePrevious(activeElement)
@@ -25,6 +25,10 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
   }, [])
 
   const handleElementClick = useCallback((meta) => {
+    if (!completed) {
+      return
+    }
+
     if (!meta.isEdge) {
       if (meta.data.error != null && meta.data.operation == null) {
         openModal(ErrorModal, { error: meta.data.error })
@@ -61,7 +65,7 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
 
       return meta
     })
-  }, [profileOperations, openErrorLine])
+  }, [profileOperations, completed, openErrorLine])
 
   let activeOperation
 
@@ -175,6 +179,7 @@ const ProfilePreviewType = React.memo(function ProfilePreviewType (props) {
         primary='second'
         split='horizontal'
         resizerClassName='resizer-horizontal'
+        buttons={false}
         defaultSize={(window.innerHeight * 0.2) + 'px'}
       >
         <OperationsDisplay

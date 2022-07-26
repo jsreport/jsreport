@@ -3,6 +3,7 @@ const fs = require('fs')
 const { nanoid } = require('nanoid')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const RemoveSourceMapUrlPlugin = require('@rbarilani/remove-source-map-url-webpack-plugin')
 
 const exposedLibraries = [
   'react',
@@ -15,7 +16,7 @@ const exposedLibraries = [
   'filesaver.js-npm'
 ]
 
-module.exports = (customExtName) => {
+module.exports = (customExtName, opts = {}) => {
   const extensionConfigPath = path.join(process.cwd(), 'jsreport.config.js')
   let extensionName
 
@@ -30,6 +31,27 @@ module.exports = (customExtName) => {
   if (extensionName == null) {
     extensionName = nanoid(6)
   }
+
+  const webpackPlugins = []
+
+  webpackPlugins.push(new webpack.DefinePlugin({
+    __DEVELOPMENT__: false
+  }))
+
+  webpackPlugins.push(new MiniCssExtractPlugin({
+    filename: '[name].css', // '[name].[hash].css'
+    chunkFilename: '[id].css' // '[id].[hash].css'
+  }))
+
+  if (opts.removeSourceMapUrl != null && opts.removeSourceMapUrl.length > 0) {
+    webpackPlugins.push(new RemoveSourceMapUrlPlugin({
+      test: (asset) => {
+        return opts.removeSourceMapUrl.some((item) => asset.endsWith(item))
+      }
+    }))
+  }
+
+  webpackPlugins.push(new webpack.ProgressPlugin())
 
   return {
     // we use 'none' to avoid webpack adding any plugin
@@ -125,16 +147,7 @@ module.exports = (customExtName) => {
         'node_modules/@jsreport/studio-dev/node_modules'
       ]
     },
-    plugins: [
-      new webpack.DefinePlugin({
-        __DEVELOPMENT__: false
-      }),
-      new MiniCssExtractPlugin({
-        filename: '[name].css', // '[name].[hash].css'
-        chunkFilename: '[id].css' // '[id].[hash].css'
-      }),
-      new webpack.ProgressPlugin()
-    ]
+    plugins: webpackPlugins
   }
 }
 

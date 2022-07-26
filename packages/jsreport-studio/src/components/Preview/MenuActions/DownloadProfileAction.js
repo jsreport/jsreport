@@ -1,15 +1,17 @@
 import { useRef } from 'react'
 import resolveUrl from '../../../helpers/resolveUrl'
 
-const DownloadProfileAction = ({ data, closeMenu }) => {
+const DownloadProfileAction = ({ completed, data, closeMenu }) => {
   const { profileOperations } = data
   const mainProfileOperation = profileOperations.find((op) => op.startEvent.subtype === 'profile')
   const containerRef = useRef(null)
 
+  const enabled = completed && mainProfileOperation != null
+
   return (
     <div
       ref={containerRef}
-      className={mainProfileOperation ? '' : 'disabled'}
+      className={enabled ? '' : 'disabled'}
       title='Download profile'
       onClick={() => {
         if (!mainProfileOperation) {
