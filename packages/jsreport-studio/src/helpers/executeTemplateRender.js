@@ -159,7 +159,7 @@ async function streamRender (request, { signal, profilerMode = 'standard', onSta
   } catch (e) {
     const newError = new Error(`Render Preview failed. ${e.message}`)
 
-    newError.stack = e.stack
+    newError.stack = e.stack || ''
     Object.assign(newError, e)
 
     throw newError
