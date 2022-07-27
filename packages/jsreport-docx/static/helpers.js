@@ -351,3 +351,27 @@ function docxChart (options) {
 
   return new Handlebars.SafeString('$docxChart' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
+
+function docxWatermark (options) {
+  const Handlebars = require('handlebars')
+
+  if (options.hash.text == null) {
+    throw new Error('docxWatermark helper requires text parameter to be set')
+  }
+
+  if (options.hash.enabled != null && typeof options.hash.enabled !== 'boolean') {
+    throw new Error('docxWatermark helper when enabled parameter is set, it should be a boolean')
+  }
+
+  if (
+    options.hash.style != null &&
+    (
+      typeof options.hash.style !== 'object' ||
+      Array.isArray(options.hash.style)
+    )
+  ) {
+    throw new Error('docxWatermark helper when style parameter is set, it should be an object')
+  }
+
+  return new Handlebars.SafeString('$docxWatermark' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
+}

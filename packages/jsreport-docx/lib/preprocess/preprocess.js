@@ -8,10 +8,12 @@ const link = require('./link')
 const style = require('./style')
 const pageBreak = require('./pageBreak')
 const toc = require('./toc')
+const watermark = require('./watermark')
 
 module.exports = (files) => {
   concatTags(files)
   bookmark(files)
+  watermark(files)
   drawingObject(files)
   list(files)
   raw(files)
