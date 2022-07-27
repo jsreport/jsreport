@@ -109,6 +109,11 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
             systemAction: 'execute'
           })
         } catch (e) {
+          // the weak is normally set in the reporter, but that is here too late
+          if (e.code === 'WORKER_ABORTED' || e.code === 'WORKER_TIMEOUT') {
+            e.weak = true
+          }
+
           if (!e.weak) {
             container.needRestart = true
           }
