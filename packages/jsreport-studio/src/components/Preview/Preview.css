@@ -24,6 +24,8 @@
   flex-basis: auto;
   flex-shrink: 0;
   /*end flexbox workaround*/
+  /*max-width is needed here to ensure the titles does not overflow its container is collapsed*/
+  max-width: 100%;
   min-height: 1.7rem;
   white-space: nowrap;
   display: flex;
