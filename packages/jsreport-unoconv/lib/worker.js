@@ -13,7 +13,7 @@ module.exports = function (reporter, definition) {
     }
   })
 
-  reporter.afterRenderListeners.add('unoconv', async (req, res) => {
+  reporter.afterRenderListeners.insert({ before: 'scripts' }, 'unoconv', async (req, res) => {
     if (!req.template.unoconv || req.template.unoconv.enabled === false || !req.template.unoconv.format || req.context.isChildRequest) {
       return
     }
