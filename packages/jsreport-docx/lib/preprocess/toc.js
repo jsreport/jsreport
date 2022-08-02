@@ -2,6 +2,7 @@ const { nodeListToArray, findDefaultStyleIdForName } = require('../utils')
 
 module.exports = (files) => {
   const stylesFile = files.find(f => f.path === 'word/styles.xml').doc
+  const settingsFile = files.find(f => f.path === 'word/settings.xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml').doc
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
   const paragraphEls = nodeListToArray(documentFile.getElementsByTagName('w:p'))
@@ -31,6 +32,8 @@ module.exports = (files) => {
     throw new Error('Could not find default style for heading')
   }
 
+  let hasTOC = false
+
   paragraphEls.forEach((paragraphEl, paragraphIdx) => {
     const pPrEl = nodeListToArray(paragraphEl.childNodes).find((el) => el.nodeName === 'w:pPr')
     let hasTOCTitle = false
@@ -52,6 +55,8 @@ module.exports = (files) => {
     }
 
     if (hasTOCTitle) {
+      hasTOC = true
+
       let evaluated = false
       let startIfNode
 
@@ -189,6 +194,21 @@ module.exports = (files) => {
       paragraphEl.parentNode.replaceChild(wrapperEl, paragraphEl)
     }
   })
+
+  // add here the setting of the document to automatically recalculate fields on open,
+  // this allows the MS Word to prompt the user to update the page numbers or toc table
+  // when opening the generated file
+  if (hasTOC) {
+    const existingUpdateFieldsEl = settingsFile.documentElement.getElementsByTagName('w:updateFields')[0]
+
+    // if the setting is already on the document we don't generate it
+    if (existingUpdateFieldsEl == null) {
+      const newUpdateFieldsEl = documentFile.createElement('w:updateFields')
+      newUpdateFieldsEl.setAttribute('w:val', 'true')
+
+      settingsFile.documentElement.insertBefore(newUpdateFieldsEl, settingsFile.documentElement.firstChild)
+    }
+  }
 
   if (maxBookmarkId != null) {
     contentTypesFile.documentElement.setAttribute('bookmarkMaxId', maxBookmarkId)

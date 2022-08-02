@@ -2830,6 +2830,17 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
+
+    const files = await decompress()(result.content)
+
+    const settingsDoc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/settings.xml').data.toString()
+    )
+
+    const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
+
+    existingUpdateFieldsEl.getAttribute('w:val').should.be.eql('true')
+
     const text = (await extractor.extract(result.content)).getBody()
     const parts = text.split('\n').filter((t) => t)
 
