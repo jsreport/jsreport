@@ -9,6 +9,13 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 3.1.2
+
+- fix and improve of the version control blog storage write
+- sort folders by hierarchy when committing folders
+- fix the revert of entity remove when the entity is marked as bigfile
+- fix for producing empty diffs
+
 ### 3.1.1
 
 - add missing changes column to fix migration

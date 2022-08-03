@@ -7,6 +7,10 @@ See http://jsreport.net/learn/tags
 
 ## Changelog
 
+### 3.1.1
+
+- fix studio devtools warning on page load about source map not found
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

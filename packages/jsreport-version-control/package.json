@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-version-control",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "jsreport extension adding support for versioning templates and other entities",
   "keywords": [
     "jsreport",
@@ -40,13 +40,13 @@
     "p-reduce": "2.1.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.4.2",
+    "@jsreport/jsreport-assets": "3.4.3",
     "@jsreport/jsreport-authentication": "3.3.2",
-    "@jsreport/jsreport-chrome-pdf": "3.1.3",
-    "@jsreport/jsreport-core": "3.6.1",
+    "@jsreport/jsreport-chrome-pdf": "3.2.0",
+    "@jsreport/jsreport-core": "3.7.0",
     "@jsreport/jsreport-data": "3.0.1",
-    "@jsreport/jsreport-express": "3.4.1",
-    "@jsreport/studio-dev": "3.1.0",
+    "@jsreport/jsreport-express": "3.4.2",
+    "@jsreport/studio-dev": "3.2.0",
     "mocha": "5.2.0",
     "puppeteer": "10.4.0",
     "rimraf": "2.6.3",

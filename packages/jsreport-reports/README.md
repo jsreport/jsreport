@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 3.0.6
+
+- fix bug when there was render error
+
 ### 3.0.5
 
 - fix return of proper filename for the report

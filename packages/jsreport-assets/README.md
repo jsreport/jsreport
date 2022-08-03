@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.4.3
+
+- fix {#asset} resolving when there is leading/trailing space in asset name
+
 ### 3.4.2
 
 - changes to enable new `trustUserCode` option

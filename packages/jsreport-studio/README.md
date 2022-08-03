@@ -18,6 +18,18 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.7.0
+
+- fix preview tabs showing when container collapsed
+- add download profile logs action
+- improve the profile operations display when there render fails
+- disable profile menu actions and click on nodes when the rendering is in progress
+- fix long name in nodes breaking profile canvas display
+- add support for multi selection in entity tree (ctrl/cmd + click)
+- add support to control the entity tree edit selection with keyboard (⇧↑ and ⇧↓)
+- add support for copy, delete when multiple entities are selected
+- format user logs differently on studio (profile logs)
+
 ### 3.6.0
 
 - fix Maximum call stack error when rendering a report that produces a lot of logs

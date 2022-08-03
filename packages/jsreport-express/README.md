@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.4.2
+
+- update multer to fix npm audit
+
 ### 3.4.1
 
 - filter out nested properties with visible false from odata outputs

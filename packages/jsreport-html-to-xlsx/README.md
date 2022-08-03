@@ -7,6 +7,12 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 3.2.3
+
+- fix run of html-to-xlsx with phantom
+- fix htmlToXlsxEachRows helper not being present when rendering html-to-xlsx recipe
+- mark user logs appropriately to the logger
+
 ### 3.2.2
 
 - changes to enable caching of system helpers

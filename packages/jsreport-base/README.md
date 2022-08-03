@@ -7,6 +7,10 @@ See https://jsreport.net/learn/base
 
 ## Changelog
 
+### 3.0.1
+
+- fix typo in log
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

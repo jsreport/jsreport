@@ -152,9 +152,14 @@ _jsreportStudio2.default.addToolbarComponent(function (props) {
 _jsreportStudio2.default.addEntityTreeContextMenuItemsResolver(function (_ref) {
   var node = _ref.node,
       entity = _ref.entity,
+      editSelection = _ref.editSelection,
       isRoot = _ref.isRoot,
       isGroupEntity = _ref.isGroupEntity,
       getAllEntitiesInHierarchy = _ref.getAllEntitiesInHierarchy;
+
+  if (editSelection != null) {
+    return;
+  }
 
   var items = [];
 

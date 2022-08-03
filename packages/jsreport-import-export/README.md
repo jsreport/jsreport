@@ -7,6 +7,11 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 3.1.3
+
+- changes to studio ui to support multi-selection of entities
+- fix npm audit
+
 ### 3.1.2
 
 - fix import-export cli authorization errors when running

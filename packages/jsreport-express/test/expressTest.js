@@ -6,6 +6,8 @@ const fs = require('fs')
 const path = require('path')
 require('should')
 
+const jsreportPort = 7002
+
 describe('express', () => {
   let jsreport
 
@@ -323,7 +325,10 @@ describe('express with custom middleware', () => {
     return jsreport.init()
   })
 
-  afterEach(() => jsreport.close())
+  afterEach(async () => {
+    console.log('running close...')
+    await jsreport.close()
+  })
 
   it('should merge in req.context from previous middlewares', () => {
     jsreport.beforeRenderListeners.add('test', (req, res) => {
@@ -355,7 +360,7 @@ describe('express limit', () => {
   })
 
   it('should fail with custom message when limit is reached', async () => {
-    jsreport = JsReport({ httpPort: 7000 }).use(require('../')({
+    jsreport = JsReport({ httpPort: jsreportPort }).use(require('../')({
       inputRequestLimit: '1kb'
     }))
 
@@ -395,7 +400,7 @@ describe('express port', () => {
   })
 
   it('should not start on port automatically when option start: false', async () => {
-    jsreport = JsReport({ httpPort: 7000 })
+    jsreport = JsReport({ httpPort: jsreportPort })
       .use(require('../')({ start: false }))
 
     await jsreport.init()
@@ -403,16 +408,16 @@ describe('express port', () => {
   })
 
   it('should start on httpPort ', async () => {
-    jsreport = JsReport({ httpPort: 7000 })
+    jsreport = JsReport({ httpPort: jsreportPort })
       .use(require('../')())
 
     await jsreport.init()
-    jsreport.express.server.address().port.should.be.eql(7000)
+    jsreport.express.server.address().port.should.be.eql(jsreportPort)
   })
 
   it('should start on httpsPort ', async () => {
     jsreport = JsReport({
-      httpsPort: 7000,
+      httpsPort: jsreportPort,
       certificate: {
         key: '../certificates/jsreport.net.key',
         cert: '../certificates/jsreport.net.cert'
@@ -420,12 +425,12 @@ describe('express port', () => {
     }).use(require('../')())
 
     await jsreport.init()
-    jsreport.express.server.address().port.should.be.eql(7000)
+    jsreport.express.server.address().port.should.be.eql(jsreportPort)
   })
 
   it('should start on httpsPort ', async () => {
     jsreport = JsReport({
-      httpsPort: 7000,
+      httpsPort: jsreportPort,
       certificate: {
         key: '../certificates/jsreport.net.key',
         cert: '../certificates/jsreport.net.cert'
@@ -433,13 +438,15 @@ describe('express port', () => {
     }).use(require('../')())
 
     await jsreport.init()
-    jsreport.express.server.address().port.should.be.eql(7000)
+    jsreport.express.server.address().port.should.be.eql(jsreportPort)
   })
 
   it('should create redirect server when both httpsPort and httpPort specified', async () => {
+    const jsreportAlternativePort = jsreportPort + 1000
+
     jsreport = JsReport({
-      httpsPort: 7000,
-      httpPort: 8000,
+      httpsPort: jsreportPort,
+      httpPort: jsreportAlternativePort,
       certificate: {
         key: '../certificates/jsreport.net.key',
         cert: '../certificates/jsreport.net.cert'
@@ -447,20 +454,20 @@ describe('express port', () => {
     }).use(require('../')())
 
     await jsreport.init()
-    jsreport.express.server.address().port.should.be.eql(7000)
-    jsreport.express.redirectServer.address().port.should.be.eql(8000)
+    jsreport.express.server.address().port.should.be.eql(jsreportPort)
+    jsreport.express.redirectServer.address().port.should.be.eql(jsreportAlternativePort)
   })
 
   it('should listen PORT env when specified', async () => {
-    process.env.PORT = 7000
+    process.env.PORT = jsreportPort
     jsreport = JsReport().use(require('../')())
 
     await jsreport.init()
-    jsreport.express.server.address().port.should.be.eql(7000)
+    jsreport.express.server.address().port.should.be.eql(jsreportPort)
   })
 
   it('should prefer httpPort over PORT env', async () => {
-    process.env.PORT = 7000
+    process.env.PORT = jsreportPort
     jsreport = JsReport({ httpPort: 8000 }).use(require('../')())
 
     await jsreport.init()
@@ -468,7 +475,7 @@ describe('express port', () => {
   })
 
   it('should prefer httpsPort over PORT env', async () => {
-    process.env.PORT = 7000
+    process.env.PORT = jsreportPort
     jsreport = JsReport({
       httpsPort: 8000,
       certificate: {
@@ -482,7 +489,7 @@ describe('express port', () => {
   })
 
   it('should prefer httpsPort over PORT env', async () => {
-    process.env.PORT = 7000
+    process.env.PORT = jsreportPort
     jsreport = JsReport({
       httpsPort: 8000,
       certificate: {

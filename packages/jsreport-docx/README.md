@@ -7,6 +7,12 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.4.0
+
+- add updateFields setting on docx when there is TOC, this allows MS Word to ask the user to update the page numbers of TOC when the document is opened
+- support configuring watermark options
+- add support for removal of conditional TOC titles
+
 ### 3.3.1
 
 - changes to enable caching of system helpers

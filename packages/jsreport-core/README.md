@@ -282,6 +282,16 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.7.0
+
+- add support for multiple source entities when copying and moving
+- fix some issues with blobs and profiles
+- format user logs differently on stdout
+- fix logging of req as http.IncomingRequest
+- fix profile compatibility with jsreport container based execution
+- fix memory leak in profiling
+- add support for logs of main reporter to show in profile
+
 ### 3.6.1
 
 - update @jsreport/advanced-workers to fix bug with cloning req.data when `trustUserCode` is true

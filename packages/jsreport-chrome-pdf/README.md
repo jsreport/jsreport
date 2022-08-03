@@ -29,6 +29,10 @@ chrome-image
 
 ## Changelog
 
+### 3.2.0
+
+- mark user logs appropriately to the logger
+
 ### 3.1.1
 
 - changes to enable new `trustUserCode` option

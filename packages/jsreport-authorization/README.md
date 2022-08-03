@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authorization
 
 ## Changelog
 
+### 3.2.2
+
+- fix log about user's name
+
 ### 3.2.1
 
 - changes to enable new `trustUserCode` option

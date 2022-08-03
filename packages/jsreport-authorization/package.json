@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-authorization",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "jsreport extension adding authorization cappabilities",
   "keywords": [
     "jsreport",
@@ -34,9 +34,9 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "3.3.2",
-    "@jsreport/jsreport-core": "3.6.1",
-    "@jsreport/jsreport-fs-store": "3.2.1",
-    "@jsreport/studio-dev": "3.1.0",
+    "@jsreport/jsreport-core": "3.7.0",
+    "@jsreport/jsreport-fs-store": "3.2.2",
+    "@jsreport/studio-dev": "3.2.0",
     "mocha": "5.2.0",
     "ncp": "2.0.0",
     "rimraf": "2.6.3",

@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 3.2.2
+
+- fix xlsx helpers execution during transformation step
+
 ### 3.2.1
 
 - fix xlsx block helpers not working with asset call in helper body

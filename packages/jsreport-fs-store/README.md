@@ -18,6 +18,10 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 3.2.2
+
+- corrupted journal should be cleaned to avoid interval errors
+
 ### 3.2.1
 
 - fix external entities changes sync reload

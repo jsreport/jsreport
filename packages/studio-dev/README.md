@@ -19,6 +19,10 @@
 
 ## Changelog
 
+### 3.2.0
+
+- add option `removeSourceMapUrl` to build command which allows to remove source map url references to packages
+
 ### 3.1.0
 
 - remove socket.io (it is now part of fs-store)
