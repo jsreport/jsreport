@@ -180,7 +180,7 @@ if (extraneousDeps.length > 0) {
       return process.exit(1)
     }
 
-    const publishCommand = ['npm', 'publish']
+    const publishCommand = ['npm', 'publish', '--workspaces=false']
 
     console.log(`\nrunning ${publishCommand.join(' ')}`)
 

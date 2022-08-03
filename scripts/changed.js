@@ -28,7 +28,7 @@ if (targetPkg != null && targetPkg !== '') {
   const targetPkgFoldername = packagesInWorkspace.get(targetPkg)
   const packageJSONPath = path.join(process.cwd(), 'packages', targetPkgFoldername, 'package.json')
   const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath))
-  const commands = ['git', 'log', '--pretty=format:[%an] %H %ad | %s', '--date=short', `${firstCommit}..${lastCommit}`, '--', `packages/${packagesInWorkspace.get(targetPkg)}`]
+  const commands = ['git', 'log', '--pretty="format:[%an] %H %ad | %s"', '--date=short', `${firstCommit}..${lastCommit}`, '--', `packages/${packagesInWorkspace.get(targetPkg)}`]
 
   console.log(`running ${commands.join(' ')}`)
 
@@ -57,6 +57,7 @@ if (targetPkg != null && targetPkg !== '') {
     const commits = stdout.toString().split('\n').filter(x => x !== '')
 
     console.log(`\ncommit changes: ${commits.length}\n`)
+    console.log('--(commits sorted from latest to oldest)--')
     console.log(commits.join('\n'))
 
     console.log(`\nCurrent version of ${targetPkg}:`, packageJSON.version)

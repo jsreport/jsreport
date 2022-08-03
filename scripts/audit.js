@@ -67,7 +67,7 @@ const withVulnerabilities = []
 for (const ext of extensionsList) {
   console.log(`\n..checking audit for ${ext}..\n`)
 
-  const args = ['install', '--legacy-peer-deps', '--ignore-scripts']
+  const args = ['install', '--legacy-peer-deps', '--ignore-scripts', '--workspaces=false']
 
   console.log('\n===== dependencies install started =====')
 
@@ -77,7 +77,7 @@ for (const ext of extensionsList) {
     shell: true
   })
 
-  console.log('\n===== dependencies install finished (logs above) =====')
+  console.log('\n===== dependencies install finished (logs above) =====\n')
 
   if (npmInstallError || npmInstallStatus === 1) {
     console.error('Command failed to run')
@@ -89,22 +89,27 @@ for (const ext of extensionsList) {
     process.exit(1)
   }
 
-  const { error: auditError, stdout, status: auditStatus } = spawnSync('npm', ['audit', '--omit', 'dev'], {
+  const { error: auditError, stdout, stderr, status: auditStatus } = spawnSync('npm', ['audit', '--omit', 'dev', '--workspaces=false'], {
     cwd: path.join(process.cwd(), 'packages', packagesInWorkspace.get(ext)),
     stdio: 'pipe',
     shell: true
   })
 
   const output = stdout != null ? stdout.toString().trim() : ''
+  const outputErr = stderr != null ? stderr.toString().trim() : ''
 
   if (auditError || auditStatus === 1) {
-    console.error(`Audit command failed to run for ${ext}`)
+    console.error(`Audit command failed to run for ${ext}\n`)
 
     if (auditError) {
       throw auditError
     }
 
     if (output === '') {
+      if (outputErr !== '') {
+        console.error(outputErr)
+      }
+
       process.exit(1)
     }
   }
@@ -116,7 +121,7 @@ for (const ext of extensionsList) {
   }
 }
 
-console.log('\n===== Results =====')
+console.log('===== Results =====')
 
 if (withVulnerabilities.length > 0) {
   console.log('\nThe following packages have vulnerabilities:')
