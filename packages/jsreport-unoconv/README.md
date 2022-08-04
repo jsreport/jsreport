@@ -11,6 +11,10 @@ See https://jsreport.net/learn/unoconv
 
 ## Changelog
 
+### 3.0.1
+
+- run unoconv before script so the afterRender script runs as the last
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

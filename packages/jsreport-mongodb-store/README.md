@@ -48,6 +48,10 @@ You can also pass connection uri like this
 
 ## Changelog
 
+### 3.1.1
+
+- use matched count instead of the modified count
+
 ### 3.1.0
 
 - optimizations regarding profiler persistence
