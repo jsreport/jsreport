@@ -18,7 +18,10 @@ describe('browser client', () => {
   })
 
   afterEach(async () => {
-    await jsreport.close()
+    if (jsreport) {
+      await jsreport.close()
+    }
+
     await browser.close()
   })
 

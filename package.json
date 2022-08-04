@@ -19,9 +19,7 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js"
   },
-  "resolutions": {
-    "**/enzyme/cheerio": "1.0.0-rc.10"
-  },
+  "resolutions": {},
   "dependencies": {
     "@jsreport/studio-dev": "3.2.0",
     "extract-zip": "2.0.1",
