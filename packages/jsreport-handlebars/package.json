@@ -15,6 +15,7 @@
   "author": "Jan Blaha",
   "files": [
     "lib",
+    "async-helpers",
     "index.js",
     "jsreport.config.js"
   ],
