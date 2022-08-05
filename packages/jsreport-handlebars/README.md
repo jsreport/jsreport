@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/handlebars
 
 ## Changelog
 
+### 3.2.1
+
+- fix missing `async-helpers` folder in npm release
+
 ### 3.2.0
 
 - add true async/await support to the engine

@@ -21,7 +21,7 @@
     "@jsreport/jsreport-data": "3.0.1",
     "@jsreport/jsreport-docx": "3.4.0",
     "@jsreport/jsreport-express": "3.4.2",
-    "@jsreport/jsreport-handlebars": "3.2.0",
+    "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-html-to-xlsx": "3.2.3",
     "@jsreport/jsreport-jsrender": "3.0.0",
     "@jsreport/jsreport-localization": "3.2.1",
