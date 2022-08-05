@@ -2,6 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const spawnSync = require('child_process').spawnSync
 const readline = require('readline')
+const ignore = require('ignore').default
 const { getPackagesInWorkspace } = require('./shared/extensionsOrder')
 
 const args = process.argv.slice(2)
@@ -35,9 +36,11 @@ if (!packagesInWorkspace.has(targetPkg)) {
 const targetPkgFoldername = packagesInWorkspace.get(targetPkg)
 const workspaceRootPackageJSONPath = path.join(process.cwd(), 'package.json')
 const workspaceRootPackageJSON = JSON.parse(fs.readFileSync(workspaceRootPackageJSONPath))
+const packagePath = path.join(process.cwd(), 'packages', targetPkgFoldername)
 const packageJSONPath = path.join(process.cwd(), 'packages', targetPkgFoldername, 'package.json')
 const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath))
 
+const existingVersion = packageJSON.version
 const deps = packageJSON.dependencies || {}
 const devDeps = packageJSON.devDependencies || {}
 
@@ -144,8 +147,7 @@ if (extraneousDeps.length > 0) {
 
   console.log(`\nrunning ${installCommand.join(' ')} to normalize node_modules tree after version update`)
 
-  const { error: yarnInstallError, status: yarnInstallStatus } =
-  (installCommand[0], installCommand.slice(1), {
+  const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync(installCommand[0], installCommand.slice(1), {
     cwd: process.cwd(),
     stdio: 'inherit',
     shell: true
@@ -161,14 +163,55 @@ if (extraneousDeps.length > 0) {
     process.exit(1)
   }
 
+  console.log('\nchecking if there are relevant files in package that are not going to be included in npm publish..')
+
+  const listPublishFilesCommand = ['npx', '--yes', 'npm-packlist']
+
+  const { error: listPublishFilesError, stdout: listPublishFilesStdout, status: listPublishFilesStatus } = spawnSync(listPublishFilesCommand[0], listPublishFilesCommand.slice(1), {
+    cwd: packagePath,
+    stdio: 'pipe',
+    shell: true
+  })
+
+  const listPublishFilesOutput = listPublishFilesStdout != null ? listPublishFilesStdout.toString().trim() : ''
+
+  if (listPublishFilesError || listPublishFilesStatus === 1) {
+    console.error('Command failed to run')
+
+    if (listPublishFilesError) {
+      throw listPublishFilesError
+    }
+
+    process.exit(1)
+  }
+
+  const filesInPublish = listPublishFilesOutput.split('\n').map((f) => f.replace(/\\/g, '/'))
+  const filesNotInPublish = getFilesNotInPublish(packagePath, filesInPublish)
+
+  if (filesNotInPublish.length > 0) {
+    console.log('\nrelevant files that are NOT going to be included in npm publish:')
+    console.log(`${filesNotInPublish.map((f) => `- ${f}`).join('\n')}`)
+
+    console.log('\nreview this list and either update package.json .files entry with missing files/folders or continue with publishing')
+  } else {
+    console.log('it seems there are no relevant files that are excluded of npm publish!')
+  }
+
+  console.log('\nAll done, make sure to check if the following things are pending or already covered:')
+
+  if (filesNotInPublish.length > 0) {
+    console.log('- check the above list of files that are NOT going to be included in npm publish and verify if some relevant file is being excluded')
+  }
+
+  console.log('- something else is pending to commit in git')
+  console.log('- CHANGELOG section in README.md is updated')
+
+  console.log(`\nExisting version: ${existingVersion}, New version: ${targetVersion}\n`)
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
-
-  console.log('\nAll done, make sure to check if the following things are pending or already covered:')
-  console.log('- something else is pending to commit in git')
-  console.log('- CHANGELOG section in README.md is updated')
 
   rl.question('About to start publish. Do you want to continue? (y/N): ', (answer) => {
     const shouldContinue = (answer === 'y')
@@ -185,7 +228,7 @@ if (extraneousDeps.length > 0) {
     console.log(`\nrunning ${publishCommand.join(' ')}`)
 
     const { error: publishError, status: publishStatus } = spawnSync(publishCommand[0], publishCommand.slice(1), {
-      cwd: path.join(process.cwd(), 'packages', targetPkgFoldername),
+      cwd: packagePath,
       stdio: 'inherit',
       shell: true
     })
@@ -202,4 +245,44 @@ if (extraneousDeps.length > 0) {
 
     console.log(`\nPublish ${targetPkg} ${targetVersion} done!`)
   })
+}
+
+function getFilesNotInPublish (packagePath, filesInPublish) {
+  const results = []
+
+  const ignorer = ignore().add([
+    '.DS_Store', '.gitignore', '.npmignore', '.npmrc',
+    '.gitattributes', '.editorconfig', '.travis.yml',
+    'package-lock.json',
+    'node_modules', 'test'
+  ]).add(filesInPublish)
+
+  if (fs.existsSync(path.join(packagePath, '.gitignore'))) {
+    ignorer.add(fs.readFileSync(path.join(packagePath, '.gitignore'), 'utf8'))
+  }
+
+  const readPackageDir = function (parent) {
+    const content = fs.readdirSync(parent != null ? path.join(packagePath, parent) : packagePath, { withFileTypes: true })
+
+    for (const dirent of content) {
+      if (!dirent.isDirectory() && !dirent.isFile()) {
+        continue
+      }
+
+      const fullname = parent != null ? path.posix.join(parent, dirent.name) : dirent.name
+      const ignoreResult = ignorer.test(fullname)
+
+      if (!ignoreResult.ignored) {
+        if (dirent.isDirectory()) {
+          readPackageDir(fullname)
+        } else if (dirent.isFile()) {
+          results.push(fullname)
+        }
+      }
+    }
+  }
+
+  readPackageDir()
+
+  return results
 }

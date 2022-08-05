@@ -13,16 +13,17 @@
     ]
   },
   "scripts": {
+    "build": "node scripts/build.js",
     "compile": "node scripts/compile.js",
     "performance": "node --expose-gc --max-old-space-size=100 tools/performance.js",
     "start": "node server.js",
-    "build": "node scripts/build.js",
     "test": "node scripts/test.js"
   },
   "resolutions": {},
   "dependencies": {
     "@jsreport/studio-dev": "3.2.0",
     "extract-zip": "2.0.1",
+    "ignore": "5.2.0",
     "xml-formatter": "2.6.1",
     "zfolder": "1.1.2"
   },
