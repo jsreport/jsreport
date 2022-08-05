@@ -100,7 +100,10 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
 
     if (!asset) {
       if (definition.options.searchOnDiskIfNotFoundInStore !== true) {
-        throw new Error(`Asset ${name} not found`)
+        throw reporter.createError(`Asset ${name} not found`, {
+          statusCode: 400,
+          weak: true
+        })
       }
 
       if (encoding === 'link') {
@@ -114,7 +117,10 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
       try {
         file = await readFile(reporter, definition, name)
       } catch (e) {
-        throw new Error(`Asset ${name} not found in the store and also not on the disk: ` + e.message)
+        throw reporter.createError(`Asset ${name} not found in the store and also not on the disk: ` + e.message, {
+          statusCode: 400,
+          weak: true
+        })
       }
 
       return {
