@@ -29,8 +29,14 @@ module.exports = {
           password: { type: 'string' },
           server: { type: 'string' },
           database: { type: 'string' },
-          options: { type: 'object' },
-          prefix: { type: 'string', default: 'jsreport_' }
+          prefix: { type: 'string', default: 'jsreport_' },
+          options: {
+            type: 'object',
+            properties: {
+              encrypt: { type: 'boolean' },
+              trustServerCertificate: { type: 'boolean' }
+            }
+          }
         }
       }
     }
