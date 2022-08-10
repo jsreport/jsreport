@@ -19,7 +19,7 @@ module.exports.compress = async (dir, out) => {
   })
 }
 
-module.exports.decompress = async (zipPath) => {
+module.exports.decompress = async (zipPath, chromeExePath) => {
   const finalChromePath = path.join(path.dirname(zipPath), 'chrome')
 
   // we will write everything to a extract temp directory first
@@ -32,24 +32,30 @@ module.exports.decompress = async (zipPath) => {
 
   await extract(zipPath, { dir: extractTmpPath, defaultFileMode: 0o777 })
 
-  // when everything is saved into the extract temp directory we check the original directory
-  // if it is empty then we rename the extract temp directory to the path
-  await checkAndHandleRename(extractTmpPath, finalChromePath)
+  await checkAndHandleRename(extractTmpPath, finalChromePath, chromeExePath)
 }
 
-async function checkAndHandleRename (sourcePath, targetPath, tryCount = 0) {
+async function checkAndHandleRename (sourcePath, targetPath, chromeExePath, tryCount = 0) {
   const maxRetries = 20
 
-  if (fs.existsSync(targetPath)) {
+  // there is no need to rename because some other process may had had already extracted chrome
+  // so we just cleanup
+  if (fs.existsSync(chromeExePath)) {
+    try {
+      fs.rmSync(sourcePath, { recursive: true, force: true })
+    } catch (e) {
+
+    }
     return
   }
 
   try {
+    fs.rmSync(targetPath, { recursive: true, force: true })
     await renameAsync(sourcePath, targetPath)
   } catch (e) {
     if (tryCount < maxRetries) {
       await new Promise((resolve) => setTimeout(resolve, 100))
-      await checkAndHandleRename(sourcePath, targetPath, tryCount + 1)
+      await checkAndHandleRename(sourcePath, targetPath, chromeExePath, tryCount + 1)
     } else {
       throw e
     }

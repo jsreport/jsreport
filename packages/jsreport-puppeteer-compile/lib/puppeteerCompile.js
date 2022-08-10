@@ -56,7 +56,7 @@ module.exports = async function (reporter, definition) {
 
     reporter.initializeListeners.add('chrome exe', async () => {
       reporter.logger.debug('chrome decompress started')
-      await decompress(zipPath)
+      await decompress(zipPath, reporter.options.chrome.launchOptions.executablePath)
       reporter.logger.debug('chrome decompress finished')
     })
   }
