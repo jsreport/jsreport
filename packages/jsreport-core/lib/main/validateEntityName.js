@@ -58,5 +58,11 @@ module.exports = (name) => {
     })
   }
 
+  if (name === 'config.json') {
+    throw createError('Entity name "config.json" is reserved and can\'t be used', {
+      statusCode: 400
+    })
+  }
+
   return true
 }

@@ -379,6 +379,23 @@ describe('document store', () => {
       return store.collection('templates').update({ name: 'test' }, { $set: { name: '/foo/other' } }).should.be.rejected()
     })
 
+    it('insert config.json should be rejected', async () => {
+      return reporter.documentStore.collection('templates').insert({
+        name: 'config.json'
+      }).should.be.rejected()
+    })
+
+    it('update to config.json should be rejected', async () => {
+      await reporter.documentStore.collection('templates').insert({
+        name: 'someentityname',
+        engine: 'none',
+        recipe: 'html'
+      })
+      return reporter.documentStore.collection('templates').update({ name: 'foo' }, {
+        $set: { name: 'config.json' }
+      }).should.be.rejected()
+    })
+
     it('findOne should return first item', async () => {
       await store.collection('templates').insert({ name: 'test', engine: 'none', recipe: 'html' })
       const t = await store.collection('templates').findOne({ name: 'test' })
