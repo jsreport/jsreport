@@ -9,6 +9,17 @@ const command = 'win-uninstall'
 exports.command = command
 exports.description = description
 
+exports.builder = (yargs) => {
+  return (
+    yargs
+      .usage('uninstall jsreport windows service\njsreport win-uninstall\njsreport win-uninstall --name my-service')
+      .option('name', {
+        description: 'ServiceName',
+        type: 'string'
+      })
+  )
+}
+
 exports.handler = (argv) => {
   return new Promise((resolve, reject) => {
     const verbose = argv.verbose
@@ -48,13 +59,14 @@ exports.handler = (argv) => {
 
       pathToApp = appInfo.path
 
-      if (!appInfo.name) {
-        customError = new Error('To uninstall windows service for app you need to pass "name" in appInfo')
+      serviceName = argv.name || appInfo.name
+      if (!serviceName) {
+        customError = new Error('To uninstall windows service for app you need to pass "name" in args or in appInfo')
         customError.cleanState = true
         return reject(customError)
       }
 
-      serviceName = appInfo.name
+      appInfo.name = serviceName
     } else {
       pathToApp = cwd
 

@@ -9,6 +9,17 @@ const command = 'win-install'
 exports.command = command
 exports.description = description
 
+exports.builder = (yargs) => {
+  return (
+    yargs
+      .usage('install jsreport as a windows service\njsreport win-install\njsreport win-install --name my-service --tempDirectory=mytemp')
+      .option('name', {
+        description: 'ServiceName',
+        type: 'string'
+      })
+  )
+}
+
 exports.handler = (argv) => {
   return new Promise((resolve, reject) => {
     const verbose = argv.verbose
@@ -50,13 +61,14 @@ exports.handler = (argv) => {
 
       pathToApp = appInfo.path
 
-      if (!appInfo.name) {
-        customError = new Error('To install app as windows service you need to pass "name" in appInfo')
+      serviceName = argv.name || appInfo.name
+      if (!serviceName) {
+        customError = new Error('To install app as windows service you need to pass "name" args or in appInfo')
         customError.cleanState = true
         return reject(customError)
       }
 
-      serviceName = appInfo.name
+      appInfo.name = serviceName
 
       if (appInfo.startcmd) {
         hasEntry = true
@@ -103,9 +115,15 @@ exports.handler = (argv) => {
       winser = Winser({ silent: !verbose, nssmPath: staticPaths.nssm })
     }
 
+    let tempDirectory = process.env.tempDirectory || argv.tempDirectory
+    if (tempDirectory) {
+      tempDirectory = path.isAbsolute(tempDirectory) ? tempDirectory : path.join(pathToApp, tempDirectory)
+    }
+
     winser.install({
       path: pathToApp,
-      autostart: true
+      autostart: true,
+      env: tempDirectory ? [`tempDirectory=${tempDirectory}`] : null
     }, (err) => {
       if (err) {
         const error = new Error('Error while trying to install windows service')
