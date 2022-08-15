@@ -12,7 +12,7 @@ const jsreportPackages = [
   '@jsreport/jsreport-child-templates',
   '@jsreport/jsreport-chrome-pdf',
   '@jsreport/jsreport-components',
-  '@jsreport/nodejs-cli',
+  '@jsreport/jsreport-cli',
   '@jsreport/jsreport-core',
   '@jsreport/jsreport-data',
   '@jsreport/jsreport-docker-workers',
