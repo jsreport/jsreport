@@ -1,7 +1,7 @@
 const urlModule = require('url')
 const http = require('http')
-const getTempPaths = require('@jsreport/jsreport-cli/lib/getTempPaths')
-const { addStack } = require('@jsreport/jsreport-cli/lib/errorUtils')
+const getTempPaths = require('@jsreport/jsreport-cli/lib/utils/getTempPaths')
+const { addStack } = require('@jsreport/jsreport-cli/lib/utils/error')
 const daemonHandler = require('@jsreport/jsreport-cli/lib/daemonHandler')
 
 module.exports = async function delegateRender ({ cwd, args, instanceVersion }) {
