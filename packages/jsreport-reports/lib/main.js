@@ -220,7 +220,7 @@ class Reports {
   }
 
   async _handleRenderError (request, response, e) {
-    if (request.options?.reports != null) {      
+    if (request.options?.reports != null) {
       await this.reporter.documentStore.collection('reports').update({
         _id: request.options.reports._id
       }, {
