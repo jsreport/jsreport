@@ -9,9 +9,11 @@ const acroForm = require('./mixins/acroform')
 const info = require('./mixins/info')
 const encrypt = require('./mixins/encrypt/encrypt')
 const sign = require('./mixins/sign')
+const DocumentBase = require('./documentBase')
 
-module.exports = class Document {
+module.exports = class Document extends DocumentBase {
   constructor () {
+    super()
     this._nextObjectId = 1
     this._length = 0 // keeps track of the total document length (in byte)
     this._xref = new PDF.Xref()
@@ -26,6 +28,9 @@ module.exports = class Document {
     this.catalog.properties.get('Pages').object.prop('Count', 0)
 
     this.catalog.prop('Names', new PDF.Object().toReference())
+    this.catalog.properties.get('Names').object.prop('EmbeddedFiles', new PDF.Dictionary())
+    this.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').set('Names', new PDF.Array())
+
     this.catalog.prop('Dests', new PDF.Object().toReference())
 
     this.finalizers = []

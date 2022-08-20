@@ -1,17 +1,16 @@
-const removePages = require('./removePages')
-const mergePdfs = require('./mergePdfs')
+const removePages = {} // require('./removePages')
+const mergePdfs = {} // require('./mergePdfs')
 const parsePdf = require('./parsePdf')
-const addPages = require('./addPages')
-const addAttachment = require('./addAttachment')
-const { addSignaturePlaceholder, sign } = require('./sign')
-const processText = require('./processText')
-const pdfjs = require('@jsreport/pdfjs')
-const PDF = require('@jsreport/pdfjs/lib/object')
+const addPages = {} // require('./addPages')
+const addAttachment = {} // require('./addAttachment')
+const { addSignaturePlaceholder, sign } = {} // require('./sign')
+const processText = {} // require('./processText')
+const { Document, External } = require('@jsreport/minpdf')
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
   let currentBuffer = contentBuffer
   let currentlyParsedPdf
-  let pagesHelpInfo = []
+  const pagesHelpInfo = []
 
   return {
     async parse ({
@@ -30,38 +29,66 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
     },
 
     async append (appendBuffer) {
-      const addPageResult = await addPages(currentBuffer, appendBuffer)
-      currentBuffer = addPageResult.buffer
+      const document = new Document()
+      document.append(new External(currentBuffer))
+      document.append(new External(appendBuffer))
+      currentBuffer = await document.asBuffer()
     },
 
     async prepend (prependBuffer) {
-      const addPageResult = await addPages(prependBuffer, currentBuffer)
-      currentBuffer = addPageResult.buffer
-      pagesHelpInfo = new Array(addPageResult.pagesInAppend).concat(pagesHelpInfo)
-      currentBuffer = addPageResult.buffer
+      const document = new Document()
+      document.append(new External(prependBuffer))
+      document.append(new External(currentBuffer))
+      currentBuffer = await document.asBuffer()
     },
 
     async merge (pageBuffersOrDocBuffer, mergeToFront) {
-      for (let i = 0; i < currentlyParsedPdf.pages.length; i++) {
-        pagesHelpInfo[i] = pagesHelpInfo[i] || { xObjIndex: 0, removeContentBackLayer: true }
-        pagesHelpInfo[i].xObjIndex++
-      }
-
+      const document = new Document()
+      document.append(new External(currentBuffer))
       if (Buffer.isBuffer(pageBuffersOrDocBuffer)) {
-        currentBuffer = await mergePdfs.mergeDocument(currentBuffer, pageBuffersOrDocBuffer, mergeToFront, pagesHelpInfo)
+        document.merge(new External(pageBuffersOrDocBuffer), mergeToFront)
       } else {
-        currentBuffer = await mergePdfs.mergePages(currentBuffer, pageBuffersOrDocBuffer, mergeToFront, pagesHelpInfo)
+        for (const i in pageBuffersOrDocBuffer) {
+          document.merge(new External(pageBuffersOrDocBuffer[i]), mergeToFront, i)
+        }
       }
-
-      pagesHelpInfo.forEach(i => (i.removeContentBackLayer = false))
+      currentBuffer = await document.asBuffer()
     },
 
-    async removePages (pageNumbers) {
-      currentBuffer = await removePages(currentBuffer, pageNumbers)
+    async removePages (pageNumbersToRemove) {
+      const document = new Document()
+
+      if (!Array.isArray(pageNumbersToRemove)) {
+        pageNumbersToRemove = [pageNumbersToRemove]
+      }
+
+      for (const n of pageNumbersToRemove) {
+        if (!Number.isInteger(n)) {
+          throw new Error('Page number for remove operation needs to be an integer, got ' + pageNumbersToRemove)
+        }
+
+        if (n < 1) {
+          throw new Error('Page number for remove operation needs to be bigger than 0')
+        }
+      }
+
+      const ext = new External(currentBuffer)
+      const pageIndexesToAppend = []
+      for (let i = 0; i < ext.catalog.properties.get('Pages').object.properties.get('Kids').length; i++) {
+        if (!pageNumbersToRemove.includes(i + 1)) {
+          pageIndexesToAppend.push(i)
+        }
+      }
+
+      document.append(ext, pageIndexesToAppend)
+      currentBuffer = await document.asBuffer()
     },
 
     async addAttachment (buf, options) {
-      currentBuffer = await addAttachment(currentBuffer, buf, options)
+      const doc = new Document()
+      doc.append(new External(currentBuffer))
+      doc.attachment(buf, options)
+      currentBuffer = await doc.asBuffer()
     },
 
     toBuffer () {
@@ -71,6 +98,80 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
     async postprocess ({
       hiddenPageFields
     }) {
+      const doc = new Document()
+
+      const ext = new External(currentBuffer)
+      doc.append(ext)
+
+      if (pdfSign) {
+        doc.sign({
+          certificateBuffer: Buffer.from(pdfSign.certificateContent, 'base64'),
+          password: pdfSign.password,
+          reason: pdfSign.reason,
+          maxSignaturePlaceholderLength: pdfSign.maxSignaturePlaceholderLength
+        })
+      }
+
+      if (outlines) {
+        doc.outlines(outlines)
+      }
+
+      doc.processText({
+        resolver: async (text, { remove, getPosition }) => {
+          for (const mark of ['group', 'item', 'form']) {
+            let i = -1
+            while ((i = text.indexOf(`${mark}@@@`, i + 1)) !== -1) {
+              if (removeHiddenMarks || mark === 'form') {
+                remove(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
+              }
+
+              if (mark === 'form') {
+                const trimmedText = text.substring(i + 'form@@@'.length, text.indexOf('@@@', i + 'form@@@'.length))
+                const valueOfText = hiddenPageFields[trimmedText]
+
+                const { pageIndex, position } = getPosition(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
+                const formSpec = JSON.parse(Buffer.from(valueOfText, 'base64').toString())
+
+                await doc.acroForm({
+                  ...formSpec,
+                  position,
+                  pageIndex
+                })
+              }
+            }
+          }
+        }
+      })
+
+      if (pdfPassword) {
+        doc.encrypt({
+          password: pdfPassword.password,
+          ownerPassword: pdfPassword.ownerPassword,
+          permissions: {
+            printing: pdfPassword.printing,
+            modifying: pdfPassword.modifying,
+            copying: pdfPassword.copying,
+            annotating: pdfPassword.annotating,
+            fillingForms: pdfPassword.fillingForms,
+            contentAccessibility: pdfPassword.contentAccessibility,
+            documentAssembly: pdfPassword.documentAssembly
+          }
+        })
+      }
+
+      if (pdfMeta) {
+        doc.info(pdfMeta)
+      }
+
+      try {
+        currentBuffer = await doc.asBuffer()
+      } catch (e) {
+        if (e.message.includes('Signature exceeds placeholder')) {
+          e.message += '. Increase placeholder length using config extensions.pdfUtils.maxSignaturePlaceholderLength'
+          throw e
+        }
+      }
+      /*
       // https://github.com/vbuch/node-signpdf/issues/98
       // pdf sign placeholder needs to be written before the password protection takes place
       if (pdfSign) {
@@ -134,7 +235,7 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
           Buffer.from(pdfSign.certificateContent, 'base64'),
           pdfSign.password
         )
-      }
+      } */
     }
   }
 }

@@ -11,9 +11,11 @@ module.exports = (doc) => {
 
 function acroForm (doc, formSpec) {
   doc.catalog.properties.get('AcroForm').object.prop('NeedAppearances', true)
-  doc.catalog.properties.get('AcroForm').object.prop('DR', new PDF.Dictionary({
-    Font: new PDF.Dictionary()
-  }))
+  if (!doc.catalog.properties.get('AcroForm').object.properties.has('DR')) {
+    doc.catalog.properties.get('AcroForm').object.prop('DR', new PDF.Dictionary({
+      Font: new PDF.Dictionary()
+    }))
+  }
 
   const annotsObj = new PDF.Object('Annot')
   doc.catalog.properties.get('AcroForm').object.prop('Fields', new PDF.Array([

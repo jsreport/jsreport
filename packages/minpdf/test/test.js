@@ -85,6 +85,65 @@ describe('minpdf', () => {
     fs.writeFileSync('out.pdf', pdfBuffer)
   })
 
+  it('append should preserve previous attachments', async () => {
+    let document = new Document()
+    let external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(external)
+    document.attachment(Buffer.from('first'), {
+      name: 'first.txt',
+      creationDate: new Date(),
+      description: 'first description',
+      modificationDate: new Date()
+    })
+    const bufWithAttachment = await document.asBuffer()
+    document = new Document()
+    external = new External(bufWithAttachment)
+    document.append(external)
+    document.attachment(Buffer.from('second'), { name: 'second.txt' })
+
+    const pdfBuffer = await document.asBuffer()
+    const { catalog } = await validate(pdfBuffer)
+    const names = catalog.properties.get('Names').object
+    const embeddedFiles = names.properties.get('EmbeddedFiles')
+    const namesArray = embeddedFiles.get('Names')
+    namesArray[0].toString().should.be.eql('(first.txt)')
+    namesArray[2].toString().should.be.eql('(second.txt)')
+  })
+
+  it('append should preserve info', async () => {
+    let document = new Document()
+    let external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(external)
+    document.info({
+      creationDate: new Date(2021, 2, 2),
+      title: 'Foo-title',
+      author: 'Foo-author',
+      subject: 'Foo-subject',
+      keywords: 'Foo-keywords',
+      creator: 'Foo-creator',
+      producer: 'Foo-producer',
+      language: 'cz-CZ'
+    })
+
+    const pdfWithInfo = await document.asBuffer()
+    document = new Document()
+    external = new External(pdfWithInfo)
+    document.append(external)
+    const pdfBuffer = await document.asBuffer()
+
+    const { catalog } = await validate(pdfBuffer)
+    const info = catalog.properties.get('Info').object
+    info.properties.get('Type').name.should.be.eql('Info')
+    info.properties.get('CreationDate').toString().should.startWith('(D:')
+    info.properties.get('Title').toString().should.be.eql('(Foo-title)')
+    info.properties.get('Author').toString().should.be.eql('(Foo-author)')
+    info.properties.get('Subject').toString().should.be.eql('(Foo-subject)')
+    info.properties.get('Keywords').toString().should.be.eql('(Foo-keywords)')
+    info.properties.get('Creator').toString().should.be.eql('(Foo-creator)')
+    info.properties.get('Producer').toString().should.be.eql('(Foo-producer)')
+    info.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
+  })
+
   it('merge should merge pages', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
@@ -96,6 +155,67 @@ describe('minpdf', () => {
     texts.should.have.length(1)
     texts[0].should.containEql('main')
     texts[0].should.containEql('header')
+    require('fs').writeFileSync('out.pdf', pdfBuffer)
+  })
+
+  it('merge should merge to specific page when specified', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
+    document.append(external)
+    const external2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.merge(external2, true, 1)
+    const pdfBuffer = await document.asBuffer()
+    const { texts } = await validate(pdfBuffer)
+
+    texts.should.have.length(3)
+    texts[0].should.containEql('Page 1')
+    texts[1].should.containEql('Page 2main')
+    texts[2].should.containEql('Page 3')
+  })
+
+  it('merge should merge to specific page and to back layer', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
+    document.append(external)
+    const external2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.merge(external2, false, 1)
+    const pdfBuffer = await document.asBuffer()
+    const { texts } = await validate(pdfBuffer)
+
+    texts.should.have.length(3)
+    texts[0].should.containEql('Page 1')
+    texts[1].should.containEql('mainPage 2')
+    texts[2].should.containEql('Page 3')
+  })
+
+  it('append merge should work with nested pages object', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'nestedPages.pdf')))
+    document.append(external)
+    const external2 = new External(fs.readFileSync(path.join(__dirname, 'nestedPages.pdf')))
+    document.merge(external2)
+    const pdfBuffer = await document.asBuffer()
+    const { texts } = await validate(pdfBuffer)
+    texts.should.have.length(97)
+  })
+
+  it('merge with multiple fields and pages', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, '2pages2fields.pdf')))
+    document.append(external)
+    const external2 = new External(fs.readFileSync(path.join(__dirname, '2pages2fields.pdf')))
+    document.merge(external2)
+    const pdfBuffer = await document.asBuffer()
+    const { catalog } = await validate(pdfBuffer)
+    const pages = catalog.properties.get('Pages').object.properties.get('Kids').map(kid => kid.object)
+    pages[0].properties.get('Annots').should.have.length(2)
+    pages[1].properties.get('Annots').should.have.length(2)
+    catalog.properties.get('AcroForm').object.properties.get('Fields').should.have.length(4)
+
+    const acroForm = catalog.properties.get('AcroForm').object
+    acroForm.properties.get('NeedAppearances').toString().should.be.eql('true')
+    const fonts = acroForm.properties.get('DR').get('Font')
+    fonts.get('Helvetica').should.be.ok()
   })
 
   it('attachment should add buffer', async () => {
@@ -425,6 +545,28 @@ describe('minpdf', () => {
     field.properties.get('MK').get('CA').toString().should.be.eql('(n)')
   })
 
+  it('acroform should preserve previously used fonts', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, '2pages2fields.pdf')))
+    document.append(external)
+    await document.acroForm({
+      name: 'test',
+      width: 100,
+      height: 20,
+      position: [0, 0, 50, 50, 100, 100],
+      pageIndex: 0,
+      fontFamily: 'Courier',
+      type: 'text',
+      value: 'value'
+    })
+    const pdfBuffer = await document.asBuffer()
+    const { catalog } = await validate(pdfBuffer)
+
+    const acroform = catalog.properties.get('AcroForm').object
+    acroform.properties.get('DR').get('Font').get('Courier').should.be.ok()
+    acroform.properties.get('DR').get('Font').get('Helvetica').should.be.ok()
+  })
+
   it('info should add meta', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
@@ -484,5 +626,36 @@ describe('minpdf', () => {
     acroForm.properties.get('SigFlags').should.be.eql(3)
     const sigField = acroForm.properties.get('Fields')[0].object
     sigField.properties.get('T').toString().should.be.eql('(Signature1)')
+  })
+
+  it('should handle stream length in extra object', async () => {
+    const document = new Document()
+    const ext = new External(fs.readFileSync(path.join(__dirname, 'multiple-embedded-xobj.pdf')))
+    document.append(ext)
+    const pdfBuffer = await document.asBuffer()
+    const { catalog } = await validate(pdfBuffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it('should handle nested xobj during merge', async () => {
+    const document = new Document()
+    const ext = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(ext)
+    const ext2 = new External(fs.readFileSync(path.join(__dirname, 'multiple-embedded-xobj.pdf')))
+    document.merge(ext2)
+    const pdfBuffer = await document.asBuffer()
+    const { catalog } = await validate(pdfBuffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it.only('should handle word produced with national chars pdf during merge', async () => {
+    const document = new Document()
+    const ext = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(ext)
+    const ext2 = new External(fs.readFileSync(path.join(__dirname, 'word.pdf')))
+    document.merge(ext2)
+    const pdfBuffer = await document.asBuffer()
+    const { texts } = await validate(pdfBuffer)
+    texts[0].should.containEql('dénommé')
   })
 })

@@ -61,4 +61,7 @@ function outlines (aoutlines, doc) {
       outlinesObjects[parentIndex].prop('Count', outlinesObjects[parentIndex].data.count)
     }
   }
+
+  // no open outlines at all level by default
+  rootOutline.properties.del('Count')
 }

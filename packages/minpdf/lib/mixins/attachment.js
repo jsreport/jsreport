@@ -4,9 +4,6 @@ const { createHash } = require('crypto')
 const { formatDate } = require('../util')
 
 module.exports = (doc) => {
-  doc.catalog.properties.get('Names').object.prop('EmbeddedFiles', new PDF.Dictionary())
-  doc.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').set('Names', new PDF.Array())
-
   doc.attachment = (buffer, options) => doc.finalizers.push(() => attachment(buffer, doc, options))
 }
 

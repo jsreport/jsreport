@@ -23,6 +23,6 @@ exports.parse = function (xref, lexer) {
     }
   }
 
-  lexer._error('Invalid value')
+  lexer._error('Invalid value:' + lexer.getString(100))
   return undefined
 }

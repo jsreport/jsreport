@@ -56,7 +56,7 @@ class PDFName {
         return undefined
       }
 
-      throw new Error('Invalid name')
+      throw new Error('Invalid name: ' + lexer.getString(10))
     }
 
     lexer.shift(1)

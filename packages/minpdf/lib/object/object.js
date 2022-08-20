@@ -44,6 +44,7 @@ class PDFObject {
     const before = lexer.pos
 
     const id = lexer.readNumber(trial)
+
     if (id === undefined && !trial) {
       throw new Error('Invalid object')
     }
@@ -73,7 +74,7 @@ class PDFObject {
     lexer.skipWhitespace(null, true)
 
     if (lexer.readString(3) !== 'end') {
-      throw new Error('Invalid object: `end` not found')
+      throw new Error('Invalid object: `end` not found:' + lexer.readString(100))
     }
 
     return obj

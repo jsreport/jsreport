@@ -36,7 +36,7 @@ class PDFDictionary {
   }
 
   get length () {
-    return Object.keys(this.dictionary)
+    return Object.keys(this.dictionary).length
   }
 
   toString (encryptionFn) {
@@ -54,6 +54,11 @@ class PDFDictionary {
   }
 
   static parse (xref, lexer, trial) {
+    // treat empty object as an empty dictionary
+    if (lexer.getString(6) === 'endobj') {
+      return new PDFDictionary()
+    }
+
     if (lexer.getString(2) !== '<<') {
       if (trial) {
         return undefined
