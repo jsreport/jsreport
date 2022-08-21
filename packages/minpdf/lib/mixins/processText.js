@@ -213,7 +213,7 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
 
   const filteredLines = lines.filter((l, i) => removeLines.find(ri => ri === i) == null)
 
-  streamObject.content = zlib.deflateSync(filteredLines.join('\n'))
+  streamObject.content = zlib.deflateSync(Buffer.from(filteredLines.join('\n'), 'latin1'))
   streamObject.object.prop('Length', streamObject.content.length)
 }
 

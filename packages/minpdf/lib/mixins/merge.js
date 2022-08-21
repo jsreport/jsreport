@@ -108,7 +108,7 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
     pageStream.content = embeddingCode + pageStream.content
   }
 
-  pageStream.content = zlib.deflateSync(pageStream.content)
+  pageStream.content = zlib.deflateSync(Buffer.from(pageStream.content, 'latin1'))
 
   pageStream.object.prop('Length', pageStream.content.length)
   pageStream.object.prop('Filter', 'FlateDecode')

@@ -946,7 +946,7 @@ describe('pdf utils', () => {
     })
   })
 
-  it.only('should work with merging word generated pdf and dont loose special characters', async () => {
+  it('should work with merging word generated pdf and dont loose special characters', async () => {
     jsreport.tests.afterRenderListeners.add('test', (req, res) => {
       if (req.template.content === 'word') {
         res.content = fs.readFileSync(path.join(__dirname, 'word.pdf'))
@@ -971,11 +971,11 @@ describe('pdf utils', () => {
     })
 
     require('fs').writeFileSync('out.pdf', result.content)
-    /*const parsedPdf = await parsePdf(result.content, {
+    const parsedPdf = await parsePdf(result.content, {
       includeText: true
     })
     parsedPdf.pages.should.have.length(1)
-    parsedPdf.pages[0].text.should.containEql('dénommé')*/
+    parsedPdf.pages[0].text.should.containEql('dénommé')
   })
 
   it('should not break pdf href links when doing append', async () => {

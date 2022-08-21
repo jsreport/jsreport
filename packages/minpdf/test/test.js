@@ -648,12 +648,15 @@ describe('minpdf', () => {
     catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
   })
 
-  it.only('should handle word produced with national chars pdf during merge', async () => {
+  it('should handle word produced with national chars pdf during merge', async () => {
     const document = new Document()
     const ext = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
     document.append(ext)
     const ext2 = new External(fs.readFileSync(path.join(__dirname, 'word.pdf')))
     document.merge(ext2)
+    document.processText({
+      resolver: () => {}
+    })
     const pdfBuffer = await document.asBuffer()
     const { texts } = await validate(pdfBuffer)
     texts[0].should.containEql('dénommé')
