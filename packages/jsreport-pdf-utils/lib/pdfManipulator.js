@@ -1,5 +1,6 @@
-const parsePdf = require('./parsePdf')
+const parsePdf = require('./utils/parsePdf')
 const { Document, External } = require('@jsreport/minpdf')
+const HIDDEN_TEXT_SIZE = 1.1
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
   let currentBuffer = contentBuffer
@@ -122,8 +123,10 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
                 const trimmedText = text.substring(i + 'form@@@'.length, text.indexOf('@@@', i + 'form@@@'.length))
                 const valueOfText = hiddenPageFields[trimmedText]
 
-                const { pageIndex, position } = getPosition(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
+                const { pageIndex, position, matrix } = getPosition(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
                 const formSpec = JSON.parse(Buffer.from(valueOfText, 'base64').toString())
+
+                position[5] -= HIDDEN_TEXT_SIZE * matrix[3]
 
                 await doc.acroForm({
                   ...formSpec,
@@ -164,71 +167,6 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
           throw e
         }
       }
-      /*
-      // https://github.com/vbuch/node-signpdf/issues/98
-      // pdf sign placeholder needs to be written before the password protection takes place
-      if (pdfSign) {
-        currentBuffer = await addSignaturePlaceholder(currentBuffer, pdfSign.reason, pdfSign.maxSignaturePlaceholderLength)
-      }
-
-      const ext = new pdfjs.ExternalDocument(currentBuffer)
-
-      const newDocOpts = {}
-      if (pdfPassword) {
-        newDocOpts.encryption = {
-          password: pdfPassword.password,
-          ownerPassword: pdfPassword.ownerPassword,
-          permissions: {
-            printing: pdfPassword.printing,
-            modifying: pdfPassword.modifying,
-            copying: pdfPassword.copying,
-            annotating: pdfPassword.annotating,
-            fillingForms: pdfPassword.fillingForms,
-            contentAccessibility: pdfPassword.contentAccessibility,
-            documentAssembly: pdfPassword.documentAssembly
-          }
-        }
-      }
-
-      const doc = new pdfjs.Document(newDocOpts)
-
-      if (pdfMeta) {
-        doc.info.Title = pdfMeta.title
-        doc.info.Author = pdfMeta.author
-        doc.info.Subject = pdfMeta.subject
-        doc.info.Keywords = pdfMeta.keywords
-        doc.info.Creator = pdfMeta.creator
-        doc.info.Producer = pdfMeta.producer
-
-        if (pdfMeta.language) {
-          doc._finalizeCatalog.push(() => {
-            doc._catalog.prop('Lang', new PDF.String(pdfMeta.language))
-          })
-        }
-      }
-
-      if (outlines) {
-        for (const o of outlines) {
-          doc.outline(o.title, o.id, o.parent)
-        }
-      }
-
-      await processText(doc, ext, {
-        removeHiddenMarks,
-        hiddenPageFields
-      })
-
-      doc.addPagesOf(ext)
-
-      currentBuffer = await doc.asBuffer()
-
-      if (pdfSign) {
-        currentBuffer = await sign(
-          currentBuffer,
-          Buffer.from(pdfSign.certificateContent, 'base64'),
-          pdfSign.password
-        )
-      } */
     }
   }
 }

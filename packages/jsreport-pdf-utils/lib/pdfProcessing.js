@@ -1,4 +1,4 @@
-const PdfManipulator = require('./utils/pdfManipulator')
+const PdfManipulator = require('./pdfManipulator')
 
 module.exports = async (inputs, reporter, req, res) => {
   const pdfUtilsProfilerEvent = reporter.profiler.emit({

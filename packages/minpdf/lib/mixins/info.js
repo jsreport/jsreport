@@ -39,8 +39,7 @@ function info (doc, infoOptions) {
     infoObject.prop('Producer', new PDF.String(infoOptions.producer))
   }
 
-  // TODO why is this called in finalizer in jsreport?
   if (infoOptions.language) {
-    infoObject.prop('Lang', new PDF.String(infoOptions.language))
+    doc.catalog.prop('Lang', new PDF.String(infoOptions.language))
   }
 }

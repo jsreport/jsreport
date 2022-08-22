@@ -14,10 +14,6 @@ class PDFObject {
     if (type) {
       this.prop('Type', type)
     }
-
-    // TODO: still necessary?
-    // used to have obj.object API for both indirect and direct objects
-    //   this.object = this
   }
 
   prop (key, val) {

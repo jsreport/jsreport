@@ -7,7 +7,7 @@ const { extractSignature } = require('@jsreport/node-signpdf/dist/helpers')
 const should = require('should')
 const zlib = require('zlib')
 const { createHash } = require('crypto')
-const PdfManipulator = require('../lib/utils/pdfManipulator')
+const PdfManipulator = require('../lib/pdfManipulator')
 
 describe('pdf utils', () => {
   let jsreport
@@ -367,11 +367,6 @@ describe('pdf utils', () => {
   })
 
   it('merge shouldnt fail when merging into empty content', async () => {
-    const r = await jsreport.render({
-      template: { content: '<style> html { overflow: hidden; } </style><div style="visibility: hidden;">&nbsp;</div><div style="page-break-before: always;"></div><div style="visibility: hidden;">&nbsp;</div>', engine: 'none', recipe: 'chrome-pdf' }
-    })
-    require('fs').writeFileSync('emptyContent.pdf', r.content)
-
     await jsreport.render({
       template: {
         content: 'content<div style="page-break-before: always;">content2',

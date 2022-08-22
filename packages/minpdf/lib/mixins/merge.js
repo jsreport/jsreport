@@ -1,5 +1,7 @@
 const zlib = require('zlib')
 const PDF = require('../object')
+const unionGlobalObjects = require('./utils/unionGlobalObjects')
+const unionPageObjects = require('./utils/unionPageObjects')
 
 module.exports = (doc) => {
   doc.merge = (ext, mergeToFront, pageToIndex) => doc.finalizers.push(() => merge(ext, doc, mergeToFront, pageToIndex))
@@ -114,23 +116,6 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
 
   pageStream.object.prop('Length', pageStream.content.length)
   pageStream.object.prop('Filter', 'FlateDecode')
-
-  const annots = page.properties.get('Annots')
-  if (Array.isArray(annots)) {
-    for (const annot of annots.map(a => a.object)) {
-      annot.properties.set('P', docPage.toReference())
-    }
-    const docPageAnnots = docPage.properties.get('Annots') || []
-    docPage.properties.set('Annots', new PDF.Array([...docPageAnnots, ...annots]))
-
-    const extAcroForm = ext.catalog.properties.get('AcroForm')?.object
-    if (extAcroForm && extAcroForm.properties.get('Fields')) {
-      const extAcroFormPageFields = extAcroForm.properties.get('Fields').filter(f => f.object.properties.get('P') === docPage.toReference())
-      const docAcroForm = doc.catalog.properties.get('AcroForm').object
-      const docFields = docAcroForm.properties.get('Fields') || []
-      docAcroForm.properties.set('Fields', new PDF.Array([...docFields, ...extAcroFormPageFields]))
-    }
-  }
 }
 
 function merge (ext, doc, mergeToFront, pageNum) {
@@ -138,6 +123,7 @@ function merge (ext, doc, mergeToFront, pageNum) {
   const pages = ext.pages
 
   if (pageNum != null) {
+    unionPageObjects(ext, doc, pages[0], docPages[pageNum])
     mergePage(docPages[pageNum], pages[0], mergeToFront, doc, ext)
   } else {
     for (let i = 0; i < docPages.length; i++) {
@@ -145,37 +131,11 @@ function merge (ext, doc, mergeToFront, pageNum) {
       const page = pages[i]
 
       if (page) {
+        unionPageObjects(ext, doc, page, docPage)
         mergePage(docPage, page, mergeToFront, doc, ext)
       }
     }
   }
 
-  const extAcroForm = ext.catalog.properties.get('AcroForm')?.object
-  if (extAcroForm) {
-    const docAcroForm = doc.catalog.properties.get('AcroForm').object
-    if (extAcroForm.properties.has('NeedAppearances')) {
-      docAcroForm.properties.set('NeedAppearances', extAcroForm.properties.get('NeedAppearances'))
-    }
-    if (extAcroForm.properties.has('SigFlags')) {
-      docAcroForm.properties.set('SigFlags', extAcroForm.properties.get('SigFlags'))
-    }
-
-    let dr = docAcroForm.properties.get('DR')
-    if (dr == null) {
-      dr = new PDF.Dictionary({
-        Font: new PDF.Dictionary()
-      })
-      docAcroForm.properties.set('DR', dr)
-    }
-    const extFontDict = extAcroForm.properties.get('DR').get('Font')
-    const docFontDict = dr.get('Font')
-
-    for (let fontName in extFontDict.dictionary) {
-      fontName = fontName.substring(1)
-      if (!docFontDict.has(fontName)) {
-        const font = extFontDict.get(fontName)
-        docFontDict.set(fontName, font)
-      }
-    }
-  }
+  unionGlobalObjects(doc, ext)
 }

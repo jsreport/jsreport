@@ -141,7 +141,7 @@ describe('minpdf', () => {
     info.properties.get('Keywords').toString().should.be.eql('(Foo-keywords)')
     info.properties.get('Creator').toString().should.be.eql('(Foo-creator)')
     info.properties.get('Producer').toString().should.be.eql('(Foo-producer)')
-    info.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
+    catalog.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
   })
 
   it('merge should merge pages', async () => {
@@ -267,6 +267,9 @@ describe('minpdf', () => {
       parent: '1'
     }])
     const pdfBuffer = await document.asBuffer()
+
+    require('fs').writeFileSync('out.pdf', pdfBuffer)
+
     const { catalog } = await validate(pdfBuffer)
     const outlines = catalog.properties.get('Outlines').object
     const outline1 = outlines.properties.get('First').object
@@ -280,7 +283,24 @@ describe('minpdf', () => {
     outline2.properties.get('Title').toString().should.be.eql('(2 title)')
     should(outline2.properties.get('First')).be.eql(undefined)
     should(outline2.properties.get('Last')).be.eql(undefined)
-    fs.writeFileSync('out.pdf', pdfBuffer)
+
+    const dests = catalog.properties.get('Dests')
+    dests.object.properties.get('1')[0].object.properties.get('Type').toString().should.be.eql('/Page')
+    dests.object.properties.get('2')[0].object.properties.get('Type').toString().should.be.eql('/Page')
+  })
+
+  it('merge should union Dests', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'links.pdf'))))
+    document.merge(new External(fs.readFileSync(path.join(__dirname, 'link.pdf'))))
+
+    const pdfBuffer = await document.asBuffer()
+    require('fs').writeFileSync('out.pdf', pdfBuffer)
+    const { catalog } = await validate(pdfBuffer)
+
+    const dests = catalog.properties.get('Dests')
+    dests.object.properties.get('1')[0].object.properties.get('Type').toString().should.be.eql('/Page')
+    dests.object.properties.get('2')[0].object.properties.get('Type').toString().should.be.eql('/Page')
   })
 
   it('processText should support remove and getPosition callbacks', async () => {
@@ -593,7 +613,7 @@ describe('minpdf', () => {
     info.properties.get('Keywords').toString().should.be.eql('(Foo-keywords)')
     info.properties.get('Creator').toString().should.be.eql('(Foo-creator)')
     info.properties.get('Producer').toString().should.be.eql('(Foo-producer)')
-    info.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
+    catalog.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
   })
 
   it('encrypt should password protect', async () => {

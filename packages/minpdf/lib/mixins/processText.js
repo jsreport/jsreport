@@ -113,10 +113,9 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
     if (line.endsWith('Tm')) {
       if (currentMatrix) {
         const matrix = line.split(' ').slice(0, -1).map(n => parseFloat(n))
-
         currentPosition = [0, 0, 0, 0, 0, 0]
         currentPosition[4] = currentMatrix[4] + (matrix[4] * currentMatrix[0])
-        currentPosition[5] = currentMatrix[5] + (matrix[5] * currentMatrix[3]) /* - (HIDDEN_TEXT_SIZE * currentMatrix[3]) */ // TODO
+        currentPosition[5] = currentMatrix[5] + (matrix[5] * currentMatrix[3])
         currentPosition[0] = matrix[0] * currentMatrix[0]
         currentPosition[3] = matrix[3] * currentMatrix[3]
       }
@@ -170,11 +169,11 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
           const chars = normalizedUnicodes[ch]
           text += chars
           for (const char of chars) {
-            details.push({ lineIndex, charIndex, ch: char, position: currentPosition, length: charSeq.length })
+            details.push({ lineIndex, charIndex, ch: char, position: currentPosition, matrix: currentMatrix, length: charSeq.length })
           }
         } else {
           text += ch
-          details.push({ lineIndex, charIndex, ch, position: currentPosition, length: charSeq.length })
+          details.push({ lineIndex, charIndex, ch, position: currentPosition, matrix: currentMatrix, length: charSeq.length })
         }
 
         charIndex += 4
@@ -187,7 +186,8 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
     remove: (start, end) => indexesToRemove.push({ start, end }),
     getPosition: (start, end) => ({
       position: details[start].position,
-      pageIndex
+      pageIndex,
+      matrix: details[start].matrix
     })
   })
 
