@@ -661,4 +661,15 @@ describe('minpdf', () => {
     const { texts } = await validate(pdfBuffer)
     texts[0].should.containEql('dénommé')
   })
+
+  it('should handle phantomjs produced pdf', async () => {
+    const document = new Document()
+    const ext = new External(fs.readFileSync(path.join(__dirname, 'phantomHeader.pdf')))
+    document.append(ext)
+    const ext2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.merge(ext2)
+    const pdfBuffer = await document.asBuffer()
+    const { texts } = await validate(pdfBuffer)
+    texts[0].should.containEql('mainheadermain')
+  })
 })

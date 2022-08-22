@@ -1,16 +1,9 @@
-const removePages = {} // require('./removePages')
-const mergePdfs = {} // require('./mergePdfs')
 const parsePdf = require('./parsePdf')
-const addPages = {} // require('./addPages')
-const addAttachment = {} // require('./addAttachment')
-const { addSignaturePlaceholder, sign } = {} // require('./sign')
-const processText = {} // require('./processText')
 const { Document, External } = require('@jsreport/minpdf')
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
   let currentBuffer = contentBuffer
   let currentlyParsedPdf
-  const pagesHelpInfo = []
 
   return {
     async parse ({

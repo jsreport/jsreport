@@ -7,6 +7,7 @@ const { extractSignature } = require('@jsreport/node-signpdf/dist/helpers')
 const should = require('should')
 const zlib = require('zlib')
 const { createHash } = require('crypto')
+const PdfManipulator = require('../lib/utils/pdfManipulator')
 
 describe('pdf utils', () => {
   let jsreport
@@ -16,7 +17,8 @@ describe('pdf utils', () => {
       reportTimeout: 999999999,
       encryption: {
         secretKey: '1111111811111118'
-      }
+      },
+      rootDirectory: path.join(__dirname, '../../../')
     })
 
     jsreport.use(require('@jsreport/jsreport-chrome-pdf')({
@@ -30,6 +32,7 @@ describe('pdf utils', () => {
     jsreport.use(require('@jsreport/jsreport-scripts')())
     jsreport.use(require('../')())
     jsreport.use(require('@jsreport/jsreport-child-templates')())
+    jsreport.use(require('@jsreport/jsreport-phantom-pdf')())
     jsreport.use(JsReport.tests.listeners())
 
     return jsreport.init()
@@ -862,7 +865,7 @@ describe('pdf utils', () => {
     })
   })
 
-  it.skip('should be able to merge watermark into pdf with native header produced by phantomjs', async () => {
+  it('should be able to merge watermark into pdf with native header produced by phantomjs', async () => {
     const result = await jsreport.render({
       template: {
         content: 'main',
@@ -2313,33 +2316,22 @@ describe('pdf utils', () => {
     namesArray[0].toString().should.be.eql('(first.txt)')
   })
 
-  describe.skip('processText with pdf from alpine', () => {
+  describe('processText with pdf from alpine', () => {
     it('should deal with double f ligature and remove hidden mark', async () => {
-      const content = fs.readFileSync(path.join(__dirname, 'alpine.pdf'))
-      const external = new External(content)
-      const document = new Document()
-      await processText(
-        document,
-        external,
-        {
-          removeHiddenMarks: true,
-          hiddenPageFields: {
-            ff2181tsdwkqil98bfi73sks: Buffer.from(JSON.stringify({
-              height: 20,
-              width: 100,
-              type: 'text',
-              name: 'test'
-            })).toString('base64')
-          }
+      const manipulator = PdfManipulator(fs.readFileSync(path.join(__dirname, 'alpine.pdf')), { removeHiddenMarks: true })
+      await manipulator.postprocess({
+        hiddenPageFields: {
+          ff2181tsdwkqil98bfi73sks: Buffer.from(JSON.stringify({
+            height: 20,
+            width: 100,
+            type: 'text',
+            name: 'test'
+          })).toString('base64')
         }
-      )
-
-      document.addPagesOf(external)
-      const buffer = await document.asBuffer()
-
-      const newExt = new External(buffer)
-
-      const acroForm = newExt.catalog.properties.get('AcroForm').object
+      })
+      const buffer = await manipulator.toBuffer()
+      const external = new External(buffer)
+      const acroForm = external.catalog.properties.get('AcroForm').object
       should(acroForm).not.be.null()
       const field = acroForm.properties.get('Fields')[0].object
       field.properties.get('T').toString().should.be.eql('(test)')

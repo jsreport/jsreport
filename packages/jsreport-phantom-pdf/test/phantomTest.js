@@ -1,12 +1,14 @@
 const jsreport = require('@jsreport/jsreport-core')
-
+const path = require('path')
 require('should')
 
 describe('phantom pdf', () => {
   let reporter
 
   beforeEach(() => {
-    reporter = jsreport().use(require('../')())
+    reporter = jsreport({
+      rootDirectory: path.join(__dirname, '../../../')
+    }).use(require('../')())
     return reporter.init()
   })
 
@@ -99,7 +101,8 @@ describe('phantom pdf with defaultPhantomjsVersion', function () {
     reporter = jsreport({
       phantom: {
         defaultPhantomjsVersion: '2.1.1'
-      }
+      },
+      rootDirectory: path.join(__dirname, '../../../')
     }).use(require('../')())
     return reporter.init()
   })

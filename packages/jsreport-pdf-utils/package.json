@@ -49,6 +49,7 @@
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-jsrender": "3.0.0",
     "@jsreport/jsreport-scripts": "3.2.1",
+    "@jsreport/jsreport-phantom-pdf": "3.0.3",
     "@jsreport/studio-dev": "3.2.0",
     "handlebars": "4.7.7",
     "mocha": "8.2.1",

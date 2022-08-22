@@ -8,7 +8,7 @@
     "test": "test"
   },  
   "scripts": {
-    "test": "mocha test&&standard"
+    "test": "mocha --timeout=4000 test&&standard"
   },
   "dependencies": {
     "@jsreport/node-signpdf": "1.4.2",

@@ -73,7 +73,9 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
   xobj.prop('BBox', new PDF.Array([0, 0, page.properties.get('MediaBox')[2], page.properties.get('MediaBox')[3]]))
   xobj.prop('Resources', page.properties.get('Resources'))
 
-  const xobjectsDictionary = docPage.properties.get('Resources').get('XObject') || new PDF.Dictionary()
+  // phantomjs uses object instead of the dictionary here, so we need to handle it
+  const docPageResourcesDictionary = docPage.properties.get('Resources') instanceof PDF.PDFReference ? docPage.properties.get('Resources').object.properties : docPage.properties.get('Resources')
+  const xobjectsDictionary = docPageResourcesDictionary.get('XObject') || new PDF.Dictionary()
 
   let index = 1
   let xobjectAlias = 'X1.0'
@@ -82,7 +84,7 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
   }
 
   xobjectsDictionary.set(xobjectAlias, xobj.toReference())
-  docPage.properties.get('Resources').set('XObject', xobjectsDictionary)
+  docPageResourcesDictionary.set('XObject', xobjectsDictionary)
 
   const pageStream = docPage.properties.get('Contents').object.content
   if (pageStream.object.properties.get('Filter')) {
