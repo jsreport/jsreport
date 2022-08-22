@@ -5,8 +5,8 @@ const path = require('path')
 const moment = require('moment')
 const { DOMParser } = require('@xmldom/xmldom')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
-const { nodeListToArray } = require('../lib/utils')
-const { findChildNode, getDocumentsFromDocxBuf } = require('./utils')
+const { nodeListToArray, findChildNode } = require('../lib/utils')
+const { getDocumentsFromDocxBuf } = require('./utils')
 
 describe('docx chart', () => {
   let reporter

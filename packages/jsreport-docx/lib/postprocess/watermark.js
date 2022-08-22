@@ -3,7 +3,7 @@ const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
 const styleAttr = require('style-attr')
 const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
-const { nodeListToArray } = require('../utils')
+const { nodeListToArray, findOrCreateChildNode } = require('../utils')
 
 module.exports = async (files) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
@@ -159,38 +159,4 @@ module.exports = async (files) => {
       }
     }
   }
-}
-
-function findOrCreateChildNode (docNode, nodeName, targetNode) {
-  let result
-  const existingNode = findChildNode(nodeName, targetNode)
-
-  if (!existingNode) {
-    result = docNode.createElement(nodeName)
-    targetNode.appendChild(result)
-  } else {
-    result = existingNode
-  }
-
-  return result
-}
-
-function findChildNode (nodeName, targetNode, allNodes = false) {
-  const result = []
-
-  for (let i = 0; i < targetNode.childNodes.length; i++) {
-    let found = false
-    const childNode = targetNode.childNodes[i]
-
-    if (childNode.nodeName === nodeName) {
-      found = true
-      result.push(childNode)
-    }
-
-    if (found && !allNodes) {
-      break
-    }
-  }
-
-  return allNodes ? result : result[0]
 }

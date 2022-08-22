@@ -159,6 +159,40 @@ function clearEl (el, filterFn) {
   }
 }
 
+function findOrCreateChildNode (docNode, nodeName, targetNode) {
+  let result
+  const existingNode = findChildNode(nodeName, targetNode)
+
+  if (!existingNode) {
+    result = docNode.createElement(nodeName)
+    targetNode.appendChild(result)
+  } else {
+    result = existingNode
+  }
+
+  return result
+}
+
+function findChildNode (nodeName, targetNode, allNodes = false) {
+  const result = []
+
+  for (let i = 0; i < targetNode.childNodes.length; i++) {
+    let found = false
+    const childNode = targetNode.childNodes[i]
+
+    if (childNode.nodeName === nodeName) {
+      found = true
+      result.push(childNode)
+    }
+
+    if (found && !allNodes) {
+      break
+    }
+  }
+
+  return allNodes ? result : result[0]
+}
+
 module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph') => {
   const styleEls = nodeListToArray(stylesDoc.getElementsByTagName('w:style'))
 
@@ -208,4 +242,6 @@ module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
 module.exports.getClosestEl = getClosestEl
 module.exports.clearEl = clearEl
+module.exports.findOrCreateChildNode = findOrCreateChildNode
+module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray

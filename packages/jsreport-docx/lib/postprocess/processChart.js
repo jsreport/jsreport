@@ -1,7 +1,7 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
-const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId } = require('../utils')
+const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId, clearEl, findChildNode, findOrCreateChildNode } = require('../utils')
 
 module.exports = async function processChart (files, drawingEl, originalChartsXMLMap, newRelIdCounterMap) {
   const relsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
@@ -26,7 +26,7 @@ module.exports = async function processChart (files, drawingEl, originalChartsXM
   }
 
   let chartRelsFilename = `word/charts/_rels/${chartFilename.split('/').slice(-1)[0]}.rels`
-  // take the original (not modifed) document
+  // take the original (not modified) document
   let chartRelsDoc = originalChartsXMLMap.has(chartRelsFilename) ? new DOMParser().parseFromString(originalChartsXMLMap.get(chartRelsFilename)) : files.find(f => f.path === chartRelsFilename).doc
 
   if (!originalChartsXMLMap.has(chartRelsFilename)) {
@@ -527,7 +527,7 @@ function configureAxis (chartDoc, axisConfig, axisEl) {
 function prepareChartSerie (chartDoc, chartType, baseChartSerieEl, serieData) {
   const { serieIdx, serieLabel, generalLabels, dataErrors, dataLabels, dataValues } = serieData
 
-  removeChildNodes('c:extLst', baseChartSerieEl)
+  clearEl(baseChartSerieEl, (c) => c.nodeName !== 'c:extLst')
 
   addChartSerieItem(chartDoc, { name: 'c:idx', data: serieIdx }, baseChartSerieEl)
   addChartSerieItem(chartDoc, { name: 'c:order', data: serieIdx }, baseChartSerieEl)
@@ -700,7 +700,7 @@ function addChartexItem (docNode, nodeInfo, targetNode) {
 
       newNode.setAttribute('type', type)
 
-      removeChildNodes('cx:f', newNode)
+      clearEl(newNode, (c) => c.nodeName !== 'cx:f')
 
       const existingLvlNodes = findChildNode('cx:lvl', newNode, true)
 
@@ -768,7 +768,7 @@ function addChartexItem (docNode, nodeInfo, targetNode) {
     case 'cx:tx': {
       const txDataNode = findOrCreateChildNode(docNode, 'cx:txData', newNode)
 
-      removeChildNodes('cx:f', txDataNode)
+      clearEl(txDataNode, (c) => c.nodeName !== 'cx:f')
 
       const txValueNode = findOrCreateChildNode(docNode, 'cx:v', txDataNode)
 
@@ -928,7 +928,7 @@ function addValueNodes (docNode, parentNode, opts = {}) {
   }
 
   const refNode = findOrCreateChildNode(docNode, numType ? 'c:numRef' : 'c:strRef', parentNode)
-  removeChildNodes('c:f', refNode)
+  clearEl(refNode, (c) => c.nodeName !== 'c:f')
   const cacheNode = findOrCreateChildNode(docNode, numType ? 'c:numCache' : 'c:strCache', refNode)
   const existingFormatNode = findChildNode('c:formatCode', cacheNode)
 
@@ -981,49 +981,5 @@ function addValueNodes (docNode, parentNode, opts = {}) {
 
   for (const eNode of existingPtNodes) {
     eNode.parentNode.removeChild(eNode)
-  }
-}
-
-function findOrCreateChildNode (docNode, nodeName, targetNode) {
-  let result
-  const existingNode = findChildNode(nodeName, targetNode)
-
-  if (!existingNode) {
-    result = docNode.createElement(nodeName)
-    targetNode.appendChild(result)
-  } else {
-    result = existingNode
-  }
-
-  return result
-}
-
-function findChildNode (nodeName, targetNode, allNodes = false) {
-  const result = []
-
-  for (let i = 0; i < targetNode.childNodes.length; i++) {
-    let found = false
-    const childNode = targetNode.childNodes[i]
-
-    if (childNode.nodeName === nodeName) {
-      found = true
-      result.push(childNode)
-    }
-
-    if (found && !allNodes) {
-      break
-    }
-  }
-
-  return allNodes ? result : result[0]
-}
-
-function removeChildNodes (nodeName, targetNode) {
-  for (let i = 0; i < targetNode.childNodes.length; i++) {
-    const childNode = targetNode.childNodes[i]
-
-    if (childNode.nodeName === nodeName) {
-      targetNode.removeChild(childNode)
-    }
   }
 }

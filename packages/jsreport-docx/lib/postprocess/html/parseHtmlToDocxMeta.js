@@ -6,7 +6,7 @@ const NODE_TYPES = {
 }
 
 const BLOCK_ELEMENTS = ['p', 'div']
-const INLINE_ELEMENTS = ['span']
+const INLINE_ELEMENTS = ['span', 'b', 'strong']
 const SUPPORTED_ELEMENTS = [...BLOCK_ELEMENTS, ...INLINE_ELEMENTS]
 
 module.exports = function parseHtmlToDocxMeta (html, mode) {
@@ -34,9 +34,9 @@ function parseHtmlNodeToMeta ($, node, mode) {
   const pending = [{ item: node, collection: result }]
 
   while (pending.length > 0) {
-    const { parent, item: currentNode, collection } = pending.shift()
+    const { parent, collection, meta = {}, item: currentNode } = pending.shift()
     const nodeType = currentNode.nodeType
-    let meta
+    let newItem
 
     // skip empty nodes
     if (nodeType === NODE_TYPES.ELEMENT && currentNode.childNodes.length === 0) {
@@ -51,35 +51,39 @@ function parseHtmlNodeToMeta ($, node, mode) {
       const getTextInNode = (n) => n.nodeType === NODE_TYPES.TEXT ? n.nodeValue : $(n).text()
 
       if (mode === 'inline') {
-        meta = createText(getTextInNode(currentNode))
-        collection.push(meta)
+        newItem = createText(getTextInNode(currentNode), meta)
+        collection.push(newItem)
       } else {
         if (!parent) {
-          meta = createParagraph()
-          collection.push(meta)
-          pending.unshift({ item: currentNode, parent: meta, collection })
+          newItem = createParagraph()
+          collection.push(newItem)
+          pending.unshift({ item: currentNode, parent: newItem, collection, meta })
         } else {
-          meta = createText(getTextInNode(currentNode))
+          newItem = createText(getTextInNode(currentNode), meta)
         }
       }
     } else if (nodeType === NODE_TYPES.ELEMENT) {
       let newParent
 
       if (INLINE_ELEMENTS.includes(currentNode.tagName)) {
+        if (isBoldElement(currentNode)) {
+          meta.bold = true
+        }
+
         if (mode === 'block') {
           if (!parent) {
-            meta = createParagraph()
-            collection.push(meta)
-            newParent = meta
+            newItem = createParagraph()
+            collection.push(newItem)
+            newParent = newItem
           } else {
             newParent = parent
           }
         }
       } else if (mode === 'block') {
         if (!parent) {
-          meta = createParagraph()
-          collection.push(meta)
-          newParent = meta
+          newItem = createParagraph()
+          collection.push(newItem)
+          newParent = newItem
         } else {
           newParent = parent
         }
@@ -95,7 +99,8 @@ function parseHtmlNodeToMeta ($, node, mode) {
 
         pendingItemsInCurrent.push(...currentNode.childNodes.map((childNode) => ({
           item: childNode,
-          collection: targetCollection
+          collection: targetCollection,
+          meta
         })))
       } else {
         let prevChildNode
@@ -119,7 +124,8 @@ function parseHtmlNodeToMeta ($, node, mode) {
           pendingItemsInCurrent.push({
             item: childNode,
             parent: newParent,
-            collection: targetCollection
+            collection: targetCollection,
+            meta
           })
 
           prevChildNode = childNode
@@ -131,12 +137,12 @@ function parseHtmlNodeToMeta ($, node, mode) {
       }
     }
 
-    if (meta == null) {
+    if (newItem == null) {
       continue
     }
 
     if (parent != null) {
-      parent.children.push(meta)
+      parent.children.push(newItem)
     }
   }
 
@@ -150,17 +156,30 @@ function createParagraph () {
   }
 }
 
-function createText (text) {
-  return {
+function createText (text, meta) {
+  const textItem = {
     type: 'text',
     value: text != null ? text : ''
   }
+
+  if (meta.bold === true) {
+    textItem.bold = meta.bold
+  }
+
+  return textItem
 }
 
 function isBlockElement (node) {
   return (
     node.nodeType === NODE_TYPES.ELEMENT &&
     BLOCK_ELEMENTS.includes(node.tagName)
+  )
+}
+
+function isBoldElement (node) {
+  return (
+    node.nodeType === NODE_TYPES.ELEMENT &&
+    (node.tagName === 'b' || node.tagName === 'strong')
   )
 }
 

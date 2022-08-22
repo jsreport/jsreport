@@ -79,26 +79,6 @@ module.exports.getTextNodesMatching = function getTextNodesMatching (doc, target
   return textNodesMatching.nodes
 }
 
-module.exports.findChildNode = function findChildNode (nodeName, targetNode, allNodes = false) {
-  const result = []
-
-  for (let i = 0; i < targetNode.childNodes.length; i++) {
-    let found = false
-    const childNode = targetNode.childNodes[i]
-
-    if (childNode.nodeName === nodeName) {
-      found = true
-      result.push(childNode)
-    }
-
-    if (found && !allNodes) {
-      break
-    }
-  }
-
-  return allNodes ? result : result[0]
-}
-
 module.exports.getImageSize = async function getImageSize (buf) {
   const files = await decompress()(buf)
   const doc = new DOMParser().parseFromString(

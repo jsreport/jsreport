@@ -1,4 +1,4 @@
-const { clearEl } = require('../../utils')
+const { clearEl, findOrCreateChildNode, findChildNode } = require('../../utils')
 
 module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, paragraphNode } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
@@ -53,7 +53,19 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
       const runEl = htmlEmbedDef.tEl.parentNode.cloneNode(true)
 
       // inherit only the run properties of the html embed call
-      clearEl(runEl, (c) => c === 'w:rPr')
+      clearEl(runEl, (c) => c.nodeName === 'w:rPr')
+
+      if (currentDocxMeta.bold === true) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingBEl = findChildNode('w:b', rPrEl)
+
+        if (existingBEl != null) {
+          rPrEl.removeChild(existingBEl)
+        }
+
+        const newBEl = doc.createElement('w:b')
+        rPrEl.insertBefore(newBEl, rPrEl.firstChild)
+      }
 
       const textEl = doc.createElement('w:t')
 
