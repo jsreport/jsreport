@@ -6,7 +6,7 @@ const NODE_TYPES = {
 }
 
 const BLOCK_ELEMENTS = ['p', 'div']
-const INLINE_ELEMENTS = ['span', 'b', 'strong']
+const INLINE_ELEMENTS = ['span', 'b', 'strong', 'i', 'em']
 const SUPPORTED_ELEMENTS = [...BLOCK_ELEMENTS, ...INLINE_ELEMENTS]
 
 module.exports = function parseHtmlToDocxMeta (html, mode) {
@@ -68,6 +68,10 @@ function parseHtmlNodeToMeta ($, node, mode) {
       if (INLINE_ELEMENTS.includes(currentNode.tagName)) {
         if (isBoldElement(currentNode)) {
           meta.bold = true
+        }
+
+        if (isItalicElement(currentNode)) {
+          meta.italic = true
         }
 
         if (mode === 'block') {
@@ -166,6 +170,10 @@ function createText (text, meta) {
     textItem.bold = meta.bold
   }
 
+  if (meta.italic === true) {
+    textItem.italic = meta.italic
+  }
+
   return textItem
 }
 
@@ -180,6 +188,13 @@ function isBoldElement (node) {
   return (
     node.nodeType === NODE_TYPES.ELEMENT &&
     (node.tagName === 'b' || node.tagName === 'strong')
+  )
+}
+
+function isItalicElement (node) {
+  return (
+    node.nodeType === NODE_TYPES.ELEMENT &&
+    (node.tagName === 'i' || node.tagName === 'em')
   )
 }
 

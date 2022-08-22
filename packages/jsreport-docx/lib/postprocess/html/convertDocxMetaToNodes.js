@@ -67,6 +67,18 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
         rPrEl.insertBefore(newBEl, rPrEl.firstChild)
       }
 
+      if (currentDocxMeta.italic === true) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingIEl = findChildNode('w:i', rPrEl)
+
+        if (existingIEl != null) {
+          rPrEl.removeChild(existingIEl)
+        }
+
+        const newBEl = doc.createElement('w:i')
+        rPrEl.insertBefore(newBEl, rPrEl.firstChild)
+      }
+
       const textEl = doc.createElement('w:t')
 
       textEl.setAttribute('xml:space', 'preserve')
