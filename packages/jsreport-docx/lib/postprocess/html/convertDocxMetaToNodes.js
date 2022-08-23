@@ -75,8 +75,22 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
           rPrEl.removeChild(existingIEl)
         }
 
-        const newBEl = doc.createElement('w:i')
-        rPrEl.insertBefore(newBEl, rPrEl.firstChild)
+        const newIEl = doc.createElement('w:i')
+        rPrEl.insertBefore(newIEl, rPrEl.firstChild)
+      }
+
+      if (currentDocxMeta.underline === true) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingUEl = findChildNode('w:u', rPrEl)
+
+        if (existingUEl != null) {
+          rPrEl.removeChild(existingUEl)
+        }
+
+        const newUEl = doc.createElement('w:u')
+        newUEl.setAttribute('w:val', 'single')
+
+        rPrEl.insertBefore(newUEl, rPrEl.firstChild)
       }
 
       const textEl = doc.createElement('w:t')

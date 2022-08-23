@@ -1392,6 +1392,134 @@ describe('docx html embed', () => {
     should(findChildNode('w:i', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
   })
 
+  it('block - <u> tag', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: '<p>Hello <u>World</u></p>'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html}}')
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+
+    commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+    should(textNodes[0].textContent).eql('Hello ')
+    should(textNodes[1].textContent).eql('World')
+    should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+  })
+
+  it('block - <u> tag with children', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: '<p>Hello <u><span><span>World</span></span></u></p>'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html}}')
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+
+    commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+    should(textNodes[0].textContent).eql('Hello ')
+    should(textNodes[1].textContent).eql('World')
+    should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+  })
+
+  it('block - combined <b><i><u>...</u></i></b>', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: '<p>Hello <b><i><u>World</u></i></b></p>'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html}}')
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+
+    commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+    should(textNodes[0].textContent).eql('Hello ')
+    should(textNodes[1].textContent).eql('World')
+    should(findChildNode('w:b', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+    should(findChildNode('w:i', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+    should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+  })
+
   it('inline - simple <p>...</p>', async () => {
     const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
 
@@ -2705,6 +2833,134 @@ describe('docx html embed', () => {
     should(textNodes[0].textContent).eql('Hello ')
     should(textNodes[1].textContent).eql('World')
     should(findChildNode('w:i', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+  })
+
+  it('inline - <u> tag', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: '<p>Hello <u>World</u></p>'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+
+    commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+    should(textNodes[0].textContent).eql('Hello ')
+    should(textNodes[1].textContent).eql('World')
+    should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+  })
+
+  it('inline - <u> tag with children', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: '<p>Hello <u><span><span>World</span></span></u></p>'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+
+    commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+    should(textNodes[0].textContent).eql('Hello ')
+    should(textNodes[1].textContent).eql('World')
+    should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+  })
+
+  it('inline - combined <b><i><u>...</u></i></b>', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: '<p>Hello <b><i><u>World</u></i></b></p>'
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+    const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+
+    commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+    should(textNodes[0].textContent).eql('Hello ')
+    should(textNodes[1].textContent).eql('World')
+    should(findChildNode('w:b', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+    should(findChildNode('w:i', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
+    should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
   })
 })
 
