@@ -22,7 +22,7 @@ module.exports = (reporter, definition) => {
     }
 
     req.context.shared.pdfUtilsHiddenPageFields = req.context.shared.pdfUtilsHiddenPageFields || {}
-    ;['group', 'item', 'form'].forEach(m => {
+    ;['group', 'item', 'form', 'dest'].forEach(m => {
       res.content = res.content.toString().replace(new RegExp(`${m}@@@([^@]*)@@@`, 'g'), (match, p1) => {
         const id = nanoid()
         req.context.shared.pdfUtilsHiddenPageFields[id] = p1

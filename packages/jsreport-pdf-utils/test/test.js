@@ -2311,6 +2311,30 @@ describe('pdf utils', () => {
     namesArray[0].toString().should.be.eql('(first.txt)')
   })
 
+  it('append with cross page links and pdfLink and pdfTargets should work', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: '<a href=\'#1\' id=\'1\'>link</a>',
+        engine: 'handlebars',
+        recipe: 'chrome-pdf',
+        pdfOperations: [{
+          type: 'append',
+          template: {
+            content: `
+            <div style='margin-top: 200px'></div>
+            {{{pdfDest "1"}}}<strong id='1'>target 1</strong>                        
+            <div style='page-break-before: always;'></div>`,
+            engine: 'handlebars',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+    const external = new External(result.content)
+    const dest = external.catalog.properties.get('Dests').object.properties.get('/1')
+    dest[0].object.should.be.eql(external.pages[1])
+  })
+
   describe('processText with pdf from alpine', () => {
     it('should deal with double f ligature and remove hidden mark', async () => {
       const manipulator = PdfManipulator(fs.readFileSync(path.join(__dirname, 'alpine.pdf')), { removeHiddenMarks: true })

@@ -10,15 +10,13 @@ module.exports = (doc) => {
 
 async function processText (doc, { resolver }) {
   let pageIndex = 0
-  const pages = doc.catalog.properties.get('Pages').object.properties.get('Kids')
-  for (const page of pages) {
-    const pageObject = page.object
+  for (const pageObject of doc.pages) {
     const streamObject = pageObject.properties.get('Contents').object.content
     await processStream({
       doc,
       streamObject,
       page: pageObject,
-      pages,
+      pages: doc.pages,
       pageIndex,
       cmapCache: new Map(),
       resolver
@@ -27,7 +25,7 @@ async function processText (doc, { resolver }) {
   }
 }
 
-async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapCache, resolver }) {
+async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapCache, resolver, currentMatrix }) {
   // we just support known structures chrome produces
   if (streamObject == null || !streamObject.object.properties.get('Filter')) {
     return
@@ -45,12 +43,11 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
   const lines = zlib.unzipSync(streamObject.content).toString('latin1').split('\n')
 
   const matrixesStack = []
-  let currentMatrix
   let currentPosition
   let currentFontRef
   let text = ''
   const details = []
-  // let originalMatrix
+
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex]
 
@@ -75,7 +72,8 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
         pages,
         pageIndex,
         cmapCache,
-        resolver
+        resolver,
+        currentMatrix
       })
     }
 
@@ -184,7 +182,7 @@ async function processStream ({ doc, streamObject, page, pages, pageIndex, cmapC
   const indexesToRemove = []
   await resolver(text, {
     remove: (start, end) => indexesToRemove.push({ start, end }),
-    getPosition: (start, end) => ({
+    getPosition: (start) => ({
       position: details[start].position,
       pageIndex,
       matrix: details[start].matrix

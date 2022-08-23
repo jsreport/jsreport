@@ -1,5 +1,6 @@
 const parsePdf = require('./utils/parsePdf')
 const { Document, External } = require('@jsreport/minpdf')
+const PDF = require('@jsreport/minpdf/lib/object')
 const HIDDEN_TEXT_SIZE = 1.1
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
@@ -112,21 +113,35 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
 
       doc.processText({
         resolver: async (text, { remove, getPosition }) => {
-          for (const mark of ['group', 'item', 'form']) {
+          for (const mark of ['group', 'item', 'form', 'dest']) {
             let i = -1
             while ((i = text.indexOf(`${mark}@@@`, i + 1)) !== -1) {
-              if (removeHiddenMarks || mark === 'form') {
+              if (removeHiddenMarks || mark === 'form' || mark === 'dest') {
                 remove(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
               }
 
+              if (mark !== 'form' && mark !== 'dest') {
+                continue
+              }
+
+              const trimmedText = text.substring(i + `${mark}@@@`.length, text.indexOf('@@@', i + `${mark}@@@`.length))
+              const valueOfText = hiddenPageFields[trimmedText]
+              const { pageIndex, position, matrix } = getPosition(i)
+              position[5] -= HIDDEN_TEXT_SIZE * matrix[3]
+
+              if (mark === 'dest') {
+                const dest = new PDF.Array([
+                  doc.pages[pageIndex].toReference(),
+                  new PDF.Name('XYZ'),
+                  position[4],
+                  position[5],
+                  0
+                ])
+                doc.catalog.properties.get('Dests').object.properties.set(`/${valueOfText}`, dest)
+              }
+
               if (mark === 'form') {
-                const trimmedText = text.substring(i + 'form@@@'.length, text.indexOf('@@@', i + 'form@@@'.length))
-                const valueOfText = hiddenPageFields[trimmedText]
-
-                const { pageIndex, position, matrix } = getPosition(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
                 const formSpec = JSON.parse(Buffer.from(valueOfText, 'base64').toString())
-
-                position[5] -= HIDDEN_TEXT_SIZE * matrix[3]
 
                 await doc.acroForm({
                   ...formSpec,

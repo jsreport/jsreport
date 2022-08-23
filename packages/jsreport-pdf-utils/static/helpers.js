@@ -107,3 +107,7 @@ function pdfAddPageItem (item) {
   console.log(`Pdf utils adding item field, value: ${jsonStrOriginalValue}`)
   return result
 }
+
+function pdfDest (id) {
+  return `<span class='jsreport-pdf-utils-dest jsreport-pdf-utils-hidden-element' style='font-family: Helvetica;position:absolute;text-transform: none;opacity: 0.01;font-size:1.1px'>dest@@@${id}@@@</span>`
+}
