@@ -5,7 +5,7 @@ const NODE_TYPES = {
   TEXT: 3
 }
 
-const BLOCK_ELEMENTS = ['p', 'div']
+const BLOCK_ELEMENTS = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 const INLINE_ELEMENTS = ['span', 'b', 'strong', 'i', 'em', 'u']
 const SUPPORTED_ELEMENTS = [...BLOCK_ELEMENTS, ...INLINE_ELEMENTS]
 
@@ -90,6 +90,7 @@ function parseHtmlNodeToMeta ($, node, mode) {
       } else if (mode === 'block') {
         if (!parent) {
           newItem = createParagraph()
+          applyTitleIfNeeded(newItem, currentNode)
           collection.push(newItem)
           newParent = newItem
         } else {
@@ -125,6 +126,7 @@ function parseHtmlNodeToMeta ($, node, mode) {
             )
           ) {
             newParent = createParagraph()
+            applyTitleIfNeeded(newParent, childNode)
             targetCollection = [newParent]
             collection.push(targetCollection)
           }
@@ -211,6 +213,30 @@ function isUnderlineElement (node) {
     node.nodeType === NODE_TYPES.ELEMENT &&
     node.tagName === 'u'
   )
+}
+
+function applyTitleIfNeeded (paragraphMeta, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  if (
+    [
+      'h1', 'h2', 'h3',
+      'h4', 'h5', 'h6'
+    ].includes(node.tagName) === false
+  ) {
+    return
+  }
+
+  const headingRegexp = /^h([1-6])$/
+  const match = node.tagName.match(headingRegexp)
+
+  if (match == null) {
+    return
+  }
+
+  paragraphMeta.title = match[1]
 }
 
 function normalizeMeta (fullMeta) {

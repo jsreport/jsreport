@@ -173,14 +173,23 @@ function findOrCreateChildNode (docNode, nodeName, targetNode) {
   return result
 }
 
-function findChildNode (nodeName, targetNode, allNodes = false) {
+function findChildNode (nodeNameOrFn, targetNode, allNodes = false) {
   const result = []
+
+  let testFn
+
+  if (typeof nodeNameOrFn === 'string') {
+    testFn = (n) => n.nodeName === nodeNameOrFn
+  } else {
+    testFn = nodeNameOrFn
+  }
 
   for (let i = 0; i < targetNode.childNodes.length; i++) {
     let found = false
     const childNode = targetNode.childNodes[i]
+    const testResult = testFn(childNode)
 
-    if (childNode.nodeName === nodeName) {
+    if (testResult) {
       found = true
       result.push(childNode)
     }
@@ -191,6 +200,22 @@ function findChildNode (nodeName, targetNode, allNodes = false) {
   }
 
   return allNodes ? result : result[0]
+}
+
+function createNode (doc, name, opts = {}) {
+  const attributes = opts.attributes || {}
+  const children = opts.children || []
+  const newEl = doc.createElement(name)
+
+  for (const [attrName, attrValue] of Object.entries(attributes)) {
+    newEl.setAttribute(attrName, attrValue)
+  }
+
+  for (const child of children) {
+    newEl.appendChild(child)
+  }
+
+  return newEl
 }
 
 module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph') => {
@@ -244,4 +269,5 @@ module.exports.getClosestEl = getClosestEl
 module.exports.clearEl = clearEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
+module.exports.createNode = createNode
 module.exports.nodeListToArray = nodeListToArray

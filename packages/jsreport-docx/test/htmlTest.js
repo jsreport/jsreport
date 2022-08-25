@@ -1520,6 +1520,242 @@ describe('docx html embed', () => {
     should(findChildNode('w:u', findChildNode('w:rPr', textNodes[1].parentNode))).be.ok()
   })
 
+  it('block - <h1> - <h6>', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: [
+          '<h1>Testing title</h1>',
+          'another text',
+          '<h2>Testing title2</h2>',
+          'another text',
+          '<h3>Testing title3</h3>',
+          'another text',
+          '<h4>Testing title4</h4>',
+          'another text',
+          '<h5>Testing title5</h5>',
+          'another text',
+          '<h6>Testing title6</h6>',
+          'another text'
+        ].join('')
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc, stylesDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/styles.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(12)
+
+    for (const [paragraphIdx, paragraphNode] of paragraphNodes.entries()) {
+      const isOdd = paragraphIdx % 2 === 0
+      const textNodes = nodeListToArray(paragraphNode.getElementsByTagName('w:t'))
+      should(textNodes.length).eql(1)
+
+      if (isOdd) {
+        const pPrNode = findChildNode('w:pPr', paragraphNode)
+        const pStyleNode = findChildNode('w:pStyle', pPrNode)
+        const titleStyleId = pStyleNode.getAttribute('w:val')
+        const titleLevel = parseInt(titleStyleId.match(/\w+(\d)$/)[1], 10)
+
+        should(titleLevel).be.Number()
+        should(titleLevel).be.not.NaN()
+        should(textNodes[0].textContent).eql(`Testing title${titleLevel === 1 ? '' : titleLevel}`)
+
+        const titleStyleNode = findChildNode((n) => (
+          n.nodeName === 'w:style' &&
+          n.getAttribute('w:type') === 'paragraph' &&
+          n.getAttribute('w:styleId') === titleStyleId
+        ), stylesDoc.documentElement)
+
+        should(titleStyleNode).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:name' &&
+          n.getAttribute('w:val') === `heading ${titleLevel}`
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:basedOn' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:next' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)).be.ok()
+
+        const linkNode = findChildNode((n) => (
+          n.nodeName === 'w:link' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)
+
+        should(linkNode).be.ok()
+
+        const titleCharStyleId = linkNode.getAttribute('w:val')
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:style' &&
+          n.getAttribute('w:type') === 'character' &&
+          n.getAttribute('w:styleId') === titleCharStyleId
+        ), stylesDoc.documentElement)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:uiPriority' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:qFormat'
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:pPr'
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:rPr'
+        ), titleStyleNode)).be.ok()
+      } else {
+        should(textNodes[0].textContent).eql('another text')
+      }
+    }
+  })
+
+  it('block - child <h1> - <h6>', async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: [
+          '<div>before title<h1>Testing title</h1>another text</div>',
+          '<div>before title<h2>Testing title2</h2>another text</div>',
+          '<div>before title<h3>Testing title3</h3>another text</div>',
+          '<div>before title<h4>Testing title4</h4>another text</div>',
+          '<div>before title<h5>Testing title5</h5>another text</div>',
+          '<div>before title<h6>Testing title6</h6>another text</div>'
+        ].join('')
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc, stylesDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/styles.xml'])
+
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(18)
+
+    for (const [paragraphIdx, paragraphNode] of paragraphNodes.entries()) {
+      const textNodes = nodeListToArray(paragraphNode.getElementsByTagName('w:t'))
+      should(textNodes.length).eql(1)
+      const isAtTitlePosition = textNodes[0].textContent.startsWith('Testing title')
+
+      if (isAtTitlePosition) {
+        const pPrNode = findChildNode('w:pPr', paragraphNode)
+        const pStyleNode = findChildNode('w:pStyle', pPrNode)
+        const titleStyleId = pStyleNode.getAttribute('w:val')
+        const titleLevel = parseInt(titleStyleId.match(/\w+(\d)$/)[1], 10)
+
+        should(titleLevel).be.Number()
+        should(titleLevel).be.not.NaN()
+        should(textNodes[0].textContent).eql(`Testing title${titleLevel === 1 ? '' : titleLevel}`)
+
+        const titleStyleNode = findChildNode((n) => (
+          n.nodeName === 'w:style' &&
+          n.getAttribute('w:type') === 'paragraph' &&
+          n.getAttribute('w:styleId') === titleStyleId
+        ), stylesDoc.documentElement)
+
+        should(titleStyleNode).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:name' &&
+          n.getAttribute('w:val') === `heading ${titleLevel}`
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:basedOn' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:next' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)).be.ok()
+
+        const linkNode = findChildNode((n) => (
+          n.nodeName === 'w:link' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)
+
+        should(linkNode).be.ok()
+
+        const titleCharStyleId = linkNode.getAttribute('w:val')
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:style' &&
+          n.getAttribute('w:type') === 'character' &&
+          n.getAttribute('w:styleId') === titleCharStyleId
+        ), stylesDoc.documentElement)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:uiPriority' &&
+          n.getAttribute('w:val') != null &&
+          n.getAttribute('w:val') !== ''
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:qFormat'
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:pPr'
+        ), titleStyleNode)).be.ok()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:rPr'
+        ), titleStyleNode)).be.ok()
+      } else {
+        if (paragraphIdx === 0 || paragraphIdx % 3 === 0) {
+          should(textNodes[0].textContent).eql('before title')
+        } else {
+          should(textNodes[0].textContent).eql('another text')
+        }
+      }
+    }
+  })
+
   it('inline - simple <p>...</p>', async () => {
     const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
 

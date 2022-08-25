@@ -3,7 +3,7 @@ const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const { nodeListToArray, findDefaultStyleIdForName, serializeXml } = require('../utils')
 
 module.exports = async (files) => {
-  const stylesFile = files.find(f => f.path === 'word/styles.xml').doc
+  const stylesDoc = files.find(f => f.path === 'word/styles.xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const titles = []
 
@@ -21,7 +21,7 @@ module.exports = async (files) => {
         return val
       }
 
-      let tocTitlePrefix = findDefaultStyleIdForName(stylesFile, 'heading 1')
+      let tocTitlePrefix = findDefaultStyleIdForName(stylesDoc, 'heading 1')
       const tocTitleMatch = tocStyleIdRegExp.exec(tocTitlePrefix)
 
       if (tocTitleMatch != null && tocTitleMatch[1] != null) {
@@ -107,7 +107,7 @@ module.exports = async (files) => {
         return val
       }
 
-      let tocAlternativeTitlePrefix = findDefaultStyleIdForName(stylesFile, 'toc 1')
+      let tocAlternativeTitlePrefix = findDefaultStyleIdForName(stylesDoc, 'toc 1')
       const tocAlternativeTitleMatch = tocStyleIdRegExp.exec(tocAlternativeTitlePrefix)
 
       if (tocAlternativeTitleMatch != null && tocAlternativeTitleMatch[1] != null) {

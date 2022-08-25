@@ -1,12 +1,16 @@
-const { clearEl, findOrCreateChildNode, findChildNode } = require('../../utils')
+const { customAlphabet } = require('nanoid')
+const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
+const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName } = require('../../utils')
 
-module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, paragraphNode } = {}) {
+module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, stylesDoc, paragraphNode } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
 
   const pending = docxMeta.map((meta) => ({ item: meta }))
   const result = []
+  const stylesIdCache = new Map()
+
   let templateParagraphNode
 
   if (mode === 'block') {
@@ -39,6 +43,13 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
         throw new Error(`Invalid docx meta child "${invalidChildMeta.type}" found in paragraph`)
       }
 
+      if (currentDocxMeta.title != null) {
+        const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+        const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
+        const titleStyleId = addTitleStyleIfNeeded(stylesDoc, currentDocxMeta.title, stylesIdCache)
+        pStyleEl.setAttribute('w:val', titleStyleId)
+      }
+
       result.push(containerEl)
 
       const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({
@@ -63,8 +74,7 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
           rPrEl.removeChild(existingBEl)
         }
 
-        const newBEl = doc.createElement('w:b')
-        rPrEl.insertBefore(newBEl, rPrEl.firstChild)
+        rPrEl.insertBefore(createNode(doc, 'w:b'), rPrEl.firstChild)
       }
 
       if (currentDocxMeta.italic === true) {
@@ -75,8 +85,7 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
           rPrEl.removeChild(existingIEl)
         }
 
-        const newIEl = doc.createElement('w:i')
-        rPrEl.insertBefore(newIEl, rPrEl.firstChild)
+        rPrEl.insertBefore(createNode(doc, 'w:i'), rPrEl.firstChild)
       }
 
       if (currentDocxMeta.underline === true) {
@@ -87,15 +96,10 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
           rPrEl.removeChild(existingUEl)
         }
 
-        const newUEl = doc.createElement('w:u')
-        newUEl.setAttribute('w:val', 'single')
-
-        rPrEl.insertBefore(newUEl, rPrEl.firstChild)
+        rPrEl.insertBefore(createNode(doc, 'w:u', { attributes: { 'w:val': 'single' } }), rPrEl.firstChild)
       }
 
-      const textEl = doc.createElement('w:t')
-
-      textEl.setAttribute('xml:space', 'preserve')
+      const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })
       textEl.textContent = currentDocxMeta.value
 
       runEl.appendChild(textEl)
@@ -114,5 +118,193 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
     }
   }
 
+  stylesIdCache.clear()
+
   return result
+}
+
+function addTitleStyleIfNeeded (stylesDoc, titleLevel, cache) {
+  if (cache.has(titleLevel)) {
+    return cache.get(titleLevel)
+  }
+
+  const defaultNormalStyleId = findDefaultStyleIdForName(stylesDoc, 'Normal')
+
+  if (defaultNormalStyleId == null || defaultNormalStyleId === '') {
+    throw new Error('style for "Normal" not found')
+  }
+
+  const defaultParagraphFontStyleId = findDefaultStyleIdForName(stylesDoc, 'Default Paragraph Font', 'character')
+
+  if (defaultParagraphFontStyleId == null || defaultParagraphFontStyleId === '') {
+    throw new Error('style for "Default Paragraph Font" not found')
+  }
+
+  const stylesEl = stylesDoc.documentElement
+  const existingStyleEls = findChildNode('w:style', stylesEl, true)
+  const currentStyleEls = [...existingStyleEls]
+  const randomSuffix = generateRandomSuffix()
+
+  const createTitleStyleId = (tLvl) => {
+    return `HdingTtle${randomSuffix}${tLvl}`
+  }
+
+  for (const currentTitleLevel of ['1', '2', '3', '4', '5', '6']) {
+    const defaultHeadingTitleStyleId = findDefaultStyleIdForName(stylesDoc, `heading ${currentTitleLevel}`)
+
+    if (defaultHeadingTitleStyleId == null || defaultHeadingTitleStyleId === '') {
+      const titleStyleId = createTitleStyleId(currentTitleLevel)
+
+      const [newTitleStyleEl, newTitleCharStyleEl] = createTitleStyle(
+        stylesDoc,
+        titleStyleId,
+        currentTitleLevel,
+        defaultNormalStyleId,
+        defaultParagraphFontStyleId
+      )
+
+      stylesEl.insertBefore(newTitleStyleEl, currentStyleEls.at(-1).nextSibling)
+      currentStyleEls.push(newTitleStyleEl)
+      stylesEl.insertBefore(newTitleCharStyleEl, currentStyleEls.at(-1).nextSibling)
+      currentStyleEls.push(newTitleCharStyleEl)
+      cache.set(currentTitleLevel, titleStyleId)
+    } else {
+      cache.set(currentTitleLevel, defaultHeadingTitleStyleId)
+    }
+  }
+
+  return cache.get(titleLevel)
+}
+
+function createTitleStyle (stylesDoc, titleStyleId, titleLevel, normalStyleId, paragraphFontStyleId) {
+  const supportedTitleLevels = ['1', '2', '3', '4', '5', '6']
+
+  if (!supportedTitleLevels.includes(titleLevel)) {
+    throw new Error(`title level "${titleLevel}" not supported`)
+  }
+
+  const titleCharStyleId = `${titleStyleId}Char`
+  const titleLevelInt = parseInt(titleLevel, 10)
+  const outlineLevelInt = titleLevelInt - 1
+  const uiPriority = getStyleUiPriority(stylesDoc, `heading ${titleLevel}`, '9')
+  const beforeSpacing = titleLevelInt > 1 ? '40' : '240'
+  let italic = false
+
+  let size
+  let color = '2F5496'
+  const themeColor = 'accent1'
+  let themeShade = 'BF'
+
+  const result = []
+
+  if (titleLevelInt === 1) {
+    size = '32'
+  } else if (titleLevelInt === 2) {
+    size = '26'
+  } else if (titleLevelInt === 3 || titleLevelInt === 6) {
+    if (titleLevelInt === 3) {
+      size = '24'
+    }
+
+    color = '1F3763'
+    themeShade = '7F'
+  } else if (titleLevelInt === 4) {
+    italic = true
+  }
+
+  const newTitleStyle = createNode(stylesDoc, 'w:style', { attributes: { 'w:type': 'paragraph', 'w:styleId': titleStyleId } })
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:name', { attributes: { 'w:val': `heading ${titleLevel}` } }))
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:basedOn', { attributes: { 'w:val': normalStyleId } }))
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:next', { attributes: { 'w:val': normalStyleId } }))
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:link', { attributes: { 'w:val': titleCharStyleId } }))
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:uiPriority', { attributes: { 'w:val': uiPriority } }))
+
+  if (titleLevelInt > 1) {
+    newTitleStyle.appendChild(createNode(stylesDoc, 'w:unhideWhenUsed'))
+  }
+
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:qFormat'))
+
+  newTitleStyle.appendChild(createNode(stylesDoc, 'w:pPr', {
+    children: [
+      createNode(stylesDoc, 'w:keepNext'),
+      createNode(stylesDoc, 'w:keepLines'),
+      createNode(stylesDoc, 'w:spacing', { attributes: { 'w:before': beforeSpacing } }),
+      createNode(stylesDoc, 'w:outlineLvl', { attributes: { 'w:val': outlineLevelInt } })
+    ]
+  }))
+
+  const createTitleRunProperties = () => {
+    const children = [
+      createNode(stylesDoc, 'w:rFonts', {
+        attributes: {
+          'w:asciiTheme': 'majorHAnsi',
+          'w:eastAsiaTheme': 'majorEastAsia',
+          'w:hAnsiTheme': 'majorHAnsi',
+          'w:cstheme': 'majorBidi'
+        }
+      })
+    ]
+
+    if (italic) {
+      children.push(createNode(stylesDoc, 'w:i'))
+      children.push(createNode(stylesDoc, 'w:iCs'))
+    }
+
+    children.push(createNode(stylesDoc, 'w:color', {
+      attributes: {
+        'w:val': color,
+        'w:themeColor': themeColor,
+        'w:themeShade': themeShade
+      }
+    }))
+
+    if (size != null) {
+      children.push(createNode(stylesDoc, 'w:sz', { attributes: { 'w:val': size } }))
+      children.push(createNode(stylesDoc, 'w:szCs', { attributes: { 'w:val': size } }))
+    }
+
+    return createNode(stylesDoc, 'w:rPr', {
+      children
+    })
+  }
+
+  newTitleStyle.appendChild(createTitleRunProperties())
+  result.push(newTitleStyle)
+
+  const newTitleCharStyle = createNode(stylesDoc, 'w:style', { attributes: { 'w:type': 'character', 'w:customStyle': '1', 'w:styleId': titleCharStyleId } })
+  newTitleCharStyle.appendChild(createNode(stylesDoc, 'w:name', { attributes: { 'w:val': `Heading Title ${titleLevel} Char` } }))
+  newTitleCharStyle.appendChild(createNode(stylesDoc, 'w:basedOn', { attributes: { 'w:val': paragraphFontStyleId } }))
+  newTitleCharStyle.appendChild(createNode(stylesDoc, 'w:link', { attributes: { 'w:val': titleStyleId } }))
+  newTitleCharStyle.appendChild(createNode(stylesDoc, 'w:uiPriority', { attributes: { 'w:val': uiPriority } }))
+  newTitleCharStyle.appendChild(createTitleRunProperties())
+
+  result.push(newTitleCharStyle)
+
+  return result
+}
+
+function getStyleUiPriority (stylesDoc, name, defaultValue) {
+  const stylesEl = stylesDoc.documentElement
+  const latentStylesEl = findChildNode('w:latentStyles', stylesEl)
+
+  if (latentStylesEl == null) {
+    return defaultValue
+  }
+
+  const latentStyleEl = findChildNode((n) => (
+    n.nodeName === 'w:lsdException' && n.getAttribute('w:name') === name
+  ), latentStylesEl)
+
+  if (latentStyleEl == null) {
+    return defaultValue
+  }
+
+  const uiPriority = latentStyleEl.getAttribute('w:uiPriority')
+
+  if (uiPriority == null || uiPriority === '') {
+    return defaultValue
+  }
+
+  return uiPriority
 }
