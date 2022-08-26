@@ -692,4 +692,24 @@ describe('minpdf', () => {
     const { texts } = await validate(pdfBuffer)
     texts[0].should.containEql('mainheadermain')
   })
+
+  it('handle pdfs with Parent prop not targeting Pages dictionary', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'parentPropNotTargetingPages.pdf')))
+    document.append(external)
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it('handle linearized pdf', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'linearized.pdf')))
+    document.append(external)
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(4)
+  })
 })

@@ -70,7 +70,7 @@ class Parser {
         break
       case value instanceof PDF.Dictionary:
         for (const key in value.dictionary) {
-          if (key === '/Parent') {
+          if (key === '/Parent' && value.dictionary[key].object?.properties?.get('Type')?.name === 'Pages') {
             // ignore parent property to prevent moving above Page objects
             continue
           }
