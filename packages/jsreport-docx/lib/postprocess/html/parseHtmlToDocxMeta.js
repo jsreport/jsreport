@@ -1,13 +1,11 @@
 const cheerio = require('cheerio')
+const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 
 const NODE_TYPES = {
+  DOCUMENT: 9,
   ELEMENT: 1,
   TEXT: 3
 }
-
-const BLOCK_ELEMENTS = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
-const INLINE_ELEMENTS = ['span', 'b', 'strong', 'i', 'em', 'u']
-const SUPPORTED_ELEMENTS = [...BLOCK_ELEMENTS, ...INLINE_ELEMENTS]
 
 module.exports = function parseHtmlToDocxMeta (html, mode) {
   if (mode !== 'block' && mode !== 'inline') {
@@ -15,31 +13,27 @@ module.exports = function parseHtmlToDocxMeta (html, mode) {
   }
 
   const $ = cheerio.load(html, null, false)
-  const targetTopLevelNodes = $.root()[0].childNodes
-  const result = []
+  const documentNode = $.root()[0]
 
-  for (const topLevelNode of targetTopLevelNodes) {
-    const parsedResult = parseHtmlNodeToMeta($, topLevelNode, mode)
-
-    if (parsedResult.length > 0) {
-      result.push(...parsedResult)
-    }
-  }
-
-  return result
+  return parseHtmlDocumentToMeta($, documentNode, mode)
 }
 
-function parseHtmlNodeToMeta ($, node, mode) {
+function parseHtmlDocumentToMeta ($, documentNode, mode) {
   const result = []
-  const pending = [{ item: node, collection: result }]
+  const pending = [{ item: documentNode, collection: result }]
+  let documentEvaluated = false
 
   while (pending.length > 0) {
-    const { parent, collection, meta = {}, item: currentNode } = pending.shift()
+    const { parent, collection, data: inheritedData, item: currentNode } = pending.shift()
     const nodeType = currentNode.nodeType
+    const data = Object.assign({}, inheritedData)
     let newItem
 
     // skip empty nodes
-    if (nodeType === NODE_TYPES.ELEMENT && currentNode.childNodes.length === 0) {
+    if (
+      (nodeType === NODE_TYPES.DOCUMENT || nodeType === NODE_TYPES.ELEMENT) &&
+      currentNode.childNodes.length === 0
+    ) {
       continue
     }
 
@@ -51,31 +45,42 @@ function parseHtmlNodeToMeta ($, node, mode) {
       const getTextInNode = (n) => n.nodeType === NODE_TYPES.TEXT ? n.nodeValue : $(n).text()
 
       if (mode === 'inline') {
-        newItem = createText(getTextInNode(currentNode), meta)
+        newItem = createText(getTextInNode(currentNode), data)
         collection.push(newItem)
       } else {
         if (!parent) {
           newItem = createParagraph()
           collection.push(newItem)
-          pending.unshift({ item: currentNode, parent: newItem, collection, meta })
+          pending.unshift({ item: currentNode, parent: newItem, collection, data })
         } else {
-          newItem = createText(getTextInNode(currentNode), meta)
+          newItem = createText(getTextInNode(currentNode), data)
+
+          if (data.parentBlockElement != null) {
+            applyTitleIfNeeded(parent, data.parentBlockElement)
+          }
         }
       }
-    } else if (nodeType === NODE_TYPES.ELEMENT) {
+    } else if (
+      (nodeType === NODE_TYPES.DOCUMENT && !documentEvaluated) ||
+      nodeType === NODE_TYPES.ELEMENT
+    ) {
       let newParent
+
+      if (nodeType === NODE_TYPES.DOCUMENT) {
+        documentEvaluated = true
+      }
 
       if (INLINE_ELEMENTS.includes(currentNode.tagName)) {
         if (isBoldElement(currentNode)) {
-          meta.bold = true
+          data.bold = true
         }
 
         if (isItalicElement(currentNode)) {
-          meta.italic = true
+          data.italic = true
         }
 
         if (isUnderlineElement(currentNode)) {
-          meta.underline = true
+          data.underline = true
         }
 
         if (mode === 'block') {
@@ -90,7 +95,6 @@ function parseHtmlNodeToMeta ($, node, mode) {
       } else if (mode === 'block') {
         if (!parent) {
           newItem = createParagraph()
-          applyTitleIfNeeded(newItem, currentNode)
           collection.push(newItem)
           newParent = newItem
         } else {
@@ -99,47 +103,48 @@ function parseHtmlNodeToMeta ($, node, mode) {
       }
 
       const pendingItemsInCurrent = []
-
       let targetCollection = collection
+      let prevChildNode
 
       if (mode === 'inline') {
         targetCollection = []
         collection.push(targetCollection)
+      }
 
-        pendingItemsInCurrent.push(...currentNode.childNodes.map((childNode) => ({
+      for (const [cIdx, childNode] of currentNode.childNodes.entries()) {
+        const pendingItem = {
           item: childNode,
-          collection: targetCollection,
-          meta
-        })))
-      } else {
-        let prevChildNode
-
-        for (const [cIdx, childNode] of currentNode.childNodes.entries()) {
-          if (
-            (
-              prevChildNode != null &&
-              isBlockElement(prevChildNode)
-            ) ||
-            (
-              isBlockElement(childNode) &&
-              (newParent.children.length > 0 || cIdx !== 0)
-            )
-          ) {
-            newParent = createParagraph()
-            applyTitleIfNeeded(newParent, childNode)
-            targetCollection = [newParent]
-            collection.push(targetCollection)
-          }
-
-          pendingItemsInCurrent.push({
-            item: childNode,
-            parent: newParent,
-            collection: targetCollection,
-            meta
-          })
-
-          prevChildNode = childNode
+          data
         }
+
+        if (isBlockElement(currentNode)) {
+          pendingItem.data.parentBlockElement = currentNode
+        }
+
+        if (
+          (mode === 'block') &&
+          ((
+            prevChildNode != null &&
+            isBlockElement(prevChildNode)
+          ) ||
+          (
+            isBlockElement(childNode) &&
+            (newParent.children.length > 0 || cIdx !== 0)
+          ))
+        ) {
+          newParent = createParagraph()
+          targetCollection = [newParent]
+          collection.push(targetCollection)
+        }
+
+        if (mode === 'block') {
+          pendingItem.parent = newParent
+        }
+
+        pendingItem.collection = targetCollection
+
+        pendingItemsInCurrent.push(pendingItem)
+        prevChildNode = childNode
       }
 
       if (pendingItemsInCurrent.length > 0) {
@@ -166,22 +171,22 @@ function createParagraph () {
   }
 }
 
-function createText (text, meta) {
+function createText (text, data) {
   const textItem = {
     type: 'text',
     value: text != null ? text : ''
   }
 
-  if (meta.bold === true) {
-    textItem.bold = meta.bold
+  if (data.bold === true) {
+    textItem.bold = data.bold
   }
 
-  if (meta.italic === true) {
-    textItem.italic = meta.italic
+  if (data.italic === true) {
+    textItem.italic = data.italic
   }
 
-  if (meta.underline === true) {
-    textItem.underline = meta.underline
+  if (data.underline === true) {
+    textItem.underline = data.underline
   }
 
   return textItem
@@ -215,7 +220,11 @@ function isUnderlineElement (node) {
   )
 }
 
-function applyTitleIfNeeded (paragraphMeta, node) {
+function applyTitleIfNeeded (parentMeta, node) {
+  if (parentMeta.type !== 'paragraph') {
+    return
+  }
+
   if (node.nodeType !== NODE_TYPES.ELEMENT) {
     return
   }
@@ -236,7 +245,7 @@ function applyTitleIfNeeded (paragraphMeta, node) {
     return
   }
 
-  paragraphMeta.title = match[1]
+  parentMeta.title = match[1]
 }
 
 function normalizeMeta (fullMeta) {

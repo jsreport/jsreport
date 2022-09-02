@@ -46,7 +46,7 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
       if (currentDocxMeta.title != null) {
         const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
         const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
-        const titleStyleId = addTitleStyleIfNeeded(stylesDoc, currentDocxMeta.title, stylesIdCache)
+        const titleStyleId = addOrGetTitleStyle(stylesDoc, currentDocxMeta.title, stylesIdCache)
         pStyleEl.setAttribute('w:val', titleStyleId)
       }
 
@@ -123,7 +123,7 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
   return result
 }
 
-function addTitleStyleIfNeeded (stylesDoc, titleLevel, cache) {
+function addOrGetTitleStyle (stylesDoc, titleLevel, cache) {
   if (cache.has(titleLevel)) {
     return cache.get(titleLevel)
   }
