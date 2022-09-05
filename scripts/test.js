@@ -1,6 +1,7 @@
 const execSync = require('child_process').execSync
 
 const jsreportPackages = [
+  '@jsreport/pdfjs',
   '@jsreport/advanced-workers',
   '@jsreport/odata-to-sql',
   '@jsreport/nodejs-client',

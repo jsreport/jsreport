@@ -5,11 +5,11 @@ const append = require('./mixins/append')
 const attachment = require('./mixins/attachment')
 const outlines = require('./mixins/outlines')
 const processText = require('./mixins/processText')
-const acroForm = require('./mixins/acroform')
+const acroForm = require('./mixins/acroForm')
 const info = require('./mixins/info')
 const encrypt = require('./mixins/encrypt/encrypt')
 const sign = require('./mixins/sign')
-const pdfA = require('./mixins/pdfA/pdfa.js')
+const pdfA = require('./mixins/pdfa/pdfA.js')
 const DocumentBase = require('./documentBase')
 
 module.exports = class Document extends DocumentBase {
