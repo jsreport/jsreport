@@ -1,11 +1,9 @@
-'use strict'
-
 const PDFName = require('./name')
 const PDFValue = require('./value')
 const PDFString = require('./string')
 
 class PDFDictionary {
-  constructor(dictionary) {
+  constructor (dictionary) {
     this.dictionary = {}
     if (dictionary) {
       for (const key in dictionary) {
@@ -14,42 +12,38 @@ class PDFDictionary {
     }
   }
 
-  add(key, val) {
+  add (key, val) {
     if (typeof val === 'string') {
       val = new PDFName(val)
     }
     this.dictionary[new PDFName(key)] = val
   }
 
-  set(key, val) {
+  set (key, val) {
     this.add(key, val)
   }
 
-  has(key) {
+  has (key) {
     return String(new PDFName(key)) in this.dictionary
   }
 
-  get(key) {
+  get (key) {
     return this.dictionary[new PDFName(key)]
   }
 
-  del(key) {
+  del (key) {
     delete this.dictionary[new PDFName(key)]
   }
 
-  get length() {
-    let length = 0
-    for (const key in this.dictionary) {
-      length++
-    }
-    return length
+  get length () {
+    return Object.keys(this.dictionary).length
   }
 
-  toString(encryptionFn) {
+  toString (encryptionFn) {
     let str = ''
     for (const key in this.dictionary) {
       // pofider change
-      // the toString call with encryptionFn fails on Numbers so we just do it for PDFStrings      
+      // the toString call with encryptionFn fails on Numbers so we just do it for PDFStrings
       let val = this.dictionary[key]
       if (val instanceof PDFString) {
         val = val.toString(encryptionFn)
@@ -59,7 +53,12 @@ class PDFDictionary {
     return `<<\n${str}>>`
   }
 
-  static parse(xref, lexer, trial) {
+  static parse (xref, lexer, trial) {
+    // treat empty object as an empty dictionary
+    if (lexer.getString(6) === 'endobj') {
+      return new PDFDictionary()
+    }
+
     if (lexer.getString(2) !== '<<') {
       if (trial) {
         return undefined

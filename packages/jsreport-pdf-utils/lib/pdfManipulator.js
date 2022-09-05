@@ -1,0 +1,191 @@
+const parsePdf = require('./utils/parsePdf')
+const { Document, External } = require('@jsreport/pdfjs')
+const PDF = require('@jsreport/pdfjs/lib/object')
+const HIDDEN_TEXT_SIZE = 1.1
+
+module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks } = {}) => {
+  let currentBuffer = contentBuffer
+  let currentlyParsedPdf
+
+  return {
+    async parse ({
+      includeText = false,
+      hiddenPageFields = {}
+    } = {}) {
+      currentlyParsedPdf = await parsePdf(currentBuffer, {
+        hiddenPageFields,
+        includeText
+      })
+      return currentlyParsedPdf
+    },
+
+    get parsedPdf () {
+      return currentlyParsedPdf
+    },
+
+    async append (appendBuffer) {
+      const document = new Document()
+      document.append(new External(currentBuffer))
+      document.append(new External(appendBuffer))
+      currentBuffer = await document.asBuffer()
+    },
+
+    async prepend (prependBuffer) {
+      const document = new Document()
+      document.append(new External(prependBuffer))
+      document.append(new External(currentBuffer))
+      currentBuffer = await document.asBuffer()
+    },
+
+    async merge (pageBuffersOrDocBuffer, mergeToFront) {
+      const document = new Document()
+      document.append(new External(currentBuffer))
+      if (Buffer.isBuffer(pageBuffersOrDocBuffer)) {
+        document.merge(new External(pageBuffersOrDocBuffer), mergeToFront)
+      } else {
+        for (const i in pageBuffersOrDocBuffer) {
+          document.merge(new External(pageBuffersOrDocBuffer[i]), mergeToFront, i)
+        }
+      }
+      currentBuffer = await document.asBuffer()
+    },
+
+    async removePages (pageNumbersToRemove) {
+      const document = new Document()
+
+      if (!Array.isArray(pageNumbersToRemove)) {
+        pageNumbersToRemove = [pageNumbersToRemove]
+      }
+
+      for (const n of pageNumbersToRemove) {
+        if (!Number.isInteger(n)) {
+          throw new Error('Page number for remove operation needs to be an integer, got ' + pageNumbersToRemove)
+        }
+
+        if (n < 1) {
+          throw new Error('Page number for remove operation needs to be bigger than 0')
+        }
+      }
+
+      const ext = new External(currentBuffer)
+      const pageIndexesToAppend = []
+      for (let i = 0; i < ext.catalog.properties.get('Pages').object.properties.get('Kids').length; i++) {
+        if (!pageNumbersToRemove.includes(i + 1)) {
+          pageIndexesToAppend.push(i)
+        }
+      }
+
+      document.append(ext, pageIndexesToAppend)
+      currentBuffer = await document.asBuffer()
+    },
+
+    async addAttachment (buf, options) {
+      const doc = new Document()
+      doc.append(new External(currentBuffer))
+      doc.attachment(buf, options)
+      currentBuffer = await doc.asBuffer()
+    },
+
+    toBuffer () {
+      return Promise.resolve(currentBuffer)
+    },
+
+    async postprocess ({
+      hiddenPageFields
+    }) {
+      const doc = new Document()
+
+      const ext = new External(currentBuffer)
+      doc.append(ext)
+
+      if (pdfSign) {
+        doc.sign({
+          certificateBuffer: Buffer.from(pdfSign.certificateContent, 'base64'),
+          password: pdfSign.password,
+          reason: pdfSign.reason,
+          maxSignaturePlaceholderLength: pdfSign.maxSignaturePlaceholderLength
+        })
+      }
+
+      if (outlines) {
+        doc.outlines(outlines)
+      }
+
+      doc.processText({
+        resolver: async (text, { remove, getPosition }) => {
+          for (const mark of ['group', 'item', 'form', 'dest']) {
+            let i = -1
+            while ((i = text.indexOf(`${mark}@@@`, i + 1)) !== -1) {
+              if (removeHiddenMarks || mark === 'form' || mark === 'dest') {
+                remove(i, text.indexOf('@@@', i + `${mark}@@@`.length) + '@@@'.length)
+              }
+
+              if (mark !== 'form' && mark !== 'dest') {
+                continue
+              }
+
+              const trimmedText = text.substring(i + `${mark}@@@`.length, text.indexOf('@@@', i + `${mark}@@@`.length))
+              const valueOfText = hiddenPageFields[trimmedText]
+              const { pageIndex, position, matrix } = getPosition(i)
+              position[5] -= HIDDEN_TEXT_SIZE * matrix[3]
+
+              if (mark === 'dest') {
+                const dest = new PDF.Array([
+                  doc.pages[pageIndex].toReference(),
+                  new PDF.Name('XYZ'),
+                  position[4],
+                  position[5],
+                  0
+                ])
+                doc.catalog.properties.get('Dests').object.properties.set(`/${valueOfText}`, dest)
+              }
+
+              if (mark === 'form') {
+                const formSpec = JSON.parse(Buffer.from(valueOfText, 'base64').toString())
+
+                await doc.acroForm({
+                  ...formSpec,
+                  position,
+                  pageIndex
+                })
+              }
+            }
+          }
+        }
+      })
+
+      if (pdfPassword) {
+        doc.encrypt({
+          password: pdfPassword.password,
+          ownerPassword: pdfPassword.ownerPassword,
+          permissions: {
+            printing: pdfPassword.printing,
+            modifying: pdfPassword.modifying,
+            copying: pdfPassword.copying,
+            annotating: pdfPassword.annotating,
+            fillingForms: pdfPassword.fillingForms,
+            contentAccessibility: pdfPassword.contentAccessibility,
+            documentAssembly: pdfPassword.documentAssembly
+          }
+        })
+      }
+
+      if (pdfMeta) {
+        doc.info(pdfMeta)
+      }
+
+      if (pdfA?.enabled === true) {
+        doc.pdfA()
+      }
+
+      try {
+        currentBuffer = await doc.asBuffer()
+      } catch (e) {
+        if (e.message.includes('Signature exceeds placeholder')) {
+          e.message += '. Increase placeholder length using config extensions.pdfUtils.maxSignaturePlaceholderLength'
+          throw e
+        }
+      }
+    }
+  }
+}

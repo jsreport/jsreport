@@ -1,4 +1,4 @@
-exports.parse = function(xref, lexer, trial) {
+exports.parse = function (xref, lexer, trial) {
   const n = lexer.readNumber(true)
 
   if (n === undefined) {

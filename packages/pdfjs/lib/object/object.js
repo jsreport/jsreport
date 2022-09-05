@@ -1,51 +1,51 @@
-'use strict'
-
 const PDFDictionary = require('./dictionary')
 const PDFStream = require('./stream')
-const PDFReference  = require('./reference')
+const PDFReference = require('./reference')
 const PDFValue = require('./value')
 
 class PDFObject {
-  constructor(type) {
-    this.id         = null
-    this.rev        = 0
+  constructor (type) {
+    this.id = null
+    this.rev = 0
     this.properties = new PDFDictionary()
-    this.reference  = new PDFReference(this)
-    this.content    = null
+    this.reference = new PDFReference(this)
+    this.content = null
 
     if (type) {
       this.prop('Type', type)
     }
-
-    // TODO: still necessary?
-    // used to have obj.object API for both indirect and direct objects
-    //   this.object = this
   }
 
-  prop(key, val) {
+  prop (key, val) {
     this.properties.add(key, val)
   }
 
-  toReference() {
+  toReference () {
     return this.reference
   }
 
-  toString(encryptionFn) {
+  toString (encryptionFn) {
     let str = this.id.toString() + ' ' + this.rev + ' obj\n'
-    str += this.properties.length ? this.properties.toString(encryptionFn) + '\n' : ''    
     // pofider change, we want to encrypt just streams
     if (this.content instanceof PDFStream) {
+      str += this.properties.length ? this.properties.toString(encryptionFn) + '\n' : ''
       str += this.content.toString(encryptionFn) + '\n'
     } else {
-      str += this.content !== null ? this.content.toString() + '\n' : ''
+      if (this.content != null) {
+        str += this.properties.length ? this.properties.toString(encryptionFn) + '\n' : ''
+        str += this.content.toString() + '\n'
+      } else {
+        str += this.properties.toString(encryptionFn) + '\n'
+      }
     }
-    return str + 'endobj'   
+    return str + 'endobj'
   }
 
-  static parse(xref, lexer, trial) {
+  static parse (xref, lexer, trial) {
     const before = lexer.pos
 
     const id = lexer.readNumber(trial)
+
     if (id === undefined && !trial) {
       throw new Error('Invalid object')
     }
@@ -75,13 +75,13 @@ class PDFObject {
     lexer.skipWhitespace(null, true)
 
     if (lexer.readString(3) !== 'end') {
-      throw new Error('Invalid object: `end` not found')
+      throw new Error('Invalid object: `end` not found:' + lexer.readString(100))
     }
 
     return obj
   }
 
-  static parseInner(xref, lexer) {
+  static parseInner (xref, lexer) {
     const value = PDFValue.parse(xref, lexer, true)
     if (value === undefined) {
       throw new Error('Empty object')

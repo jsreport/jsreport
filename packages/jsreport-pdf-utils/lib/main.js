@@ -22,6 +22,10 @@ module.exports = (reporter, definition) => {
     language: { type: 'Edm.String' }
   })
 
+  reporter.documentStore.registerComplexType('PdfAType', {
+    enabled: { type: 'Edm.Boolean' }
+  })
+
   reporter.documentStore.registerComplexType('PdfPasswordType', {
     password: { type: 'Edm.String' },
     ownerPassword: { type: 'Edm.String' },
@@ -47,6 +51,7 @@ module.exports = (reporter, definition) => {
   if (reporter.documentStore.model.entityTypes.TemplateType) {
     reporter.documentStore.model.entityTypes.TemplateType.pdfOperations = { type: 'Collection(jsreport.PdfOperationType)' }
     reporter.documentStore.model.entityTypes.TemplateType.pdfMeta = { type: 'jsreport.PdfMetaType', schema: { type: 'null' } }
+    reporter.documentStore.model.entityTypes.TemplateType.pdfA = { type: 'jsreport.PdfAType', schema: { type: 'null' } }
     reporter.documentStore.model.entityTypes.TemplateType.pdfPassword = { type: 'jsreport.PdfPasswordType', schema: { type: 'null' } }
     reporter.documentStore.model.entityTypes.TemplateType.pdfSign = { type: 'jsreport.PdfSignTemplateType', schema: { type: 'null' } }
   }

@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@jsreport/node-signpdf": "1.4.2",
-    "@jsreport/pdfjs": "0.7.0",
+    "@jsreport/pdfjs": "1.0.0",
     "cheerio": "1.0.0-rc.10",
     "lodash.omit": "4.5.0",
     "nanoid": "3.2.0",
@@ -49,6 +49,7 @@
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-jsrender": "3.0.0",
     "@jsreport/jsreport-scripts": "3.2.1",
+    "@jsreport/jsreport-phantom-pdf": "3.0.3",
     "@jsreport/studio-dev": "3.2.0",
     "handlebars": "4.7.7",
     "mocha": "8.2.1",

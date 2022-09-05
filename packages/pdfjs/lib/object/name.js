@@ -1,6 +1,4 @@
-'use strict'
-
-function intToHex(i) {
+function intToHex (i) {
   let hexString = i.toString(16)
   if (hexString.length % 2) {
     hexString = '0' + hexString
@@ -9,10 +7,10 @@ function intToHex(i) {
 }
 
 class PDFName {
-  constructor(name) {
-    /*if (!name) {
+  constructor (name) {
+    /* if (!name) {
       throw new Error('A Name cannot be undefined')
-    }*/
+    } */
     // chrome produces empty names for some fonts on linux
     name = name || ''
 
@@ -24,14 +22,9 @@ class PDFName {
       name = name.substr(1)
     }
 
-    // white-space characters are not allowed
-    if (name.match(/[\x00]/)) {
-      throw new Error('A Name mustn\'t contain the null characters')
-    }
-
     // delimiter characters are not allowed
-    if (name.match(/[\(\)<>\[\]\{\}\/\%]/)) {
-      throw new Error('A Name mustn\'t contain delimiter characters')
+    if (name.match(/[()<>[\]{}/%]/)) {
+      throw new Error('A Name mustn\'t contain delimiter characters:' + name)
     }
 
     name = name.toString()
@@ -41,7 +34,7 @@ class PDFName {
     // preceded by the number sign character (#)
     // ... it is recommended but not required for characters whose codes
     // are outside the range 33 (!) to 126 (~)
-    name = name.replace(/[^\x21-\x7e]/g, function(c) {
+    name = name.replace(/[^\x21-\x7e]/g, function (c) {
       let code = c.charCodeAt(0)
       // replace unicode characters with `_`
       if (code > 0xff) {
@@ -53,17 +46,17 @@ class PDFName {
     this.name = name
   }
 
-  toString() {
+  toString () {
     return '/' + this.name
   }
 
-  static parse(xref, lexer, trial) {
+  static parse (xref, lexer, trial) {
     if (lexer.getString(1) !== '/') {
       if (trial) {
         return undefined
       }
 
-      throw new Error('Invalid name')
+      throw new Error('Invalid name: ' + lexer.getString(10))
     }
 
     lexer.shift(1)
@@ -87,8 +80,7 @@ class PDFName {
           done = true
           break
         case c === 0x23: // #
-          const hex = lexer.readString(2)
-          name += String.fromCharCode(parseInt(hex, 16))
+          name += String.fromCharCode(parseInt(lexer.readString(2), 16))
           break
         case c >= 0x22 && c <= 0x7e: // inside range of 33 (!) to 126 (~)
           name += String.fromCharCode(c)

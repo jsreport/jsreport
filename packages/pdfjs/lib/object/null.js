@@ -1,4 +1,4 @@
-exports.parse = function(xref, lexer, trial) {
+exports.parse = function (xref, lexer, trial) {
   const isNull = lexer.getString(4) === 'null'
 
   if (!isNull) {

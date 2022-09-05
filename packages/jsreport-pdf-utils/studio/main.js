@@ -938,6 +938,7 @@ var PdfUtilsEditor = function (_Component) {
 
 
       var pdfMeta = entity.pdfMeta || {};
+      var pdfA = entity.pdfA || {};
       var pdfPassword = entity.pdfPassword || {};
       var pdfSign = entity.pdfSign || {};
 
@@ -1030,6 +1031,16 @@ var PdfUtilsEditor = function (_Component) {
                 }
               },
               'sign'
+            ),
+            _react2.default.createElement(
+              'li',
+              {
+                className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'pdfA' ? _PdfUtilsEditor2.default.active : ''),
+                onClick: function onClick() {
+                  return _this4.setState({ activeTab: 'pdfA' });
+                }
+              },
+              'pdfA'
             )
           ),
           _react2.default.createElement(
@@ -1428,6 +1439,35 @@ var PdfUtilsEditor = function (_Component) {
                 _react2.default.createElement('input', { type: 'text', placeholder: 'signed...', value: pdfSign.reason, onChange: function onChange(v) {
                     return _this4.updateSign(entity, { reason: v.target.value });
                   } })
+              )
+            )
+          ),
+          _react2.default.createElement(
+            'div',
+            { className: _PdfUtilsEditor2.default.tabPanel + ' ' + (activeTab === 'pdfA' ? _PdfUtilsEditor2.default.active : '') },
+            _react2.default.createElement(
+              'p',
+              { style: { marginTop: '1rem' } },
+              'Produce otput complying with PDF/A-1B standard (beta)'
+            ),
+            _react2.default.createElement(
+              'div',
+              { style: { marginTop: '1rem', paddingBottom: '0.5rem' } },
+              _react2.default.createElement(
+                'div',
+                { className: 'form-group' },
+                _react2.default.createElement(
+                  'label',
+                  null,
+                  'Enabled',
+                  _react2.default.createElement('br', null),
+                  _react2.default.createElement('input', {
+                    type: 'checkbox', checked: pdfA.enabled === true,
+                    onChange: function onChange(v) {
+                      return _jsreportStudio2.default.updateEntity(Object.assign({}, entity, { pdfA: { enabled: v.target.checked } }));
+                    }
+                  })
+                )
               )
             )
           )

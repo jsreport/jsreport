@@ -1,4 +1,4 @@
-exports.parse = function(xref, lexer, trial) {
+exports.parse = function (xref, lexer, trial) {
   const isTrue = lexer.getString(4) === 'true'
   const isFalse = !isTrue && lexer.getString(5) === 'false'
 

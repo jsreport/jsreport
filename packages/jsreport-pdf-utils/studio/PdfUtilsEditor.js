@@ -237,6 +237,7 @@ class PdfUtilsEditor extends Component {
     const { entity } = this.props
 
     const pdfMeta = entity.pdfMeta || {}
+    const pdfA = entity.pdfA || {}
     const pdfPassword = entity.pdfPassword || {}
     const pdfSign = entity.pdfSign || {}
 
@@ -279,6 +280,12 @@ class PdfUtilsEditor extends Component {
               onClick={() => this.setState({ activeTab: 'sign' })}
             >
               sign
+            </li>
+            <li
+              className={`${styles.tabTitle} ${activeTab === 'pdfA' ? styles.active : ''}`}
+              onClick={() => this.setState({ activeTab: 'pdfA' })}
+            >
+              pdfA
             </li>
           </ul>
           <div className={`${styles.tabPanel} ${activeTab === 'operations' ? styles.active : ''}`}>
@@ -471,6 +478,23 @@ class PdfUtilsEditor extends Component {
               <div className='form-group'>
                 <label>Sign Reason filled to pdf</label>
                 <input type='text' placeholder='signed...' value={pdfSign.reason} onChange={(v) => this.updateSign(entity, { reason: v.target.value })} />
+              </div>
+            </div>
+          </div>
+          <div className={`${styles.tabPanel} ${activeTab === 'pdfA' ? styles.active : ''}`}>
+            <p style={{ marginTop: '1rem' }}>
+              Produce otput complying with PDF/A-1B standard (beta)
+            </p>
+            <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
+              <div className='form-group'>
+                <label>
+                  Enabled
+                  <br />
+                  <input
+                    type='checkbox' checked={pdfA.enabled === true}
+                    onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfA: { enabled: v.target.checked } }))}
+                  />
+                </label>
               </div>
             </div>
           </div>
