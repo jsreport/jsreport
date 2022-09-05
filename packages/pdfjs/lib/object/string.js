@@ -1,10 +1,8 @@
-'use strict'
-
 // pofider changes
 // lot of code for serializing taken from here
 // https://github.com/foliojs/pdfkit/blob/e641a785082b80c0f88e04ddcab04e3c726ea6b4/lib/object.js
 // it solves the problems when there are national characters in the value
-const escapableRe = /[\n\r\t\b\f()\\]/g;
+const escapableRe = /[\n\r\t\b\f()\\]/g
 const escapable = {
   '\n': '\\n',
   '\r': '\\r',
@@ -14,23 +12,23 @@ const escapable = {
   '\\': '\\\\',
   '(': '\\(',
   ')': '\\)'
-};
+}
 
 // Convert little endian UTF-16 to big endian
-const swapBytes = function(buff) {
-  const l = buff.length;
+const swapBytes = function (buff) {
+  const l = buff.length
   if (l & 0x01) {
-    throw new Error('Buffer length must be even');
+    throw new Error('Buffer length must be even')
   } else {
     for (let i = 0, end = l - 1; i < end; i += 2) {
-      const a = buff[i];
-      buff[i] = buff[i + 1];
-      buff[i + 1] = a;
+      const a = buff[i]
+      buff[i] = buff[i + 1]
+      buff[i + 1] = a
     }
   }
 
-  return buff;
-};
+  return buff
+}
 
 const isUnicode = function (str) {
   for (let i = 0, end = str.length; i < end; i++) {
@@ -41,7 +39,7 @@ const isUnicode = function (str) {
 }
 
 class PDFString {
-  constructor(str, isParsedWithUnocodes = false) {
+  constructor (str, isParsedWithUnocodes = false) {
     this.str = str
     // when user sets unicoded string to the value, lets say to the meta.title
     // we need to do some bytes swap operations
@@ -51,7 +49,7 @@ class PDFString {
     this.isParsedWithUnocodes = isParsedWithUnocodes
   }
 
-  toHexString() {
+  toHexString () {
     // convert to hex string
     let hex = ''
     for (let i = 0, len = this.str.length; i < len; ++i) {
@@ -63,33 +61,33 @@ class PDFString {
     return '<' + hex + '>'
   }
 
-  toString(encryptFn) {
-    // pofider change, added because encryption  
-    if (Buffer.isBuffer(this.str))  {
+  toString (encryptFn) {
+    // pofider change, added because encryption
+    if (Buffer.isBuffer(this.str)) {
       return `<${this.str.toString('hex')}>`
     }
 
-    let string = this.str  
+    let string = this.str
 
-    let stringBuffer;
+    let stringBuffer
     if (!this.isParsedWithUnocodes && isUnicode(string)) {
-      stringBuffer = swapBytes(Buffer.from(`\ufeff${string}`, 'utf16le'));
+      stringBuffer = swapBytes(Buffer.from(`\ufeff${string}`, 'utf16le'))
     } else {
-      stringBuffer = Buffer.from(string.valueOf(), 'ascii');
+      stringBuffer = Buffer.from(string.valueOf(), 'ascii')
     }
 
     if (encryptFn) {
-      string = encryptFn(stringBuffer).toString('binary');
+      string = encryptFn(stringBuffer).toString('binary')
     } else {
-      string = stringBuffer.toString('binary');
+      string = stringBuffer.toString('binary')
     }
 
-    string = string.replace(escapableRe, c => escapable[c]);
+    string = string.replace(escapableRe, c => escapable[c])
 
     return `(${string})`
   }
 
-  static parse(xref, lexer, trial) {
+  static parse (xref, lexer, trial) {
     const literal = PDFString.parseLiteral(lexer, trial)
     const hex = literal === undefined && PDFString.parseHex(lexer, trial)
 
@@ -104,7 +102,7 @@ class PDFString {
     return literal || hex
   }
 
-  static parseLiteral(lexer, trial) {
+  static parseLiteral (lexer, trial) {
     if (lexer.getString(1) !== '(') {
       if (trial) {
         return undefined
@@ -167,8 +165,7 @@ class PDFString {
             case 0x37: // 7
             case 0x38: // 8
             case 0x39: // 9
-              const oct = String.fromCharCode(c) + lexer.readString(2)
-              str += String.fromCharCode(parseInt(oct, 8))
+              str += String.fromCharCode(parseInt(String.fromCharCode(c) + lexer.readString(2), 8))
               break
             default:
               lexer.shift(-1)
@@ -192,7 +189,7 @@ class PDFString {
     return new PDFString(str)
   }
 
-  static parseHex(lexer, trial) {
+  static parseHex (lexer, trial) {
     if (lexer.getString(1) !== '<') {
       if (trial) {
         return undefined
@@ -207,7 +204,7 @@ class PDFString {
 
     let done = false
     const digits = []
-    const addCharacter = function(force) {
+    const addCharacter = function (force) {
       if (digits.length !== 2) {
         if (digits.length === 1 && force) {
           digits.push('0')

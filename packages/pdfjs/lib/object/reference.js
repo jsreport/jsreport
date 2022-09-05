@@ -1,9 +1,7 @@
-'use strict'
-
 const util = require('../util')
 
 class PDFReference {
-  constructor(obj) {
+  constructor (obj) {
     Object.defineProperty(this, 'object', {
       enumerable: true,
       get: () => {
@@ -20,11 +18,11 @@ class PDFReference {
     })
   }
 
-  toString() {
+  toString () {
     return this.object.id + ' ' + this.object.rev + ' R'
   }
 
-  static parse(xref, lexer, trial) {
+  static parse (xref, lexer, trial) {
     const before = lexer.pos
 
     const id = lexer.readNumber(trial)
@@ -66,7 +64,7 @@ class PDFReference {
 
 module.exports = PDFReference
 
-function parseObject(xref, lexer, id) {
+function parseObject (xref, lexer, id) {
   const PDFObject = require('./object')
   const Lexer = require('../parser/lexer')
 
@@ -94,7 +92,7 @@ function parseObject(xref, lexer, id) {
 
         obj.lexer = innerLexer
         obj.innerObjects = []
-        const n = obj.properties.get("N")
+        const n = obj.properties.get('N')
         for (let i = 0; i < n; ++i) {
           const id = innerLexer.readNumber(false)
           innerLexer.skipSpace(1, false)
@@ -104,7 +102,7 @@ function parseObject(xref, lexer, id) {
           obj.innerObjects.push({
             id: id,
             offset: offset,
-            obj: null,
+            obj: null
           })
         }
 

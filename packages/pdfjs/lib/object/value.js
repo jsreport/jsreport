@@ -1,9 +1,9 @@
-const Objects = []
+let Objects = []
 
-exports.parse = function(xref, lexer) {
+exports.parse = function (xref, lexer) {
   // lazy load, cause circular referecnes
   if (!Objects.length) {
-    Objects.push.apply(Objects, [
+    Objects = [
       require('./boolean'),
       require('./null'),
       require('./name'),
@@ -12,7 +12,7 @@ exports.parse = function(xref, lexer) {
       require('./array'),
       require('./reference'), // must be tried before number!
       require('./number')
-    ])
+    ]
   }
 
   // try
@@ -23,6 +23,6 @@ exports.parse = function(xref, lexer) {
     }
   }
 
-  lexer._error('Invalid value ' + lexer.)
+  lexer._error('Invalid value:' + lexer.getString(100))
   return undefined
 }

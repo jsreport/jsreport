@@ -1,6 +1,6 @@
 const parsePdf = require('./utils/parsePdf')
-const { Document, External } = require('@jsreport/minpdf')
-const PDF = require('@jsreport/minpdf/lib/object')
+const { Document, External } = require('@jsreport/pdfjs')
+const PDF = require('@jsreport/pdfjs/lib/object')
 const HIDDEN_TEXT_SIZE = 1.1
 
 module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks } = {}) => {

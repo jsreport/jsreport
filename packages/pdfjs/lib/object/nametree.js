@@ -1,35 +1,29 @@
-'use strict'
-
 const PDFName = require('./name')
 const PDFString = require('./string')
 const PDFDictionary = require('./dictionary')
 const PDFArray = require('./array')
 
 class PDFNameTree extends PDFDictionary {
-  constructor(dictionary) {
-    super(dictionary)
-  }
-
-  add(key, val) {
+  add (key, val) {
     if (typeof val === 'string') {
       val = new PDFName(val)
     }
     this.dictionary[key] = val
   }
 
-  has(key) {
+  has (key) {
     return String(key) in this.dictionary
   }
 
-  get(key) {
+  get (key) {
     return this.dictionary[key]
   }
 
-  del(key) {
+  del (key) {
     delete this.dictionary[key]
   }
 
-  toString() {
+  toString () {
     const sortedKeys = Object.keys(this.dictionary)
     sortedKeys.sort((lhs, rhs) => lhs.localeCompare(rhs))
 
@@ -39,10 +33,10 @@ class PDFNameTree extends PDFDictionary {
     }
 
     const dict = new PDFDictionary()
-    dict.set("Names", new PDFArray(names))
-    dict.set("Limits", new PDFArray([
+    dict.set('Names', new PDFArray(names))
+    dict.set('Limits', new PDFArray([
       new PDFString(sortedKeys[0]),
-      new PDFString(sortedKeys[sortedKeys.length - 1]),
+      new PDFString(sortedKeys[sortedKeys.length - 1])
     ]))
     return dict.toString()
   }

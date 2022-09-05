@@ -6,7 +6,7 @@ const zlib = require('zlib')
 const { createHash } = require('crypto')
 const should = require('should')
 
-describe('minpdf', () => {
+describe('pdfjs', () => {
   it('append should add whole document', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))

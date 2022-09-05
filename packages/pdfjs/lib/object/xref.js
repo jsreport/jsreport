@@ -1,31 +1,28 @@
-'use strict'
-
 const PDFObject = require('./object')
-const PDFName = require('./name')
 const util = require('../util')
 
 module.exports = class PDFXref {
-  constructor() {
+  constructor () {
     this.objects = []
     this.trailer = null
   }
 
-  add(id, data) {
+  add (id, data) {
     this.objects[id] = data
   }
 
-  get(id) {
+  get (id) {
     return this.objects[id] && this.objects[id].obj
   }
 
-  getOffset(id) {
-    return this.objects[id] && this.objects[id].offset || null
+  getOffset (id) {
+    return (this.objects[id] && this.objects[id].offset) || null
   }
 
-  toString() {
+  toString () {
     let xref = 'xref\n'
 
-    let range  = { from: 0, refs: [0] }
+    let range = { from: 0, refs: [0] }
     const ranges = [range]
 
     for (let i = 1; i < this.objects.length; ++i) {
@@ -45,10 +42,10 @@ module.exports = class PDFXref {
       range.refs.push(obj.offset)
     }
 
-    ranges.forEach(function(range) {
+    ranges.forEach(function (range) {
       xref += range.from + ' ' + range.refs.length + '\n'
 
-      range.refs.forEach(function(ref, i) {
+      range.refs.forEach(function (ref, i) {
         if (range.from === 0 && i === 0) {
           xref += '0000000000 65535 f \n'
         } else {
@@ -60,7 +57,7 @@ module.exports = class PDFXref {
     return xref
   }
 
-  static parse(_, lexer, trial) {
+  static parse (_, lexer, trial) {
     const xref = new PDFXref()
 
     if (lexer.getString(4) !== 'xref') {
@@ -89,7 +86,7 @@ module.exports = class PDFXref {
         const id = start + i
         if (id > 0 && key === 'n') {
           xref.add(id, {
-            offset: offset,
+            offset: offset
           })
         }
       }
@@ -99,7 +96,7 @@ module.exports = class PDFXref {
   }
 
   // TODO: this implementation needs to be improved
-  static parseXrefObject(_, lexer, trial) {
+  static parseXrefObject (_, lexer, trial) {
     const xref = new PDFXref()
 
     let obj
@@ -110,18 +107,18 @@ module.exports = class PDFXref {
       throw new Error('Invalid xref: xref expected but not found')
     }
 
-    let kind = obj.properties.get("Type")
-    if (!kind || kind.name !== "XRef") {
-      throw new Error("Invalid xref object at " + lexer.pos)
+    const kind = obj.properties.get('Type')
+    if (!kind || kind.name !== 'XRef') {
+      throw new Error('Invalid xref object at ' + lexer.pos)
     }
 
     const stream = util.inflate(obj)
 
     xref.trailer = obj.properties
 
-    const index = obj.properties.get("Index")
+    const index = obj.properties.get('Index')
     const start = index ? index[0] : 0
-    const w = obj.properties.get("W")
+    const w = obj.properties.get('W')
     const typeSize = w[0] || 1
     const offsetSize = w[1] || 2
     const genSize = w[2] || 1
@@ -133,25 +130,25 @@ module.exports = class PDFXref {
       const offset = readUint(stream, pos, offsetSize)
       pos += offsetSize
       switch (type) {
-      case 0: // free
-        pos += genSize
-        continue // skip type 0 entries (free entries)
-      case 1: // normal
-        xref.add(start + i, {
-          offset
-        })
-        pos += genSize
-        break
-      case 2: // compressed
-        xref.add(start + i, {
-          compressed: true,
-          id:         offset,
-          ix:         readUint(stream, pos, genSize),
-        })
-        pos += genSize
-        break
-      default:
-        continue
+        case 0: // free
+          pos += genSize
+          continue // skip type 0 entries (free entries)
+        case 1: // normal
+          xref.add(start + i, {
+            offset
+          })
+          pos += genSize
+          break
+        case 2: // compressed
+          xref.add(start + i, {
+            compressed: true,
+            id: offset,
+            ix: readUint(stream, pos, genSize)
+          })
+          pos += genSize
+          break
+        default:
+          continue
       }
     }
 
@@ -159,7 +156,7 @@ module.exports = class PDFXref {
   }
 }
 
-function readUint(src, pos, size) {
+function readUint (src, pos, size) {
   let val = 0
   for (let i = 0; i < size; ++i) {
   // for (let i = size - 1; i > 0; --i) {

@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@jsreport/node-signpdf": "1.4.2",
-    "@jsreport/minpdf": "1.0.0",
+    "@jsreport/pdfjs": "1.0.0",
     "cheerio": "1.0.0-rc.10",
     "lodash.omit": "4.5.0",
     "nanoid": "3.2.0",

@@ -1,5 +1,3 @@
-'use strict'
-
 exports.PDFArray = exports.Array = require('./array')
 exports.PDFDictionary = exports.Dictionary = require('./dictionary')
 exports.PDFName = exports.Name = require('./name')

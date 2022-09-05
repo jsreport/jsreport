@@ -1,7 +1,5 @@
-'use strict'
-
 class Lexer {
-  constructor(buf, outer) {
+  constructor (buf, outer) {
     this.buf = buf
     this.pos = 0
     this.objects = Object.create(null)
@@ -9,31 +7,32 @@ class Lexer {
     this.state = outer ? outer.state : {}
   }
 
-  get outer() {
+  get outer () {
     return this._outer || this
   }
 
-  read(len) {
+  read (len) {
     const buf = this.buf.subarray(this.pos, this.pos + len)
     this.pos += len
     return buf
   }
 
-  getString(len) {
+  getString (len) {
     return String.fromCharCode.apply(null, this.buf.subarray(this.pos, this.pos + len))
   }
 
-  readString(len) {
+  readString (len) {
     const str = this.getString(len)
     this.pos += len
     return str
   }
 
-  skipEOL(len, trial) {
+  skipEOL (len, trial) {
     const before = this.pos
 
-    let done  = false
+    let done = false
     let count = 0
+    // eslint-disable-next-line
     while (!done && (!len || count < len)) {
       switch (this.buf[this.pos]) {
         case 0x0d: // CR
@@ -62,11 +61,12 @@ class Lexer {
     return true
   }
 
-  skipWhitespace(len, trial) {
+  skipWhitespace (len, trial) {
     const before = this.pos
 
-    let done  = false
+    let done = false
     let count = 0
+    // eslint-disable-next-line
     while (!done && (!len || count < len)) {
       if (Lexer.isWhiteSpace(this.buf[this.pos])) {
         this.pos++
@@ -87,11 +87,12 @@ class Lexer {
     return true
   }
 
-  skipSpace(len, trial) {
+  skipSpace (len, trial) {
     const before = this.pos
 
-    let done  = false
+    let done = false
     let count = 0
+    // eslint-disable-next-line
     while (!done && (!len || count < len)) {
       if (this.buf[this.pos] === 0x20) {
         this.pos++
@@ -112,28 +113,28 @@ class Lexer {
     return true
   }
 
-  shift(offset) {
+  shift (offset) {
     this.pos += offset
   }
 
-  _nextCharCode() {
+  _nextCharCode () {
     return this.buf[this.pos++]
   }
 
-  _nextChar() {
+  _nextChar () {
     return String.fromCharCode(this.buf[this.pos++])
   }
 
-  _error(err) {
+  _error (err) {
     throw new Error(err)
   }
 
-  _warning(warning) {
+  _warning (warning) {
     console.warn(warning)
   }
 
   // e.g. 123 43445 +17 −98 0 34.5 −3.62 +123.6 4. −.002 0.0
-  readNumber(trial) {
+  readNumber (trial) {
     const before = this.pos
 
     let c = this._nextCharCode()
@@ -188,14 +189,14 @@ class Lexer {
     return nr * sign
   }
 
-  static isWhiteSpace(c) {
+  static isWhiteSpace (c) {
     return (
       c === 0x00 || // NULL
       c === 0x09 || // TAB
       c === 0x0A || // LF
       c === 0x0C || // FF
       c === 0x0D || // CR
-      c === 0x20    // SP
+      c === 0x20 // SP
     )
   }
 }

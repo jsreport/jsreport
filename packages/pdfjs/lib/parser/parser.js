@@ -6,11 +6,11 @@ const util = require('../util')
 
 class Parser {
   // ab ... ArrayBuffer
-  constructor(ab) {
+  constructor (ab) {
     this.src = new Uint8Array(util.toArrayBuffer(ab))
   }
 
-  parse() {
+  parse () {
     let index = lastIndexOf(this.src, 'startxref', 128)
     if (index === -1) {
       throw new Error('Invalid PDF: startxref not found')
@@ -18,13 +18,13 @@ class Parser {
 
     index += 'startxref'.length
 
-    // skip whitespaces
     while (Lexer.isWhiteSpace(this.src[++index])) {
+      // skip whitespaces
     }
 
     let str = ''
     while (this.src[index] >= 0x30 && this.src[index] <= 0x39) { // between 0 and 9
-      str +=  String.fromCharCode(this.src[index++])
+      str += String.fromCharCode(this.src[index++])
     }
 
     const startXRef = parseInt(str, 10)
@@ -36,7 +36,7 @@ class Parser {
     const lexer = new Lexer(this.src)
     lexer.shift(startXRef)
 
-    this.xref    = PDF.Xref.parse(null, lexer)
+    this.xref = PDF.Xref.parse(null, lexer)
     this.trailer = this.xref.trailer || PDF.Trailer.parse(this.xref, lexer)
 
     let trailer = this.trailer
@@ -55,7 +55,7 @@ class Parser {
     }
   }
 
-  static addObjectsRecursive(objects, value) {
+  static addObjectsRecursive (objects, value) {
     switch (true) {
       case value instanceof PDF.Reference:
         if (objects.indexOf(value.object) > -1) {
@@ -70,7 +70,7 @@ class Parser {
         break
       case value instanceof PDF.Dictionary:
         for (const key in value.dictionary) {
-          if (key === '/Parent') {
+          if (key === '/Parent' && value.dictionary[key].object?.properties?.get('Type')?.name === 'Pages') {
             // ignore parent property to prevent moving above Page objects
             continue
           }
@@ -78,7 +78,7 @@ class Parser {
         }
         break
       case Array.isArray(value):
-        value.forEach(function(item) {
+        value.forEach(function (item) {
           Parser.addObjectsRecursive(objects, item)
         })
         break
@@ -88,9 +88,24 @@ class Parser {
 
 module.exports = Parser
 
-function lastIndexOf(src, key, step) {
+module.exports.getObjectsRecursive = function (object) {
+  const objects = []
+  Parser.addObjectsRecursive(objects, object)
+  return objects
+}
+
+module.exports.parseBuffer = function (src) {
+  const parser = new Parser(src)
+  parser.parse()
+  return {
+    catalog: parser.trailer.get('Root').object,
+    trailer: parser.trailer
+  }
+}
+
+function lastIndexOf (src, key, step) {
   if (!step) step = 1024
-  let pos = src.length, index = -1
+  let pos = src.length; let index = -1
 
   while (index === -1 && pos > 0) {
     pos -= step - key.length
@@ -100,7 +115,7 @@ function lastIndexOf(src, key, step) {
   return index
 }
 
-function find(src, key, pos, limit, backwards) {
+function find (src, key, pos, limit, backwards) {
   if (pos + limit > src.length) {
     limit = src.length - pos
   }

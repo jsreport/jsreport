@@ -1,21 +1,19 @@
-'use strict'
-
 const PDFValue = require('./value')
 
 class PDFArray {
-  constructor(array) {
+  constructor (array) {
     if (!array) {
       array = []
     }
 
-    array.toString = function() {
+    array.toString = function () {
       return '[' + this.map(item => String(item)).join(' ') + ']'
     }
 
     return array
   }
 
-  static parse(xref, lexer, trial) {
+  static parse (xref, lexer, trial) {
     if (lexer.getString(1) !== '[') {
       if (trial) {
         return undefined

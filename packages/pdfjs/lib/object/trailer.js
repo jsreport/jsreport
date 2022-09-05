@@ -1,21 +1,21 @@
-'use strict'
-
 const PDFDictionary = require('./dictionary')
 
 class PDFTrailer extends PDFDictionary {
-  constructor(size, root, infoObject) {
+  constructor (size, root, infoObject) {
     super()
 
     this.set('Size', size)
     this.set('Root', root && root.toReference())
-    this.set('Info', infoObject.toReference())
+    if (infoObject) {
+      this.set('Info', infoObject.toReference())
+    }
   }
 
-  toString() {
+  toString () {
     return 'trailer\n' + PDFDictionary.prototype.toString.call(this)
   }
 
-  static parse(xref, lexer) {
+  static parse (xref, lexer) {
     lexer.skipWhitespace(null, true)
 
     if (lexer.readString(7) !== 'trailer') {
@@ -30,4 +30,3 @@ class PDFTrailer extends PDFDictionary {
 }
 
 module.exports = PDFTrailer
-
