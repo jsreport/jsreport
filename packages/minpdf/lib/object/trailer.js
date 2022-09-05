@@ -6,7 +6,9 @@ class PDFTrailer extends PDFDictionary {
 
     this.set('Size', size)
     this.set('Root', root && root.toReference())
-    this.set('Info', infoObject.toReference())
+    if (infoObject) {
+      this.set('Info', infoObject.toReference())
+    }
   }
 
   toString () {

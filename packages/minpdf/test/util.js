@@ -9,11 +9,12 @@ module.exports.validate = async (buffer, options) => {
   }
   buffer.toString().should.startWith('%PDF-1.6')
   buffer.toString().should.endWith('%%EOF')
-  const catalog = parseBuffer(buffer)
+  const { catalog, trailer } = parseBuffer(buffer)
   const objects = getObjectsRecursive(catalog)
   objects.should.not.be.empty()
   return {
     catalog,
+    trailer,
     texts: await module.exports.parseText(buffer, options)
   }
 }

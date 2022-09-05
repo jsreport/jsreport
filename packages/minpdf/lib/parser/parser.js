@@ -97,7 +97,10 @@ module.exports.getObjectsRecursive = function (object) {
 module.exports.parseBuffer = function (src) {
   const parser = new Parser(src)
   parser.parse()
-  return parser.trailer.get('Root').object
+  return {
+    catalog: parser.trailer.get('Root').object,
+    trailer: parser.trailer
+  }
 }
 
 function lastIndexOf (src, key, step) {

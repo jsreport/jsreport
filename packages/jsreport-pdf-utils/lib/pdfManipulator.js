@@ -3,7 +3,7 @@ const { Document, External } = require('@jsreport/minpdf')
 const PDF = require('@jsreport/minpdf/lib/object')
 const HIDDEN_TEXT_SIZE = 1.1
 
-module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, removeHiddenMarks } = {}) => {
+module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks } = {}) => {
   let currentBuffer = contentBuffer
   let currentlyParsedPdf
 
@@ -172,6 +172,10 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, outlines, remo
 
       if (pdfMeta) {
         doc.info(pdfMeta)
+      }
+
+      if (pdfA?.enabled === true) {
+        doc.pdfA()
       }
 
       try {

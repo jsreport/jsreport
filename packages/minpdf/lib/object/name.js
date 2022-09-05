@@ -24,7 +24,7 @@ class PDFName {
 
     // delimiter characters are not allowed
     if (name.match(/[()<>[\]{}/%]/)) {
-      throw new Error('A Name mustn\'t contain delimiter characters')
+      throw new Error('A Name mustn\'t contain delimiter characters:' + name)
     }
 
     name = name.toString()

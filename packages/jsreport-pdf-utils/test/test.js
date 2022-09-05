@@ -1610,6 +1610,23 @@ describe('pdf utils', () => {
       .and.containEql('cz-CZ')
   })
 
+  it('pdfA should convert to valid pdfA format', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'foo',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfA: {
+          enabled: true
+        }
+      }
+    })
+
+    const doc = new External(result.content)
+    doc.catalog.properties.get('Metadata').should.be.ok()
+  })
+
   it('pdfMeta should work also when another pdf appended using script', async () => {
     const result = await jsreport.render({
       template: {

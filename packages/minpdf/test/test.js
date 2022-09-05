@@ -712,4 +712,73 @@ describe('minpdf', () => {
     const { catalog } = await validate(buffer)
     catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(4)
   })
+
+  it('pdf/A basic', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(external)
+    document.info({
+      creationDate: new Date(2021, 2, 2, 5, 30),
+      title: 'Foo-title',
+      subject: 'Foo-subject',
+      creator: 'Foo-creator',
+      producer: 'Foo-producer'
+    })
+    document.pdfA()
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+
+    const { catalog, trailer } = await validate(buffer)
+
+    trailer.get('ID').should.be.ok()
+    catalog.properties.get('Names').object.properties.has('EmbeddedFiles').should.be.false()
+    const metadataXml = catalog.properties.get('Metadata').object.content.toString()
+    metadataXml.should.containEql('Foo-title')
+    metadataXml.should.containEql('Foo-subject')
+    metadataXml.should.containEql('Foo-creator')
+    metadataXml.should.containEql('Foo-producer')
+    metadataXml.should.containEql('2021-03-02T05:30:00')
+
+    catalog.properties.get('OutputIntents').should.be.ok()
+  })
+
+  it('pdf/A smask', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'pdfa-smask.pdf')))
+    document.append(external)
+    document.pdfA()
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+
+    const { catalog } = await validate(buffer)
+    const page = catalog.properties.get('Pages').object.properties.get('Kids')[0].object
+    const imageXObj = page.properties.get('Resources').get('XObject').get('X4').object
+    imageXObj.properties.has('SMask').should.be.false()
+
+    const mask = imageXObj.properties.get('Mask').object
+    mask.properties.get('BitsPerComponent').should.be.eql(1)
+    mask.properties.get('ImageMask').should.be.eql(true)
+
+    const maskBuf = mask.content.getDecompressed()
+    maskBuf[0].should.be.eql(127)
+    maskBuf[1].should.be.eql(159)
+  })
+
+  it('pdf/A font subset', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'pdfa-fontsubset.pdf')))
+    document.append(external)
+    document.pdfA()
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+
+    const { catalog } = await validate(buffer)
+    const page = catalog.properties.get('Pages').object.properties.get('Kids')[0].object
+    const font = page.properties.get('Resources').get('Font').get('F4').object
+    font.properties.get('BaseFont').name.should.be.eql('TimesNewRomanPSMT')
+    const df = font.properties.get('DescendantFonts')[0].object
+    df.properties.get('BaseFont').name.should.be.eql('TimesNewRomanPSMT')
+    const desc = df.properties.get('FontDescriptor').object
+    desc.properties.get('FontName').name.should.be.eql('TimesNewRomanPSMT')
+  })
 })

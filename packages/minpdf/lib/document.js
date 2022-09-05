@@ -9,6 +9,7 @@ const acroForm = require('./mixins/acroform')
 const info = require('./mixins/info')
 const encrypt = require('./mixins/encrypt/encrypt')
 const sign = require('./mixins/sign')
+const pdfA = require('./mixins/pdfA/pdfa.js')
 const DocumentBase = require('./documentBase')
 
 module.exports = class Document extends DocumentBase {
@@ -46,6 +47,7 @@ module.exports = class Document extends DocumentBase {
     info(this)
     encrypt(this)
     sign(this)
+    pdfA(this)
   }
 
   async asBuffer () {
@@ -81,7 +83,7 @@ module.exports = class Document extends DocumentBase {
     // trailer
     const objectsCount = this._nextObjectId - 1
 
-    this.trailer = new PDF.Trailer(objectsCount + 1, this.catalog, this.catalog.properties.get('Info').object)
+    this.trailer = new PDF.Trailer(objectsCount + 1, this.catalog, this.catalog.properties.get('Info')?.object)
     for (const fn of this.trailerFinalizers) {
       await fn(this.trailer)
     }

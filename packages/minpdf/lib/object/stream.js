@@ -1,12 +1,13 @@
 // page 60
 // Filters: page 65
 
-const PDFObject = require('./object')
+const PDF = require('./')
+const zlib = require('zlib')
 
 module.exports = class PDFStream {
   constructor (object) {
     if (!object) {
-      object = new PDFObject()
+      object = new PDF.Object()
     }
 
     object.content = this
@@ -40,6 +41,19 @@ module.exports = class PDFStream {
     }
 
     return 'stream\n' + content + 'endstream'
+  }
+
+  setAndCompress (buf) {
+    this.object.properties.set('Filter', 'FlateDecode')
+    this.content = zlib.deflateSync(buf)
+    this.object.properties.set('Length', this.content.length)
+  }
+
+  getDecompressed () {
+    if (this.object.properties.get('Filter')?.toString() === '/FlateDecode') {
+      return zlib.unzipSync(this.content)
+    }
+    return this.content
   }
 }
 

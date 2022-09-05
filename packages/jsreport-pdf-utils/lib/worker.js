@@ -89,6 +89,7 @@ module.exports = (reporter, definition) => {
     if (
       req.template.pdfPassword == null &&
       req.template.pdfMeta == null &&
+      req.template.pdfA?.enabled !== true &&
       req.template.pdfSign == null &&
       (!req.template.pdfOperations || req.template.pdfOperations.length === 0) &&
       !req.context.pdfUtilsOutlines &&
@@ -156,8 +157,6 @@ module.exports = (reporter, definition) => {
       pdfPassword = req.template.pdfPassword
     }
 
-    const pdfMeta = req.template.pdfMeta
-
     const isPreviewRequest = req.options.preview === true || req.options.preview === 'true'
 
     if (isPreviewRequest && pdfPassword != null) {
@@ -178,7 +177,8 @@ module.exports = (reporter, definition) => {
           pdfContent: res.content,
           operations: req.template.pdfOperations || [],
           outlines: req.context.pdfUtilsOutlines,
-          pdfMeta,
+          pdfMeta: req.template.pdfMeta,
+          pdfA: req.template.pdfA,
           pdfPassword,
           pdfSign,
           removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false

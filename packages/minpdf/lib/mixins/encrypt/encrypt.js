@@ -4,11 +4,15 @@ const PDF = require('../../object')
 module.exports = (doc) => {
   doc.getEncryptFn = (oid) => (v) => v
 
-  doc.encrypt = (options) => {
-    const _id = PDFSecurity.generateFileID({ CreationDate: new Date() })
+  doc.id = PDFSecurity.generateFileID({ CreationDate: new Date() })
 
+  doc.trailerFinalizers.push(() => {
+    doc.trailer.set('ID', new PDF.Array([new PDF.String(doc.id), new PDF.String(doc.id)]))
+  })
+
+  doc.encrypt = (options) => {
     const security = PDFSecurity.create({
-      _id,
+      _id: doc.id,
       ref: (d) => d
     }, {
       userPassword: options.password,
@@ -32,7 +36,6 @@ module.exports = (doc) => {
 
     doc.trailerFinalizers.push(() => {
       doc.trailer.set('Encrypt', securityObject.toReference())
-      doc.trailer.set('ID', new PDF.Array([new PDF.String(_id), new PDF.String(_id)]))
     })
   }
 }
