@@ -39,6 +39,15 @@ const elements = [
   },
   {
     tag: 'h6'
+  },
+  {
+    tag: 'ul'
+  },
+  {
+    tag: 'ol'
+  },
+  {
+    tag: 'li'
   }
 ]
 

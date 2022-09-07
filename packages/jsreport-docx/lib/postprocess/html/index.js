@@ -5,7 +5,6 @@ const parseHtmlToDocxMeta = require('./parseHtmlToDocxMeta')
 const convertDocxMetaToNodes = require('./convertDocxMetaToNodes')
 
 module.exports = async (files) => {
-  const stylesDoc = files.find(f => f.path === 'word/styles.xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
 
   documentFile.data = await recursiveStringReplaceAsync(
@@ -85,12 +84,12 @@ module.exports = async (files) => {
       if (embedType === 'block') {
         const htmlEmbedDef = htmlEmbedDefs[0]
         const docxMeta = parseHtmlToDocxMeta(htmlEmbedDef.config.content, embedType)
-        const xmlNodes = convertDocxMetaToNodes(docxMeta, htmlEmbedDef, embedType, { doc, stylesDoc, paragraphNode })
+        const xmlNodes = await convertDocxMetaToNodes(docxMeta, htmlEmbedDef, embedType, { doc, files, paragraphNode })
         xmlNodesGenerated.push(...xmlNodes)
       } else {
         for (const htmlEmbedDef of htmlEmbedDefs) {
           const docxMeta = parseHtmlToDocxMeta(htmlEmbedDef.config.content, embedType)
-          const xmlNodes = convertDocxMetaToNodes(docxMeta, htmlEmbedDef, embedType, { doc })
+          const xmlNodes = await convertDocxMetaToNodes(docxMeta, htmlEmbedDef, embedType, { doc, files })
           const rContainerNode = getClosestEl(htmlEmbedDef.tEl, 'w:r')
 
           for (const xmlNode of xmlNodes) {

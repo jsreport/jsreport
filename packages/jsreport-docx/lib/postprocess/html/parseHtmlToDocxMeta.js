@@ -1,4 +1,6 @@
 const cheerio = require('cheerio')
+const { customAlphabet } = require('nanoid')
+const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 
 const NODE_TYPES = {
@@ -55,9 +57,8 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         } else {
           newItem = createText(getTextInNode(currentNode), data)
 
-          if (data.parentBlockElement != null) {
-            applyTitleIfNeeded(parent, data.parentBlockElement)
-          }
+          applyTitleIfNeeded(parent, data)
+          applyListIfNeeded(parent, data)
         }
       }
     } else if (
@@ -71,17 +72,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
       }
 
       if (INLINE_ELEMENTS.includes(currentNode.tagName)) {
-        if (isBoldElement(currentNode)) {
-          data.bold = true
-        }
-
-        if (isItalicElement(currentNode)) {
-          data.italic = true
-        }
-
-        if (isUnderlineElement(currentNode)) {
-          data.underline = true
-        }
+        applyBoldDataIfNeeded(data, currentNode)
+        applyItalicDataIfNeeded(data, currentNode)
+        applyUnderlineDataIfNeeded(data, currentNode)
 
         if (mode === 'block') {
           if (!parent) {
@@ -92,13 +85,17 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
             newParent = parent
           }
         }
-      } else if (mode === 'block') {
-        if (!parent) {
-          newItem = createParagraph()
-          collection.push(newItem)
-          newParent = newItem
-        } else {
-          newParent = parent
+      } else {
+        applyListDataIfNeeded(data, currentNode)
+
+        if (mode === 'block' && nodeType !== NODE_TYPES.DOCUMENT) {
+          if (!parent) {
+            newItem = createParagraph()
+            collection.push(newItem)
+            newParent = newItem
+          } else {
+            newParent = parent
+          }
         }
       }
 
@@ -111,14 +108,16 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         collection.push(targetCollection)
       }
 
+      if (isBlockElement(currentNode)) {
+        data.parentBlockElement = currentNode
+      }
+
+      data.parentElement = currentNode
+
       for (const [cIdx, childNode] of currentNode.childNodes.entries()) {
         const pendingItem = {
           item: childNode,
           data
-        }
-
-        if (isBlockElement(currentNode)) {
-          pendingItem.data.parentBlockElement = currentNode
         }
 
         if (
@@ -129,7 +128,12 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
           ) ||
           (
             isBlockElement(childNode) &&
+            newParent != null &&
             (newParent.children.length > 0 || cIdx !== 0)
+          ) ||
+          (
+            nodeType === NODE_TYPES.DOCUMENT &&
+            cIdx === 0
           ))
         ) {
           newParent = createParagraph()
@@ -192,6 +196,86 @@ function createText (text, data) {
   return textItem
 }
 
+function applyBoldDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isBold = node.tagName === 'b' || node.tagName === 'strong'
+
+  if (!isBold) {
+    return
+  }
+
+  data.bold = true
+}
+
+function applyItalicDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isItalic = node.tagName === 'i' || node.tagName === 'em'
+
+  if (!isItalic) {
+    return
+  }
+
+  data.italic = true
+}
+
+function applyUnderlineDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isUnderline = node.tagName === 'u'
+
+  if (!isUnderline) {
+    return
+  }
+
+  data.underline = true
+}
+
+function applyListDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  if (
+    node.tagName === 'ul' ||
+    node.tagName === 'ol'
+  ) {
+    data.listContainerId = `list_${generateRandomId()}`
+  } else if (node.tagName === 'li') {
+    if (
+      data.parentElement?.tagName !== 'ul' &&
+      data.parentElement?.tagName !== 'ol'
+    ) {
+      return
+    }
+
+    if (data.listContainerId == null) {
+      return
+    }
+
+    const isNested = data.list != null
+
+    if (isNested) {
+      if (data.parentElement?.parentNode?.tagName !== 'li') {
+        return
+      }
+    }
+
+    data.list = {
+      id: data.listContainerId,
+      type: data.parentElement.tagName,
+      level: isNested ? data.list.level + 1 : 1
+    }
+  }
+}
+
 function isBlockElement (node) {
   return (
     node.nodeType === NODE_TYPES.ELEMENT &&
@@ -199,31 +283,16 @@ function isBlockElement (node) {
   )
 }
 
-function isBoldElement (node) {
-  return (
-    node.nodeType === NODE_TYPES.ELEMENT &&
-    (node.tagName === 'b' || node.tagName === 'strong')
-  )
-}
-
-function isItalicElement (node) {
-  return (
-    node.nodeType === NODE_TYPES.ELEMENT &&
-    (node.tagName === 'i' || node.tagName === 'em')
-  )
-}
-
-function isUnderlineElement (node) {
-  return (
-    node.nodeType === NODE_TYPES.ELEMENT &&
-    node.tagName === 'u'
-  )
-}
-
-function applyTitleIfNeeded (parentMeta, node) {
+function applyTitleIfNeeded (parentMeta, data) {
   if (parentMeta.type !== 'paragraph') {
     return
   }
+
+  if (data.parentBlockElement == null) {
+    return
+  }
+
+  const node = data.parentBlockElement
 
   if (node.nodeType !== NODE_TYPES.ELEMENT) {
     return
@@ -246,6 +315,28 @@ function applyTitleIfNeeded (parentMeta, node) {
   }
 
   parentMeta.title = match[1]
+}
+
+function applyListIfNeeded (parentMeta, data) {
+  if (parentMeta.type !== 'paragraph') {
+    return
+  }
+
+  if (data.parentBlockElement == null) {
+    return
+  }
+
+  const node = data.parentBlockElement
+
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  if (node.tagName !== 'li' || data.list == null) {
+    return
+  }
+
+  parentMeta.list = data.list
 }
 
 function normalizeMeta (fullMeta) {

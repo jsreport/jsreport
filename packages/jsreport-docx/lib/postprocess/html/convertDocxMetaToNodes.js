@@ -1,15 +1,22 @@
+const path = require('path')
+const fs = require('fs/promises')
+const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName } = require('../../utils')
+const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId } = require('../../utils')
+const xmlTemplatesCache = new Map()
 
-module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, stylesDoc, paragraphNode } = {}) {
+module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, files, paragraphNode } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
 
+  const stylesDoc = files.find(f => f.path === 'word/styles.xml').doc
   const pending = docxMeta.map((meta) => ({ item: meta }))
   const result = []
-  const stylesIdCache = new Map()
+  const headingStylesIdCache = new Map()
+  const listParagraphStyleIdCache = {}
+  const numberingListsCache = new Map()
 
   let templateParagraphNode
 
@@ -46,8 +53,21 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
       if (currentDocxMeta.title != null) {
         const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
         const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
-        const titleStyleId = addOrGetTitleStyle(stylesDoc, currentDocxMeta.title, stylesIdCache)
+        const titleStyleId = addOrGetTitleStyle(stylesDoc, currentDocxMeta.title, headingStylesIdCache)
         pStyleEl.setAttribute('w:val', titleStyleId)
+      }
+
+      if (currentDocxMeta.list != null) {
+        const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+        const pStyleEl = findOrCreateChildNode(doc, 'w:pStyle', pPrEl)
+        const listParagraphStyleId = addOrGetListParagraphStyle(stylesDoc, listParagraphStyleIdCache)
+        const numId = await addOrGetNumbering(files, currentDocxMeta.list, numberingListsCache)
+        pStyleEl.setAttribute('w:val', listParagraphStyleId)
+        const numPrEl = findOrCreateChildNode(doc, 'w:numPr', pPrEl)
+        const iLvlEl = findOrCreateChildNode(doc, 'w:ilvl', numPrEl)
+        iLvlEl.setAttribute('w:val', currentDocxMeta.list.level - 1)
+        const numIdEl = findOrCreateChildNode(doc, 'w:numId', numPrEl)
+        numIdEl.setAttribute('w:val', numId)
       }
 
       result.push(containerEl)
@@ -117,8 +137,6 @@ module.exports = function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, 
       throw new Error(`Unsupported docx node "${currentDocxMeta.type}"`)
     }
   }
-
-  stylesIdCache.clear()
 
   return result
 }
@@ -284,6 +302,320 @@ function createTitleStyle (stylesDoc, titleStyleId, titleLevel, normalStyleId, p
   return result
 }
 
+function addOrGetListParagraphStyle (stylesDoc, cache) {
+  if (cache.id != null) {
+    return cache.id
+  }
+
+  const defaultNormalStyleId = findDefaultStyleIdForName(stylesDoc, 'Normal')
+
+  if (defaultNormalStyleId == null || defaultNormalStyleId === '') {
+    throw new Error('style for "Normal" not found')
+  }
+
+  const stylesEl = stylesDoc.documentElement
+  const existingStyleEls = findChildNode('w:style', stylesEl, true)
+  const currentStyleEls = [...existingStyleEls]
+  const randomSuffix = generateRandomSuffix()
+
+  const defaultListParagraphStyleId = findDefaultStyleIdForName(stylesDoc, 'List Paragraph')
+
+  if (defaultListParagraphStyleId == null || defaultListParagraphStyleId === '') {
+    const listParagraphStyleId = `LstPrgph${randomSuffix}`
+
+    const newListParagraphStyleEl = createListParagraphStyle(
+      stylesDoc,
+      listParagraphStyleId,
+      defaultNormalStyleId
+    )
+
+    stylesEl.insertBefore(newListParagraphStyleEl, currentStyleEls.at(-1).nextSibling)
+    currentStyleEls.push(newListParagraphStyleEl)
+
+    cache.id = listParagraphStyleId
+  } else {
+    cache.id = defaultListParagraphStyleId
+  }
+
+  return cache.id
+}
+
+function createListParagraphStyle (stylesDoc, listParagraphStyleId, normalStyleId) {
+  const uiPriority = getStyleUiPriority(stylesDoc, 'List Paragraph', '34')
+
+  const newListParagraphStyle = createNode(stylesDoc, 'w:style', { attributes: { 'w:type': 'paragraph', 'w:styleId': listParagraphStyleId } })
+  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:name', { attributes: { 'w:val': 'List Paragraph' } }))
+  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:basedOn', { attributes: { 'w:val': normalStyleId } }))
+  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:uiPriority', { attributes: { 'w:val': uiPriority } }))
+  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:qFormat'))
+
+  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:pPr', {
+    children: [
+      createNode(stylesDoc, 'w:ind', { attributes: { 'w:left': '720' } }),
+      createNode(stylesDoc, 'w:contextualSpacing')
+    ]
+  }))
+
+  return newListParagraphStyle
+}
+
+async function addOrGetNumbering (files, listInfo, cache) {
+  let numberingDoc
+  let numId
+
+  const numberingFile = files.find(f => f.path === 'word/numbering.xml')
+
+  if (cache.has(listInfo.id)) {
+    numberingDoc = numberingFile.doc
+    numId = cache.get(listInfo.id)
+  } else {
+    if (numberingFile == null) {
+      const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
+
+      const numberingTypeRefEl = findChildNode((n) => (
+        n.nodeName === 'Override' &&
+        n.getAttribute('PartName') === '/word/numbering.xml'
+      ), contentTypesDoc.documentElement)
+
+      if (numberingTypeRefEl == null) {
+        contentTypesDoc.documentElement.appendChild(
+          createNode(contentTypesDoc, 'Override', {
+            attributes: {
+              PartName: '/word/numbering.xml',
+              ContentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml'
+            }
+          })
+        )
+      }
+
+      const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+
+      const numberingRelEl = findChildNode((n) => (
+        n.nodeName === 'Relationship' &&
+        n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering'
+      ), contentTypesDoc.documentElement)
+
+      if (numberingRelEl == null) {
+        const newNumberingRelId = getNewRelId(documentRelsDoc)
+
+        documentRelsDoc.documentElement.appendChild(
+          createNode(documentRelsDoc, 'Relationship', {
+            attributes: {
+              Id: newNumberingRelId,
+              Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering',
+              Target: 'numbering.xml'
+            }
+          })
+        )
+      }
+
+      const numberingTemplate = await loadTemplate('numbering.template.xml')
+      numberingDoc = new DOMParser().parseFromString(numberingTemplate)
+
+      files.push({
+        path: 'word/numbering.xml',
+        data: numberingDoc.toString(),
+        // creates new doc
+        doc: numberingDoc
+      })
+    } else {
+      numberingDoc = numberingFile.doc
+    }
+
+    if (listInfo.type === 'ul') {
+      const fontTableDoc = files.find(f => f.path === 'word/fontTable.xml').doc
+      ensureFontDefinition(fontTableDoc, 'Symbol')
+      ensureFontDefinition(fontTableDoc, 'Courier New')
+      ensureFontDefinition(fontTableDoc, 'Wingdings')
+    }
+
+    const numberingEl = numberingDoc.documentElement
+
+    const existingNumEls = findChildNode('w:num', numberingEl, true)
+    const existingAbstractNumEls = findChildNode('w:abstractNum', numberingEl, true)
+
+    const getMaxId = (els, idAttr, defaultId) => {
+      return els.reduce((lastId, node) => {
+        const nodeId = node.getAttribute(idAttr)
+        const num = parseInt(nodeId, 10)
+
+        if (num == null || isNaN(num)) {
+          return lastId
+        }
+
+        if (num > lastId) {
+          return num
+        }
+
+        return lastId
+      }, defaultId)
+    }
+
+    numId = (getMaxId(existingNumEls, 'w:numId', 0) + 1).toString()
+    const abstractNumId = getMaxId(existingAbstractNumEls, 'w:abstractNumId', -1) + 1
+
+    const numEl = createNode(numberingDoc, 'w:num', {
+      attributes: { 'w:numId': numId },
+      children: [
+        createNode(numberingDoc, 'w:abstractNumId', { attributes: { 'w:val': abstractNumId } })
+      ]
+    })
+
+    const abstractNumAttributes = { 'w:abstractNumId': abstractNumId }
+
+    if (listInfo.type === 'ol') {
+      abstractNumAttributes['w15:restartNumberingAfterBreak'] = '0'
+    }
+
+    const abstractNumEl = createNode(numberingDoc, 'w:abstractNum', {
+      attributes: abstractNumAttributes,
+      children: [
+        createNode(numberingDoc, 'w:multiLevelType', { attributes: { 'w:val': 'hybridMultilevel' } }),
+        ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((cLvl) => {
+          const fontsPool = ['Symbol', 'Courier New', 'Wingdings']
+          const poolIdx = cLvl % 3
+          const currentFont = fontsPool[poolIdx]
+
+          let numFmt = 'bullet'
+          let text = ''
+
+          if (listInfo.type === 'ol') {
+            numFmt = 'decimal'
+          }
+
+          if (listInfo.type === 'ul' && [1, 4, 7].includes(cLvl)) {
+            text = 'o'
+          } else if (listInfo.type === 'ol') {
+            text = `%${cLvl + 1}.`
+          }
+
+          const opts = {
+            start: 1,
+            numFmt,
+            text,
+            jc: 'left',
+            indLeft: 720 * (cLvl + 1),
+            indHanging: 360
+          }
+
+          if (listInfo.type === 'ul') {
+            opts.fontAscii = currentFont
+            opts.fontHansi = currentFont
+
+            if (poolIdx === 1) {
+              opts.fontCs = currentFont
+            }
+
+            opts.fontHint = 'default'
+          }
+
+          return createLvl(numberingDoc, cLvl, opts)
+        })
+      ]
+    })
+
+    const lastAbstractNumEl = existingAbstractNumEls.at(-1)
+
+    if (lastAbstractNumEl == null) {
+      numberingEl.appendChild(abstractNumEl)
+    } else {
+      numberingEl.insertBefore(abstractNumEl, lastAbstractNumEl.nextSibling)
+    }
+
+    const lastNumEl = existingNumEls.at(-1)
+
+    if (lastNumEl == null) {
+      numberingEl.appendChild(numEl)
+    } else {
+      numberingEl.insertBefore(numEl, lastNumEl.nextSibling)
+    }
+
+    cache.set(listInfo.id, numId)
+  }
+
+  // we have created all levels with tentative, now remove such attribute
+  // for the current level so we indicate the docx that the level is being used
+  const currentNumEl = findChildNode((n) => (
+    n.nodeName === 'w:num' &&
+    n.getAttribute('w:numId') === numId
+  ), numberingDoc.documentElement)
+
+  const currentAbstractNumIdEl = findChildNode('w:abstractNumId', currentNumEl)
+
+  const currentAbstractNumEl = findChildNode((n) => (
+    n.nodeName === 'w:abstractNum' &&
+    n.getAttribute('w:abstractNumId') === currentAbstractNumIdEl.getAttribute('w:val')
+  ), numberingDoc.documentElement)
+
+  const targetLvl = (listInfo.level - 1).toString()
+
+  const currentLvlEl = findChildNode((n) => (
+    n.nodeName === 'w:lvl' &&
+    n.getAttribute('w:ilvl') === targetLvl
+  ), currentAbstractNumEl)
+
+  if (currentLvlEl.hasAttribute('w:tentative')) {
+    currentLvlEl.removeAttribute('w:tentative')
+  }
+
+  return numId
+}
+
+function createLvl (numberingDoc, listLevel, opts) {
+  const tentative = opts.tentative || true
+  const start = opts.start || 1
+  const numFmt = opts.numFmt || 'bullet'
+  const text = opts.text || ''
+  const jc = opts.js || 'left'
+  const indLeft = opts.indLeft || 720
+  const indHanging = opts.indHanging || 360
+
+  const lvlEl = createNode(numberingDoc, 'w:lvl', { attributes: { 'w:ilvl': listLevel } })
+
+  if (tentative) {
+    lvlEl.setAttribute('w:tentative', '1')
+  }
+
+  lvlEl.appendChild(createNode(numberingDoc, 'w:start', { attributes: { 'w:val': start } }))
+  lvlEl.appendChild(createNode(numberingDoc, 'w:numFmt', { attributes: { 'w:val': numFmt } }))
+  lvlEl.appendChild(createNode(numberingDoc, 'w:lvlText', { attributes: { 'w:val': text } }))
+  lvlEl.appendChild(createNode(numberingDoc, 'w:lvlJc', { attributes: { 'w:val': jc } }))
+
+  lvlEl.appendChild(createNode(numberingDoc, 'w:pPr', {
+    children: [
+      createNode(numberingDoc, 'w:ind', { attributes: { 'w:left': indLeft, 'w:hanging': indHanging } })
+    ]
+  }))
+
+  const fontAttrs = {}
+
+  if (opts.fontAscii != null) {
+    fontAttrs['w:ascii'] = opts.fontAscii
+  }
+
+  if (opts.fontHansi != null) {
+    fontAttrs['w:hAnsi'] = opts.fontHansi
+  }
+
+  if (opts.fontHint != null) {
+    fontAttrs['w:hint'] = opts.fontHansi
+  }
+
+  if (opts.fontCs != null) {
+    fontAttrs['w:cs'] = opts.fontCs
+  }
+
+  if (Object.keys(fontAttrs).length > 0) {
+    lvlEl.appendChild(createNode(numberingDoc, 'w:rPr', {
+      children: [
+        createNode(numberingDoc, 'w:rFonts', { attributes: fontAttrs })
+      ]
+    }))
+  }
+
+  return lvlEl
+}
+
 function getStyleUiPriority (stylesDoc, name, defaultValue) {
   const stylesEl = stylesDoc.documentElement
   const latentStylesEl = findChildNode('w:latentStyles', stylesEl)
@@ -307,4 +639,88 @@ function getStyleUiPriority (stylesDoc, name, defaultValue) {
   }
 
   return uiPriority
+}
+
+function ensureFontDefinition (fontTableDoc, fontName) {
+  const supportedFonts = ['Symbol', 'Courier New', 'Wingdings']
+
+  if (!supportedFonts.includes(fontName)) {
+    throw new Error(`font "${fontName}" not supported`)
+  }
+
+  const existingFontEl = findChildNode((n) => (
+    n.nodeName === 'w:font' && n.getAttribute('w:name') === fontName
+  ), fontTableDoc.documentElement)
+
+  if (existingFontEl != null) {
+    return
+  }
+
+  const fontsMap = {
+    Symbol: {
+      panose1: '05050102010706020507',
+      charset: '02',
+      family: 'decorative',
+      pitch: 'variable',
+      sig: ['00000000', '10000000', '00000000', '00000000', '80000000', '00000000']
+    },
+    'Courier New': {
+      panose1: '02070309020205020404',
+      charset: '00',
+      family: 'modern',
+      pitch: 'fixed',
+      sig: ['E0002AFF', '80000000', '00000008', '00000000', '000001FF', '00000000']
+    },
+    Wingdings: {
+      panose1: '05000000000000000000',
+      charset: '4D',
+      family: 'decorative',
+      pitch: 'variable',
+      sig: ['00000003', '00000000', '00000000', '00000000', '80000001', '00000000']
+    }
+  }
+
+  const info = fontsMap[fontName]
+
+  fontTableDoc.documentElement.appendChild(
+    createNode(fontTableDoc, 'w:font', {
+      attributes: {
+        'w:name': fontName
+      },
+      children: [
+        createNode(fontTableDoc, 'w:panose1', { attributes: { 'w:val': info.panose1 } }),
+        createNode(fontTableDoc, 'w:charset', { attributes: { 'w:val': info.charset } }),
+        createNode(fontTableDoc, 'w:family', { attributes: { 'w:val': info.family } }),
+        createNode(fontTableDoc, 'w:pitch', { attributes: { 'w:val': info.pitch } }),
+        createNode(fontTableDoc, 'w:sig', {
+          attributes: {
+            'w:usb0': info.sig[0],
+            'w:usb1': info.sig[1],
+            'w:usb2': info.sig[2],
+            'w:usb3': info.sig[3],
+            'w:csb0': info.sig[4],
+            'w:csb1': info.sig[5]
+          }
+        })
+      ]
+    })
+  )
+}
+
+async function loadTemplate (templateName) {
+  if (xmlTemplatesCache.has(templateName) && xmlTemplatesCache.get(templateName).content != null) {
+    return xmlTemplatesCache.get(templateName).content
+  }
+
+  const item = xmlTemplatesCache.get(templateName) || {}
+
+  xmlTemplatesCache.set(templateName, item)
+
+  if (item.promise == null) {
+    item.promise = fs.readFile(path.join(__dirname, templateName))
+  }
+
+  item.content = (await item.promise).toString()
+
+  return xmlTemplatesCache.get(templateName).content
 }

@@ -87,7 +87,7 @@ module.exports = async function processImage (files, drawingEl, newRelIdCounterM
 
   const imageConfig = JSON.parse(Buffer.from(match[1], 'base64').toString())
 
-  // somehow there are duplicated hlinkclick els produced by word, we need to clean them up
+  // somehow there are duplicated linkclick els produced by word, we need to clean them up
   for (let i = 1; i < linkClickEls.length; i++) {
     const elLinkClick = linkClickEls[i]
     const match = tooltip.match(/\$docxImage([^$]*)\$/)
@@ -125,7 +125,7 @@ module.exports = async function processImage (files, drawingEl, newRelIdCounterM
       throw new Error(`Invalid content-type "${contentType}" for remote image at "${imageConfig.src}"`)
     }
 
-    // some servers returns the image content type withoyt the "image/" prefix
+    // some servers returns the image content type without the "image/" prefix
     imageExtension = extensionsParts.length === 1 ? extensionsParts[0] : extensionsParts[1]
     imageBuffer = Buffer.from(response.data)
   }
