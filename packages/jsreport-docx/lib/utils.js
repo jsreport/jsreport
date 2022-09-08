@@ -146,10 +146,12 @@ function getClosestEl (el, targetNodeNameOrFn, targetType = 'parent') {
 }
 
 function clearEl (el, filterFn) {
+  // by default we clear all children
+  const testFn = filterFn || (() => false)
   const childEls = nodeListToArray(el.childNodes)
 
   for (const childEl of childEls) {
-    const result = filterFn(childEl)
+    const result = testFn(childEl)
 
     if (result === true) {
       continue

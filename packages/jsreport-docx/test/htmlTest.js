@@ -363,6 +363,143 @@ describe.only('docx html embed', () => {
     })
   })
 
+  describe('<br> tag', () => {
+    for (const mode of ['block', 'inline']) {
+      const templateStr = '<br />'
+
+      it(`${mode} mode - <br> ${templateStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(1)
+
+        should(findChildNode('w:br', runNodes[0])).be.ok()
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
+      })
+
+      const templateMultipleStr = '<br /><br />'
+
+      it(`${mode} mode - <br> ${templateMultipleStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateMultipleStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(2)
+
+        should(findChildNode('w:br', runNodes[0])).be.ok()
+        should(findChildNode('w:br', runNodes[1])).be.ok()
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
+      })
+
+      const templateTextStr = '...<br />...'
+
+      it(`${mode} mode - <br> with text ${templateTextStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateTextStr, ['Hello', 'World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(3)
+
+        should(findChildNode('w:br', runNodes[1])).be.ok()
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(2)
+
+        should(textNodes[0].textContent).eql('Hello')
+        should(textNodes[1].textContent).eql('World')
+      })
+    }
+  })
+
   for (const headingLevel of ['1', '2', '3', '4', '5', '6']) {
     describe(`<h${headingLevel}> tag`, () => {
       const opts = {

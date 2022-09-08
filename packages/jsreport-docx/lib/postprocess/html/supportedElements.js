@@ -23,6 +23,10 @@ const elements = [
     tag: 'u'
   },
   {
+    type: 'inline',
+    tag: 'br'
+  },
+  {
     tag: 'h1'
   },
   {

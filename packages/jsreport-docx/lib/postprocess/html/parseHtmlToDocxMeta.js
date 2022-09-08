@@ -30,14 +30,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     const nodeType = currentNode.nodeType
     const data = Object.assign({}, inheritedData)
     let newItem
-
-    // skip empty nodes
-    if (
-      (nodeType === NODE_TYPES.DOCUMENT || nodeType === NODE_TYPES.ELEMENT) &&
-      currentNode.childNodes.length === 0
-    ) {
-      continue
-    }
+    let childNodes
 
     if (
       nodeType === NODE_TYPES.TEXT ||
@@ -46,27 +39,16 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     ) {
       const getTextInNode = (n) => n.nodeType === NODE_TYPES.TEXT ? n.nodeValue : $(n).text()
 
-      if (mode === 'inline') {
-        newItem = createText(getTextInNode(currentNode), data)
-        collection.push(newItem)
-      } else {
-        if (!parent) {
-          newItem = createParagraph()
-          collection.push(newItem)
-          pending.unshift({ item: currentNode, parent: newItem, collection, data })
-        } else {
-          newItem = createText(getTextInNode(currentNode), data)
+      newItem = createText(getTextInNode(currentNode), data)
 
-          applyTitleIfNeeded(parent, data)
-          applyListIfNeeded(parent, data)
-        }
+      if (mode === 'block') {
+        applyTitleIfNeeded(parent, data)
+        applyListIfNeeded(parent, data)
       }
     } else if (
       (nodeType === NODE_TYPES.DOCUMENT && !documentEvaluated) ||
       nodeType === NODE_TYPES.ELEMENT
     ) {
-      let newParent
-
       if (nodeType === NODE_TYPES.DOCUMENT) {
         documentEvaluated = true
       }
@@ -76,92 +58,94 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applyItalicDataIfNeeded(data, currentNode)
         applyUnderlineDataIfNeeded(data, currentNode)
 
-        if (mode === 'block') {
-          if (!parent) {
-            newItem = createParagraph()
-            collection.push(newItem)
-            newParent = newItem
-          } else {
-            newParent = parent
-          }
+        if (currentNode.tagName === 'br') {
+          newItem = createLineBreak()
         }
       } else {
-        applyListDataIfNeeded(data, currentNode)
-
-        if (mode === 'block' && nodeType !== NODE_TYPES.DOCUMENT) {
-          if (!parent) {
-            newItem = createParagraph()
-            collection.push(newItem)
-            newParent = newItem
-          } else {
-            newParent = parent
-          }
-        }
-      }
-
-      const pendingItemsInCurrent = []
-      let targetCollection = collection
-      let prevChildNode
-
-      if (mode === 'inline') {
-        targetCollection = []
-        collection.push(targetCollection)
-      }
-
-      if (isBlockElement(currentNode)) {
-        data.parentBlockElement = currentNode
-      }
-
-      data.parentElement = currentNode
-
-      for (const [cIdx, childNode] of currentNode.childNodes.entries()) {
-        const pendingItem = {
-          item: childNode,
-          data
-        }
-
-        if (
-          (mode === 'block') &&
-          ((
-            prevChildNode != null &&
-            isBlockElement(prevChildNode)
-          ) ||
-          (
-            isBlockElement(childNode) &&
-            newParent != null &&
-            (newParent.children.length > 0 || cIdx !== 0)
-          ) ||
-          (
-            nodeType === NODE_TYPES.DOCUMENT &&
-            cIdx === 0
-          ))
-        ) {
-          newParent = createParagraph()
-          targetCollection = [newParent]
-          collection.push(targetCollection)
-        }
-
         if (mode === 'block') {
-          pendingItem.parent = newParent
+          applyListDataIfNeeded(data, currentNode)
         }
-
-        pendingItem.collection = targetCollection
-
-        pendingItemsInCurrent.push(pendingItem)
-        prevChildNode = childNode
       }
 
-      if (pendingItemsInCurrent.length > 0) {
-        pending.unshift(...pendingItemsInCurrent)
+      childNodes = [...currentNode.childNodes]
+    }
+
+    if (newItem != null) {
+      if (mode === 'inline') {
+        collection.push(newItem)
+      } else {
+        if (parent != null) {
+          parent.children.push(newItem)
+        }
       }
     }
 
-    if (newItem == null) {
+    if (
+      childNodes == null ||
+      childNodes.length === 0
+    ) {
       continue
     }
 
-    if (parent != null) {
-      parent.children.push(newItem)
+    const pendingItemsInCurrent = []
+    let targetCollection = collection
+    let prevChildNode
+    let newParent
+
+    if (mode === 'block' && nodeType !== NODE_TYPES.DOCUMENT) {
+      newParent = parent
+    }
+
+    if (mode === 'inline') {
+      targetCollection = []
+      collection.push(targetCollection)
+    }
+
+    if (isBlockElement(currentNode)) {
+      data.parentBlockElement = currentNode
+    }
+
+    data.parentElement = currentNode
+
+    for (const [cIdx, childNode] of childNodes.entries()) {
+      const pendingItem = {
+        item: childNode,
+        data
+      }
+
+      if (
+        (mode === 'block') &&
+        ((
+          prevChildNode != null &&
+          isBlockElement(prevChildNode)
+        ) ||
+        (
+          isBlockElement(childNode) &&
+          newParent != null &&
+          (newParent.children.length > 0 || cIdx !== 0)
+        ) ||
+        (
+          nodeType === NODE_TYPES.DOCUMENT &&
+          cIdx === 0
+        ))
+      ) {
+        newParent = createParagraph()
+        targetCollection = [newParent]
+        collection.push(targetCollection)
+      }
+
+      if (mode === 'block') {
+        pendingItem.parent = newParent
+      }
+
+      pendingItem.collection = targetCollection
+
+      pendingItemsInCurrent.push(pendingItem)
+      prevChildNode = childNode
+    }
+
+    if (pendingItemsInCurrent.length > 0) {
+      pending.unshift(...pendingItemsInCurrent)
     }
   }
 
@@ -194,6 +178,12 @@ function createText (text, data) {
   }
 
   return textItem
+}
+
+function createLineBreak () {
+  return {
+    type: 'lineBreak'
+  }
 }
 
 function applyBoldDataIfNeeded (data, node) {

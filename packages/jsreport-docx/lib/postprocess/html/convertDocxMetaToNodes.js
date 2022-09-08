@@ -31,8 +31,8 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
     if (mode === 'block' && parent == null && currentDocxMeta.type !== 'paragraph') {
       throw new Error(`Top level elements in docx meta for "${mode}" mode must be paragraphs`)
-    } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text') {
-      throw new Error(`Top level elements in docx meta for "${mode}" mode must be text`)
+    } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text' && currentDocxMeta.type !== 'lineBreak') {
+      throw new Error(`Top level elements in docx meta for "${mode}" mode must be text or line break`)
     }
 
     if (currentDocxMeta.type === 'paragraph') {
@@ -43,7 +43,8 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
       const containerEl = templateParagraphNode.cloneNode(true)
 
       const invalidChildMeta = currentDocxMeta.children.find((childMeta) => (
-        childMeta.type !== 'text'
+        childMeta.type !== 'text' &&
+        childMeta.type !== 'lineBreak'
       ))
 
       if (invalidChildMeta != null) {
@@ -127,6 +128,22 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
       if (mode === 'block') {
         if (parent == null) {
           throw new Error(`docx meta text element can not exists without parent for "${mode}" mode`)
+        }
+
+        parent.appendChild(runEl)
+      } else if (mode === 'inline') {
+        result.push(runEl)
+      }
+    } else if (currentDocxMeta.type === 'lineBreak') {
+      const runEl = createNode(doc, 'w:r', {
+        children: [
+          createNode(doc, 'w:br')
+        ]
+      })
+
+      if (mode === 'block') {
+        if (parent == null) {
+          throw new Error(`docx meta line break element can not exists without parent for "${mode}" mode`)
         }
 
         parent.appendChild(runEl)
