@@ -234,7 +234,7 @@ function applyUnderlineDataIfNeeded (data, node) {
     return
   }
 
-  const isUnderline = node.tagName === 'u'
+  const isUnderline = node.tagName === 'u' || node.tagName === 'ins'
 
   if (!isUnderline) {
     return

@@ -20,7 +20,8 @@ const elements = [
   },
   {
     type: 'inline',
-    tag: 'u'
+    tag: 'u',
+    alias: 'ins'
   },
   {
     type: 'inline',
@@ -37,7 +38,8 @@ const elements = [
   },
   {
     type: 'inline',
-    tag: 's'
+    tag: 's',
+    alias: 'del'
   },
   {
     tag: 'h1'
