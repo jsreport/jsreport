@@ -27,6 +27,15 @@ const elements = [
     tag: 'br'
   },
   {
+    type: 'inline',
+    tag: 'sub',
+    alias: 'small'
+  },
+  {
+    type: 'inline',
+    tag: 'sup'
+  },
+  {
     tag: 'h1'
   },
   {

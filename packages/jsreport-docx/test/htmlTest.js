@@ -500,6 +500,44 @@ describe.only('docx html embed', () => {
     }
   })
 
+  describe('<sub> tag', () => {
+    const opts = {
+      paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml) => {
+        commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
+      },
+      textAssert: (textNode) => {
+        should(findChildNode((n) => (
+          n.nodeName === 'w:vertAlign' &&
+          n.getAttribute('w:val') === 'subscript'
+        ), findChildNode('w:rPr', textNode.parentNode))).be.ok()
+      }
+    }
+
+    runCommonTests(() => reporter, 'sub', opts, commonWithText)
+    runCommonTests(() => reporter, 'sub', { ...opts, targetParent: ['block'] }, commonWithInlineAndBlockSiblings)
+    runCommonTests(() => reporter, 'sub', { ...opts, targetParent: ['block'] }, commonWithInlineBlockChildren)
+    runCommonTests(() => reporter, 'sub', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
+  })
+
+  describe('<sup> tag', () => {
+    const opts = {
+      paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml) => {
+        commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
+      },
+      textAssert: (textNode) => {
+        should(findChildNode((n) => (
+          n.nodeName === 'w:vertAlign' &&
+          n.getAttribute('w:val') === 'superscript'
+        ), findChildNode('w:rPr', textNode.parentNode))).be.ok()
+      }
+    }
+
+    runCommonTests(() => reporter, 'sup', opts, commonWithText)
+    runCommonTests(() => reporter, 'sup', { ...opts, targetParent: ['block'] }, commonWithInlineAndBlockSiblings)
+    runCommonTests(() => reporter, 'sup', { ...opts, targetParent: ['block'] }, commonWithInlineBlockChildren)
+    runCommonTests(() => reporter, 'sup', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
+  })
+
   for (const headingLevel of ['1', '2', '3', '4', '5', '6']) {
     describe(`<h${headingLevel}> tag`, () => {
       const opts = {

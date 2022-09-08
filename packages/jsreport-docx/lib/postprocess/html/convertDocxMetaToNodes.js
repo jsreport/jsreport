@@ -120,6 +120,19 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         rPrEl.insertBefore(createNode(doc, 'w:u', { attributes: { 'w:val': 'single' } }), rPrEl.firstChild)
       }
 
+      if (currentDocxMeta.subscript === true || currentDocxMeta.superscript === true) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingVertAlignEl = findChildNode('w:vertAlign', rPrEl)
+
+        if (existingVertAlignEl != null) {
+          rPrEl.removeChild(existingVertAlignEl)
+        }
+
+        const newVal = currentDocxMeta.superscript ? 'superscript' : 'subscript'
+
+        rPrEl.insertBefore(createNode(doc, 'w:vertAlign', { attributes: { 'w:val': newVal } }), rPrEl.firstChild)
+      }
+
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })
       textEl.textContent = currentDocxMeta.value
 

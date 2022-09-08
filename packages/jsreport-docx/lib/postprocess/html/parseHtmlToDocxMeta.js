@@ -57,6 +57,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applyBoldDataIfNeeded(data, currentNode)
         applyItalicDataIfNeeded(data, currentNode)
         applyUnderlineDataIfNeeded(data, currentNode)
+        applySubscriptDataIfNeeded(data, currentNode)
+        applyStrikeDataIfNeeded(data, currentNode)
+        applySuperscriptDataIfNeeded(data, currentNode)
 
         if (currentNode.tagName === 'br') {
           newItem = createLineBreak()
@@ -177,6 +180,18 @@ function createText (text, data) {
     textItem.underline = data.underline
   }
 
+  if (data.subscript === true) {
+    textItem.subscript = data.subscript
+  }
+
+  if (data.strike === true) {
+    textItem.strike = data.strike
+  }
+
+  if (data.superscript === true) {
+    textItem.superscript = data.superscript
+  }
+
   return textItem
 }
 
@@ -226,6 +241,48 @@ function applyUnderlineDataIfNeeded (data, node) {
   }
 
   data.underline = true
+}
+
+function applySubscriptDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isSubscript = node.tagName === 'sub' || node.tagName === 'small'
+
+  if (!isSubscript) {
+    return
+  }
+
+  data.subscript = true
+}
+
+function applyStrikeDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isStrike = node.tagName === 's' || node.tagName === 'del'
+
+  if (!isStrike) {
+    return
+  }
+
+  data.strike = true
+}
+
+function applySuperscriptDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isSuperscript = node.tagName === 'sup'
+
+  if (!isSuperscript) {
+    return
+  }
+
+  data.superscript = true
 }
 
 function applyListDataIfNeeded (data, node) {
