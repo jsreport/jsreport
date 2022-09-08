@@ -133,6 +133,17 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         rPrEl.insertBefore(createNode(doc, 'w:vertAlign', { attributes: { 'w:val': newVal } }), rPrEl.firstChild)
       }
 
+      if (currentDocxMeta.strike === true) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingStrikeEl = findChildNode('w:strike', rPrEl)
+
+        if (existingStrikeEl != null) {
+          rPrEl.removeChild(existingStrikeEl)
+        }
+
+        rPrEl.insertBefore(createNode(doc, 'w:strike'), rPrEl.firstChild)
+      }
+
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })
       textEl.textContent = currentDocxMeta.value
 

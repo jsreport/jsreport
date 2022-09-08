@@ -538,6 +538,22 @@ describe.only('docx html embed', () => {
     runCommonTests(() => reporter, 'sup', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
   })
 
+  describe('<s> tag', () => {
+    const opts = {
+      paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml) => {
+        commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
+      },
+      textAssert: (textNode) => {
+        should(findChildNode('w:strike', findChildNode('w:rPr', textNode.parentNode))).be.ok()
+      }
+    }
+
+    runCommonTests(() => reporter, 's', opts, commonWithText)
+    runCommonTests(() => reporter, 's', { ...opts, targetParent: ['block'] }, commonWithInlineAndBlockSiblings)
+    runCommonTests(() => reporter, 's', { ...opts, targetParent: ['block'] }, commonWithInlineBlockChildren)
+    runCommonTests(() => reporter, 's', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
+  })
+
   for (const headingLevel of ['1', '2', '3', '4', '5', '6']) {
     describe(`<h${headingLevel}> tag`, () => {
       const opts = {

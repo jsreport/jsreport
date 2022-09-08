@@ -36,6 +36,10 @@ const elements = [
     tag: 'sup'
   },
   {
+    type: 'inline',
+    tag: 's'
+  },
+  {
     tag: 'h1'
   },
   {
