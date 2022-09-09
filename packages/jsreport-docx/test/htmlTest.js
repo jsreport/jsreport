@@ -573,6 +573,120 @@ describe.only('docx html embed', () => {
     runCommonTests(() => reporter, 'code', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
   })
 
+  describe('<a> tag', () => {
+    const opts = {
+      outputDocuments: ['word/styles.xml', 'word/_rels/document.xml.rels'],
+      paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml) => {
+        commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
+      },
+      textAssert: (textNode, templateTextNodeForDocxHtml, extra) => {
+        const rStyle = findChildNode('w:rStyle', findChildNode('w:rPr', textNode.parentNode))
+
+        should(rStyle).be.ok()
+
+        const linkStyleId = rStyle.getAttribute('w:val')
+
+        const [stylesDoc, documentRelsDoc] = extra.outputDocuments
+
+        should(findChildNode((n) => (
+          n.nodeName === 'w:style' &&
+          n.getAttribute('w:type') === 'character' &&
+          n.getAttribute('w:styleId') === linkStyleId &&
+          findChildNode((cN) => cN.nodeName === 'w:name' && cN.getAttribute('w:val') === 'Hyperlink', n) != null
+        ), stylesDoc.documentElement)).be.ok()
+
+        const hyperlinkEl = textNode.parentNode.parentNode
+
+        should(hyperlinkEl.nodeName).eql('w:hyperlink')
+
+        const linkRelVal = hyperlinkEl.getAttribute('r:id')
+
+        should(linkRelVal).be.ok()
+        should(linkRelVal !== '').be.True()
+
+        should(findChildNode((n) => (
+          n.nodeName === 'Relationship' &&
+          n.getAttribute('Id') === linkRelVal &&
+          n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink'
+        ), documentRelsDoc.documentElement)).be.ok()
+      }
+    }
+
+    runCommonTests(() => reporter, 'a', opts, commonWithText)
+    runCommonTests(() => reporter, 'a', { ...opts, targetParent: ['block'] }, commonWithInlineAndBlockSiblings)
+    runCommonTests(() => reporter, 'a', { ...opts, targetParent: ['block'] }, commonWithInlineBlockChildren)
+
+    const outputDocuments = opts.outputDocuments
+    const paragraphAssert = opts.paragraphAssert
+    const textAssert = opts.textAssert
+
+    for (const mode of ['block', 'inline']) {
+      const templateStr = 'some <a href="https://jsreport.net">link</a>'
+
+      it(`${mode} mode - <a> with href ${templateStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', ...outputDocuments])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        const assertExtra = {
+          mode,
+          outputDocuments: restOfDocuments
+        }
+
+        const documentRelsDoc = restOfDocuments[1]
+
+        should(paragraphNodes.length).eql(1)
+
+        paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(2)
+
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('some ')
+
+        textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodes[1].textContent).eql('link')
+
+        const hyperlinkEl = textNodes[1].parentNode.parentNode
+
+        should(hyperlinkEl.nodeName).eql('w:hyperlink')
+
+        const linkRelVal = hyperlinkEl.getAttribute('r:id')
+
+        should(findChildNode((n) => (
+          n.nodeName === 'Relationship' &&
+          n.getAttribute('Id') === linkRelVal &&
+          n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink' &&
+          n.getAttribute('Target') === 'https://jsreport.net' &&
+          n.getAttribute('TargetMode') === 'External'
+        ), documentRelsDoc.documentElement)).be.ok()
+      })
+    }
+  })
+
   describe('<pre> tag', () => {
     const opts = {
       textAssert: (textNode) => {

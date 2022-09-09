@@ -17,6 +17,7 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
   const headingStylesIdCache = new Map()
   const listParagraphStyleIdCache = {}
   const numberingListsCache = new Map()
+  const hyperlinkStyleIdCache = {}
 
   let templateParagraphNode
 
@@ -173,14 +174,36 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       runEl.appendChild(textEl)
 
+      let newEl = runEl
+
+      if (currentDocxMeta.link != null) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingRStyleEl = findChildNode('w:rStyle', rPrEl)
+
+        if (existingRStyleEl != null) {
+          rPrEl.removeChild(existingRStyleEl)
+        }
+
+        const hyperlinkStyleId = addOrGetHyperlinkStyle(stylesDoc, hyperlinkStyleIdCache)
+
+        rPrEl.insertBefore(createNode(doc, 'w:rStyle', { attributes: { 'w:val': hyperlinkStyleId } }), rPrEl.firstChild)
+
+        const hyperlinkRelId = addHyperlinkRel(files, currentDocxMeta.link)
+
+        newEl = createNode(doc, 'w:hyperlink', {
+          attributes: { 'r:id': hyperlinkRelId },
+          children: [runEl]
+        })
+      }
+
       if (mode === 'block') {
         if (parent == null) {
           throw new Error(`docx meta text element can not exists without parent for "${mode}" mode`)
         }
 
-        parent.appendChild(runEl)
+        parent.appendChild(newEl)
       } else if (mode === 'inline') {
-        result.push(runEl)
+        result.push(newEl)
       }
     } else if (currentDocxMeta.type === 'lineBreak') {
       const runEl = createNode(doc, 'w:r', {
@@ -367,6 +390,64 @@ function createTitleStyle (stylesDoc, titleStyleId, titleLevel, normalStyleId, p
   return result
 }
 
+function addOrGetHyperlinkStyle (stylesDoc, cache) {
+  if (cache.id != null) {
+    return cache.id
+  }
+
+  const defaultParagraphFontStyleId = findDefaultStyleIdForName(stylesDoc, 'Default Paragraph Font', 'character')
+
+  if (defaultParagraphFontStyleId == null || defaultParagraphFontStyleId === '') {
+    throw new Error('style for "Default Paragraph Font" not found')
+  }
+
+  const stylesEl = stylesDoc.documentElement
+  const existingStyleEls = findChildNode('w:style', stylesEl, true)
+  const currentStyleEls = [...existingStyleEls]
+  const randomSuffix = generateRandomSuffix()
+
+  const defaultHyperlinkStyleId = findDefaultStyleIdForName(stylesDoc, 'Hyperlink', 'character')
+
+  if (defaultHyperlinkStyleId == null || defaultHyperlinkStyleId === '') {
+    const hyperlinkStyleId = `Hyprlnk${randomSuffix}`
+
+    const newHyperlinkStyleEl = createHyperlinkStyle(
+      stylesDoc,
+      hyperlinkStyleId,
+      defaultParagraphFontStyleId
+    )
+
+    stylesEl.insertBefore(newHyperlinkStyleEl, currentStyleEls.at(-1).nextSibling)
+    currentStyleEls.push(newHyperlinkStyleEl)
+
+    cache.id = hyperlinkStyleId
+  } else {
+    cache.id = defaultHyperlinkStyleId
+  }
+
+  return cache.id
+}
+
+function createHyperlinkStyle (stylesDoc, hyperlinkStyleId, paragraphFontStyleId) {
+  const uiPriority = getStyleUiPriority(stylesDoc, 'Hyperlink', '99')
+
+  return createNode(stylesDoc, 'w:style', {
+    attributes: { 'w:type': 'character', 'w:styleId': hyperlinkStyleId },
+    children: [
+      createNode(stylesDoc, 'w:name', { attributes: { 'w:val': 'Hyperlink' } }),
+      createNode(stylesDoc, 'w:basedOn', { attributes: { 'w:val': paragraphFontStyleId } }),
+      createNode(stylesDoc, 'w:uiPriority', { attributes: { 'w:val': uiPriority } }),
+      createNode(stylesDoc, 'w:unhideWhenUsed'),
+      createNode(stylesDoc, 'w:rPr', {
+        children: [
+          createNode(stylesDoc, 'w:color', { attributes: { 'w:val': '0563C1', 'w:themeColor': 'hyperlink' } }),
+          createNode(stylesDoc, 'w:u', { attributes: { 'w:val': 'single' } })
+        ]
+      })
+    ]
+  })
+}
+
 function addOrGetListParagraphStyle (stylesDoc, cache) {
   if (cache.id != null) {
     return cache.id
@@ -408,20 +489,39 @@ function addOrGetListParagraphStyle (stylesDoc, cache) {
 function createListParagraphStyle (stylesDoc, listParagraphStyleId, normalStyleId) {
   const uiPriority = getStyleUiPriority(stylesDoc, 'List Paragraph', '34')
 
-  const newListParagraphStyle = createNode(stylesDoc, 'w:style', { attributes: { 'w:type': 'paragraph', 'w:styleId': listParagraphStyleId } })
-  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:name', { attributes: { 'w:val': 'List Paragraph' } }))
-  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:basedOn', { attributes: { 'w:val': normalStyleId } }))
-  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:uiPriority', { attributes: { 'w:val': uiPriority } }))
-  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:qFormat'))
+  const newListParagraphStyleEl = createNode(stylesDoc, 'w:style', { attributes: { 'w:type': 'paragraph', 'w:styleId': listParagraphStyleId } })
+  newListParagraphStyleEl.appendChild(createNode(stylesDoc, 'w:name', { attributes: { 'w:val': 'List Paragraph' } }))
+  newListParagraphStyleEl.appendChild(createNode(stylesDoc, 'w:basedOn', { attributes: { 'w:val': normalStyleId } }))
+  newListParagraphStyleEl.appendChild(createNode(stylesDoc, 'w:uiPriority', { attributes: { 'w:val': uiPriority } }))
+  newListParagraphStyleEl.appendChild(createNode(stylesDoc, 'w:qFormat'))
 
-  newListParagraphStyle.appendChild(createNode(stylesDoc, 'w:pPr', {
+  newListParagraphStyleEl.appendChild(createNode(stylesDoc, 'w:pPr', {
     children: [
       createNode(stylesDoc, 'w:ind', { attributes: { 'w:left': '720' } }),
       createNode(stylesDoc, 'w:contextualSpacing')
     ]
   }))
 
-  return newListParagraphStyle
+  return newListParagraphStyleEl
+}
+
+function addHyperlinkRel (files, linkInfo) {
+  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+
+  const newRelId = getNewRelId(documentRelsDoc)
+
+  documentRelsDoc.documentElement.appendChild(
+    createNode(documentRelsDoc, 'Relationship', {
+      attributes: {
+        Id: newRelId,
+        Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',
+        Target: linkInfo.target,
+        TargetMode: 'External'
+      }
+    })
+  )
+
+  return newRelId
 }
 
 async function addOrGetNumbering (files, listInfo, cache) {

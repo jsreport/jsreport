@@ -61,6 +61,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applyStrikeDataIfNeeded(data, currentNode)
         applySuperscriptDataIfNeeded(data, currentNode)
         applyCodeDataIfNeeded(data, currentNode)
+        applyLinkDataIfNeeded(data, currentNode)
 
         if (currentNode.tagName === 'br') {
           newItem = createLineBreak()
@@ -236,6 +237,10 @@ function createText (text, data) {
     textItem.code = data.code
   }
 
+  if (data.link != null) {
+    textItem.link = data.link
+  }
+
   return textItem
 }
 
@@ -341,6 +346,26 @@ function applyCodeDataIfNeeded (data, node) {
   }
 
   data.code = true
+}
+
+function applyLinkDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isLink = node.tagName === 'a'
+
+  if (!isLink) {
+    return
+  }
+
+  data.link = {
+    target: ''
+  }
+
+  if (node.attribs?.href != null && node.attribs?.href !== '') {
+    data.link.target = node.attribs.href
+  }
 }
 
 function applyListDataIfNeeded (data, node) {

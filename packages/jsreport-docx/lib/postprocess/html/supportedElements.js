@@ -46,6 +46,10 @@ const elements = [
     tag: 'code'
   },
   {
+    type: 'inline',
+    tag: 'a'
+  },
+  {
     tag: 'pre'
   },
   {
