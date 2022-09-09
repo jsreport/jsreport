@@ -42,6 +42,9 @@ const elements = [
     alias: 'del'
   },
   {
+    tag: 'pre'
+  },
+  {
     tag: 'h1'
   },
   {

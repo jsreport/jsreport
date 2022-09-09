@@ -39,7 +39,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     ) {
       const getTextInNode = (n) => n.nodeType === NODE_TYPES.TEXT ? n.nodeValue : $(n).text()
 
-      newItem = createText(getTextInNode(currentNode), data)
+      newItem = normalizeText(getTextInNode(currentNode), data)
 
       if (mode === 'block') {
         applyTitleIfNeeded(parent, data)
@@ -68,17 +68,21 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         if (mode === 'block') {
           applyListDataIfNeeded(data, currentNode)
         }
+
+        applyPreformattedDataIfNeeded(data, currentNode)
       }
 
       childNodes = [...currentNode.childNodes]
     }
 
     if (newItem != null) {
+      const toInsert = Array.isArray(newItem) ? newItem : [newItem]
+
       if (mode === 'inline') {
-        collection.push(newItem)
+        collection.push(...toInsert)
       } else {
         if (parent != null) {
-          parent.children.push(newItem)
+          parent.children.push(...toInsert)
         }
       }
     }
@@ -162,6 +166,37 @@ function createParagraph () {
   }
 }
 
+function normalizeText (text, data) {
+  if (data.preformatted === true) {
+    const newItems = []
+    let currentText = text
+
+    do {
+      const match = currentText.match(/(\r?\n)/)
+
+      if (match == null) {
+        newItems.push(createText(currentText, data))
+        currentText = ''
+      } else {
+        const textBeforeLineBreak = currentText.slice(0, match.index)
+        const rest = currentText.slice(match.index + 1)
+
+        if (textBeforeLineBreak !== '') {
+          newItems.push(createText(textBeforeLineBreak, data))
+        }
+
+        newItems.push(createLineBreak())
+
+        currentText = rest
+      }
+    } while (currentText !== '')
+
+    return newItems
+  }
+
+  return createText(text, data)
+}
+
 function createText (text, data) {
   const textItem = {
     type: 'text',
@@ -190,6 +225,10 @@ function createText (text, data) {
 
   if (data.superscript === true) {
     textItem.superscript = data.superscript
+  }
+
+  if (data.preformatted === true) {
+    textItem.preformatted = data.preformatted
   }
 
   return textItem
@@ -323,11 +362,16 @@ function applyListDataIfNeeded (data, node) {
   }
 }
 
-function isBlockElement (node) {
-  return (
-    node.nodeType === NODE_TYPES.ELEMENT &&
-    BLOCK_ELEMENTS.includes(node.tagName)
-  )
+function applyPreformattedDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  if (node.tagName !== 'pre') {
+    return
+  }
+
+  data.preformatted = true
 }
 
 function applyTitleIfNeeded (parentMeta, data) {
@@ -384,6 +428,13 @@ function applyListIfNeeded (parentMeta, data) {
   }
 
   parentMeta.list = data.list
+}
+
+function isBlockElement (node) {
+  return (
+    node.nodeType === NODE_TYPES.ELEMENT &&
+    BLOCK_ELEMENTS.includes(node.tagName)
+  )
 }
 
 function normalizeMeta (fullMeta) {

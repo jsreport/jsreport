@@ -144,6 +144,19 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         rPrEl.insertBefore(createNode(doc, 'w:strike'), rPrEl.firstChild)
       }
 
+      if (currentDocxMeta.preformatted === true) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingRFontsEl = findChildNode('w:rFonts', rPrEl)
+
+        if (existingRFontsEl != null) {
+          rPrEl.removeChild(existingRFontsEl)
+        }
+
+        const fontTableDoc = files.find(f => f.path === 'word/fontTable.xml').doc
+        ensureFontDefinition(fontTableDoc, 'Courier')
+        rPrEl.insertBefore(createNode(doc, 'w:rFonts', { attributes: { 'w:ascii': 'Courier', 'w:hAnsi': 'Courier' } }), rPrEl.firstChild)
+      }
+
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })
       textEl.textContent = currentDocxMeta.value
 
@@ -683,7 +696,7 @@ function getStyleUiPriority (stylesDoc, name, defaultValue) {
 }
 
 function ensureFontDefinition (fontTableDoc, fontName) {
-  const supportedFonts = ['Symbol', 'Courier New', 'Wingdings']
+  const supportedFonts = ['Symbol', 'Courier', 'Courier New', 'Wingdings']
 
   if (!supportedFonts.includes(fontName)) {
     throw new Error(`font "${fontName}" not supported`)
@@ -704,6 +717,13 @@ function ensureFontDefinition (fontTableDoc, fontName) {
       family: 'decorative',
       pitch: 'variable',
       sig: ['00000000', '10000000', '00000000', '00000000', '80000000', '00000000']
+    },
+    Courier: {
+      panose1: '00000000000000000000',
+      charset: '00',
+      family: 'auto',
+      pitch: 'variable',
+      sig: ['00000003', '00000000', '00000000', '00000000', '00000003', '00000000']
     },
     'Courier New': {
       panose1: '02070309020205020404',

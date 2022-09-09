@@ -554,6 +554,77 @@ describe.only('docx html embed', () => {
     runCommonTests(() => reporter, 's', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
   })
 
+  describe('<pre> tag', () => {
+    const opts = {
+      textAssert: (textNode) => {
+        should(findChildNode((n) => (
+          n.nodeName === 'w:rFonts' &&
+          n.getAttribute('w:ascii') === 'Courier' &&
+          n.getAttribute('w:hAnsi') === 'Courier'
+        ), findChildNode('w:rPr', textNode.parentNode))).be.ok()
+      }
+    }
+
+    runCommonTests(() => reporter, 'pre', opts, commonWithText)
+    runCommonTests(() => reporter, 'pre', opts, commonWithInlineAndBlockSiblings)
+    runCommonTests(() => reporter, 'pre', opts, commonWithInlineBlockChildren)
+
+    for (const mode of ['block', 'inline']) {
+      const templateStr = '<pre>\nText in a pre element\nis displayed in a fixed-width\nfont, and it preserves\nboth      spaces and\nline breaks\n</pre>'
+
+      it(`${mode} mode - <pre> text with line breaks ${templateStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(10)
+
+        should(findChildNode('w:br', runNodes[1])).be.ok()
+        should(findChildNode('w:br', runNodes[3])).be.ok()
+        should(findChildNode('w:br', runNodes[5])).be.ok()
+        should(findChildNode('w:br', runNodes[7])).be.ok()
+        should(findChildNode('w:br', runNodes[9])).be.ok()
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(5)
+
+        should(textNodes[0].textContent).eql('Text in a pre element')
+        should(textNodes[1].textContent).eql('is displayed in a fixed-width')
+        should(textNodes[2].textContent).eql('font, and it preserves')
+        should(textNodes[3].textContent).eql('both      spaces and')
+        should(textNodes[4].textContent).eql('line breaks')
+      })
+    }
+  })
+
   for (const headingLevel of ['1', '2', '3', '4', '5', '6']) {
     describe(`<h${headingLevel}> tag`, () => {
       const opts = {
