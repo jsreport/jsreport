@@ -554,6 +554,25 @@ describe.only('docx html embed', () => {
     runCommonTests(() => reporter, 's', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
   })
 
+  describe('<code> tag', () => {
+    const opts = {
+      paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml) => {
+        commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
+      },
+      textAssert: (textNode) => {
+        should(findChildNode((n) => (
+          n.nodeName === 'w:highlight' &&
+          n.getAttribute('w:val') === 'lightGray'
+        ), findChildNode('w:rPr', textNode.parentNode))).be.ok()
+      }
+    }
+
+    runCommonTests(() => reporter, 'code', opts, commonWithText)
+    runCommonTests(() => reporter, 'code', { ...opts, targetParent: ['block'] }, commonWithInlineAndBlockSiblings)
+    runCommonTests(() => reporter, 'code', { ...opts, targetParent: ['block'] }, commonWithInlineBlockChildren)
+    runCommonTests(() => reporter, 'code', { ...opts, targetParent: ['block'] }, commonWithSameNestedChildren)
+  })
+
   describe('<pre> tag', () => {
     const opts = {
       textAssert: (textNode) => {

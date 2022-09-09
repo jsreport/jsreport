@@ -42,6 +42,10 @@ const elements = [
     alias: 'del'
   },
   {
+    type: 'inline',
+    tag: 'code'
+  },
+  {
     tag: 'pre'
   },
   {

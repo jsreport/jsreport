@@ -60,6 +60,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applySubscriptDataIfNeeded(data, currentNode)
         applyStrikeDataIfNeeded(data, currentNode)
         applySuperscriptDataIfNeeded(data, currentNode)
+        applyCodeDataIfNeeded(data, currentNode)
 
         if (currentNode.tagName === 'br') {
           newItem = createLineBreak()
@@ -231,6 +232,10 @@ function createText (text, data) {
     textItem.preformatted = data.preformatted
   }
 
+  if (data.code === true) {
+    textItem.code = data.code
+  }
+
   return textItem
 }
 
@@ -322,6 +327,20 @@ function applySuperscriptDataIfNeeded (data, node) {
   }
 
   data.superscript = true
+}
+
+function applyCodeDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const isCode = node.tagName === 'code'
+
+  if (!isCode) {
+    return
+  }
+
+  data.code = true
 }
 
 function applyListDataIfNeeded (data, node) {
