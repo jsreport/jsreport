@@ -1,7 +1,7 @@
 require('should')
-var define = require('../lib/define.js')
-var parse = require('../lib/parse.js')
-var model = require('./model')
+const define = require('../lib/define.js')
+const parse = require('../lib/parse.js')
+const model = require('./model')
 
 describe('parse', function () {
   beforeEach(function () {
@@ -9,7 +9,7 @@ describe('parse', function () {
   })
 
   it('should create parse one', function () {
-    var parsedDoc = parse({ _id: 'foo' }, 'users', model)
+    const parsedDoc = parse({ _id: 'foo' }, 'users', model)
     parsedDoc.should.have.property('_id')
     parsedDoc._id.should.be.eql('foo')
 
@@ -17,7 +17,7 @@ describe('parse', function () {
   })
 
   it('should parse complex one', function () {
-    var parsedDoc = parse({
+    const parsedDoc = parse({
       _id: 'foo',
       address_street: 'street'
     }, 'users', model)

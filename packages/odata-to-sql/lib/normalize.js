@@ -1,10 +1,10 @@
 module.exports = function (doc, entitySetName, model) {
-  var values = {}
-  var entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
-  var entityType = model.entityTypes[entityTypeName]
+  const values = {}
+  const entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
+  const entityType = model.entityTypes[entityTypeName]
 
-  for (var columnName in entityType) {
-    var columnType = entityType[columnName]
+  for (const columnName in entityType) {
+    const columnType = entityType[columnName]
     if (columnType.isPrimitive) {
       if (doc[columnName] != null) {
         values[columnName] = doc[columnName]
@@ -17,7 +17,7 @@ module.exports = function (doc, entitySetName, model) {
     }
 
     if (columnType.complexType) {
-      for (var complexColumnName in columnType.complexType) {
+      for (const complexColumnName in columnType.complexType) {
         if (columnType.complexType[complexColumnName].isPrimitive) {
           values[columnName + '_' + complexColumnName] = doc[columnName] != null ? doc[columnName][complexColumnName] : null
         } else {

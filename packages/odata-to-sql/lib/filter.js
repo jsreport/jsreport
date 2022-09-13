@@ -4,7 +4,7 @@ function getOperation (el, obj) {
   }
 
   if (obj != null) {
-    for (var key in operations) {
+    for (const key in operations) {
       if (obj[key]) {
         return operations[key]
       }
@@ -102,7 +102,7 @@ module.exports = function (query, table, filter, entityType) {
   return query.where(filterObject(table, filter, entityType))
 }
 
-var operations = {
+const operations = {
   $gt: gt,
   $gte: gte,
   $lt: lt,

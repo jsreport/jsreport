@@ -1,14 +1,14 @@
 require('should')
-var define = require('../lib/define.js')
-var remove = require('../lib/remove.js')
-var model = require('./model')
-var sql = require('jsreport-sql-2')
+const define = require('../lib/define.js')
+const remove = require('../lib/remove.js')
+const model = require('./model')
+const sql = require('jsreport-sql-2')
 
 describe('remove', function () {
-  var table
+  let table
 
   beforeEach(function () {
-    var tables = define(model, 'mssql', '')
+    const tables = define(model, 'mssql', '')
     sql.setDialect('mssql')
     table = sql.define(tables[0])
   })

@@ -1,13 +1,13 @@
-var _ = require('lodash')
-var filter = require('./filter')
+const _ = require('lodash')
+const filter = require('./filter')
 
 function getColumns (obj, entitySetName, model) {
-  var result = {}
-  var entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
-  var entityType = model.entityTypes[entityTypeName]
+  const result = {}
+  const entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
+  const entityType = model.entityTypes[entityTypeName]
 
-  for (var columnName in entityType) {
-    var columnType = entityType[columnName]
+  for (const columnName in entityType) {
+    const columnType = entityType[columnName]
     if (columnType.isPrimitive) {
       if (obj[columnName] != null) {
         result[columnName] = [columnName]
@@ -20,7 +20,7 @@ function getColumns (obj, entitySetName, model) {
     }
 
     if (columnType.complexType) {
-      for (var complexColumnName in columnType.complexType) {
+      for (const complexColumnName in columnType.complexType) {
         result[columnName] = result[columnName] || []
         result[columnName].push(columnName + '_' + complexColumnName)
       }
@@ -35,7 +35,7 @@ function getColumns (obj, entitySetName, model) {
 }
 
 module.exports = function (table, options, entitySetName, model) {
-  var query
+  let query
 
   options = _.extend({
     $orderBy: {},
@@ -50,7 +50,7 @@ module.exports = function (table, options, entitySetName, model) {
       query = table.select(table.star())
     } else {
       const columns = getColumns(options.$select, entitySetName, model)
-      for (var selectKey in options.$select) {
+      for (const selectKey in options.$select) {
         columns[selectKey].forEach((c) => {
           query = (query || table).select(table[c])
         })
@@ -60,8 +60,8 @@ module.exports = function (table, options, entitySetName, model) {
 
   query = query.from(table)
 
-  var entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
-  var entityType = model.entityTypes[entityTypeName]
+  const entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
+  const entityType = model.entityTypes[entityTypeName]
 
   query = filter(query, table, options.$filter, entityType)
 
@@ -69,8 +69,8 @@ module.exports = function (table, options, entitySetName, model) {
     return query.toQuery()
   }
 
-  for (var orderByKey in options.$sort) {
-    var column = table[orderByKey]
+  for (const orderByKey in options.$sort) {
+    const column = table[orderByKey]
     query = query.order(column[options.$sort[orderByKey] === -1 ? 'desc' : 'asc'])
   }
 

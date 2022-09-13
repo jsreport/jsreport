@@ -1,22 +1,22 @@
-var normalize = require('./normalize')
-var filter = require('./filter')
+const normalize = require('./normalize')
+const filter = require('./filter')
 
 module.exports = function (table, query, update, entitySetName, model) {
-  var updateDoc = normalize(update.$set || {}, entitySetName, model)
+  const updateDoc = normalize(update.$set || {}, entitySetName, model)
 
   if (update.$inc) {
-    var inc = normalize(update.$inc, entitySetName, model)
+    const inc = normalize(update.$inc, entitySetName, model)
 
-    for (var p in inc) {
+    for (const p in inc) {
       updateDoc[p] = table[p].plus(inc[p])
     }
   }
 
-  var q = table.update(updateDoc)
+  let q = table.update(updateDoc)
 
   if (query) {
-    var entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
-    var entityType = model.entityTypes[entityTypeName]
+    const entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
+    const entityType = model.entityTypes[entityTypeName]
 
     q = filter(q, table, query, entityType)
   }

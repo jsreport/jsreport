@@ -1,17 +1,17 @@
-var define = require('./define')
-var insert = require('./insert')
-var query = require('./query')
-var count = require('./count')
-var upd = require('./update')
-var remove = require('./remove')
-var parse = require('./parse')
-var sql = require('jsreport-sql-2')
+const define = require('./define')
+const insert = require('./insert')
+const query = require('./query')
+const count = require('./count')
+const upd = require('./update')
+const remove = require('./remove')
+const parse = require('./parse')
+const sql = require('jsreport-sql-2')
 
 module.exports = function (model, dialect, prefix, schema) {
   prefix = prefix || ''
   sql.setDialect(dialect)
 
-  var tableList = define(model, dialect, prefix).map(function (t) {
+  const tableList = define(model, dialect, prefix).map(function (t) {
     if (schema) {
       t.schema = schema
     }
@@ -19,8 +19,8 @@ module.exports = function (model, dialect, prefix, schema) {
     return sql.define(t)
   })
 
-  var tables = {}
-  for (var entitySetName in model.entitySets) {
+  const tables = {}
+  for (const entitySetName in model.entitySets) {
     tables[entitySetName] = tableList.filter(function (t) {
       return t._name === (prefix + model.entitySets[entitySetName].entityType.replace(model.namespace + '.', ''))
     })[0]

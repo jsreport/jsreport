@@ -1,9 +1,9 @@
 require('should')
-var model = require('./model')
-var transformator = require('../index')
+const model = require('./model')
+const transformator = require('../index')
 
 describe('transformer msql', function () {
-  var convertor
+  let convertor
 
   beforeEach(function () {
     convertor = transformator(model, 'mssql')
@@ -14,7 +14,7 @@ describe('transformer msql', function () {
   })
 
   it('should create insert statements', function () {
-    var q = convertor.insert('users', { _id: 'foo' })
+    const q = convertor.insert('users', { _id: 'foo' })
     q.text.should.be.eql('INSERT INTO [UserType] ([_id]) VALUES (@1)')
     q.values.should.have.length(1)
     q.values[0].should.be.eql('foo')
@@ -22,7 +22,7 @@ describe('transformer msql', function () {
 })
 
 describe('transformer oracle', function () {
-  var convertor
+  let convertor
 
   beforeEach(function () {
     convertor = transformator(model, 'oracle')
@@ -33,7 +33,7 @@ describe('transformer oracle', function () {
   })
 
   it('should create insert statements', function () {
-    var q = convertor.insert('users', { _id: 'foo' })
+    const q = convertor.insert('users', { _id: 'foo' })
     q.text.should.be.eql('INSERT INTO "UserType" ("_id") VALUES (:1)')
     q.values.should.have.length(1)
     q.values[0].should.be.eql('foo')

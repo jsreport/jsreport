@@ -1,4 +1,4 @@
-var types = require('./types/types')
+const types = require('./types/types')
 
 function parseType (def, name, model, primitiveTypes) {
   if (primitiveTypes[def.type]) {
@@ -10,8 +10,8 @@ function parseType (def, name, model, primitiveTypes) {
     return [{ dataType: primitiveTypes['Edm.String'](def), name: name, isCollection: true }]
   }
 
-  var complexTypeName = def.type.replace(model.namespace + '.', '')
-  var complexType = model.complexTypes[complexTypeName]
+  const complexTypeName = def.type.replace(model.namespace + '.', '')
+  const complexType = model.complexTypes[complexTypeName]
 
   def.complexType = complexType
 
@@ -19,8 +19,8 @@ function parseType (def, name, model, primitiveTypes) {
     throw new Error('Unable to recognize type ' + def.type + ' in ' + name)
   }
 
-  var columns = []
-  for (var columnName in complexType) {
+  let columns = []
+  for (const columnName in complexType) {
     columns = columns.concat(parseType(complexType[columnName], name + '_' + columnName, model, primitiveTypes))
   }
 
@@ -28,12 +28,12 @@ function parseType (def, name, model, primitiveTypes) {
 }
 
 module.exports = function (model, dialect, prefix) {
-  var tables = []
-  var primitiveTypes = types(dialect)
-  for (var name in model.entityTypes) {
-    var table = { name: prefix + name, columns: [] }
+  const tables = []
+  const primitiveTypes = types(dialect)
+  for (const name in model.entityTypes) {
+    const table = { name: prefix + name, columns: [] }
     tables.push(table)
-    for (var columnName in model.entityTypes[name]) {
+    for (const columnName in model.entityTypes[name]) {
       parseType(model.entityTypes[name][columnName], columnName, model, primitiveTypes).forEach(function (t) {
         table.columns.push(t)
       })

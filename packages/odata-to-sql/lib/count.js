@@ -1,6 +1,6 @@
-var _ = require('lodash')
+const _ = require('lodash')
 module.exports = function (table, options) {
-  var query
+  let query
 
   options = _.extend({
     $orderBy: {},
@@ -11,7 +11,8 @@ module.exports = function (table, options) {
   query = table.select(table.star().count())
   query = query.from(table)
 
-  for (var filter in options.$filter) {
+  for (const filter in options.$filter) {
+    console.log('filter', filter)
     query = query.where(table[filter].equals(options.$filter[filter]))
   }
 
