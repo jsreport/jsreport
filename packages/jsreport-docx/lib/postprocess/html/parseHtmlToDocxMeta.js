@@ -1,7 +1,9 @@
 const cheerio = require('cheerio')
+const styleAttr = require('style-attr')
 const { customAlphabet } = require('nanoid')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
+const { fontSizeToPt } = require('../../utils')
 
 const NODE_TYPES = {
   DOCUMENT: 9,
@@ -52,6 +54,8 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
       if (nodeType === NODE_TYPES.DOCUMENT) {
         documentEvaluated = true
       }
+
+      inspectStylesAndApplyDataIfNeeded(data, currentNode)
 
       if (INLINE_ELEMENTS.includes(currentNode.tagName)) {
         applyBoldDataIfNeeded(data, currentNode)
@@ -205,40 +209,25 @@ function createText (text, data) {
     value: text != null ? text : ''
   }
 
-  if (data.bold === true) {
-    textItem.bold = data.bold
+  const boolProperties = [
+    'bold', 'italic', 'underline', 'subscript', 'strike', 'superscript',
+    'preformatted', 'code'
+  ]
+
+  const notNullProperties = [
+    'link', 'fontSize'
+  ]
+
+  for (const prop of boolProperties) {
+    if (data[prop] === true) {
+      textItem[prop] = data[prop]
+    }
   }
 
-  if (data.italic === true) {
-    textItem.italic = data.italic
-  }
-
-  if (data.underline === true) {
-    textItem.underline = data.underline
-  }
-
-  if (data.subscript === true) {
-    textItem.subscript = data.subscript
-  }
-
-  if (data.strike === true) {
-    textItem.strike = data.strike
-  }
-
-  if (data.superscript === true) {
-    textItem.superscript = data.superscript
-  }
-
-  if (data.preformatted === true) {
-    textItem.preformatted = data.preformatted
-  }
-
-  if (data.code === true) {
-    textItem.code = data.code
-  }
-
-  if (data.link != null) {
-    textItem.link = data.link
+  for (const prop of notNullProperties) {
+    if (data[prop] != null) {
+      textItem[prop] = data[prop]
+    }
   }
 
   return textItem
@@ -416,6 +405,32 @@ function applyPreformattedDataIfNeeded (data, node) {
   }
 
   data.preformatted = true
+}
+
+function inspectStylesAndApplyDataIfNeeded (data, node) {
+  if (node.nodeType !== NODE_TYPES.ELEMENT) {
+    return
+  }
+
+  const styleVal = node.attribs?.style
+
+  if (styleVal == null || styleVal === '') {
+    return
+  }
+
+  const styles = styleAttr.parse(styleVal)
+
+  if (Object.keys(styles).length === 1 && styles[''] != null) {
+    return
+  }
+
+  if (styles['font-size'] != null) {
+    const parsedFontSize = fontSizeToPt(styles['font-size'])
+
+    if (parsedFontSize != null) {
+      data.fontSize = parsedFontSize
+    }
+  }
 }
 
 function applyTitleIfNeeded (parentMeta, data) {

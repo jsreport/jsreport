@@ -220,6 +220,70 @@ function createNode (doc, name, opts = {}) {
   return newEl
 }
 
+function pxToEMU (val) {
+  return Math.round(val * 914400 / 96)
+}
+
+function cmToEMU (val) {
+  // cm to dxa
+  // eslint-disable-next-line no-loss-of-precision
+  const dxa = val * 567.058823529411765
+  // dxa to EMU
+  return Math.round(dxa * 914400 / 72 / 20)
+}
+
+function pxToPt (val) {
+  if (typeof val !== 'number') {
+    return null
+  }
+
+  return val * 72 / 96
+}
+
+function ptToHalfPoint (val) {
+  if (typeof val !== 'number') {
+    return null
+  }
+
+  return val * 2
+}
+
+function fontSizeToPx (value) {
+  if (!value) {
+    return null
+  }
+
+  if (typeof value === 'number') {
+    return value
+  }
+
+  const pt = value.match(/([.\d]+)pt/i)
+
+  if (pt && pt.length === 2) {
+    return parseFloat(pt[1], 10) * 96 / 72
+  }
+
+  const em = value.match(/([.\d]+)r?em/i)
+
+  if (em && em.length === 2) {
+    return parseFloat(em[1], 10) * 16
+  }
+
+  const px = value.match(/([.\d]+)px/i)
+
+  if (px && px.length === 2) {
+    return parseFloat(px[1], 10)
+  }
+
+  const pe = value.match(/([.\d]+)%/i)
+
+  if (pe && pe.length === 2) {
+    return (parseFloat(pe[1], 10) / 100) * 16
+  }
+
+  return null
+}
+
 module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph') => {
   const styleEls = nodeListToArray(stylesDoc.getElementsByTagName('w:style'))
 
@@ -250,18 +314,19 @@ module.exports.contentIsXML = (content) => {
   return str.startsWith('<?xml') || (/^\s*<[\s\S]*>/).test(str)
 }
 
-module.exports.pxToEMU = (val) => {
-  return Math.round(val * 914400 / 96)
+module.exports.fontSizeToPt = (value) => {
+  const sizeInPx = fontSizeToPx(value)
+
+  if (sizeInPx == null) {
+    return sizeInPx
+  }
+
+  return pxToPt(sizeInPx)
 }
 
-module.exports.cmToEMU = (val) => {
-  // cm to dxa
-  // eslint-disable-next-line no-loss-of-precision
-  const dxa = val * 567.058823529411765
-  // dxa to EMU
-  return Math.round(dxa * 914400 / 72 / 20)
-}
-
+module.exports.pxToEMU = pxToEMU
+module.exports.cmToEMU = cmToEMU
+module.exports.ptToHalfPoint = ptToHalfPoint
 module.exports.serializeXml = (doc) => new XMLSerializer().serializeToString(doc).replace(/ xmlns(:[a-z0-9]+)?=""/g, '')
 module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId

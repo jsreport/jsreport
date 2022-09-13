@@ -3,7 +3,7 @@ const fs = require('fs/promises')
 const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId } = require('../../utils')
+const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
 module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, files, paragraphNode } = {}) {
@@ -167,6 +167,26 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         }
 
         rPrEl.insertBefore(createNode(doc, 'w:highlight', { attributes: { 'w:val': 'lightGray' } }), rPrEl.firstChild)
+      }
+
+      if (currentDocxMeta.fontSize != null) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingSzEl = findChildNode('w:sz', rPrEl)
+
+        if (existingSzEl != null) {
+          rPrEl.removeChild(existingSzEl)
+        }
+
+        const existingSzCsEl = findChildNode('w:szCs', rPrEl)
+
+        if (existingSzCsEl != null) {
+          rPrEl.removeChild(existingSzCsEl)
+        }
+
+        const fontSizeInHalfPoint = ptToHalfPoint(currentDocxMeta.fontSize).toString()
+
+        rPrEl.insertBefore(createNode(doc, 'w:szCs', { attributes: { 'w:val': fontSizeInHalfPoint } }), rPrEl.firstChild)
+        rPrEl.insertBefore(createNode(doc, 'w:sz', { attributes: { 'w:val': fontSizeInHalfPoint } }), rPrEl.firstChild)
       }
 
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })

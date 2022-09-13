@@ -1600,6 +1600,56 @@ describe.only('docx html embed', () => {
       }
     })
   }
+
+  describe('styles', () => {
+    for (const mode of ['block', 'inline']) {
+      const templateFontSizeStr = '<p style="font-size: 32px">...</p>'
+
+      it(`${mode} mode - font size`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateFontSizeStr, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        findChildNode((n) => (
+          n.nodeName === 'w:sz' &&
+          n.getAttribute('w:val') != null && n.getAttribute('w:val') !== ''
+        ), findChildNode('w:rPr', textNodes[0].parentNode)).should.be.ok()
+
+        findChildNode((n) => (
+          n.nodeName === 'w:szCs' &&
+          n.getAttribute('w:val') != null && n.getAttribute('w:val') !== ''
+        ), findChildNode('w:rPr', textNodes[0].parentNode)).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
+    }
+  })
 })
 
 function commonWithText ({
