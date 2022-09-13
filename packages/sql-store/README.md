@@ -8,3 +8,6 @@
 
 Adaptations for the v3 APIs
 
+### 3.1.0
+
+Support for complex $filter in count query (fix profiler in 3.7.1)
