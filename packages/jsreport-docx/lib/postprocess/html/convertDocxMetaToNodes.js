@@ -201,6 +201,18 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         rPrEl.insertBefore(createNode(doc, 'w:rFonts', { attributes: { 'w:ascii': fontFamily, 'w:hAnsi': fontFamily } }), rPrEl.firstChild)
       }
 
+      if (currentDocxMeta.color != null) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingColorEl = findChildNode('w:color', rPrEl)
+
+        if (existingColorEl != null) {
+          rPrEl.removeChild(existingColorEl)
+        }
+
+        const color = currentDocxMeta.color.slice(1)
+        rPrEl.insertBefore(createNode(doc, 'w:color', { attributes: { 'w:val': color } }), rPrEl.firstChild)
+      }
+
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })
       textEl.textContent = currentDocxMeta.value
 

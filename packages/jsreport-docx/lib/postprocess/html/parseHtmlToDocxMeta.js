@@ -3,6 +3,7 @@ const styleAttr = require('style-attr')
 const { customAlphabet } = require('nanoid')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
+const color = require('tinycolor2')
 const { fontSizeToPt } = require('../../utils')
 
 const NODE_TYPES = {
@@ -215,7 +216,7 @@ function createText (text, data) {
   ]
 
   const notNullProperties = [
-    'link', 'fontSize', 'fontFamily'
+    'link', 'fontSize', 'fontFamily', 'color'
   ]
 
   for (const prop of boolProperties) {
@@ -435,6 +436,14 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   if (styles['font-family'] != null) {
     const fontFamily = styles['font-family'].replace(/^"/, '').replace(/"$/, '')
     data.fontFamily = fontFamily
+  }
+
+  if (styles.color != null) {
+    const parsedColor = color(styles.color)
+
+    if (parsedColor.isValid()) {
+      data.color = parsedColor.toHexString().toUpperCase()
+    }
   }
 }
 
