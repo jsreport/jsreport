@@ -44,6 +44,10 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 3.1.0
+
+Support for complex $filter in count quert. Fix for 3.7.1 profiler
+
 ### 3.0.1
 
 - add missing blobstorage to jsreport.config.js
