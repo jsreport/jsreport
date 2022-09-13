@@ -47,6 +47,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
       if (mode === 'block') {
         applyTitleIfNeeded(parent, data)
         applyListIfNeeded(parent, data)
+        applyBackgroundColorIfNeeded(parent, data)
       }
     } else if (
       (nodeType === NODE_TYPES.DOCUMENT && !documentEvaluated) ||
@@ -216,7 +217,7 @@ function createText (text, data) {
   ]
 
   const notNullProperties = [
-    'link', 'fontSize', 'fontFamily', 'color'
+    'link', 'fontSize', 'fontFamily', 'color', 'backgroundColor'
   ]
 
   for (const prop of boolProperties) {
@@ -445,6 +446,14 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
       data.color = parsedColor.toHexString().toUpperCase()
     }
   }
+
+  if (styles['background-color'] != null) {
+    const parsedBackgroundColor = color(styles['background-color'])
+
+    if (parsedBackgroundColor.isValid()) {
+      data.backgroundColor = parsedBackgroundColor.toHexString().toUpperCase()
+    }
+  }
 }
 
 function applyTitleIfNeeded (parentMeta, data) {
@@ -501,6 +510,18 @@ function applyListIfNeeded (parentMeta, data) {
   }
 
   parentMeta.list = data.list
+}
+
+function applyBackgroundColorIfNeeded (parentMeta, data) {
+  if (parentMeta.type !== 'paragraph') {
+    return
+  }
+
+  if (data.backgroundColor == null) {
+    return
+  }
+
+  parentMeta.backgroundColor = data.backgroundColor
 }
 
 function isBlockElement (node) {

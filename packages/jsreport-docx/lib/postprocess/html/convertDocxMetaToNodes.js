@@ -72,6 +72,18 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         numIdEl.setAttribute('w:val', numId)
       }
 
+      if (currentDocxMeta.backgroundColor != null) {
+        const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+        const existingShdEl = findChildNode('w:shd', pPrEl)
+
+        if (existingShdEl != null) {
+          pPrEl.removeChild(existingShdEl)
+        }
+
+        const backgroundColor = currentDocxMeta.backgroundColor.slice(1)
+        pPrEl.insertBefore(createNode(doc, 'w:shd', { attributes: { 'w:val': 'clear', 'w:color': 'auto', 'w:fill': backgroundColor } }), pPrEl.firstChild)
+      }
+
       result.push(containerEl)
 
       const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({
@@ -211,6 +223,18 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
         const color = currentDocxMeta.color.slice(1)
         rPrEl.insertBefore(createNode(doc, 'w:color', { attributes: { 'w:val': color } }), rPrEl.firstChild)
+      }
+
+      if (currentDocxMeta.backgroundColor != null) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingShdEl = findChildNode('w:shd', rPrEl)
+
+        if (existingShdEl != null) {
+          rPrEl.removeChild(existingShdEl)
+        }
+
+        const backgroundColor = currentDocxMeta.backgroundColor.slice(1)
+        rPrEl.insertBefore(createNode(doc, 'w:shd', { attributes: { 'w:val': 'clear', 'w:color': 'auto', 'w:fill': backgroundColor } }), rPrEl.firstChild)
       }
 
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })

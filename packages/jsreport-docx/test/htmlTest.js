@@ -1814,6 +1814,102 @@ describe.only('docx html embed', () => {
 
         should(textNodes[0].textContent).eql('Hello World')
       })
+
+      const templateBackgroundColorStr = '<p style="background-color: blue">...</p>'
+
+      it(`${mode} mode - background color`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateBackgroundColorStr, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        if (mode === 'block') {
+          findChildNode((n) => (
+            n.nodeName === 'w:shd' &&
+            n.getAttribute('w:fill') != null && n.getAttribute('w:fill') !== ''
+          ), findChildNode('w:pPr', textNodes[0].parentNode.parentNode)).should.be.ok()
+        }
+
+        findChildNode((n) => (
+          n.nodeName === 'w:shd' &&
+          n.getAttribute('w:fill') != null && n.getAttribute('w:fill') !== ''
+        ), findChildNode('w:rPr', textNodes[0].parentNode)).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
+
+      const templateBackgroundColor2Str = '<p style="background-color: #0000FF">...</p>'
+
+      it(`${mode} mode - background color #hex`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateBackgroundColor2Str, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        if (mode === 'block') {
+          findChildNode((n) => (
+            n.nodeName === 'w:shd' &&
+            n.getAttribute('w:fill') != null && n.getAttribute('w:fill') !== ''
+          ), findChildNode('w:pPr', textNodes[0].parentNode.parentNode)).should.be.ok()
+        }
+
+        findChildNode((n) => (
+          n.nodeName === 'w:shd' &&
+          n.getAttribute('w:fill') != null && n.getAttribute('w:fill') !== ''
+        ), findChildNode('w:rPr', textNodes[0].parentNode)).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
     }
   })
 })
