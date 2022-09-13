@@ -46,7 +46,7 @@ module.exports = function (model, dialect, prefix, schema) {
       return query(tables[entitySetName], mongoOptions, entitySetName, model)
     },
     count: function (entitySetName, mongoOptions) {
-      return count(tables[entitySetName], mongoOptions)
+      return count(tables[entitySetName], mongoOptions, entitySetName, model)
     },
     parse: function (entitySetName, doc) {
       return parse(doc, entitySetName, model)

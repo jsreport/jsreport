@@ -1,5 +1,7 @@
 const _ = require('lodash')
-module.exports = function (table, options) {
+const filter = require('./filter')
+
+module.exports = function (table, options, entitySetName, model) {
   let query
 
   options = _.extend({
@@ -11,10 +13,10 @@ module.exports = function (table, options) {
   query = table.select(table.star().count())
   query = query.from(table)
 
-  for (const filter in options.$filter) {
-    console.log('filter', filter)
-    query = query.where(table[filter].equals(options.$filter[filter]))
-  }
+  const entityTypeName = model.entitySets[entitySetName].entityType.replace(model.namespace + '.', '')
+  const entityType = model.entityTypes[entityTypeName]
+
+  query = filter(query, table, options.$filter, entityType)
 
   return query.toQuery()
 }
