@@ -189,6 +189,18 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         rPrEl.insertBefore(createNode(doc, 'w:sz', { attributes: { 'w:val': fontSizeInHalfPoint } }), rPrEl.firstChild)
       }
 
+      if (currentDocxMeta.fontFamily != null) {
+        const rPrEl = findOrCreateChildNode(doc, 'w:rPr', runEl)
+        const existingRFontsEl = findChildNode('w:rFonts', rPrEl)
+
+        if (existingRFontsEl != null) {
+          rPrEl.removeChild(existingRFontsEl)
+        }
+
+        const fontFamily = currentDocxMeta.fontFamily
+        rPrEl.insertBefore(createNode(doc, 'w:rFonts', { attributes: { 'w:ascii': fontFamily, 'w:hAnsi': fontFamily } }), rPrEl.firstChild)
+      }
+
       const textEl = createNode(doc, 'w:t', { attributes: { 'xml:space': 'preserve' } })
       textEl.textContent = currentDocxMeta.value
 

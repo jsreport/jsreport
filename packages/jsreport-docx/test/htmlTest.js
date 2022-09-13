@@ -1648,6 +1648,90 @@ describe.only('docx html embed', () => {
 
         should(textNodes[0].textContent).eql('Hello World')
       })
+
+      const templateFontFamilyStr = '<p style="font-family: Tahoma">...</p>'
+
+      it(`${mode} mode - font family`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateFontFamilyStr, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        findChildNode((n) => (
+          n.nodeName === 'w:rFonts' &&
+          n.getAttribute('w:ascii') === 'Tahoma' &&
+          n.getAttribute('w:hAnsi') === 'Tahoma'
+        ), findChildNode('w:rPr', textNodes[0].parentNode)).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
+
+      const templateFontFamily2Str = '<p style=\'font-family: "Times New Roman"\'>...</p>'
+
+      it(`${mode} mode - font family with ""`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateFontFamily2Str, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        findChildNode((n) => (
+          n.nodeName === 'w:rFonts' &&
+          n.getAttribute('w:ascii') === 'Times New Roman' &&
+          n.getAttribute('w:hAnsi') === 'Times New Roman'
+        ), findChildNode('w:rPr', textNodes[0].parentNode)).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
     }
   })
 })

@@ -215,7 +215,7 @@ function createText (text, data) {
   ]
 
   const notNullProperties = [
-    'link', 'fontSize'
+    'link', 'fontSize', 'fontFamily'
   ]
 
   for (const prop of boolProperties) {
@@ -430,6 +430,11 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     if (parsedFontSize != null) {
       data.fontSize = parsedFontSize
     }
+  }
+
+  if (styles['font-family'] != null) {
+    const fontFamily = styles['font-family'].replace(/^"/, '').replace(/"$/, '')
+    data.fontFamily = fontFamily
   }
 }
 
