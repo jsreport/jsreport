@@ -454,6 +454,16 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
       data.backgroundColor = parsedBackgroundColor.toHexString().toUpperCase()
     }
   }
+
+  if (styles['text-decoration'] != null) {
+    if (styles['text-decoration'] === 'underline') {
+      data.underline = true
+    }
+
+    if (styles['text-decoration'] === 'line-through') {
+      data.strike = true
+    }
+  }
 }
 
 function applyTitleIfNeeded (parentMeta, data) {
