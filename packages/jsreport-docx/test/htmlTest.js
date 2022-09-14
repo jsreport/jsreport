@@ -2036,6 +2036,119 @@ describe.only('docx html embed', () => {
           should(textNodes[0].textContent).eql('Hello World')
         })
       }
+
+      for (const prop of ['padding', 'margin']) {
+        for (const side of ['left', 'right', 'top', 'bottom']) {
+          const templateStr = `<p style="padding-${side}: 50px">...</p>`
+
+          it(`${mode} mode - ${prop} ${side}`, async () => {
+            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(templateStr, ['Hello World'])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync('out.docx', result.content)
+
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+            const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).eql(1)
+
+            const targetCases = {
+              left: (n) => (
+                n.nodeName = 'w:ind' &&
+                n.getAttribute('w:left') != null && n.getAttribute('w:left') !== ''
+              ),
+              right: (n) => (
+                n.nodeName = 'w:ind' &&
+                n.getAttribute('w:right') != null && n.getAttribute('w:right') !== ''
+              ),
+              top: (n) => (
+                n.nodeName = 'w:spacing' &&
+                n.getAttribute('w:before') != null && n.getAttribute('w:before') !== ''
+              ),
+              bottom: (n) => (
+                n.nodeName = 'w:spacing' &&
+                n.getAttribute('w:after') != null && n.getAttribute('w:after') !== ''
+              )
+            }
+
+            if (mode === 'block') {
+              findChildNode(targetCases[side], findChildNode('w:pPr', textNodes[0].parentNode.parentNode)).should.be.ok()
+            }
+
+            should(textNodes[0].textContent).eql('Hello World')
+          })
+        }
+
+        const templateShorthandStr = `<p style="${prop}: 50px">...</p>`
+
+        it(`${mode} mode - ${prop} shorthand`, async () => {
+          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+          const result = await reporter.render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: docxTemplateBuf
+                }
+              }
+            },
+            data: {
+              html: createHtml(templateShorthandStr, ['Hello World'])
+            }
+          })
+
+          // Write document for easier debugging
+          fs.writeFileSync('out.docx', result.content)
+
+          const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+          const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+          should(paragraphNodes.length).eql(1)
+
+          const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+          should(textNodes.length).eql(1)
+
+          if (mode === 'block') {
+            findChildNode((n) => (
+              n.nodeName = 'w:ind' &&
+              n.getAttribute('w:left') != null && n.getAttribute('w:left') !== '' &&
+              n.getAttribute('w:right') != null && n.getAttribute('w:right') !== ''
+            ), findChildNode('w:pPr', textNodes[0].parentNode.parentNode)).should.be.ok()
+
+            findChildNode((n) => (
+              n.nodeName = 'w:spacing' &&
+              n.getAttribute('w:before') != null && n.getAttribute('w:before') !== '' &&
+              n.getAttribute('w:after') != null && n.getAttribute('w:after') !== ''
+            ), findChildNode('w:pPr', textNodes[0].parentNode.parentNode)).should.be.ok()
+          }
+
+          should(textNodes[0].textContent).eql('Hello World')
+        })
+      }
     }
   })
 })

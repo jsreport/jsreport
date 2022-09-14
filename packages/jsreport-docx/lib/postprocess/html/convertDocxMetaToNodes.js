@@ -3,7 +3,7 @@ const fs = require('fs/promises')
 const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint } = require('../../utils')
+const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
 module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, files, paragraphNode } = {}) {
@@ -89,6 +89,38 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
           const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
           const jcEl = findOrCreateChildNode(doc, 'w:jc', pPrEl)
           jcEl.setAttribute('w:val', currentDocxMeta.alignment.horizontal)
+        }
+      }
+
+      if (currentDocxMeta.indent != null) {
+        if (currentDocxMeta.indent.left != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const indEl = findOrCreateChildNode(doc, 'w:ind', pPrEl)
+          const indLeftInTOAP = ptToTOAP(currentDocxMeta.indent.left).toString()
+          indEl.setAttribute('w:left', indLeftInTOAP)
+        }
+
+        if (currentDocxMeta.indent.right != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const indEl = findOrCreateChildNode(doc, 'w:ind', pPrEl)
+          const indRightInTOAP = ptToTOAP(currentDocxMeta.indent.right).toString()
+          indEl.setAttribute('w:right', indRightInTOAP)
+        }
+      }
+
+      if (currentDocxMeta.spacing != null) {
+        if (currentDocxMeta.spacing.before != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const spacingEl = findOrCreateChildNode(doc, 'w:spacing', pPrEl)
+          const spacingBeforeInTOAP = ptToTOAP(currentDocxMeta.spacing.before).toString()
+          spacingEl.setAttribute('w:before', spacingBeforeInTOAP)
+        }
+
+        if (currentDocxMeta.spacing.after != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const spacingEl = findOrCreateChildNode(doc, 'w:spacing', pPrEl)
+          const spacingAfterInTOAP = ptToTOAP(currentDocxMeta.spacing.after).toString()
+          spacingEl.setAttribute('w:after', spacingAfterInTOAP)
         }
       }
 

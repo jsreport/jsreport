@@ -5824,6 +5824,11 @@ css-declaration-sorter@^6.2.2:
   resolved "https://registry.yarnpkg.com/css-declaration-sorter/-/css-declaration-sorter-6.3.0.tgz#72ebd995c8f4532ff0036631f7365cce9759df14"
   integrity sha512-OGT677UGHJTAVMRhPO+HJ4oKln3wkBTwtDFH0ojbqm+MJm6xuDMHp2nkhh/ThaBqq20IbraBQSWKfSLNHQO9Og==
 
+css-list-helpers@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/css-list-helpers/-/css-list-helpers-2.0.0.tgz#7cb3d6f9ec9e5087ae49d834cead282806e8818f"
+  integrity sha512-9Bj8tZ0jWbAM3u/U6m/boAzAwLPwtjzFvwivr2piSvyVa3K3rChJzQy4RIHkNkKiZCHrEMWDJWtTR8UyVhdDnQ==
+
 css-loader@2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/css-loader/-/css-loader-2.1.1.tgz#d8254f72e412bb2238bb44dd674ffbef497333ea"
@@ -13965,6 +13970,13 @@ parse-color@1.0.0:
   integrity sha512-fuDHYgFHJGbpGMgw9skY/bj3HL/Jrn4l/5rSspy00DoT4RyLnDcRvPxdZ+r6OFwIsgAuhDh4I09tAId4mI12bw==
   dependencies:
     color-convert "~0.5.0"
+
+parse-css-sides@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/parse-css-sides/-/parse-css-sides-3.0.1.tgz#2abfb3d929eee828e55878443495b22cf3cc28e5"
+  integrity sha512-Ympej90nCg8r70JyXO6aqaQnkC2nWti/sy3CNV9l/FJ/6WHNLxLunHMOyF1VnlOyc6s9dlQ2d/GoGPx53164uw==
+  dependencies:
+    css-list-helpers "^2.0.0"
 
 parse-filepath@^1.0.1:
   version "1.0.2"

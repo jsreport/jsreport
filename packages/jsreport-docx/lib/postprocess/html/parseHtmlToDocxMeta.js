@@ -3,8 +3,9 @@ const styleAttr = require('style-attr')
 const { customAlphabet } = require('nanoid')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
+const parseCssSides = require('parse-css-sides')
 const color = require('tinycolor2')
-const { fontSizeToPt } = require('../../utils')
+const { lengthToPt } = require('../../utils')
 
 const NODE_TYPES = {
   DOCUMENT: 9,
@@ -49,6 +50,8 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applyListIfNeeded(parent, data)
         applyBackgroundColorIfNeeded(parent, data)
         applyAlignmentIfNeeded(parent, data)
+        applyIndentIfNeeded(parent, data)
+        applySpacingIfNeeded(parent, data)
       }
     } else if (
       (nodeType === NODE_TYPES.DOCUMENT && !documentEvaluated) ||
@@ -428,7 +431,7 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['font-size'] != null) {
-    const parsedFontSize = fontSizeToPt(styles['font-size'])
+    const parsedFontSize = lengthToPt(styles['font-size'])
 
     if (parsedFontSize != null) {
       data.fontSize = parsedFontSize
@@ -479,6 +482,140 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
       data.alignment.horizontal = 'right'
     } else if (textAlign === 'justify') {
       data.alignment.horizontal = 'both'
+    }
+  }
+
+  if (styles.padding != null) {
+    const parsedPadding = parseCssSides(styles.padding)
+
+    data.indent = data.indent || {}
+    data.spacing = data.spacing || {}
+
+    const parsedPaddingLeft = lengthToPt(parsedPadding.left)
+
+    if (parsedPaddingLeft != null) {
+      data.indent.left = parsedPaddingLeft
+    }
+
+    const parsedPaddingRight = lengthToPt(parsedPadding.right)
+
+    if (parsedPaddingRight != null) {
+      data.indent.right = parsedPaddingRight
+    }
+
+    const parsedPaddingTop = lengthToPt(parsedPadding.top)
+
+    if (parsedPaddingTop != null) {
+      data.spacing.before = parsedPaddingTop
+    }
+
+    const parsedPaddingBottom = lengthToPt(parsedPadding.bottom)
+
+    if (parsedPaddingBottom != null) {
+      data.spacing.after = parsedPaddingBottom
+    }
+  }
+
+  if (styles['padding-left'] != null) {
+    const parsedPaddingLeft = lengthToPt(styles['padding-left'])
+
+    if (parsedPaddingLeft != null) {
+      data.indent = data.indent || {}
+      data.indent.left = parsedPaddingLeft
+    }
+  }
+
+  if (styles['padding-right'] != null) {
+    const parsedPaddingRight = lengthToPt(styles['padding-right'])
+
+    if (parsedPaddingRight != null) {
+      data.indent = data.indent || {}
+      data.indent.right = parsedPaddingRight
+    }
+  }
+
+  if (styles['padding-top'] != null) {
+    const parsedPaddingTop = lengthToPt(styles['padding-top'])
+
+    if (parsedPaddingTop != null) {
+      data.spacing = data.spacing || {}
+      data.spacing.before = parsedPaddingTop
+    }
+  }
+
+  if (styles['padding-bottom'] != null) {
+    const parsedPaddingBottom = lengthToPt(styles['padding-bottom'])
+
+    if (parsedPaddingBottom != null) {
+      data.spacing = data.spacing || {}
+      data.spacing.after = parsedPaddingBottom
+    }
+  }
+
+  if (styles.margin != null) {
+    const parsedMargin = parseCssSides(styles.margin)
+
+    data.indent = data.indent || {}
+    data.spacing = data.spacing || {}
+
+    const parsedMarginLeft = lengthToPt(parsedMargin.left)
+
+    if (parsedMarginLeft != null) {
+      data.indent.left = parsedMarginLeft
+    }
+
+    const parsedMarginRight = lengthToPt(parsedMargin.right)
+
+    if (parsedMarginRight != null) {
+      data.indent.right = parsedMarginRight
+    }
+
+    const parsedMarginTop = lengthToPt(parsedMargin.top)
+
+    if (parsedMarginTop != null) {
+      data.spacing.before = parsedMarginTop
+    }
+
+    const parsedMarginBottom = lengthToPt(parsedMargin.bottom)
+
+    if (parsedMarginBottom != null) {
+      data.spacing.after = parsedMarginBottom
+    }
+  }
+
+  if (styles['margin-left'] != null) {
+    const parsedMarginLeft = lengthToPt(styles['margin-left'])
+
+    if (parsedMarginLeft != null) {
+      data.indent = data.indent || {}
+      data.indent.left = parsedMarginLeft
+    }
+  }
+
+  if (styles['margin-right'] != null) {
+    const parsedMarginRight = lengthToPt(styles['margin-right'])
+
+    if (parsedMarginRight != null) {
+      data.indent = data.indent || {}
+      data.indent.right = parsedMarginRight
+    }
+  }
+
+  if (styles['margin-top'] != null) {
+    const parsedMarginTop = lengthToPt(styles['margin-top'])
+
+    if (parsedMarginTop != null) {
+      data.spacing = data.spacing || {}
+      data.spacing.before = parsedMarginTop
+    }
+  }
+
+  if (styles['margin-bottom'] != null) {
+    const parsedMarginBottom = lengthToPt(styles['margin-bottom'])
+
+    if (parsedMarginBottom != null) {
+      data.spacing = data.spacing || {}
+      data.spacing.after = parsedMarginBottom
     }
   }
 }
@@ -539,6 +676,18 @@ function applyListIfNeeded (parentMeta, data) {
   parentMeta.list = data.list
 }
 
+function applyBackgroundColorIfNeeded (parentMeta, data) {
+  if (parentMeta.type !== 'paragraph') {
+    return
+  }
+
+  if (data.backgroundColor == null) {
+    return
+  }
+
+  parentMeta.backgroundColor = data.backgroundColor
+}
+
 function applyAlignmentIfNeeded (parentMeta, data) {
   if (parentMeta.type !== 'paragraph') {
     return
@@ -551,16 +700,28 @@ function applyAlignmentIfNeeded (parentMeta, data) {
   parentMeta.alignment = data.alignment
 }
 
-function applyBackgroundColorIfNeeded (parentMeta, data) {
+function applyIndentIfNeeded (parentMeta, data) {
   if (parentMeta.type !== 'paragraph') {
     return
   }
 
-  if (data.backgroundColor == null) {
+  if (data.indent == null) {
     return
   }
 
-  parentMeta.backgroundColor = data.backgroundColor
+  parentMeta.indent = data.indent
+}
+
+function applySpacingIfNeeded (parentMeta, data) {
+  if (parentMeta.type !== 'paragraph') {
+    return
+  }
+
+  if (data.spacing == null) {
+    return
+  }
+
+  parentMeta.spacing = data.spacing
 }
 
 function isBlockElement (node) {
