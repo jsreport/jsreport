@@ -84,6 +84,14 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         pPrEl.insertBefore(createNode(doc, 'w:shd', { attributes: { 'w:val': 'clear', 'w:color': 'auto', 'w:fill': backgroundColor } }), pPrEl.firstChild)
       }
 
+      if (currentDocxMeta.alignment != null) {
+        if (currentDocxMeta.alignment.horizontal != null) {
+          const pPrEl = findOrCreateChildNode(doc, 'w:pPr', containerEl)
+          const jcEl = findOrCreateChildNode(doc, 'w:jc', pPrEl)
+          jcEl.setAttribute('w:val', currentDocxMeta.alignment.horizontal)
+        }
+      }
+
       result.push(containerEl)
 
       const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({

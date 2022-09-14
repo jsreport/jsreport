@@ -48,6 +48,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applyTitleIfNeeded(parent, data)
         applyListIfNeeded(parent, data)
         applyBackgroundColorIfNeeded(parent, data)
+        applyAlignmentIfNeeded(parent, data)
       }
     } else if (
       (nodeType === NODE_TYPES.DOCUMENT && !documentEvaluated) ||
@@ -456,12 +457,28 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
   }
 
   if (styles['text-decoration'] != null) {
-    if (styles['text-decoration'] === 'underline') {
-      data.underline = true
-    }
+    const textDecoration = styles['text-decoration']
 
-    if (styles['text-decoration'] === 'line-through') {
+    if (textDecoration === 'underline') {
+      data.underline = true
+    } else if (textDecoration === 'line-through') {
       data.strike = true
+    }
+  }
+
+  if (styles['text-align'] != null) {
+    const textAlign = styles['text-align']
+
+    data.alignment = data.alignment || {}
+
+    if (textAlign === 'left') {
+      data.alignment.horizontal = 'left'
+    } else if (textAlign === 'center') {
+      data.alignment.horizontal = 'center'
+    } else if (textAlign === 'right') {
+      data.alignment.horizontal = 'right'
+    } else if (textAlign === 'justify') {
+      data.alignment.horizontal = 'both'
     }
   }
 }
@@ -520,6 +537,18 @@ function applyListIfNeeded (parentMeta, data) {
   }
 
   parentMeta.list = data.list
+}
+
+function applyAlignmentIfNeeded (parentMeta, data) {
+  if (parentMeta.type !== 'paragraph') {
+    return
+  }
+
+  if (data.alignment == null) {
+    return
+  }
+
+  parentMeta.alignment = data.alignment
 }
 
 function applyBackgroundColorIfNeeded (parentMeta, data) {
