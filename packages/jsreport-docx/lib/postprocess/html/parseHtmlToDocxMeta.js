@@ -27,12 +27,19 @@ module.exports = function parseHtmlToDocxMeta (html, mode) {
 function parseHtmlDocumentToMeta ($, documentNode, mode) {
   const result = []
   const pending = [{ item: documentNode, collection: result }]
+  const elementDataMap = new WeakMap()
   let documentEvaluated = false
 
   while (pending.length > 0) {
     const { parent, collection, data: inheritedData, item: currentNode } = pending.shift()
     const nodeType = currentNode.nodeType
     const data = Object.assign({}, inheritedData)
+
+    // static properties are only available per element,
+    // it won't be inherited for its children, we initialize the object
+    // here so other parts just set properties on it
+    data.static = {}
+
     let newItem
     let childNodes
 
@@ -43,7 +50,32 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     ) {
       const getTextInNode = (n) => n.nodeType === NODE_TYPES.TEXT ? n.nodeValue : $(n).text()
 
-      newItem = normalizeText(getTextInNode(currentNode), data)
+      newItem = []
+
+      const parentBlockElementData = elementDataMap.get(data.parentBlockElement)
+      const parentElementData = elementDataMap.get(data.parentElement)
+
+      if (
+        parentBlockElementData?.static?.breakPage?.before === true ||
+        parentElementData?.static?.breakPage?.before === true
+      ) {
+        newItem.push(createBreak('page'))
+      }
+
+      const normalizeResult = normalizeText(getTextInNode(currentNode), data)
+
+      if (Array.isArray(normalizeResult)) {
+        newItem.push(...normalizeResult)
+      } else {
+        newItem.push(normalizeResult)
+      }
+
+      if (
+        parentBlockElementData?.static?.breakPage?.after === true ||
+        parentElementData?.static?.breakPage?.after === true
+      ) {
+        newItem.push(createBreak('page'))
+      }
 
       if (mode === 'block') {
         applyTitleIfNeeded(parent, data)
@@ -74,7 +106,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         applyLinkDataIfNeeded(data, currentNode)
 
         if (currentNode.tagName === 'br') {
-          newItem = createLineBreak()
+          newItem = createBreak()
         }
       } else {
         if (mode === 'block') {
@@ -99,6 +131,8 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
       }
     }
 
+    elementDataMap.set(currentNode, data)
+
     if (
       childNodes == null ||
       childNodes.length === 0
@@ -120,16 +154,21 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
       collection.push(targetCollection)
     }
 
+    const childData = Object.assign({}, data)
+
+    // remove static properties so it won't get inherited for children
+    delete childData.static
+
     if (isBlockElement(currentNode)) {
-      data.parentBlockElement = currentNode
+      childData.parentBlockElement = currentNode
     }
 
-    data.parentElement = currentNode
+    childData.parentElement = currentNode
 
     for (const [cIdx, childNode] of childNodes.entries()) {
       const pendingItem = {
         item: childNode,
-        data
+        data: childData
       }
 
       if (
@@ -197,7 +236,7 @@ function normalizeText (text, data) {
           newItems.push(createText(textBeforeLineBreak, data))
         }
 
-        newItems.push(createLineBreak())
+        newItems.push(createBreak())
 
         currentText = rest
       }
@@ -239,9 +278,14 @@ function createText (text, data) {
   return textItem
 }
 
-function createLineBreak () {
+function createBreak (target = 'line') {
+  if (target !== 'line' && target !== 'page') {
+    throw new Error(`Invalid break target "${target}"`)
+  }
+
   return {
-    type: 'lineBreak'
+    type: 'break',
+    target
   }
 }
 
@@ -616,6 +660,20 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     if (parsedMarginBottom != null) {
       data.spacing = data.spacing || {}
       data.spacing.after = parsedMarginBottom
+    }
+  }
+
+  if (styles['break-before'] != null) {
+    if (styles['break-before'] === 'page') {
+      data.static.breakPage = data.static.breakPage || {}
+      data.static.breakPage.before = true
+    }
+  }
+
+  if (styles['break-after'] != null) {
+    if (styles['break-after'] === 'page') {
+      data.static.breakPage = data.static.breakPage || {}
+      data.static.breakPage.after = true
     }
   }
 }

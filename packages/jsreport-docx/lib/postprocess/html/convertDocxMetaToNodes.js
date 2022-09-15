@@ -32,8 +32,8 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
     if (mode === 'block' && parent == null && currentDocxMeta.type !== 'paragraph') {
       throw new Error(`Top level elements in docx meta for "${mode}" mode must be paragraphs`)
-    } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text' && currentDocxMeta.type !== 'lineBreak') {
-      throw new Error(`Top level elements in docx meta for "${mode}" mode must be text or line break`)
+    } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text' && currentDocxMeta.type !== 'break') {
+      throw new Error(`Top level elements in docx meta for "${mode}" mode must be text or break`)
     }
 
     if (currentDocxMeta.type === 'paragraph') {
@@ -45,7 +45,7 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       const invalidChildMeta = currentDocxMeta.children.find((childMeta) => (
         childMeta.type !== 'text' &&
-        childMeta.type !== 'lineBreak'
+        childMeta.type !== 'break'
       ))
 
       if (invalidChildMeta != null) {
@@ -313,10 +313,16 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
       } else if (mode === 'inline') {
         result.push(newEl)
       }
-    } else if (currentDocxMeta.type === 'lineBreak') {
+    } else if (currentDocxMeta.type === 'break') {
+      const attrs = {}
+
+      if (currentDocxMeta.target === 'page') {
+        attrs['w:type'] = 'page'
+      }
+
       const runEl = createNode(doc, 'w:r', {
         children: [
-          createNode(doc, 'w:br')
+          createNode(doc, 'w:br', { attributes: attrs })
         ]
       })
 

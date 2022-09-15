@@ -2149,6 +2149,88 @@ describe.only('docx html embed', () => {
           should(textNodes[0].textContent).eql('Hello World')
         })
       }
+
+      const templateBreakBeforePageStr = '<p style="break-before: page">...</p>'
+
+      it(`${mode} mode - break before page`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateBreakBeforePageStr, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        findChildNode((n) => (
+          n.nodeName === 'w:br' &&
+          n.getAttribute('w:type') === 'page'
+        ), textNodes[0].parentNode.previousSibling).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
+
+      const templateBreakAfterPageStr = '<p style="break-after: page">...</p>'
+
+      it(`${mode} mode - break after page`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateBreakAfterPageStr, ['Hello World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(1)
+
+        findChildNode((n) => (
+          n.nodeName === 'w:br' &&
+          n.getAttribute('w:type') === 'page'
+        ), textNodes[0].parentNode.nextSibling).should.be.ok()
+
+        should(textNodes[0].textContent).eql('Hello World')
+      })
     }
   })
 })
