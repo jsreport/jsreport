@@ -38,7 +38,7 @@ class Store {
   }
 
   find (es, query, fields) {
-    if (query._id) {
+    if (query._id && (typeof query._id === 'string' || query._id instanceof String)) {
       return mingo.find([this._indexes._id[es][query._id]], query, fields)
     }
 
