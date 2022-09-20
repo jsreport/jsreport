@@ -36,6 +36,7 @@
     "@jsreport/office": "3.0.0",
     "@xmldom/xmldom": "0.7.0",
     "axios": "0.24.0",
+    "cheerio": "1.0.0-rc.12",
     "image-size": "0.7.4",
     "js-excel-date-convert": "1.0.2",
     "moment": "2.29.4",

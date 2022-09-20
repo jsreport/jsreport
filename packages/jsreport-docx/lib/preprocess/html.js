@@ -1,0 +1,168 @@
+const { nodeListToArray, getClosestEl, clearEl } = require('../utils')
+
+module.exports = (files) => {
+  const documentFile = files.find(f => f.path === 'word/document.xml').doc
+
+  const docxHtmlTextElements = nodeListToArray(documentFile.getElementsByTagName('w:t')).filter((tEl) => {
+    return tEl.textContent.includes('{{docxHtml')
+  })
+
+  // first we normalize that w:r elements containing the docxHtml calls only contain one child w:t element
+  // usually office does not generated documents like this but it is valid that
+  // the w:r element can contain multiple w:t elements
+  for (const textEl of docxHtmlTextElements) {
+    const rEl = getClosestEl(textEl, 'w:r')
+
+    if (rEl == null) {
+      continue
+    }
+
+    const textElements = nodeListToArray(rEl.childNodes).filter((n) => n.nodeName === 'w:t')
+    const leftTextNodes = []
+    const rightTextNodes = []
+
+    let found = false
+
+    for (const tEl of textElements) {
+      if (tEl === textEl) {
+        found = true
+      } else if (found) {
+        rightTextNodes.push(tEl)
+      } else {
+        leftTextNodes.push(tEl)
+      }
+    }
+
+    const templateRNode = rEl.cloneNode(true)
+
+    // remove text elements and inherit the rest
+    clearEl(templateRNode, (c) => c.nodeName !== 'w:t')
+
+    for (const tNode of leftTextNodes) {
+      const [newRNode] = createNewRAndTextNode(tNode.textContent, templateRNode, documentFile)
+      rEl.removeChild(tNode)
+      rEl.parentNode.insertBefore(newRNode, rEl)
+    }
+
+    for (const tNode of [...rightTextNodes].reverse()) {
+      const [newRNode] = createNewRAndTextNode(tNode.textContent, templateRNode, documentFile)
+      rEl.removeChild(tNode)
+      rEl.parentNode.insertBefore(newRNode, rEl.nextSibling)
+    }
+  }
+
+  // now we normalize that docxHtml calls are in its own w:t element and other text
+  // is split into new w:t element
+  for (const textEl of docxHtmlTextElements) {
+    const rEl = getClosestEl(textEl, 'w:r')
+    const paragraphEl = getClosestEl(textEl, 'w:p')
+
+    if (rEl == null || paragraphEl == null) {
+      continue
+    }
+
+    let newContent = textEl.textContent
+    let counter = 0
+    const textParts = []
+    const htmlCalls = []
+    let match
+
+    do {
+      match = newContent.match(getDocxHtmlCallRegexp())
+
+      if (match != null) {
+        counter++
+
+        const leftContent = newContent.slice(0, match.index)
+
+        if (leftContent !== '') {
+          textParts.push(leftContent)
+        }
+
+        const htmlCall = {
+          id: counter.toString(),
+          content: match[0]
+        }
+
+        textParts.push(htmlCall)
+        htmlCalls.push(htmlCall)
+
+        newContent = newContent.slice(match.index + match[0].length)
+      }
+    } while (match != null)
+
+    if (newContent !== '') {
+      textParts.push(newContent)
+    }
+
+    const templateRNode = rEl.cloneNode(true)
+
+    // remove text elements and inherit the rest
+    clearEl(templateRNode, (c) => c.nodeName !== 'w:t')
+
+    const normalizedDocxHtmlTextElements = []
+
+    for (const item of textParts) {
+      const isDocxHtmlCall = typeof item !== 'string'
+
+      const options = {
+        text: isDocxHtmlCall ? '' : item
+      }
+
+      if (isDocxHtmlCall) {
+        options.attributes = { __htmlEmbedRef__: item.id }
+      }
+
+      const [newRNode, newTextNode] = createNewRAndTextNode(options, templateRNode, documentFile)
+      rEl.parentNode.insertBefore(newRNode, rEl)
+
+      if (isDocxHtmlCall) {
+        normalizedDocxHtmlTextElements.push(newTextNode)
+      }
+    }
+
+    rEl.parentNode.removeChild(rEl)
+
+    for (const textEl of normalizedDocxHtmlTextElements) {
+      const htmlCall = htmlCalls.find((htmlCall) => htmlCall.id === textEl.getAttribute('__htmlEmbedRef__'))
+
+      if (htmlCall == null) {
+        continue
+      }
+
+      const newHtmlEmbedElement = documentFile.createElement('docxHtmlEmbed')
+
+      newHtmlEmbedElement.setAttribute('htmlId', htmlCall.id)
+      newHtmlEmbedElement.textContent = htmlCall.content
+
+      textEl.parentNode.insertBefore(newHtmlEmbedElement, textEl.nextSibling)
+    }
+
+    // insert attribute and comment as last child for easy replacement on postprocess step
+    paragraphEl.setAttribute('__html_embed_container__', true)
+
+    const commentNode = documentFile.createComment('__html_embed_container__')
+    paragraphEl.appendChild(commentNode)
+  }
+}
+
+function createNewRAndTextNode (textOrOptions, templateRNode, doc) {
+  const text = typeof textOrOptions === 'string' ? textOrOptions : textOrOptions.text
+  const attributes = typeof textOrOptions === 'string' ? {} : (textOrOptions.attributes || {})
+  const newRNode = templateRNode.cloneNode(true)
+  const textEl = doc.createElement('w:t')
+
+  textEl.setAttribute('xml:space', 'preserve')
+
+  for (const [attrName, attrValue] of Object.entries(attributes)) {
+    textEl.setAttribute(attrName, attrValue)
+  }
+
+  textEl.textContent = text
+  newRNode.appendChild(textEl)
+  return [newRNode, textEl]
+}
+
+function getDocxHtmlCallRegexp () {
+  return /{{docxHtml [^{}]{0,500}}}/
+}

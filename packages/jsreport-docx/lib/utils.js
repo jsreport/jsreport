@@ -114,6 +114,51 @@ function getChartEl (drawingEl) {
   return chartDrawingEl
 }
 
+function getClosestEl (el, targetNodeNameOrFn, targetType = 'parent') {
+  let currentEl = el
+  let parentEl
+
+  const nodeTest = (n) => {
+    if (typeof targetNodeNameOrFn === 'string') {
+      return n.nodeName === targetNodeNameOrFn
+    } else {
+      return targetNodeNameOrFn(n)
+    }
+  }
+
+  if (targetType !== 'parent' && targetType !== 'previous') {
+    throw new Error(`Invalid target type "${targetType}"`)
+  }
+
+  do {
+    if (targetType === 'parent') {
+      currentEl = currentEl.parentNode
+    } else if (targetType === 'previous') {
+      currentEl = currentEl.previousSibling
+    }
+
+    if (currentEl != null && nodeTest(currentEl)) {
+      parentEl = currentEl
+    }
+  } while (currentEl != null && !nodeTest(currentEl))
+
+  return parentEl
+}
+
+function clearEl (el, filterFn) {
+  const childEls = nodeListToArray(el.childNodes)
+
+  for (const childEl of childEls) {
+    const result = filterFn(childEl)
+
+    if (result === true) {
+      continue
+    }
+
+    childEl.parentNode.removeChild(childEl)
+  }
+}
+
 module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph') => {
   const styleEls = nodeListToArray(stylesDoc.getElementsByTagName('w:style'))
 
@@ -161,4 +206,6 @@ module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
+module.exports.getClosestEl = getClosestEl
+module.exports.clearEl = clearEl
 module.exports.nodeListToArray = nodeListToArray

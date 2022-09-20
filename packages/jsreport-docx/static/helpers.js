@@ -375,3 +375,13 @@ function docxWatermark (options) {
 
   return new Handlebars.SafeString('$docxWatermark' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
+
+function docxHtml (options) {
+  const Handlebars = require('handlebars')
+
+  if (options.hash.content == null) {
+    throw new Error('docxHtml helper requires content parameter to be set')
+  }
+
+  return new Handlebars.SafeString('$docxHtml' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
+}
