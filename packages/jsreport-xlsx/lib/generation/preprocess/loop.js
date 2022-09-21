@@ -60,8 +60,6 @@ module.exports = (files) => {
     workbookCalcPrEl.setAttribute('fullCalcOnLoad', '1')
   }
 
-  const sharedStringElsToClean = []
-
   for (const f of files.filter((f) => isWorksheetFile(f.path))) {
     const sheetFilepath = f.path
     const sheetFilename = path.posix.basename(sheetFilepath)
@@ -329,17 +327,13 @@ module.exports = (files) => {
 
           if (currentCellInfo != null) {
             if (currentCell === currentRowLoopDetected.start.el) {
-              if (currentCellInfo.type === 's') {
-                sharedStringElsToClean.push(currentCellInfo.valueEl)
-              } else {
+              if (currentCellInfo.type !== 's') {
                 currentCellInfo.valueEl.textContent = currentCellInfo.valueEl.textContent.replace(regexp, '')
               }
             }
 
             if (currentCell === currentRowLoopDetected.end.el) {
-              if (currentCellInfo.type === 's') {
-                sharedStringElsToClean.push(currentCellInfo.valueEl)
-              } else {
+              if (currentCellInfo.type !== 's') {
                 currentCellInfo.valueEl.textContent = currentCellInfo.valueEl.textContent.replace('{{/each}}', '')
               }
             }
@@ -441,7 +435,7 @@ module.exports = (files) => {
         const rawEl = sheetDoc.createElement('raw')
         const typeEl = sheetDoc.createElement('type')
         const contentEl = sheetDoc.createElement('content')
-        const handlebarsRegexp = /{{{?(#[a-z]+ )?([a-z]+[^\n\r}]*)}?}}/g
+        const handlebarsRegexp = /{{{?(#[\w-]+ )?([\w-]+[^\n\r}]*)}?}}/g
         const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
         const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
         const fontSize = findCellFontSize(cellEl, stylesInfo)
@@ -580,9 +574,17 @@ module.exports = (files) => {
     }
   }
 
-  // clean the shared string values used in the loop items
-  for (const sharedStringEl of sharedStringElsToClean) {
-    sharedStringEl.textContent = ''
+  // normalize the shared string values used across the sheets that can contain handlebars code
+  for (const sharedStringEl of sharedStringsEls) {
+    const tEl = sharedStringEl.getElementsByTagName('t')[0]
+
+    if (tEl == null) {
+      continue
+    }
+
+    if (tEl.textContent.includes('{{') && tEl.textContent.includes('}}')) {
+      tEl.textContent = `{{{{xlsxSData type='raw'}}}}${tEl.textContent}{{{{/xlsxSData}}}}`
+    }
   }
 }
 

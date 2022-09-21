@@ -50,6 +50,13 @@ function xlsxSData (data, options) {
 
   if (
     arguments.length === 1 &&
+    type === 'raw'
+  ) {
+    return optionsToUse.fn()
+  }
+
+  if (
+    arguments.length === 1 &&
     type === 'root'
   ) {
     const newData = Handlebars.createFrame({})
