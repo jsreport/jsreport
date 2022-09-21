@@ -26,6 +26,10 @@ module.exports = (reporter, definition) => {
     enabled: { type: 'Edm.Boolean' }
   })
 
+  reporter.documentStore.registerComplexType('PdfAccessibility', {
+    enabled: { type: 'Edm.Boolean' }
+  })
+
   reporter.documentStore.registerComplexType('PdfPasswordType', {
     password: { type: 'Edm.String' },
     ownerPassword: { type: 'Edm.String' },
@@ -54,6 +58,7 @@ module.exports = (reporter, definition) => {
     reporter.documentStore.model.entityTypes.TemplateType.pdfA = { type: 'jsreport.PdfAType', schema: { type: 'null' } }
     reporter.documentStore.model.entityTypes.TemplateType.pdfPassword = { type: 'jsreport.PdfPasswordType', schema: { type: 'null' } }
     reporter.documentStore.model.entityTypes.TemplateType.pdfSign = { type: 'jsreport.PdfSignTemplateType', schema: { type: 'null' } }
+    reporter.documentStore.model.entityTypes.TemplateType.pdfAccessibility = { type: 'jsreport.PdfAccessibility', schema: { type: 'null' } }
   }
 
   reporter.documentStore.on('before-init', () => {

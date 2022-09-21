@@ -23,8 +23,9 @@ describe('pdfjs', () => {
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
     document.append(external)
     const external2 = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
-    document.append(external2, [1])
+    document.append(external2, { pageIndexes: [1] })
     const pdfBuffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdfBuffer)
     const { catalog, texts } = await validate(pdfBuffer)
     catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(2)
     texts[0].should.be.eql('main')
@@ -50,7 +51,7 @@ describe('pdfjs', () => {
   it('append should not break acroForm fields when adding specific pages', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, '2pages2fields.pdf')))
-    document.append(external, [1])
+    document.append(external, { pageIndexes: [1] })
     const pdfBuffer = await document.asBuffer()
     const { catalog } = await validate(pdfBuffer)
     const pages = catalog.properties.get('Pages').object.properties.get('Kids').map(kid => kid.object)
@@ -144,6 +145,41 @@ describe('pdfjs', () => {
     catalog.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
   })
 
+  it('append should merge the StructTreeRoot', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))), { copyAccessibilityTags: true })
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))), { copyAccessibilityTags: true })
+
+    const pdf = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdf)
+    const { catalog } = await validate(pdf)
+    catalog.properties.get('MarkInfo').get('Marked').should.be.true()
+    const page2 = catalog.properties.get('Pages').object.properties.get('Kids')[1].object
+    page2.properties.get('StructParents').should.be.eql(1)
+
+    const structTreeRoot = catalog.properties.get('StructTreeRoot').object
+
+    const idtree = structTreeRoot.properties.get('IDTree').object
+    const limits = idtree.properties.get('Kids')[0].object.properties.get('Limits')
+    limits.should.have.length(2)
+    limits[0].str.should.be.eql('node00000002')
+    limits[1].str.should.be.eql('node00000006')
+
+    const names = idtree.properties.get('Kids')[0].object.properties.get('Names')
+    names.should.have.length((3 + 2) * 2)
+
+    structTreeRoot.properties.get('ParentTreeNextKey').should.be.eql(2)
+    const parentTree = structTreeRoot.properties.get('ParentTree').object
+    parentTree.properties.get('Nums').should.have.length(4)
+    parentTree.properties.get('Nums')[0].should.be.eql(0)
+    parentTree.properties.get('Nums')[2].should.be.eql(1)
+
+    const documentNode = structTreeRoot.properties.get('K').object
+    documentNode.properties.get('K').should.have.length(2)
+    documentNode.properties.get('K')[1].object.properties.get('ID').str.should.be.eql('node00000005')
+    documentNode.properties.get('K')[1].object.properties.get('P').should.be.eql(documentNode.properties.get('K')[0].object.properties.get('P'))
+  })
+
   it('merge should merge pages', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
@@ -163,7 +199,7 @@ describe('pdfjs', () => {
     const external = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
     document.append(external)
     const external2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
-    document.merge(external2, true, 1)
+    document.merge(external2, { mergeToFront: true, pageNum: 1 })
     const pdfBuffer = await document.asBuffer()
     const { texts } = await validate(pdfBuffer)
 
@@ -178,7 +214,7 @@ describe('pdfjs', () => {
     const external = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
     document.append(external)
     const external2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
-    document.merge(external2, false, 1)
+    document.merge(external2, { mergeToFront: false, pageNum: 1 })
     const pdfBuffer = await document.asBuffer()
     const { texts } = await validate(pdfBuffer)
 
@@ -216,6 +252,47 @@ describe('pdfjs', () => {
     acroForm.properties.get('NeedAppearances').toString().should.be.eql('true')
     const fonts = acroForm.properties.get('DR').get('Font')
     fonts.get('Helvetica').should.be.ok()
+  })
+
+  it('merge should merge the StructTreeRoot', async () => {
+    const document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))), { copyAccessibilityTags: true })
+    document.merge(new External(fs.readFileSync(path.join(__dirname, 'header.pdf'))), { copyAccessibilityTags: true })
+
+    const pdf = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdf)
+
+    const { catalog } = await validate(pdf)
+    catalog.properties.get('MarkInfo').get('Marked').should.be.true()
+
+    const page = catalog.properties.get('Pages').object.properties.get('Kids')[0].object
+    page.properties.get('StructParents').should.be.eql(0)
+    page.properties.get('Resources').get('XObject').get('X1.0').object.properties.get('StructParents').should.be.eql(1)
+
+    const structTreeRoot = catalog.properties.get('StructTreeRoot').object
+
+    const idtree = structTreeRoot.properties.get('IDTree').object
+    const limits = idtree.properties.get('Kids')[0].object.properties.get('Limits')
+    limits.should.have.length(2)
+    limits[0].str.should.be.eql('node00000002')
+    limits[1].str.should.be.eql('node00000006')
+
+    const names = idtree.properties.get('Kids')[0].object.properties.get('Names')
+    names.should.have.length((3 + 2) * 2)
+
+    structTreeRoot.properties.get('ParentTreeNextKey').should.be.eql(2)
+    const parentTree = structTreeRoot.properties.get('ParentTree').object
+    parentTree.properties.get('Nums').should.have.length(4)
+    parentTree.properties.get('Nums')[0].should.be.eql(0)
+    parentTree.properties.get('Nums')[2].should.be.eql(1)
+
+    const documentNode = structTreeRoot.properties.get('K').object
+    documentNode.properties.get('K').should.have.length(2)
+    documentNode.properties.get('K')[1].object.properties.get('ID').str.should.be.eql('node00000005')
+    documentNode.properties.get('K')[1].object.properties.get('P').should.be.eql(documentNode.properties.get('K')[0].object.properties.get('P'))
+    documentNode.properties.get('K')[1].object.properties.get('K')[0].object.properties.get('K')[0].get('Stm').object.should.be.eql(
+      page.properties.get('Resources').get('XObject').get('X1.0').object
+    )
   })
 
   it('attachment should add buffer', async () => {
@@ -689,6 +766,7 @@ describe('pdfjs', () => {
     const ext2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
     document.merge(ext2)
     const pdfBuffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdfBuffer)
     const { texts } = await validate(pdfBuffer)
     texts[0].should.containEql('mainheadermain')
   })

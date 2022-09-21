@@ -3,7 +3,7 @@ const { Document, External } = require('@jsreport/pdfjs')
 const PDF = require('@jsreport/pdfjs/lib/object')
 const HIDDEN_TEXT_SIZE = 1.1
 
-module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks } = {}) => {
+module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines, removeHiddenMarks, pdfAccessibility } = {}) => {
   let currentBuffer = contentBuffer
   let currentlyParsedPdf
 
@@ -25,26 +25,26 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
 
     async append (appendBuffer) {
       const document = new Document()
-      document.append(new External(currentBuffer))
-      document.append(new External(appendBuffer))
+      document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      document.append(new External(appendBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
       currentBuffer = await document.asBuffer()
     },
 
     async prepend (prependBuffer) {
       const document = new Document()
-      document.append(new External(prependBuffer))
-      document.append(new External(currentBuffer))
+      document.append(new External(prependBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
       currentBuffer = await document.asBuffer()
     },
 
     async merge (pageBuffersOrDocBuffer, mergeToFront) {
       const document = new Document()
-      document.append(new External(currentBuffer))
+      document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
       if (Buffer.isBuffer(pageBuffersOrDocBuffer)) {
-        document.merge(new External(pageBuffersOrDocBuffer), mergeToFront)
+        document.merge(new External(pageBuffersOrDocBuffer), { mergeToFront, copyAccessibilityTags: pdfAccessibility?.enabled })
       } else {
         for (const i in pageBuffersOrDocBuffer) {
-          document.merge(new External(pageBuffersOrDocBuffer[i]), mergeToFront, i)
+          document.merge(new External(pageBuffersOrDocBuffer[i]), { mergeToFront, pageNum: i, copyAccessibilityTags: pdfAccessibility?.enabled })
         }
       }
       currentBuffer = await document.asBuffer()
@@ -75,13 +75,13 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
         }
       }
 
-      document.append(ext, pageIndexesToAppend)
+      document.append(ext, { pageIndexes: pageIndexesToAppend, copyAccessibilityTags: pdfAccessibility?.enabled })
       currentBuffer = await document.asBuffer()
     },
 
     async addAttachment (buf, options) {
       const doc = new Document()
-      doc.append(new External(currentBuffer))
+      doc.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
       doc.attachment(buf, options)
       currentBuffer = await doc.asBuffer()
     },
@@ -96,7 +96,7 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
       const doc = new Document()
 
       const ext = new External(currentBuffer)
-      doc.append(ext)
+      doc.append(ext, { copyAccessibilityTags: pdfAccessibility?.enabled })
 
       if (pdfSign) {
         doc.sign({

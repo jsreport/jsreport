@@ -1628,6 +1628,32 @@ describe('pdf utils', () => {
     doc.catalog.properties.get('Metadata').should.be.ok()
   })
 
+  it('pdfAccessibility should keep StructTreeRoot during operations', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'foo',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfAccessibility: {
+          enabled: true
+        },
+        pdfOperations: [{
+          type: 'prepend',
+          template: {
+            content: 'hello',
+            engine: 'none',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+
+    const doc = new External(result.content)
+    doc.catalog.properties.get('StructTreeRoot').should.be.ok()
+    doc.catalog.properties.get('MarkInfo').should.be.ok()
+  })
+
   it('pdfMeta should work also when another pdf appended using script', async () => {
     const result = await jsreport.render({
       template: {

@@ -171,6 +171,10 @@ module.exports = (reporter, definition) => {
 
     reporter.logger.info('pdf-utils is starting pdf processing', req)
 
+    if (req.template.pdfAccessibility?.enabled) {
+      req.context.pdfAccessibility = { enabled: true }
+    }
+
     try {
       res.content = await (require('./pdfProcessing.js')(
         {
@@ -179,6 +183,7 @@ module.exports = (reporter, definition) => {
           outlines: req.context.pdfUtilsOutlines,
           pdfMeta: req.template.pdfMeta,
           pdfA: req.template.pdfA,
+          pdfAccessibility: req.template.pdfAccessibility || req.context.pdfAccessibility,
           pdfPassword,
           pdfSign,
           removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false

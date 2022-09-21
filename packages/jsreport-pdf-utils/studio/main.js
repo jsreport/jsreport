@@ -939,6 +939,7 @@ var PdfUtilsEditor = function (_Component) {
 
       var pdfMeta = entity.pdfMeta || {};
       var pdfA = entity.pdfA || {};
+      var pdfAccessibility = entity.pdfAccessibility || {};
       var pdfPassword = entity.pdfPassword || {};
       var pdfSign = entity.pdfSign || {};
 
@@ -1041,6 +1042,16 @@ var PdfUtilsEditor = function (_Component) {
                 }
               },
               'pdfA'
+            ),
+            _react2.default.createElement(
+              'li',
+              {
+                className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'pdfAccessibility' ? _PdfUtilsEditor2.default.active : ''),
+                onClick: function onClick() {
+                  return _this4.setState({ activeTab: 'pdfAccessibility' });
+                }
+              },
+              'pdf accessibility'
             )
           ),
           _react2.default.createElement(
@@ -1465,6 +1476,35 @@ var PdfUtilsEditor = function (_Component) {
                     type: 'checkbox', checked: pdfA.enabled === true,
                     onChange: function onChange(v) {
                       return _jsreportStudio2.default.updateEntity(Object.assign({}, entity, { pdfA: { enabled: v.target.checked } }));
+                    }
+                  })
+                )
+              )
+            )
+          ),
+          _react2.default.createElement(
+            'div',
+            { className: _PdfUtilsEditor2.default.tabPanel + ' ' + (activeTab === 'pdfAccessibility' ? _PdfUtilsEditor2.default.active : '') },
+            _react2.default.createElement(
+              'p',
+              { style: { marginTop: '1rem' } },
+              'Copy pdf accessibility tags during operations (beta)'
+            ),
+            _react2.default.createElement(
+              'div',
+              { style: { marginTop: '1rem', paddingBottom: '0.5rem' } },
+              _react2.default.createElement(
+                'div',
+                { className: 'form-group' },
+                _react2.default.createElement(
+                  'label',
+                  null,
+                  'Enabled',
+                  _react2.default.createElement('br', null),
+                  _react2.default.createElement('input', {
+                    type: 'checkbox', checked: pdfAccessibility.enabled === true,
+                    onChange: function onChange(v) {
+                      return _jsreportStudio2.default.updateEntity(Object.assign({}, entity, { pdfAccessibility: { enabled: v.target.checked } }));
                     }
                   })
                 )

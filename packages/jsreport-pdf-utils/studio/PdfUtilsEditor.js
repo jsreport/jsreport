@@ -238,6 +238,7 @@ class PdfUtilsEditor extends Component {
 
     const pdfMeta = entity.pdfMeta || {}
     const pdfA = entity.pdfA || {}
+    const pdfAccessibility = entity.pdfAccessibility || {}
     const pdfPassword = entity.pdfPassword || {}
     const pdfSign = entity.pdfSign || {}
 
@@ -286,6 +287,12 @@ class PdfUtilsEditor extends Component {
               onClick={() => this.setState({ activeTab: 'pdfA' })}
             >
               pdfA
+            </li>
+            <li
+              className={`${styles.tabTitle} ${activeTab === 'pdfAccessibility' ? styles.active : ''}`}
+              onClick={() => this.setState({ activeTab: 'pdfAccessibility' })}
+            >
+              pdf accessibility
             </li>
           </ul>
           <div className={`${styles.tabPanel} ${activeTab === 'operations' ? styles.active : ''}`}>
@@ -493,6 +500,23 @@ class PdfUtilsEditor extends Component {
                   <input
                     type='checkbox' checked={pdfA.enabled === true}
                     onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfA: { enabled: v.target.checked } }))}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className={`${styles.tabPanel} ${activeTab === 'pdfAccessibility' ? styles.active : ''}`}>
+            <p style={{ marginTop: '1rem' }}>
+              Copy pdf accessibility tags during operations (beta)
+            </p>
+            <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
+              <div className='form-group'>
+                <label>
+                  Enabled
+                  <br />
+                  <input
+                    type='checkbox' checked={pdfAccessibility.enabled === true}
+                    onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfAccessibility: { enabled: v.target.checked } }))}
                   />
                 </label>
               </div>

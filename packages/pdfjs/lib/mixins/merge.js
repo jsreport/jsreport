@@ -4,7 +4,7 @@ const unionGlobalObjects = require('./utils/unionGlobalObjects')
 const unionPageObjects = require('./utils/unionPageObjects')
 
 module.exports = (doc) => {
-  doc.merge = (ext, mergeToFront, pageToIndex) => doc.finalizers.push(() => merge(ext, doc, mergeToFront, pageToIndex))
+  doc.merge = (ext, options = {}) => doc.finalizers.push(() => merge(ext, doc, options))
 }
 
 function uint8ToString (u8a) {
@@ -116,26 +116,37 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
 
   pageStream.object.prop('Length', pageStream.content.length)
   pageStream.object.prop('Filter', 'FlateDecode')
+  return xobj
 }
 
-function merge (ext, doc, mergeToFront, pageNum) {
+function merge (ext, doc, options) {
+  unionGlobalObjects(doc, ext, options)
+
   const docPages = doc.pages
   const pages = ext.pages
 
-  if (pageNum != null) {
-    unionPageObjects(ext, doc, pages[0], docPages[pageNum])
-    mergePage(docPages[pageNum], pages[0], mergeToFront, doc, ext)
+  if (options.pageNum != null) {
+    const xobj = mergePage(docPages[options.pageNum], pages[0], options.mergeToFront, doc, ext)
+    unionPageObjects(ext, doc, {
+      newPage: pages[0],
+      originalPage: docPages[options.pageNum],
+      xobj,
+      copyAccessibilityTags: options.copyAccessibilityTags
+    })
   } else {
     for (let i = 0; i < docPages.length; i++) {
       const docPage = docPages[i]
       const page = pages[i]
 
       if (page) {
-        unionPageObjects(ext, doc, page, docPage)
-        mergePage(docPage, page, mergeToFront, doc, ext)
+        const xobj = mergePage(docPage, page, options.mergeToFront, doc, ext)
+        unionPageObjects(ext, doc, {
+          newPage: page,
+          originalPage: docPage,
+          xobj,
+          copyAccessibilityTags: options.copyAccessibilityTags
+        })
       }
     }
   }
-
-  unionGlobalObjects(doc, ext)
 }

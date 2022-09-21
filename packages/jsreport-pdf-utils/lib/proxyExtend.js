@@ -36,7 +36,7 @@ module.exports = (proxy, req) => {
         hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
       })
 
-      await manipulator.merge(extraPdfBufOrPages, mergeToFront)
+      await manipulator.merge(extraPdfBufOrPages, { mergeToFront })
 
       const resultPdfBuf = await manipulator.toBuffer()
 
