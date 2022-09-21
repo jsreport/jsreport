@@ -2340,6 +2340,238 @@ describe('xlsx generation', () => {
     should(sheet.G5).be.not.ok()
   })
 
+  it('loop should not break shared formulas', async () => {
+    const items = [
+      {
+        ID: 1,
+        Name: 'Test 1',
+        Value1: 1,
+        Value2: 2,
+        Value3: 3,
+        Value4: 4,
+        Value5: 5,
+        Value6: 6,
+        Value7: 7,
+        Value8: 8,
+        Value9: 9,
+        Value10: 10,
+        Value11: 11,
+        Value12: 12,
+        Value13: 13,
+        Value14: 14,
+        Value15: 15,
+        Value16: 16,
+        Value17: 17,
+        Value18: 18,
+        Value19: 19,
+        Value20: 20
+      },
+      {
+        ID: 2,
+        Name: 'Test 2',
+        Value1: 1,
+        Value2: 2,
+        Value3: 3,
+        Value4: 4,
+        Value5: 5,
+        Value6: 6,
+        Value7: 7,
+        Value8: 8,
+        Value9: 9,
+        Value10: 10,
+        Value11: 11,
+        Value12: 12,
+        Value13: 13,
+        Value14: 14,
+        Value15: 15,
+        Value16: 16,
+        Value17: 17,
+        Value18: 18,
+        Value19: 19,
+        Value20: 20
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        helpers: 'function toNumber(val) { return Number(val) }',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'loop-shared-formulas.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        Data: items
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.A1.v).be.eql('ID')
+    should(sheet.B1.v).be.eql('Name')
+    should(sheet.C1.v).be.eql('Value1')
+    should(sheet.D1.v).be.eql('Value2')
+    should(sheet.E1.v).be.eql('Value3')
+    should(sheet.F1.v).be.eql('Value4')
+    should(sheet.G1.v).be.eql('Value5')
+    should(sheet.H1.v).be.eql('Value6')
+    should(sheet.I1.v).be.eql('Value7')
+    should(sheet.J1.v).be.eql('Value8')
+    should(sheet.K1.v).be.eql('Value9')
+    should(sheet.L1.v).be.eql('Value10')
+    should(sheet.M1.v).be.eql('Value11')
+    should(sheet.N1.v).be.eql('Value12')
+    should(sheet.O1.v).be.eql('Value13')
+    should(sheet.P1.v).be.eql('Value14')
+    should(sheet.Q1.v).be.eql('Value15')
+    should(sheet.R1.v).be.eql('Value16')
+    should(sheet.S1.v).be.eql('Value17')
+    should(sheet.T1.v).be.eql('Value18')
+    should(sheet.U1.v).be.eql('Value19')
+    should(sheet.V1.v).be.eql('Value20')
+
+    should(sheet.A2.v).be.eql(items[0].ID)
+    should(sheet.A2.t).be.eql('n')
+    should(sheet.B2.v).be.eql(items[0].Name)
+    should(sheet.C2.v).be.eql(items[0].Value1)
+    should(sheet.C2.t).be.eql('n')
+    should(sheet.D2.v).be.eql(items[0].Value2)
+    should(sheet.D2.t).be.eql('n')
+    should(sheet.E2.v).be.eql(items[0].Value3)
+    should(sheet.E2.t).be.eql('n')
+    should(sheet.F2.v).be.eql(items[0].Value4)
+    should(sheet.F2.t).be.eql('n')
+    should(sheet.G2.v).be.eql(items[0].Value5)
+    should(sheet.G2.t).be.eql('n')
+    should(sheet.H2.v).be.eql(items[0].Value6)
+    should(sheet.H2.t).be.eql('n')
+    should(sheet.I2.v).be.eql(items[0].Value7)
+    should(sheet.I2.t).be.eql('n')
+    should(sheet.J2.v).be.eql(items[0].Value8)
+    should(sheet.J2.t).be.eql('n')
+    should(sheet.K2.v).be.eql(items[0].Value9)
+    should(sheet.K2.t).be.eql('n')
+    should(sheet.L2.v).be.eql(items[0].Value10)
+    should(sheet.L2.t).be.eql('n')
+    should(sheet.M2.v).be.eql(items[0].Value11)
+    should(sheet.M2.t).be.eql('n')
+    should(sheet.N2.v).be.eql(items[0].Value12)
+    should(sheet.N2.t).be.eql('n')
+    should(sheet.O2.v).be.eql(items[0].Value13)
+    should(sheet.O2.t).be.eql('n')
+    should(sheet.P2.v).be.eql(items[0].Value14)
+    should(sheet.P2.t).be.eql('n')
+    should(sheet.Q2.v).be.eql(items[0].Value15)
+    should(sheet.Q2.t).be.eql('n')
+    should(sheet.R2.v).be.eql(items[0].Value16)
+    should(sheet.R2.t).be.eql('n')
+    should(sheet.S2.v).be.eql(items[0].Value17)
+    should(sheet.S2.t).be.eql('n')
+    should(sheet.T2.v).be.eql(items[0].Value18)
+    should(sheet.T2.t).be.eql('n')
+    should(sheet.U2.v).be.eql(items[0].Value19)
+    should(sheet.U2.t).be.eql('n')
+    should(sheet.V2.v).be.eql(items[0].Value20)
+    should(sheet.V2.t).be.eql('n')
+
+    should(sheet.A3.v).be.eql(items[1].ID)
+    should(sheet.A3.t).be.eql('n')
+    should(sheet.B3.v).be.eql(items[1].Name)
+    should(sheet.C3.v).be.eql(items[1].Value1)
+    should(sheet.C3.t).be.eql('n')
+    should(sheet.D3.v).be.eql(items[1].Value2)
+    should(sheet.D3.t).be.eql('n')
+    should(sheet.E3.v).be.eql(items[1].Value3)
+    should(sheet.E3.t).be.eql('n')
+    should(sheet.F3.v).be.eql(items[1].Value4)
+    should(sheet.F3.t).be.eql('n')
+    should(sheet.G3.v).be.eql(items[1].Value5)
+    should(sheet.G3.t).be.eql('n')
+    should(sheet.H3.v).be.eql(items[1].Value6)
+    should(sheet.H3.t).be.eql('n')
+    should(sheet.I3.v).be.eql(items[1].Value7)
+    should(sheet.I3.t).be.eql('n')
+    should(sheet.J3.v).be.eql(items[1].Value8)
+    should(sheet.J3.t).be.eql('n')
+    should(sheet.K3.v).be.eql(items[1].Value9)
+    should(sheet.K3.t).be.eql('n')
+    should(sheet.L3.v).be.eql(items[1].Value10)
+    should(sheet.L3.t).be.eql('n')
+    should(sheet.M3.v).be.eql(items[1].Value11)
+    should(sheet.M3.t).be.eql('n')
+    should(sheet.N3.v).be.eql(items[1].Value12)
+    should(sheet.N3.t).be.eql('n')
+    should(sheet.O3.v).be.eql(items[1].Value13)
+    should(sheet.O3.t).be.eql('n')
+    should(sheet.P3.v).be.eql(items[1].Value14)
+    should(sheet.P3.t).be.eql('n')
+    should(sheet.Q3.v).be.eql(items[1].Value15)
+    should(sheet.Q3.t).be.eql('n')
+    should(sheet.R3.v).be.eql(items[1].Value16)
+    should(sheet.R3.t).be.eql('n')
+    should(sheet.S3.v).be.eql(items[1].Value17)
+    should(sheet.S3.t).be.eql('n')
+    should(sheet.T3.v).be.eql(items[1].Value18)
+    should(sheet.T3.t).be.eql('n')
+    should(sheet.U3.v).be.eql(items[1].Value19)
+    should(sheet.U3.t).be.eql('n')
+    should(sheet.V3.v).be.eql(items[1].Value20)
+    should(sheet.V3.t).be.eql('n')
+
+    should(sheet.A4).be.not.ok()
+    should(sheet.B4).be.not.ok()
+    should(sheet.C4).be.not.ok()
+    should(sheet.D4).be.not.ok()
+    should(sheet.E4).be.not.ok()
+    should(sheet.F4).be.not.ok()
+    should(sheet.G4).be.not.ok()
+    should(sheet.H4).be.not.ok()
+    should(sheet.I4).be.not.ok()
+    should(sheet.J4).be.not.ok()
+    should(sheet.K4).be.not.ok()
+    should(sheet.L4).be.not.ok()
+    should(sheet.M4).be.not.ok()
+    should(sheet.N4).be.not.ok()
+    should(sheet.O4).be.not.ok()
+    should(sheet.P4).be.not.ok()
+    should(sheet.Q4).be.not.ok()
+    should(sheet.R4).be.not.ok()
+    should(sheet.S4).be.not.ok()
+    should(sheet.T4).be.not.ok()
+    should(sheet.U4).be.not.ok()
+    should(sheet.V4).be.not.ok()
+
+    should(sheet.A5).be.not.ok()
+    should(sheet.B5).be.not.ok()
+    should(sheet.C5.f).be.eql('SUBTOTAL(109,C2:C4)')
+    should(sheet.D5.f).be.eql('SUBTOTAL(109,D2:D4)')
+    should(sheet.E5.f).be.eql('SUBTOTAL(109,E2:E4)')
+    should(sheet.F5.f).be.eql('SUBTOTAL(109,F2:F4)')
+    should(sheet.G5.f).be.eql('SUBTOTAL(109,G2:G4)')
+    should(sheet.H5.f).be.eql('SUBTOTAL(109,H2:H4)')
+    should(sheet.I5.f).be.eql('SUBTOTAL(109,I2:I4)')
+    should(sheet.J5.f).be.eql('SUBTOTAL(109,J2:J4)')
+    should(sheet.K5.f).be.eql('SUBTOTAL(109,K2:K4)')
+    should(sheet.L5.f).be.eql('SUBTOTAL(109,L2:L4)')
+    should(sheet.M5.f).be.eql('SUBTOTAL(109,M2:M4)')
+    should(sheet.N5.f).be.eql('SUBTOTAL(109,N2:N4)')
+    should(sheet.O5.f).be.eql('SUBTOTAL(109,O2:O4)')
+    should(sheet.P5.f).be.eql('SUBTOTAL(109,P2:P4)')
+    should(sheet.Q5.f).be.eql('SUBTOTAL(109,Q2:Q4)')
+    should(sheet.R5.f).be.eql('SUBTOTAL(109,R2:R4)')
+    should(sheet.S5.f).be.eql('SUBTOTAL(109,S2:S4)')
+    should(sheet.T5.f).be.eql('SUBTOTAL(109,T2:T4)')
+    should(sheet.U5.f).be.eql('SUBTOTAL(109,U2:U4)')
+    should(sheet.V5.f).be.eql('SUBTOTAL(109,V2:V4)')
+  })
+
   it('loop should generate cells with type according to the data rendered in each cell', async () => {
     const items = [{
       name: 'Alexander',

@@ -90,6 +90,7 @@ module.exports = async (files) => {
     }
 
     const formulasUpdated = []
+    const sharedFormulasUpdated = []
 
     // collect all the formulas that were updated
     sheetFile.data = await recursiveStringReplaceAsync(
@@ -103,9 +104,17 @@ module.exports = async (files) => {
         }
 
         const doc = new DOMParser().parseFromString(val)
-        const items = nodeListToArray(doc.documentElement.firstChild.childNodes).filter((el) => el.nodeName === 'f')
+        const childEls = nodeListToArray(doc.documentElement.childNodes)
+        const itemsEl = childEls.find((c) => c.nodeName === 'items')
+        const sharedItemsEl = childEls.find((c) => c.nodeName === 'sharedItems')
+
+        const items = nodeListToArray(itemsEl.childNodes).filter((el) => el.nodeName === 'f')
 
         formulasUpdated.push(...items.map((item) => item.textContent))
+
+        const sharedItems = nodeListToArray(sharedItemsEl.childNodes).filter((el) => el.nodeName === 'f')
+
+        sharedFormulasUpdated.push(...sharedItems.map((item) => item.textContent))
 
         return ''
       }
@@ -127,6 +136,12 @@ module.exports = async (files) => {
         const formulaIndex = parseInt(fEl.getAttribute('formulaIndex'), 10)
         fEl.removeAttribute('formulaIndex')
         fEl.textContent = formulasUpdated[formulaIndex]
+
+        if (fEl.getAttribute('sharedFormulaIndex') != null && fEl.getAttribute('sharedFormulaIndex') !== '') {
+          const sharedFormulaIndex = parseInt(fEl.getAttribute('sharedFormulaIndex'), 10)
+          fEl.removeAttribute('sharedFormulaIndex')
+          fEl.setAttribute('ref', sharedFormulasUpdated[sharedFormulaIndex])
+        }
 
         return serializeXml(fEl)
       }

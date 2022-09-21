@@ -95,6 +95,9 @@ module.exports = (files) => {
     const formulasUpdatedItemsEl = sheetDoc.createElement('items')
     formulasUpdatedItemsEl.textContent = "{{xlsxSData type='formulas'}}"
     formulasUpdatedEl.appendChild(formulasUpdatedItemsEl)
+    const formulasUpdatedSharedItemsEl = sheetDoc.createElement('sharedItems')
+    formulasUpdatedSharedItemsEl.textContent = "{{xlsxSData type='sharedFormulas'}}"
+    formulasUpdatedEl.appendChild(formulasUpdatedSharedItemsEl)
     sheetDataEl.appendChild(formulasUpdatedEl)
 
     const mergeCellsEl = sheetDoc.getElementsByTagName('mergeCells')[0]
@@ -118,9 +121,7 @@ module.exports = (files) => {
       // if sheetData has rows we add the dimension tag into the sheetData to be able to update
       // the ref by the handlebars
       const newDimensionEl = sheetDoc.createElement('dimensionUpdated')
-      const refsParts = dimensionEl.getAttribute('ref').split(':')
-
-      newDimensionEl.setAttribute('ref', `${refsParts[0]}:{{@meta.lastCellRef}}`)
+      newDimensionEl.setAttribute('ref', `{{xlsxSData type="dimensionRef" originalCellRefRange="${dimensionEl.getAttribute('ref')}" }}`)
       sheetDataEl.appendChild(newDimensionEl)
     }
 
@@ -541,8 +542,20 @@ module.exports = (files) => {
         const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
         let fromLoop = false
 
+        const isSharedFormula = (
+          info.valueEl.getAttribute('t') === 'shared' &&
+          info.valueEl.getAttribute('ref') != null &&
+          info.valueEl.getAttribute('ref') !== '' &&
+          info.valueEl.getAttribute('si') != null &&
+          info.valueEl.getAttribute('si') !== ''
+        )
+
         const parsedCell = parseCellRef(cellRef)
         let formulaContent = `type='formula' originalCellRef='${cellRef}' originalFormula='${info.value}'`
+
+        if (isSharedFormula) {
+          formulaContent += ` originalSharedRefRange='${info.valueEl.getAttribute('ref')}'`
+        }
 
         const loopDetected = loopsDetected.find((l) => (
           l.start.originalRowNumber === parsedCell.rowNumber
@@ -567,6 +580,11 @@ module.exports = (files) => {
         // in the cell, so there is no need for a wrapper that only renders it
         // for the first item in loop
         info.valueEl.setAttribute('formulaIndex', "{{xlsxSData type='formulaIndex'}}")
+
+        if (isSharedFormula) {
+          info.valueEl.setAttribute('sharedFormulaIndex', "{{xlsxSData type='sharedFormulaIndex'}}")
+        }
+
         info.valueEl.textContent = `{{xlsxSData ${formulaContent}}}`
         info.valueEl.parentNode.replaceChild(newFormulaWrapperEl, info.valueEl)
         newFormulaWrapperEl.appendChild(info.valueEl)

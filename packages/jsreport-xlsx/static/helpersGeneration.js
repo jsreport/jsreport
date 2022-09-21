@@ -68,6 +68,7 @@ function xlsxSData (data, options) {
       },
       mergeCells: [],
       formulas: [],
+      sharedFormulas: [],
       updatedOriginalCells: {},
       lastCellRef: null
     }
@@ -476,8 +477,12 @@ function xlsxSData (data, options) {
 
   if (
     arguments.length === 1 &&
-    type === 'formulaIndex'
+    (type === 'formulaIndex' || type === 'sharedFormulaIndex')
   ) {
+    if (type === 'sharedFormulaIndex') {
+      return optionsToUse.data.meta.sharedFormulas.length
+    }
+
     return optionsToUse.data.meta.formulas.length
   }
 
@@ -508,6 +513,7 @@ function xlsxSData (data, options) {
     } else if (type === 'formula') {
       const originalCellRef = optionsToUse.hash.originalCellRef
       const originalFormula = optionsToUse.hash.originalFormula
+      const originalSharedRefRange = optionsToUse.hash.originalSharedRefRange
 
       if (originalCellRef == null) {
         throw new Error('xlsxSData type="formula" helper originalCellRef arg is required')
@@ -528,13 +534,19 @@ function xlsxSData (data, options) {
 
       optionsToUse.data.meta.formulas.push(formula)
 
+      if (originalSharedRefRange != null) {
+        const sharedFormula = { ...formula }
+        sharedFormula.value = originalSharedRefRange
+        optionsToUse.data.meta.sharedFormulas.push(sharedFormula)
+      }
+
       return ''
     }
   }
 
   if (
     arguments.length === 1 &&
-    (type === 'newCellRef' || type === 'mergeCells' || type === 'formulas')
+    (type === 'newCellRef' || type === 'mergeCells' || type === 'formulas' || type === 'sharedFormulas')
   ) {
     const updatedOriginalCells = optionsToUse.data.meta.updatedOriginalCells
     const loopItems = optionsToUse.data.loopItems
@@ -545,6 +557,8 @@ function xlsxSData (data, options) {
       targetItems = [{ value: optionsToUse.hash.originalCellRef }]
     } else if (type === 'mergeCells') {
       targetItems = optionsToUse.data.meta.mergeCells
+    } else if (type === 'sharedFormulas') {
+      targetItems = optionsToUse.data.meta.sharedFormulas
     } else {
       targetItems = optionsToUse.data.meta.formulas
     }
@@ -585,6 +599,28 @@ function xlsxSData (data, options) {
     }
 
     return new Handlebars.SafeString(updated.join('\n'))
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'dimensionRef'
+  ) {
+    const originalCellRefRange = optionsToUse.hash.originalCellRefRange
+
+    if (originalCellRefRange == null) {
+      throw new Error('xlsxSData type="dimensionRef" helper originalCellRefRange arg is required')
+    }
+
+    const refsParts = originalCellRefRange.split(':')
+
+    if (refsParts.length === 1) {
+      return refsParts[0]
+    }
+
+    const lastCellRef = optionsToUse.data.meta.lastCellRef
+    const parsedEndCellRef = parseCellRef(refsParts[1])
+    const parsedLastCellRef = parseCellRef(lastCellRef)
+    return `${refsParts[0]}:${parsedEndCellRef.letter}${parsedLastCellRef.rowNumber}`
   }
 
   throw new Error('invalid usage of xlsxSData helper')
