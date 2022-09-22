@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-xlsx",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "description": "jsreport recipe rendering excels directly from open xml",
   "keywords": [
     "jsreport"
@@ -46,9 +46,9 @@
     "xml2js-preserve-spaces": "0.0.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.4.3",
+    "@jsreport/jsreport-assets": "3.4.4",
     "@jsreport/jsreport-components": "3.2.1",
-    "@jsreport/jsreport-core": "3.7.0",
+    "@jsreport/jsreport-core": "3.8.1",
     "@jsreport/jsreport-data": "3.0.1",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-jsrender": "3.0.0",

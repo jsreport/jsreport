@@ -1,12 +1,12 @@
 {
   "name": "@jsreport/jsreport-core",
-  "version": "3.7.0",
+  "version": "3.8.1",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
-  ],
     "business",
     "javascript"
+  ],
   "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/jsreport-core",
   "repository": {
     "type": "git",

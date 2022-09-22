@@ -38,8 +38,8 @@
     "image-size": "0.7.4"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.4.3",
-    "@jsreport/jsreport-core": "3.7.0",
+    "@jsreport/jsreport-assets": "3.4.4",
+    "@jsreport/jsreport-core": "3.8.1",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/studio-dev": "3.2.0",
     "handlebars": "4.7.7",

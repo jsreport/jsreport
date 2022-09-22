@@ -7,6 +7,13 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.5.0
+
+- add option `pdfAccessibility.enabled` to support copying accessibility tags
+- add support for generating files with pdf/A compliance
+- add `pdfDest` helper to support cross page clickable links
+- support phantom with native header in pdf utils
+
 ### 3.4.1
 
 - changes to enable caching of system helpers

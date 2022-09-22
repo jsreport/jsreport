@@ -4,6 +4,10 @@ You should not need this extension, only in case you try to compile your own jsr
 
 ## Changelog
 
+### 3.0.2
+
+- check presence of chrome binary when decompressing binary
+
 ### 3.0.1
 
 - fix problems with xlsx generation and archiver in compilation

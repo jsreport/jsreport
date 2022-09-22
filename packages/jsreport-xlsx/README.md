@@ -7,6 +7,11 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 3.2.3
+
+- fix xlsx generation with template using shared formulas
+- fix producing corrupted shared strings
+
 ### 3.2.2
 
 - fix xlsx helpers execution during transformation step

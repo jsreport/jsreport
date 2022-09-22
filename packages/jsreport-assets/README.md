@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.4.4
+
+- asset not found is marked as weak error
+
 ### 3.4.3
 
 - fix {#asset} resolving when there is leading/trailing space in asset name

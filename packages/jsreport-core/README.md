@@ -282,6 +282,14 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.8.1
+
+- update vm2 for fix security issue
+
+### 3.8.0
+
+- make "config.json" a reserved name for entities
+
 ### 3.7.0
 
 - add support for multiple source entities when copying and moving

@@ -33,8 +33,8 @@
   "dependencies": {},
   "devDependencies": {
     "handlebars": "4.7.7",
-    "@jsreport/jsreport-assets": "3.4.3",
-    "@jsreport/jsreport-core": "3.7.0",
+    "@jsreport/jsreport-assets": "3.4.4",
+    "@jsreport/jsreport-core": "3.8.1",
     "@jsreport/jsreport-components": "3.2.1",
     "@jsreport/jsreport-child-templates": "3.0.3",
     "@jsreport/jsreport-handlebars": "3.2.1",

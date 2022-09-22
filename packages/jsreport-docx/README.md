@@ -7,6 +7,11 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.5.0
+
+- add initial support for embedding html in docx (docxHtml helper)
+- add helper `docxTOCOptions` to support configuring TOC behavior (only option available there right now is `updateFields` which controls if the generated docx file should show a prompt when it is being open in Word to decide if the TOC should be updated)
+
 ### 3.4.0
 
 - add updateFields setting on docx when there is TOC, this allows MS Word to ask the user to update the page numbers of TOC when the document is opened

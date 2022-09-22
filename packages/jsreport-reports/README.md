@@ -7,6 +7,10 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 3.0.7
+
+- remove meaningless log
+
 ### 3.0.6
 
 - fix bug when there was render error
