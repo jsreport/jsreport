@@ -12,6 +12,8 @@ const format = require('xml-formatter')
 // NOTE: resources to better understand the units:
 // - https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/ (info about different units in openxml)
 // - https://blog.lindexi.com/post/C-dontet-Office-Open-XML-Unit-Converter.html (code about conversion between units)
+// NOTE: resources to get inspiration about api, data shape, format
+// - https://docx.js.org/
 
 const OFFICE_TYPES = ['docx', 'pptx', 'xlsx']
 

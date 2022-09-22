@@ -68,6 +68,88 @@ describe('docx TOC', () => {
     parts[8].should.be.eql('chapter3')
   })
 
+  it('should update TOC without updateFields xml setting when using docxTOCOptions helper', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'top-option-updateFields.docx'))
+          }
+        }
+      },
+      data: {
+        tocUpdateFields: true,
+        chapters: [{
+          chapter: 'chapter1'
+        }, {
+          chapter: 'chapter2'
+        }, {
+          chapter: 'chapter3'
+        }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [settingsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/settings.xml'])
+    const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
+
+    existingUpdateFieldsEl.getAttribute('w:val').should.be.eql('true')
+
+    const text = (await extractor.extract(result.content)).getBody()
+    const parts = text.split('\n').filter((t) => t)
+
+    parts[1].should.be.eql('chapter1\t1')
+    parts[2].should.be.eql('chapter2\t1')
+    parts[3].should.be.eql('chapter3\t1')
+    parts[4].should.be.eql('chapter1')
+    parts[6].should.be.eql('chapter2')
+    parts[8].should.be.eql('chapter3')
+  })
+
+  it('should update TOC without updateFields xml setting when using docxTOCOptions helper', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'top-option-updateFields.docx'))
+          }
+        }
+      },
+      data: {
+        tocUpdateFields: false,
+        chapters: [{
+          chapter: 'chapter1'
+        }, {
+          chapter: 'chapter2'
+        }, {
+          chapter: 'chapter3'
+        }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [settingsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/settings.xml'])
+    const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
+
+    should(existingUpdateFieldsEl).be.not.ok()
+
+    const text = (await extractor.extract(result.content)).getBody()
+    const parts = text.split('\n').filter((t) => t)
+
+    parts[1].should.be.eql('chapter1\t1')
+    parts[2].should.be.eql('chapter2\t1')
+    parts[3].should.be.eql('chapter3\t1')
+    parts[4].should.be.eql('chapter1')
+    parts[6].should.be.eql('chapter2')
+    parts[8].should.be.eql('chapter3')
+  })
+
   it('should update TOC (english)', async () => {
     const result = await reporter.render({
       template: {

@@ -385,3 +385,8 @@ function docxHtml (options) {
 
   return new Handlebars.SafeString('$docxHtml' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
+
+function docxTOCOptions (options) {
+  const Handlebars = require('handlebars')
+  return new Handlebars.SafeString('$docxTOCOptions' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
+}

@@ -4,12 +4,73 @@ const { nodeListToArray, findDefaultStyleIdForName, serializeXml } = require('..
 
 module.exports = async (files) => {
   const stylesDoc = files.find(f => f.path === 'word/styles.xml').doc
+  const settingsDoc = files.find(f => f.path === 'word/settings.xml').doc
+  const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const titles = []
 
   const listIds = new Map()
 
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
+
+  const TOCExists = contentTypesDoc.documentElement.getAttribute('TOCExists') === '1'
+  let updateFields = true
+
+  if (TOCExists) {
+    contentTypesDoc.documentElement.removeAttribute('TOCExists')
+  }
+
+  documentFile.data = await recursiveStringReplaceAsync(
+    documentFile.data.toString(),
+    '<TOCHeading>',
+    '</TOCHeading>',
+    'g',
+    async (val, content, hasNestedMatch) => {
+      if (hasNestedMatch) {
+        return val
+      }
+
+      const docEl = new DOMParser().parseFromString(content).documentElement
+      const tEls = nodeListToArray(docEl.getElementsByTagName('w:t'))
+
+      for (const tEl of tEls) {
+        const match = tEl.textContent.match(/\$docxTOCOptions([^$]*)\$/)
+
+        if (match == null || match[1] == null || match[1] === '') {
+          continue
+        }
+
+        // remove chart helper text
+        tEl.textContent = tEl.textContent.replace(match[0], '')
+
+        const tocOptions = JSON.parse(Buffer.from(match[1], 'base64').toString())
+
+        if (tocOptions.updateFields == null || typeof tocOptions.updateFields !== 'boolean') {
+          continue
+        }
+
+        updateFields = tocOptions.updateFields
+        break
+      }
+
+      return serializeXml(docEl)
+    }
+  )
+
+  if (TOCExists && updateFields) {
+    // add here the setting of the document to automatically recalculate fields on open,
+    // this allows the MS Word to prompt the user to update the page numbers or toc table
+    // when opening the generated file
+    const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
+
+    // if the setting is already on the document we don't generate it
+    if (existingUpdateFieldsEl == null) {
+      const doc = new DOMParser().parseFromString('<w:p></w:p>')
+      const newUpdateFieldsEl = doc.createElement('w:updateFields')
+      newUpdateFieldsEl.setAttribute('w:val', 'true')
+      settingsDoc.documentElement.insertBefore(newUpdateFieldsEl, settingsDoc.documentElement.firstChild)
+    }
+  }
 
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
