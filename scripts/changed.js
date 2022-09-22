@@ -56,11 +56,52 @@ if (targetPkg != null && targetPkg !== '') {
   } else {
     const commits = stdout.toString().split('\n').filter(x => x !== '')
 
+    const {
+      stdout: getNpmVersionStdout,
+      stderr: getNpmVersionStderr,
+      error: getNpmVersionError,
+      status: getNpmVersionErrorStatus
+    } = spawnSync('npm', ['view', targetPkg, 'version'], {
+      stdio: 'pipe',
+      shell: true
+    })
+
+    let npmVersion
+
+    const npmVersionStdout = getNpmVersionStdout?.toString() ?? ''
+    const npmVersionStderr = getNpmVersionStderr?.toString() ?? ''
+
+    if (getNpmVersionError || getNpmVersionErrorStatus === 1) {
+      console.error('npm version command failed to run')
+
+      if (getNpmVersionError) {
+        console.error(getNpmVersionError)
+      }
+
+      if (npmVersionStdout) {
+        console.log(npmVersionStdout)
+      }
+
+      if (npmVersionStderr) {
+        console.log(npmVersionStderr)
+      }
+
+      if (!npmVersionStderr.includes('404 Not Found') || !npmVersionStderr.includes('is not in this registry')) {
+        process.exit(1)
+      }
+    } else if (npmVersionStdout !== '') {
+      npmVersion = npmVersionStdout.replaceAll('\n', '')
+    }
+
     console.log(`\ncommit changes: ${commits.length}\n`)
     console.log('--(commits sorted from latest to oldest)--')
     console.log(commits.join('\n'))
 
-    console.log(`\nCurrent version of ${targetPkg}:`, packageJSON.version)
+    console.log(`\nCurrent version of ${targetPkg}: ${packageJSON.version} (local), ${npmVersion ?? '<not published>'} (npm)`)
+
+    if (npmVersion != null && packageJSON.version !== npmVersion) {
+      console.log('\n!!It seems that the version of the package (local) is not up to date with the npm version in registry, perhaps the package.json version was already modified in another commit, make sure to review this and decide!!')
+    }
 
     console.log('\nAfter deciding the target version update, you can continue by running:')
     console.log(`- node scripts/audit.js ${targetPkg}`)
