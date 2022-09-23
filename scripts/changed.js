@@ -57,6 +57,47 @@ if (targetPkg != null && targetPkg !== '') {
     const commits = stdout.toString().split('\n').filter(x => x !== '')
 
     const {
+      stdout: getPackageJSONInCommitStdout,
+      stderr: getPackageJSONInCommitStderr,
+      error: getPackageJSONInCommitErr,
+      status: getPackageJSONInCommitStatus
+    } = spawnSync('git', ['show', `${firstCommit}:${path.relative(process.cwd(), packageJSONPath)}`], {
+      stdio: 'pipe',
+      shell: true
+    })
+
+    let npmVersionInFirstCommit
+
+    const packageJSONInCommitStdout = getPackageJSONInCommitStdout?.toString() ?? ''
+    const packageJSONInCommitStderr = getPackageJSONInCommitStderr?.toString() ?? ''
+
+    if (getPackageJSONInCommitErr || getPackageJSONInCommitStatus !== 0) {
+      console.error('get package.json file at first commit command failed to run')
+
+      if (getPackageJSONInCommitErr) {
+        console.error(getPackageJSONInCommitErr)
+      }
+
+      if (packageJSONInCommitStdout) {
+        console.log(packageJSONInCommitStdout)
+      }
+
+      if (packageJSONInCommitStderr) {
+        console.log(packageJSONInCommitStderr)
+      }
+    } else if (packageJSONInCommitStdout !== '') {
+      let packageJSONInCommit = {}
+
+      try {
+        packageJSONInCommit = JSON.parse(packageJSONInCommitStdout)
+      } catch {}
+
+      if (packageJSONInCommit?.version != null && packageJSONInCommit?.version !== '') {
+        npmVersionInFirstCommit = packageJSONInCommit.version
+      }
+    }
+
+    const {
       stdout: getNpmVersionStdout,
       stderr: getNpmVersionStderr,
       error: getNpmVersionError,
@@ -66,12 +107,12 @@ if (targetPkg != null && targetPkg !== '') {
       shell: true
     })
 
-    let npmVersion
+    let npmVersionInRegistry
 
     const npmVersionStdout = getNpmVersionStdout?.toString() ?? ''
     const npmVersionStderr = getNpmVersionStderr?.toString() ?? ''
 
-    if (getNpmVersionError || getNpmVersionErrorStatus === 1) {
+    if (getNpmVersionError || getNpmVersionErrorStatus !== 0) {
       console.error('npm version command failed to run')
 
       if (getNpmVersionError) {
@@ -90,17 +131,28 @@ if (targetPkg != null && targetPkg !== '') {
         process.exit(1)
       }
     } else if (npmVersionStdout !== '') {
-      npmVersion = npmVersionStdout.replaceAll('\n', '')
+      npmVersionInRegistry = npmVersionStdout.replaceAll('\n', '')
     }
 
     console.log(`\ncommit changes: ${commits.length}\n`)
     console.log('--(commits sorted from latest to oldest)--')
     console.log(commits.join('\n'))
 
-    console.log(`\nCurrent version of ${targetPkg}: ${packageJSON.version} (local), ${npmVersion ?? '<not published>'} (npm)`)
+    console.log(`\nCurrent version of ${targetPkg}: ${packageJSON.version} (local), ${npmVersionInRegistry ?? '<not published>'} (npm)`)
 
-    if (npmVersion != null && packageJSON.version !== npmVersion) {
-      console.log('\n!!It seems that the version of the package (local) is not up to date with the npm version in registry, perhaps the package.json version was already modified in another commit, make sure to review this and decide!!')
+    if (npmVersionInFirstCommit == null) {
+      console.log(`\n!!It seems that ${packageJSONPath} at commit ${firstCommit} was not available, this means that probably the package is new or was renamed/moved in the next commits starting from ${firstCommit} to HEAD, make sure to review this and decide what to do!!`)
+    } else if (npmVersionInFirstCommit !== packageJSON.version && npmVersionInRegistry != null && packageJSON.version === npmVersionInRegistry) {
+      console.log(`\n!!It seems that this package was already published in commits between ${firstCommit} and HEAD, version at first commit ${firstCommit} is ${npmVersionInFirstCommit}, if this is true there is no need to publish this package, make sure to review this and decide what to do!!`)
+    }
+
+    if (
+      npmVersionInRegistry != null &&
+      packageJSON.version !== npmVersionInRegistry &&
+      npmVersionInFirstCommit != null &&
+      npmVersionInFirstCommit !== packageJSON.version
+    ) {
+      console.log('\n!!It seems that the version of this package (local) is not up to date with the npm version in registry, perhaps the package.json version was already modified in another commit but without publishing it, make sure to review this and decide what to do!!')
     }
 
     console.log('\nAfter deciding the target version update, you can continue by running:')
