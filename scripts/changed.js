@@ -10,6 +10,79 @@ if (firstCommit == null || firstCommit === '') {
   throw new Error('firstCommit arg is required. First positional argument')
 }
 
+if (firstCommit === 'inspect') {
+  const targetCommit = args[1]
+
+  if (targetCommit == null || targetCommit === '') {
+    throw new Error('when in inspect mode the target commit arg is required. Second positional argument')
+  }
+
+  const targetPkg = args[2]
+  let hasTargetPkg = false
+
+  if (targetPkg != null && targetPkg !== '') {
+    hasTargetPkg = true
+  }
+
+  const commandArgs = ['show', targetCommit, '--name-only']
+
+  if (hasTargetPkg) {
+    const packagesInWorkspace = getPackagesInWorkspace()
+
+    if (!packagesInWorkspace.has(targetPkg)) {
+      throw new Error(`${targetPkg} is not a valid extension`)
+    }
+
+    const targetPkgFoldername = packagesInWorkspace.get(targetPkg)
+
+    commandArgs.push('--')
+    commandArgs.push(`packages/${targetPkgFoldername}`)
+  }
+
+  const {
+    stdout: getCommitShowStdout,
+    stderr: getCommitShowStderr,
+    error: getCommitShowError,
+    status: getCommitShowStatus
+  } = spawnSync('git', commandArgs, {
+    stdio: 'pipe',
+    shell: true
+  })
+
+  const commitShowStdout = getCommitShowStdout?.toString() ?? ''
+  const commitShowStderr = getCommitShowStderr?.toString() ?? ''
+
+  if (getCommitShowError || getCommitShowStatus !== 0) {
+    console.error('get commit details command failed to run')
+
+    if (getCommitShowError) {
+      console.error(getCommitShowError)
+    }
+
+    if (commitShowStdout) {
+      console.log(commitShowStdout)
+    }
+
+    if (commitShowStderr) {
+      console.log(commitShowStderr)
+    }
+  } else {
+    if (hasTargetPkg) {
+      console.log(`\n--(details showing only files changed relevant to ${targetPkg} package)--`)
+    } else {
+      console.log('\n--(details showing all files changed in this commit)--')
+    }
+
+    console.log(commitShowStdout)
+  }
+
+  if (hasTargetPkg) {
+    console.log(`\nYou can also show all files changed in this commit by running: node scripts/changed.js inspect ${targetCommit}`)
+  }
+
+  process.exit(0)
+}
+
 const lastCommit = args[1]
 
 if (lastCommit == null || lastCommit === '') {
@@ -28,7 +101,7 @@ if (targetPkg != null && targetPkg !== '') {
   const targetPkgFoldername = packagesInWorkspace.get(targetPkg)
   const packageJSONPath = path.join(process.cwd(), 'packages', targetPkgFoldername, 'package.json')
   const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath))
-  const commands = ['git', 'log', '--pretty="format:[%an] %H %ad | %s"', '--date=short', `${firstCommit}..${lastCommit}`, '--', `packages/${packagesInWorkspace.get(targetPkg)}`]
+  const commands = ['git', 'log', '--pretty="format:[%an] %H %ad | %s"', '--date=short', `${firstCommit}..${lastCommit}`, '--', `packages/${targetPkgFoldername}`]
 
   console.log(`running ${commands.join(' ')}`)
 
@@ -156,6 +229,7 @@ if (targetPkg != null && targetPkg !== '') {
     }
 
     console.log('\nAfter deciding the target version update, you can continue by running:')
+    console.log(`- node scripts/changed.js inspect <commit> ${targetPkg} (to inspect changed files of ${targetPkg} in specific commit)`)
     console.log(`- node scripts/audit.js ${targetPkg}`)
     console.log(`- node scripts/publish.js ${targetPkg} <version>`)
   }
