@@ -329,6 +329,12 @@ function normalizeChildNodes ($, mode, data, childNodes) {
         continue
       }
 
+      // if text contains at least one character that is not white space then ignore
+      // the normalization
+      if (childNode.nodeValue !== '' && /[^ ]/.test(childNode.nodeValue)) {
+        continue
+      }
+
       childNode.nodeValue = childNode.nodeValue.replace(/^[ ]+([^ ]*)/, '$1')
       childNode.nodeValue = childNode.nodeValue.replace(/([^ ]*)[ ]+$/, '$1')
 

@@ -2030,6 +2030,42 @@ describe('docx html embed', () => {
           should(textNodes[2].textContent).eql(' Docx')
         }
       })
+
+      const templateTextWithSpaceInMiddleOfBlockStr = '<p><b>...</b>...<b>...</b></p>'
+
+      it(`${mode} mode - preserve text with leading and trailing space in the middle of block element children ${templateTextWithSpaceInMiddleOfBlockStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateTextWithSpaceInMiddleOfBlockStr, ['jsreport', ' is a ', 'javascript reporting server'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(3)
+        should(textNodes[0].textContent).eql('jsreport')
+        should(textNodes[1].textContent).eql(' is a ')
+        should(textNodes[2].textContent).eql('javascript reporting server')
+      })
     }
   })
 
