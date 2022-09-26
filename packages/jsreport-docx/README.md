@@ -7,6 +7,10 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.5.1
+
+- fix normalizing space for middle text element in `docxHtml`
+
 ### 3.5.0
 
 - add initial support for embedding html in docx (docxHtml helper)
