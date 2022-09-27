@@ -49,9 +49,9 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.0 \
     @jsreport/jsreport-aws-s3-storage@3.0.0 \
     @jsreport/jsreport-azure-storage@3.0.0 \
     @jsreport/jsreport-docxtemplater@3.1.0 \
-    @jsreport/jsreport-mssql-store@3.0.0 \
-    @jsreport/jsreport-oracle-store@3.0.1 \
-    @jsreport/jsreport-postgres-store@3.0.0 \
+    @jsreport/jsreport-mssql-store@3.1.0 \
+    @jsreport/jsreport-oracle-store@3.1.0 \
+    @jsreport/jsreport-postgres-store@3.1.0 \
     @jsreport/jsreport-mongodb-store@3.1.1 \
     @jsreport/jsreport-office-password@3.0.1 \
     @jsreport/jsreport-html-to-text@3.0.0 \
