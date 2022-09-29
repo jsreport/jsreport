@@ -13,7 +13,6 @@ describe('docx html embed', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      reportTimeout: 99999999,
       store: {
         provider: 'memory'
       }
@@ -3120,6 +3119,277 @@ function commonWithText ({
       textAssert(textNode, templateTextNodesForDocxHtml[0], assertExtra)
     })
   }
+
+  it(`${mode} mode - <${tag}> as ${level} in document header ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header' : 'html-embed-inline-header'}.docx`))
+
+    const result = await getReporter().render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World']),
+        headerHtml: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World'])
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc, header1TemplateDoc, header2TemplateDoc, header3TemplateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
+    const [doc, header1Doc, header2Doc, header3Doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', ...outputDocuments])
+
+    const assertExtra = {
+      mode,
+      outputDocuments: restOfDocuments
+    }
+
+    const targetDocs = [{ doc, templateDoc }]
+
+    const headerInfos = [
+      { doc: header1Doc, templateDoc: header1TemplateDoc },
+      { doc: header2Doc, templateDoc: header2TemplateDoc },
+      { doc: header3Doc, templateDoc: header3TemplateDoc }
+    ]
+
+    for (const headerInfo of headerInfos) {
+      if (headerInfo.doc == null) {
+        continue
+      }
+
+      const paragraphNodes = nodeListToArray(headerInfo.doc.getElementsByTagName('w:p'))
+
+      if (paragraphNodes.length === 0) {
+        continue
+      }
+
+      const textNodesInFirstParagraph = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+      if (textNodesInFirstParagraph.length === 0) {
+        continue
+      }
+
+      targetDocs.push(headerInfo)
+    }
+
+    should(targetDocs.length).be.greaterThan(1)
+
+    for (const [idx, { doc, templateDoc }] of targetDocs.entries()) {
+      const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=${idx === 0 ? 'html' : 'headerHtml'}${mode === 'block' ? '' : ' inline=true'}}}`)
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
+
+      if (IS_BLOCK_TAG && mode === 'block') {
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodesInParagraph1.length).eql(1)
+        commonHtmlTextAssertions(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        should(textNodesInParagraph1[0].textContent).eql('Hello')
+        const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+        should(textNodesInParagraph2.length).eql(1)
+        textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodesInParagraph2[0].textContent).eql('World')
+      } else {
+        paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(2)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('Hello')
+        textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodes[1].textContent).eql('World')
+      }
+    }
+  })
+
+  it(`${mode} mode - <${tag}> as ${level} in document footer ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-footer' : 'html-embed-inline-footer'}.docx`))
+
+    const result = await getReporter().render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World']),
+        footerHtml: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World'])
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc, footer1TemplateDoc, footer2TemplateDoc, footer3TemplateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
+    const [doc, footer1Doc, footer2Doc, footer3Doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml', ...outputDocuments])
+
+    const assertExtra = {
+      mode,
+      outputDocuments: restOfDocuments
+    }
+
+    const targetDocs = [{ doc, templateDoc }]
+
+    const footerInfos = [
+      { doc: footer1Doc, templateDoc: footer1TemplateDoc },
+      { doc: footer2Doc, templateDoc: footer2TemplateDoc },
+      { doc: footer3Doc, templateDoc: footer3TemplateDoc }
+    ]
+
+    for (const footerInfo of footerInfos) {
+      if (footerInfo.doc == null) {
+        continue
+      }
+
+      const paragraphNodes = nodeListToArray(footerInfo.doc.getElementsByTagName('w:p'))
+
+      if (paragraphNodes.length === 0) {
+        continue
+      }
+
+      const textNodesInFirstParagraph = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+      if (textNodesInFirstParagraph.length === 0) {
+        continue
+      }
+
+      targetDocs.push(footerInfo)
+    }
+
+    should(targetDocs.length).be.greaterThan(1)
+
+    for (const [idx, { doc, templateDoc }] of targetDocs.entries()) {
+      const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=${idx === 0 ? 'html' : 'footerHtml'}${mode === 'block' ? '' : ' inline=true'}}}`)
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
+
+      if (IS_BLOCK_TAG && mode === 'block') {
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodesInParagraph1.length).eql(1)
+        commonHtmlTextAssertions(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        should(textNodesInParagraph1[0].textContent).eql('Hello')
+        const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+        should(textNodesInParagraph2.length).eql(1)
+        textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodesInParagraph2[0].textContent).eql('World')
+      } else {
+        paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(2)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('Hello')
+        textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodes[1].textContent).eql('World')
+      }
+    }
+  })
+
+  it(`${mode} mode - <${tag}> as ${level} in document header and footer ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
+    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header-footer' : 'html-embed-inline-header-footer'}.docx`))
+
+    const result = await getReporter().render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxTemplateBuf
+          }
+        }
+      },
+      data: {
+        html: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World']),
+        headerHtml: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World']),
+        footerHtml: createHtml(wrapWithLevel(`...${createTagTemplate(tag, '...')}`), ['Hello', 'World'])
+      }
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync('out.docx', result.content)
+
+    const [templateDoc, header1TemplateDoc, header2TemplateDoc, header3TemplateDoc, footer1TemplateDoc, footer2TemplateDoc, footer3TemplateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
+    const [doc, header1Doc, header2Doc, header3Doc, footer1Doc, footer2Doc, footer3Doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml', ...outputDocuments])
+
+    const assertExtra = {
+      mode,
+      outputDocuments: restOfDocuments
+    }
+
+    const targetDocs = [{ doc, templateDoc }]
+
+    const headerFooterInfos = [
+      { type: 'header', doc: header1Doc, templateDoc: header1TemplateDoc },
+      { type: 'header', doc: header2Doc, templateDoc: header2TemplateDoc },
+      { type: 'header', doc: header3Doc, templateDoc: header3TemplateDoc },
+      { type: 'footer', doc: footer1Doc, templateDoc: footer1TemplateDoc },
+      { type: 'footer', doc: footer2Doc, templateDoc: footer2TemplateDoc },
+      { type: 'footer', doc: footer3Doc, templateDoc: footer3TemplateDoc }
+    ]
+
+    for (const headerFooterInfo of headerFooterInfos) {
+      if (headerFooterInfo.doc == null) {
+        continue
+      }
+
+      const paragraphNodes = nodeListToArray(headerFooterInfo.doc.getElementsByTagName('w:p'))
+
+      if (paragraphNodes.length === 0) {
+        continue
+      }
+
+      const textNodesInFirstParagraph = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+      if (textNodesInFirstParagraph.length === 0) {
+        continue
+      }
+
+      targetDocs.push(headerFooterInfo)
+    }
+
+    should(targetDocs.length).be.greaterThan(1)
+
+    for (const [idx, { type, doc, templateDoc }] of targetDocs.entries()) {
+      const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=${idx === 0 ? 'html' : `${type}Html`}${mode === 'block' ? '' : ' inline=true'}}}`)
+      const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+      should(paragraphNodes.length).eql(IS_BLOCK_TAG && mode === 'block' ? 2 : 1)
+
+      if (IS_BLOCK_TAG && mode === 'block') {
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        paragraphAssert(paragraphNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        const textNodesInParagraph1 = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodesInParagraph1.length).eql(1)
+        commonHtmlTextAssertions(textNodesInParagraph1[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+        should(textNodesInParagraph1[0].textContent).eql('Hello')
+        const textNodesInParagraph2 = nodeListToArray(paragraphNodes[1].getElementsByTagName('w:t'))
+        should(textNodesInParagraph2.length).eql(1)
+        textAssert(textNodesInParagraph2[0], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodesInParagraph2[0].textContent).eql('World')
+      } else {
+        paragraphAssert(paragraphNodes[0], templateTextNodesForDocxHtml[0], assertExtra)
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(2)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('Hello')
+        textAssert(textNodes[1], templateTextNodesForDocxHtml[0], assertExtra)
+        should(textNodes[1].textContent).eql('World')
+      }
+    }
+  })
 }
 
 function commonWithInlineAndBlockSiblings ({

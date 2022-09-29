@@ -1,3 +1,4 @@
+const path = require('path')
 const { XMLSerializer } = require('@xmldom/xmldom')
 
 function nodeListToArray (nodes) {
@@ -112,6 +113,35 @@ function getChartEl (drawingEl) {
   }
 
   return chartDrawingEl
+}
+
+function getHeaderFooterDocs (headerFooterReferences, documentFilePath, documentRelsDoc, files) {
+  const result = []
+  const relationshipEls = nodeListToArray(documentRelsDoc.getElementsByTagName('Relationship'))
+
+  for (const { type, referenceEl } of headerFooterReferences) {
+    const rid = referenceEl.getAttribute('r:id')
+
+    const relationshipEl = relationshipEls.find(r => (
+      r.getAttribute('Id') === rid &&
+      r.getAttribute('Type') === `http://schemas.openxmlformats.org/officeDocument/2006/relationships/${type}`
+    ))
+
+    if (relationshipEl == null) {
+      continue
+    }
+
+    const referenceFilePath = path.posix.join(path.posix.dirname(documentFilePath), relationshipEl.getAttribute('Target'))
+    const resolvedDoc = files.find((file) => file.path === referenceFilePath)?.doc
+
+    if (resolvedDoc == null) {
+      continue
+    }
+
+    result.push({ type, doc: resolvedDoc, referenceEl })
+  }
+
+  return result
 }
 
 function getClosestEl (el, targetNodeNameOrFn, targetType = 'parent') {
@@ -349,6 +379,7 @@ module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
+module.exports.getHeaderFooterDocs = getHeaderFooterDocs
 module.exports.getClosestEl = getClosestEl
 module.exports.clearEl = clearEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode

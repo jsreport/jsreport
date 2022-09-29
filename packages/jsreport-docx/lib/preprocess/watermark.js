@@ -1,36 +1,20 @@
-const path = require('path')
-const { nodeListToArray } = require('../utils')
+const { nodeListToArray, getHeaderFooterDocs } = require('../utils')
 
 module.exports = (files) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const documentFilePath = documentFile.path
   const documentDoc = documentFile.doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
-  const headerReferenceEls = nodeListToArray(documentDoc.getElementsByTagName('w:headerReference'))
 
+  const headerReferences = nodeListToArray(documentDoc.getElementsByTagName('w:headerReference')).map((el) => ({
+    type: 'header',
+    referenceEl: el
+  }))
+
+  const headerDocs = getHeaderFooterDocs(headerReferences, documentFilePath, documentRelsDoc, files)
   const watermarkHeaderReferenceEls = []
 
-  const relationshipEls = nodeListToArray(documentRelsDoc.getElementsByTagName('Relationship'))
-
-  for (const headerReferenceEl of headerReferenceEls) {
-    const rid = headerReferenceEl.getAttribute('r:id')
-
-    const relationshipEl = relationshipEls.find(r => (
-      r.getAttribute('Id') === rid &&
-      r.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/header'
-    ))
-
-    if (relationshipEl == null) {
-      continue
-    }
-
-    const headerPath = path.posix.join(path.posix.dirname(documentFilePath), relationshipEl.getAttribute('Target'))
-    const headerDoc = files.find((file) => file.path === headerPath)?.doc
-
-    if (headerDoc == null) {
-      continue
-    }
-
+  for (const { doc: headerDoc, referenceEl: headerReferenceEl } of headerDocs) {
     const pictELS = nodeListToArray(headerDoc.getElementsByTagName('w:pict'))
 
     let found = false
