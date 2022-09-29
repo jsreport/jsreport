@@ -16,7 +16,7 @@ module.exports = (reporter, definition) => {
 
   reporter.afterTemplatingEnginesExecutedListeners.add('pdf-utils', (req, res) => {
     // https://forum.jsreport.net/topic/1284/pdf-outline-with-child-templates
-    if (!req.template.recipe.includes('pdf')) {
+    if (req.template.recipe == null || !req.template.recipe.includes('pdf')) {
       // this skips also the child templates, because we want to get the outlines from final html
       return
     }
@@ -98,7 +98,7 @@ module.exports = (reporter, definition) => {
       return
     }
 
-    if (!req.template.recipe.includes('pdf')) {
+    if (req.template.recipe == null || !req.template.recipe.includes('pdf')) {
       reporter.logger.debug('Skipping pdf utils processing because template is rendered with non-pdf recipe.', req)
       return
     }
