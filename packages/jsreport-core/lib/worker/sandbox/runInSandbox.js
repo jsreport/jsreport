@@ -135,10 +135,14 @@ module.exports = (reporter) => {
       const initScriptInfo = await initFn(_getTopLevelFunctions, compileScript)
 
       if (initScriptInfo) {
-        await run(initScriptInfo.script, {
-          filename: initScriptInfo.filename || 'sandbox-init.js',
-          source: initScriptInfo.source
-        })
+        try {
+          await run(initScriptInfo.script, {
+            filename: initScriptInfo.filename || 'sandbox-init.js',
+            source: initScriptInfo.source
+          })
+        } catch (e) {
+          handleError(reporter, e)
+        }
       }
     }
 
@@ -162,11 +166,15 @@ module.exports = (reporter) => {
           })
         }).catch(__handleError);`
 
-    return run(executionCode, {
-      filename: 'sandbox.js',
-      source: userCode,
-      errorLineNumberOffset
-    })
+    try {
+      return await run(executionCode, {
+        filename: 'sandbox.js',
+        source: userCode,
+        errorLineNumberOffset
+      })
+    } catch (e) {
+      handleError(reporter, e)
+    }
   }
 }
 

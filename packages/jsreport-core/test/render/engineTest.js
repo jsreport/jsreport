@@ -549,6 +549,23 @@ describe('engine', () => {
     }
   })
 
+  it('should throw weak error when there is typo in helper', async () => {
+    try {
+      await reporter.render({
+        template: {
+          content: '',
+          helpers: '{',
+          engine: 'helpers',
+          recipe: 'html'
+        }
+      })
+      throw new Error('should throw')
+    } catch (e) {
+      e.statusCode.should.be.eql(400)
+      e.weak.should.be.true()
+    }
+  })
+
   it('should cache the templating engines', async () => {
     const templateContent = 'content'
 
