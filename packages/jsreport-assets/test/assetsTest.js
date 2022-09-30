@@ -545,6 +545,8 @@ describe('assets', function () {
       throw new Error('should fail')
     } catch (e) {
       e.message.should.not.be.eql('should fail')
+      e.statusCode.should.be.eql(400)
+      e.weak.should.be.true()
     }
   })
 

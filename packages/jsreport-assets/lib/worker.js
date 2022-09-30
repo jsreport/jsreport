@@ -29,22 +29,30 @@ async function evaluateAssets (reporter, definition, stringToReplace, req) {
       const paramRaw = (p1.replace(assetName, '').replace(' @', '')).trim()
 
       if (paramRaw.split('=').length !== 2) {
-        throw new Error('Wrong asset param specification, should be {#asset name @encoding=base64}')
+        throw reporter.createError('Wrong asset param specification, should be {#asset name @encoding=base64}', {
+          statusCode: 400
+        })
       }
 
       const paramName = paramRaw.split('=')[0]
       const paramValue = paramRaw.split('=')[1]
 
       if (paramName !== 'encoding') {
-        throw new Error('Unsupported param ' + paramName)
+        throw reporter.createError('Unsupported param ' + paramName, {
+          statusCode: 400
+        })
       }
 
       if (paramValue !== 'base64' && paramValue !== 'utf8' && paramValue !== 'string' && paramValue !== 'link' && paramValue !== 'dataURI') {
-        throw new Error('Unsupported asset encoding param value ' + paramValue + ', supported values are base64, utf8, link, dataURI and string')
+        throw reporter.createError('Unsupported asset encoding param value ' + paramValue + ', supported values are base64, utf8, link, dataURI and string', {
+          statusCode: 400
+        })
       }
 
       if (paramValue === 'dataURI' && !isImage(assetName) && !isFont(assetName)) {
-        throw new Error('Asset encoded as dataURI needs to have file extension jpeg|jpg|gif|png|svg|woff|tff|otf|woff2|eot')
+        throw reporter.createError('Asset encoded as dataURI needs to have file extension jpeg|jpg|gif|png|svg|woff|tff|otf|woff2|eot', {
+          statusCode: 400
+        })
       }
 
       encoding = paramValue
