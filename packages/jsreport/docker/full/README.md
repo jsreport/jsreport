@@ -19,3 +19,12 @@ Usage
 This is the most basic usage. It will start jsreport server on port 80 directly in the current shell with data and configuration stored directly in the container. Change 80 http port to whatever you want.
 
 The full documentation for the jsreport official images can be found at https://jsreport.net/learn/docker
+
+Usage on macOS M1 hardware
+--------------------------
+
+To run the docker images on macOS with M1 hardware, you need to use the `--platform linux/amd64` flag and pass some additional chrome options. The docker run command for it looks like this:
+
+```sh
+docker run --platform=linux/amd64 -p 5488:5488 -e "chrome_launchOptions_executablePath=/usr/bin/chromium-browser" -e "chrome_launchOptions_args=--no-sandbox, --disable-dev-shm-usage, --disable-dev-profile, --no-zygote, --disable-gpu, --disable-audio-output, --disable-setuid-sandbox, --single-process" jsreport/jsreport:3.8.0-full
+```

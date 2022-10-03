@@ -78,7 +78,7 @@ RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
 
-ENV chrome:launchOptions:executablePath /usr/lib/chromium/chrome
+ENV chrome_launchOptions_executablePath /usr/lib/chromium/chrome
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
 
