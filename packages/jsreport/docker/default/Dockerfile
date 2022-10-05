@@ -38,7 +38,7 @@ RUN apk update --no-cache && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=105.0.5195.125-r0 \
+    chromium@edge=106.0.5249.91-r0\
     nss \
     freetype \
     harfbuzz \
