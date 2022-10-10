@@ -1844,4 +1844,143 @@ describe('docx chart', () => {
       should(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:formatCode')[0].textContent).be.eql('#,##0.0')
     })
   })
+
+  it('chart in document header', async () => {
+    const labels = ['Jan', 'Feb', 'March']
+    const datasets = [{
+      label: 'Ser1',
+      data: [4, 5, 1]
+    }, {
+      label: 'Ser2',
+      data: [2, 3, 5]
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'chart-header.docx'))
+          }
+        }
+      },
+      data: {
+        chartData: {
+          labels,
+          datasets
+        }
+      }
+    })
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    dataElements.forEach((dataEl, idx) => {
+      dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
+      nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(labels)
+      nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
+  it('chart in document footer', async () => {
+    const labels = ['Jan', 'Feb', 'March']
+    const datasets = [{
+      label: 'Ser1',
+      data: [4, 5, 1]
+    }, {
+      label: 'Ser2',
+      data: [2, 3, 5]
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'chart-footer.docx'))
+          }
+        }
+      },
+      data: {
+        chartData: {
+          labels,
+          datasets
+        }
+      }
+    })
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    dataElements.forEach((dataEl, idx) => {
+      dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
+      nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(labels)
+      nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
+  it('chart in document header and footer', async () => {
+    const chartData = {
+      labels: ['Jan', 'Feb', 'March'],
+      datasets: [{
+        label: 'Ser1',
+        data: [4, 5, 1]
+      }, {
+        label: 'Ser2',
+        data: [2, 3, 5]
+      }]
+    }
+
+    const chartData2 = {
+      labels: ['Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Ser1',
+        data: [9, 3, 6]
+      }, {
+        label: 'Ser2',
+        data: [5, 8, 2]
+      }]
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'chart-header-footer.docx'))
+          }
+        }
+      },
+      data: {
+        chartData,
+        chartData2
+      }
+    })
+
+    const [doc, doc2] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml', 'word/charts/chart3.xml'])
+    const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+    dataElements.forEach((dataEl, idx) => {
+      dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(chartData.datasets[idx].label)
+      nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(chartData.labels)
+      nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(chartData.datasets[idx].data)
+    })
+
+    const dataElements2 = nodeListToArray(doc2.getElementsByTagName('c:ser'))
+
+    dataElements2.forEach((dataEl, idx) => {
+      dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(chartData2.datasets[idx].label)
+      nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(chartData2.labels)
+      nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(chartData2.datasets[idx].data)
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+  })
 })

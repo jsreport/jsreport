@@ -4,8 +4,9 @@ const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const processImage = require('./processImage')
 const processChart = require('./processChart')
 
-module.exports = async (files, newBookmarksMap, options) => {
+module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
+  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const docPrIdCounterMap = new Map()
   const imagesNewRelIdCounterMap = new Map()
@@ -27,7 +28,6 @@ module.exports = async (files, newBookmarksMap, options) => {
     '</w:drawing>',
     'g',
     async (val, content, hasNestedMatch) => {
-      let changedDocPrId = false
       const drawingEl = new DOMParser({
         xmlns: {
           c: 'http://schemas.openxmlformats.org/drawingml/2006/chart',
@@ -35,48 +35,80 @@ module.exports = async (files, newBookmarksMap, options) => {
         }
       }).parseFromString(val).documentElement
 
-      const docPrEl = getDocPrEl(drawingEl)
-      let docPrId
+      const newDrawingEl = await processDrawingEl(drawingEl, documentRelsDoc, hasNestedMatch)
 
-      if (docPrEl != null) {
-        const id = parseInt(docPrEl.getAttribute('id'), 10)
-
-        if (!isNaN(id)) {
-          docPrId = id
-        }
+      if (newDrawingEl != null) {
+        return serializeXml(newDrawingEl)
       }
 
-      // fix id for elements that have been generated after loop
-      if (docPrId != null) {
-        const newDocPrId = getNewIdFromBaseId(docPrIdCounterMap, docPrId, maxDocPrId || 0)
-
-        if (newDocPrId !== docPrId) {
-          changedDocPrId = true
-          maxDocPrId = newDocPrId
-          docPrEl.setAttribute('id', newDocPrId)
-        }
-      }
-
-      const imageResult = await processImage(files, drawingEl, imagesNewRelIdCounterMap, newBookmarksMap)
-
-      if (imageResult != null) {
-        return imageResult
-      }
-
-      // only process charts it is a standalone drawing element
-      if (hasNestedMatch) {
-        return changedDocPrId ? serializeXml(drawingEl) : val
-      }
-
-      const chartResult = await processChart(files, drawingEl, originalChartsXMLMap, chartsNewRelIdCounterMap)
-
-      if (chartResult) {
-        return chartResult
-      }
-
-      return changedDocPrId ? serializeXml(drawingEl) : val
+      return val
     }
   )
+
+  for (const { doc: headerFooterDoc, relsDoc: headerFooterRelsDoc } of headerFooterRefs) {
+    if (headerFooterRelsDoc == null) {
+      continue
+    }
+
+    const drawingEls = nodeListToArray(headerFooterDoc.getElementsByTagName('w:drawing'))
+
+    for (const drawingEl of drawingEls) {
+      const hasNestedMatch = nodeListToArray(drawingEl.getElementsByTagName('w:drawing')).length > 0
+      const newDrawingEl = await processDrawingEl(drawingEl, headerFooterRelsDoc, hasNestedMatch)
+
+      if (newDrawingEl == null) {
+        continue
+      }
+
+      drawingEl.parentNode.insertBefore(newDrawingEl, drawingEl)
+      drawingEl.parentNode.removeChild(drawingEl)
+    }
+  }
+
+  async function processDrawingEl (referenceDrawingEl, relsDoc, hasNestedMatch) {
+    const drawingEl = referenceDrawingEl.cloneNode(true)
+    let changedDocPrId = false
+    const docPrEl = getDocPrEl(drawingEl)
+    let docPrId
+
+    if (docPrEl != null) {
+      const id = parseInt(docPrEl.getAttribute('id'), 10)
+
+      if (!isNaN(id)) {
+        docPrId = id
+      }
+    }
+
+    // fix id for elements that have been generated after loop
+    if (docPrId != null) {
+      const newDocPrId = getNewIdFromBaseId(docPrIdCounterMap, docPrId, maxDocPrId || 0)
+
+      if (newDocPrId !== docPrId) {
+        changedDocPrId = true
+        maxDocPrId = newDocPrId
+        docPrEl.setAttribute('id', newDocPrId)
+      }
+    }
+
+    const newImageDrawingEl = await processImage(files, drawingEl, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
+
+    if (newImageDrawingEl != null) {
+      return newImageDrawingEl
+    }
+
+    // only process charts it is a standalone drawing element
+    if (hasNestedMatch) {
+      return changedDocPrId ? drawingEl : null
+    }
+
+    const newChartDrawingEl = await processChart(files, drawingEl, relsDoc, originalChartsXMLMap, chartsNewRelIdCounterMap)
+
+    if (newChartDrawingEl) {
+      return newChartDrawingEl
+    }
+
+    return changedDocPrId ? drawingEl : null
+  }
 }
 
 function getDocPrEl (drawingEl) {

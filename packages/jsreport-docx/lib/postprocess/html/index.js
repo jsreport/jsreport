@@ -1,13 +1,11 @@
 const { DOMParser } = require('@xmldom/xmldom')
 const recursiveStringReplaceAsync = require('../../recursiveStringReplaceAsync')
-const { nodeListToArray, serializeXml, getHeaderFooterDocs, getClosestEl, clearEl } = require('../../utils')
+const { nodeListToArray, serializeXml, getClosestEl, clearEl } = require('../../utils')
 const parseHtmlToDocxMeta = require('./parseHtmlToDocxMeta')
 const convertDocxMetaToNodes = require('./convertDocxMetaToNodes')
 
-module.exports = async (files) => {
+module.exports = async (files, headerFooterRefs) => {
   const documentFile = files.find(f => f.path === 'word/document.xml')
-  const documentFilePath = documentFile.path
-  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
 
   documentFile.data = await recursiveStringReplaceAsync(
     documentFile.data.toString(),
@@ -24,38 +22,8 @@ module.exports = async (files) => {
     }
   )
 
-  const headerFooterReferences = []
-
   // checking if we need to handle html in header/footer of the document
-  documentFile.data = await recursiveStringReplaceAsync(
-    documentFile.data.toString(),
-    '<docxHtmlSectPr>',
-    '</docxHtmlSectPr>',
-    'g',
-    async (val, content, hasNestedMatch) => {
-      const doc = new DOMParser().parseFromString(val)
-
-      const headerReferences = nodeListToArray(doc.getElementsByTagName('w:headerReference')).map((el) => ({
-        type: 'header',
-        referenceEl: el
-      }))
-
-      const footerReferences = nodeListToArray(doc.getElementsByTagName('w:footerReference')).map((el) => ({
-        type: 'footer',
-        referenceEl: el
-      }))
-
-      if (documentRelsDoc != null) {
-        const referenceResults = getHeaderFooterDocs([...headerReferences, ...footerReferences], documentFilePath, documentRelsDoc, files)
-        headerFooterReferences.push(...referenceResults)
-      }
-
-      // return without the wrapping
-      return serializeXml(doc.documentElement.firstChild)
-    }
-  )
-
-  for (const { doc: headerFooterDoc } of headerFooterReferences) {
+  for (const { doc: headerFooterDoc } of headerFooterRefs) {
     const paragraphEls = nodeListToArray(headerFooterDoc.getElementsByTagName('w:p')).filter((el) => {
       return el.getAttribute('__html_embed_container__') === 'true'
     })

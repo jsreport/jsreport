@@ -1,8 +1,6 @@
 const { nodeListToArray } = require('../utils')
 
-module.exports = function processImage (files, drawingEl) {
-  const relsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
-
+module.exports = function processImage (files, drawingEl, relsDoc) {
   const pictureElInfo = getPictureElInfo(drawingEl)
   const pictureEl = pictureElInfo.picture
 

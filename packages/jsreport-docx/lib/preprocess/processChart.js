@@ -1,7 +1,6 @@
 const { nodeListToArray, getChartEl } = require('../utils')
 
-module.exports = function processChart (files, drawingEl) {
-  const relsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+module.exports = function processChart (files, drawingEl, relsDoc) {
   const chartDrawingEl = getChartEl(drawingEl)
 
   if (!chartDrawingEl) {

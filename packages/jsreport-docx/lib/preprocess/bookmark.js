@@ -1,10 +1,26 @@
 const { nodeListToArray } = require('../utils')
 
-module.exports = (files) => {
-  const documentFile = files.find(f => f.path === 'word/document.xml').doc
-  const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
-  const bookmarkEls = nodeListToArray(documentFile.getElementsByTagName('w:bookmarkStart'))
-  let maxBookmarkId
+module.exports = (files, headerFooterRefs) => {
+  const documentDoc = files.find(f => f.path === 'word/document.xml').doc
+  const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
+  const toProcess = [documentDoc]
+  const refs = { maxBookmarkId: null }
+
+  for (const hfRef of headerFooterRefs) {
+    toProcess.push(hfRef.doc)
+  }
+
+  for (const targetDoc of toProcess) {
+    processBookmark(targetDoc, refs)
+  }
+
+  if (refs.maxBookmarkId != null) {
+    contentTypesDoc.documentElement.setAttribute('bookmarkMaxId', refs.maxBookmarkId)
+  }
+}
+
+function processBookmark (doc, refs) {
+  const bookmarkEls = nodeListToArray(doc.getElementsByTagName('w:bookmarkStart'))
 
   bookmarkEls.forEach((bookmarkEl) => {
     const bookmarkId = getBookmarkId(bookmarkEl)
@@ -12,17 +28,13 @@ module.exports = (files) => {
     if (
       bookmarkId != null &&
       (
-        maxBookmarkId == null ||
-        (maxBookmarkId != null && bookmarkId > maxBookmarkId)
+        refs.maxBookmarkId == null ||
+        (refs.maxBookmarkId != null && bookmarkId > refs.maxBookmarkId)
       )
     ) {
-      maxBookmarkId = bookmarkId
+      refs.maxBookmarkId = bookmarkId
     }
   })
-
-  if (maxBookmarkId != null) {
-    contentTypesFile.documentElement.setAttribute('bookmarkMaxId', maxBookmarkId)
-  }
 }
 
 function getBookmarkId (bookmarkEl) {

@@ -1,35 +1,10 @@
-const { nodeListToArray, findChildNode, getHeaderFooterDocs, getClosestEl, clearEl } = require('../utils')
+const { nodeListToArray, getClosestEl, clearEl } = require('../utils')
 
-module.exports = (files) => {
-  const documentFile = files.find(f => f.path === 'word/document.xml')
-  const documentFilePath = documentFile.path
-  const documentDoc = documentFile.doc
-  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+module.exports = (files, headerFooterRefs) => {
+  const documentDoc = files.find(f => f.path === 'word/document.xml').doc
   const toProcess = [documentDoc]
 
-  const headerReferences = nodeListToArray(documentDoc.getElementsByTagName('w:headerReference')).map((el) => ({
-    type: 'header',
-    referenceEl: el
-  }))
-
-  const footerReferences = nodeListToArray(documentDoc.getElementsByTagName('w:footerReference')).map((el) => ({
-    type: 'footer',
-    referenceEl: el
-  }))
-
-  if (headerReferences.length > 0 || footerReferences.length > 0) {
-    const bodyEl = findChildNode('w:body', documentDoc.documentElement)
-    const sectPrEl = findChildNode('w:sectPr', bodyEl)
-
-    const wrapperEl = documentDoc.createElement('docxHtmlSectPr')
-    const clonedSectPrEl = sectPrEl.cloneNode(true)
-    wrapperEl.appendChild(clonedSectPrEl)
-    sectPrEl.parentNode.replaceChild(wrapperEl, sectPrEl)
-  }
-
-  const referenceResults = getHeaderFooterDocs([...headerReferences, ...footerReferences], documentFilePath, documentRelsDoc, files)
-
-  for (const rResult of referenceResults) {
+  for (const rResult of headerFooterRefs) {
     toProcess.push(rResult.doc)
   }
 

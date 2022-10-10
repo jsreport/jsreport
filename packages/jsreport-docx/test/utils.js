@@ -79,13 +79,35 @@ module.exports.getTextNodesMatching = function getTextNodesMatching (doc, target
   return textNodesMatching.nodes
 }
 
-module.exports.getImageSize = async function getImageSize (buf) {
+module.exports.getImageSize = async function getImageSize (buf, target = 'word/document.xml') {
   const files = await decompress()(buf)
+
+  const file = files.find(f => f.path === target)
+
+  if (file == null) {
+    return
+  }
+
   const doc = new DOMParser().parseFromString(
-    files.find(f => f.path === 'word/document.xml').data.toString()
+    file.data.toString()
   )
+
+  if (doc == null) {
+    return
+  }
+
   const drawingEl = doc.getElementsByTagName('w:drawing')[0]
+
+  if (drawingEl == null) {
+    return
+  }
+
   const pictureEl = findDirectPictureChild(drawingEl)
+
+  if (pictureEl == null) {
+    return
+  }
+
   const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
 
   return {

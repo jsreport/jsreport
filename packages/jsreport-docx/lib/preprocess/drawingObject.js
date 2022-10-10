@@ -1,32 +1,45 @@
-const { nodeListToArray } = require('../utils')
 const processImage = require('./processImage')
 const processChart = require('./processChart')
+const { nodeListToArray } = require('../utils')
 
-module.exports = (files) => {
-  const documentFile = files.find(f => f.path === 'word/document.xml').doc
-  const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
-  const drawingEls = nodeListToArray(documentFile.getElementsByTagName('w:drawing'))
+module.exports = (files, headerFooterRefs) => {
+  const documentDoc = files.find(f => f.path === 'word/document.xml').doc
+  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+  const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
+  const toProcess = [{ doc: documentDoc, relsDoc: documentRelsDoc }]
   let maxDocPrId
 
-  drawingEls.forEach((drawingEl) => {
-    const docPrId = getDocPrId(drawingEl)
-
-    if (
-      docPrId != null &&
-      (
-        maxDocPrId == null ||
-        (maxDocPrId != null && docPrId > maxDocPrId)
-      )
-    ) {
-      maxDocPrId = docPrId
+  for (const rResult of headerFooterRefs) {
+    if (rResult.relsDoc == null) {
+      continue
     }
 
-    processImage(files, drawingEl)
-    processChart(files, drawingEl)
-  })
+    toProcess.push({ doc: rResult.doc, relsDoc: rResult.relsDoc })
+  }
+
+  for (const { doc: targetDoc, relsDoc: targetRelsDoc } of toProcess) {
+    const drawingEls = nodeListToArray(targetDoc.getElementsByTagName('w:drawing'))
+
+    drawingEls.forEach((drawingEl) => {
+      const docPrId = getDocPrId(drawingEl)
+
+      if (
+        docPrId != null &&
+        (
+          maxDocPrId == null ||
+          (maxDocPrId != null && docPrId > maxDocPrId)
+        )
+      ) {
+        maxDocPrId = docPrId
+      }
+
+      processImage(files, drawingEl, targetRelsDoc)
+      processChart(files, drawingEl, targetRelsDoc)
+    })
+  }
 
   if (maxDocPrId != null) {
-    contentTypesFile.documentElement.setAttribute('drawingMaxDocPrId', maxDocPrId)
+    contentTypesDoc.documentElement.setAttribute('drawingMaxDocPrId', maxDocPrId)
   }
 }
 

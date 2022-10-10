@@ -1,8 +1,9 @@
 const sizeOf = require('image-size')
 const axios = require('axios')
-const { nodeListToArray, serializeXml, pxToEMU, cmToEMU, getNewRelIdFromBaseId, getNewRelId } = require('../utils')
+const { nodeListToArray, pxToEMU, cmToEMU, getNewRelIdFromBaseId, getNewRelId } = require('../utils')
 
-module.exports = async function processImage (files, drawingEl, newRelIdCounterMap, newBookmarksMap) {
+module.exports = async function processImage (files, referenceDrawingEl, relsDoc, newRelIdCounterMap, newBookmarksMap) {
+  const drawingEl = referenceDrawingEl.cloneNode(true)
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const types = contentTypesFile.doc.getElementsByTagName('Types')[0]
 
@@ -10,7 +11,6 @@ module.exports = async function processImage (files, drawingEl, newRelIdCounterM
     d => d.getAttribute('Extension') === 'png'
   )
 
-  const relsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const relsEl = relsDoc.getElementsByTagName('Relationships')[0]
   const pictureElInfo = getPictureElInfo(drawingEl)
   const pictureEl = pictureElInfo.picture
@@ -220,7 +220,7 @@ module.exports = async function processImage (files, drawingEl, newRelIdCounterM
   aExtEl.setAttribute('cx', imageWidthEMU)
   aExtEl.setAttribute('cy', imageHeightEMU)
 
-  return serializeXml(drawingEl)
+  return drawingEl
 }
 
 function getDimension (value) {

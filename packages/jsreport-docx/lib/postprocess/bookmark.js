@@ -1,8 +1,8 @@
 const { DOMParser } = require('@xmldom/xmldom')
 const stringReplaceAsync = require('../stringReplaceAsync')
-const { serializeXml, getNewIdFromBaseId } = require('../utils')
+const { serializeXml, getNewIdFromBaseId, nodeListToArray } = require('../utils')
 
-module.exports = async (files, newBookmarksMap) => {
+module.exports = async (files, headerFooterRefs, newBookmarksMap) => {
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const bookmarkIdCounterMap = new Map()
@@ -19,44 +19,71 @@ module.exports = async (files, newBookmarksMap) => {
     documentFile.data.toString(),
     /<w:bookmark(Start|End)[^>]*\/>/g,
     async (val) => {
-      let changedBookmarkId = false
-
       const bookmarkEl = new DOMParser().parseFromString(val).documentElement
-      const bookmarkId = getBookmarkId(bookmarkEl)
+      const newBookmarkEl = processBookmarkEl(bookmarkEl)
 
-      // fix id for elements that have been generated after loop
-      if (bookmarkId != null) {
-        if (bookmarkEl.nodeName === 'w:bookmarkStart') {
-          const bookmarkName = bookmarkEl.getAttribute('w:name')
-          const newBookmarkId = getNewIdFromBaseId(bookmarkIdCounterMap, bookmarkId, maxBookmarkId || 0)
-
-          if (newBookmarkId !== bookmarkId) {
-            const newBookmarkName = `${bookmarkName}_c${newBookmarkId}`
-            changedBookmarkId = true
-            maxBookmarkId = newBookmarkId
-            lastBookmarkIdMap.set(bookmarkId, newBookmarkId)
-
-            const existingInNewMap = newBookmarksMap.get(bookmarkName) || []
-
-            existingInNewMap.push({
-              newId: newBookmarkId,
-              newName: newBookmarkName
-            })
-
-            newBookmarksMap.set(bookmarkName, existingInNewMap)
-
-            bookmarkEl.setAttribute('w:id', newBookmarkId)
-            bookmarkEl.setAttribute('w:name', newBookmarkName)
-          }
-        } else if (bookmarkEl.nodeName === 'w:bookmarkEnd' && lastBookmarkIdMap.has(bookmarkId)) {
-          changedBookmarkId = true
-          bookmarkEl.setAttribute('w:id', lastBookmarkIdMap.get(bookmarkId))
-        }
+      if (newBookmarkEl != null) {
+        return serializeXml(newBookmarkEl)
       }
 
-      return changedBookmarkId ? serializeXml(bookmarkEl) : val
+      return val
     }
   )
+
+  for (const { doc: headerFooterDoc } of headerFooterRefs) {
+    const bookmarkStartEls = nodeListToArray(headerFooterDoc.getElementsByTagName('w:bookmarkStart'))
+    const bookmarkEndEls = nodeListToArray(headerFooterDoc.getElementsByTagName('w:bookmarkEnd'))
+    const bookmarkEls = [...bookmarkStartEls, ...bookmarkEndEls]
+
+    for (const bookmarkEl of bookmarkEls) {
+      const newBookmarkEl = processBookmarkEl(bookmarkEl)
+
+      if (newBookmarkEl == null) {
+        continue
+      }
+
+      bookmarkEl.parentNode.insertBefore(newBookmarkEl, bookmarkEl)
+      bookmarkEl.parentNode.removeChild(bookmarkEl)
+    }
+  }
+
+  function processBookmarkEl (referenceBookmarkEl) {
+    let changedBookmarkId = false
+    const bookmarkEl = referenceBookmarkEl.cloneNode(true)
+    const bookmarkId = getBookmarkId(bookmarkEl)
+
+    // fix id for elements that have been generated after loop
+    if (bookmarkId != null) {
+      if (bookmarkEl.nodeName === 'w:bookmarkStart') {
+        const bookmarkName = bookmarkEl.getAttribute('w:name')
+        const newBookmarkId = getNewIdFromBaseId(bookmarkIdCounterMap, bookmarkId, maxBookmarkId || 0)
+
+        if (newBookmarkId !== bookmarkId) {
+          const newBookmarkName = `${bookmarkName}_c${newBookmarkId}`
+          changedBookmarkId = true
+          maxBookmarkId = newBookmarkId
+          lastBookmarkIdMap.set(bookmarkId, newBookmarkId)
+
+          const existingInNewMap = newBookmarksMap.get(bookmarkName) || []
+
+          existingInNewMap.push({
+            newId: newBookmarkId,
+            newName: newBookmarkName
+          })
+
+          newBookmarksMap.set(bookmarkName, existingInNewMap)
+
+          bookmarkEl.setAttribute('w:id', newBookmarkId)
+          bookmarkEl.setAttribute('w:name', newBookmarkName)
+        }
+      } else if (bookmarkEl.nodeName === 'w:bookmarkEnd' && lastBookmarkIdMap.has(bookmarkId)) {
+        changedBookmarkId = true
+        bookmarkEl.setAttribute('w:id', lastBookmarkIdMap.get(bookmarkId))
+      }
+    }
+
+    return changedBookmarkId ? bookmarkEl : null
+  }
 }
 
 function getBookmarkId (bookmarkEl) {

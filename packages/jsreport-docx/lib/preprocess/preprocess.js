@@ -1,4 +1,5 @@
 const concatTags = require('./concatTags')
+const headerFooterReferences = require('./headerFooterReferences')
 const bookmark = require('./bookmark')
 const drawingObject = require('./drawingObject')
 const list = require('./list')
@@ -13,9 +14,10 @@ const html = require('./html')
 
 module.exports = (files) => {
   concatTags(files)
-  bookmark(files)
-  watermark(files)
-  drawingObject(files)
+  const headerFooterRefs = headerFooterReferences(files)
+  bookmark(files, headerFooterRefs)
+  watermark(files, headerFooterRefs)
+  drawingObject(files, headerFooterRefs)
   list(files)
   raw(files)
   table(files)
@@ -25,5 +27,5 @@ module.exports = (files) => {
   pageBreak(files)
   // we handle the html step as the last to ensure no other step
   // work with the attribute and comment we put in the <w:p> elements for the html handling
-  html(files)
+  html(files, headerFooterRefs)
 }

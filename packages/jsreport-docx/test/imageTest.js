@@ -627,4 +627,200 @@ describe('docx image', () => {
       should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${bookmarkEls[idx].getAttribute('w:name')}`)
     })
   })
+
+  it('image in document header', async () => {
+    const headerImageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const headerImageDimensions = sizeOf(headerImageBuf)
+    const imageBuf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const imageDimensions = sizeOf(imageBuf)
+
+    const targetHeaderImageSize = {
+      width: pxToEMU(headerImageDimensions.width),
+      height: pxToEMU(headerImageDimensions.height)
+    }
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'image-header.docx'))
+          }
+        }
+      },
+      data: {
+        headerSrc: 'data:image/png;base64,' + headerImageBuf.toString('base64'),
+        src: 'data:image/png;base64,' + imageBuf.toString('base64')
+      }
+    })
+
+    const outputImageSize = await getImageSize(result.content)
+
+    // should preserve original image size by default
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    const withImageInHeader = []
+
+    for (const footerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
+      const outputInHeaderImageSize = await getImageSize(result.content, footerPath)
+
+      if (outputInHeaderImageSize == null) {
+        continue
+      }
+
+      withImageInHeader.push(outputInHeaderImageSize)
+    }
+
+    should(withImageInHeader).have.length(1)
+
+    // should preserve original image size in header by default
+    withImageInHeader[0].width.should.be.eql(targetHeaderImageSize.width)
+    withImageInHeader[0].height.should.be.eql(targetHeaderImageSize.height)
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
+  it('image in document footer', async () => {
+    const footerImageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const footerImageDimensions = sizeOf(footerImageBuf)
+    const imageBuf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const imageDimensions = sizeOf(imageBuf)
+
+    const targetFooterImageSize = {
+      width: pxToEMU(footerImageDimensions.width),
+      height: pxToEMU(footerImageDimensions.height)
+    }
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'image-footer.docx'))
+          }
+        }
+      },
+      data: {
+        footerSrc: 'data:image/png;base64,' + footerImageBuf.toString('base64'),
+        src: 'data:image/png;base64,' + imageBuf.toString('base64')
+      }
+    })
+
+    const outputImageSize = await getImageSize(result.content)
+
+    // should preserve original image size by default
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    const withImageInFooter = []
+
+    for (const footerPath of ['word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml']) {
+      const outputInFooterImageSize = await getImageSize(result.content, footerPath)
+
+      if (outputInFooterImageSize == null) {
+        continue
+      }
+
+      withImageInFooter.push(outputInFooterImageSize)
+    }
+
+    should(withImageInFooter).have.length(1)
+
+    // should preserve original image size in header by default
+    withImageInFooter[0].width.should.be.eql(targetFooterImageSize.width)
+    withImageInFooter[0].height.should.be.eql(targetFooterImageSize.height)
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
+  it('image in document header and footer', async () => {
+    const headerFooterImageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const headerFooterImageDimensions = sizeOf(headerFooterImageBuf)
+    const imageBuf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const imageDimensions = sizeOf(imageBuf)
+
+    const targetHeaderFooterImageSize = {
+      width: pxToEMU(headerFooterImageDimensions.width),
+      height: pxToEMU(headerFooterImageDimensions.height)
+    }
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'image-header-footer.docx'))
+          }
+        }
+      },
+      data: {
+        headerSrc: 'data:image/png;base64,' + headerFooterImageBuf.toString('base64'),
+        footerSrc: 'data:image/png;base64,' + headerFooterImageBuf.toString('base64'),
+        src: 'data:image/png;base64,' + imageBuf.toString('base64')
+      }
+    })
+
+    const outputImageSize = await getImageSize(result.content)
+
+    // should preserve original image size by default
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    const withImageInHeader = []
+
+    for (const footerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
+      const outputInHeaderImageSize = await getImageSize(result.content, footerPath)
+
+      if (outputInHeaderImageSize == null) {
+        continue
+      }
+
+      withImageInHeader.push(outputInHeaderImageSize)
+    }
+
+    should(withImageInHeader).have.length(1)
+
+    // should preserve original image size in header by default
+    withImageInHeader[0].width.should.be.eql(targetHeaderFooterImageSize.width)
+    withImageInHeader[0].height.should.be.eql(targetHeaderFooterImageSize.height)
+
+    const withImageInFooter = []
+
+    for (const footerPath of ['word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml']) {
+      const outputInHeaderImageSize = await getImageSize(result.content, footerPath)
+
+      if (outputInHeaderImageSize == null) {
+        continue
+      }
+
+      withImageInFooter.push(outputInHeaderImageSize)
+    }
+
+    should(withImageInFooter).have.length(1)
+
+    // should preserve original image size in header by default
+    withImageInFooter[0].width.should.be.eql(targetHeaderFooterImageSize.width)
+    withImageInFooter[0].height.should.be.eql(targetHeaderFooterImageSize.height)
+
+    fs.writeFileSync('out.docx', result.content)
+  })
 })

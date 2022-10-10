@@ -3,8 +3,8 @@ const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId, clearEl, findChildNode, findOrCreateChildNode } = require('../utils')
 
-module.exports = async function processChart (files, drawingEl, originalChartsXMLMap, newRelIdCounterMap) {
-  const relsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+module.exports = async function processChart (files, referenceDrawingEl, relsDoc, originalChartsXMLMap, newRelIdCounterMap) {
+  const drawingEl = referenceDrawingEl.cloneNode(true)
   const relsEl = relsDoc.getElementsByTagName('Relationships')[0]
   const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
 
@@ -267,7 +267,7 @@ module.exports = async function processChart (files, drawingEl, originalChartsXM
   const chartTitleEl = chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`)[0]
 
   if (!chartTitleEl) {
-    return serializeXml(drawingEl)
+    return drawingEl
   }
 
   const chartTitleTextElements = nodeListToArray(chartTitleEl.getElementsByTagName('a:t'))
@@ -497,7 +497,7 @@ module.exports = async function processChart (files, drawingEl, originalChartsXM
     }
   }
 
-  return serializeXml(drawingEl)
+  return drawingEl
 }
 
 function configureAxis (chartDoc, axisConfig, axisEl) {

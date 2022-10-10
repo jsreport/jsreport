@@ -1,20 +1,11 @@
-const { nodeListToArray, getHeaderFooterDocs } = require('../utils')
+const { nodeListToArray } = require('../utils')
 
-module.exports = (files) => {
-  const documentFile = files.find(f => f.path === 'word/document.xml')
-  const documentFilePath = documentFile.path
-  const documentDoc = documentFile.doc
-  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
-
-  const headerReferences = nodeListToArray(documentDoc.getElementsByTagName('w:headerReference')).map((el) => ({
-    type: 'header',
-    referenceEl: el
-  }))
-
-  const headerDocs = getHeaderFooterDocs(headerReferences, documentFilePath, documentRelsDoc, files)
+module.exports = (files, headerFooterRefs) => {
+  const documentDoc = files.find(f => f.path === 'word/document.xml').doc
+  const headerReferences = headerFooterRefs.filter((r) => r.type === 'header')
   const watermarkHeaderReferenceEls = []
 
-  for (const { doc: headerDoc, referenceEl: headerReferenceEl } of headerDocs) {
+  for (const { doc: headerDoc, referenceEl: headerReferenceEl } of headerReferences) {
     const pictELS = nodeListToArray(headerDoc.getElementsByTagName('w:pict'))
 
     let found = false
