@@ -64,8 +64,8 @@ module.exports = class Container {
     runCMD += Object.entries(this.logOpt).map(e => `--log-opt ${e[0]}=${e[1]}`).join(' ')
 
     if (this.customEnv) {
-      for (const key in this.customEnv) {
-        runCMD += ` --env ${key}="${this.customEnv[key]}"`
+      for (const envDef of this.customEnv) {
+        runCMD += ` --env ${envDef}`
       }
     }
 
