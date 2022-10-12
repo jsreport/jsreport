@@ -9,7 +9,15 @@ module.exports = (reporter) => async (inputs, req) => {
   const { docxTemplateContent, options, outputPath } = inputs
 
   try {
-    const files = await decompress()(docxTemplateContent)
+    let files
+
+    try {
+      files = await decompress()(docxTemplateContent)
+    } catch (parseTemplateError) {
+      throw reporter.createError('Failed to parse docx template input', {
+        original: parseTemplateError
+      })
+    }
 
     for (const f of files) {
       if (contentIsXML(f.data)) {

@@ -9,7 +9,14 @@ module.exports = (reporter) => async (inputs, req) => {
   const { xlsxTemplateContent, options, outputPath } = inputs
 
   try {
-    const files = await decompress()(xlsxTemplateContent)
+    let files
+    try {
+      files = await decompress()(xlsxTemplateContent)
+    } catch (parseTemplateError) {
+      throw reporter.createError('Failed to parse xlsx template input', {
+        original: parseTemplateError
+      })
+    }
 
     for (const f of files) {
       if (contentIsXML(f.data)) {

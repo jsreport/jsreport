@@ -242,6 +242,67 @@ describe('pptx', () => {
     text.should.containEql('Boris')
   })
 
+  it('accept buffer as base64 string by default', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'variable.pptx')).toString('base64')
+          }
+        }
+      },
+      data: {
+        hello: 'Jan Blaha'
+      }
+    })
+
+    fs.writeFileSync('out.pptx', result.content)
+    const text = await textract('test.pptx', result.content)
+    text.should.containEql('Jan Blaha')
+  })
+
+  it('accept buffer as string with explicit encoding', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'variable.pptx')).toString('binary'),
+            encoding: 'binary'
+          }
+        }
+      },
+      data: {
+        hello: 'Jan Blaha'
+      }
+    })
+
+    fs.writeFileSync('out.pptx', result.content)
+    const text = await textract('test.pptx', result.content)
+    text.should.containEql('Jan Blaha')
+  })
+
+  it('throw clear error when template fails to be parsed as pptx', async () => {
+    return reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'variable.pptx')).toString('utf8'),
+            encoding: 'utf8'
+          }
+        }
+      },
+      data: {
+        hello: 'Jan Blaha'
+      }
+    }).should.be.rejectedWith(/Failed to parse pptx template input/)
+  })
+
   it('should propagate lineNumber when error in helper', async () => {
     try {
       await reporter.render({
@@ -255,7 +316,7 @@ describe('pptx', () => {
           },
           helpers: `function hello() {
             throw new Error('xxx')
-          }        
+          }
         `
         }
       })

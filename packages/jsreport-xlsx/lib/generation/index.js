@@ -19,7 +19,7 @@ module.exports = async (reporter, definition, req, res) => {
 
   if (req.template.xlsx && req.template.xlsx.templateAsset && req.template.xlsx.templateAsset.content) {
     templateAsset = templateAsset || {}
-    templateAsset.content = Buffer.from(req.template.xlsx.templateAsset.content, req.template.xlsx.templateAsset.encoding || 'utf8')
+    templateAsset.content = Buffer.from(req.template.xlsx.templateAsset.content, req.template.xlsx.templateAsset.encoding || 'base64')
   } else if (req.template.xlsx && req.template.xlsx.templateAssetShortid) {
     const assetFound = await reporter.documentStore.collection('assets').findOne({ shortid: req.template.xlsx.templateAssetShortid }, req)
 

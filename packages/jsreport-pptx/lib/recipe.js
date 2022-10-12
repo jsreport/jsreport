@@ -27,7 +27,7 @@ module.exports = async (reporter, definition, req, res) => {
     }
   } else {
     if (!Buffer.isBuffer(templateAsset.content)) {
-      templateAsset.content = Buffer.from(templateAsset.content, templateAsset.encoding || 'utf8')
+      templateAsset.content = Buffer.from(templateAsset.content, templateAsset.encoding || 'base64')
     }
   }
 

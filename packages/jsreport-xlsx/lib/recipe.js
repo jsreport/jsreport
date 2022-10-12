@@ -6,6 +6,7 @@ module.exports = async (reporter, definition, req, res) => {
   const xlsxOutputPath = await generate(reporter, definition, req, res)
 
   const $xlsxOriginalContent = req.data.$xlsxOriginalContent || ''
+
   if ($xlsxOriginalContent.trim() !== '') {
     const transform = require('./transformation')
 

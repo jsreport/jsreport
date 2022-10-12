@@ -830,6 +830,73 @@ describe('docx', () => {
     })
   })
 
+  it('accept buffer as base64 string by default', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.docx')
+            ).toString('base64')
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Hello world John')
+  })
+
+  it('accept buffer as string with explicit encoding', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.docx')
+            ).toString('binary'),
+            encoding: 'binary'
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Hello world John')
+  })
+
+  it('throw clear error when template fails to be parsed as docx', async () => {
+    return reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.docx')
+            ).toString('utf8'),
+            encoding: 'utf8'
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    }).should.be.rejectedWith(/Failed to parse docx template input/)
+  })
+
   it('should be able to reference stored asset', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'variable-replace.docx',

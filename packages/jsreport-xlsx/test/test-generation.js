@@ -34,6 +34,75 @@ describe('xlsx generation', () => {
     }
   })
 
+  it('accept buffer as base64 string by default', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.xlsx')
+            ).toString('base64')
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+  })
+
+  it('accept buffer as string with explicit encoding', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.xlsx')
+            ).toString('binary'),
+            encoding: 'binary'
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+  })
+
+  it('throw clear error when template fails to be parsed as xlsx', async () => {
+    return reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.xlsx')
+            ).toString('utf8'),
+            encoding: 'utf8'
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    }).should.be.rejectedWith(/Failed to parse xlsx template input/)
+  })
+
   it('variable replace', async () => {
     const result = await reporter.render({
       template: {
