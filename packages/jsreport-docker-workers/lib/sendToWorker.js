@@ -1,5 +1,6 @@
 const axios = require('axios')
 const serializator = require('serializator')
+const { setTimeout } = require('timers/promises')
 
 module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } = {}) => {
   return function sendToWorker (url, data, _options = {}) {
@@ -34,99 +35,105 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
     data.originUrl = originUrl
   }
 
-  return new Promise((resolve, reject) => {
-    let isDone = false
+  let isDone = false
 
-    if (timeout) {
-      setTimeout(() => {
+  async function run () {
+    while (true && !isDone) {
+      const stringBody = serializator.serialize(data)
+      let res
+
+      try {
+        const requestConfig = {
+          method: 'POST',
+          url,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+          responseType: 'text',
+          transformResponse: [data => data],
+          headers: {
+            'Content-Type': 'text/plain',
+            'Content-Length': Buffer.byteLength(stringBody),
+            ...httpOptions.headers
+          },
+          data: stringBody,
+          timeout: timeout
+        }
+
+        if (httpOptions.auth) {
+          requestConfig.auth = httpOptions.auth
+        }
+
+        res = await axios(requestConfig)
+      } catch (err) {
         if (isDone) {
           return
         }
-
         isDone = true
-        reject(new Error('Timeout when communicating with worker'))
-      }, timeout)
-    }
+        if (!err.response?.data) {
+          const error = new Error('Error when communicating with worker: ' + err.message)
+          Object.assign(error, { ...err })
+          throw error
+        }
 
-    ;(async () => {
-      while (true && !isDone) {
-        const stringBody = serializator.serialize(data)
-        let res
-
+        let workerError = null
         try {
-          const requestConfig = {
-            method: 'POST',
-            url,
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity,
-            responseType: 'text',
-            transformResponse: [data => data],
-            headers: {
-              'Content-Type': 'text/plain',
-              'Content-Length': Buffer.byteLength(stringBody),
-              ...httpOptions.headers
-            },
-            data: stringBody,
-            timeout: timeout
-          }
-
-          if (httpOptions.auth) {
-            requestConfig.auth = httpOptions.auth
-          }
-
-          res = await axios(requestConfig)
-        } catch (err) {
-          isDone = true
-          if (!err.response?.data) {
-            const error = new Error('Error when communicating with worker: ' + err.message)
-            Object.assign(error, { ...err })
-            return reject(error)
-          }
-
-          try {
-            const errorData = JSON.parse(err.response.data)
-            const workerError = new Error(errorData.message)
-            Object.assign(workerError, errorData)
-            return reject(workerError)
-          } catch (e) {
-            const error = new Error('Error when communicating with worker: ' + err.response.data)
-            Object.assign(error, { ...e })
-            return reject(error)
-          }
+          const errorData = JSON.parse(err.response.data)
+          workerError = new Error(errorData.message)
+          Object.assign(workerError, errorData)
+        } catch (e) {
+          const error = new Error('Error when communicating with worker: ' + err.response.data)
+          Object.assign(error, { ...e })
+          throw error
         }
 
-        if (res.status === 201) {
-          isDone = true
-          return resolve(serializator.parse(res.data))
-        }
+        throw workerError
+      }
 
-        if (res.status !== 200) {
-          isDone = true
-          return reject(new Error('Unexpected response from worker: ' + res.data))
-        }
+      if (isDone) {
+        return
+      }
 
-        let mainDataResponse = {}
+      if (res.status === 201) {
+        isDone = true
+        return serializator.parse(res.data)
+      }
 
-        try {
-          mainDataResponse = await executeMain(serializator.parse(res.data))
-        } catch (err) {
-          mainDataResponse.error = {
-            ...err,
-            message: err.message,
-            stack: err.stack
-          }
-        }
+      if (res.status !== 200) {
+        isDone = true
+        throw new Error('Unexpected response from worker: ' + res.data)
+      }
 
-        data = {
-          systemAction: 'callback-response',
-          // we need just the request identification in the worker
-          req: { context: { rootId: data.req.context.rootId } },
-          data: mainDataResponse
+      let mainDataResponse = {}
+
+      try {
+        mainDataResponse = await executeMain(serializator.parse(res.data))
+      } catch (err) {
+        mainDataResponse.error = {
+          ...err,
+          message: err.message,
+          stack: err.stack
         }
       }
-    })().catch((e) => {
-      isDone = true
-      reject(e)
-    })
-  })
+
+      data = {
+        systemAction: 'callback-response',
+        // we need just the request identification in the worker
+        req: { context: { rootId: data.req.context.rootId } },
+        data: mainDataResponse
+      }
+    }
+  }
+
+  // we handle the timeout using promises to avoid loosing stack in case of error
+  // mixing new Promise with async await leads to loosing it
+  return Promise.race([
+    run(),
+    timeout
+      ? setTimeout(timeout).then(() => {
+          isDone = true
+          throw new Error('Timeout when communicating with worker')
+        })
+
+      : null
+  ])
 }
