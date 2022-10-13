@@ -1,5 +1,5 @@
 const path = require('path')
-const { nodeListToArray } = require('../../utils')
+const { nodeListToArray, findChildNode } = require('../../utils')
 
 module.exports = function processChart (files, sheetContent, drawingEl) {
   const { sheetFilepath, sheetRelsDoc } = sheetContent
@@ -109,6 +109,55 @@ module.exports = function processChart (files, sheetContent, drawingEl) {
 
   if (chartEl == null) {
     return
+  }
+
+  // ensuring the cached strings in xlsx are not processed by handlebars, because it will
+  // give errors otherwise
+  if (graphicDataChartEl.prefix === 'c') {
+    // it seems only the standard charts "c:" cache data in the chart definition,
+    // for the chartex it is not needed that we do something
+    const existingChartSeriesElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
+
+    for (const chartSerieEl of existingChartSeriesElements) {
+      const tagsToCheck = ['c:tx', 'c:cat', 'c:val', 'c:xVal', 'c:yVal', 'c:bubbleSize']
+
+      for (const targetTag of tagsToCheck) {
+        const existingTagEl = findChildNode(targetTag, chartSerieEl)
+
+        if (existingTagEl == null) {
+          continue
+        }
+
+        const strRefEl = findChildNode('c:strRef', existingTagEl)
+        const numRefEl = findChildNode('c:numRef', existingTagEl)
+
+        for (const targetInfo of [{ el: strRefEl, cacheTag: 'strCache' }, { el: numRefEl, cacheTag: 'numCache' }]) {
+          if (targetInfo.el == null) {
+            continue
+          }
+
+          const cacheEl = findChildNode(`c:${targetInfo.cacheTag}`, targetInfo.el)
+
+          if (cacheEl == null) {
+            continue
+          }
+
+          const ptEls = findChildNode('c:pt', cacheEl, true)
+
+          for (const ptEl of ptEls) {
+            const ptValueEl = findChildNode('c:v', ptEl)
+
+            if (ptValueEl == null) {
+              continue
+            }
+
+            if (ptValueEl.textContent.includes('{{') && ptValueEl.textContent.includes('}}')) {
+              ptValueEl.textContent = `{{{{xlsxSData type='raw'}}}}${ptValueEl.textContent}{{{{/xlsxSData}}}}`
+            }
+          }
+        }
+      }
+    }
   }
 
   const chartTitles = nodeListToArray(chartEl.getElementsByTagName(`${graphicDataChartEl.prefix}:title`))

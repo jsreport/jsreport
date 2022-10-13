@@ -4,7 +4,7 @@ const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const moment = require('moment')
 const { num2col } = require('xlsx-coordinates')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
-const { serializeXml, nodeListToArray } = require('../../utils')
+const { serializeXml, nodeListToArray, findOrCreateChildNode, findChildNode } = require('../../utils')
 const defaultNewSheetContentPath = path.join(__dirname, '../../../static/defaultNewSheet.xml')
 const defaultNewSheetContent = fs.readFileSync(defaultNewSheetContentPath, 'utf8')
 
@@ -1009,40 +1009,6 @@ function addValueNodes (docNode, parentNode, opts = {}) {
   for (const eNode of existingPtNodes) {
     eNode.parentNode.removeChild(eNode)
   }
-}
-
-function findOrCreateChildNode (docNode, nodeName, targetNode) {
-  let result
-  const existingNode = findChildNode(nodeName, targetNode)
-
-  if (!existingNode) {
-    result = docNode.createElement(nodeName)
-    targetNode.appendChild(result)
-  } else {
-    result = existingNode
-  }
-
-  return result
-}
-
-function findChildNode (nodeName, targetNode, allNodes = false) {
-  const result = []
-
-  for (let i = 0; i < targetNode.childNodes.length; i++) {
-    let found = false
-    const childNode = targetNode.childNodes[i]
-
-    if (childNode.nodeName === nodeName) {
-      found = true
-      result.push(childNode)
-    }
-
-    if (found && !allNodes) {
-      break
-    }
-  }
-
-  return allNodes ? result : result[0]
 }
 
 function removeChildNodes (nodeName, targetNode) {

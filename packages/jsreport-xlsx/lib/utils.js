@@ -74,6 +74,40 @@ function getNewIdFromBaseId (itemsMap, baseId, maxId) {
   return maxId + 1
 }
 
+function findOrCreateChildNode (docNode, nodeName, targetNode) {
+  let result
+  const existingNode = findChildNode(nodeName, targetNode)
+
+  if (!existingNode) {
+    result = docNode.createElement(nodeName)
+    targetNode.appendChild(result)
+  } else {
+    result = existingNode
+  }
+
+  return result
+}
+
+function findChildNode (nodeName, targetNode, allNodes = false) {
+  const result = []
+
+  for (let i = 0; i < targetNode.childNodes.length; i++) {
+    let found = false
+    const childNode = targetNode.childNodes[i]
+
+    if (childNode.nodeName === nodeName) {
+      found = true
+      result.push(childNode)
+    }
+
+    if (found && !allNodes) {
+      break
+    }
+  }
+
+  return allNodes ? result : result[0]
+}
+
 function getChartEl (drawingEl) {
   let parentEl = drawingEl.parentNode
 
@@ -172,6 +206,8 @@ module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
+module.exports.findOrCreateChildNode = findOrCreateChildNode
+module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray
 module.exports.isWorksheetFile = isWorksheetFile
 module.exports.isWorksheetRelsFile = isWorksheetRelsFile
