@@ -4,7 +4,6 @@ const fs = require('fs')
 const JsReport = require('@jsreport/jsreport-core')
 const should = require('should')
 const parsePdf = require('parse-pdf')
-const psList = require('ps-list')
 
 describe('chrome pdf', () => {
   describe('dedicated-process strategy', () => {
@@ -627,7 +626,8 @@ function commonTimeout (strategy, imageExecution) {
 
   beforeEach(() => {
     reporter = JsReport({
-      reportTimeout: 2000
+      reportTimeout: 2000,
+      reportTimeoutMargin: '4s'
     })
     reporter.use(require('../')({
       strategy,
@@ -641,9 +641,7 @@ function commonTimeout (strategy, imageExecution) {
 
   afterEach(() => reporter.close())
 
-  it.skip('should reject', async () => {
-    const processesBefore = await psList()
-    const chromeCountBefore = processesBefore.filter(p => p.name.includes('chrome')).length
+  it('should reject', async () => {
     const request = {
       template: {
         content: 'content',
@@ -658,13 +656,13 @@ function commonTimeout (strategy, imageExecution) {
       }
     }
 
-    await reporter.render(request).should.be.rejectedWith(/chrome.*generation/)
-
-    if (strategy !== 'chrome-pool') {
-      const processesAfter = await psList()
-      const chromeCountAfter = processesAfter.filter(p => p.name.includes('chrome')).length
-
-      chromeCountBefore.should.be.eql(chromeCountAfter)
+    try {
+      await reporter.render(request)
+      throw new Error('should have failed')
+    } catch (e) {
+      e.message.should.match(/chrome.*timed out/)
+      e.weak.should.be.true()
+      e.statusCode.should.be.eql(400)
     }
   })
 }
