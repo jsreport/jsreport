@@ -171,7 +171,15 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
       }
 
       if (pdfMeta) {
-        doc.info(pdfMeta)
+        const meta = { ...pdfMeta }
+        if (meta.custom != null && typeof meta.custom === 'string') {
+          const customStr = meta.custom
+          meta.custom = {}
+          for (const custom of customStr.split(',')) {
+            meta.custom[custom.split('=')[0]] = custom.split('=')[1]
+          }
+        }
+        doc.info(meta)
       }
 
       if (pdfA?.enabled === true) {

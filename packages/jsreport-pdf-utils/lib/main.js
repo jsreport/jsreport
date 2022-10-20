@@ -19,7 +19,8 @@ module.exports = (reporter, definition) => {
     keywords: { type: 'Edm.String' },
     creator: { type: 'Edm.String' },
     producer: { type: 'Edm.String' },
-    language: { type: 'Edm.String' }
+    language: { type: 'Edm.String' },
+    custom: { type: 'Edm.String' }
   })
 
   reporter.documentStore.registerComplexType('PdfAType', {
