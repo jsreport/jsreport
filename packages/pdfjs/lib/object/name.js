@@ -41,7 +41,7 @@ class PDFName {
         code = 0x5f
       }
 
-      return '#' + code.toString(16)
+      return '#' + intToHex(code)
     })
 
     this.name = name
