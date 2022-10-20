@@ -40,7 +40,8 @@ class PDFName {
       if (code > 0xff) {
         code = 0x5f
       }
-      return '#' + code
+
+      return '#' + intToHex(code)
     })
 
     this.name = name
