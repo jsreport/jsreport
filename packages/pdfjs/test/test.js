@@ -123,7 +123,12 @@ describe('pdfjs', () => {
       keywords: 'Foo-keywords',
       creator: 'Foo-creator',
       producer: 'Foo-producer',
-      language: 'cz-CZ'
+      language: 'cz-CZ',
+      custom: {
+        serialNumber: 'Foo-123',
+        'Property With Spaces': 'foo-property-with-spaces',
+        Property_With_Underscores: 'foo-property-with-underscores'
+      }
     })
 
     const pdfWithInfo = await document.asBuffer()
@@ -142,6 +147,9 @@ describe('pdfjs', () => {
     info.properties.get('Keywords').toString().should.be.eql('(Foo-keywords)')
     info.properties.get('Creator').toString().should.be.eql('(Foo-creator)')
     info.properties.get('Producer').toString().should.be.eql('(Foo-producer)')
+    info.properties.get('serialNumber').toString().should.be.eql('(Foo-123)')
+    info.properties.get('Property With Spaces').toString().should.be.eql('(foo-property-with-spaces)')
+    info.properties.get('Property_With_Underscores').toString().should.be.eql('(foo-property-with-underscores)')
     catalog.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
   })
 
@@ -676,7 +684,12 @@ describe('pdfjs', () => {
       keywords: 'Foo-keywords',
       creator: 'Foo-creator',
       producer: 'Foo-producer',
-      language: 'cz-CZ'
+      language: 'cz-CZ',
+      custom: {
+        serialNumber: 'Foo-123',
+        'Property With Spaces': 'foo-property-with-spaces',
+        Property_With_Underscores: 'foo-property-with-underscores'
+      }
     })
 
     const pdfBuffer = await document.asBuffer()
@@ -690,6 +703,9 @@ describe('pdfjs', () => {
     info.properties.get('Keywords').toString().should.be.eql('(Foo-keywords)')
     info.properties.get('Creator').toString().should.be.eql('(Foo-creator)')
     info.properties.get('Producer').toString().should.be.eql('(Foo-producer)')
+    info.properties.get('serialNumber').toString().should.be.eql('(Foo-123)')
+    info.properties.get('Property With Spaces').toString().should.be.eql('(foo-property-with-spaces)')
+    info.properties.get('Property_With_Underscores').toString().should.be.eql('(foo-property-with-underscores)')
     catalog.properties.get('Lang').toString().should.be.eql('(cz-CZ)')
   })
 

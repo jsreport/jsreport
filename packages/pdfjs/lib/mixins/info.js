@@ -42,4 +42,10 @@ function info (doc, infoOptions) {
   if (infoOptions.language) {
     doc.catalog.prop('Lang', new PDF.String(infoOptions.language))
   }
+
+  if (infoOptions.custom) {
+    Object.keys(infoOptions.custom).forEach(key => {
+      infoObject.prop(key, new PDF.String(infoOptions.custom[key]))
+    })
+  }
 }

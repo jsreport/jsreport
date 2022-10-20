@@ -40,7 +40,8 @@ class PDFName {
       if (code > 0xff) {
         code = 0x5f
       }
-      return '#' + code
+
+      return '#' + code.toString(16)
     })
 
     this.name = name

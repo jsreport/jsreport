@@ -1596,7 +1596,12 @@ describe('pdf utils', () => {
           keywords: 'Foo-keywords',
           creator: 'Foo-creator',
           producer: 'Foo-producer',
-          language: 'cz-CZ'
+          language: 'cz-CZ',
+          custom: {
+            serialNumber: 'Foo-123',
+            'Property With Spaces': 'foo-property-with-spaces',
+            Property_With_Underscores: 'foo-property-with-underscores'
+          }
         }
       }
     })
@@ -1609,6 +1614,8 @@ describe('pdf utils', () => {
       .and.containEql('Foo-creator')
       .and.containEql('Foo-producer')
       .and.containEql('cz-CZ')
+      .and.containEql('foo-property-with-spaces')
+      .and.containEql('foo-property-with-underscores')
   })
 
   it('pdfA should convert to valid pdfA format', async () => {
@@ -1668,7 +1675,12 @@ describe('pdf utils', () => {
           keywords: 'Foo-keywords',
           creator: 'Foo-creator',
           producer: 'Foo-producer',
-          language: 'cz-CZ'
+          language: 'cz-CZ',          
+          custom: {
+            serialNumber: 'Foo-123',
+            'Property With Spaces': 'foo-property-with-spaces',
+            Property_With_Underscores: 'foo-property-with-underscores'
+          }
         },
         scripts: [{
           content: `
@@ -1694,6 +1706,8 @@ describe('pdf utils', () => {
       .and.containEql('Foo-creator')
       .and.containEql('Foo-producer')
       .and.containEql('cz-CZ')
+      .and.containEql('foo-property-with-spaces')
+      .and.containEql('foo-property-with-underscores')
   })
 
   it('pdfSign should sign output pdf', async () => {
