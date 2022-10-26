@@ -24,7 +24,7 @@ module.exports = async (reporter, req, res) => {
     reporter.logger.debug(`static-pdf is using asset ${pdfAssetPath}`, req)
 
     pdfAsset = assetEntity.content
-  } else if (req.template.staticPdf.pdfAsset != null) {
+  } else if (req.template.staticPdf?.pdfAsset != null) {
     if (Buffer.isBuffer(req.template.staticPdf.pdfAsset.content)) {
       pdfAsset = req.template.staticPdf.pdfAsset.content
     } else {
