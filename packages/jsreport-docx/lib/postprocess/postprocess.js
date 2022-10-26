@@ -9,6 +9,7 @@ const pageBreak = require('./pageBreak')
 const toc = require('./toc')
 const removeBlockHelper = require('./removeBlockHelper')
 const html = require('./html')
+const child = require('./child')
 
 module.exports = async (files, options) => {
   const newBookmarksMap = new Map()
@@ -16,6 +17,7 @@ module.exports = async (files, options) => {
   // we handle the html step as the first to ensure no other step
   // work with the attribute and comment we put for the <w:p> elements for the html handling
   await html(files, headerFooterRefs)
+  await child(files, headerFooterRefs)
   await bookmark(files, headerFooterRefs, newBookmarksMap)
   await watermark(files)
   await pageBreak(files)
