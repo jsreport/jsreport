@@ -262,6 +262,29 @@ describe('xlsx transformation handlebars', () => {
     image.data.toString().should.be.eql('foo')
   })
 
+  it('should be able to call xlsxAddImage with altText {#asset {{variable}} @encoding=base64}', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'test.png',
+      content: Buffer.from('foo')
+    })
+
+    const res = await reporter.render({
+      template: {
+        recipe: 'xlsx',
+        engine: 'handlebars',
+        helpers: 'function variable() { return "test.png" } function imageOpts () { return { name: "test", altText: "description of test" } }',
+        content: `{{#xlsxAddImage (imageOpts) "sheet1.xml" 0 0 1 1}}{#asset {{variable}} @encoding=base64}{{/xlsxAddImage}}
+        {{{xlsxPrint}}}`
+      }
+    })
+
+    const files = await decompress()(res.content)
+    const image = files.find(f => f.path === 'xl/media/test.png')
+    image.data.toString().should.be.eql('foo')
+    const drawing = files.find(f => f.path === 'xl/drawings/drawing1.xml')
+    drawing.data.toString().should.containEql('descr="description of test"')
+  })
+
   it('should not need xlsxPrint helper call at the end if there is no transformation code', test('empty-no-xlsxPrint.handlebars', (workbook) => {
     workbook.SheetNames.should.have.length(1)
     workbook.SheetNames[0].should.be.eql('Sheet1')
@@ -306,7 +329,7 @@ describe('xlsx transformation handlebars', () => {
         recipe: 'xlsx',
         engine: 'handlebars',
         helpers: `
-        function checkRows(opts) {                 
+        function checkRows(opts) {
           const rowsLength = opts.data.root.$xlsxTemplate['xl/worksheets/sheet1.xml'].worksheet.sheetData[0].row.length
           if (rowsLength !== 1) {
             throw new Error('should have 1 row, has ' + rowsLength)
@@ -316,7 +339,7 @@ describe('xlsx transformation handlebars', () => {
         content: `
         {{#xlsxAdd "xl/worksheets/sheet1.xml" "worksheet.sheetData[0].row"}}
         <row>
-          <c t="inlineStr"><is><t>1</t></is></c>  
+          <c t="inlineStr"><is><t>1</t></is></c>
         </row>
         {{/xlsxAdd}}
         {{checkRows}}
@@ -337,7 +360,7 @@ describe('xlsx transformation handlebars', () => {
             <c t="inlineStr"><is><t>{{this}}</t></is></c>
             {{/columns}}
         </row>
-        {{/xlsxAdd}}    
+        {{/xlsxAdd}}
         {{{xlsxPrint}}}`,
         helpers: `
       function columns(options) {
@@ -345,7 +368,7 @@ describe('xlsx transformation handlebars', () => {
         for (let i = 0; i < 3; i++) {
             // old no await
             r += options.fn(i)
-        }      
+        }
         return r
       }`
       }
