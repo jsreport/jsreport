@@ -345,7 +345,7 @@ class MainReporter extends Reporter {
     }
 
     if (err.code === 'WORKER_ABORTED') {
-      err.message = 'Report cancelled'
+      err.message = 'Report cancelled by the client or closed network'
       err.weak = true
     }
 
