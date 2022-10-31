@@ -117,30 +117,38 @@ module.exports = async (reporter, definition, req, res) => {
     }
   }
 
-  const result = await htmlToXlsxProcess(
-    {
-      timeout: reporter.getReportTimeout(req),
-      tmpDir: definition.options.tmpDir,
-      htmlEngine: htmlToXlsxOptions.htmlEngine,
-      html: res.content.toString(),
-      xlsxTemplateContent: xlsxTemplateBuf,
-      chromeOptions,
-      phantomOptions,
-      cheerioOptions,
-      conversionOptions
-    },
-    req
-  )
+  let result
 
-  if (result.logs) {
-    result.logs.forEach(m => {
-      reporter.logger[m.level](m.message, { ...req, timestamp: m.timestamp })
-    })
-  }
+  try {
+    result = await htmlToXlsxProcess(
+      {
+        timeout: reporter.getReportTimeout(req),
+        tmpDir: definition.options.tmpDir,
+        htmlEngine: htmlToXlsxOptions.htmlEngine,
+        html: res.content.toString(),
+        xlsxTemplateContent: xlsxTemplateBuf,
+        chromeOptions,
+        phantomOptions,
+        cheerioOptions,
+        conversionOptions
+      },
+      req
+    )
 
-  if (result.error) {
-    const error = new Error(result.error.message)
-    error.stack = result.error.stack
+    if (result.logs) {
+      result.logs.forEach(m => {
+        reporter.logger[m.level](m.message, { ...req, timestamp: m.timestamp })
+      })
+    }
+  } catch (htmlToXlsxError) {
+    if (htmlToXlsxError.logs) {
+      htmlToXlsxError.logs.forEach(m => {
+        reporter.logger[m.level](m.message, { ...req, timestamp: m.timestamp })
+      })
+    }
+
+    const error = new Error(htmlToXlsxError.message)
+    error.stack = htmlToXlsxError.stack
 
     throw reporter.createError('Error while executing html-to-xlsx recipe', {
       original: error,
