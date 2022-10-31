@@ -195,7 +195,13 @@ const configureExpressApp = (app, reporter, definition, exposedOptions) => {
       query: req.query
     })
 
-    next()
+    if (!reporter._initialized) {
+      reporter.waitForInit().then(() => {
+        next()
+      }, (err) => next(err))
+    } else {
+      next()
+    }
   })
 
   reporter.emit('before-express-configure', app)

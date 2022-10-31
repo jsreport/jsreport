@@ -130,13 +130,7 @@ module.exports = (app, reporter, exposedOptions) => {
       }
     }
 
-    if (!reporter._initialized) {
-      reporter.waitForInit().then(() => {
-        executeRender()
-      }, (err) => next(err))
-    } else {
-      executeRender()
-    }
+    executeRender()
   })
 
   app.get('/api/version', (req, res, next) => res.send(reporter.version))
