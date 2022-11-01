@@ -377,7 +377,7 @@ describe('cli import/export', () => {
       it('should fail when connecting to invalid server', async () => {
         const cmd = addRemoteArgs('export export.jsrexport', 'http://localhost:9768')
 
-        return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/)
+        return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/i)
       })
     }
 
@@ -508,7 +508,7 @@ describe('cli import/export', () => {
       it('should fail when connecting to invalid server', async () => {
         const cmd = addRemoteArgs('import export.jsrexport', 'http://localhost:9768')
 
-        return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/)
+        return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/i)
       })
     }
 

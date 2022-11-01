@@ -70,7 +70,6 @@ function getErrors (err) {
 
 function getErrorMessages (err) {
   const errors = getErrors(err)
-  let count = errors.length
   let cleanState = false
   const messages = []
   const stacks = []
@@ -85,34 +84,26 @@ function getErrorMessages (err) {
 
     customProps = JSON.stringify(customProps)
 
-    if (cleanState) {
-      messages.push(`${formatError(error)}`)
-    } else {
-      messages.push(`${formatError(error)} (${count})`)
-    }
+    messages.push(`${formatError(error)}`)
 
     if (customProps === '{}') {
       customProps = ''
     }
 
     if (currentStack !== '') {
-      const causedBy = `caused by error (${count}):`
-
       if (customProps !== '') {
-        stacks.push(`${causedBy}\n-> meta = ${customProps}\n-> stack\n${currentStack}`)
+        stacks.push(`-> meta = ${customProps}\n-> stack\n${currentStack}`)
       } else {
-        stacks.push(`${causedBy}\n-> stack\n${currentStack}`)
+        stacks.push(`-> stack\n${currentStack}`)
       }
     }
-
-    count--
   })
 
   if (!cleanState && stacks.length > 0) {
-    messages.push(`\n${stacks.join('\n')}`)
+    return [messages, stacks]
   }
 
-  return messages
+  return [messages, []]
 }
 
 function getSimpleProperties (obj) {
@@ -138,9 +129,37 @@ function getSimpleProperties (obj) {
 }
 
 function printError (err, logger) {
-  const messages = getErrorMessages(err)
+  const [messages, stacks] = getErrorMessages(err)
 
-  logger.error(messages.join('. '))
+  for (let idx = 0; idx < messages.length; idx++) {
+    messages[idx] += ` (${messages.length - idx})`
+
+    if (idx > 0) {
+      messages[idx] = lowerCaseFirstLetter(messages[idx])
+    }
+  }
+
+  let errorLog = messages.join('\n(because) ')
+
+  if (stacks.length > 0) {
+    const reversedStacks = [...stacks].reverse()
+
+    for (let idx = 0; idx < reversedStacks.length; idx++) {
+      reversedStacks[idx] = `-- error (${idx + 1}) --\n${reversedStacks[idx]}`
+    }
+
+    errorLog += `\n\n${reversedStacks.join('\nwrapped by:\n')}`
+  }
+
+  logger.error(errorLog)
+}
+
+function lowerCaseFirstLetter (str) {
+  if (str === '' || typeof str !== 'string') {
+    return str
+  }
+
+  return str.charAt(0).toLowerCase() + str.slice(1)
 }
 
 module.exports.printError = printError

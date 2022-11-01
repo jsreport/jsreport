@@ -40,7 +40,7 @@ describe('start command', () => {
         cwd: fullPathToTempProject
       })
     } catch (e) {
-      should(e.stderr).containEql('Couldn\'t find a jsreport installation')
+      should(e.stderr).containEql('ouldn\'t find a jsreport installation')
     }
   })
 

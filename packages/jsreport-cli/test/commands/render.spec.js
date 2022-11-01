@@ -276,7 +276,7 @@ describe('render command', () => {
 
         const cmd = addRemoteArgs(`render --request=${requestJSONPath} --out=${outputPath}`, 'http://localhost:9988')
 
-        return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/)
+        return should(exec(dirName, cmd)).be.rejectedWith(/Couldn't connect to remote jsreport server/i)
       })
     }
 
@@ -289,7 +289,7 @@ describe('render command', () => {
         cmd = addRemoteArgs(cmd)
       }
 
-      return should(exec(dirName, cmd)).be.rejectedWith(/Unable to find specified template/)
+      return should(exec(dirName, cmd)).be.rejectedWith(/Unable to find specified template/i)
     })
 
     if (!remote) {
