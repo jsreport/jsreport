@@ -130,7 +130,7 @@ module.exports = (reporter) => {
         reporter.requestModulesCache.set(request.context.rootId, Object.create(null))
       }
 
-      reporter.logger.info(`Starting rendering request ${request.context.reportCounter} (user: ${(request.context.user ? request.context.user.name : 'null')})`, request)
+      reporter.logger.info(`Starting rendering${childMsgDecorate(request)} request${counterMsgDecorate(request)}${userMsgDecorate(request)}`, request)
 
       // TODO
       /* if (reporter.entityTypeValidator.getSchema('TemplateType') != null) {
@@ -147,7 +147,7 @@ module.exports = (reporter) => {
       await invokeRender(reporter, request, response)
       await afterRender(reporter, request, response)
 
-      reporter.logger.info(`Rendering request ${request.context.reportCounter} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
+      reporter.logger.info(`Rendering${childMsgDecorate(request)} request${counterMsgDecorate(request)} finished in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
 
       response.meta.logs = request.context.logs
 
@@ -164,9 +164,11 @@ module.exports = (reporter) => {
 
       const logFn = e.weak ? reporter.logger.warn : reporter.logger.error
 
-      logFn(`Error when processing render request ${request.context.reportCounter} ${e.message}${e.stack != null ? ' ' + e.stack : ''}`, request)
+      const errorMessage = reporter.createError(`Error when processing${childMsgDecorate(request)} render request${counterMsgDecorate(request)}`, { original: e }).message
 
-      logFn(`Rendering request ${request.context.reportCounter} finished with error in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
+      logFn(`${errorMessage}${e.stack != null ? '\n' + e.stack : ''}`, request)
+
+      logFn(`Rendering${childMsgDecorate(request)} request${counterMsgDecorate(request)} finished with error in ${(new Date().getTime() - request.context.startTimestamp)} ms`, request)
 
       if (
         parentReq &&
@@ -195,4 +197,28 @@ module.exports = (reporter) => {
       }
     }
   }
+}
+
+function childMsgDecorate (req) {
+  if (!req.context.isChildRequest) {
+    return ''
+  }
+
+  return ' (child)'
+}
+
+function counterMsgDecorate (req) {
+  if (req.context.isChildRequest) {
+    return ''
+  }
+
+  return ` ${req.context.reportCounter}`
+}
+
+function userMsgDecorate (req) {
+  if (!req.context.user) {
+    return ''
+  }
+
+  return ` (user: ${req.context.user.name})`
 }

@@ -372,7 +372,11 @@ function decorateErrorMessage (e, sourceFilesInfo) {
     }
 
     if (suffix !== '') {
-      e.message = `${e.message}\n\n${suffix}`
+      suffix = `\n\n${suffix}`
+      e.message = `${e.message}${suffix}`
+      // we store the suffix we added to the message so we can use it later
+      // to detect if we need to strip this from the stack or not
+      e.decoratedSuffix = suffix
     }
   }
 

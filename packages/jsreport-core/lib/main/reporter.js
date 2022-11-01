@@ -351,7 +351,8 @@ class MainReporter extends Reporter {
 
     if (!err.logged) {
       const logFn = err.weak ? this.logger.warn : this.logger.error
-      logFn(`Report render failed: ${err.message}${err.stack != null ? ' ' + err.stack : ''}`, req)
+      const errorMessage = this.createError('Report render failed', { original: err }).message
+      logFn(`${errorMessage}${err.stack != null ? '\n' + err.stack : ''}`, req)
     }
     await this.renderErrorListeners.fire(req, res, err)
     throw err

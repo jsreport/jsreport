@@ -279,10 +279,14 @@ module.exports = (reporter) => {
       const nestedErrorWithEntity = e.entity != null
 
       const templatePath = req.template._id ? await reporter.folders.resolveEntityPath(req.template, 'templates', req) : 'anonymous'
+
+      const newError = reporter.createError(`Error when evaluating engine ${engine.name} for template ${templatePath}`, { original: e })
+
       if (templatePath !== 'anonymous' && !nestedErrorWithEntity) {
         const templateFound = await reporter.folders.resolveEntityFromPath(templatePath, 'templates', req)
+
         if (templateFound != null) {
-          e.entity = {
+          newError.entity = {
             shortid: templateFound.entity.shortid,
             name: templateFound.entity.name,
             content
@@ -290,18 +294,23 @@ module.exports = (reporter) => {
         }
       }
 
-      e.message = `Error when evaluating engine ${engine.name} for template ${templatePath}\n` + e.message
-
       if (!nestedErrorWithEntity && e.property !== 'content') {
-        e.property = 'helpers'
+        newError.property = 'helpers'
       }
 
       if (nestedErrorWithEntity) {
         // errors from nested assets evals needs an unwrap for some reason
-        e.entity = { ...e.entity }
+        newError.entity = { ...e.entity }
       }
 
-      throw e
+      // we remove the decoratedSuffix (created from sandbox) from the stack trace (if it is there) because it
+      // just creates noise and duplication when printing the error,
+      // we just want the decoration on the message not in the stack trace
+      if (e.decoratedSuffix != null && newError.stack.includes(e.decoratedSuffix)) {
+        newError.stack = newError.stack.replace(e.decoratedSuffix, '')
+      }
+
+      throw newError
     }
   }
 
