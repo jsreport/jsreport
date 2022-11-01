@@ -126,8 +126,9 @@ class Profiler {
 
     if (parentReq) {
       template = await this.reporter.templates.resolveTemplate(req)
+
       // store a copy to prevent side-effects
-      req.context.resolvedTemplate = extend(true, {}, template)
+      req.context.resolvedTemplate = template != null ? extend(true, {}, template) : template
     } else {
       template = req.context.resolvedTemplate
     }
