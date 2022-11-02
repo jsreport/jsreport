@@ -18,7 +18,7 @@
     "jsreport.config.js"
   ],
   "scripts": {
-    "test": "mocha test/test.js --timeout=5000 && standard"
+    "test": "mocha test/test.js --timeout=10000 && standard"
   },
   "dependencies": {
     "@jsreport/sql-store": "3.1.0",

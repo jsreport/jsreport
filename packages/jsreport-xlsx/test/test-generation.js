@@ -100,7 +100,7 @@ describe('xlsx generation', () => {
       data: {
         name: 'John'
       }
-    }).should.be.rejectedWith(/Failed to parse xlsx template input/)
+    }).should.be.rejectedWith(/Failed to parse xlsx template input/i)
   })
 
   it('variable replace', async () => {
@@ -196,7 +196,7 @@ describe('xlsx generation', () => {
     })
 
     return Promise.all([
-      should(prom).be.rejectedWith(/Parse error/),
+      should(prom).be.rejectedWith(/Parse error/i),
       // this text that error contains proper location of syntax error
       should(prom).be.rejectedWith(/<t>Hello world {{<\/t>/)
     ])

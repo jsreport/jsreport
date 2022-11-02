@@ -1,4 +1,4 @@
-require('should')
+const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const helpers = require('../static/helpers')
 
@@ -261,7 +261,7 @@ describe('childTemplates', () => {
     const request = { template: { content: '{#child t1}', engine: 'none', recipe: 'html' } }
 
     const res = await reporter.render(request)
-    res.meta.logs.map(l => l.message).should.containEql('hello')
+    res.meta.logs.map(l => l.message).should.matchAny((msg) => should(msg).containEql('hello'))
   })
 
   it('should throw error when duplicated results are found', async () => {

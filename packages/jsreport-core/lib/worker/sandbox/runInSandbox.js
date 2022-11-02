@@ -1,8 +1,9 @@
 const LRU = require('lru-cache')
 const stackTrace = require('stack-trace')
 const { customAlphabet } = require('nanoid')
-const createSandbox = require('./createSandbox')
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
+const createSandbox = require('./createSandbox')
+const normalizeError = require('../../shared/normalizeError')
 
 module.exports = (reporter) => {
   const functionsCache = LRU(reporter.options.sandbox.cache)
@@ -179,34 +180,16 @@ module.exports = (reporter) => {
 }
 
 function handleError (reporter, errValue) {
-  let newError
+  let newError = normalizeError(errValue)
 
-  const isErrorObj = (
-    typeof errValue === 'object' &&
-      typeof errValue.hasOwnProperty === 'function' &&
-      Object.prototype.hasOwnProperty.call(errValue, 'message')
-  )
+  if (newError === errValue) {
+    // here it means the original error was valid in the first place,
+    // so it was not normalized
+    newError = new Error(errValue.message)
+    Object.assign(newError, errValue)
 
-  const isValidError = (
-    isErrorObj ||
-      typeof errValue === 'string'
-  )
-
-  if (!isValidError) {
-    if (Object.prototype.toString.call(errValue) === '[object Object]') {
-      newError = new Error(`User code threw with non-Error: ${JSON.stringify(errValue)}`)
-    } else {
-      newError = new Error(`User code threw with non-Error: ${errValue}`)
-    }
-  } else {
-    if (typeof errValue === 'string') {
-      newError = new Error(errValue)
-    } else {
-      newError = new Error(errValue.message)
-      Object.assign(newError, errValue)
-      if (errValue.stack) {
-        newError.stack = errValue.stack
-      }
+    if (errValue.stack) {
+      newError.stack = errValue.stack
     }
   }
 

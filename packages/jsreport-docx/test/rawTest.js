@@ -137,7 +137,7 @@ describe('docx raw', () => {
     })
 
     return Promise.all([
-      should(result).be.rejectedWith(/Expected "xml" and "replaceParentElement" parameters for the docxRaw helper/)
+      should(result).be.rejectedWith(/Expected "xml" and "replaceParentElement" parameters for the docxRaw helper/i)
     ])
   })
 
@@ -153,7 +153,7 @@ describe('docx raw', () => {
         }
       },
       data: {}
-    }).should.be.rejectedWith(/Expected "xml" parameter for the docxRaw helper/)
+    }).should.be.rejectedWith(/Expected "xml" parameter for the docxRaw helper/i)
   })
 
   it('raw error no replaceParentElement parameter', async () => {
@@ -168,7 +168,7 @@ describe('docx raw', () => {
         }
       },
       data: {}
-    }).should.be.rejectedWith(/Expected "replaceParentElement" parameter for the docxRaw helper/)
+    }).should.be.rejectedWith(/Expected "replaceParentElement" parameter for the docxRaw helper/i)
   })
 
   it('raw error invalid replaceParentElement value', async () => {
@@ -183,7 +183,7 @@ describe('docx raw', () => {
         }
       },
       data: {}
-    }).should.be.rejectedWith(/Could not find a reference element that matches the "replaceParentElement" parameter of the docxRaw helper in the document tree: w:bad/)
+    }).should.be.rejectedWith(/Could not find a reference element that matches the "replaceParentElement" parameter of the docxRaw helper in the document tree: w:bad/i)
   })
 
   it('raw error invalid wtc location', async () => {
@@ -198,6 +198,6 @@ describe('docx raw', () => {
         }
       },
       data: {}
-    }).should.be.rejectedWith(/Could not find a reference element that matches the "replaceParentElement" parameter of the docxRaw helper in the document tree: w:tc/)
+    }).should.be.rejectedWith(/Could not find a reference element that matches the "replaceParentElement" parameter of the docxRaw helper in the document tree: w:tc/i)
   })
 })

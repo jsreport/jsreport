@@ -300,7 +300,7 @@ describe('pptx', () => {
       data: {
         hello: 'Jan Blaha'
       }
-    }).should.be.rejectedWith(/Failed to parse pptx template input/)
+    }).should.be.rejectedWith(/Failed to parse pptx template input/i)
   })
 
   it('should propagate lineNumber when error in helper', async () => {

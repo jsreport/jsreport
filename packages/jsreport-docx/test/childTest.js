@@ -39,7 +39,7 @@ describe('docx child', () => {
         }
       },
       data: {}
-    })).be.rejectedWith(/Asset template\.docx not found/)
+    })).be.rejectedWith(/Asset template\.docx not found/i)
   })
 
   it('child and simple paragraph', async () => {

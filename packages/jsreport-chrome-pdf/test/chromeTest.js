@@ -245,7 +245,7 @@ function common (strategy, imageExecution) {
     const res = await reporter.render(request)
 
     res.meta.logs.should.matchAny((log) => {
-      log.message.should.be.eql(objStr)
+      log.message.should.be.containEql(objStr)
     })
   })
 

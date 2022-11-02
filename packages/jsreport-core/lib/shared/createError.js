@@ -1,3 +1,4 @@
+const normalizeError = require('./normalizeError')
 
 module.exports = function (message, options = {}) {
   const { original } = options
@@ -9,27 +10,30 @@ module.exports = function (message, options = {}) {
     error = new Error(message)
 
     if (original != null) {
-      error.entity = original.entity
-      error.lineNumber = original.lineNumber
-      error.property = original.property
+      // because in js you can throw <anything>, not specifically Error
+      const originalNormalized = normalizeError(original)
 
-      if (original.statusCode != null) {
-        error.statusCode = original.statusCode
+      error.entity = originalNormalized.entity
+      error.lineNumber = originalNormalized.lineNumber
+      error.property = originalNormalized.property
+
+      if (originalNormalized.statusCode != null) {
+        error.statusCode = originalNormalized.statusCode
       }
 
-      if (original.weak != null) {
-        error.weak = original.weak
+      if (originalNormalized.weak != null) {
+        error.weak = originalNormalized.weak
       }
 
       if (error.message == null || error.message === '') {
-        error.message = `${original.message}`
+        error.message = `${originalNormalized.message}`
       } else {
-        error.message += `\n(because) ${lowerCaseFirstLetter(original.message)}`
+        error.message += `\n(because) ${lowerCaseFirstLetter(originalNormalized.message)}`
       }
 
       // stack is printed in reverse order (from cause to more high level error)
-      if (error.stack != null && original.stack != null) {
-        error.stack = `${original.stack}\nwrapped by:\n${error.stack}`
+      if (error.stack != null && originalNormalized.stack != null) {
+        error.stack = `${originalNormalized.stack}\nwrapped by:\n${error.stack}`
       }
     }
   }

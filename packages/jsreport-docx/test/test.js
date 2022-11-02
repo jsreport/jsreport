@@ -152,7 +152,7 @@ describe('docx', () => {
     })
 
     return Promise.all([
-      should(prom).be.rejectedWith(/Parse error/),
+      should(prom).be.rejectedWith(/Parse error/i),
       // this text that error contains proper location of syntax error
       should(prom).be.rejectedWith(/<w:t>{{<\/w:t>/)
     ])
@@ -703,7 +703,7 @@ describe('docx', () => {
     })
 
     return Promise.all([
-      should(prom).be.rejectedWith(/Parse error/),
+      should(prom).be.rejectedWith(/Parse error/i),
       // this text that error contains proper location of syntax error
       should(prom).be.rejectedWith(/<w:t>{{<\/w:t>/)
     ])
@@ -894,7 +894,7 @@ describe('docx', () => {
       data: {
         name: 'John'
       }
-    }).should.be.rejectedWith(/Failed to parse docx template input/)
+    }).should.be.rejectedWith(/Failed to parse docx template input/i)
   })
 
   it('should be able to reference stored asset', async () => {

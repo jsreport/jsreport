@@ -355,7 +355,7 @@ describe('engine', () => {
     })
 
     should(res.meta.logs).matchAny((l) => {
-      should(l.message).be.eql('foo')
+      should(l.message).be.containEql('foo')
     })
   })
 
@@ -370,7 +370,7 @@ describe('engine', () => {
     })
 
     should(res.meta.logs).matchAny((l) => {
-      should(l.message).be.eql('{ a: 1 }')
+      should(l.message).be.containEql('{ a: 1 }')
     })
   })
 
@@ -597,7 +597,7 @@ describe('engine', () => {
     })
 
     should(res.meta.logs).matchAny((l) => {
-      should(l.message).be.eql('foo')
+      should(l.message).be.containEql('foo')
     })
 
     const res2 = await reporter.render({
@@ -610,7 +610,7 @@ describe('engine', () => {
     })
 
     should(res2.meta.logs).matchAny((l) => {
-      should(l.message).be.eql('foo')
+      should(l.message).be.containEql('foo')
     })
   })
 
