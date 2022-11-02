@@ -77,12 +77,25 @@ module.exports = (reporter, definition) => async (request, response) => {
   if (Array.isArray(result.logs)) {
     result.logs.forEach((log) => {
       const meta = { timestamp: log.timestamp.getTime(), ...request }
+      let targetLevel = log.level
+      let msg = log.message
 
       if (log.userLevel) {
+        targetLevel = 'debug'
         meta.userLevel = true
+
+        let consoleType = log.level
+
+        if (consoleType === 'debug') {
+          consoleType = 'log'
+        } else if (consoleType === 'warn') {
+          consoleType = 'warning'
+        }
+
+        msg = `(console:${consoleType}) ${msg}`
       }
 
-      reporter.logger[log.level](log.message, meta)
+      reporter.logger[targetLevel](msg, meta)
     })
   }
 

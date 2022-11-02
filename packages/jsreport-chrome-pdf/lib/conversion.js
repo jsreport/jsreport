@@ -10,21 +10,36 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
   }
   const browser = await getBrowser()
 
-  function pageLog (level, message, userLevel = false) {
+  function pageLog (level, messageOrObj, userLevel = false) {
     const maxLogEntrySize = 1000
-    let newMsg = message
+    let newMsg
+    let newMsgType
+
+    if (typeof messageOrObj === 'string') {
+      newMsg = messageOrObj
+    } else {
+      newMsgType = messageOrObj.type
+      newMsg = messageOrObj.text
+    }
 
     if (newMsg.length > maxLogEntrySize) {
       newMsg = `${newMsg.substring(0, maxLogEntrySize)}...`
     }
 
     const meta = { timestamp: new Date().getTime(), ...req }
+    let targetLevel = level
 
     if (userLevel) {
+      // logs for user level are always done as debug with prefix
+      targetLevel = 'debug'
       meta.userLevel = true
+
+      if (newMsgType != null && newMsgType !== '') {
+        newMsg = `(console:${newMsgType}) ${newMsg}`
+      }
     }
 
-    reporter.logger[level](newMsg, meta)
+    reporter.logger[targetLevel](newMsg, meta)
   }
 
   function trimUrl (url) {
@@ -72,6 +87,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
     })
 
     page.on('console', (m) => {
+      const type = m.type()
       const text = m.text()
 
       if (text.includes('JSHandle@object')) {
@@ -82,16 +98,19 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
         })
 
         Promise.all(argPromises).then((results) => {
-          pageLog('debug', results.map((r) => {
-            if (typeof r === 'object') {
-              return JSON.stringify(r)
-            }
+          pageLog('debug', {
+            type,
+            text: results.map((r) => {
+              if (typeof r === 'object') {
+                return JSON.stringify(r)
+              }
 
-            return r
-          }).join(' '), true)
-        }).catch(() => pageLog('debug', text, true))
+              return r
+            }).join(' ')
+          }, true)
+        }).catch(() => pageLog('debug', { type, text }, true))
       } else {
-        pageLog('debug', text, true)
+        pageLog('debug', { type, text }, true)
       }
     })
 

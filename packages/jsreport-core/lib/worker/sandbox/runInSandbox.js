@@ -37,7 +37,16 @@ module.exports = (reporter) => {
       onLog: (log) => {
         // we mark any log done in sandbox as userLevel: true, this allows us to detect which logs belongs to user
         // and can potentially contain sensitive information
-        reporter.logger[log.level](log.message, { ...req, timestamp: log.timestamp, userLevel: true })
+
+        let consoleType = log.level
+
+        if (consoleType === 'debug') {
+          consoleType = 'log'
+        } else if (consoleType === 'warn') {
+          consoleType = 'warning'
+        }
+
+        reporter.logger.debug(`(console:${consoleType}) ${log.message}`, { ...req, timestamp: log.timestamp, userLevel: true })
       },
       formatError: (error, moduleName) => {
         error.message += ` To be able to require custom modules you need to add to configuration { "trustUserCode": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`

@@ -35,12 +35,25 @@ module.exports = (reporter, definition, request, response) => {
   return conversion(request.template.phantomImage).then(function (cres) {
     cres.logs.forEach(function (m) {
       const meta = { timestamp: m.timestamp.getTime(), ...request }
+      let targetLevel = m.level
+      let msg = m.message
 
       if (m.userLevel) {
+        targetLevel = 'debug'
         meta.userLevel = true
+
+        let consoleType = m.level
+
+        if (consoleType === 'debug') {
+          consoleType = 'log'
+        } else if (consoleType === 'warn') {
+          consoleType = 'warning'
+        }
+
+        msg = `(console:${consoleType}) ${msg}`
       }
 
-      reporter.logger[m.level](m.message, meta)
+      reporter.logger[targetLevel](msg, meta)
     })
 
     response.meta.contentType = 'image/' + request.template.phantomImage.imageType
