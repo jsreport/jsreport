@@ -333,6 +333,140 @@ function lengthToPx (value) {
   return null
 }
 
+function createNewRAndTextNode (textOrOptions, templateRNode, doc) {
+  const text = typeof textOrOptions === 'string' ? textOrOptions : textOrOptions.text
+  const attributes = typeof textOrOptions === 'string' ? {} : (textOrOptions.attributes || {})
+  const newRNode = templateRNode.cloneNode(true)
+  const textEl = doc.createElement('w:t')
+
+  textEl.setAttribute('xml:space', 'preserve')
+
+  for (const [attrName, attrValue] of Object.entries(attributes)) {
+    textEl.setAttribute(attrName, attrValue)
+  }
+
+  textEl.textContent = text
+  newRNode.appendChild(textEl)
+  return [newRNode, textEl]
+}
+
+module.exports.normalizeSingleTextElInRun = (textEl, doc) => {
+  const rEl = getClosestEl(textEl, 'w:r')
+
+  if (rEl == null) {
+    return
+  }
+
+  const textElements = nodeListToArray(rEl.childNodes).filter((n) => n.nodeName === 'w:t')
+  const leftTextNodes = []
+  const rightTextNodes = []
+
+  let found = false
+
+  for (const tEl of textElements) {
+    if (tEl === textEl) {
+      found = true
+    } else if (found) {
+      rightTextNodes.push(tEl)
+    } else {
+      leftTextNodes.push(tEl)
+    }
+  }
+
+  const templateRNode = rEl.cloneNode(true)
+
+  // remove text elements and inherit the rest
+  clearEl(templateRNode, (c) => c.nodeName !== 'w:t')
+
+  const results = []
+
+  for (const tNode of leftTextNodes) {
+    const [newRNode, newTextNode] = createNewRAndTextNode(tNode.textContent, templateRNode, doc)
+    rEl.removeChild(tNode)
+    rEl.parentNode.insertBefore(newRNode, rEl)
+    results.push(newTextNode)
+  }
+
+  results.push(textEl)
+
+  for (const tNode of [...rightTextNodes].reverse()) {
+    const [newRNode, newTextNode] = createNewRAndTextNode(tNode.textContent, templateRNode, doc)
+    rEl.removeChild(tNode)
+    rEl.parentNode.insertBefore(newRNode, rEl.nextSibling)
+    results.push(newTextNode)
+  }
+
+  return results
+}
+
+module.exports.normalizeSingleContentInText = (textEl, getMatchRegexp, doc) => {
+  const rEl = getClosestEl(textEl, 'w:r')
+  const paragraphEl = getClosestEl(textEl, 'w:p')
+
+  if (rEl == null || paragraphEl == null) {
+    return
+  }
+
+  let newContent = textEl.textContent
+  const textParts = []
+  const matchParts = []
+  let match
+
+  do {
+    match = newContent.match(getMatchRegexp())
+
+    if (match != null) {
+      const leftContent = newContent.slice(0, match.index)
+
+      if (leftContent !== '') {
+        textParts.push(leftContent)
+      }
+
+      const matchInfo = {
+        content: match[0]
+      }
+
+      textParts.push(matchInfo)
+      matchParts.push(matchInfo)
+
+      newContent = newContent.slice(match.index + match[0].length)
+    }
+  } while (match != null)
+
+  if (newContent !== '') {
+    textParts.push(newContent)
+  }
+
+  const templateRNode = rEl.cloneNode(true)
+
+  // remove text elements and inherit the rest
+  clearEl(templateRNode, (c) => c.nodeName !== 'w:t')
+
+  const results = []
+
+  for (const item of textParts) {
+    const isMatchInfo = typeof item !== 'string'
+    const textContent = isMatchInfo ? item.content : item
+
+    const [newRNode, newTextNode] = createNewRAndTextNode(textContent, templateRNode, doc)
+    rEl.parentNode.insertBefore(newRNode, rEl)
+
+    const result = {
+      tEl: newTextNode
+    }
+
+    if (isMatchInfo) {
+      result.match = item
+    }
+
+    results.push(result)
+  }
+
+  rEl.parentNode.removeChild(rEl)
+
+  return results
+}
+
 module.exports.findDefaultStyleIdForName = (stylesDoc, name, type = 'paragraph') => {
   const styleEls = nodeListToArray(stylesDoc.getElementsByTagName('w:style'))
 

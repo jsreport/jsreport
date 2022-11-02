@@ -383,8 +383,19 @@ const __xlsx = (function () {
       }
   }
 
-  async function addImage (imageName, sheetFullName, fromCol, fromRow, toCol, toRow) {
+  async function addImage (imageNameOrOptions, sheetFullName, fromCol, fromRow, toCol, toRow) {
     const { context, options } = contextMap.get(this)
+    let imageName
+    let imageAltText
+
+    if (typeof imageNameOrOptions === 'string') {
+      imageName = imageNameOrOptions
+    } else {
+      // imageNameOrOptions is expected to be object here
+      imageName = imageNameOrOptions.name
+      imageAltText = imageNameOrOptions.altText
+    }
+
     const name = imageName + '.png'
 
     if (!options.data.root.$xlsxTemplate['[Content_Types].xml'].Types.Default.filter(function (t) { return t.$.Extension === 'png' }).length) {
@@ -428,7 +439,7 @@ const __xlsx = (function () {
       '<xdr:twoCellAnchor><xdr:from><xdr:col>' + fromCol +
         '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + fromRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>' +
         toCol + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + toRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:pic><xdr:nvPicPr>' +
-        '<xdr:cNvPr id="' + relNumber + '" name="Picture"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill>' +
+        `<xdr:cNvPr id="${relNumber}" name="Picture"${imageAltText != null && imageAltText !== '' ? ` descr="${imageAltText}"` : ''}/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill>` +
         '<a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="' + relName + '"><a:extLst>' +
         '<a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" ' +
         'val="0"/></a:ext></a:extLst></a:blip><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" ' +
