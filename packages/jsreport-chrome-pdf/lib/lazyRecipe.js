@@ -3,6 +3,7 @@
  *
  * Recipe rendering pdf files using headless chrome.
  */
+const url = require('url')
 
 async function renderHeaderOrFooter (type, reporter, req, content) {
   reporter.logger.debug(`Starting child request to render pdf ${type}`, req)
@@ -44,9 +45,7 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
       //  throw new Error(`generated htmlPath option must be an absolute path to a file. path: ${htmlPath}`)
       // }
 
-      // remove trailing slashes and change windows path separator to slash
-      // use pathToFileURL in v3 and node 14
-      htmlUrl = 'file:///' + htmlPath.replace(/^\/+/, '').replace(/\\/g, '/')
+      htmlUrl = url.pathToFileURL(htmlPath)
     }
 
     if (!imageExecution) {
