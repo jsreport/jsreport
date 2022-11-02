@@ -25,20 +25,14 @@ async function childTemplate (templateNameOrObject, opts) {
 
   const jsreport = require('jsreport-proxy')
 
-  let res
-
-  try {
-    res = await jsreport.render({
-      template: typeof templateNameOrObject === 'string'
-        ? {
-            name: templateNameOrObject
-          }
-        : templateNameOrObject,
-      data: currentContext
-    })
-  } catch (childRenderErr) {
-    throw jsreport.createError('childTemplate helper render failed', { original: childRenderErr })
-  }
+  const res = await jsreport.render({
+    template: typeof templateNameOrObject === 'string'
+      ? {
+          name: templateNameOrObject
+        }
+      : templateNameOrObject,
+    data: currentContext
+  })
 
   if (res.meta.contentType && !res.meta.contentType.includes('text')) {
     throw new Error('Child template result needs to be a text. Consider changing recipe to a text based recipe like html.')

@@ -203,10 +203,13 @@ module.exports = (reporter) => {
       const wrappedTopLevelFunctions = {}
 
       for (const h of Object.keys(topLevelFunctions)) {
+        // extra wrapping for enhance the error with the helper name
+        wrappedTopLevelFunctions[h] = wrapHelperForHelperNameWhenError(topLevelFunctions[h], h)
+
         if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
-          wrappedTopLevelFunctions[h] = engine.wrapHelper(topLevelFunctions[h], { context })
+          wrappedTopLevelFunctions[h] = engine.wrapHelper(wrappedTopLevelFunctions[h], { context })
         } else {
-          wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(topLevelFunctions[h], asyncResultMap)
+          wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], asyncResultMap)
         }
       }
 
@@ -316,7 +319,7 @@ module.exports = (reporter) => {
 
   function wrapHelperForAsyncSupport (fn, asyncResultMap) {
     return function (...args) {
-    // important to call the helper with the current this to preserve the same behavior
+      // important to call the helper with the current this to preserve the same behavior
       const fnResult = fn.call(this, ...args)
 
       if (fnResult == null || typeof fnResult.then !== 'function') {
@@ -327,6 +330,29 @@ module.exports = (reporter) => {
       asyncResultMap.set(asyncResultId, fnResult)
 
       return `{#asyncHelperResult ${asyncResultId}}`
+    }
+  }
+
+  function wrapHelperForHelperNameWhenError (fn, helperName) {
+    return function (...args) {
+      let fnResult
+
+      const getEnhancedHelperError = (e) => reporter.createError(`"${helperName}" helper call failed`, { original: e })
+
+      try {
+        // important to call the helper with the current this to preserve the same behavior
+        fnResult = fn.call(this, ...args)
+      } catch (syncError) {
+        throw getEnhancedHelperError(syncError)
+      }
+
+      if (fnResult == null || typeof fnResult.then !== 'function') {
+        return fnResult
+      }
+
+      return fnResult.catch((asyncError) => {
+        throw getEnhancedHelperError(asyncError)
+      })
     }
   }
 }

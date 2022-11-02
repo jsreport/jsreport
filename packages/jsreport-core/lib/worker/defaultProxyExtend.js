@@ -2,8 +2,6 @@
 module.exports = (reporter) => (proxy, req) => {
   proxy.req = req
 
-  proxy.createError = (message, options) => reporter.createError(message, options)
-
   proxy.render = async (renderRequest) => {
     const res = await reporter.render({
       ...renderRequest,

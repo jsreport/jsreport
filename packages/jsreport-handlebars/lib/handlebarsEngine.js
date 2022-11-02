@@ -81,7 +81,7 @@ module.exports = (opts = {}) => {
     },
     unescape: (str) => str.replace(pattern, '}'),
     wrapHelper: (fn, { context }) => {
-      // this is only called in the asyncmode and used to automatically skip escaping for async helper calls
+      // this is only called in the async mode and used to automatically skip escaping for async helper calls
       // this is for back compatibility, where by accident {{asset}} calls aren't escaped
       return function (...args) {
         const fnResult = fn.call(this, ...args)
