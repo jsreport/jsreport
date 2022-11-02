@@ -49,6 +49,14 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
         weak: true
       })
     }
+
+    if (typeof name !== 'string') {
+      throw reporter.createError('Asset path must be a string', {
+        statusCode: 400,
+        weak: true
+      })
+    }
+
     const assetNameIsPath = name.indexOf('/') !== -1
     const pathParts = name.split('/').filter((p) => p)
     let assetName
