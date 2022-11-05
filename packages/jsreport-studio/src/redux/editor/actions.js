@@ -183,6 +183,8 @@ export function editSelect (id, options = {}) {
 
     // true or false, null for toggle
     payload.value = options.value
+    payload.reference = options.reference || false
+    payload.lastFocused = options.lastFocused
 
     if (options.initializeWithActive === true) {
       const entity = selectors.getActiveEntity(getState().editor.activeTabKey, getState().editor.tabs, getState().entities)

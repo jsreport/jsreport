@@ -7,6 +7,7 @@ import { previewComponents } from '../../lib/configuration'
 const reducer = createReducer({
   tabs: [],
   editSelection: null,
+  editSelectionRefs: [],
   lastEditSelectionFocused: null,
   activeTabKey: null,
   lastActiveTemplateKey: null,
@@ -108,18 +109,28 @@ reducer.handleAction(ActionTypes.ACTIVATE_TAB, (state, action) => {
 
 reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
   const { id, payload } = action
-  const { value, defaultItems } = payload
+  const { value, defaultItems, reference = false, lastFocused } = payload
 
   let newEditSelection = state.editSelection
+  let newEditSelectionRefs = state.editSelectionRefs
   let newLastEditSelectionFocused = state.lastEditSelectionFocused
 
   if (newEditSelection == null) {
     newEditSelection = []
+    newEditSelectionRefs = []
     newLastEditSelectionFocused = null
 
+    // default items is only applied when there was no editSelection before
     if (Array.isArray(defaultItems)) {
       newEditSelection = [...defaultItems]
-      newLastEditSelectionFocused = newEditSelection[newEditSelection.length - 1]
+
+      if (reference === true) {
+        newEditSelectionRefs = [...defaultItems]
+      }
+
+      if (lastFocused == null) {
+        newLastEditSelectionFocused = newEditSelection[newEditSelection.length - 1]
+      }
     }
   }
 
@@ -146,17 +157,29 @@ reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
     return newSelection
   }
 
+  if (reference === true) {
+    newEditSelectionRefs = newEditSelectionRefs != null ? [...newEditSelectionRefs] : []
+    const existingRefIndex = newEditSelectionRefs.findIndex((selectedId) => selectedId === id)
+
+    if (existingRefIndex !== -1) {
+      newEditSelectionRefs = updateSelection(newEditSelectionRefs, false, existingRefIndex)
+    }
+
+    newEditSelectionRefs = [...newEditSelectionRefs, id]
+  }
+
   if (value === true || value === false) {
-    newLastEditSelectionFocused = id
+    newLastEditSelectionFocused = lastFocused == null ? id : lastFocused
     newEditSelection = updateSelection(newEditSelection, value, existingIndex)
   } else if (value == null) {
-    newLastEditSelectionFocused = id
+    newLastEditSelectionFocused = lastFocused == null ? id : lastFocused
     newEditSelection = updateSelection(newEditSelection, existingIndex === -1, existingIndex)
   }
 
   return {
     ...state,
     editSelection: newEditSelection,
+    editSelectionRefs: newEditSelectionRefs,
     lastEditSelectionFocused: newLastEditSelectionFocused
   }
 })
@@ -165,6 +188,7 @@ reducer.handleAction(ActionTypes.EDIT_SELECT_CLEAR, (state, action) => {
   return {
     ...state,
     editSelection: null,
+    editSelectionRefs: null,
     lastEditSelectionFocused: null
   }
 })

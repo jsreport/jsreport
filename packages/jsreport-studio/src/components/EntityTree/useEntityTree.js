@@ -29,6 +29,7 @@ export default function useEntityTree (main, {
   selectionMode,
   entities,
   editSelection,
+  editSelectionRefs,
   lastEditSelectionFocused,
   selected,
   activeEntity,
@@ -56,16 +57,42 @@ export default function useEntityTree (main, {
 
   const { contextMenu, showContextMenu, clearContextMenu } = useContextMenu(contextMenuRef)
 
-  const editSelectEntityAboveOrBellow = useCallback((entityId, action) => {
-    const relativeEntitiesNodes = listRef.current.getRelativeEntitiesById(entityId)
-    const index = relativeEntitiesNodes.findIndex((node) => node.data._id === entityId)
+  const editSelectEntityWithSequence = useCallback((currentEntityId, references, action) => {
+    const relativeEntitiesNodes = listRef.current.getRelativeEntitiesById(currentEntityId)
+    const currentIndex = relativeEntitiesNodes.findIndex((node) => node.data._id === currentEntityId)
+    const refEntityId = references.length > 0 ? references[references.length - 1].id : currentEntityId
+    const refRelativeEntitiesNodes = listRef.current.getRelativeEntitiesById(refEntityId)
+    const refIndex = refRelativeEntitiesNodes.findIndex((node) => node.data._id === refEntityId)
     const limit = action === 'up' ? 0 : relativeEntitiesNodes.length - 1
+    let targetEntityId
 
-    if (index !== limit) {
-      const targetIndex = action === 'up' ? index - 1 : index + 1
+    if (currentIndex !== limit) {
+      const shouldUseStep = action === 'up' ? currentIndex <= refIndex : currentIndex >= refIndex
+      const actionStep = action === 'up' ? -1 : 1
+      const step = shouldUseStep ? actionStep : 0
+      const targetIndex = currentIndex + step
       const targetEntityNode = relativeEntitiesNodes[targetIndex]
-      // we just want to toggle the above entity
-      editSelect(targetEntityNode.data._id)
+      // we just want to toggle the next entity
+      targetEntityId = targetEntityNode.data._id
+
+      const selectOpts = {}
+
+      const targetFoundInReferences = references.find((r) => r.id === targetEntityId)
+
+      if (targetFoundInReferences != null) {
+        // if references are already selected, keep it that way
+        selectOpts.value = true
+      }
+
+      if (!shouldUseStep) {
+        const lastFocused = relativeEntitiesNodes[targetIndex + actionStep]
+
+        if (lastFocused != null) {
+          selectOpts.lastFocused = lastFocused.data._id
+        }
+      }
+
+      editSelect(targetEntityId, selectOpts)
     }
   }, [listRef, editSelect])
 
@@ -143,10 +170,12 @@ export default function useEntityTree (main, {
         (ev.target.dataset.editSelectionEnabled === 'true' || ev.target.dataset.editSelectionEnabled === true) &&
         document.activeElement === ev.target
       ) {
+        const references = (editSelectionRefs || []).map((refId) => ({ id: refId, selected: editSelection.includes(refId) }))
+
         if (ev.shiftKey && ev.which === 38) {
-          editSelectEntityAboveOrBellow(lastEditSelectionFocused, 'up')
+          editSelectEntityWithSequence(lastEditSelectionFocused, references, 'up')
         } else if (ev.shiftKey && ev.which === 40) {
-          editSelectEntityAboveOrBellow(lastEditSelectionFocused, 'down')
+          editSelectEntityWithSequence(lastEditSelectionFocused, references, 'down')
         }
       }
     }
@@ -158,7 +187,7 @@ export default function useEntityTree (main, {
       window.removeEventListener('click', tryClearFromClick, true)
       window.removeEventListener('keydown', trySelectOrClearFromKey)
     }
-  }, [main, listRef, contextMenuRef, editSelection, lastEditSelectionFocused, editSelectEntityAboveOrBellow, clearEditSelect])
+  }, [main, listRef, contextMenuRef, editSelection, editSelectionRefs, lastEditSelectionFocused, editSelectEntityWithSequence, clearEditSelect])
 
   const copyOrMoveEntity = useCallback((sourceInfo, targetInfo, shouldCopy = false) => {
     const isSingleSource = Array.isArray(sourceInfo) ? sourceInfo.length === 1 : true
@@ -495,7 +524,7 @@ export default function useEntityTree (main, {
         const isEntity = !isGroupEntity && !checkIsGroupNode(node)
 
         if (isEntity || isGroupEntity) {
-          editSelect(node.data._id, { initializeWithActive: true })
+          editSelect(node.data._id, { initializeWithActive: true, reference: true })
         }
 
         clearContextMenu()
