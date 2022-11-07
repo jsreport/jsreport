@@ -85,9 +85,10 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
         if (
           main &&
           ((!isMac() && e.ctrlKey) ||
-          (isMac() && e.metaKey))
+          (isMac() && e.metaKey) ||
+          (e.shiftKey))
         ) {
-          onNodeEditSelect(node)
+          onNodeEditSelect(node, e.shiftKey === true)
         } else {
           onNodeClick(node)
         }

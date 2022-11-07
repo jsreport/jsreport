@@ -134,14 +134,12 @@ reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
     }
   }
 
-  const existingIndex = newEditSelection.findIndex((selectedId) => selectedId === id)
-
-  const updateSelection = (selectedItems, selectedValue, targetIndex) => {
+  const updateSelection = (selectedItems, selectedValue, targetIndex, targetId) => {
     let newSelection
 
     if (selectedValue === true) {
       if (targetIndex === -1) {
-        newSelection = [...selectedItems, id]
+        newSelection = [...selectedItems, targetId]
       }
     } else {
       newSelection = [
@@ -157,23 +155,30 @@ reducer.handleAction(ActionTypes.EDIT_SELECT, (state, action) => {
     return newSelection
   }
 
-  if (reference === true) {
-    newEditSelectionRefs = newEditSelectionRefs != null ? [...newEditSelectionRefs] : []
-    const existingRefIndex = newEditSelectionRefs.findIndex((selectedId) => selectedId === id)
+  const targetIds = Array.isArray(id) ? id : [id]
 
-    if (existingRefIndex !== -1) {
-      newEditSelectionRefs = updateSelection(newEditSelectionRefs, false, existingRefIndex)
+  for (const currentId of targetIds) {
+    const existingIndex = newEditSelection.findIndex((selectedId) => selectedId === currentId)
+    const isReference = typeof reference === 'boolean' ? reference : reference.includes(currentId)
+
+    if (isReference) {
+      newEditSelectionRefs = newEditSelectionRefs != null ? [...newEditSelectionRefs] : []
+      const existingRefIndex = newEditSelectionRefs.findIndex((selectedId) => selectedId === currentId)
+
+      if (existingRefIndex !== -1) {
+        newEditSelectionRefs = updateSelection(newEditSelectionRefs, false, existingRefIndex, currentId)
+      }
+
+      newEditSelectionRefs = [...newEditSelectionRefs, currentId]
     }
 
-    newEditSelectionRefs = [...newEditSelectionRefs, id]
-  }
-
-  if (value === true || value === false) {
-    newLastEditSelectionFocused = lastFocused == null ? id : lastFocused
-    newEditSelection = updateSelection(newEditSelection, value, existingIndex)
-  } else if (value == null) {
-    newLastEditSelectionFocused = lastFocused == null ? id : lastFocused
-    newEditSelection = updateSelection(newEditSelection, existingIndex === -1, existingIndex)
+    if (value === true || value === false) {
+      newLastEditSelectionFocused = lastFocused == null ? currentId : lastFocused
+      newEditSelection = updateSelection(newEditSelection, value, existingIndex, currentId)
+    } else if (value == null) {
+      newLastEditSelectionFocused = lastFocused == null ? currentId : lastFocused
+      newEditSelection = updateSelection(newEditSelection, existingIndex === -1, existingIndex, currentId)
+    }
   }
 
   return {

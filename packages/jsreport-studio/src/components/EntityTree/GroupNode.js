@@ -103,9 +103,10 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
             main &&
             groupIsEntity &&
             ((!isMac() && ev.ctrlKey) ||
-            (isMac() && ev.metaKey))
+            (isMac() && ev.metaKey) ||
+            (ev.shiftKey))
           ) {
-            onNodeEditSelect(node)
+            onNodeEditSelect(node, ev.shiftKey === true)
           } else {
             onNodeClick(node)
           }

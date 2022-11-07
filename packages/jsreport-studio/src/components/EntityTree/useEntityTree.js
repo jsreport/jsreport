@@ -519,12 +519,43 @@ export default function useEntityTree (main, {
 
         onSelectionChanged(newSelected)
       },
-      onNodeEditSelect: (node) => {
+      onNodeEditSelect: (node, createRange = false) => {
         const isGroupEntity = checkIsGroupEntityNode(node)
         const isEntity = !isGroupEntity && !checkIsGroupNode(node)
 
         if (isEntity || isGroupEntity) {
-          editSelect(node.data._id, { initializeWithActive: true, reference: true })
+          const originalTargetEntityId = node.data._id
+          let targetEntityId = originalTargetEntityId
+
+          if (createRange && editSelectionRefs != null && editSelectionRefs.length > 0) {
+            const startEntityId = editSelectionRefs[editSelectionRefs.length - 1]
+            const startRelativeEntitiesNodes = listRef.current.getRelativeEntitiesById(startEntityId)
+            const endExistsInRelativesOfStart = startRelativeEntitiesNodes.find((n) => n.data._id === targetEntityId) != null
+
+            if (startEntityId !== targetEntityId && endExistsInRelativesOfStart) {
+              const startIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === startEntityId)
+              const endIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === targetEntityId)
+              const step = endIndex > startIndex ? 1 : -1
+              const limit = endIndex + step
+
+              targetEntityId = []
+
+              let currentIndex = startIndex
+
+              do {
+                targetEntityId.push(startRelativeEntitiesNodes[currentIndex].data._id)
+                currentIndex = currentIndex + step
+              } while (currentIndex !== limit)
+            }
+          }
+
+          const selectOpts = { initializeWithActive: true, reference: [originalTargetEntityId] }
+
+          if (createRange) {
+            selectOpts.value = true
+          }
+
+          editSelect(targetEntityId, selectOpts)
         }
 
         clearContextMenu()
@@ -602,6 +633,7 @@ export default function useEntityTree (main, {
     main,
     entities,
     editSelection,
+    editSelectionRefs,
     paddingByLevelInTree,
     selectable,
     selectionMode,
