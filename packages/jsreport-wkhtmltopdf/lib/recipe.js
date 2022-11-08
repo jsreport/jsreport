@@ -6,16 +6,28 @@ const wkhtmltopdf = require('wkhtmltopdf-installer')
 module.exports = async (reporter, definition, request, response) => {
   request.template.wkhtmltopdf = request.template.wkhtmltopdf || {}
   const options = request.template.wkhtmltopdf
-  options.allowLocalFilesAccess = definition.options.allowLocalFilesAccess
-  const paths = {}
 
-  const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.html`, response.content.toString())
-  paths.template = pathToFile
-  await processHeaderAndFooter(reporter, options, request, paths)
-  const buf = await conversion(reporter, definition, createParams(reporter, request, options, definition, paths), request)
-  response.meta.contentType = 'application/pdf'
-  response.meta.fileExtension = 'pdf'
-  response.content = buf
+  options.allowLocalFilesAccess = definition.options.allowLocalFilesAccess
+
+  try {
+    const paths = {}
+    const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.html`, response.content.toString())
+
+    paths.template = pathToFile
+
+    await processHeaderAndFooter(reporter, options, request, paths)
+
+    const buf = await conversion(reporter, definition, createParams(reporter, request, options, definition, paths), request)
+
+    response.meta.contentType = 'application/pdf'
+    response.meta.fileExtension = 'pdf'
+    response.content = buf
+  } catch (err) {
+    throw reporter.createError('Error while processing wkhtmltopdf', {
+      original: err,
+      weak: true
+    })
+  }
 }
 
 function createParams (reporter, request, options, definition, paths) {
@@ -167,12 +179,12 @@ function createParams (reporter, request, options, definition, paths) {
   return params
 }
 
-function processPart (reporter, options, req, type, paths) {
+async function processPart (reporter, options, req, type, paths) {
   if (!options[type]) {
-    return Promise.resolve()
+    return
   }
 
-  reporter.logger.debug('Starting child request to render pdf ' + type, req)
+  reporter.logger.debug(`Starting child request to render wkhtmltopdf for ${type}`, req)
 
   // do an anonymous render
   const template = {
@@ -182,21 +194,27 @@ function processPart (reporter, options, req, type, paths) {
     helpers: req.template.helpers
   }
 
-  return reporter.render({
-    template
-  }, req).then(function (res) {
-    return reporter.writeTempFile((uuid) => `${uuid}-${type}.html`, res.content.toString()).then(function (result) {
-      paths[`template-${type}`] = result.pathToFile
+  try {
+    const res = await reporter.render({
+      template
+    }, req)
+
+    reporter.logger.debug(`Child request to render wkhtmltopdf for ${type} finished`, req)
+
+    const result = await reporter.writeTempFile((uuid) => `${uuid}-${type}.html`, res.content.toString())
+
+    paths[`template-${type}`] = result.pathToFile
+  } catch (err) {
+    throw reporter.createError(`Child request render for ${type} failed`, {
+      original: err
     })
-  })
+  }
 }
 
-function processHeaderAndFooter (reporter, options, req, paths) {
-  return processPart(reporter, options, req, 'header', paths).then(function () {
-    return processPart(reporter, options, req, 'footer', paths).then(function () {
-      return processPart(reporter, options, req, 'cover', paths)
-    })
-  })
+async function processHeaderAndFooter (reporter, options, req, paths) {
+  await processPart(reporter, options, req, 'header', paths)
+  await processPart(reporter, options, req, 'footer', paths)
+  await processPart(reporter, options, req, 'cover', paths)
 }
 
 function conversion (reporter, definition, parameters, request) {
@@ -230,7 +248,7 @@ function conversion (reporter, definition, parameters, request) {
 
       if (err) {
         if (err.killed && err.signal === 'SIGTERM' && execOptions.timeout != null) {
-          return reject(new Error('Timeout Error: wkhtmltopdf generation not completed after ' + execOptions.timeout + 'ms'))
+          return reject(reporter.createError(`Timeout Error: wkhtmltopdf generation not completed after ${execOptions.timeout} ms`, { weak: true, statusCode: 400 }))
         }
 
         return reject(err)
