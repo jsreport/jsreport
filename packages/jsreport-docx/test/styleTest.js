@@ -131,4 +131,193 @@ describe('docx style', () => {
       }
     })
   })
+
+  it('style in document header', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000',
+      three: 'AA5500',
+      four: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'style-header.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const targetDocs = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
+
+    for (const targetDoc of targetDocs) {
+      if (targetDoc == null) {
+        continue
+      }
+
+      const wREls = nodeListToArray(targetDoc.getElementsByTagName('w:r'))
+
+      wREls.should.matchEach((wREl) => {
+        const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
+        const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
+        const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+        if (wTEl == null || wColorEl == null) {
+          return
+        }
+
+        if (wTEl.textContent.includes('blue')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
+        } else if (wTEl.textContent.includes('red')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
+        } else if (
+          wTEl.textContent.includes('This is heading') ||
+          wTEl.textContent.includes('And this is some kind') ||
+          wTEl.textContent.includes('Even with a list')
+        ) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
+        } else if (wTEl.textContent.includes('Greeen')) {
+          wColorEl.getAttribute('w:val').should.be.eql('92D050')
+        } else if (wTEl.textContent.includes('asd')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        }
+      })
+    }
+  })
+
+  it('style in document footer', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000',
+      three: 'AA5500',
+      four: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'style-footer.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const targetDocs = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
+
+    for (const targetDoc of targetDocs) {
+      if (targetDoc == null) {
+        continue
+      }
+
+      const wREls = nodeListToArray(targetDoc.getElementsByTagName('w:r'))
+
+      wREls.should.matchEach((wREl) => {
+        const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
+        const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
+        const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+        if (wTEl == null || wColorEl == null) {
+          return
+        }
+
+        if (wTEl.textContent.includes('blue')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
+        } else if (wTEl.textContent.includes('red')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
+        } else if (
+          wTEl.textContent.includes('This is heading') ||
+          wTEl.textContent.includes('And this is some kind') ||
+          wTEl.textContent.includes('Even with a list')
+        ) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
+        } else if (wTEl.textContent.includes('Greeen')) {
+          wColorEl.getAttribute('w:val').should.be.eql('92D050')
+        } else if (wTEl.textContent.includes('asd')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        }
+      })
+    }
+  })
+
+  it('style in document header and footer', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000',
+      three: 'AA5500',
+      four: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'style-header-footer.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const targetDocs = await getDocumentsFromDocxBuf(result.content, [
+      'word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml',
+      'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'
+    ])
+
+    for (const targetDoc of targetDocs) {
+      if (targetDoc == null) {
+        continue
+      }
+
+      const wREls = nodeListToArray(targetDoc.getElementsByTagName('w:r'))
+
+      wREls.should.matchEach((wREl) => {
+        const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
+        const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
+        const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+        if (wTEl == null || wColorEl == null) {
+          return
+        }
+
+        if (wTEl.textContent.includes('blue')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
+        } else if (wTEl.textContent.includes('red')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
+        } else if (
+          wTEl.textContent.includes('This is heading') ||
+          wTEl.textContent.includes('And this is some kind') ||
+          wTEl.textContent.includes('Even with a list')
+        ) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
+        } else if (wTEl.textContent.includes('Greeen')) {
+          wColorEl.getAttribute('w:val').should.be.eql('92D050')
+        } else if (wTEl.textContent.includes('asd')) {
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        }
+      })
+    }
+  })
 })

@@ -3,6 +3,95 @@ const { nodeListToArray, serializeXml } = require('../utils')
 
 // see the preprocess/styles.js for some explanation
 
+module.exports = (files, headerFooterRefs) => {
+  const documentFile = files.find(f => f.path === 'word/document.xml')
+
+  documentFile.data = documentFile.data.replace(/<docxStyles[^/]*\/>.*?(?=<docxStyleEnd\/>)<docxStyleEnd\/>/g, (val) => {
+    // no need to pass xml namespaces here because the nodes there are just used for reads,
+    // and are not inserted (re-used) somewhere else
+    const doc = new DOMParser().parseFromString(`<docxXml>${val}</docxXml>`)
+    const docxStylesEl = doc.getElementsByTagName('docxStyles')[0]
+    const docxStyleEndEl = doc.getElementsByTagName('docxStyleEnd')[0]
+    const runEls = doc.getElementsByTagName('w:r')
+
+    processDocxStylesEl(docxStylesEl, docxStyleEndEl, runEls, doc)
+
+    return serializeXml(doc).replace('<docxXml>', '').replace('</docxXml>', '')
+  })
+
+  for (const { doc: headerFooterDoc } of headerFooterRefs) {
+    const docxStylesEls = nodeListToArray(headerFooterDoc.getElementsByTagName('docxStyles'))
+
+    for (const docxStylesEl of docxStylesEls) {
+      let currentEl = docxStylesEl.nextSibling
+      let docxStyleEndEl
+      const middleEls = []
+      const runEls = []
+
+      if (currentEl != null) {
+        do {
+          if (currentEl.nodeName === 'docxStyleEnd') {
+            docxStyleEndEl = currentEl
+            currentEl = null
+          } else {
+            middleEls.push(currentEl)
+            currentEl = currentEl.nextSibling
+          }
+        } while (currentEl != null)
+      }
+
+      if (docxStyleEndEl == null) {
+        throw new Error('Could not find docxStyleEnd element for docxStyle processing')
+      }
+
+      for (const el of middleEls) {
+        const currentREls = nodeListToArray(el.getElementsByTagName('w:r'))
+        runEls.push(...currentREls)
+      }
+
+      processDocxStylesEl(docxStylesEl, docxStyleEndEl, runEls, headerFooterDoc)
+    }
+  }
+}
+
+function processDocxStylesEl (docxStylesEl, docxStyleEndEl, runEls, doc) {
+  let started = false
+  let currentStyleEl
+
+  for (let i = 0; i < runEls.length; i++) {
+    const wR = runEls[i]
+    const ts = wR.getElementsByTagName('w:t')
+    if (ts.length === 0) {
+      continue
+    }
+
+    if (started === false && ts[0].textContent.includes('$docxStyleStart')) {
+      started = true
+      const startIdx = ts[0].textContent.indexOf('$docxStyleStart')
+      ts[0].textContent = ts[0].textContent.replace('$docxStyleStart', '')
+      const id = ts[0].textContent.substring(startIdx, ts[0].textContent.indexOf('$'))
+      ts[0].textContent = ts[0].textContent.replace(id + '$', '')
+      currentStyleEl = nodeListToArray(docxStylesEl.childNodes).find(n => n.getAttribute('id') === id)
+    }
+
+    if (ts[0].textContent.includes('$docxStyleEnd')) {
+      ts[0].setAttribute('xml:space', 'preserve')
+      started = false
+      ts[0].textContent = ts[0].textContent.replace('$docxStyleEnd', '')
+      color(doc, wR, currentStyleEl)
+      continue
+    }
+
+    if (started === true) {
+      ts[0].setAttribute('xml:space', 'preserve')
+      color(doc, wR, currentStyleEl)
+    }
+  }
+
+  docxStylesEl.parentNode.removeChild(docxStylesEl)
+  docxStyleEndEl.parentNode.removeChild(docxStyleEndEl)
+}
+
 function color (doc, wR, currentStyleEl) {
   let wp = wR.parentNode
 
@@ -66,53 +155,4 @@ function color (doc, wR, currentStyleEl) {
     color.setAttribute('w:val', currentTextColor)
     color.removeAttribute('w:themeColor')
   }
-}
-
-module.exports = (files) => {
-  const documentFile = files.find(f => f.path === 'word/document.xml')
-
-  documentFile.data = documentFile.data.replace(/<docxStyles[^/]*\/>.*?(?=<docxStyleEnd\/>)<docxStyleEnd\/>/g, (val) => {
-    // no need to pass xml namespaces here because the nodes there are just used for reads,
-    // and are not inserted (re-used) somewhere else
-    const doc = new DOMParser().parseFromString('<docxXml>' + val + '</docxXml>')
-    const docxStylesEl = doc.getElementsByTagName('docxStyles')[0]
-
-    const wrs = doc.getElementsByTagName('w:r')
-    let started = false
-    let currentStyleEl
-    for (let i = 0; i < wrs.length; i++) {
-      const wR = wrs[i]
-      const ts = wR.getElementsByTagName('w:t')
-      if (ts.length === 0) {
-        continue
-      }
-
-      if (started === false && ts[0].textContent.includes('$docxStyleStart')) {
-        started = true
-        ts[0].textContent = ts[0].textContent.replace('$docxStyleStart', '')
-        const id = ts[0].textContent.substring(0, ts[0].textContent.indexOf('$'))
-        ts[0].textContent = ts[0].textContent.replace(id + '$', '')
-        currentStyleEl = nodeListToArray(docxStylesEl.childNodes).find(n => n.getAttribute('id') === id)
-      }
-
-      if (ts[0].textContent.includes('$docxStyleEnd')) {
-        ts[0].setAttribute('xml:space', 'preserve')
-        started = false
-        ts[0].textContent = ts[0].textContent.replace('$docxStyleEnd', '')
-        color(doc, wR, currentStyleEl)
-        continue
-      }
-
-      if (started === true) {
-        ts[0].setAttribute('xml:space', 'preserve')
-        color(doc, wR, currentStyleEl)
-      }
-    }
-
-    docxStylesEl.parentNode.removeChild(docxStylesEl)
-    const docxStyleEndEl = doc.getElementsByTagName('docxStyleEnd')[0]
-    docxStyleEndEl.parentNode.removeChild(docxStyleEndEl)
-
-    return serializeXml(doc).replace('<docxXml>', '').replace('</docxXml>', '')
-  })
 }

@@ -668,8 +668,8 @@ describe('docx image', () => {
 
     const withImageInHeader = []
 
-    for (const footerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
-      const outputInHeaderImageSize = await getImageSize(result.content, footerPath)
+    for (const headerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
+      const outputInHeaderImageSize = await getImageSize(result.content, headerPath)
 
       if (outputInHeaderImageSize == null) {
         continue
@@ -787,8 +787,8 @@ describe('docx image', () => {
 
     const withImageInHeader = []
 
-    for (const footerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
-      const outputInHeaderImageSize = await getImageSize(result.content, footerPath)
+    for (const headerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
+      const outputInHeaderImageSize = await getImageSize(result.content, headerPath)
 
       if (outputInHeaderImageSize == null) {
         continue

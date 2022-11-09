@@ -21,7 +21,7 @@ module.exports = async (files, options) => {
   await bookmark(files, headerFooterRefs, newBookmarksMap)
   await watermark(files)
   await pageBreak(files)
-  style(files)
+  style(files, headerFooterRefs)
   await drawingObject(files, headerFooterRefs, newBookmarksMap, options)
   link(files)
   form(files)
