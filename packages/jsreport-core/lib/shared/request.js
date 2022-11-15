@@ -1,5 +1,6 @@
 const extend = require('node.extend.without.arrays')
 const omit = require('lodash.omit')
+const createError = require('./createError')
 
 module.exports = (obj, parent) => {
   if (parent && !parent.__isJsreportRequest__) {
@@ -57,7 +58,14 @@ module.exports = (obj, parent) => {
 
 function normalizeJSONData (data) {
   if (typeof data === 'string') {
-    return JSON.parse(data)
+    try {
+      return JSON.parse(data)
+    } catch (parseError) {
+      throw createError('Unable to parse request data', {
+        weak: true,
+        original: parseError
+      })
+    }
   }
 
   return data
