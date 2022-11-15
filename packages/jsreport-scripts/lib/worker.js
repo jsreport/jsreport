@@ -3,6 +3,8 @@
  *
  * Extension allowing to add custom javascript hooks into the rendering process.
  */
+const omit = require('lodash.omit')
+
 module.exports = function (reporter, definition) {
   reporter.addRequestContextMetaConfig('scriptsCache', { sandboxHidden: true })
 
@@ -239,15 +241,37 @@ class Scripts {
       items = items.filter((s) => s.scope === 'template' || (s.scope == null && !s.isGlobal))
 
       if (items.length < 1) {
-        const error = this.reporter.createError(`Script not found or user not authorized to read it (${
-          (script.shortid || script.name)
-        })`, {
-          weak: true,
-          statusCode: 403
-        })
+        const localReq = req ? this.reporter.Request(req) : req
+
+        if (localReq) {
+          localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
+        }
+
+        // executing request to store without user to verify if the script exists or if
+        // it is just not accessible for the current user
+        const scriptResultFromLocal = await this.reporter.documentStore.collection('scripts').find(query, localReq)
+
+        let error
+
+        if (scriptResultFromLocal.length === 0) {
+          error = this.reporter.createError(`Script not found (${
+            (script.name || script.shortid)
+          })`, {
+            weak: true,
+            statusCode: 404
+          })
+        } else {
+          error = this.reporter.createError(`User not authorized to read script (${
+            (script.name || script.shortid)
+          })`, {
+            weak: true,
+            statusCode: 403
+          })
+        }
 
         throw error
       }
+
       return items[0]
     }))
 

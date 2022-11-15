@@ -48,6 +48,22 @@ describe('scripts', () => {
   }
 
   function common () {
+    it('should throw error when script reference not found', async () => {
+      const renderPromise = reporter.render({
+        template: {
+          content: 'foo',
+          scripts: [{ name: 'foo' }],
+          engine: 'none',
+          recipe: 'html'
+        }
+      })
+
+      const messageAssertPromise = should(renderPromise).be.rejectedWith(/Script not found/)
+      const propertyAssertPromise = should(renderPromise).be.rejectedWith({ statusCode: 404 })
+
+      return Promise.all([messageAssertPromise, propertyAssertPromise])
+    })
+
     it('should find script by its name', async () => {
       await reporter.documentStore.collection('scripts').insert({
         content: 'function beforeRender(req, res) { req.template.content = "xxx" }',

@@ -1,5 +1,5 @@
 const JsReport = require('../../index')
-require('should')
+const should = require('should')
 
 describe('templating', function () {
   let jsreport
@@ -12,6 +12,19 @@ describe('templating', function () {
   })
 
   afterEach(() => jsreport.close())
+
+  it('should throw error when template not found', async () => {
+    const renderPromise = jsreport.render({
+      template: {
+        _id: 'foo'
+      }
+    })
+
+    const messageAssertPromise = should(renderPromise).be.rejectedWith(/Unable to find specified template/)
+    const propertyAssertPromise = should(renderPromise).be.rejectedWith({ statusCode: 404 })
+
+    return Promise.all([messageAssertPromise, propertyAssertPromise])
+  })
 
   it('should find by _id and use template', async () => {
     const template = await jsreport.documentStore.collection('templates').insert({ content: 'foo', name: 'foo', engine: 'none', recipe: 'html' })

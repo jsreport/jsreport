@@ -28,12 +28,49 @@ module.exports = (reporter) => {
     const template = req.context.resolvedTemplate
 
     if (!template && !req.template.content) {
-      throw reporter.createError(`Unable to find specified template or user does not have permissions to read it: ${
-        (req.template._id || req.template.shortid || req.template.name)
-      }`, {
-        weak: true,
-        statusCode: 404
-      })
+      let error
+
+      if (
+        req.template._id ||
+        req.template.shortid ||
+        req.template.name
+      ) {
+        const localReq = req ? reporter.Request(req) : req
+
+        if (localReq) {
+          localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
+        }
+
+        const query = {}
+
+        if (req.template._id) {
+          query._id = req.template._id
+        } else if (req.template.shortid) {
+          query.shortid = req.template.shortid
+        } else if (req.template.name) {
+          query.name = req.template.name
+        }
+
+        const templateFromLocal = await reporter.documentStore.collection('templates').findOne(query, localReq)
+
+        if (templateFromLocal == null) {
+          error = reporter.createError(`Unable to find specified template (${
+            (req.template.name || req.template.shortid || req.template._id)
+          })`, {
+            weak: true,
+            statusCode: 404
+          })
+        } else {
+          error = reporter.createError(`User does not have permissions to read template (${
+            (req.template.name || req.template.shortid || req.template._id)
+          })`, {
+            weak: true,
+            statusCode: 403
+          })
+        }
+      }
+
+      throw error
     }
 
     // store a copy to prevent side-effects, we ignore name from the req.template because it can be path "/path/to/template"

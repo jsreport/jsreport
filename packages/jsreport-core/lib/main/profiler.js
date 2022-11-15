@@ -211,6 +211,7 @@ module.exports = (reporter) => {
     profilerRequestMap.set(req.context.rootId, req)
 
     const template = await reporter.templates.resolveTemplate(req)
+
     if (template && template._id) {
       req.context.resolvedTemplate = extend(true, {}, template)
 
