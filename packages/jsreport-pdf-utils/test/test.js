@@ -1597,7 +1597,7 @@ describe('pdf utils', () => {
           creator: 'Foo-creator',
           producer: 'Foo-producer',
           language: 'cz-CZ',
-          custom: 'serialNumber=Foo-123,Property With Spaces=foo-property-with-spaces,Property_With_Underscores=foo-property-with-underscores'
+          custom: '{ "serialNumber": "Foo-123", "Property With Spaces": "foo-property-with-spaces", "Property_With_Underscores": "foo-property-with-underscores" }'
         }
       }
     })
@@ -1672,7 +1672,7 @@ describe('pdf utils', () => {
           creator: 'Foo-creator',
           producer: 'Foo-producer',
           language: 'cz-CZ',
-          custom: 'serialNumber=Foo-123,Property With Spaces=foo-property-with-spaces,Property_With_Underscores=foo-property-with-underscores'
+          custom: '{ "serialNumber": "Foo-123", "Property With Spaces": "foo-property-with-spaces", "Property_With_Underscores": "foo-property-with-underscores" }'
         },
         scripts: [{
           content: `
