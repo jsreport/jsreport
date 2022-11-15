@@ -220,7 +220,7 @@ class Scripts {
       }
     }
 
-    const items = await Promise.all(req.template.scripts.map(async (script) => {
+    let items = await Promise.all(req.template.scripts.map(async (script) => {
       if (script.content) {
         return script
       }
@@ -234,9 +234,8 @@ class Scripts {
         query.name = script.name
       }
 
-      let items = await this.reporter.documentStore.collection('scripts').find(query, req)
-
-      items = items.filter((s) => s.scope === 'template' || (s.scope == null && !s.isGlobal))
+      const originalItems = await this.reporter.documentStore.collection('scripts').find(query, req)
+      const items = originalItems.filter((s) => s.scope === 'template' || (s.scope == null && !s.isGlobal))
 
       if (items.length < 1) {
         // executing request to store without user to verify if the script exists or if
@@ -253,8 +252,20 @@ class Scripts {
             statusCode: 404
           })
         } else {
+          const attachedScript = scriptResultFromLocal[0]
+
+          if (originalItems.length > 0) {
+            // if we get to here it means that script was attached to template but the script
+            // found has scope that is not expected to be run at the template level
+            this.reporter.logger.warn(`Skipping execution of script attached to template (${
+              (attachedScript.name || attachedScript.shortid)
+            }) because its scope is inconsistent`, req)
+
+            return null
+          }
+
           error = this.reporter.createError(`User not authorized to read script (${
-            (script.name || script.shortid)
+            (attachedScript.name || attachedScript.shortid)
           })`, {
             weak: true,
             statusCode: 403
@@ -266,6 +277,8 @@ class Scripts {
 
       return items[0]
     }))
+
+    items = items.filter((i) => i != null)
 
     const globalItems = await this.reporter.documentStore.collection('scripts').find({
       $or: [

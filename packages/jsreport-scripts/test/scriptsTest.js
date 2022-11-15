@@ -81,6 +81,37 @@ describe('scripts', () => {
       res.content.toString().should.be.eql('xxx')
     })
 
+    it('should ignore attached script if it is global', async () => {
+      const script = await reporter.documentStore.collection('scripts').insert({
+        name: 'foo',
+        content: 'function beforeRender(req, res) { req.template.content += "foo" }'
+      })
+
+      await reporter.documentStore.collection('templates').insert({
+        name: 't1',
+        content: '',
+        engine: 'none',
+        recipe: 'html',
+        scripts: [{ shortid: script.shortid }]
+      })
+
+      await reporter.documentStore.collection('scripts').update({
+        _id: script._id
+      }, {
+        $set: {
+          scope: 'global'
+        }
+      })
+
+      const res = await reporter.render({
+        template: {
+          name: 't1'
+        }
+      })
+
+      res.content.toString().should.be.eql('foo')
+    })
+
     it('should be able to handle multiple scripts with beforeRender and execute them in order', async () => {
       await reporter.documentStore.collection('scripts').insert({
         name: 'a',
