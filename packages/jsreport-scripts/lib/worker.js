@@ -241,7 +241,7 @@ class Scripts {
       if (items.length < 1) {
         // executing request to store without user to verify if the script exists or if
         // it is just not accessible for the current user
-        const scriptResultFromLocal = await this.reporter.documentStore.collection('scripts').findLocal(query, req)
+        const scriptResultFromLocal = await this.reporter.documentStore.collection('scripts').findAdmin(query, req)
 
         let error
 

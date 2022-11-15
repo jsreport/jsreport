@@ -1,4 +1,3 @@
-const omit = require('lodash.omit')
 const resolveEntityPath = require('../../shared/folders/resolveEntityPath')
 
 async function findEntity (reporter, name, folder, req) {
@@ -7,18 +6,11 @@ async function findEntity (reporter, name, folder, req) {
       continue
     }
 
-    const localReq = req ? reporter.Request(req) : req
-
-    // we should validate against all entities without caring about permissions
-    if (localReq) {
-      localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-    }
-
-    const allEntities = await reporter.documentStore.collection(c).find({
+    const allEntities = await reporter.documentStore.collection(c).findAdmin({
       folder
     }, {
       name: 1
-    }, localReq)
+    }, req)
 
     const existingEntity = allEntities.find((entity) => {
       if (entity.name) {

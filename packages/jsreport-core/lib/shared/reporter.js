@@ -6,7 +6,8 @@ const Folders = require('./folders')
 const createOrExtendError = require('./createError')
 const tempFilesHandler = require('./tempFilesHandler')
 const encryption = require('./encryption')
-const generateRequestId = require('../shared/generateRequestId')
+const generateRequestId = require('./generateRequestId')
+const adminRequest = require('./adminRequest')
 
 class Reporter extends EventEmitter {
   constructor (options) {
@@ -14,6 +15,7 @@ class Reporter extends EventEmitter {
 
     this.options = options || {}
     this.Request = Request
+    this.adminRequest = adminRequest
 
     // since `reporter` instance will be used for other extensions,
     // it will quickly reach the limit of `10` listeners,

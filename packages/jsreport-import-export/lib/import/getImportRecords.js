@@ -1,5 +1,4 @@
 const createRecordManager = require('./recordsManager')
-const reqWithNoUser = require('./reqWithNoUser')
 const { groupFoldersByLevel, groupEntitiesByLevel } = require('../helpers')
 
 module.exports = async function getImportRecords (reporter, req, {
@@ -31,9 +30,9 @@ module.exports = async function getImportRecords (reporter, req, {
   if (fullImport) {
     // when doing full import we first record folders delete at the root level and let core do the cascade deletes for entities inside the folder.
     // it is important that we first save the deletes to the folders for correct permissions propagation
-    const foldersAtRoot = await reporter.documentStore.collection('folders').find({
+    const foldersAtRoot = await reporter.documentStore.collection('folders').findAdmin({
       folder: null
-    }, reqWithNoUser(reporter, req))
+    }, req)
 
     for (const f of foldersAtRoot) {
       await recordsManager.addDelete({
@@ -50,9 +49,9 @@ module.exports = async function getImportRecords (reporter, req, {
         continue
       }
 
-      const entitiesAtRoot = await collection.find({
+      const entitiesAtRoot = await collection.findAdmin({
         folder: null
-      }, reqWithNoUser(reporter, req))
+      }, req)
 
       for (const e of entitiesAtRoot) {
         await recordsManager.addDelete({

@@ -92,7 +92,7 @@ module.exports = (reporter) => {
 
       Promise.resolve(cursor.toArray().then((res) => {
         return reporter.documentStore.collection(col).find(query.$filter, localReq).count().then((c) => {
-          // lodash doesnt support deep opmit
+          // lodash does not support deep omit
           for (const r of res) {
             for (const p of hiddenProps[col]) {
               unset(r, p)

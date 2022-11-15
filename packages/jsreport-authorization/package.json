@@ -1,7 +1,7 @@
 {
   "name": "@jsreport/jsreport-authorization",
   "version": "3.2.2",
-  "description": "jsreport extension adding authorization cappabilities",
+  "description": "jsreport extension adding authorization capabilities",
   "keywords": [
     "jsreport",
     "authorization"

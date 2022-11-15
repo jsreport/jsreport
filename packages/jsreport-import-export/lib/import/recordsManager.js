@@ -1,6 +1,5 @@
 const isEqual = require('lodash.isequal')
 const omit = require('lodash.omit')
-const reqWithNoUser = require('./reqWithNoUser')
 const { getEntityDisplay, getEntityNameDisplay } = require('../helpers')
 
 module.exports = function createRecordManager (reporter, req, {
@@ -48,9 +47,9 @@ module.exports = function createRecordManager (reporter, req, {
 
     // check also that parent folder is not deleted
     if (!exists && entity.folder) {
-      const parentFolder = await reporter.documentStore.collection('folders').findOne({
+      const parentFolder = await reporter.documentStore.collection('folders').findOneAdmin({
         shortid: entity.folder.shortid
-      }, reqWithNoUser(reporter, req))
+      }, req)
 
       if (parentFolder) {
         const parentIsDeleted = await isDeleted({ collectionName: 'folders', entity: parentFolder })
@@ -208,9 +207,9 @@ module.exports = function createRecordManager (reporter, req, {
         // no collision on path
         action = 'insert'
 
-        const duplicatedEntityByShortid = await collection.findOne({
+        const duplicatedEntityByShortid = await collection.findOneAdmin({
           shortid: entity.shortid
-        }, reqWithNoUser(reporter, req))
+        }, req)
 
         const duplicatedEntityIsDeleted = duplicatedEntityByShortid
           ? await isDeleted({
@@ -221,7 +220,7 @@ module.exports = function createRecordManager (reporter, req, {
 
         if (duplicatedEntityByShortid && !duplicatedEntityIsDeleted) {
           const entityPathOfDuplicated = await reporter.folders.resolveEntityPath(duplicatedEntityByShortid, collectionName, req, async (folderShortId) => {
-            const found = await reporter.documentStore.collection('folders').findOne({ shortid: folderShortId }, reqWithNoUser(reporter, req))
+            const found = await reporter.documentStore.collection('folders').findOneAdmin({ shortid: folderShortId }, req)
 
             if (!found) {
               return found
@@ -266,7 +265,7 @@ module.exports = function createRecordManager (reporter, req, {
         }
 
         if (action === 'insert') {
-          const duplicatedEntityById = await reporter.documentStore.checkDuplicatedId(collectionName, entity._id, reqWithNoUser(reporter, req))
+          const duplicatedEntityById = await reporter.documentStore.checkDuplicatedId(collectionName, entity._id, reporter.adminRequest(req, reporter.Request))
 
           const duplicatedEntityIsDeleted = duplicatedEntityById
             ? await isDeleted({
@@ -378,9 +377,9 @@ module.exports = function createRecordManager (reporter, req, {
       let existingContainerFolder
 
       if (!targetFolder) {
-        existingContainerFolder = await reporter.documentStore.collection('folders').findOne({ name: collectionName, folder: null }, reqWithNoUser(reporter, req))
+        existingContainerFolder = await reporter.documentStore.collection('folders').findOneAdmin({ name: collectionName, folder: null }, req)
       } else {
-        existingContainerFolder = await reporter.documentStore.collection('folders').findOne({ name: collectionName, folder: targetFolder.shortid }, reqWithNoUser(reporter, req))
+        existingContainerFolder = await reporter.documentStore.collection('folders').findOneAdmin({ name: collectionName, folder: targetFolder.shortid }, req)
       }
 
       if (!existingContainerFolder) {

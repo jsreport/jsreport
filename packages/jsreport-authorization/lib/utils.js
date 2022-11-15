@@ -1,4 +1,3 @@
-const omit = require('lodash.omit')
 
 async function collectEntitiesInHierarchy (reporter, items, sourceEntity, req) {
   if (sourceEntity.__entitySet === 'folders') {
@@ -30,7 +29,7 @@ async function collectParentFolders (reporter, folder, req) {
   const folders = [folder]
 
   while (folder.folder) {
-    folder = await reporter.documentStore.collection('folders').findOne({ shortid: folder.folder.shortid }, req)
+    folder = await reporter.documentStore.collection('folders').findOneAdmin({ shortid: folder.folder.shortid }, req)
     folders.push({ ...folder, __entitySet: 'folders' })
   }
 
@@ -40,19 +39,13 @@ async function collectParentFolders (reporter, folder, req) {
 async function collectEntitiesAtSameLevel (reporter, folder, req) {
   const result = []
   for (const es in reporter.documentStore.model.entitySets) {
-    const localReq = req ? reporter.Request(req) : req
-
-    if (localReq) {
-      localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-    }
-
-    const entities = await reporter.documentStore.collection(es).find(
+    const entities = await reporter.documentStore.collection(es).findAdmin(
       {
         folder: {
           shortid: folder.shortid
         }
       },
-      localReq
+      req
     )
 
     entities.map(e => ({ ...e, __entitySet: es })).forEach(e => result.push(e))
@@ -70,13 +63,7 @@ async function collectEntitiesWithGroup (reporter, group, req) {
       continue
     }
 
-    const localReq = req ? reporter.Request(req) : req
-
-    if (localReq) {
-      localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-    }
-
-    const entities = await reporter.documentStore.collection(entitySetName).find({
+    const entities = await reporter.documentStore.collection(entitySetName).findAdmin({
       $or: [
         {
           readPermissionsGroup: group._id
@@ -85,7 +72,7 @@ async function collectEntitiesWithGroup (reporter, group, req) {
           editPermissionsGroup: group._id
         }
       ]
-    }, localReq)
+    }, req)
 
     entities.map(e => ({ ...e, __entitySet: entitySetName })).forEach(e => result.push(e))
   }
@@ -97,12 +84,6 @@ async function collectPermissionsFromEntityGroups (reporter, { entity, groupUser
   let inheritedReadPermissionsFromGroup = []
   let inheritedEditPermissionsFromGroup = []
 
-  const localReq = req ? reporter.Request(req) : req
-
-  if (localReq) {
-    localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-  }
-
   const targetGroups = mergeArrays(entity.readPermissionsGroup, entity.editPermissionsGroup)
 
   for (const groupId of targetGroups) {
@@ -111,9 +92,9 @@ async function collectPermissionsFromEntityGroups (reporter, { entity, groupUser
     if (groupUsers != null && groupUsers[groupId] != null) {
       group = groupUsers[groupId]
     } else {
-      group = await reporter.documentStore.collection('usersGroups').findOne({
+      group = await reporter.documentStore.collection('usersGroups').findOneAdmin({
         _id: groupId
-      }, localReq)
+      }, req)
     }
 
     if (group == null) {
@@ -129,11 +110,11 @@ async function collectPermissionsFromEntityGroups (reporter, { entity, groupUser
       inheritedEditPermissionsFromGroup = mergeArrays(inheritedEditPermissionsFromGroup, [groupId])
     }
 
-    const usersInGroup = await reporter.documentStore.collection('users').find({
+    const usersInGroup = await reporter.documentStore.collection('users').findAdmin({
       shortid: {
         $in: group.users.map((g) => g.shortid)
       }
-    }, { _id: 1 }, localReq)
+    }, { _id: 1 }, req)
 
     const usersIds = usersInGroup.map((u) => u._id.toString())
 
@@ -157,12 +138,6 @@ async function sortByHierarchyLevel (reporter, entities, req) {
   const groups = new Map()
   const foldersCache = new Map()
 
-  const localReq = req ? reporter.Request(req) : req
-
-  if (localReq) {
-    localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-  }
-
   const getHierarchyLevel = async (entity) => {
     let level = 0
 
@@ -178,7 +153,7 @@ async function sortByHierarchyLevel (reporter, entities, req) {
       if (foldersCache.has(currentEntity.folder.shortid)) {
         parentFolder = foldersCache.get(currentEntity.folder.shortid)
       } else {
-        parentFolder = await reporter.documentStore.collection('folders').findOne({ shortid: currentEntity.folder.shortid }, localReq)
+        parentFolder = await reporter.documentStore.collection('folders').findOneAdmin({ shortid: currentEntity.folder.shortid }, req)
 
         if (parentFolder != null) {
           foldersCache.set(currentEntity.folder.shortid, parentFolder)

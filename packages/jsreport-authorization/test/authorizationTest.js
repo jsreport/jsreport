@@ -70,6 +70,21 @@ describe('authorization', () => {
     return reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
   }
 
+  it('throw proper error when can not find template because permissions', async () => {
+    await createTemplate(req1())
+
+    const renderPromise = reporter.render(Object.assign(req2(), {
+      template: {
+        name: 'foo'
+      }
+    }))
+
+    const messageAssertPromise = should(renderPromise).be.rejectedWith(/User does not have permissions to read template/)
+    const propertyAssertPromise = should(renderPromise).be.rejectedWith({ statusCode: 403 })
+
+    return Promise.all([messageAssertPromise, propertyAssertPromise])
+  })
+
   it('user creating entity should be able to read it', async () => {
     await createTemplate(req1())
     const count = await countTemplates(req1())

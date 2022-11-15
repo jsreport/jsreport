@@ -1,4 +1,3 @@
-const omit = require('lodash.omit')
 
 module.exports = (reporter) => {
   reporter.initializeListeners.add('core-validate-shortid', () => {
@@ -60,16 +59,10 @@ async function validateShortid (reporter, collectionName, doc, originalIdValue, 
 }
 
 async function findEntity (reporter, collectionName, shortid, req) {
-  const localReq = req ? reporter.Request(req) : req
-
   // we should validate without caring about permissions
-  if (localReq) {
-    localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-  }
-
-  const existingEntity = await reporter.documentStore.collection(collectionName).findOne({
+  const existingEntity = await reporter.documentStore.collection(collectionName).findOneAdmin({
     shortid
-  }, localReq)
+  }, req)
 
   return existingEntity
 }

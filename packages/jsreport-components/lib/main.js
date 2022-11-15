@@ -45,6 +45,7 @@ module.exports = function (reporter, definition) {
     app.post('/api/component', async (req, res, next) => {
       try {
         const component = req.body.component
+        // we create clean request from the http req object
         const localReq = reporter.Request(req)
 
         if (!component?.shortid) {

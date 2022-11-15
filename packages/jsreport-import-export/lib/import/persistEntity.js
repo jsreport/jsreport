@@ -1,4 +1,3 @@
-const reqWithNoUser = require('./reqWithNoUser')
 
 module.exports = async function persistEntity (reporter, entity, info, req) {
   const col = reporter.documentStore.collection(info.collectionName)
@@ -19,7 +18,7 @@ module.exports = async function persistEntity (reporter, entity, info, req) {
       // do copy of entity because we don't want the original obj to be mutated
       await col.update({ _id: info.entityId }, { $set: { ...entity } }, req)
 
-      const newEntity = await col.findOne({ _id: info.entityId }, reqWithNoUser(reporter, req))
+      const newEntity = await col.findOneAdmin({ _id: info.entityId }, req)
 
       return newEntity
     } else if (action === 'insert') {

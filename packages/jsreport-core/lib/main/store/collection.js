@@ -1,6 +1,8 @@
-const createListenerCollection = require('../../shared/listenerCollection')
 const { resolvePropDefinition } = require('./typeUtils')
+const adminRequest = require('../../shared/adminRequest')
+const createListenerCollection = require('../../shared/listenerCollection')
 const createError = require('../../shared/createError')
+const Request = require('../../shared/request')
 const validateEntityName = require('../validateEntityName')
 
 module.exports = (entitySet, provider, model, validator, encryption, transactions) => ({
@@ -72,6 +74,41 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
         return promise
       }
     })
+  },
+
+  findAdmin (q, p, req) {
+    if (p && p.__isJsreportRequest__ === true) {
+      req = p
+      p = {}
+    }
+
+    p = p || {}
+
+    req = adminRequest(req, Request)
+
+    return this.find(q, p, req)
+  },
+
+  async findOne (...args) {
+    const res = await this.find(...args)
+    if (res.length > 0) {
+      return res[0]
+    }
+
+    return null
+  },
+
+  findOneAdmin (q, p, req) {
+    if (p && p.__isJsreportRequest__ === true) {
+      req = p
+      p = {}
+    }
+
+    p = p || {}
+
+    req = adminRequest(req, Request)
+
+    return this.findOne(q, p, req)
   },
 
   count (...args) {
@@ -152,15 +189,6 @@ module.exports = (entitySet, provider, model, validator, encryption, transaction
     return provider.remove(entitySet, q, {
       transaction: transactions.getActiveTransaction(req)
     })
-  },
-
-  async findOne (...args) {
-    const res = await this.find(...args)
-    if (res.length > 0) {
-      return res[0]
-    }
-
-    return null
   },
 
   async serializeProperties (docs, customTypeDef) {

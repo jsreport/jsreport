@@ -45,7 +45,7 @@ module.exports = (reporter) => {
           query.name = req.template.name
         }
 
-        const templateFromLocal = await reporter.documentStore.collection('templates').findOneLocal(query, req)
+        const templateFromLocal = await reporter.documentStore.collection('templates').findOneAdmin(query, req)
 
         if (templateFromLocal == null) {
           error = reporter.createError(`Unable to find specified template (${

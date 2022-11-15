@@ -1,4 +1,3 @@
-const omit = require('lodash.omit')
 
 module.exports = (reporter) => {
   reporter.registerMainAction('documentStore.collection.find', async (spec, originalReq) => {
@@ -6,11 +5,14 @@ module.exports = (reporter) => {
 
     localReq.context.userFindCall = true
 
-    if (spec.local) {
-      localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
+    const collection = reporter.documentStore.collection(spec.collection)
+    let method = 'find'
+
+    if (spec.admin) {
+      method = 'findAdmin'
     }
 
-    const res = await reporter.documentStore.collection(spec.collection).find(spec.query, localReq)
+    const res = await collection[method](spec.query, localReq)
     return res
   })
 
@@ -19,11 +21,14 @@ module.exports = (reporter) => {
 
     localReq.context.userFindCall = true
 
-    if (spec.local) {
-      localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
+    const collection = reporter.documentStore.collection(spec.collection)
+    let method = 'findOne'
+
+    if (spec.admin) {
+      method = 'findOneAdmin'
     }
 
-    const res = await reporter.documentStore.collection(spec.collection).findOne(spec.query, localReq)
+    const res = await collection[method](spec.query, localReq)
     return res
   })
 

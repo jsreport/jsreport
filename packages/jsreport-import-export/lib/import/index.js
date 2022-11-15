@@ -1,6 +1,5 @@
 const os = require('os')
 const getImportRecords = require('./getImportRecords')
-const reqWithNoUser = require('./reqWithNoUser')
 const persistEntity = require('./persistEntity')
 const { unzipEntities } = require('../helpers')
 
@@ -179,7 +178,7 @@ async function processImport (reporter, exportFilePath, opts, req) {
       let customLog
 
       if (action === 'delete' && collectionName === 'folders') {
-        const entities = await reporter.folders.getEntitiesInFolder(entity.shortid, true, reqWithNoUser(reporter, req))
+        const entities = await reporter.folders.getEntitiesInFolder(entity.shortid, true, reporter.adminRequest(req, reporter.Request))
 
         for (const childInfo of entities) {
           const entityPath = await reporter.folders.resolveEntityPath(childInfo.entity, childInfo.entitySet, req)
@@ -193,9 +192,9 @@ async function processImport (reporter, exportFilePath, opts, req) {
           })
         }
       } else if (action === 'update' && entity.name) {
-        const originalEntity = await reporter.documentStore.collection(collectionName).findOne({
+        const originalEntity = await reporter.documentStore.collection(collectionName).findOneAdmin({
           _id: record.entityId
-        }, reqWithNoUser(reporter, req))
+        }, req)
 
         let renamedFrom
 
