@@ -3,8 +3,6 @@
  *
  * Extension allowing to add custom javascript hooks into the rendering process.
  */
-const omit = require('lodash.omit')
-
 module.exports = function (reporter, definition) {
   reporter.addRequestContextMetaConfig('scriptsCache', { sandboxHidden: true })
 
@@ -241,15 +239,9 @@ class Scripts {
       items = items.filter((s) => s.scope === 'template' || (s.scope == null && !s.isGlobal))
 
       if (items.length < 1) {
-        const localReq = req ? this.reporter.Request(req) : req
-
-        if (localReq) {
-          localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-        }
-
         // executing request to store without user to verify if the script exists or if
         // it is just not accessible for the current user
-        const scriptResultFromLocal = await this.reporter.documentStore.collection('scripts').find(query, localReq)
+        const scriptResultFromLocal = await this.reporter.documentStore.collection('scripts').findLocal(query, req)
 
         let error
 

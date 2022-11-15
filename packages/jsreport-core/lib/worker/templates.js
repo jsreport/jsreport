@@ -35,12 +35,6 @@ module.exports = (reporter) => {
         req.template.shortid ||
         req.template.name
       ) {
-        const localReq = req ? reporter.Request(req) : req
-
-        if (localReq) {
-          localReq.context = localReq.context ? omit(localReq.context, 'user') : localReq.context
-        }
-
         const query = {}
 
         if (req.template._id) {
@@ -51,7 +45,7 @@ module.exports = (reporter) => {
           query.name = req.template.name
         }
 
-        const templateFromLocal = await reporter.documentStore.collection('templates').findOne(query, localReq)
+        const templateFromLocal = await reporter.documentStore.collection('templates').findOneLocal(query, req)
 
         if (templateFromLocal == null) {
           error = reporter.createError(`Unable to find specified template (${
