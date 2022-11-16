@@ -48,7 +48,7 @@ class Reports {
     })
 
     if (definition.options.cleanInterval && definition.options.cleanThreshold) {
-      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms and threshold ${definition.options.cleanThreshold}ms`)
+      this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms, threshold ${definition.options.cleanThreshold}ms and ${definition.options.cleanLimit} report(s) deletion per run`)
       this.cleanInterval = setInterval(() => this.clean(), definition.options.cleanInterval)
       this.cleanInterval.unref()
       this.reporter.closeListeners.add('reports', () => clearInterval(this.cleanInterval))
@@ -169,7 +169,7 @@ class Reports {
     try {
       this.reporter.logger.debug('Cleaning up old reports')
       const removeOlderDate = new Date(Date.now() - this.definition.options.cleanThreshold)
-      const reportsToRemove = await this.reporter.documentStore.collection('reports').find({ creationDate: { $lt: removeOlderDate } })
+      const reportsToRemove = await this.reporter.documentStore.collection('reports').find({ creationDate: { $lt: removeOlderDate } }).limit(this.definition.options.cleanLimit).toArray()
       this.reporter.logger.debug(`Cleaning old reports with remove ${reportsToRemove.length} reports`)
       await Promise.all(reportsToRemove.map((r) => this.reporter.documentStore.collection('reports').remove({ _id: r._id })))
     } catch (e) {

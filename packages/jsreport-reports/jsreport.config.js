@@ -20,6 +20,10 @@ module.exports = {
           cleanThreshold: {
             type: ['string', 'number'],
             '$jsreport-acceptsDuration': true
+          },
+          cleanLimit: {
+            type: 'number',
+            default: 10
           }
         }
       }
