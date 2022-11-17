@@ -262,9 +262,9 @@ function docxImage (options) {
 
   if (
     !options.hash.src.startsWith('data:image/png;base64,') &&
-      !options.hash.src.startsWith('data:image/jpeg;base64,') &&
-      !options.hash.src.startsWith('http://') &&
-      !options.hash.src.startsWith('https://')
+    !options.hash.src.startsWith('data:image/jpeg;base64,') &&
+    !options.hash.src.startsWith('http://') &&
+    !options.hash.src.startsWith('https://')
   ) {
     throw new Error(
       'docxImage helper requires src parameter to be valid data uri for png or jpeg image or a valid url. Got ' +
@@ -297,14 +297,18 @@ function docxImage (options) {
     )
   }
 
-  return new Handlebars.SafeString('$docxImage' + Buffer.from(JSON.stringify({
-    src: options.hash.src,
-    width: options.hash.width,
-    height: options.hash.height,
-    usePlaceholderSize:
-        options.hash.usePlaceholderSize === true ||
-        options.hash.usePlaceholderSize === 'true'
-  })).toString('base64') + '$')
+  const content = `$docxImage${
+    Buffer.from(JSON.stringify({
+      src: options.hash.src,
+      width: options.hash.width,
+      height: options.hash.height,
+      usePlaceholderSize:
+          options.hash.usePlaceholderSize === true ||
+          options.hash.usePlaceholderSize === 'true'
+    })).toString('base64')
+  }$`
+
+  return new Handlebars.SafeString(content)
 }
 
 function docxCheckbox (options) {
