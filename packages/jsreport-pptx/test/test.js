@@ -468,6 +468,21 @@ describe('pptx', () => {
   })
 
   it('table', async () => {
+    const data = [
+      {
+        name: 'Jan',
+        email: 'jan.blaha@foo.com'
+      },
+      {
+        name: 'Boris',
+        email: 'boris@foo.met'
+      },
+      {
+        name: 'Pavel',
+        email: 'pavel@foo.met'
+      }
+    ]
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
@@ -475,6 +490,32 @@ describe('pptx', () => {
         pptx: {
           templateAsset: {
             content: fs.readFileSync(path.join(__dirname, 'table.pptx'))
+          }
+        }
+      },
+      data: {
+        people: data
+      }
+    })
+
+    fs.writeFileSync('out.pptx', result.content)
+
+    const text = await textract('test.pptx', result.content)
+
+    for (const item of data) {
+      text.should.containEql(item.name)
+      text.should.containEql(item.email)
+    }
+  })
+
+  it('table vertical', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-vertical.pptx'))
           }
         }
       },
@@ -497,9 +538,15 @@ describe('pptx', () => {
     })
 
     fs.writeFileSync('out.pptx', result.content)
+
     const text = await textract('test.pptx', result.content)
+
     text.should.containEql('Jan')
+    text.should.containEql('jan.blaha@foo.com')
     text.should.containEql('Boris')
+    text.should.containEql('boris@foo.met')
+    text.should.containEql('Pavel')
+    text.should.containEql('pavel@foo.met')
   })
 
   it('slides', async () => {
