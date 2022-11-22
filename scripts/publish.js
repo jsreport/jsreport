@@ -165,7 +165,7 @@ if (extraneousDeps.length > 0) {
 
   console.log('\nchecking if there are relevant files in package that are not going to be included in npm publish..')
 
-  const listPublishFilesCommand = ['npx', '--yes', 'npm-packlist']
+  const listPublishFilesCommand = ['npm', 'pack', '--dry-run', '--json', '--workspaces=false']
 
   const { error: listPublishFilesError, stdout: listPublishFilesStdout, status: listPublishFilesStatus } = spawnSync(listPublishFilesCommand[0], listPublishFilesCommand.slice(1), {
     cwd: packagePath,
@@ -185,7 +185,18 @@ if (extraneousDeps.length > 0) {
     process.exit(1)
   }
 
-  const filesInPublish = listPublishFilesOutput.split('\n').map((f) => f.replace(/\\/g, '/'))
+  let filesInPublish
+
+  try {
+    filesInPublish = JSON.parse(listPublishFilesOutput)
+  } catch (publishFilesParseError) {
+    console.error('Failed to parse npm pack output')
+
+    process.exit(1)
+  }
+
+  filesInPublish = filesInPublish.find((p) => p.name === targetPkg).files.map((f) => f.path)
+
   const filesNotInPublish = getFilesNotInPublish(packagePath, filesInPublish)
 
   if (filesNotInPublish.length > 0) {
