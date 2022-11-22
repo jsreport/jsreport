@@ -10,6 +10,7 @@ class Reports {
   constructor (reporter, definition) {
     this.reporter = reporter
     this.definition = definition
+    this.cleaning = false
 
     this.reporter.on('express-configure', this.configureExpress.bind(this))
 
@@ -51,7 +52,11 @@ class Reports {
       this.reporter.logger.info(`reports extension has enabled old reports cleanup with interval ${definition.options.cleanInterval}ms, threshold ${definition.options.cleanThreshold}ms and ${definition.options.cleanLimit} report(s) deletion per run`)
       this.cleanInterval = setInterval(() => this.clean(), definition.options.cleanInterval)
       this.cleanInterval.unref()
-      this.reporter.closeListeners.add('reports', () => clearInterval(this.cleanInterval))
+
+      this.reporter.closeListeners.add('reports', () => {
+        this.cleaning = false
+        clearInterval(this.cleanInterval)
+      })
     }
 
     this.reporter.beforeRenderListeners.add('reports', this._handleBeforeRender.bind(this))
@@ -167,9 +172,11 @@ class Reports {
 
   async clean () {
     try {
+      this.cleaning = true
       this.reporter.logger.debug('Cleaning up old reports')
       const removeOlderDate = new Date(Date.now() - this.definition.options.cleanThreshold)
       let removedReports = 0
+
       while (true) {
         const reportsToRemove = await this.reporter.documentStore.collection('reports').find({ creationDate: { $lt: removeOlderDate } }).limit(this.definition.options.cleanParallelLimit).toArray()
         await Promise.all(reportsToRemove.map((r) => this.reporter.documentStore.collection('reports').remove({ _id: r._id })))
@@ -181,6 +188,8 @@ class Reports {
       }
     } catch (e) {
       this.reporter.logger.error('Failed to clean up old reports', e)
+    } finally {
+      this.cleaning = false
     }
   }
 
