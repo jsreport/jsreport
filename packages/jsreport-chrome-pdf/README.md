@@ -29,6 +29,12 @@ chrome-image
 
 ## Changelog
 
+### 3.2.1
+
+- user level logs now use `logger.debug`
+- threat timeout errors as weak errors
+- use url.pathToFileURL to avoid problems with space in file paths for windows
+
 ### 3.2.0
 
 - mark user logs appropriately to the logger

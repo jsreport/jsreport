@@ -7,6 +7,10 @@ See the docs http://jsreport.net/learn/static-pdf
 
 ## Changelog
 
+### 3.0.1
+
+- dont fail when `req.template.staticPdf` is null
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

@@ -7,6 +7,14 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.6.0
+
+- make `docxStyle` work in document header/footer
+- add `docxChild` helper to allow merging text of another docx
+- accept buffer strings as base64 and throw better error when failed to parse office template input
+- make `docxImage` and `docxChart` to work in document header/footer
+- make `docxHtml` work in document header/footer
+
 ### 3.5.1
 
 - fix normalizing space for middle text element in `docxHtml`

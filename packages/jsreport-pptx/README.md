@@ -7,6 +7,12 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 3.3.0
+
+- fix support of pptxTable and add support for vertical tables
+- pptxImage now support same options as `docxImage` (usePlaceholderSize, width, height options)
+- accept buffer strings as base64 and throw better error when failed to parse office template input
+
 ### 3.2.1
 
 - changes to enable caching of system helpers

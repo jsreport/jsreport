@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.5.0
+
+- wait for jsreport initialization globally in middleware (this means that http routes will wait until jsreport is initialized before going to the route logic)
+
 ### 3.4.2
 
 - update multer to fix npm audit

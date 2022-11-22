@@ -35,7 +35,7 @@ module.exports = (files, headerFooterRefs) => {
         continue
       }
 
-      const paragraphEl = getClosestEl(textEl, 'w:p')
+      const paragraphEl = getClosestEl(firstDocxChildCall.tEl, 'w:p')
 
       if (paragraphEl == null) {
         throw new Error('Unable to find paragraph container element for docxChild call')

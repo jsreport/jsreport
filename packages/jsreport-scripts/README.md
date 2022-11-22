@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 3.3.0
+
+- ignore scripts attached to template which contain scope that is not compatible to run at the template level
+
 ### 3.2.1
 
 - fix cannot propagate req.data object changes from sandbox when trustUserCode is true

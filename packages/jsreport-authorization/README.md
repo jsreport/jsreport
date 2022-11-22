@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authorization
 
 ## Changelog
 
+### 3.3.0
+
+- refactor to use new methods collection.findAdmin, collection.findOneAdmin, reporter.adminRequest
+
 ### 3.2.2
 
 - fix log about user's name

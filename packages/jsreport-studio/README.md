@@ -18,6 +18,11 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.8.0
+
+- improve ⇧ + ↑, ⇧ + ↓ entity tree multi selection in studio
+- add studio range select with ⇧ + click to start and end
+
 ### 3.7.0
 
 - fix preview tabs showing when container collapsed

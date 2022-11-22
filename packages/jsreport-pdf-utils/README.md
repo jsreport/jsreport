@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.6.0
+
+- added support for specifying custom properties for PDF metadata
+- dont fail when recipe null not yet validated
+
 ### 3.5.0
 
 - add option `pdfAccessibility.enabled` to support copying accessibility tags

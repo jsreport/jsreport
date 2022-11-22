@@ -282,6 +282,16 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.9.0
+
+- add more store methods `collection.findAdmin`, `collection.findOneAdmin`, `reporter.adminRequest` to easily allow execure store queries without taking into account permissions
+- improve logging for child requests and user level logs
+- differentiate between template not found errors and permissions related errors (it is now more clean what is the cause of specific error)
+- normalize to error when non-errors are throw (like throw "string")
+- improve errors in helpers (it now includes the helper name)
+- improve error message when template was not found in child request
+- improve error handling in sandbox
+
 ### 3.8.1
 
 - update vm2 for fix security issue

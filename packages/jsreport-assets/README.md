@@ -8,6 +8,11 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.5.0
+
+- errors from asset logic should be weak
+- validate that passed asset path is string
+
 ### 3.4.4
 
 - asset not found is marked as weak error

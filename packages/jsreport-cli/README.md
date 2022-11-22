@@ -7,6 +7,10 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 3.2.3
+
+- improve error logging
+
 ### 3.2.2
 
 - add support for tempDirectory and service name to win-install command

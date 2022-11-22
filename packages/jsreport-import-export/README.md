@@ -7,6 +7,10 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 3.2.0
+
+- refactor to use new methods `collection.findAdmin`, `collection.findOneAdmin`, `reporter.adminRequest`
+
 ### 3.1.3
 
 - changes to studio ui to support multi-selection of entities

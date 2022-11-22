@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 3.3.0
+
+- no table elements should be a weak error
+
 ### 3.2.3
 
 - fix run of html-to-xlsx with phantom

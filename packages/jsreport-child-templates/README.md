@@ -7,6 +7,10 @@ See https://jsreport.net/learn/child-templates
 
 ## Changelog
 
+### 3.1.0
+
+- improve logging and errors
+
 ### 3.0.3
 
 - changes to enable caching of system helpers
