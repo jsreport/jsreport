@@ -169,9 +169,16 @@ class Reports {
     try {
       this.reporter.logger.debug('Cleaning up old reports')
       const removeOlderDate = new Date(Date.now() - this.definition.options.cleanThreshold)
-      const reportsToRemove = await this.reporter.documentStore.collection('reports').find({ creationDate: { $lt: removeOlderDate } }).limit(this.definition.options.cleanLimit).toArray()
-      this.reporter.logger.debug(`Cleaning old reports with remove ${reportsToRemove.length} reports`)
-      await Promise.all(reportsToRemove.map((r) => this.reporter.documentStore.collection('reports').remove({ _id: r._id })))
+      let removedReports = 0
+      while (true) {
+        const reportsToRemove = await this.reporter.documentStore.collection('reports').find({ creationDate: { $lt: removeOlderDate } }).limit(this.definition.options.cleanParallelLimit).toArray()
+        await Promise.all(reportsToRemove.map((r) => this.reporter.documentStore.collection('reports').remove({ _id: r._id })))
+        removedReports += reportsToRemove.length
+        if (reportsToRemove.length === 0) {
+          this.reporter.logger.debug(`Cleaned ${removedReports} old reports`)
+          return
+        }
+      }
     } catch (e) {
       this.reporter.logger.error('Failed to clean up old reports', e)
     }

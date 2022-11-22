@@ -21,7 +21,7 @@ module.exports = {
             type: ['string', 'number'],
             '$jsreport-acceptsDuration': true
           },
-          cleanLimit: {
+          cleanParallelLimit: {
             type: 'number',
             default: 10
           }
