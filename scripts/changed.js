@@ -76,9 +76,14 @@ if (firstCommit === 'inspect') {
     console.log(commitShowStdout)
   }
 
+  console.log('\nHere are some additional actions you can do:')
+
   if (hasTargetPkg) {
-    console.log(`\nYou can also show all files changed in this commit by running: node scripts/changed.js inspect ${targetCommit}`)
+    console.log(`- node scripts/changed.js inspect ${targetCommit} (to show all files changed in this commit)`)
   }
+
+  console.log(`- git difftool ${targetCommit}^ ${targetCommit} -- <path to file> (to show the diff for specific file in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
+  console.log(`- git difftool ${targetCommit}^ ${targetCommit} (to show the full diff of the commit in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
 
   process.exit(0)
 }
