@@ -5,38 +5,78 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run mocha",
+            "name": "Run Yarn Workspace Test",
             "type": "node",
-            "program": "${workspaceFolder}/packages/jsreport-data/node_modules/mocha/bin/_mocha",
-            "args": [
-                "${workspaceFolder}/packages/jsreport-core/test/**/*.js",
-                "--timeout=0"
-            ],
             "request": "launch",
-            "outFiles": [
-                "${workspaceFolder}/packages/jsreport-core/**/*.js"
-            ]
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "yarn",
+            "args": [
+                "workspace",
+                "${input:targetPkgName}",
+                "test"
+            ],
+            "envFile": "${workspaceFolder}/launch.env",
+            "autoAttachChildProcesses": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run Yarn Workspace build",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "yarn",
+            "args": [
+                "workspace",
+                "${input:targetPkgName}",
+                "build"
+            ],
+            "envFile": "${workspaceFolder}/launch.env",
+            "autoAttachChildProcesses": true,
+            "console": "integratedTerminal"
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "Run Program",
+            "name": "Run jsreport server",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/server.js",
             "envFile": "${workspaceFolder}/launch.env",
-            "autoAttachChildProcesses": true
+            "autoAttachChildProcesses": true,
+            "console": "integratedTerminal"
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "Run Compile",
+            "name": "Run jsreport compile",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/compile.js",
-            "autoAttachChildProcesses": true
+            "autoAttachChildProcesses": true,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Attach to node on port",
+            "port": 9229,
+            "request": "attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "targetPkgName",
+            "type": "promptString",
+            "description": "Name of the target package in workspace to run tests against",
+            "default": "@jsreport/jsreport-"
         }
     ]
 }
