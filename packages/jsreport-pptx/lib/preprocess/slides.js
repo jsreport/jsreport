@@ -1,7 +1,8 @@
 const regexp = /{{pptxSlides [^{}]{0,500}}}/
 
 module.exports = (files) => {
-  for (const doc of files.filter(f => f.path.includes('ppt/slides/slide')).map(f => f.doc)) {
+  for (const f of files.filter(f => f.path.includes('ppt/slides/slide'))) {
+    const doc = f.doc
     const elements = doc.getElementsByTagName('a:t')
 
     for (let i = 0; i < elements.length; i++) {
@@ -17,9 +18,15 @@ module.exports = (files) => {
         const endFake = doc.createElement('pptxRemove')
         endFake.textContent = '{{/pptxSlides}}'
 
-        doc.appendChild(endFake)
         const pSld = doc.getElementsByTagName('p:sld')[0]
-        pSld.parentNode.insertBefore(startFake, pSld)
+        const containerEl = doc.createElement('container')
+
+        // code to replace the document element to another container
+        containerEl.appendChild(startFake)
+        containerEl.appendChild(pSld)
+        containerEl.appendChild(endFake)
+
+        doc.appendChild(containerEl)
 
         if (el.textContent === '') {
           const toRemove = el.parentNode.parentNode.parentNode.parentNode

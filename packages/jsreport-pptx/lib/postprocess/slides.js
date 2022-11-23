@@ -11,7 +11,7 @@ module.exports = (files) => {
 
   for (const file of files.filter(f => f.path.includes('ppt/slides/slide'))) {
     const doc = file.doc
-    const slides = doc.getElementsByTagName('p:sld')
+    const slides = nodeListToArray(doc.getElementsByTagName('p:sld'))
     const originalSlideNumber = parseInt(file.path.replace('ppt/slides/slide', '').replace('.xml', ''))
 
     if (slides.length <= 1) {
@@ -48,7 +48,7 @@ module.exports = (files) => {
         doc: slideRelsDoc
       })
 
-      doc.removeChild(slides[i])
+      slides[i].parentNode.removeChild(slides[i])
 
       const sldIdEl = presentation.createElement('p:sldId')
       sldIdEl.setAttribute('id', slideNumber)// I have no clue what is this id, so I put there also slideNumber
@@ -95,5 +95,8 @@ module.exports = (files) => {
         }
       }
     }
+
+    // removing the container to the original slide
+    doc.replaceChild(slides[0], doc.documentElement)
   }
 }
