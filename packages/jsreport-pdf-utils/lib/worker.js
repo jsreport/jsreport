@@ -9,7 +9,7 @@ const missingSecretMessage = 'pdf-sign extension uses encryption to store sensit
 module.exports = (reporter, definition) => {
   let helpersScript
 
-  reporter.addRequestContextMetaConfig('pdfUtilsFomrs', { sandboxHidden: true })
+  reporter.addRequestContextMetaConfig('pdfUtilsForms', { sandboxHidden: true })
   reporter.addRequestContextMetaConfig('pdfUtilsOutlines', { sandboxHidden: true })
 
   reporter.extendProxy(proxyExtend)
