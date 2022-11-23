@@ -1,7 +1,7 @@
 const util = require('util')
 const path = require('path')
 const fs = require('fs/promises')
-const mkdirpAsync = util.promisify(require('mkdirp'))
+const mkdirp = require('mkdirp')
 const rimraf = util.promisify(require('rimraf'))
 const lockFile = require('lockfile')
 const callLock = util.promisify(lockFile.lock)
@@ -10,7 +10,7 @@ const callUnlock = util.promisify(lockFile.unlock)
 module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   memoryState: {},
   lockOptions: Object.assign({ stale: 10000, retries: 100, retryWait: 100 }, lock),
-  init: () => mkdirpAsync(dataDirectory),
+  init: () => mkdirp(dataDirectory),
   readdir: async (p) => {
     const dirs = await fs.readdir(path.join(dataDirectory, p))
     return dirs
@@ -86,7 +86,7 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
       this.memoryState[path.join(dataDirectory, p)] = { isDirectory: true }
     }
 
-    await mkdirpAsync(path.join(dataDirectory, p))
+    await mkdirp(path.join(dataDirectory, p))
   },
   async remove (p) {
     if (externalModificationsSync) {
@@ -110,7 +110,7 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
     basename: path.basename
   },
   async lock () {
-    await mkdirpAsync(dataDirectory)
+    await mkdirp(dataDirectory)
     return callLock(path.join(dataDirectory, 'fs.lock'), Object.assign({}, this.lockOptions))
   },
   releaseLock () {

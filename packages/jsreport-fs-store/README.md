@@ -18,6 +18,10 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 3.2.4
+
+- update deps to fix npm audit warnings
+
 ### 3.2.3
 
 - fix $in queries

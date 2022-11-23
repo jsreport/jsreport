@@ -38,7 +38,7 @@ RUN apk update --no-cache && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=106.0.5249.91-r0\
+    chromium@edge=102.0.5005.182-r0\
     nss \
     freetype \
     harfbuzz \
@@ -59,7 +59,6 @@ RUN chown jsreport:jsreport /jsreport
 RUN chmod g+s /jsreport
 
 VOLUME ["/jsreport"]
-
 
 ENV NPM_CONFIG_PREFIX /home/jsreport/.npm-global
 ENV PATH $PATH:/home/jsreport/.npm-global/bin

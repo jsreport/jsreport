@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 29);
+/******/ 	return __webpack_require__(__webpack_require__.s = 28);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -95,9 +95,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Encoder", function() { return Encoder; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Decoder", function() { return Decoder; });
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _binary_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(21);
-/* harmony import */ var _is_binary_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(13);
+/* harmony import */ var _is_binary_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(14);
 
 
 
@@ -121,6 +120,14 @@ var PacketType;
  * A socket.io Encoder instance
  */
 class Encoder {
+    /**
+     * Encoder constructor
+     *
+     * @param {function} replacer - custom replacer to pass down to JSON.parse
+     */
+    constructor(replacer) {
+        this.replacer = replacer;
+    }
     /**
      * Encode a packet as a single string if non-binary, or as a
      * buffer sequence, depending on packet type.
@@ -161,7 +168,7 @@ class Encoder {
         }
         // json data
         if (null != obj.data) {
-            str += JSON.stringify(obj.data);
+            str += JSON.stringify(obj.data, this.replacer);
         }
         return str;
     }
@@ -184,8 +191,14 @@ class Encoder {
  * @return {Object} decoder
  */
 class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__["Emitter"] {
-    constructor() {
+    /**
+     * Decoder constructor
+     *
+     * @param {function} reviver - custom reviver to pass down to JSON.stringify
+     */
+    constructor(reviver) {
         super();
+        this.reviver = reviver;
     }
     /**
      * Decodes an encoded packet string into packet JSON.
@@ -195,6 +208,9 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__[
     add(obj) {
         let packet;
         if (typeof obj === "string") {
+            if (this.reconstructor) {
+                throw new Error("got plaintext data when reconstructing a packet");
+            }
             packet = this.decodeString(obj);
             if (packet.type === PacketType.BINARY_EVENT ||
                 packet.type === PacketType.BINARY_ACK) {
@@ -286,7 +302,7 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__[
         }
         // look up json data
         if (str.charAt(++i)) {
-            const payload = tryParse(str.substr(i));
+            const payload = this.tryParse(str.substr(i));
             if (Decoder.isPayloadValid(p.type, payload)) {
                 p.data = payload;
             }
@@ -295,6 +311,14 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__[
             }
         }
         return p;
+    }
+    tryParse(str) {
+        try {
+            return JSON.parse(str, this.reviver);
+        }
+        catch (e) {
+            return false;
+        }
     }
     static isPayloadValid(type, payload) {
         switch (type) {
@@ -319,14 +343,6 @@ class Decoder extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_0__[
         if (this.reconstructor) {
             this.reconstructor.finishedReconstruction();
         }
-    }
-}
-function tryParse(str) {
-    try {
-        return JSON.parse(str);
-    }
-    catch (e) {
-        return false;
     }
 }
 /**
@@ -388,15 +404,11 @@ function on(obj, ev, fn) {
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports) {
+/***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
-
-/**
- * Expose `Emitter`.
- */
-
-exports.Emitter = Emitter;
-
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Emitter", function() { return Emitter; });
 /**
  * Initialize a new `Emitter`.
  *
@@ -574,28 +586,10 @@ Emitter.prototype.hasListeners = function(event){
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ((() => {
-    if (typeof self !== "undefined") {
-        return self;
-    }
-    else if (typeof window !== "undefined") {
-        return window;
-    }
-    else {
-        return Function("return this")();
-    }
-})());
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return pick; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "installTimerFunctions", function() { return installTimerFunctions; });
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "byteLength", function() { return byteLength; });
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
 
 function pick(obj, ...attr) {
     return attr.reduce((acc, k) => {
@@ -610,14 +604,64 @@ const NATIVE_SET_TIMEOUT = setTimeout;
 const NATIVE_CLEAR_TIMEOUT = clearTimeout;
 function installTimerFunctions(obj, opts) {
     if (opts.useNativeTimers) {
-        obj.setTimeoutFn = NATIVE_SET_TIMEOUT.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
-        obj.clearTimeoutFn = NATIVE_CLEAR_TIMEOUT.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
+        obj.setTimeoutFn = NATIVE_SET_TIMEOUT.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["globalThisShim"]);
+        obj.clearTimeoutFn = NATIVE_CLEAR_TIMEOUT.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["globalThisShim"]);
     }
     else {
-        obj.setTimeoutFn = setTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
-        obj.clearTimeoutFn = clearTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
+        obj.setTimeoutFn = setTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["globalThisShim"]);
+        obj.clearTimeoutFn = clearTimeout.bind(_globalThis_js__WEBPACK_IMPORTED_MODULE_0__["globalThisShim"]);
     }
 }
+// base64 encoded buffers are about 33% bigger (https://en.wikipedia.org/wiki/Base64)
+const BASE64_OVERHEAD = 1.33;
+// we could also have used `new Blob([obj]).size`, but it isn't supported in IE9
+function byteLength(obj) {
+    if (typeof obj === "string") {
+        return utf8Length(obj);
+    }
+    // arraybuffer or blob
+    return Math.ceil((obj.byteLength || obj.size) * BASE64_OVERHEAD);
+}
+function utf8Length(str) {
+    let c = 0, length = 0;
+    for (let i = 0, l = str.length; i < l; i++) {
+        c = str.charCodeAt(i);
+        if (c < 0x80) {
+            length += 1;
+        }
+        else if (c < 0x800) {
+            length += 2;
+        }
+        else if (c < 0xd800 || c >= 0xe000) {
+            length += 3;
+        }
+        else {
+            i++;
+            length += 4;
+        }
+    }
+    return length;
+}
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "globalThisShim", function() { return globalThisShim; });
+const globalThisShim = (() => {
+    if (typeof self !== "undefined") {
+        return self;
+    }
+    else if (typeof window !== "undefined") {
+        return window;
+    }
+    else {
+        return Function("return this")();
+    }
+})();
 
 
 /***/ }),
@@ -630,7 +674,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WebSocket", function() { return WebSocket; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "usingBrowserWebSocket", function() { return usingBrowserWebSocket; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultBinaryType", function() { return defaultBinaryType; });
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
 
 const nextTick = (() => {
     const isPromiseAvailable = typeof Promise === "function" && typeof Promise.resolve === "function";
@@ -641,7 +685,7 @@ const nextTick = (() => {
         return (cb, setTimeoutFn) => setTimeoutFn(cb, 0);
     }
 })();
-const WebSocket = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__["default"].WebSocket || _globalThis_js__WEBPACK_IMPORTED_MODULE_0__["default"].MozWebSocket;
+const WebSocket = _globalThis_js__WEBPACK_IMPORTED_MODULE_0__["globalThisShim"].WebSocket || _globalThis_js__WEBPACK_IMPORTED_MODULE_0__["globalThisShim"].MozWebSocket;
 const usingBrowserWebSocket = true;
 const defaultBinaryType = "arraybuffer";
 
@@ -655,10 +699,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "protocol", function() { return protocol; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "encodePayload", function() { return encodePayload; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decodePayload", function() { return decodePayload; });
-/* harmony import */ var _encodePacket_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(17);
+/* harmony import */ var _encodePacket_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodePacket", function() { return _encodePacket_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _decodePacket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(18);
+/* harmony import */ var _decodePacket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodePacket", function() { return _decodePacket_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
 
@@ -729,11 +773,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Transport", function() { return Transport; });
 /* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
 
 
 
+class TransportError extends Error {
+    constructor(reason, description, context) {
+        super(reason);
+        this.description = description;
+        this.context = context;
+        this.type = "TransportError";
+    }
+}
 class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1__["Emitter"] {
     /**
      * Transport abstract constructor.
@@ -753,17 +804,14 @@ class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1_
     /**
      * Emits an error.
      *
-     * @param {String} str
+     * @param {String} reason
+     * @param description
+     * @param context - the error context
      * @return {Transport} for chaining
      * @api protected
      */
-    onError(msg, desc) {
-        const err = new Error(msg);
-        // @ts-ignore
-        err.type = "TransportError";
-        // @ts-ignore
-        err.description = desc;
-        super.emit("error", err);
+    onError(reason, description, context) {
+        super.emitReserved("error", new TransportError(reason, description, context));
         return this;
     }
     /**
@@ -812,7 +860,7 @@ class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1_
     onOpen() {
         this.readyState = "open";
         this.writable = true;
-        super.emit("open");
+        super.emitReserved("open");
     }
     /**
      * Called with data.
@@ -830,24 +878,29 @@ class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1_
      * @api protected
      */
     onPacket(packet) {
-        super.emit("packet", packet);
+        super.emitReserved("packet", packet);
     }
     /**
      * Called upon close.
      *
      * @api protected
      */
-    onClose() {
+    onClose(details) {
         this.readyState = "closed";
-        super.emit("close");
+        super.emitReserved("close", details);
     }
 }
 
 
 /***/ }),
 /* 9 */
-/***/ (function(module, exports) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "encode", function() { return encode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decode", function() { return decode; });
+// imported from https://github.com/galkn/querystring
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -855,36 +908,32 @@ class Transport extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_1_
  * @param {Object}
  * @api private
  */
-
-exports.encode = function (obj) {
-  var str = '';
-
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-      if (str.length) str += '&';
-      str += encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]);
+function encode(obj) {
+    let str = '';
+    for (let i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            if (str.length)
+                str += '&';
+            str += encodeURIComponent(i) + '=' + encodeURIComponent(obj[i]);
+        }
     }
-  }
-
-  return str;
-};
-
+    return str;
+}
 /**
  * Parses a simple querystring into an object
  *
  * @param {String} qs
  * @api private
  */
-
-exports.decode = function(qs){
-  var qry = {};
-  var pairs = qs.split('&');
-  for (var i = 0, l = pairs.length; i < l; i++) {
-    var pair = pairs[i].split('=');
-    qry[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-  }
-  return qry;
-};
+function decode(qs) {
+    let qry = {};
+    let pairs = qs.split('&');
+    for (let i = 0, l = pairs.length; i < l; i++) {
+        let pair = pairs[i].split('=');
+        qry[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    }
+    return qry;
+}
 
 
 /***/ }),
@@ -893,11 +942,103 @@ exports.decode = function(qs){
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "protocol", function() { return protocol; });
+/* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(17);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Socket", function() { return _socket_js__WEBPACK_IMPORTED_MODULE_0__["Socket"]; });
+
+/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Transport", function() { return _transport_js__WEBPACK_IMPORTED_MODULE_1__["Transport"]; });
+
+/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(15);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "transports", function() { return _transports_index_js__WEBPACK_IMPORTED_MODULE_2__["transports"]; });
+
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "installTimerFunctions", function() { return _util_js__WEBPACK_IMPORTED_MODULE_3__["installTimerFunctions"]; });
+
+/* harmony import */ var _contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "parse", function() { return _contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_4__["parse"]; });
+
+/* harmony import */ var _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(5);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nextTick", function() { return _transports_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_5__["nextTick"]; });
+
+
+
+const protocol = _socket_js__WEBPACK_IMPORTED_MODULE_0__["Socket"].protocol;
+
+
+
+
+
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parse", function() { return parse; });
+// imported from https://github.com/galkn/parseuri
+/**
+ * Parses an URI
+ *
+ * @author Steven Levithan <stevenlevithan.com> (MIT license)
+ * @api private
+ */
+const re = /^(?:(?![^:@]+:[^:@\/]*@)(http|https|ws|wss):\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?((?:[a-f0-9]{0,4}:){2,7}[a-f0-9]{0,4}|[^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/;
+const parts = [
+    'source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'
+];
+function parse(str) {
+    const src = str, b = str.indexOf('['), e = str.indexOf(']');
+    if (b != -1 && e != -1) {
+        str = str.substring(0, b) + str.substring(b, e).replace(/:/g, ';') + str.substring(e, str.length);
+    }
+    let m = re.exec(str || ''), uri = {}, i = 14;
+    while (i--) {
+        uri[parts[i]] = m[i] || '';
+    }
+    if (b != -1 && e != -1) {
+        uri.source = src;
+        uri.host = uri.host.substring(1, uri.host.length - 1).replace(/;/g, ':');
+        uri.authority = uri.authority.replace('[', '').replace(']', '').replace(/;/g, ':');
+        uri.ipv6uri = true;
+    }
+    uri.pathNames = pathNames(uri, uri['path']);
+    uri.queryKey = queryKey(uri, uri['query']);
+    return uri;
+}
+function pathNames(obj, path) {
+    const regx = /\/{2,9}/g, names = path.replace(regx, "/").split("/");
+    if (path.slice(0, 1) == '/' || path.length === 0) {
+        names.splice(0, 1);
+    }
+    if (path.slice(-1) == '/') {
+        names.splice(names.length - 1, 1);
+    }
+    return names;
+}
+function queryKey(uri, query) {
+    const data = {};
+    query.replace(/(?:^|&)([^&=]*)=?([^&]*)/g, function ($0, $1, $2) {
+        if ($1) {
+            data[$1] = $2;
+        }
+    });
+    return data;
+}
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Socket", function() { return Socket; });
 /* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var _on_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__);
 
 
 
@@ -914,17 +1055,58 @@ const RESERVED_EVENTS = Object.freeze({
     newListener: 1,
     removeListener: 1,
 });
+/**
+ * A Socket is the fundamental class for interacting with the server.
+ *
+ * A Socket belongs to a certain Namespace (by default /) and uses an underlying {@link Manager} to communicate.
+ *
+ * @example
+ * const socket = io();
+ *
+ * socket.on("connect", () => {
+ *   console.log("connected");
+ * });
+ *
+ * // send an event to the server
+ * socket.emit("foo", "bar");
+ *
+ * socket.on("foobar", () => {
+ *   // an event was received from the server
+ * });
+ *
+ * // upon disconnection
+ * socket.on("disconnect", (reason) => {
+ *   console.log(`disconnected due to ${reason}`);
+ * });
+ */
 class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["Emitter"] {
     /**
      * `Socket` constructor.
-     *
-     * @public
      */
     constructor(io, nsp, opts) {
         super();
+        /**
+         * Whether the socket is currently connected to the server.
+         *
+         * @example
+         * const socket = io();
+         *
+         * socket.on("connect", () => {
+         *   console.log(socket.connected); // true
+         * });
+         *
+         * socket.on("disconnect", () => {
+         *   console.log(socket.connected); // false
+         * });
+         */
         this.connected = false;
-        this.disconnected = true;
+        /**
+         * Buffer for packets received before the CONNECT packet
+         */
         this.receiveBuffer = [];
+        /**
+         * Buffer for packets that will be sent once the socket is connected
+         */
         this.sendBuffer = [];
         this.ids = 0;
         this.acks = {};
@@ -936,6 +1118,23 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
         }
         if (this.io._autoConnect)
             this.open();
+    }
+    /**
+     * Whether the socket is currently disconnected
+     *
+     * @example
+     * const socket = io();
+     *
+     * socket.on("connect", () => {
+     *   console.log(socket.disconnected); // false
+     * });
+     *
+     * socket.on("disconnect", () => {
+     *   console.log(socket.disconnected); // true
+     * });
+     */
+    get disconnected() {
+        return !this.connected;
     }
     /**
      * Subscribe to open, close and packet events
@@ -954,7 +1153,21 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
         ];
     }
     /**
-     * Whether the Socket will try to reconnect when its Manager connects or reconnects
+     * Whether the Socket will try to reconnect when its Manager connects or reconnects.
+     *
+     * @example
+     * const socket = io();
+     *
+     * console.log(socket.active); // true
+     *
+     * socket.on("disconnect", (reason) => {
+     *   if (reason === "io server disconnect") {
+     *     // the disconnection was initiated by the server, you need to manually reconnect
+     *     console.log(socket.active); // false
+     *   }
+     *   // else the socket will automatically try to reconnect
+     *   console.log(socket.active); // true
+     * });
      */
     get active() {
         return !!this.subs;
@@ -962,7 +1175,12 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     /**
      * "Opens" the socket.
      *
-     * @public
+     * @example
+     * const socket = io({
+     *   autoConnect: false
+     * });
+     *
+     * socket.connect();
      */
     connect() {
         if (this.connected)
@@ -975,7 +1193,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
         return this;
     }
     /**
-     * Alias for connect()
+     * Alias for {@link connect()}.
      */
     open() {
         return this.connect();
@@ -983,8 +1201,17 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     /**
      * Sends a `message` event.
      *
+     * This method mimics the WebSocket.send() method.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/send
+     *
+     * @example
+     * socket.send("hello");
+     *
+     * // this is equivalent to
+     * socket.emit("message", "hello");
+     *
      * @return self
-     * @public
      */
     send(...args) {
         args.unshift("message");
@@ -995,12 +1222,22 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
      * Override `emit`.
      * If the event is in `events`, it's emitted normally.
      *
+     * @example
+     * socket.emit("hello", "world");
+     *
+     * // all serializable datastructures are supported (no need to call JSON.stringify)
+     * socket.emit("hello", 1, "2", { 3: ["4"], 5: Uint8Array.from([6]) });
+     *
+     * // with an acknowledgement from the server
+     * socket.emit("hello", "world", (val) => {
+     *   // ...
+     * });
+     *
      * @return self
-     * @public
      */
     emit(ev, ...args) {
         if (RESERVED_EVENTS.hasOwnProperty(ev)) {
-            throw new Error('"' + ev + '" is a reserved event name');
+            throw new Error('"' + ev.toString() + '" is a reserved event name');
         }
         args.unshift(ev);
         const packet = {
@@ -1023,6 +1260,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
         if (discardPacket) {
         }
         else if (this.connected) {
+            this.notifyOutgoingListeners(packet);
             this.packet(packet);
         }
         else {
@@ -1096,13 +1334,13 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
      * Called upon engine `close`.
      *
      * @param reason
+     * @param description
      * @private
      */
-    onclose(reason) {
+    onclose(reason, description) {
         this.connected = false;
-        this.disconnected = true;
         delete this.id;
-        this.emitReserved("disconnect", reason);
+        this.emitReserved("disconnect", reason, description);
     }
     /**
      * Called with socket packet.
@@ -1125,14 +1363,10 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
                 }
                 break;
             case socket_io_parser__WEBPACK_IMPORTED_MODULE_0__["PacketType"].EVENT:
-                this.onevent(packet);
-                break;
             case socket_io_parser__WEBPACK_IMPORTED_MODULE_0__["PacketType"].BINARY_EVENT:
                 this.onevent(packet);
                 break;
             case socket_io_parser__WEBPACK_IMPORTED_MODULE_0__["PacketType"].ACK:
-                this.onack(packet);
-                break;
             case socket_io_parser__WEBPACK_IMPORTED_MODULE_0__["PacketType"].BINARY_ACK:
                 this.onack(packet);
                 break;
@@ -1218,7 +1452,6 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     onconnect(id) {
         this.id = id;
         this.connected = true;
-        this.disconnected = false;
         this.emitBuffered();
         this.emitReserved("connect");
     }
@@ -1230,7 +1463,10 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     emitBuffered() {
         this.receiveBuffer.forEach((args) => this.emitEvent(args));
         this.receiveBuffer = [];
-        this.sendBuffer.forEach((packet) => this.packet(packet));
+        this.sendBuffer.forEach((packet) => {
+            this.notifyOutgoingListeners(packet);
+            this.packet(packet);
+        });
         this.sendBuffer = [];
     }
     /**
@@ -1258,10 +1494,20 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
         this.io["_destroy"](this);
     }
     /**
-     * Disconnects the socket manually.
+     * Disconnects the socket manually. In that case, the socket will not try to reconnect.
+     *
+     * If this is the last active Socket instance of the {@link Manager}, the low-level connection will be closed.
+     *
+     * @example
+     * const socket = io();
+     *
+     * socket.on("disconnect", (reason) => {
+     *   // console.log(reason); prints "io client disconnect"
+     * });
+     *
+     * socket.disconnect();
      *
      * @return self
-     * @public
      */
     disconnect() {
         if (this.connected) {
@@ -1276,10 +1522,9 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
         return this;
     }
     /**
-     * Alias for disconnect()
+     * Alias for {@link disconnect()}.
      *
      * @return self
-     * @public
      */
     close() {
         return this.disconnect();
@@ -1287,9 +1532,11 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     /**
      * Sets the compress flag.
      *
+     * @example
+     * socket.compress(false).emit("hello");
+     *
      * @param compress - if `true`, compresses the sending data
      * @return self
-     * @public
      */
     compress(compress) {
         this.flags.compress = compress;
@@ -1299,8 +1546,10 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
      * Sets a modifier for a subsequent event emission that the event message will be dropped when this socket is not
      * ready to send messages.
      *
+     * @example
+     * socket.volatile.emit("hello"); // the server may or may not receive it
+     *
      * @returns self
-     * @public
      */
     get volatile() {
         this.flags.volatile = true;
@@ -1310,16 +1559,14 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
      * Sets a modifier for a subsequent event emission that the callback will be called with an error when the
      * given number of milliseconds have elapsed without an acknowledgement from the server:
      *
-     * ```
+     * @example
      * socket.timeout(5000).emit("my-event", (err) => {
      *   if (err) {
      *     // the server did not acknowledge the event in the given delay
      *   }
      * });
-     * ```
      *
      * @returns self
-     * @public
      */
     timeout(timeout) {
         this.flags.timeout = timeout;
@@ -1329,8 +1576,12 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
      * Adds a listener that will be fired when any event is emitted. The event name is passed as the first argument to the
      * callback.
      *
+     * @example
+     * socket.onAny((event, ...args) => {
+     *   console.log(`got ${event}`);
+     * });
+     *
      * @param listener
-     * @public
      */
     onAny(listener) {
         this._anyListeners = this._anyListeners || [];
@@ -1341,8 +1592,12 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
      * Adds a listener that will be fired when any event is emitted. The event name is passed as the first argument to the
      * callback. The listener is added to the beginning of the listeners array.
      *
+     * @example
+     * socket.prependAny((event, ...args) => {
+     *   console.log(`got event ${event}`);
+     * });
+     *
      * @param listener
-     * @public
      */
     prependAny(listener) {
         this._anyListeners = this._anyListeners || [];
@@ -1352,8 +1607,20 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     /**
      * Removes the listener that will be fired when any event is emitted.
      *
+     * @example
+     * const catchAllListener = (event, ...args) => {
+     *   console.log(`got event ${event}`);
+     * }
+     *
+     * socket.onAny(catchAllListener);
+     *
+     * // remove a specific listener
+     * socket.offAny(catchAllListener);
+     *
+     * // or remove all listeners
+     * socket.offAny();
+     *
      * @param listener
-     * @public
      */
     offAny(listener) {
         if (!this._anyListeners) {
@@ -1376,104 +1643,120 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_2__["
     /**
      * Returns an array of listeners that are listening for any event that is specified. This array can be manipulated,
      * e.g. to remove listeners.
-     *
-     * @public
      */
     listenersAny() {
         return this._anyListeners || [];
     }
-}
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports) {
-
-/**
- * Parses an URI
- *
- * @author Steven Levithan <stevenlevithan.com> (MIT license)
- * @api private
- */
-
-var re = /^(?:(?![^:@]+:[^:@\/]*@)(http|https|ws|wss):\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?((?:[a-f0-9]{0,4}:){2,7}[a-f0-9]{0,4}|[^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/;
-
-var parts = [
-    'source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'anchor'
-];
-
-module.exports = function parseuri(str) {
-    var src = str,
-        b = str.indexOf('['),
-        e = str.indexOf(']');
-
-    if (b != -1 && e != -1) {
-        str = str.substring(0, b) + str.substring(b, e).replace(/:/g, ';') + str.substring(e, str.length);
+    /**
+     * Adds a listener that will be fired when any event is emitted. The event name is passed as the first argument to the
+     * callback.
+     *
+     * Note: acknowledgements sent to the server are not included.
+     *
+     * @example
+     * socket.onAnyOutgoing((event, ...args) => {
+     *   console.log(`sent event ${event}`);
+     * });
+     *
+     * @param listener
+     */
+    onAnyOutgoing(listener) {
+        this._anyOutgoingListeners = this._anyOutgoingListeners || [];
+        this._anyOutgoingListeners.push(listener);
+        return this;
     }
-
-    var m = re.exec(str || ''),
-        uri = {},
-        i = 14;
-
-    while (i--) {
-        uri[parts[i]] = m[i] || '';
+    /**
+     * Adds a listener that will be fired when any event is emitted. The event name is passed as the first argument to the
+     * callback. The listener is added to the beginning of the listeners array.
+     *
+     * Note: acknowledgements sent to the server are not included.
+     *
+     * @example
+     * socket.prependAnyOutgoing((event, ...args) => {
+     *   console.log(`sent event ${event}`);
+     * });
+     *
+     * @param listener
+     */
+    prependAnyOutgoing(listener) {
+        this._anyOutgoingListeners = this._anyOutgoingListeners || [];
+        this._anyOutgoingListeners.unshift(listener);
+        return this;
     }
-
-    if (b != -1 && e != -1) {
-        uri.source = src;
-        uri.host = uri.host.substring(1, uri.host.length - 1).replace(/;/g, ':');
-        uri.authority = uri.authority.replace('[', '').replace(']', '').replace(/;/g, ':');
-        uri.ipv6uri = true;
-    }
-
-    uri.pathNames = pathNames(uri, uri['path']);
-    uri.queryKey = queryKey(uri, uri['query']);
-
-    return uri;
-};
-
-function pathNames(obj, path) {
-    var regx = /\/{2,9}/g,
-        names = path.replace(regx, "/").split("/");
-
-    if (path.substr(0, 1) == '/' || path.length === 0) {
-        names.splice(0, 1);
-    }
-    if (path.substr(path.length - 1, 1) == '/') {
-        names.splice(names.length - 1, 1);
-    }
-
-    return names;
-}
-
-function queryKey(uri, query) {
-    var data = {};
-
-    query.replace(/(?:^|&)([^&=]*)=?([^&]*)/g, function ($0, $1, $2) {
-        if ($1) {
-            data[$1] = $2;
+    /**
+     * Removes the listener that will be fired when any event is emitted.
+     *
+     * @example
+     * const catchAllListener = (event, ...args) => {
+     *   console.log(`sent event ${event}`);
+     * }
+     *
+     * socket.onAnyOutgoing(catchAllListener);
+     *
+     * // remove a specific listener
+     * socket.offAnyOutgoing(catchAllListener);
+     *
+     * // or remove all listeners
+     * socket.offAnyOutgoing();
+     *
+     * @param [listener] - the catch-all listener (optional)
+     */
+    offAnyOutgoing(listener) {
+        if (!this._anyOutgoingListeners) {
+            return this;
         }
-    });
-
-    return data;
+        if (listener) {
+            const listeners = this._anyOutgoingListeners;
+            for (let i = 0; i < listeners.length; i++) {
+                if (listener === listeners[i]) {
+                    listeners.splice(i, 1);
+                    return this;
+                }
+            }
+        }
+        else {
+            this._anyOutgoingListeners = [];
+        }
+        return this;
+    }
+    /**
+     * Returns an array of listeners that are listening for any event that is specified. This array can be manipulated,
+     * e.g. to remove listeners.
+     */
+    listenersAnyOutgoing() {
+        return this._anyOutgoingListeners || [];
+    }
+    /**
+     * Notify the listeners for each packet sent
+     *
+     * @param packet
+     *
+     * @private
+     */
+    notifyOutgoingListeners(packet) {
+        if (this._anyOutgoingListeners && this._anyOutgoingListeners.length) {
+            const listeners = this._anyOutgoingListeners.slice();
+            for (const listener of listeners) {
+                listener.apply(this, packet.data);
+            }
+        }
+    }
 }
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Manager", function() { return Manager; });
-/* harmony import */ var engine_io_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
-/* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var engine_io_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
 /* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
 /* harmony import */ var _on_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
-/* harmony import */ var backo2__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(28);
-/* harmony import */ var backo2__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(backo2__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _contrib_backo2_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(27);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__);
 
 
 
@@ -1499,7 +1782,7 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__[
         this.reconnectionDelay(opts.reconnectionDelay || 1000);
         this.reconnectionDelayMax(opts.reconnectionDelayMax || 5000);
         this.randomizationFactor((_a = opts.randomizationFactor) !== null && _a !== void 0 ? _a : 0.5);
-        this.backoff = new backo2__WEBPACK_IMPORTED_MODULE_4___default.a({
+        this.backoff = new _contrib_backo2_js__WEBPACK_IMPORTED_MODULE_4__["Backoff"]({
             min: this.reconnectionDelay(),
             max: this.reconnectionDelayMax(),
             jitter: this.randomizationFactor(),
@@ -1665,7 +1948,12 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__[
      * @private
      */
     ondata(data) {
-        this.decoder.add(data);
+        try {
+            this.decoder.add(data);
+        }
+        catch (e) {
+            this.onclose("parse error", e);
+        }
     }
     /**
      * Called when parser fully decodes a packet.
@@ -1673,7 +1961,10 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__[
      * @private
      */
     ondecoded(packet) {
-        this.emitReserved("packet", packet);
+        // the nextTick call prevents an exception in a user-provided event listener from triggering a disconnection due to a "parse error"
+        Object(engine_io_client__WEBPACK_IMPORTED_MODULE_0__["nextTick"])(() => {
+            this.emitReserved("packet", packet);
+        }, this.setTimeoutFn);
     }
     /**
      * Called upon socket error.
@@ -1760,11 +2051,11 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__[
      *
      * @private
      */
-    onclose(reason) {
+    onclose(reason, description) {
         this.cleanup();
         this.backoff.reset();
         this._readyState = "closed";
-        this.emitReserved("close", reason);
+        this.emitReserved("close", reason, description);
         if (this._reconnection && !this.skipReconnect) {
             this.reconnect();
         }
@@ -1827,7 +2118,7 @@ class Manager extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__[
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1887,95 +2178,20 @@ function hasBinary(obj, toJSON) {
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "transports", function() { return transports; });
-/* harmony import */ var _polling_xhr_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(23);
-/* harmony import */ var _websocket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(27);
+/* harmony import */ var _polling_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(23);
+/* harmony import */ var _websocket_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
 
 
 const transports = {
     websocket: _websocket_js__WEBPACK_IMPORTED_MODULE_1__["WS"],
-    polling: _polling_xhr_js__WEBPACK_IMPORTED_MODULE_0__["XHR"]
+    polling: _polling_js__WEBPACK_IMPORTED_MODULE_0__["Polling"]
 };
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
-  , length = 64
-  , map = {}
-  , seed = 0
-  , i = 0
-  , prev;
-
-/**
- * Return a string representing the specified number.
- *
- * @param {Number} num The number to convert.
- * @returns {String} The string representation of the number.
- * @api public
- */
-function encode(num) {
-  var encoded = '';
-
-  do {
-    encoded = alphabet[num % length] + encoded;
-    num = Math.floor(num / length);
-  } while (num > 0);
-
-  return encoded;
-}
-
-/**
- * Return the integer value specified by the given string.
- *
- * @param {String} str The string to convert.
- * @returns {Number} The integer value represented by the string.
- * @api public
- */
-function decode(str) {
-  var decoded = 0;
-
-  for (i = 0; i < str.length; i++) {
-    decoded = decoded * length + map[str.charAt(i)];
-  }
-
-  return decoded;
-}
-
-/**
- * Yeast: A tiny growing id generator.
- *
- * @returns {String} A unique id.
- * @api public
- */
-function yeast() {
-  var now = encode(+new Date());
-
-  if (now !== prev) return seed = 0, prev = now;
-  return now +'.'+ encode(seed++);
-}
-
-//
-// Map each character to its index.
-//
-for (; i < length; i++) map[alphabet[i]] = i;
-
-//
-// Expose the `yeast`, `encode` and `decode` functions.
-//
-yeast.encode = encode;
-yeast.decode = decode;
-module.exports = yeast;
 
 
 /***/ }),
@@ -1984,15 +2200,73 @@ module.exports = yeast;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "encode", function() { return encode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decode", function() { return decode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "yeast", function() { return yeast; });
+// imported from https://github.com/unshiftio/yeast
+
+const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split(''), length = 64, map = {};
+let seed = 0, i = 0, prev;
+/**
+ * Return a string representing the specified number.
+ *
+ * @param {Number} num The number to convert.
+ * @returns {String} The string representation of the number.
+ * @api public
+ */
+function encode(num) {
+    let encoded = '';
+    do {
+        encoded = alphabet[num % length] + encoded;
+        num = Math.floor(num / length);
+    } while (num > 0);
+    return encoded;
+}
+/**
+ * Return the integer value specified by the given string.
+ *
+ * @param {String} str The string to convert.
+ * @returns {Number} The integer value represented by the string.
+ * @api public
+ */
+function decode(str) {
+    let decoded = 0;
+    for (i = 0; i < str.length; i++) {
+        decoded = decoded * length + map[str.charAt(i)];
+    }
+    return decoded;
+}
+/**
+ * Yeast: A tiny growing id generator.
+ *
+ * @returns {String} A unique id.
+ * @api public
+ */
+function yeast() {
+    const now = encode(+new Date());
+    if (now !== prev)
+        return seed = 0, prev = now;
+    return now + '.' + encode(seed++);
+}
+//
+// Map each character to its index.
+//
+for (; i < length; i++)
+    map[alphabet[i]] = i;
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Socket", function() { return Socket; });
-/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var parseqs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
-/* harmony import */ var parseqs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(parseqs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var parseuri__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
-/* harmony import */ var parseuri__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(parseuri__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(15);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 /* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6);
 
 
@@ -2015,7 +2289,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
             uri = null;
         }
         if (uri) {
-            uri = parseuri__WEBPACK_IMPORTED_MODULE_3___default()(uri);
+            uri = Object(_contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_3__["parse"])(uri);
             opts.hostname = uri.host;
             opts.secure = uri.protocol === "https" || uri.protocol === "wss";
             opts.port = uri.port;
@@ -2023,7 +2297,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
                 opts.query = uri.query;
         }
         else if (opts.host) {
-            opts.hostname = parseuri__WEBPACK_IMPORTED_MODULE_3___default()(opts.host).host;
+            opts.hostname = Object(_contrib_parseuri_js__WEBPACK_IMPORTED_MODULE_3__["parse"])(opts.host).host;
         }
         Object(_util_js__WEBPACK_IMPORTED_MODULE_1__["installTimerFunctions"])(this, opts);
         this.secure =
@@ -2064,7 +2338,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
         }, opts);
         this.opts.path = this.opts.path.replace(/\/$/, "") + "/";
         if (typeof this.opts.query === "string") {
-            this.opts.query = parseqs__WEBPACK_IMPORTED_MODULE_2___default.a.decode(this.opts.query);
+            this.opts.query = Object(_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__["decode"])(this.opts.query);
         }
         // set on handshake
         this.id = null;
@@ -2078,17 +2352,20 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
                 // Firefox closes the connection when the "beforeunload" event is emitted but not Chrome. This event listener
                 // ensures every browser behaves the same (no "disconnect" event at the Socket.IO level when the page is
                 // closed/reloaded)
-                addEventListener("beforeunload", () => {
+                this.beforeunloadEventListener = () => {
                     if (this.transport) {
                         // silently close the transport
                         this.transport.removeAllListeners();
                         this.transport.close();
                     }
-                }, false);
+                };
+                addEventListener("beforeunload", this.beforeunloadEventListener, false);
             }
             if (this.hostname !== "localhost") {
                 this.offlineEventListener = () => {
-                    this.onClose("transport close");
+                    this.onClose("transport close", {
+                        description: "network connection lost"
+                    });
                 };
                 addEventListener("offline", this.offlineEventListener, false);
             }
@@ -2103,7 +2380,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
      * @api private
      */
     createTransport(name) {
-        const query = clone(this.opts.query);
+        const query = Object.assign({}, this.opts.query);
         // append engine.io protocol identifier
         query.EIO = engine_io_parser__WEBPACK_IMPORTED_MODULE_5__["protocol"];
         // transport name
@@ -2171,9 +2448,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
             .on("drain", this.onDrain.bind(this))
             .on("packet", this.onPacket.bind(this))
             .on("error", this.onError.bind(this))
-            .on("close", () => {
-            this.onClose("transport close");
-        });
+            .on("close", reason => this.onClose("transport close", reason));
     }
     /**
      * Probes a transport.
@@ -2337,6 +2612,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
         this.upgrades = this.filterUpgrades(data.upgrades);
         this.pingInterval = data.pingInterval;
         this.pingTimeout = data.pingTimeout;
+        this.maxPayload = data.maxPayload;
         this.onOpen();
         // In case open handler closes socket
         if ("closed" === this.readyState)
@@ -2385,12 +2661,39 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
             this.transport.writable &&
             !this.upgrading &&
             this.writeBuffer.length) {
-            this.transport.send(this.writeBuffer);
+            const packets = this.getWritablePackets();
+            this.transport.send(packets);
             // keep track of current length of writeBuffer
             // splice writeBuffer and callbackBuffer on `drain`
-            this.prevBufferLen = this.writeBuffer.length;
+            this.prevBufferLen = packets.length;
             this.emitReserved("flush");
         }
+    }
+    /**
+     * Ensure the encoded size of the writeBuffer is below the maxPayload value sent by the server (only for HTTP
+     * long-polling)
+     *
+     * @private
+     */
+    getWritablePackets() {
+        const shouldCheckPayloadSize = this.maxPayload &&
+            this.transport.name === "polling" &&
+            this.writeBuffer.length > 1;
+        if (!shouldCheckPayloadSize) {
+            return this.writeBuffer;
+        }
+        let payloadSize = 1; // first packet type
+        for (let i = 0; i < this.writeBuffer.length; i++) {
+            const data = this.writeBuffer[i].data;
+            if (data) {
+                payloadSize += Object(_util_js__WEBPACK_IMPORTED_MODULE_1__["byteLength"])(data);
+            }
+            if (i > 0 && payloadSize > this.maxPayload) {
+                return this.writeBuffer.slice(0, i);
+            }
+            payloadSize += 2; // separator + packet type
+        }
+        return this.writeBuffer;
     }
     /**
      * Sends a message.
@@ -2499,7 +2802,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
      *
      * @api private
      */
-    onClose(reason, desc) {
+    onClose(reason, description) {
         if ("opening" === this.readyState ||
             "open" === this.readyState ||
             "closing" === this.readyState) {
@@ -2512,6 +2815,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
             // ignore further transport communication
             this.transport.removeAllListeners();
             if (typeof removeEventListener === "function") {
+                removeEventListener("beforeunload", this.beforeunloadEventListener, false);
                 removeEventListener("offline", this.offlineEventListener, false);
             }
             // set ready state
@@ -2519,7 +2823,7 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
             // clear session id
             this.id = null;
             // emit close event
-            this.emitReserved("close", reason, desc);
+            this.emitReserved("close", reason, description);
             // clean buffers after, so users can still
             // grab the buffers on `close` event
             this.writeBuffer = [];
@@ -2545,19 +2849,10 @@ class Socket extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_4__["
     }
 }
 Socket.protocol = engine_io_parser__WEBPACK_IMPORTED_MODULE_5__["protocol"];
-function clone(obj) {
-    const o = {};
-    for (let i in obj) {
-        if (obj.hasOwnProperty(i)) {
-            o[i] = obj[i];
-        }
-    }
-    return o;
-}
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2607,13 +2902,13 @@ const encodeBlobAsBase64 = (data, callback) => {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _commons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-/* harmony import */ var _contrib_base64_arraybuffer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
+/* harmony import */ var _contrib_base64_arraybuffer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(24);
 
 
 const withNativeArrayBuffer = typeof ArrayBuffer === "function";
@@ -2666,60 +2961,33 @@ const mapBinary = (data, binaryType) => {
 
 
 /***/ }),
-/* 19 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "protocol", function() { return protocol; });
-/* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(16);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Socket", function() { return _socket_js__WEBPACK_IMPORTED_MODULE_0__["Socket"]; });
-
-/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Transport", function() { return _transport_js__WEBPACK_IMPORTED_MODULE_1__["Transport"]; });
-
-/* harmony import */ var _transports_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(14);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "transports", function() { return _transports_index_js__WEBPACK_IMPORTED_MODULE_2__["transports"]; });
-
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "installTimerFunctions", function() { return _util_js__WEBPACK_IMPORTED_MODULE_3__["installTimerFunctions"]; });
-
-
-
-const protocol = _socket_js__WEBPACK_IMPORTED_MODULE_0__["Socket"].protocol;
-
-
-
-
-
-/***/ }),
 /* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var has_cors__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(24);
-/* harmony import */ var has_cors__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(has_cors__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "XHR", function() { return XHR; });
+/* harmony import */ var _contrib_has_cors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(25);
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
 // browser shim for xmlhttprequest module
 
 
-/* harmony default export */ __webpack_exports__["default"] = (function (opts) {
+function XHR(opts) {
     const xdomain = opts.xdomain;
     // XMLHttpRequest can be disabled on IE
     try {
-        if ("undefined" !== typeof XMLHttpRequest && (!xdomain || has_cors__WEBPACK_IMPORTED_MODULE_0___default.a)) {
+        if ("undefined" !== typeof XMLHttpRequest && (!xdomain || _contrib_has_cors_js__WEBPACK_IMPORTED_MODULE_0__["hasCORS"])) {
             return new XMLHttpRequest();
         }
     }
     catch (e) { }
     if (!xdomain) {
         try {
-            return new _globalThis_js__WEBPACK_IMPORTED_MODULE_1__["default"][["Active"].concat("Object").join("X")]("Microsoft.XMLHTTP");
+            return new _globalThis_js__WEBPACK_IMPORTED_MODULE_1__["globalThisShim"][["Active"].concat("Object").join("X")]("Microsoft.XMLHTTP");
         }
         catch (e) { }
     }
-});
+}
 
 
 /***/ }),
@@ -2730,7 +2998,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deconstructPacket", function() { return deconstructPacket; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "reconstructPacket", function() { return reconstructPacket; });
-/* harmony import */ var _is_binary_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(13);
+/* harmony import */ var _is_binary_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
 
 /**
  * Replaces every Buffer | ArrayBuffer | Blob | File in packet with a numbered placeholder.
@@ -2789,8 +3057,16 @@ function reconstructPacket(packet, buffers) {
 function _reconstructPacket(data, buffers) {
     if (!data)
         return data;
-    if (data && data._placeholder) {
-        return buffers[data.num]; // appropriate buffer (should be natural order anyway)
+    if (data && data._placeholder === true) {
+        const isIndexValid = typeof data.num === "number" &&
+            data.num >= 0 &&
+            data.num < buffers.length;
+        if (isIndexValid) {
+            return buffers[data.num]; // appropriate buffer (should be natural order anyway)
+        }
+        else {
+            throw new Error("illegal attachments");
+        }
     }
     else if (Array.isArray(data)) {
         for (let i = 0; i < data.length; i++) {
@@ -2815,8 +3091,7 @@ function _reconstructPacket(data, buffers) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "url", function() { return url; });
-/* harmony import */ var parseuri__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
-/* harmony import */ var parseuri__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(parseuri__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var engine_io_client__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 
 /**
  * URL parser.
@@ -2852,7 +3127,7 @@ function url(uri, path = "", loc) {
             }
         }
         // parse
-        obj = parseuri__WEBPACK_IMPORTED_MODULE_0___default()(uri);
+        obj = Object(engine_io_client__WEBPACK_IMPORTED_MODULE_0__["parse"])(uri);
     }
     // make sure we treat `localhost:80` and `localhost` equally
     if (!obj.port) {
@@ -2884,31 +3159,32 @@ function url(uri, path = "", loc) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "XHR", function() { return XHR; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Polling", function() { return Polling; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Request", function() { return Request; });
-/* harmony import */ var _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(20);
-/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
-/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _polling_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(25);
-/* global attachEvent */
+/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _contrib_yeast_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(16);
+/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
+/* harmony import */ var _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
+/* harmony import */ var _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(3);
+/* harmony import */ var _globalThis_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(4);
 
 
 
 
 
-/**
- * Empty function
- */
+
+
+
 function empty() { }
 const hasXHR2 = (function () {
-    const xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    const xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_4__["XHR"]({
         xdomain: false
     });
     return null != xhr.responseType;
 })();
-class XHR extends _polling_js__WEBPACK_IMPORTED_MODULE_4__["Polling"] {
+class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
     /**
      * XHR Polling constructor.
      *
@@ -2917,6 +3193,7 @@ class XHR extends _polling_js__WEBPACK_IMPORTED_MODULE_4__["Polling"] {
      */
     constructor(opts) {
         super(opts);
+        this.polling = false;
         if (typeof location !== "undefined") {
             const isSSL = "https:" === location.protocol;
             let port = location.port;
@@ -2935,6 +3212,160 @@ class XHR extends _polling_js__WEBPACK_IMPORTED_MODULE_4__["Polling"] {
          */
         const forceBase64 = opts && opts.forceBase64;
         this.supportsBinary = hasXHR2 && !forceBase64;
+    }
+    /**
+     * Transport name.
+     */
+    get name() {
+        return "polling";
+    }
+    /**
+     * Opens the socket (triggers polling). We write a PING message to determine
+     * when the transport is open.
+     *
+     * @api private
+     */
+    doOpen() {
+        this.poll();
+    }
+    /**
+     * Pauses polling.
+     *
+     * @param {Function} callback upon buffers are flushed and transport is paused
+     * @api private
+     */
+    pause(onPause) {
+        this.readyState = "pausing";
+        const pause = () => {
+            this.readyState = "paused";
+            onPause();
+        };
+        if (this.polling || !this.writable) {
+            let total = 0;
+            if (this.polling) {
+                total++;
+                this.once("pollComplete", function () {
+                    --total || pause();
+                });
+            }
+            if (!this.writable) {
+                total++;
+                this.once("drain", function () {
+                    --total || pause();
+                });
+            }
+        }
+        else {
+            pause();
+        }
+    }
+    /**
+     * Starts polling cycle.
+     *
+     * @api public
+     */
+    poll() {
+        this.polling = true;
+        this.doPoll();
+        this.emitReserved("poll");
+    }
+    /**
+     * Overloads onData to detect payloads.
+     *
+     * @api private
+     */
+    onData(data) {
+        const callback = packet => {
+            // if its the first message we consider the transport open
+            if ("opening" === this.readyState && packet.type === "open") {
+                this.onOpen();
+            }
+            // if its a close packet, we close the ongoing requests
+            if ("close" === packet.type) {
+                this.onClose({ description: "transport closed by the server" });
+                return false;
+            }
+            // otherwise bypass onData and handle the message
+            this.onPacket(packet);
+        };
+        // decode payload
+        Object(engine_io_parser__WEBPACK_IMPORTED_MODULE_3__["decodePayload"])(data, this.socket.binaryType).forEach(callback);
+        // if an event did not trigger closing
+        if ("closed" !== this.readyState) {
+            // if we got data we're not polling
+            this.polling = false;
+            this.emitReserved("pollComplete");
+            if ("open" === this.readyState) {
+                this.poll();
+            }
+            else {
+            }
+        }
+    }
+    /**
+     * For polling, send a close packet.
+     *
+     * @api private
+     */
+    doClose() {
+        const close = () => {
+            this.write([{ type: "close" }]);
+        };
+        if ("open" === this.readyState) {
+            close();
+        }
+        else {
+            // in case we're trying to close while
+            // handshaking is in progress (GH-164)
+            this.once("open", close);
+        }
+    }
+    /**
+     * Writes a packets payload.
+     *
+     * @param {Array} data packets
+     * @param {Function} drain callback
+     * @api private
+     */
+    write(packets) {
+        this.writable = false;
+        Object(engine_io_parser__WEBPACK_IMPORTED_MODULE_3__["encodePayload"])(packets, data => {
+            this.doWrite(data, () => {
+                this.writable = true;
+                this.emitReserved("drain");
+            });
+        });
+    }
+    /**
+     * Generates uri for connection.
+     *
+     * @api private
+     */
+    uri() {
+        let query = this.query || {};
+        const schema = this.opts.secure ? "https" : "http";
+        let port = "";
+        // cache busting is forced
+        if (false !== this.opts.timestampRequests) {
+            query[this.opts.timestampParam] = Object(_contrib_yeast_js__WEBPACK_IMPORTED_MODULE_1__["yeast"])();
+        }
+        if (!this.supportsBinary && !query.sid) {
+            query.b64 = 1;
+        }
+        // avoid port if default for schema
+        if (this.opts.port &&
+            (("https" === schema && Number(this.opts.port) !== 443) ||
+                ("http" === schema && Number(this.opts.port) !== 80))) {
+            port = ":" + this.opts.port;
+        }
+        const encodedQuery = Object(_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_2__["encode"])(query);
+        const ipv6 = this.opts.hostname.indexOf(":") !== -1;
+        return (schema +
+            "://" +
+            (ipv6 ? "[" + this.opts.hostname + "]" : this.opts.hostname) +
+            port +
+            this.opts.path +
+            (encodedQuery.length ? "?" + encodedQuery : ""));
     }
     /**
      * Creates a request.
@@ -2959,8 +3390,8 @@ class XHR extends _polling_js__WEBPACK_IMPORTED_MODULE_4__["Polling"] {
             data: data
         });
         req.on("success", fn);
-        req.on("error", err => {
-            this.onError("xhr post error", err);
+        req.on("error", (xhrStatus, context) => {
+            this.onError("xhr post error", xhrStatus, context);
         });
     }
     /**
@@ -2971,13 +3402,13 @@ class XHR extends _polling_js__WEBPACK_IMPORTED_MODULE_4__["Polling"] {
     doPoll() {
         const req = this.request();
         req.on("data", this.onData.bind(this));
-        req.on("error", err => {
-            this.onError("xhr poll error", err);
+        req.on("error", (xhrStatus, context) => {
+            this.onError("xhr poll error", xhrStatus, context);
         });
         this.pollXhr = req;
     }
 }
-class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__["Emitter"] {
+class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_5__["Emitter"] {
     /**
      * Request constructor
      *
@@ -2986,7 +3417,7 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__[
      */
     constructor(uri, opts) {
         super();
-        Object(_util_js__WEBPACK_IMPORTED_MODULE_2__["installTimerFunctions"])(this, opts);
+        Object(_util_js__WEBPACK_IMPORTED_MODULE_6__["installTimerFunctions"])(this, opts);
         this.opts = opts;
         this.method = opts.method || "GET";
         this.uri = uri;
@@ -3000,10 +3431,10 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__[
      * @api private
      */
     create() {
-        const opts = Object(_util_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(this.opts, "agent", "pfx", "key", "passphrase", "cert", "ca", "ciphers", "rejectUnauthorized", "autoUnref");
+        const opts = Object(_util_js__WEBPACK_IMPORTED_MODULE_6__["pick"])(this.opts, "agent", "pfx", "key", "passphrase", "cert", "ca", "ciphers", "rejectUnauthorized", "autoUnref");
         opts.xdomain = !!this.opts.xd;
         opts.xscheme = !!this.opts.xs;
-        const xhr = (this.xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_0__["default"](opts));
+        const xhr = (this.xhr = new _xmlhttprequest_js__WEBPACK_IMPORTED_MODULE_4__["XHR"](opts));
         try {
             xhr.open(this.method, this.uri, this.async);
             try {
@@ -3065,30 +3496,12 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__[
         }
     }
     /**
-     * Called upon successful response.
-     *
-     * @api private
-     */
-    onSuccess() {
-        this.emit("success");
-        this.cleanup();
-    }
-    /**
-     * Called if we have data.
-     *
-     * @api private
-     */
-    onData(data) {
-        this.emit("data", data);
-        this.onSuccess();
-    }
-    /**
      * Called upon error.
      *
      * @api private
      */
     onError(err) {
-        this.emit("error", err);
+        this.emitReserved("error", err, this.xhr);
         this.cleanup(true);
     }
     /**
@@ -3120,7 +3533,9 @@ class Request extends _socket_io_component_emitter__WEBPACK_IMPORTED_MODULE_3__[
     onLoad() {
         const data = this.xhr.responseText;
         if (data !== null) {
-            this.onData(data);
+            this.emitReserved("data", data);
+            this.emitReserved("success");
+            this.cleanup();
         }
     }
     /**
@@ -3146,7 +3561,7 @@ if (typeof document !== "undefined") {
         attachEvent("onunload", unloadHandler);
     }
     else if (typeof addEventListener === "function") {
-        const terminationEvent = "onpagehide" in _globalThis_js__WEBPACK_IMPORTED_MODULE_1__["default"] ? "pagehide" : "unload";
+        const terminationEvent = "onpagehide" in _globalThis_js__WEBPACK_IMPORTED_MODULE_7__["globalThisShim"] ? "pagehide" : "unload";
         addEventListener(terminationEvent, unloadHandler, false);
     }
 }
@@ -3161,208 +3576,6 @@ function unloadHandler() {
 
 /***/ }),
 /* 24 */
-/***/ (function(module, exports) {
-
-
-/**
- * Module exports.
- *
- * Logic borrowed from Modernizr:
- *
- *   - https://github.com/Modernizr/Modernizr/blob/master/feature-detects/cors.js
- */
-
-try {
-  module.exports = typeof XMLHttpRequest !== 'undefined' &&
-    'withCredentials' in new XMLHttpRequest();
-} catch (err) {
-  // if XMLHttp support is disabled in IE then it will throw
-  // when trying to create
-  module.exports = false;
-}
-
-
-/***/ }),
-/* 25 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Polling", function() { return Polling; });
-/* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var yeast__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15);
-/* harmony import */ var yeast__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(yeast__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var parseqs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
-/* harmony import */ var parseqs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(parseqs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
-
-
-
-
-class Polling extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
-    constructor() {
-        super(...arguments);
-        this.polling = false;
-    }
-    /**
-     * Transport name.
-     */
-    get name() {
-        return "polling";
-    }
-    /**
-     * Opens the socket (triggers polling). We write a PING message to determine
-     * when the transport is open.
-     *
-     * @api private
-     */
-    doOpen() {
-        this.poll();
-    }
-    /**
-     * Pauses polling.
-     *
-     * @param {Function} callback upon buffers are flushed and transport is paused
-     * @api private
-     */
-    pause(onPause) {
-        this.readyState = "pausing";
-        const pause = () => {
-            this.readyState = "paused";
-            onPause();
-        };
-        if (this.polling || !this.writable) {
-            let total = 0;
-            if (this.polling) {
-                total++;
-                this.once("pollComplete", function () {
-                    --total || pause();
-                });
-            }
-            if (!this.writable) {
-                total++;
-                this.once("drain", function () {
-                    --total || pause();
-                });
-            }
-        }
-        else {
-            pause();
-        }
-    }
-    /**
-     * Starts polling cycle.
-     *
-     * @api public
-     */
-    poll() {
-        this.polling = true;
-        this.doPoll();
-        this.emit("poll");
-    }
-    /**
-     * Overloads onData to detect payloads.
-     *
-     * @api private
-     */
-    onData(data) {
-        const callback = packet => {
-            // if its the first message we consider the transport open
-            if ("opening" === this.readyState && packet.type === "open") {
-                this.onOpen();
-            }
-            // if its a close packet, we close the ongoing requests
-            if ("close" === packet.type) {
-                this.onClose();
-                return false;
-            }
-            // otherwise bypass onData and handle the message
-            this.onPacket(packet);
-        };
-        // decode payload
-        Object(engine_io_parser__WEBPACK_IMPORTED_MODULE_3__["decodePayload"])(data, this.socket.binaryType).forEach(callback);
-        // if an event did not trigger closing
-        if ("closed" !== this.readyState) {
-            // if we got data we're not polling
-            this.polling = false;
-            this.emit("pollComplete");
-            if ("open" === this.readyState) {
-                this.poll();
-            }
-            else {
-            }
-        }
-    }
-    /**
-     * For polling, send a close packet.
-     *
-     * @api private
-     */
-    doClose() {
-        const close = () => {
-            this.write([{ type: "close" }]);
-        };
-        if ("open" === this.readyState) {
-            close();
-        }
-        else {
-            // in case we're trying to close while
-            // handshaking is in progress (GH-164)
-            this.once("open", close);
-        }
-    }
-    /**
-     * Writes a packets payload.
-     *
-     * @param {Array} data packets
-     * @param {Function} drain callback
-     * @api private
-     */
-    write(packets) {
-        this.writable = false;
-        Object(engine_io_parser__WEBPACK_IMPORTED_MODULE_3__["encodePayload"])(packets, data => {
-            this.doWrite(data, () => {
-                this.writable = true;
-                this.emit("drain");
-            });
-        });
-    }
-    /**
-     * Generates uri for connection.
-     *
-     * @api private
-     */
-    uri() {
-        let query = this.query || {};
-        const schema = this.opts.secure ? "https" : "http";
-        let port = "";
-        // cache busting is forced
-        if (false !== this.opts.timestampRequests) {
-            query[this.opts.timestampParam] = yeast__WEBPACK_IMPORTED_MODULE_1___default()();
-        }
-        if (!this.supportsBinary && !query.sid) {
-            query.b64 = 1;
-        }
-        // avoid port if default for schema
-        if (this.opts.port &&
-            (("https" === schema && Number(this.opts.port) !== 443) ||
-                ("http" === schema && Number(this.opts.port) !== 80))) {
-            port = ":" + this.opts.port;
-        }
-        const encodedQuery = parseqs__WEBPACK_IMPORTED_MODULE_2___default.a.encode(query);
-        const ipv6 = this.opts.hostname.indexOf(":") !== -1;
-        return (schema +
-            "://" +
-            (ipv6 ? "[" + this.opts.hostname + "]" : this.opts.hostname) +
-            port +
-            this.opts.path +
-            (encodedQuery.length ? "?" + encodedQuery : ""));
-    }
-}
-
-
-/***/ }),
-/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3414,18 +3627,36 @@ const decode = (base64) => {
 
 
 /***/ }),
-/* 27 */
+/* 25 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasCORS", function() { return hasCORS; });
+// imported from https://github.com/component/has-cors
+let value = false;
+try {
+    value = typeof XMLHttpRequest !== 'undefined' &&
+        'withCredentials' in new XMLHttpRequest();
+}
+catch (err) {
+    // if XMLHttp support is disabled in IE then it will throw
+    // when trying to create
+}
+const hasCORS = value;
+
+
+/***/ }),
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(Buffer) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WS", function() { return WS; });
 /* harmony import */ var _transport_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var parseqs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
-/* harmony import */ var parseqs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(parseqs__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var yeast__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(15);
-/* harmony import */ var yeast__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(yeast__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
+/* harmony import */ var _contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
+/* harmony import */ var _contrib_yeast_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(16);
+/* harmony import */ var _util_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3);
 /* harmony import */ var _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(5);
 /* harmony import */ var engine_io_parser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6);
 
@@ -3485,7 +3716,7 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
                     : new _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__["WebSocket"](uri, protocols, opts);
         }
         catch (err) {
-            return this.emit("error", err);
+            return this.emitReserved("error", err);
         }
         this.ws.binaryType = this.socket.binaryType || _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__["defaultBinaryType"];
         this.addEventListeners();
@@ -3502,7 +3733,10 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
             }
             this.onOpen();
         };
-        this.ws.onclose = this.onClose.bind(this);
+        this.ws.onclose = closeEvent => this.onClose({
+            description: "websocket connection closed",
+            context: closeEvent
+        });
         this.ws.onmessage = ev => this.onData(ev.data);
         this.ws.onerror = e => this.onError("websocket error", e);
     }
@@ -3527,7 +3761,9 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
                         opts.compress = packet.options.compress;
                     }
                     if (this.opts.perMessageDeflate) {
-                        const len = "string" === typeof data ? Buffer.byteLength(data) : data.length;
+                        const len = 
+                        // @ts-ignore
+                        "string" === typeof data ? Buffer.byteLength(data) : data.length;
                         if (len < this.opts.perMessageDeflate.threshold) {
                             opts.compress = false;
                         }
@@ -3552,7 +3788,7 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
                     // defer to next tick to allow Socket to clear writeBuffer
                     Object(_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__["nextTick"])(() => {
                         this.writable = true;
-                        this.emit("drain");
+                        this.emitReserved("drain");
                     }, this.setTimeoutFn);
                 }
             });
@@ -3586,13 +3822,13 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
         }
         // append timestamp to URI
         if (this.opts.timestampRequests) {
-            query[this.opts.timestampParam] = yeast__WEBPACK_IMPORTED_MODULE_2___default()();
+            query[this.opts.timestampParam] = Object(_contrib_yeast_js__WEBPACK_IMPORTED_MODULE_2__["yeast"])();
         }
         // communicate binary support capabilities
         if (!this.supportsBinary) {
             query.b64 = 1;
         }
-        const encodedQuery = parseqs__WEBPACK_IMPORTED_MODULE_1___default.a.encode(query);
+        const encodedQuery = Object(_contrib_parseqs_js__WEBPACK_IMPORTED_MODULE_1__["encode"])(query);
         const ipv6 = this.opts.hostname.indexOf(":") !== -1;
         return (schema +
             "://" +
@@ -3608,24 +3844,19 @@ class WS extends _transport_js__WEBPACK_IMPORTED_MODULE_0__["Transport"] {
      * @api public
      */
     check() {
-        return (!!_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__["WebSocket"] &&
-            !("__initialize" in _websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__["WebSocket"] && this.name === WS.prototype.name));
+        return !!_websocket_constructor_js__WEBPACK_IMPORTED_MODULE_4__["WebSocket"];
     }
 }
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(32).Buffer))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(31).Buffer))
 
 /***/ }),
-/* 28 */
-/***/ (function(module, exports) {
+/* 27 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-
-/**
- * Expose `Backoff`.
- */
-
-module.exports = Backoff;
-
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Backoff", function() { return Backoff; });
 /**
  * Initialize backoff timer with `opts`.
  *
@@ -3637,87 +3868,75 @@ module.exports = Backoff;
  * @param {Object} opts
  * @api public
  */
-
 function Backoff(opts) {
-  opts = opts || {};
-  this.ms = opts.min || 100;
-  this.max = opts.max || 10000;
-  this.factor = opts.factor || 2;
-  this.jitter = opts.jitter > 0 && opts.jitter <= 1 ? opts.jitter : 0;
-  this.attempts = 0;
+    opts = opts || {};
+    this.ms = opts.min || 100;
+    this.max = opts.max || 10000;
+    this.factor = opts.factor || 2;
+    this.jitter = opts.jitter > 0 && opts.jitter <= 1 ? opts.jitter : 0;
+    this.attempts = 0;
 }
-
 /**
  * Return the backoff duration.
  *
  * @return {Number}
  * @api public
  */
-
-Backoff.prototype.duration = function(){
-  var ms = this.ms * Math.pow(this.factor, this.attempts++);
-  if (this.jitter) {
-    var rand =  Math.random();
-    var deviation = Math.floor(rand * this.jitter * ms);
-    ms = (Math.floor(rand * 10) & 1) == 0  ? ms - deviation : ms + deviation;
-  }
-  return Math.min(ms, this.max) | 0;
+Backoff.prototype.duration = function () {
+    var ms = this.ms * Math.pow(this.factor, this.attempts++);
+    if (this.jitter) {
+        var rand = Math.random();
+        var deviation = Math.floor(rand * this.jitter * ms);
+        ms = (Math.floor(rand * 10) & 1) == 0 ? ms - deviation : ms + deviation;
+    }
+    return Math.min(ms, this.max) | 0;
 };
-
 /**
  * Reset the number of attempts.
  *
  * @api public
  */
-
-Backoff.prototype.reset = function(){
-  this.attempts = 0;
+Backoff.prototype.reset = function () {
+    this.attempts = 0;
 };
-
 /**
  * Set the minimum duration
  *
  * @api public
  */
-
-Backoff.prototype.setMin = function(min){
-  this.ms = min;
+Backoff.prototype.setMin = function (min) {
+    this.ms = min;
 };
-
 /**
  * Set the maximum duration
  *
  * @api public
  */
-
-Backoff.prototype.setMax = function(max){
-  this.max = max;
+Backoff.prototype.setMax = function (max) {
+    this.max = max;
 };
-
 /**
  * Set the jitter
  *
  * @api public
  */
-
-Backoff.prototype.setJitter = function(jitter){
-  this.jitter = jitter;
+Backoff.prototype.setJitter = function (jitter) {
+    this.jitter = jitter;
 };
 
 
-
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _jsreportStudio = __webpack_require__(30);
+var _jsreportStudio = __webpack_require__(29);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
-var _socket = __webpack_require__(31);
+var _socket = __webpack_require__(30);
 
 var _socket2 = _interopRequireDefault(_socket);
 
@@ -3781,13 +4000,13 @@ _jsreportStudio2.default.initializeListeners.push(function () {
 });
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ (function(module, exports) {
 
 module.exports = Studio;
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3796,10 +4015,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "connect", function() { return lookup; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return lookup; });
 /* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(22);
-/* harmony import */ var _manager_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
+/* harmony import */ var _manager_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Manager", function() { return _manager_js__WEBPACK_IMPORTED_MODULE_1__["Manager"]; });
 
-/* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var _socket_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(12);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Socket", function() { return _socket_js__WEBPACK_IMPORTED_MODULE_2__["Socket"]; });
 
 /* harmony import */ var socket_io_parser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(0);
@@ -3865,7 +4084,7 @@ Object.assign(lookup, {
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3879,9 +4098,9 @@ Object.assign(lookup, {
 
 
 
-var base64 = __webpack_require__(34)
-var ieee754 = __webpack_require__(35)
-var isArray = __webpack_require__(36)
+var base64 = __webpack_require__(33)
+var ieee754 = __webpack_require__(34)
+var isArray = __webpack_require__(35)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -5659,10 +5878,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(33)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(32)))
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ (function(module, exports) {
 
 var g;
@@ -5688,7 +5907,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5845,7 +6064,7 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(module, exports) {
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
@@ -5936,7 +6155,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
