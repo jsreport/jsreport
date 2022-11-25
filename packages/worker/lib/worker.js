@@ -83,7 +83,19 @@ module.exports = (options = {}) => {
 
       if (!workersManager) {
         debug('initializing worker')
+
+        const chromeLaunchOptions = {
+          executablePath: 'google-chrome-stable',
+          args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+        }
+
+        if (options.useChromiumMacosWorkaround) {
+          chromeLaunchOptions.executablePath = 'chromium-browser'
+          chromeLaunchOptions.args = ['--disable-gpu', '--disable-dev-shm-usage', '--no-sandbox', '--disable-dev-profile', '--disable-setuid-sandbox', '--single-process']
+        }
+
         const workerOptions = reqBody.workerOptions
+
         for (const def of workerOptions.extensionsDefs) {
           if (options.overwriteExtensionPaths !== false) {
             def.directory = options.extensions[camelCase(def.name)]
@@ -92,20 +104,22 @@ module.exports = (options = {}) => {
           if (!def.directory) {
             def.options.enabled = false
           }
+
           // the worker gets already merged configs so we cant it just have in ENV in dockerfile
           // TODO solve this somehow
           if (def.name === 'chrome-pdf') {
             def.options.launchOptions = {
-              executablePath: 'google-chrome-stable',
-              args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+              executablePath: chromeLaunchOptions.executablePath,
+              args: chromeLaunchOptions.args
             }
           }
         }
+
         workerOptions.options.chrome = {
           ...workerOptions.options.chrome,
           launchOptions: {
-            executablePath: 'google-chrome-stable',
-            args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
+            executablePath: chromeLaunchOptions.executablePath,
+            args: chromeLaunchOptions.args
           }
         }
 
