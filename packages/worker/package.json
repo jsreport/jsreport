@@ -44,13 +44,13 @@
     "lodash.omit": "4.5.0",
     "nconf": "0.12.0",
     "node.extend": "2.0.2",
-    "puppeteer": "13.1.2",
+    "puppeteer": "16.1.0",
     "serializator": "1.0.2",
     "uuid": "8.3.2"
   },
   "devDependencies": {
     "@jsreport/jsreport-docker-workers": "3.5.2",
-    "mocha": "8.3.2",
+    "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4",
     "supertest": "6.1.3"
