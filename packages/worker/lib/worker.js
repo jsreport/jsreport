@@ -85,13 +85,12 @@ module.exports = (options = {}) => {
         debug('initializing worker')
 
         const chromeLaunchOptions = {
-          executablePath: 'google-chrome-stable',
           args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile']
         }
 
         if (options.useChromiumMacosWorkaround) {
           chromeLaunchOptions.executablePath = 'chromium-browser'
-          chromeLaunchOptions.args = ['--disable-gpu', '--disable-dev-shm-usage', '--no-sandbox', '--disable-dev-profile', '--disable-setuid-sandbox', '--single-process']
+          chromeLaunchOptions.args = ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile', '--no-zygote', '--disable-gpu', '--disable-audio-output', '--disable-setuid-sandbox', '--single-process']
         }
 
         const workerOptions = reqBody.workerOptions
@@ -108,19 +107,25 @@ module.exports = (options = {}) => {
           // the worker gets already merged configs so we cant it just have in ENV in dockerfile
           // TODO solve this somehow
           if (def.name === 'chrome-pdf') {
-            def.options.launchOptions = {
-              executablePath: chromeLaunchOptions.executablePath,
-              args: chromeLaunchOptions.args
+            def.options.launchOptions = {}
+
+            if (chromeLaunchOptions.executablePath != null) {
+              def.options.launchOptions.executablePath = chromeLaunchOptions.executablePath
             }
+
+            def.options.launchOptions.args = chromeLaunchOptions.args
           }
         }
 
         workerOptions.options.chrome = {
           ...workerOptions.options.chrome,
           launchOptions: {
-            executablePath: chromeLaunchOptions.executablePath,
             args: chromeLaunchOptions.args
           }
+        }
+
+        if (chromeLaunchOptions.executablePath != null) {
+          workerOptions.options.chrome.launchOptions.executablePath = chromeLaunchOptions.executablePath
         }
 
         workerOptions.options.tempDirectory = options.tempDirectory || '/tmp/jsreport'

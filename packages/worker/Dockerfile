@@ -1,29 +1,28 @@
 # using xenial for now to be able to use phantom -> with newer ubuntu phantom cannot download images over https
 FROM ubuntu:xenial
 EXPOSE 2000
+ARG TARGETPLATFORM
 
-RUN adduser --disabled-password --gecos "" jsreport && \
+RUN adduser --disabled-password --gecos "" jsreport
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common wget gnupg bzip2 git curl && \
+    apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libappindicator3-1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils && \
+    # adding custom ppa repository to get access to custom version of chromium for macOS M1 hardware
+    # this ppa only has builds available for architecture amd64,
+    # however it seems it is the only one releasing for ubuntu xenial and since jsreport/worker
+    # does not have a requirement to be built for arm64 architecture we are fine.
+    # some of these ppa are just added because the chromium-browser depends on some newer
+    # versions of packages not being available on xenial by default,
+    # these extra ppa provide those updated packages
+    add-apt-repository ppa:savoury1/ffmpeg4 && add-apt-repository ppa:savoury1/display && add-apt-repository ppa:savoury1/chromium && \
     apt-get update && \
-    apt-get install -y --no-install-recommends libxss1 libgconf-2-4 libappindicator3-1 libxtst6 gnupg bzip2 git curl wget ca-certificates && \
-    # chrome needs some base fonts
-    apt-get install -y --no-install-recommends xfonts-base xfonts-75dpi && \
-    # chrome
-    apt-get install -y libgconf-2-4 && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
-    apt-get update && \
-    # install latest chrome just to get package deps installed
-    apt-get install -y google-chrome-stable chromium-browser fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst --no-install-recommends && \
-    # then replace that chrome with specific chrome version, see https://github.com/webnicer/chrome-downloads for available versions
-    wget https://github.com/webnicer/chrome-downloads/raw/master/x64.deb/google-chrome-stable_93.0.4577.82-1_amd64.deb && \
-    dpkg -i ./google-chrome*.deb && \
-    rm google-chrome*.deb && \
-    # fix duplicated chrome source, leave the image in clean state for other images can use
-    # apt-get correctly
-    rm -f /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && \
-    # cleanup
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
+    apt install -y chromium-browser=1:107.0.5304.121-0ubuntu0.16.04.1sav0 chromium-codecs-ffmpeg=1:107.0.5304.121-0ubuntu0.16.04.1sav0 && \
+    # fonts for chrome
+    apt install -y xfonts-base xfonts-75dpi fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst
+
+# cleanup
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* && \
     rm -rf /src/*.deb
 
 RUN mkdir -p /app
@@ -44,8 +43,6 @@ ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 WORKDIR /app
 
-# the chrome was already installed from apt-get
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
 COPY --chown=jsreport:jsreport packages/worker /app
 RUN npm install --production

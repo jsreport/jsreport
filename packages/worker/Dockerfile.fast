@@ -4,3 +4,5 @@ COPY --chown=jsreport:jsreport packages /app/packages
 COPY --chown=jsreport:jsreport packages/worker /app
 
 CMD ["node", "server.js"]
+# EXPOSE 9229
+# CMD ["node", "--inspect-brk=0.0.0.0:9229", "server.js"]
