@@ -63,11 +63,12 @@
         },
         {
             "name": "Attach to node on port",
-            "port": 9229,
+            "port": 9230,
             "request": "attach",
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "autoAttachChildProcesses": true,
             "type": "node"
         }
     ],
