@@ -67,7 +67,7 @@ describe('docker manager', () => {
     return reporter.init()
   })
 
-  afterEach(() => reporter.close())
+  afterEach(() => reporter && reporter.close())
 
   it('should be able to render report', async () => {
     let allocated = false
@@ -390,7 +390,7 @@ describe('docker manager', () => {
     containers[0].numberOfRestarts.should.be.eql(1)
   })
 
-  it('should restart if worker response doesnt have week attribute', async () => {
+  it('should restart if worker response does not have weak attribute', async () => {
     containers[0].handleReq(async (ctx) => {
       const reqData = serializator.parse(ctx.request.rawBody)
       if (reqData.actionName === 'render') {
@@ -418,13 +418,51 @@ describe('docker manager', () => {
     containers[0].numberOfRestarts.should.be.eql(1)
   })
 
-  it('should not restart if worker response have week attribute', async () => {
+  it('should restart if worker fails during allocate', async () => {
     containers[0].handleReq(async (ctx) => {
-      ctx.status = 400
-      ctx.body = serializator.serialize({
-        message: 'handlebars failure',
-        weak: true
-      })
+      const reqData = serializator.parse(ctx.request.rawBody)
+
+      if (reqData.systemAction === 'allocate') {
+        ctx.status = 400
+
+        ctx.body = serializator.serialize({
+          message: 'error during allocate'
+        })
+      } else {
+        ctx.status = 201
+        ctx.body = '{}'
+      }
+    })
+
+    await reporter.render({
+      template: {
+        recipe: 'html',
+        engine: 'none',
+        content: 'hello'
+      },
+      context: {
+        tenant: 'a'
+      }
+    }).should.be.rejected()
+
+    containers[0].numberOfRestarts.should.be.eql(1)
+  })
+
+  it('should not restart if worker response have weak attribute', async () => {
+    containers[0].handleReq(async (ctx) => {
+      const reqData = serializator.parse(ctx.request.rawBody)
+
+      if (reqData.actionName === 'render') {
+        ctx.status = 400
+
+        ctx.body = serializator.serialize({
+          message: 'handlebars failure',
+          weak: true
+        })
+      } else {
+        ctx.status = 201
+        ctx.body = '{}'
+      }
     })
 
     await reporter.render({
@@ -479,7 +517,7 @@ describe('docker manager', () => {
       await remoteReporter.dockerManager.serversChecker.refreshServersCache()
     })
 
-    afterEach(() => remoteReporter.close())
+    afterEach(() => remoteReporter && remoteReporter.close())
 
     it('should proxy request to remote server when tenant has active worker', async () => {
       remoteContainers[0].handleReq(async (ctx) => {

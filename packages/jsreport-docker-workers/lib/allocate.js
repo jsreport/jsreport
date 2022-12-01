@@ -95,8 +95,12 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
         timeout: container.remote ? opts.timeout * 1.2 : opts.timeout
       })
     } catch (e) {
-      await containersManager.release(container)
-      reporter.logger.warn(`Error while trying to allocate worker in container${container.remote ? '' : ` ${container.id}`} (${container.url}): ${e.stack}`)
+      containersManager.recycle({ container, originalTenant: discriminator }).catch((err) => {
+        reporter.logger.error(`Error while trying to recycle container after allocate error ${container.id} (${container.url}): ${err.stack}`)
+      })
+
+      reporter.logger.error(`Error while trying to allocate worker in container${container.remote ? '' : ` ${container.id}`} (${container.url}): ${e.stack}`)
+
       throw reporter.createError('Unable to allocate worker', { ...e })
     }
 

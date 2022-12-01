@@ -34,7 +34,7 @@ describe('busy queue', () => {
     await busyQueue.flush()
   })
 
-  it('processing timed out item shold reject', (done) => {
+  it('processing timed out item should reject', (done) => {
     busyQueue.push(1, () => done(new Error('should have failed')), () => {
       busyQueue.length.should.be.eql(0)
       done()
