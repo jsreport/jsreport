@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/worker",
-  "version": "3.7.0",
+  "version": "3.9.0",
   "private": true,
   "description": "Sandbox jsreport execution into extra process",
   "license": "MIT",
