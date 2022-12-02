@@ -4,13 +4,15 @@
   margin-bottom: 1rem;
 }
 
-.operationTable {
+.operationTable,
+.customMetadataTable {
   border-collapse: collapse;
   border:none;
   overflow: scroll
 }
 
-.operationTable th {
+.operationTable th,
+.customMetadataTable th {
   padding: 0.5rem
 }
 
@@ -19,7 +21,13 @@
 .operationTable td:nth-child(5),
 .operationTable th:nth-child(3),
 .operationTable th:nth-child(4),
-.operationTable th:nth-child(5)  {
+.operationTable th:nth-child(5),
+.customMetadataTable td:nth-child(3),
+.customMetadataTable td:nth-child(4),
+.customMetadataTable td:nth-child(5),
+.customMetadataTable th:nth-child(3),
+.customMetadataTable th:nth-child(4),
+.customMetadataTable th:nth-child(5)  {
   text-align: center;
   padding-left: 1rem;
   background-color: $secondary-backgroundColor;

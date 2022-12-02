@@ -630,7 +630,8 @@ var PdfUtilsEditor = function (_Component) {
     var _this = _possibleConstructorReturn(this, (PdfUtilsEditor.__proto__ || Object.getPrototypeOf(PdfUtilsEditor)).call(this, props));
 
     _this.state = {
-      activeTab: 'operations'
+      activeTab: 'operations',
+      customMetadataCreate: null
     };
     return _this;
   }
@@ -749,6 +750,41 @@ var PdfUtilsEditor = function (_Component) {
       _jsreportStudio2.default.updateEntity(Object.assign({}, entity, { pdfOperations: entity.pdfOperations.filter(function (a, i) {
           return i !== index;
         }) }));
+    }
+  }, {
+    key: 'getExistingCustomMetadata',
+    value: function getExistingCustomMetadata(entity) {
+      var existingCustomMetadata = entity.pdfMeta != null && entity.pdfMeta.custom != null && entity.pdfMeta.custom !== '' ? entity.pdfMeta.custom : '{}';
+
+      try {
+        existingCustomMetadata = JSON.parse(existingCustomMetadata);
+      } catch (parseError) {
+        existingCustomMetadata = {};
+      }
+
+      return existingCustomMetadata;
+    }
+  }, {
+    key: 'removeCustomMetadata',
+    value: function removeCustomMetadata(entity, key) {
+      var existingCustomMetadata = this.getExistingCustomMetadata(entity);
+
+      delete existingCustomMetadata[key];
+
+      this.updateMeta(entity, { custom: Object.keys(existingCustomMetadata).length > 0 ? JSON.stringify(existingCustomMetadata) : '' });
+    }
+  }, {
+    key: 'updateCustomMetadata',
+    value: function updateCustomMetadata(entity, key, value) {
+      if (key === '' || value === '') {
+        return;
+      }
+
+      var existingCustomMetadata = this.getExistingCustomMetadata(entity);
+
+      existingCustomMetadata[key] = value;
+
+      this.updateMeta(entity, { custom: JSON.stringify(existingCustomMetadata) });
     }
   }, {
     key: 'moveDown',
@@ -929,11 +965,205 @@ var PdfUtilsEditor = function (_Component) {
       );
     }
   }, {
-    key: 'render',
-    value: function render() {
+    key: 'renderCustomMetadata',
+    value: function renderCustomMetadata(entity) {
       var _this4 = this;
 
-      var activeTab = this.state.activeTab;
+      var existingCustomMetadata = this.getExistingCustomMetadata(entity);
+
+      var customMetadataList = Object.keys(existingCustomMetadata).reduce(function (acu, key) {
+        acu.push({
+          key: key,
+          value: existingCustomMetadata[key]
+        });
+
+        return acu;
+      }, []);
+
+      var body = null;
+
+      if (customMetadataList.length > 0) {
+        body = customMetadataList.map(function (item, idx) {
+          return _react2.default.createElement(
+            'tr',
+            { key: item.key },
+            _react2.default.createElement(
+              'td',
+              { style: { textAlign: 'center', paddingLeft: '5px', paddingRight: '10px' } },
+              _react2.default.createElement(
+                'label',
+                null,
+                item.key
+              )
+            ),
+            _react2.default.createElement(
+              'td',
+              { style: { textAlign: 'center', paddingLeft: '5px' } },
+              _react2.default.createElement('input', { type: 'text', value: item.value, onChange: function onChange(v) {
+                  return _this4.updateCustomMetadata(entity, item.key, v.target.value);
+                } })
+            ),
+            _react2.default.createElement(
+              'td',
+              null,
+              _react2.default.createElement(
+                'button',
+                { className: 'button', style: { backgroundColor: '#c6c6c6' }, onClick: function onClick() {
+                    return _this4.removeCustomMetadata(entity, item.key);
+                  } },
+                _react2.default.createElement('i', { className: 'fa fa-times' })
+              )
+            )
+          );
+        });
+      }
+
+      return _react2.default.createElement(
+        'table',
+        { className: _PdfUtilsEditor2.default.operationTable },
+        _react2.default.createElement(
+          'thead',
+          null,
+          _react2.default.createElement(
+            'tr',
+            null,
+            _react2.default.createElement(
+              'th',
+              null,
+              'Key'
+            ),
+            _react2.default.createElement(
+              'th',
+              null,
+              'Value'
+            ),
+            _react2.default.createElement('th', null)
+          )
+        ),
+        _react2.default.createElement(
+          'tbody',
+          null,
+          body
+        )
+      );
+    }
+  }, {
+    key: 'renderCustomMetadataCreate',
+    value: function renderCustomMetadataCreate(entity, customMetadataCreate) {
+      var _this5 = this;
+
+      var existingCustomMetadata = this.getExistingCustomMetadata(entity);
+
+      var el = void 0;
+
+      if (customMetadataCreate == null) {
+        el = _react2.default.createElement(
+          'div',
+          { style: { marginTop: '1rem', minHeight: '160px' } },
+          _react2.default.createElement(
+            'button',
+            {
+              className: 'button confirmation',
+              onClick: function onClick() {
+                var newKeyPrefix = 'key';
+                var targetNewKey = newKeyPrefix;
+                var counter = 1;
+
+                while (existingCustomMetadata[targetNewKey] != null) {
+                  counter += 1;
+                  targetNewKey = '' + newKeyPrefix + counter;
+                }
+
+                _this5.setState({
+                  customMetadataCreate: {
+                    key: targetNewKey,
+                    value: 'value'
+                  }
+                });
+              }
+            },
+            'Add custom metadata'
+          )
+        );
+      } else {
+        var saveDisabled = customMetadataCreate.key === '' || customMetadataCreate.value === '';
+
+        el = _react2.default.createElement(
+          'div',
+          { style: { marginTop: '1rem' } },
+          _react2.default.createElement('hr', null),
+          _react2.default.createElement(
+            'div',
+            { className: 'form-group' },
+            _react2.default.createElement(
+              'label',
+              null,
+              'Key'
+            ),
+            _react2.default.createElement('input', {
+              type: 'text',
+              value: customMetadataCreate.key,
+              onChange: function onChange(v) {
+                return _this5.setState({
+                  customMetadataCreate: _extends({}, customMetadataCreate, { key: v.target.value })
+                });
+              }
+            })
+          ),
+          _react2.default.createElement(
+            'div',
+            { className: 'form-group' },
+            _react2.default.createElement(
+              'label',
+              null,
+              'Value'
+            ),
+            _react2.default.createElement('input', {
+              type: 'text',
+              value: customMetadataCreate.value,
+              onChange: function onChange(v) {
+                return _this5.setState({
+                  customMetadataCreate: _extends({}, customMetadataCreate, { value: v.target.value })
+                });
+              }
+            })
+          ),
+          _react2.default.createElement(
+            'div',
+            { style: { marginTop: '1rem' } },
+            _react2.default.createElement(
+              'button',
+              {
+                className: 'button confirmation ' + (saveDisabled ? 'disabled' : ''),
+                disabled: saveDisabled,
+                onClick: function onClick() {
+                  _this5.updateCustomMetadata(entity, customMetadataCreate.key, customMetadataCreate.value);
+                  _this5.setState({ customMetadataCreate: null });
+                }
+              },
+              existingCustomMetadata[customMetadataCreate.key] == null || customMetadataCreate.key === '' ? 'Add' : 'Update'
+            ),
+            _react2.default.createElement(
+              'button',
+              { className: 'button confirmation', onClick: function onClick() {
+                  return _this5.setState({ customMetadataCreate: null });
+                } },
+              'Cancel'
+            )
+          )
+        );
+      }
+
+      return el;
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this6 = this;
+
+      var _state = this.state,
+          activeTab = _state.activeTab,
+          customMetadataCreate = _state.customMetadataCreate;
       var entity = this.props.entity;
 
 
@@ -966,21 +1196,21 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'button',
               { className: 'button confirmation', style: { marginLeft: 0 }, onClick: function onClick() {
-                  return _this4.addHeaderFooter();
+                  return _this6.addHeaderFooter();
                 } },
               'Add header/footer'
             ),
             _react2.default.createElement(
               'button',
               { className: 'button confirmation', onClick: function onClick() {
-                  return _this4.addTOC();
+                  return _this6.addTOC();
                 } },
               'Add Table of Contents'
             ),
             _react2.default.createElement(
               'button',
               { className: 'button confirmation', onClick: function onClick() {
-                  return _this4.addCover();
+                  return _this6.addCover();
                 } },
               'Add cover page'
             )
@@ -998,7 +1228,7 @@ var PdfUtilsEditor = function (_Component) {
               {
                 className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'operations' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
-                  return _this4.setState({ activeTab: 'operations' });
+                  return _this6.setState({ activeTab: 'operations' });
                 }
               },
               'operations'
@@ -1008,7 +1238,7 @@ var PdfUtilsEditor = function (_Component) {
               {
                 className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'meta' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
-                  return _this4.setState({ activeTab: 'meta' });
+                  return _this6.setState({ activeTab: 'meta' });
                 }
               },
               'meta'
@@ -1018,7 +1248,7 @@ var PdfUtilsEditor = function (_Component) {
               {
                 className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'password' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
-                  return _this4.setState({ activeTab: 'password' });
+                  return _this6.setState({ activeTab: 'password' });
                 }
               },
               'password'
@@ -1028,7 +1258,7 @@ var PdfUtilsEditor = function (_Component) {
               {
                 className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'sign' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
-                  return _this4.setState({ activeTab: 'sign' });
+                  return _this6.setState({ activeTab: 'sign' });
                 }
               },
               'sign'
@@ -1038,7 +1268,7 @@ var PdfUtilsEditor = function (_Component) {
               {
                 className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'pdfA' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
-                  return _this4.setState({ activeTab: 'pdfA' });
+                  return _this6.setState({ activeTab: 'pdfA' });
                 }
               },
               'pdfA'
@@ -1048,7 +1278,7 @@ var PdfUtilsEditor = function (_Component) {
               {
                 className: _PdfUtilsEditor2.default.tabTitle + ' ' + (activeTab === 'pdfAccessibility' ? _PdfUtilsEditor2.default.active : ''),
                 onClick: function onClick() {
-                  return _this4.setState({ activeTab: 'pdfAccessibility' });
+                  return _this6.setState({ activeTab: 'pdfAccessibility' });
                 }
               },
               'pdf accessibility'
@@ -1079,7 +1309,7 @@ var PdfUtilsEditor = function (_Component) {
               _react2.default.createElement(
                 'button',
                 { className: 'button confirmation', onClick: function onClick() {
-                    return _this4.addOperation(entity);
+                    return _this6.addOperation(entity);
                   } },
                 'Add operation'
               )
@@ -1091,7 +1321,7 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'p',
               { style: { marginTop: '1rem' } },
-              'Add metadata information to the final PDF.'
+              'Add General metadata information to the final PDF.'
             ),
             _react2.default.createElement(
               'div',
@@ -1105,7 +1335,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Title'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.title || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { title: v.target.value });
+                    return _this6.updateMeta(entity, { title: v.target.value });
                   } })
               ),
               _react2.default.createElement(
@@ -1117,7 +1347,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Author'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.author || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { author: v.target.value });
+                    return _this6.updateMeta(entity, { author: v.target.value });
                   } })
               ),
               _react2.default.createElement(
@@ -1129,7 +1359,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Subject'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.subject || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { subject: v.target.value });
+                    return _this6.updateMeta(entity, { subject: v.target.value });
                   } })
               ),
               _react2.default.createElement(
@@ -1141,7 +1371,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Keywords'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.keywords || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { keywords: v.target.value });
+                    return _this6.updateMeta(entity, { keywords: v.target.value });
                   } })
               ),
               _react2.default.createElement(
@@ -1153,7 +1383,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Creator'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.creator || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { creator: v.target.value });
+                    return _this6.updateMeta(entity, { creator: v.target.value });
                   } })
               ),
               _react2.default.createElement(
@@ -1165,7 +1395,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Producer'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.producer || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { producer: v.target.value });
+                    return _this6.updateMeta(entity, { producer: v.target.value });
                   } })
               ),
               _react2.default.createElement(
@@ -1177,10 +1407,21 @@ var PdfUtilsEditor = function (_Component) {
                   'Language'
                 ),
                 _react2.default.createElement('input', { type: 'text', value: pdfMeta.language || '', onChange: function onChange(v) {
-                    return _this4.updateMeta(entity, { language: v.target.value });
+                    return _this6.updateMeta(entity, { language: v.target.value });
                   } })
               )
-            )
+            ),
+            _react2.default.createElement(
+              'p',
+              null,
+              'Add Custom metadata for the final PDF.'
+            ),
+            _react2.default.createElement(
+              'div',
+              { style: { marginTop: '1rem' } },
+              this.renderCustomMetadata(entity)
+            ),
+            this.renderCustomMetadataCreate(entity, customMetadataCreate)
           ),
           _react2.default.createElement(
             'div',
@@ -1235,7 +1476,7 @@ var PdfUtilsEditor = function (_Component) {
                     placeholder: 'user password',
                     value: pdfPassword.password || '',
                     onChange: function onChange(v) {
-                      return _this4.updatePassword(entity, { password: v.target.value });
+                      return _this6.updatePassword(entity, { password: v.target.value });
                     }
                   })
                 )
@@ -1268,7 +1509,7 @@ var PdfUtilsEditor = function (_Component) {
                     placeholder: 'owner password',
                     value: pdfPassword.ownerPassword || '',
                     onChange: function onChange(v) {
-                      return _this4.updatePassword(entity, { ownerPassword: v.target.value });
+                      return _this6.updatePassword(entity, { ownerPassword: v.target.value });
                     }
                   })
                 ),
@@ -1286,7 +1527,7 @@ var PdfUtilsEditor = function (_Component) {
                       value: pdfPassword.printing || '-1',
                       title: 'Whether printing the file is allowed, and in which resolution the printing can be done',
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { printing: v.target.value === '-1' ? null : v.target.value });
+                        return _this6.updatePassword(entity, { printing: v.target.value === '-1' ? null : v.target.value });
                       }
                     },
                     _react2.default.createElement(
@@ -1317,7 +1558,7 @@ var PdfUtilsEditor = function (_Component) {
                     _react2.default.createElement('input', {
                       type: 'checkbox', checked: pdfPassword.modifying === true,
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { modifying: v.target.checked });
+                        return _this6.updatePassword(entity, { modifying: v.target.checked });
                       }
                     })
                   )
@@ -1333,7 +1574,7 @@ var PdfUtilsEditor = function (_Component) {
                     _react2.default.createElement('input', {
                       type: 'checkbox', checked: pdfPassword.copying === true,
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { copying: v.target.checked });
+                        return _this6.updatePassword(entity, { copying: v.target.checked });
                       }
                     })
                   )
@@ -1349,7 +1590,7 @@ var PdfUtilsEditor = function (_Component) {
                     _react2.default.createElement('input', {
                       type: 'checkbox', checked: pdfPassword.annotating === true,
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { annotating: v.target.checked });
+                        return _this6.updatePassword(entity, { annotating: v.target.checked });
                       }
                     })
                   )
@@ -1365,7 +1606,7 @@ var PdfUtilsEditor = function (_Component) {
                     _react2.default.createElement('input', {
                       type: 'checkbox', checked: pdfPassword.fillingForms === true,
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { fillingForms: v.target.checked });
+                        return _this6.updatePassword(entity, { fillingForms: v.target.checked });
                       }
                     })
                   )
@@ -1381,7 +1622,7 @@ var PdfUtilsEditor = function (_Component) {
                     _react2.default.createElement('input', {
                       type: 'checkbox', checked: pdfPassword.contentAccessibility === true,
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { contentAccessibility: v.target.checked });
+                        return _this6.updatePassword(entity, { contentAccessibility: v.target.checked });
                       }
                     })
                   )
@@ -1397,7 +1638,7 @@ var PdfUtilsEditor = function (_Component) {
                     _react2.default.createElement('input', {
                       type: 'checkbox', checked: pdfPassword.documentAssembly === true,
                       onChange: function onChange(v) {
-                        return _this4.updatePassword(entity, { documentAssembly: v.target.checked });
+                        return _this6.updatePassword(entity, { documentAssembly: v.target.checked });
                       }
                     })
                   )
@@ -1429,7 +1670,7 @@ var PdfUtilsEditor = function (_Component) {
                   newLabel: 'New certificate asset',
                   value: pdfSign.certificateAssetShortid || '',
                   onChange: function onChange(selected) {
-                    return _this4.updateSign(entity, { certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null });
+                    return _this6.updateSign(entity, { certificateAssetShortid: selected.length > 0 ? selected[0].shortid : null });
                   },
                   filter: function filter(references) {
                     return { data: references.assets };
@@ -1448,7 +1689,7 @@ var PdfUtilsEditor = function (_Component) {
                   'Sign Reason filled to pdf'
                 ),
                 _react2.default.createElement('input', { type: 'text', placeholder: 'signed...', value: pdfSign.reason, onChange: function onChange(v) {
-                    return _this4.updateSign(entity, { reason: v.target.value });
+                    return _this6.updateSign(entity, { reason: v.target.value });
                   } })
               )
             )
@@ -1459,7 +1700,7 @@ var PdfUtilsEditor = function (_Component) {
             _react2.default.createElement(
               'p',
               { style: { marginTop: '1rem' } },
-              'Produce otput complying with PDF/A-1B standard (beta)'
+              'Produce output complying with PDF/A-1B standard (beta)'
             ),
             _react2.default.createElement(
               'div',
@@ -2472,7 +2713,7 @@ exports.default = function () {
 /***/ (function(module, exports, __webpack_require__) {
 
 // extracted by mini-css-extract-plugin
-module.exports = {"separator":"x-pdf-utils-PdfUtilsEditor-separator","operationTable":"x-pdf-utils-PdfUtilsEditor-operationTable","tabContainer":"x-pdf-utils-PdfUtilsEditor-tabContainer","tabTitles":"x-pdf-utils-PdfUtilsEditor-tabTitles","tabTitle":"x-pdf-utils-PdfUtilsEditor-tabTitle","active":"x-pdf-utils-PdfUtilsEditor-active","tabPanel":"x-pdf-utils-PdfUtilsEditor-tabPanel"};
+module.exports = {"separator":"x-pdf-utils-PdfUtilsEditor-separator","operationTable":"x-pdf-utils-PdfUtilsEditor-operationTable","customMetadataTable":"x-pdf-utils-PdfUtilsEditor-customMetadataTable","tabContainer":"x-pdf-utils-PdfUtilsEditor-tabContainer","tabTitles":"x-pdf-utils-PdfUtilsEditor-tabTitles","tabTitle":"x-pdf-utils-PdfUtilsEditor-tabTitle","active":"x-pdf-utils-PdfUtilsEditor-active","tabPanel":"x-pdf-utils-PdfUtilsEditor-tabPanel"};
 
 /***/ })
 /******/ ]);

@@ -53,7 +53,8 @@ class PdfUtilsEditor extends Component {
     super(props)
 
     this.state = {
-      activeTab: 'operations'
+      activeTab: 'operations',
+      customMetadataCreate: null
     }
   }
 
@@ -150,6 +151,38 @@ class PdfUtilsEditor extends Component {
     Studio.updateEntity(Object.assign({}, entity, { pdfOperations: entity.pdfOperations.filter((a, i) => i !== index) }))
   }
 
+  getExistingCustomMetadata (entity) {
+    let existingCustomMetadata = entity.pdfMeta != null && entity.pdfMeta.custom != null && entity.pdfMeta.custom !== '' ? entity.pdfMeta.custom : '{}'
+
+    try {
+      existingCustomMetadata = JSON.parse(existingCustomMetadata)
+    } catch (parseError) {
+      existingCustomMetadata = {}
+    }
+
+    return existingCustomMetadata
+  }
+
+  removeCustomMetadata (entity, key) {
+    const existingCustomMetadata = this.getExistingCustomMetadata(entity)
+
+    delete existingCustomMetadata[key]
+
+    this.updateMeta(entity, { custom: Object.keys(existingCustomMetadata).length > 0 ? JSON.stringify(existingCustomMetadata) : '' })
+  }
+
+  updateCustomMetadata (entity, key, value) {
+    if (key === '' || value === '') {
+      return
+    }
+
+    const existingCustomMetadata = this.getExistingCustomMetadata(entity)
+
+    existingCustomMetadata[key] = value
+
+    this.updateMeta(entity, { custom: JSON.stringify(existingCustomMetadata) })
+  }
+
   moveDown (entity, index) {
     const pdfOperations = [...entity.pdfOperations]
     const tmp = pdfOperations[index + 1]
@@ -232,8 +265,132 @@ class PdfUtilsEditor extends Component {
     )
   }
 
+  renderCustomMetadata (entity) {
+    const existingCustomMetadata = this.getExistingCustomMetadata(entity)
+
+    const customMetadataList = Object.keys(existingCustomMetadata).reduce((acu, key) => {
+      acu.push({
+        key,
+        value: existingCustomMetadata[key]
+      })
+
+      return acu
+    }, [])
+
+    let body = null
+
+    if (customMetadataList.length > 0) {
+      body = customMetadataList.map((item, idx) => (
+        <tr key={item.key}>
+          <td style={{ textAlign: 'center', paddingLeft: '5px', paddingRight: '10px' }}>
+            <label>{item.key}</label>
+          </td>
+          <td style={{ textAlign: 'center', paddingLeft: '5px' }}>
+            <input type='text' value={item.value} onChange={(v) => this.updateCustomMetadata(entity, item.key, v.target.value)} />
+          </td>
+          <td>
+            <button className='button' style={{ backgroundColor: '#c6c6c6' }} onClick={() => this.removeCustomMetadata(entity, item.key)}><i className='fa fa-times' /></button>
+          </td>
+        </tr>
+      ))
+    }
+
+    return (
+      <table className={styles.operationTable}>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {body}
+        </tbody>
+      </table>
+    )
+  }
+
+  renderCustomMetadataCreate (entity, customMetadataCreate) {
+    const existingCustomMetadata = this.getExistingCustomMetadata(entity)
+
+    let el
+
+    if (customMetadataCreate == null) {
+      el = (
+        <div style={{ marginTop: '1rem', minHeight: '160px' }}>
+          <button
+            className='button confirmation'
+            onClick={() => {
+              const newKeyPrefix = 'key'
+              let targetNewKey = newKeyPrefix
+              let counter = 1
+
+              while (existingCustomMetadata[targetNewKey] != null) {
+                counter += 1
+                targetNewKey = `${newKeyPrefix}${counter}`
+              }
+
+              this.setState({
+                customMetadataCreate: {
+                  key: targetNewKey,
+                  value: 'value'
+                }
+              })
+            }}
+          >
+            Add custom metadata
+          </button>
+        </div>
+      )
+    } else {
+      const saveDisabled = customMetadataCreate.key === '' || customMetadataCreate.value === ''
+
+      el = (
+        <div style={{ marginTop: '1rem' }}>
+          <hr />
+          <div className='form-group'>
+            <label>Key</label>
+            <input
+              type='text'
+              value={customMetadataCreate.key}
+              onChange={(v) => this.setState({
+                customMetadataCreate: { ...customMetadataCreate, key: v.target.value }
+              })}
+            />
+          </div>
+          <div className='form-group'>
+            <label>Value</label>
+            <input
+              type='text'
+              value={customMetadataCreate.value}
+              onChange={(v) => this.setState({
+                customMetadataCreate: { ...customMetadataCreate, value: v.target.value }
+              })}
+            />
+          </div>
+          <div style={{ marginTop: '1rem' }}>
+            <button
+              className={`button confirmation ${saveDisabled ? 'disabled' : ''}`}
+              disabled={saveDisabled}
+              onClick={() => {
+                this.updateCustomMetadata(entity, customMetadataCreate.key, customMetadataCreate.value)
+                this.setState({ customMetadataCreate: null })
+              }}
+            >
+              {existingCustomMetadata[customMetadataCreate.key] == null || customMetadataCreate.key === '' ? 'Add' : 'Update'}
+            </button>
+            <button className='button confirmation' onClick={() => this.setState({ customMetadataCreate: null })}>Cancel</button>
+          </div>
+        </div>
+      )
+    }
+
+    return el
+  }
+
   render () {
-    const { activeTab } = this.state
+    const { activeTab, customMetadataCreate } = this.state
     const { entity } = this.props
 
     const pdfMeta = entity.pdfMeta || {}
@@ -309,7 +466,7 @@ class PdfUtilsEditor extends Component {
           </div>
           <div className={`${styles.tabPanel} ${activeTab === 'meta' ? styles.active : ''}`}>
             <p style={{ marginTop: '1rem' }}>
-              Add metadata information to the final PDF.
+              Add General metadata information to the final PDF.
             </p>
             <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
               <div className='form-group'>
@@ -341,6 +498,13 @@ class PdfUtilsEditor extends Component {
                 <input type='text' value={pdfMeta.language || ''} onChange={(v) => this.updateMeta(entity, { language: v.target.value })} />
               </div>
             </div>
+            <p>
+              Add Custom metadata for the final PDF.
+            </p>
+            <div style={{ marginTop: '1rem' }}>
+              {this.renderCustomMetadata(entity)}
+            </div>
+            {this.renderCustomMetadataCreate(entity, customMetadataCreate)}
           </div>
           <div className={`${styles.tabPanel} ${activeTab === 'password' ? styles.active : ''}`}>
             <div style={{ marginTop: '1rem' }}>
@@ -490,7 +654,7 @@ class PdfUtilsEditor extends Component {
           </div>
           <div className={`${styles.tabPanel} ${activeTab === 'pdfA' ? styles.active : ''}`}>
             <p style={{ marginTop: '1rem' }}>
-              Produce otput complying with PDF/A-1B standard (beta)
+              Produce output complying with PDF/A-1B standard (beta)
             </p>
             <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
               <div className='form-group'>

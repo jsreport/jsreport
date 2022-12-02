@@ -172,7 +172,7 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
 
       if (pdfMeta) {
         const meta = { ...pdfMeta }
-        if (meta.custom && typeof meta.custom === 'string') {
+        if (meta.custom && typeof meta.custom === 'string' && meta.custom !== '') {
           meta.custom = JSON.parse(meta.custom)
         }
         doc.info(meta)

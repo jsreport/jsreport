@@ -4,13 +4,15 @@
   margin-bottom: 1rem;
 }
 
-.x-pdf-utils-PdfUtilsEditor-operationTable {
+.x-pdf-utils-PdfUtilsEditor-operationTable,
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable {
   border-collapse: collapse;
   border:none;
   overflow: scroll
 }
 
-.x-pdf-utils-PdfUtilsEditor-operationTable th {
+.x-pdf-utils-PdfUtilsEditor-operationTable th,
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable th {
   padding: 0.5rem
 }
 
@@ -19,7 +21,13 @@
 .x-pdf-utils-PdfUtilsEditor-operationTable td:nth-child(5),
 .x-pdf-utils-PdfUtilsEditor-operationTable th:nth-child(3),
 .x-pdf-utils-PdfUtilsEditor-operationTable th:nth-child(4),
-.x-pdf-utils-PdfUtilsEditor-operationTable th:nth-child(5)  {
+.x-pdf-utils-PdfUtilsEditor-operationTable th:nth-child(5),
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable td:nth-child(3),
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable td:nth-child(4),
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable td:nth-child(5),
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable th:nth-child(3),
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable th:nth-child(4),
+.x-pdf-utils-PdfUtilsEditor-customMetadataTable th:nth-child(5)  {
   text-align: center;
   padding-left: 1rem;
   background-color: $secondary-backgroundColor;
