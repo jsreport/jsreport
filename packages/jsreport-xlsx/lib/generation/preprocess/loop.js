@@ -722,6 +722,10 @@ function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {
           value = fEl.textContent
           valueEl = fEl
           contentEl = fEl
+        } else {
+          // field is error but no formula definition was found, so we can not
+          // parse this
+          return
         }
 
         break

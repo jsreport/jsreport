@@ -103,6 +103,30 @@ describe('xlsx generation', () => {
     }).should.be.rejectedWith(/Failed to parse xlsx template input/i)
   })
 
+  it('ignore parsing cell of pivot table calculated field marked with error', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'pivot-calculated-field-with-error.xlsx')
+            )
+          }
+        }
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[2]]
+    should(sheet.E4.t).be.eql('e')
+    should(sheet.E4.w).be.eql('#DIV/0!')
+    should(sheet.E5.t).be.eql('e')
+    should(sheet.E5.w).be.eql('#DIV/0!')
+  })
+
   it('variable replace', async () => {
     const result = await reporter.render({
       template: {
