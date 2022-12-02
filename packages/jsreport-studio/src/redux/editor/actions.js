@@ -45,14 +45,14 @@ export function closeTab (id) {
       })
 
       // close also dependant tabs (like header-footer, pdf-utils, etc)
-      // if the entity is new of if it is dirty
+      // it does not matter if the entity is new or dirty or not changed at all,
+      // because when closing the main entity tab we unload the extra properties of the
+      // entity and these tabs depends on this data to exists to work
       dependantEntityTabs.forEach((t) => {
-        if (entity.__isNew || entity.__isDirty) {
-          dispatch({
-            type: ActionTypes.CLOSE_TAB,
-            key: t.key
-          })
-        }
+        dispatch({
+          type: ActionTypes.CLOSE_TAB,
+          key: t.key
+        })
       })
     }
 

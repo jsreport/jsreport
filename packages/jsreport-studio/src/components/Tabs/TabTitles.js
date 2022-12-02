@@ -155,6 +155,12 @@ class TabTitles extends Component {
   }
 
   renderContextMenu (t) {
+    const isDependantEntityTab = (
+      t.tab.type === 'entity' &&
+      // this check includes tabs like header-footer/pdf-utils
+      t.tab.key !== t.tab._id
+    )
+
     return (
       <div key='entity-contextmenu' className={style.contextMenuContainer}>
         <div className={style.contextMenu}>
@@ -164,24 +170,30 @@ class TabTitles extends Component {
           >
             Close Tab
           </div>
-          <div
-            className={style.contextButton}
-            onClick={(e) => { e.stopPropagation(); this.closeOtherTabs(t.tab.key); this.tryHide() }}
-          >
-            Close Other Tabs
-          </div>
-          <div
-            className={style.contextButton}
-            onClick={(e) => { e.stopPropagation(); this.closeTabsToTheRight(t.tab.key); this.tryHide() }}
-          >
-            Close Tabs to the Right
-          </div>
-          <div
-            className={style.contextButton}
-            onClick={(e) => { e.stopPropagation(); this.closeTabsToTheLeft(t.tab.key); this.tryHide() }}
-          >
-            Close Tabs to the Left
-          </div>
+          {!isDependantEntityTab && (
+            <div
+              className={style.contextButton}
+              onClick={(e) => { e.stopPropagation(); this.closeOtherTabs(t.tab.key); this.tryHide() }}
+            >
+              Close Other Tabs
+            </div>
+          )}
+          {!isDependantEntityTab && (
+            <div
+              className={style.contextButton}
+              onClick={(e) => { e.stopPropagation(); this.closeTabsToTheRight(t.tab.key); this.tryHide() }}
+            >
+              Close Tabs to the Right
+            </div>
+          )}
+          {!isDependantEntityTab && (
+            <div
+              className={style.contextButton}
+              onClick={(e) => { e.stopPropagation(); this.closeTabsToTheLeft(t.tab.key); this.tryHide() }}
+            >
+              Close Tabs to the Left
+            </div>
+          )}
           <div
             className={style.contextButton}
             onClick={(e) => { e.stopPropagation(); this.closeSavedTabs(); this.tryHide() }}
