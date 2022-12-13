@@ -298,7 +298,7 @@ module.exports = (reporter, definition) => {
 
     app.use('/studio/assets', serveStatic(distPath))
 
-    app.use('/studio/hierarchyMove', async (req, res) => {
+    app.post('/studio/hierarchyMove', async (req, res) => {
       const source = req.body.source
       const target = req.body.target
       const shouldCopy = req.body.copy === true
