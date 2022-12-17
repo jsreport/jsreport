@@ -54,7 +54,7 @@
     "diff-match-patch": "1.0.5",
     "enhanced-resolve": "5.8.3",
     "has-own-deep": "1.1.0",
-    "isbinaryfile": "4.0.0",
+    "isbinaryfile": "5.0.0",
     "listener-collection": "2.0.0",
     "lodash.get": "4.4.2",
     "lodash.groupby": "4.6.0",

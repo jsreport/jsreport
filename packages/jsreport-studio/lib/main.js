@@ -9,6 +9,7 @@ const favicon = require('serve-favicon')
 const { Diff2Html } = require('diff2html')
 const compression = require('compression')
 const ThemeManager = require('./themeManager')
+const createTextSearch = require('./textSearch')
 const distPath = path.join(__dirname, '../static/dist')
 
 module.exports = (reporter, definition) => {
@@ -79,6 +80,7 @@ module.exports = (reporter, definition) => {
 
   reporter.on('express-configure', () => {
     const extsInNormalMode = []
+    const textSearch = createTextSearch(reporter)
 
     if (process.env.NODE_ENV !== 'jsreport-development') {
       let webpackJsWrap
@@ -297,6 +299,25 @@ module.exports = (reporter, definition) => {
     })
 
     app.use('/studio/assets', serveStatic(distPath))
+
+    app.get('/studio/text-search', async (req, res, next) => {
+      try {
+        const searchTerm = req.query.text
+
+        if (searchTerm == null || searchTerm === '') {
+          return res.status(400).end('No search term specified')
+        }
+
+        const currentRequest = reporter.Request(req)
+        const results = await textSearch(reporter, currentRequest, searchTerm, 100)
+
+        res.status(200).json({
+          results
+        })
+      } catch (error) {
+        next(error)
+      }
+    })
 
     app.post('/studio/hierarchyMove', async (req, res) => {
       const source = req.body.source

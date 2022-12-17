@@ -9177,6 +9177,11 @@ he@1.2.0, he@1.2.x, he@^1.2.0:
   resolved "https://registry.npmjs.org/he/-/he-1.2.0.tgz"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
+highlight-words-core@1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/highlight-words-core/-/highlight-words-core-1.2.2.tgz#1eff6d7d9f0a22f155042a00791237791b1eeaaa"
+  integrity sha512-BXUKIkUuh6cmmxzi5OIbUJxrG8OAk2MqoL1DtO3Wo9D2faJg2ph5ntyuQeLqaHJmzER6H5tllCDA9ZnNe9BVGg==
+
 history@^4.9.0:
   version "4.10.1"
   resolved "https://registry.npmjs.org/history/-/history-4.10.1.tgz"
@@ -10317,10 +10322,10 @@ isbinaryfile@3.0.3:
   dependencies:
     buffer-alloc "^1.2.0"
 
-isbinaryfile@4.0.0:
-  version "4.0.0"
-  resolved "https://registry.npmjs.org/isbinaryfile/-/isbinaryfile-4.0.0.tgz"
-  integrity sha512-RBtmso6l2mCaEsUvXngMTIjg3oheXo0MgYzzfT6sk44RYggPnm9fT+cQJAmzRnJIxPHXg9FZglqDJGW28dvcqA==
+isbinaryfile@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/isbinaryfile/-/isbinaryfile-5.0.0.tgz#034b7e54989dab8986598cbcea41f66663c65234"
+  integrity sha512-UDdnyGvMajJUWCkib7Cei/dvyJrrvo4FIrsvSFWdPpXSUorzXrDJ0S+X5Q4ZlasfPjca4yqCNNsjbCeiy8FFeg==
 
 isexe@^1.1.1:
   version "1.1.2"
@@ -15412,6 +15417,11 @@ quick-lru@^5.1.1:
   version "5.1.1"
   resolved "https://registry.npmjs.org/quick-lru/-/quick-lru-5.1.1.tgz"
   integrity sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==
+
+race-as-promised@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/race-as-promised/-/race-as-promised-0.0.1.tgz#86ff663ceb83f6c33f5ee2f9ce5d33032dbeab01"
+  integrity sha512-+0MX9uoPzxC+amkbSSsPKb0UlcGew57LfLy1oQel6q4BT99ybrXZWYjP0oQuH3HEQbbPT+ZAUwU/KkIcElKiZg==
 
 raf@^3.4.1:
   version "3.4.1"

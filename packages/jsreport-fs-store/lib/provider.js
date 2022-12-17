@@ -165,11 +165,11 @@ module.exports = ({
     },
 
     insert (entitySet, doc, opts = {}) {
-      return this.transaction.operation(opts, async (store, persistence, rootDirectoy) => {
+      return this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
         doc._id = doc._id || uid(16)
         doc.$entitySet = entitySet
 
-        await persistence.insert(doc, store.documents, rootDirectoy)
+        await persistence.insert(doc, store.documents, rootDirectory)
 
         const clone = extend(true, {}, doc)
         clone.$$etag = Date.now()
@@ -188,19 +188,19 @@ module.exports = ({
     async update (entitySet, q, u, opts = {}) {
       let count
 
-      const res = await this.transaction.operation(opts, async (store, persistence, rootDirectoy) => {
+      const res = await this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
         const toUpdate = store.find(entitySet, q).all()
 
         count = toUpdate.length
 
-        // need to get of queue first before calling insert, otherwise we get a deathlock
+        // need to get of queue first before calling insert, otherwise we get a deadlock
         if (toUpdate.length === 0 && opts.upsert) {
           return 'insert'
         }
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toUpdate) {
-          await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, store.documents, rootDirectoy)
+          await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, store.documents, rootDirectory)
 
           Object.assign(doc, u.$set || {})
 
@@ -223,12 +223,12 @@ module.exports = ({
     },
 
     async remove (entitySet, q, opts = {}) {
-      return this.transaction.operation(opts, async (store, persistence, rootDirectoy) => {
+      return this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
         const toRemove = store.find(entitySet, q).all()
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toRemove) {
-          await persistence.remove(doc, store.documents, rootDirectoy)
+          await persistence.remove(doc, store.documents, rootDirectory)
           store.remove(entitySet, doc)
         }
 
