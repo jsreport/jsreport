@@ -124,12 +124,27 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
     }
   }
 
+  let timeoutController
+
+  if (timeout) {
+    // eslint-disable-next-line
+    timeoutController = new AbortController()
+  }
+
   // we handle the timeout using promises to avoid loosing stack in case of error
-  // mixing new Promise with async await leads to loosing it
+  // mixing new Promise with async await leads to loosing it. we ensure that when run ends
+  // we clean the timeout to avoid keeping handlers in memory longer than needed and allow
+  // the node.js process to not have the timeout process pending
   return Promise.race([
-    run(),
+    run().then((result) => {
+      timeoutController?.abort()
+      return result
+    }, (err) => {
+      timeoutController?.abort()
+      throw err
+    }),
     timeout
-      ? setTimeout(timeout).then(() => {
+      ? setTimeout(timeout, undefined, { signal: timeoutController.signal }).then(() => {
           isDone = true
           throw new Error('Timeout when communicating with worker')
         })
