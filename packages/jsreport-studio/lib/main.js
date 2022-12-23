@@ -309,9 +309,11 @@ module.exports = (reporter, definition) => {
         }
 
         const currentRequest = reporter.Request(req)
-        const results = await textSearch(reporter, currentRequest, searchTerm, 100)
+        const { matchesCount, entitiesCount, results } = await textSearch(reporter, currentRequest, searchTerm, 100)
 
         res.status(200).json({
+          matchesCount,
+          entitiesCount,
           results
         })
       } catch (error) {

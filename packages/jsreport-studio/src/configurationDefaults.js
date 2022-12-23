@@ -13,6 +13,7 @@ import TemplateProperties from './components/Properties/TemplateProperties'
 import EntityTreeButton from './components/EntityTree/EntityTreeButton'
 import EntityTreeNewButton from './components/EntityTree/EntityTreeNewButton'
 import EntityTreeInputSearch from './components/EntityTree/EntityTreeInputSearch'
+import EntityTreeTextSearchButton from './components/EntityTree/EntityTreeTextSearchButton'
 import EntityTreeNavigateButton from './components/EntityTree/EntityTreeNavigateButton'
 import Preview from './components/Preview/Preview'
 import FramePreview from './components/Preview/FramePreview'
@@ -33,6 +34,7 @@ import DownloadProfilePreviewAction from './components/Preview/MenuActions/Downl
 import UploadProfilePreviewAction from './components/Preview/MenuActions/UploadProfileAction'
 import OpenNewTabPreviewAction from './components/Preview/MenuActions/OpenNewTabAction'
 import RawContentPreviewType from './components/Preview/TypeComponents/RawContentPreviewType'
+import TextSearchPreviewType from './components/Preview/TypeComponents/TextSearchPreviewType'
 import ReportPreviewType from './components/Preview/TypeComponents/ReportPreviewType'
 import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePreviewType/ProfilePreviewType'
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
@@ -360,6 +362,8 @@ export default () => {
 
   configuration.entityTreeToolbarComponents.single.push(EntityTreeInputSearch)
 
+  configuration.entityTreeToolbarComponents.single.push(EntityTreeTextSearchButton)
+
   configuration.entityTreeToolbarComponents.single.push(EntityTreeNavigateButton)
 
   configuration.toolbarComponents.settings.push(connect(
@@ -490,6 +494,11 @@ export default () => {
 
   configuration.previewComponents.rawContent = {
     component: RawContentPreviewType
+  }
+
+  configuration.previewComponents['text-search'] = {
+    component: TextSearchPreviewType,
+    tabs: [{ name: 'search', title: 'search' }]
   }
 
   configuration.previewComponents.report = {

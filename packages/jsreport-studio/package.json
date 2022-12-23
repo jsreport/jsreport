@@ -87,6 +87,7 @@
     "react-dom": "16.14.0",
     "react-flow-renderer": "9.6.9",
     "react-fuzzy-filter-yarn-fix": "5.0.1",
+    "react-highlight-words": "0.18.0",
     "react-list": "0.8.15",
     "react-modal": "3.11.2",
     "react-monaco-editor": "0.44.0",

@@ -10,22 +10,29 @@ function findTextEditor (name) {
   return found.instance
 }
 
-function selectLine (textEditor, { lineNumber, error }) {
+function selectLine (textEditor, { lineNumber, endLineNumber, startColumn, endColumn, error }) {
   textEditor.revealLineInCenter(lineNumber)
-
-  const lineContent = textEditor.getModel().getLineContent(lineNumber)
 
   const range = {
     startLineNumber: lineNumber,
-    endLineNumber: lineNumber,
-    startColumn: 1,
-    endColumn: lineContent.length + 1
+    endLineNumber: endLineNumber == null ? lineNumber : endLineNumber,
+    startColumn: startColumn == null ? 1 : startColumn
   }
+
+  if (endColumn == null) {
+    const endLineContent = textEditor.getModel().getLineContent(range.endLineNumber)
+    range.endColumn = endLineContent.length + 1
+  } else {
+    range.endColumn = endColumn
+  }
+
   textEditor.setSelection(range)
+
   if (error) {
     const identifiers = textEditor.deltaDecorations([], [
       { range, options: { inlineClassName: 'errorLineDecoration' } }
     ])
+
     setTimeout(() => textEditor.deltaDecorations(identifiers, []), 3100)
   }
 }

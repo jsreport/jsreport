@@ -1,4 +1,4 @@
-import { rootPath } from '../lib/configuration.js'
+import { rootPath } from '../lib/configuration'
 
 const join = (a, b) => {
   const slashless = b[0] === '/' ? b.substring(1) : b

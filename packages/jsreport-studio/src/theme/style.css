@@ -16,6 +16,7 @@ html, body {
 
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -161,9 +162,9 @@ a:not(.button)[href]:link, a:not(.button)[href]:visited, a:not(.button)[href]:ho
 
 @keyframes errorColor {
   0% {
-    
+
   }
-  
+
   50% {
     background-color: rgb(218, 83, 44);
   }
@@ -173,8 +174,8 @@ a:not(.button)[href]:link, a:not(.button)[href]:visited, a:not(.button)[href]:ho
   }
 }
 
-.errorLineDecoration { 
+.errorLineDecoration {
   animation-name: errorColor;
   animation-duration: 3s;
-  animation-iteration-count: 1;  
+  animation-iteration-count: 1;
 }

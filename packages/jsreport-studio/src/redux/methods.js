@@ -22,6 +22,9 @@ const methods = {
   getEditorEditSelection () {
     return store.getState().editor.editSelection
   },
+  getEditorRunning () {
+    return store.getState().editor.running
+  },
   getEditorUndockMode () {
     return store.getState().editor.undockMode
   },
@@ -33,6 +36,9 @@ const methods = {
   },
   getEditorLastActiveTemplate () {
     return getLastActiveTemplate(store.getState().editor.lastActiveTemplateKey, store.getState().entities)
+  },
+  getEditorPreview () {
+    return store.getState().editor.preview
   },
   openEditorTab (...args) {
     return store.dispatch(openTab(...args))

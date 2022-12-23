@@ -39,6 +39,24 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Run jsreport studio dev server",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "npx",
+            "args": [
+                "jsreport-studio-start",
+                "--ignore-jsreport-studio-install",
+                "--ignore-jsreport-install",
+                "--entry-point=server.js"
+            ],
+            "envFile": "${workspaceFolder}/launch.env",
+            "autoAttachChildProcesses": true,
+            "console": "integratedTerminal"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Run jsreport server",

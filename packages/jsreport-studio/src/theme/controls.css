@@ -24,7 +24,7 @@ select:hover, select:focus, select:active {
   border-bottom: solid 0.2rem $controls-hover-borderColor;
 }
 
-input {
+input, .text-input {
   border: none;
   background-color: $controls-backgroundColor;
   color: $controls-color;
@@ -33,11 +33,13 @@ input {
   padding: 0.3rem;
 }
 
-input:hover, input:focus, input:active {
+input:hover, input:focus, input:active,
+.text-input:hover, .text-input:focus, .text-input:active {
   border-bottom: solid 0.2rem $controls-hover-borderColor;
 }
 
-input[type=text] {
+input[type=text],
+.text-input {
   width: 100%;
 }
 

@@ -275,7 +275,7 @@ class Studio {
   }
 
   /**
-   * Set the function retunring the visibility flag for particular toolbar button
+   * Set the function returning the visibility flag for particular toolbar button
    * ('Save All') => return true
    * @param {Function} fn
    */
@@ -572,7 +572,7 @@ class Studio {
   }
 
   /**
-   * Get the current theme (it will check localstorage for user preference and fallback to the default theme configured)
+   * Get the current theme (it will check local-storage for user preference and fallback to the default theme configured)
    * @returns {Object[]}
    */
   getCurrentTheme () {

@@ -1,8 +1,6 @@
 import { useCallback } from 'react'
 import { useDispatch } from 'react-redux'
-import { actions as editorActions } from '../../redux/editor'
-import storeMethods from '../../redux/methods'
-import { findTextEditor, selectLine as selectLineInTextEditor } from '../../helpers/textEditorInstance'
+import openEditorLine from '../../helpers/openEditorLine'
 
 const base64Check = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
 function convertFromBase64 (v) {
@@ -16,16 +14,11 @@ function useOpenErrorLine () {
   const dispatch = useDispatch()
 
   const openErrorLine = useCallback((error) => {
-    dispatch(editorActions.openTab({ shortid: error.entity.shortid })).then(() => {
-      setTimeout(() => {
-        const entity = storeMethods.getEntityByShortid(error.entity.shortid)
-        const contentIsTheSame = convertFromBase64(entity.content) === error.entity.content
-        const entityEditor = findTextEditor(error.property === 'content' ? entity._id : `${entity._id}_helpers`)
-
-        if (entityEditor != null && contentIsTheSame) {
-          selectLineInTextEditor(entityEditor, { lineNumber: error.lineNumber, error: true })
-        }
-      }, 300)
+    openEditorLine(error.entity.shortid, {
+      lineNumber: error.lineNumber,
+      getEditorName: (e) => error.property === 'content' ? e._id : `${e._id}_helpers`,
+      isContentTheSame: (e) => convertFromBase64(e.content) === error.entity.content,
+      error: true
     })
   }, [dispatch])
 

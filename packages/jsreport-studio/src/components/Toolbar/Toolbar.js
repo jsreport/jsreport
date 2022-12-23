@@ -7,6 +7,7 @@ import { createGetCanRunSelector, createGetActiveTabSelector, createGetActiveTab
 import { actions as editorActions } from '../../redux/editor'
 import { openModal, isModalOpen } from '../../helpers/openModal'
 import runLastActiveTemplate from '../../helpers/runLastActiveTemplate'
+import openTextSearch from '../../helpers/openTextSearch'
 import openStartup from '../../helpers/openStartup'
 import resolveUrl from '../../helpers/resolveUrl'
 import { toolbarComponents, toolbarVisibilityResolver, extensions } from '../../lib/configuration'
@@ -106,6 +107,20 @@ class Toolbar extends Component {
         e.stopPropagation()
 
         openModal(EntityFuzzyFinderModal, {})
+        return false
+      }
+    }
+
+    // ctrl + shift + f, cmd + shift + f -> activates text search
+    if (
+      (isMac() && e.metaKey && e.shiftKey && e.which === 70) ||
+      (!isMac() && e.ctrlKey && e.shiftKey && e.which === 70)
+    ) {
+      if (!isModalOpen()) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        openTextSearch()
         return false
       }
     }
