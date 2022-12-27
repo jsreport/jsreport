@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { tabTitleComponents } from '../../lib/configuration'
+import { tabTitleComponentKeyResolvers, tabTitleComponents } from '../../lib/configuration'
 import storeMethods from '../../redux/methods'
 import style from './Tabs.css'
 
@@ -41,6 +41,9 @@ class TabTitle extends Component {
   render () {
     const { tab, active, contextMenu, complementTitle, onClick, onContextMenu, onClose } = this.props
     let tabTooltip
+    let titleEl
+    let titleComponentKey = tab.tab.titleComponentKey
+    let customProps
 
     if (tab.entity) {
       const fullPath = storeMethods.resolveEntityPath(tab.entity, { parents: true, self: false })
@@ -48,6 +51,41 @@ class TabTitle extends Component {
       if (fullPath) {
         tabTooltip = fullPath
       }
+
+      if (titleComponentKey == null) {
+        let tabTitleComponentResult = {}
+
+        tabTitleComponentKeyResolvers.some((componentKeyResolverFn) => {
+          const componentKey = componentKeyResolverFn(tab.entity, tab.tab.docProp)
+          let found = false
+
+          if (componentKey) {
+            tabTitleComponentResult = componentKey
+            found = true
+          }
+
+          return found
+        })
+
+        customProps = { ...tabTitleComponentResult.props }
+        titleComponentKey = tabTitleComponentResult.key
+      }
+    }
+
+    if (titleComponentKey) {
+      titleEl = React.createElement(tabTitleComponents[titleComponentKey], {
+        ...customProps,
+        entity: tab.entity,
+        complementTitle,
+        tab: tab.tab
+      })
+    } else {
+      titleEl = [
+        <span key='main-title' className={style.tabMainTitle}>{tab.tab.title || (tab.entity.name + (tab.entity.__isDirty ? '*' : ''))}</span>,
+        (complementTitle != null && (
+          <span key='complement-title' className={style.tabComplementTitle}>&nbsp;{`- ${complementTitle}`}</span>
+        ))
+      ]
     }
 
     return (
@@ -61,22 +99,7 @@ class TabTitle extends Component {
         onContextMenu={(e) => onContextMenu(e, tab)}
       >
         <span>
-          {tab.tab.titleComponentKey
-            ? (
-                React.createElement(tabTitleComponents[tab.tab.titleComponentKey], {
-                  entity: tab.entity,
-                  complementTitle,
-                  tab: tab.tab
-                })
-              )
-            : (
-                [
-                  <span key='main-title' className={style.tabMainTitle}>{tab.tab.title || (tab.entity.name + (tab.entity.__isDirty ? '*' : ''))}</span>,
-                  (complementTitle != null && (
-                    <span key='complement-title' className={style.tabComplementTitle}>&nbsp;{`- ${complementTitle}`}</span>
-                  ))
-                ]
-              )}
+          {titleEl}
         </span>
         <div className={style.tabClose} onClick={(e) => { e.stopPropagation(); onClose(tab.tab.key) }} />
         {contextMenu != null ? contextMenu : <div key='empty-contextmenu' />}

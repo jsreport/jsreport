@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -103,34 +103,21 @@ module.exports = Studio;
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var PHANTOM_TAB_TITLE = exports.PHANTOM_TAB_TITLE = 'PHANTOM_TAB_TITLE';
-var PHANTOM_TAB_EDITOR = exports.PHANTOM_TAB_EDITOR = 'PHANTOM_TAB_EDITOR';
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _PhantomEditor = __webpack_require__(4);
+var _PhantomEditor = __webpack_require__(3);
 
 var _PhantomEditor2 = _interopRequireDefault(_PhantomEditor);
 
-var _PhantomPdfProperties = __webpack_require__(5);
+var _PhantomPdfProperties = __webpack_require__(4);
 
 var _PhantomPdfProperties2 = _interopRequireDefault(_PhantomPdfProperties);
 
-var _PhantomTitle = __webpack_require__(6);
+var _PhantomTitle = __webpack_require__(5);
 
 var _PhantomTitle2 = _interopRequireDefault(_PhantomTitle);
 
-var _constants = __webpack_require__(2);
+var _constants = __webpack_require__(6);
 
 var Constants = _interopRequireWildcard(_constants);
 
@@ -148,24 +135,54 @@ _jsreportStudio2.default.addPropertiesComponent('phantom pdf', _PhantomPdfProper
   return entity.__entitySet === 'templates' && entity.recipe === 'phantom-pdf';
 });
 
+var supportedDocProps = ['phantom.header', 'phantom.footer'];
+
+var shortNameMap = {
+  'phantom.header': 'header',
+  'phantom.footer': 'footer'
+};
+
 var reformat = function reformat(reformatter, entity, tab) {
   var lastPhantomProperties = entity.phantom || {};
-  var reformated = reformatter(lastPhantomProperties[tab.headerOrFooter], 'html');
+  var targetProp = shortNameMap[tab.docProp];
+  var reformated = reformatter(lastPhantomProperties[targetProp], 'html');
 
   return {
-    phantom: _extends({}, lastPhantomProperties, _defineProperty({}, tab.headerOrFooter, reformated))
+    phantom: _extends({}, lastPhantomProperties, _defineProperty({}, targetProp, reformated))
   };
 };
 
 _jsreportStudio2.default.addEditorComponent(Constants.PHANTOM_TAB_EDITOR, _PhantomEditor2.default, reformat);
 _jsreportStudio2.default.addTabTitleComponent(Constants.PHANTOM_TAB_TITLE, _PhantomTitle2.default);
 
+function componentKeyResolver(entity, docProp, key) {
+  if (docProp == null) {
+    return;
+  }
+
+  if (entity.__entitySet === 'templates' && supportedDocProps.includes(docProp)) {
+    return {
+      key: key,
+      props: {
+        headerOrFooter: shortNameMap[docProp]
+      }
+    };
+  }
+}
+
+_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity, docProp) {
+  return componentKeyResolver(entity, docProp, Constants.PHANTOM_TAB_EDITOR);
+});
+_jsreportStudio2.default.tabTitleComponentKeyResolvers.push(function (entity, docProp) {
+  return componentKeyResolver(entity, docProp, Constants.PHANTOM_TAB_TITLE);
+});
+
 _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
   return entity.__entitySet === 'templates' && entity.recipe === 'phantom-pdf' ? 'fa-file-pdf-o' : null;
 });
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -208,15 +225,17 @@ var PhantomEditor = function (_Component) {
       var _props = this.props,
           entity = _props.entity,
           _onUpdate = _props.onUpdate,
+          headerOrFooter = _props.headerOrFooter,
           tab = _props.tab;
 
+      var editorName = entity._id + '_' + tab.docProp.replace(/\./g, '_');
 
       return _react2.default.createElement(_jsreportStudio.TextEditor, {
-        name: entity._id + '_phantom' + tab.headerOrFooter,
+        name: editorName,
         mode: 'handlebars',
-        value: entity.phantom ? entity.phantom[tab.headerOrFooter] : '',
+        value: entity.phantom ? entity.phantom[headerOrFooter] : '',
         onUpdate: function onUpdate(v) {
-          return _onUpdate(Object.assign({}, entity, { phantom: Object.assign({}, entity.phantom, _defineProperty({}, tab.headerOrFooter, v)) }));
+          return _onUpdate(Object.assign({}, entity, { phantom: Object.assign({}, entity.phantom, _defineProperty({}, headerOrFooter, v)) }));
         }
       });
     }
@@ -228,7 +247,7 @@ var PhantomEditor = function (_Component) {
 exports.default = PhantomEditor;
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -242,10 +261,6 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _constants = __webpack_require__(2);
-
-var Constants = _interopRequireWildcard(_constants);
-
 var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
@@ -255,8 +270,6 @@ var _jsreportStudio = __webpack_require__(1);
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -395,11 +408,8 @@ var PhantomPdfProperties = function (_Component) {
     key: 'openHeaderFooter',
     value: function openHeaderFooter(type) {
       _jsreportStudio2.default.openTab({
-        key: this.props.entity._id + '_phantom' + type,
         _id: this.props.entity._id,
-        headerOrFooter: type,
-        editorComponentKey: Constants.PHANTOM_TAB_EDITOR,
-        titleComponentKey: Constants.PHANTOM_TAB_TITLE
+        docProp: 'phantom.' + type
       });
     }
   }, {
@@ -800,7 +810,7 @@ var PhantomPdfProperties = function (_Component) {
 exports.default = PhantomPdfProperties;
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -820,9 +830,22 @@ exports.default = function (props) {
   return _react2.default.createElement(
     'span',
     null,
-    props.entity.name + ' ' + props.tab.headerOrFooter + (props.entity.__isDirty ? '*' : '')
+    props.entity.name + ' ' + props.headerOrFooter + (props.entity.__isDirty ? '*' : '')
   );
 };
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var PHANTOM_TAB_TITLE = exports.PHANTOM_TAB_TITLE = 'PHANTOM_TAB_TITLE';
+var PHANTOM_TAB_EDITOR = exports.PHANTOM_TAB_EDITOR = 'PHANTOM_TAB_EDITOR';
 
 /***/ })
 /******/ ]);

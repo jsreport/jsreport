@@ -3,8 +3,8 @@ const extend = require('node.extend.without.arrays')
 module.exports = function (reporter, definition) {
   reporter.documentStore.registerEntityType('ComponentType', {
     name: { type: 'Edm.String' },
-    content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
-    helpers: { type: 'Edm.String', document: { extension: 'js' }, schema: { type: 'object' } },
+    content: { type: 'Edm.String', document: { main: true, extension: 'html', engine: true } },
+    helpers: { type: 'Edm.String', document: { main: true, extension: 'js' }, schema: { type: 'object' } },
     engine: { type: 'Edm.String' }
   })
 

@@ -22,10 +22,12 @@ import {
 import {
   engines,
   recipes,
+  entitySetsDocProps,
   runListeners,
   locationResolver,
   editorComponents,
-  concurrentUpdateModal
+  concurrentUpdateModal,
+  renderedEditorComponentsMeta
 } from '../../lib/configuration'
 
 const runningControllers = {}
@@ -86,7 +88,17 @@ export function openTab (tab, activate = true) {
     }
 
     tab.type = tab._id ? 'entity' : 'custom'
-    tab.key = tab.key || tab._id
+
+    if (
+      tab.docProp != null &&
+      tab.key == null &&
+      entitySetsDocProps[tab.entitySet] != null &&
+      entitySetsDocProps[tab.entitySet].find((docProp) => docProp.name === tab.docProp && docProp.main !== true) != null
+    ) {
+      tab.key = `${tab._id}_${tab.docProp.replace(/\./g, '_')}`
+    } else {
+      tab.key = tab.key || tab._id
+    }
 
     dispatch({
       type: ActionTypes.OPEN_TAB,
@@ -448,8 +460,8 @@ export function reformat (shouldThrow = false) {
     dispatch(entities.actions.flushUpdates())
 
     const tab = selectors.getActiveTab(getState().editor.activeTabKey, getState().editor.tabs)
-
-    const editorReformat = editorComponents[tab.editorComponentKey || tab.entitySet].reformat
+    const currentEditorComponentKey = renderedEditorComponentsMeta.data[tab.key] != null ? renderedEditorComponentsMeta.data[tab.key].editorComponentKey : undefined
+    const editorReformat = editorComponents[currentEditorComponentKey || tab.editorComponentKey || tab.entitySet].reformat
 
     if (!editorReformat && !shouldThrow) {
       return false

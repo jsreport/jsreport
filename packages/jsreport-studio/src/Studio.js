@@ -255,12 +255,21 @@ class Studio {
   }
 
   /**
-   * Array of functions used to resolve entity editor component editor, function accepts entity and returns string represent the component editor key
+   * Array of functions used to resolve entity editor component editor, function accepts entity, docProp and returns string represent the component editor key
    *
    * @returns {Function[]}
    */
   get entityEditorComponentKeyResolvers () {
     return configuration.entityEditorComponentKeyResolvers
+  }
+
+  /**
+   * Array of functions used to resolve tab title component, function accepts entity, docProp and returns string represent the component title key
+   *
+   * @returns {Function[]}
+   */
+  get tabTitleComponentKeyResolvers () {
+    return configuration.tabTitleComponentKeyResolvers
   }
 
   /**

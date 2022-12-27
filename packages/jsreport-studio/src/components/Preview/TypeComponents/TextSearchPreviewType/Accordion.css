@@ -1,0 +1,13 @@
+
+.accordionTitle {
+  cursor: pointer;
+}
+
+.accordionContentBox {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.accordionContentBox.expanded {
+  max-height: unset;
+}

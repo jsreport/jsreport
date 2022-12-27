@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
-import * as Constants from './constants.js'
 
 class ChromePdfProperties extends Component {
   constructor (props) {
@@ -47,11 +46,8 @@ class ChromePdfProperties extends Component {
     this.inform()
 
     Studio.openTab({
-      key: this.props.entity._id + 'chrome' + type,
       _id: this.props.entity._id,
-      headerOrFooter: type,
-      editorComponentKey: Constants.CHROME_TAB_EDITOR,
-      titleComponentKey: Constants.CHROME_TAB_TITLE
+      docProp: `chrome.${type}Template`
     })
   }
 

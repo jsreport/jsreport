@@ -14,7 +14,7 @@ import fetchExtensions from './lib/fetchExtensions'
 import './theme/style.css'
 import * as entities from './redux/entities'
 import * as settings from './redux/settings'
-import * as configuration from './lib/configuration.js'
+import * as configuration from './lib/configuration'
 import getEntityTreeOrder from './helpers/getEntityTreeOrder'
 
 window.React = React
@@ -92,6 +92,13 @@ const start = async () => {
   await Promise.all(
     [
       ...Object.keys(Studio.entitySets).map((t) => entities.actions.loadReferences(t)(store.dispatch)),
+      Studio.api.get('/studio/text-search-docProps').then((entitySets) => {
+        // eslint-disable-next-line
+        configuration.entitySetsDocProps = entitySets.reduce((acu, item) => {
+          acu[item.entitySet] = item.documentProps
+          return acu
+        }, {})
+      }),
       // eslint-disable-next-line
       Studio.api.get('/api/version', { parseJSON: false }).then((version) => (configuration.version = version)),
       // eslint-disable-next-line

@@ -29,7 +29,6 @@ function EntityDefinitionModal ({ close, options }) {
     }
 
     api.get(`/api/schema/${entity.__entitySet}`).then((response) => {
-      console.log(response)
       setEntitySetSchema(response)
     }).catch((err) => {
       console.error(`Error while getting schema for entitySet "${entity.__entitySet}"`, err)
@@ -46,7 +45,7 @@ function EntityDefinitionModal ({ close, options }) {
     body = (
       <TextEditor
         key={entity._id}
-        name={entity.name}
+        name={`${entity.name}_entityDefinition`}
         getFilename={() => entity.name}
         mode='json'
         onUpdate={() => {}}

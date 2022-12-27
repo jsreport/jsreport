@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -103,24 +103,11 @@ module.exports = Studio;
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var CHROME_TAB_TITLE = exports.CHROME_TAB_TITLE = 'CHROME_TAB_TITLE';
-var CHROME_TAB_EDITOR = exports.CHROME_TAB_EDITOR = 'CHROME_TAB_EDITOR';
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _ChromePdfProperties = __webpack_require__(4);
+var _ChromePdfProperties = __webpack_require__(3);
 
 var _ChromePdfProperties2 = _interopRequireDefault(_ChromePdfProperties);
 
-var _ChromeImageProperties = __webpack_require__(5);
+var _ChromeImageProperties = __webpack_require__(4);
 
 var _ChromeImageProperties2 = _interopRequireDefault(_ChromeImageProperties);
 
@@ -128,11 +115,11 @@ var _jsreportStudio = __webpack_require__(1);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
-var _ChromeEditor = __webpack_require__(6);
+var _ChromeEditor = __webpack_require__(5);
 
 var _ChromeEditor2 = _interopRequireDefault(_ChromeEditor);
 
-var _constants = __webpack_require__(2);
+var _constants = __webpack_require__(6);
 
 var Constants = _interopRequireWildcard(_constants);
 
@@ -153,6 +140,36 @@ _jsreportStudio2.default.addPropertiesComponent('chrome image', _ChromeImageProp
 
 _jsreportStudio2.default.addEditorComponent(Constants.CHROME_TAB_EDITOR, _ChromeEditor2.default);
 _jsreportStudio2.default.addTabTitleComponent(Constants.CHROME_TAB_TITLE, _ChromeTitle2.default);
+
+var supportedDocProps = ['chrome.headerTemplate', 'chrome.footerTemplate'];
+
+function componentKeyResolver(entity, docProp, key) {
+  if (docProp == null) {
+    return;
+  }
+
+  var shortNameMap = {
+    'chrome.headerTemplate': 'header',
+    'chrome.footerTemplate': 'footer'
+  };
+
+  if (entity.__entitySet === 'templates' && supportedDocProps.includes(docProp)) {
+    return {
+      key: key,
+      props: {
+        headerOrFooter: shortNameMap[docProp]
+      }
+    };
+  }
+}
+
+_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity, docProp) {
+  return componentKeyResolver(entity, docProp, Constants.CHROME_TAB_EDITOR);
+});
+_jsreportStudio2.default.tabTitleComponentKeyResolvers.push(function (entity, docProp) {
+  return componentKeyResolver(entity, docProp, Constants.CHROME_TAB_TITLE);
+});
+
 _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
   return entity.__entitySet === 'templates' && entity.recipe === 'chrome-pdf' ? 'fa-file-pdf-o' : null;
 });
@@ -161,7 +178,7 @@ _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
 });
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -182,12 +199,6 @@ var _react2 = _interopRequireDefault(_react);
 var _jsreportStudio = __webpack_require__(1);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-var _constants = __webpack_require__(2);
-
-var Constants = _interopRequireWildcard(_constants);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -260,11 +271,8 @@ var ChromePdfProperties = function (_Component) {
       this.inform();
 
       _jsreportStudio2.default.openTab({
-        key: this.props.entity._id + 'chrome' + type,
         _id: this.props.entity._id,
-        headerOrFooter: type,
-        editorComponentKey: Constants.CHROME_TAB_EDITOR,
-        titleComponentKey: Constants.CHROME_TAB_TITLE
+        docProp: 'chrome.' + type + 'Template'
       });
     }
   }, {
@@ -666,7 +674,7 @@ var ChromePdfProperties = function (_Component) {
 exports.default = ChromePdfProperties;
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1014,7 +1022,7 @@ var ImageProperties = function (_Component) {
 exports.default = ImageProperties;
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1057,15 +1065,17 @@ var ChromeEditor = function (_Component) {
       var _props = this.props,
           entity = _props.entity,
           _onUpdate = _props.onUpdate,
+          headerOrFooter = _props.headerOrFooter,
           tab = _props.tab;
 
+      var editorName = entity._id + '_' + tab.docProp.replace(/\./g, '_');
 
       return _react2.default.createElement(_jsreportStudio.TextEditor, {
-        name: entity._id + '_chrome' + tab.headerOrFooter,
+        name: editorName,
         mode: 'handlebars',
-        value: entity.chrome ? entity.chrome[tab.headerOrFooter + 'Template'] : '',
+        value: entity.chrome ? entity.chrome[headerOrFooter + 'Template'] : '',
         onUpdate: function onUpdate(v) {
-          return _onUpdate(Object.assign({}, entity, { chrome: Object.assign({}, entity.chrome, _defineProperty({}, tab.headerOrFooter + 'Template', v)) }));
+          return _onUpdate(Object.assign({}, entity, { chrome: Object.assign({}, entity.chrome, _defineProperty({}, headerOrFooter + 'Template', v)) }));
         }
       });
     }
@@ -1075,6 +1085,19 @@ var ChromeEditor = function (_Component) {
 }(_react.Component);
 
 exports.default = ChromeEditor;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var CHROME_TAB_TITLE = exports.CHROME_TAB_TITLE = 'CHROME_TAB_TITLE';
+var CHROME_TAB_EDITOR = exports.CHROME_TAB_EDITOR = 'CHROME_TAB_EDITOR';
 
 /***/ }),
 /* 7 */
@@ -1097,7 +1120,7 @@ exports.default = function (props) {
   return _react2.default.createElement(
     'span',
     null,
-    props.entity.name + ' ' + props.tab.headerOrFooter + (props.entity.__isDirty ? '*' : '')
+    props.entity.name + ' ' + props.headerOrFooter + (props.entity.__isDirty ? '*' : '')
   );
 };
 

@@ -300,6 +300,23 @@ module.exports = (reporter, definition) => {
 
     app.use('/studio/assets', serveStatic(distPath))
 
+    app.get('/studio/text-search-docProps', (req, res, next) => {
+      res.status(200).json(textSearch.entitySetsForTextSearch.map((item) => ({
+        entitySet: item.entitySet,
+        documentProps: item.documentProps.map((dp) => {
+          const prop = {
+            name: dp.name
+          }
+
+          if (dp.def.document.main === true) {
+            prop.main = true
+          }
+
+          return prop
+        })
+      })))
+    })
+
     app.get('/studio/text-search', async (req, res, next) => {
       try {
         const searchTerm = req.query.text

@@ -1,4 +1,3 @@
-import * as Constants from './constants.js'
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
@@ -126,11 +125,8 @@ class PhantomPdfProperties extends Component {
 
   openHeaderFooter (type) {
     Studio.openTab({
-      key: this.props.entity._id + '_phantom' + type,
       _id: this.props.entity._id,
-      headerOrFooter: type,
-      editorComponentKey: Constants.PHANTOM_TAB_EDITOR,
-      titleComponentKey: Constants.PHANTOM_TAB_TITLE
+      docProp: `phantom.${type}`
     })
   }
 

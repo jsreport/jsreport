@@ -1,15 +1,11 @@
-import * as Constants from './constants.js'
 import React, { Component } from 'react'
 import Studio from 'jsreport-studio'
 
 export default class Properties extends Component {
   openHeaderFooter (type) {
     Studio.openTab({
-      key: this.props.entity._id + '_wk' + type,
       _id: this.props.entity._id,
-      headerOrFooter: type,
-      editorComponentKey: Constants.WK_TAB_EDITOR,
-      titleComponentKey: Constants.WK_TAB_TITLE
+      docProp: `wkhtmltopdf.${type}`
     })
   }
 

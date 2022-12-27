@@ -8,7 +8,7 @@ const { readFile, linkPath, readAsset } = require('./assetsShared')
 module.exports = function (reporter, definition) {
   reporter.documentStore.registerEntityType('AssetType', {
     name: { type: 'Edm.String' },
-    content: { type: 'Edm.Binary', document: { extension: 'html', content: true } },
+    content: { type: 'Edm.Binary', document: { main: true, extension: 'html', content: true } },
     forceUpdate: { type: 'Edm.Boolean' },
     sharedHelpersScope: { type: 'Edm.String', schema: { type: 'null', enum: [null, 'global', 'folder'] } },
     isSharedHelper: { type: 'Edm.Boolean' },

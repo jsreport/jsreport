@@ -43,7 +43,7 @@ module.exports = function createTextSearch (reporter) {
     }
   }
 
-  return async function textSearch (reporter, req, text, step) {
+  async function textSearch (reporter, req, text, step) {
     let matchesCount = 0
     let entitiesCount = 0
     const results = []
@@ -152,6 +152,10 @@ module.exports = function createTextSearch (reporter) {
       results
     }
   }
+
+  textSearch.entitySetsForTextSearch = entitySetsForTextSearch
+
+  return textSearch
 }
 
 async function * getPromiseResultsAsAvailable (promises) {

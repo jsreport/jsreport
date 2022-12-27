@@ -2,9 +2,9 @@
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('TemplateType', {
     name: { type: 'Edm.String' },
-    content: { type: 'Edm.String', document: { extension: 'html', engine: true } },
+    content: { type: 'Edm.String', document: { main: true, extension: 'html', engine: true } },
     recipe: { type: 'Edm.String' },
-    helpers: { type: 'Edm.String', document: { extension: 'js' }, schema: { type: 'object' } },
+    helpers: { type: 'Edm.String', document: { main: true, extension: 'js' }, schema: { type: 'object' } },
     engine: { type: 'Edm.String' }
   }, true)
 

@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -103,32 +103,19 @@ module.exports = Studio.libraries['react'];
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var WK_TAB_TITLE = exports.WK_TAB_TITLE = 'WK_TAB_TITLE';
-var WK_TAB_EDITOR = exports.WK_TAB_EDITOR = 'WK_TAB_EDITOR';
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _WKEditor = __webpack_require__(4);
+var _WKEditor = __webpack_require__(3);
 
 var _WKEditor2 = _interopRequireDefault(_WKEditor);
 
-var _WKProperties = __webpack_require__(5);
+var _WKProperties = __webpack_require__(4);
 
 var _WKProperties2 = _interopRequireDefault(_WKProperties);
 
-var _WKTitle = __webpack_require__(6);
+var _WKTitle = __webpack_require__(5);
 
 var _WKTitle2 = _interopRequireDefault(_WKTitle);
 
-var _constants = __webpack_require__(2);
+var _constants = __webpack_require__(6);
 
 var Constants = _interopRequireWildcard(_constants);
 
@@ -146,19 +133,50 @@ _jsreportStudio2.default.addPropertiesComponent('wkhtmltopdf', _WKProperties2.de
   return entity.__entitySet === 'templates' && entity.recipe === 'wkhtmltopdf';
 });
 
+var supportedDocProps = ['wkhtmltopdf.header', 'wkhtmltopdf.footer', 'wkhtmltopdf.cover'];
+
+var shortNameMap = {
+  'wkhtmltopdf.header': 'header',
+  'wkhtmltopdf.footer': 'footer',
+  'wkhtmltopdf.cover': 'cover'
+};
+
 var reformat = function reformat(reformatter, entity, tab) {
-  var reformated = reformatter(entity.wkhtmltopdf[tab.headerOrFooter], 'html');
+  var targetProp = shortNameMap[tab.docProp];
+  var reformated = reformatter(entity.wkhtmltopdf[targetProp], 'html');
 
   return {
-    wkhtmltopdf: _defineProperty({}, tab.headerOrFooter, reformated)
+    wkhtmltopdf: _defineProperty({}, targetProp, reformated)
   };
 };
 
 _jsreportStudio2.default.addEditorComponent(Constants.WK_TAB_EDITOR, _WKEditor2.default, reformat);
 _jsreportStudio2.default.addTabTitleComponent(Constants.WK_TAB_TITLE, _WKTitle2.default);
 
+function componentKeyResolver(entity, docProp, key) {
+  if (docProp == null) {
+    return;
+  }
+
+  if (entity.__entitySet === 'templates' && supportedDocProps.includes(docProp)) {
+    return {
+      key: key,
+      props: {
+        headerOrFooter: shortNameMap[docProp]
+      }
+    };
+  }
+}
+
+_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity, docProp) {
+  return componentKeyResolver(entity, docProp, Constants.WK_TAB_EDITOR);
+});
+_jsreportStudio2.default.tabTitleComponentKeyResolvers.push(function (entity, docProp) {
+  return componentKeyResolver(entity, docProp, Constants.WK_TAB_TITLE);
+});
+
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -201,15 +219,17 @@ var WKEditor = function (_Component) {
       var _props = this.props,
           entity = _props.entity,
           _onUpdate = _props.onUpdate,
+          headerOrFooter = _props.headerOrFooter,
           tab = _props.tab;
 
+      var editorName = entity._id + '_' + tab.docProp.replace(/\./g, '_');
 
       return _react2.default.createElement(_jsreportStudio.TextEditor, {
-        name: entity._id + '_wk' + tab.headerOrFooter,
+        name: editorName,
         mode: 'handlebars',
-        value: entity.wkhtmltopdf ? entity.wkhtmltopdf[tab.headerOrFooter] : '',
+        value: entity.wkhtmltopdf ? entity.wkhtmltopdf[headerOrFooter] : '',
         onUpdate: function onUpdate(v) {
-          return _onUpdate(Object.assign({}, entity, { wkhtmltopdf: Object.assign({}, entity.wkhtmltopdf, _defineProperty({}, tab.headerOrFooter, v)) }));
+          return _onUpdate(Object.assign({}, entity, { wkhtmltopdf: Object.assign({}, entity.wkhtmltopdf, _defineProperty({}, headerOrFooter, v)) }));
         }
       });
     }
@@ -221,7 +241,7 @@ var WKEditor = function (_Component) {
 exports.default = WKEditor;
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -233,10 +253,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _constants = __webpack_require__(2);
-
-var Constants = _interopRequireWildcard(_constants);
-
 var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
@@ -246,8 +262,6 @@ var _jsreportStudio = __webpack_require__(0);
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -268,11 +282,8 @@ var Properties = function (_Component) {
     key: 'openHeaderFooter',
     value: function openHeaderFooter(type) {
       _jsreportStudio2.default.openTab({
-        key: this.props.entity._id + '_wk' + type,
         _id: this.props.entity._id,
-        headerOrFooter: type,
-        editorComponentKey: Constants.WK_TAB_EDITOR,
-        titleComponentKey: Constants.WK_TAB_TITLE
+        docProp: 'wkhtmltopdf.' + type
       });
     }
   }, {
@@ -730,7 +741,7 @@ var Properties = function (_Component) {
 exports.default = Properties;
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -744,9 +755,22 @@ exports.default = function (props) {
   return React.createElement(
     'span',
     null,
-    props.entity.name + ' ' + props.tab.headerOrFooter
+    props.entity.name + ' ' + props.headerOrFooter
   );
 };
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var WK_TAB_TITLE = exports.WK_TAB_TITLE = 'WK_TAB_TITLE';
+var WK_TAB_EDITOR = exports.WK_TAB_EDITOR = 'WK_TAB_EDITOR';
 
 /***/ })
 /******/ ]);

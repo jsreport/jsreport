@@ -14,8 +14,8 @@ module.exports = function (reporter, definition) {
 
   reporter.documentStore.registerComplexType('wkHtmlToPdfType', {
     orientation: { type: 'Edm.String' },
-    header: { type: 'Edm.String' },
-    footer: { type: 'Edm.String' },
+    header: { type: 'Edm.String', document: { extension: 'html', engine: true } },
+    footer: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     headerHeight: { type: 'Edm.String' },
     footerHeight: { type: 'Edm.String' },
     dpi: { type: 'Edm.String' },
@@ -26,7 +26,7 @@ module.exports = function (reporter, definition) {
     pageSize: { type: 'Edm.String' },
     pageHeight: { type: 'Edm.String' },
     pageWidth: { type: 'Edm.String' },
-    cover: { type: 'Edm.String' },
+    cover: { type: 'Edm.String', document: { extension: 'html', engine: true } },
     toc: { type: 'Edm.Boolean' },
     tocHeaderText: { type: 'Edm.String' },
     tocLevelIndentation: { type: 'Edm.String' },

@@ -1,1 +1,1 @@
-export default (props) => <span>{props.entity.name + ' ' + props.tab.headerOrFooter}</span>
+export default (props) => <span>{props.entity.name + ' ' + props.headerOrFooter}</span>

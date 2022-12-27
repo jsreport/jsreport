@@ -31,7 +31,7 @@ module.exports = (reporter, definition) => {
   reporter.documentStore.registerEntityType('XlsxTemplateType', {
     name: { type: 'Edm.String' },
     contentRaw: { type: 'Edm.Binary', document: { extension: 'xlsx' } },
-    content: { type: 'Edm.String', document: { extension: 'txt' } }
+    content: { type: 'Edm.String', document: { main: true, extension: 'txt' } }
   })
 
   // NOTE: xlsxTemplates are deprecated, we will remove it in jsreport v4

@@ -2,8 +2,14 @@ import storeMethods from '../redux/methods'
 import { findTextEditor, selectLine as selectLineInTextEditor } from './textEditorInstance'
 
 export default async function openEditorLine (entityShortid, opts = {}) {
-  const { lineNumber, endLineNumber, startColumn, endColumn, getEditorName, isContentTheSame, error } = opts
-  await storeMethods.openEditorTab({ shortid: entityShortid })
+  const { docProp, lineNumber, endLineNumber, startColumn, endColumn, getEditorName, isContentTheSame, error } = opts
+  const openTabPayload = { shortid: entityShortid }
+
+  if (docProp != null) {
+    openTabPayload.docProp = docProp
+  }
+
+  await storeMethods.openEditorTab(openTabPayload)
 
   setTimeout(() => {
     const entity = storeMethods.getEntityByShortid(entityShortid)

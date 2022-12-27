@@ -34,7 +34,7 @@ import DownloadProfilePreviewAction from './components/Preview/MenuActions/Downl
 import UploadProfilePreviewAction from './components/Preview/MenuActions/UploadProfileAction'
 import OpenNewTabPreviewAction from './components/Preview/MenuActions/OpenNewTabAction'
 import RawContentPreviewType from './components/Preview/TypeComponents/RawContentPreviewType'
-import TextSearchPreviewType from './components/Preview/TypeComponents/TextSearchPreviewType'
+import TextSearchPreviewType from './components/Preview/TypeComponents/TextSearchPreviewType/TextSearchPreviewType'
 import ReportPreviewType from './components/Preview/TypeComponents/ReportPreviewType'
 import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePreviewType/ProfilePreviewType'
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'

@@ -1,7 +1,23 @@
 import { textEditorInstances } from '../lib/configuration'
 
-function findTextEditor (name) {
-  const found = textEditorInstances.find((info) => info.name === name)
+function findTextEditor (nameOrArray) {
+  const names = []
+
+  if (Array.isArray(nameOrArray)) {
+    names.push(...nameOrArray)
+  } else {
+    names.push(nameOrArray)
+  }
+
+  let found
+
+  for (const name of names) {
+    found = textEditorInstances.find((info) => info.name === name)
+
+    if (found) {
+      break
+    }
+  }
 
   if (!found) {
     return

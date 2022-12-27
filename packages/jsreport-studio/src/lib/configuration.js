@@ -12,6 +12,7 @@ export let textEditorInitializeListeners = []
 export let textEditorCreatedListeners = []
 export let _themeChangedListeners = []
 export let entitySets = {}
+export let entitySetsDocProps = {}
 export let reportPreviewStyleResolvers = []
 export let templateEditorModeResolvers = []
 export let entityTreeOrder = []
@@ -19,6 +20,7 @@ export let entityTreeWrapperComponents = []
 export let entityTreeIconResolvers = []
 export let entityTreeFilterItemResolvers = []
 export let entityTreeDropResolvers = []
+export let tabTitleComponentKeyResolvers = []
 export let entityEditorComponentKeyResolvers = []
 export let entityTreeContextMenuItemsResolvers = []
 export let entityTreeToolbarComponents = {
@@ -40,6 +42,7 @@ export let toolbarComponents = {
 }
 export let tabTitleComponents = []
 export let textEditorInstances = []
+export let renderedEditorComponentsMeta = { data: {} }
 
 export let toolbarVisibilityResolver = () => true
 
