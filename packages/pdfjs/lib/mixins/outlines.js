@@ -10,6 +10,10 @@ function outlines (aoutlines, doc) {
 
   const outlinesObjects = [rootOutline]
   for (const { title, parent, id } of aoutlines) {
+    if (!doc.catalog.properties.get('Dests').object.properties.get(id)) {
+      continue
+    }
+
     const outline = new PDF.Object()
     outline.data = { title, id, parent }
     outline.prop('Title', new PDF.String(title))

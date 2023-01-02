@@ -20,6 +20,10 @@ module.exports = (doc, ext, options) => {
     embeddedFilesDictionary.set('Names', new PDF.Array([...embeddedFilesDictionary.get('Names'), ...ext.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').get('Names')]))
   }
 
+  if (ext.catalog.properties.get('Outlines')?.object && doc.catalog.properties.get('Outlines') == null) {
+    doc.catalog.properties.set('Outlines', ext.catalog.properties.get('Outlines').object.toReference())
+  }
+
   if (options.copyAccessibilityTags) {
     mergeStructTree(ext, doc)
   }

@@ -374,6 +374,34 @@ describe('pdfjs', () => {
     dests.object.properties.get('2')[0].object.properties.get('Type').toString().should.be.eql('/Page')
   })
 
+  it('append should copy outliness', async () => {
+    let document = new Document()
+    let external = new External(fs.readFileSync(path.join(__dirname, 'links.pdf')))
+    document.append(external)
+    document.outlines([{
+      title: '1 title',
+      id: '1'
+    }, {
+      title: '2 title',
+      id: '2',
+      parent: '1'
+    }])
+
+    const pdfWithOutlines = await document.asBuffer()
+    document = new Document()
+    external = new External(pdfWithOutlines)
+    document.append(external)
+
+    const pdfBuffer = await document.asBuffer()
+
+    require('fs').writeFileSync('out.pdf', pdfBuffer)
+
+    const { catalog } = await validate(pdfBuffer)
+    const outlines = catalog.properties.get('Outlines').object
+    const outline1 = outlines.properties.get('First').object
+    outlines.properties.get('Last').object.should.be.eql(outline1)
+  })
+
   it('merge should union Dests', async () => {
     const document = new Document()
     document.append(new External(fs.readFileSync(path.join(__dirname, 'links.pdf'))))
