@@ -557,6 +557,16 @@ class MainReporter extends Reporter {
         timeout
       })
 
+    const handleAbortSignal = () => {
+      if (worker) {
+        worker.release(req).catch((e) => this.logger.error('Failed to release worker ' + e))
+      }
+    }
+
+    if (options.signal && !options.worker) {
+      options.signal.addEventListener('abort', handleAbortSignal, { once: true })
+    }
+
     try {
       const result = await worker.execute({
         actionName,
@@ -579,7 +589,16 @@ class MainReporter extends Reporter {
       return result
     } finally {
       if (!options.worker) {
-        await worker.release(req)
+        let shouldRelease = true
+
+        if (options.signal) {
+          options.signal.removeEventListener('abort', handleAbortSignal)
+          shouldRelease = options.signal.aborted !== true
+        }
+
+        if (shouldRelease) {
+          await worker.release(req)
+        }
       }
     }
   }

@@ -318,7 +318,15 @@ module.exports = (reporter, definition) => {
     })
 
     app.get('/studio/text-search', async (req, res, next) => {
+      const searchAC = new AbortController()
+
+      const handleRequestAbort = () => {
+        searchAC.abort(new Error('Search aborted'))
+      }
+
       try {
+        req.socket.once('close', handleRequestAbort)
+
         const searchTerm = req.query.text
 
         if (searchTerm == null || searchTerm === '') {
@@ -326,7 +334,13 @@ module.exports = (reporter, definition) => {
         }
 
         const currentRequest = reporter.Request(req)
-        const { matchesCount, entitiesCount, results } = await textSearch(reporter, currentRequest, searchTerm, 100)
+
+        const { matchesCount, entitiesCount, results } = await textSearch(reporter, currentRequest, searchTerm, {
+          step: 100,
+          signal: searchAC.signal
+        })
+
+        req.socket.removeListener('close', handleRequestAbort)
 
         res.status(200).json({
           matchesCount,
@@ -334,6 +348,13 @@ module.exports = (reporter, definition) => {
           results
         })
       } catch (error) {
+        req.socket.removeListener('close', handleRequestAbort)
+
+        if (searchAC.signal.aborted) {
+          // we just want to end the request, it was closed anyway at this point
+          return res.end()
+        }
+
         next(error)
       }
     })
