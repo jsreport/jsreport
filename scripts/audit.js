@@ -24,6 +24,12 @@ if (args[0] === 'clean') {
     }
   }
 
+  const rootPkgLock = path.join(process.cwd(), 'package-lock.json')
+
+  if (fs.existsSync(rootPkgLock)) {
+    fs.rmSync(rootPkgLock)
+  }
+
   const { error: yarnInstallError, status: yarnInstallStatus } = spawnSync('yarn', ['install', '--force'], {
     cwd: process.cwd(),
     stdio: 'inherit',

@@ -234,6 +234,8 @@ if (targetPkg != null && targetPkg !== '') {
     }
 
     console.log('\nAfter deciding the target version update, you can continue by running:')
+    console.log(`- git difftool ${firstCommit}${firstCommit === lastCommit ? '^' : ''} ${lastCommit} -- packages/${targetPkgFoldername} (to show the diff for specific range of commits for this package in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
+    console.log(`- git difftool ${firstCommit}${firstCommit === lastCommit ? '^' : ''} ${lastCommit} (to show the full diff for specific range of commits in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
     console.log(`- node scripts/changed.js inspect <commit> ${targetPkg} (to inspect changed files of ${targetPkg} in specific commit)`)
     console.log(`- node scripts/audit.js ${targetPkg}`)
     console.log(`- node scripts/publish.js ${targetPkg} <version>`)
