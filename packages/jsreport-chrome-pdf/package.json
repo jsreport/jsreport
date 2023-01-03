@@ -31,7 +31,7 @@
     "lodash.get": "4.4.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.9.0",
+    "@jsreport/jsreport-core": "3.10.0",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/studio-dev": "3.2.0",
     "handlebars": "4.7.7",

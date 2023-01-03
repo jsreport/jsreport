@@ -282,6 +282,11 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.10.0
+
+- `mainReporter.executeWorkerAction` now supports cancellation with `AbortController.signal`
+- add support for specifying what are the main document properties of templates entitySet
+
 ### 3.9.0
 
 - add more store methods `collection.findAdmin`, `collection.findOneAdmin`, `reporter.adminRequest` to easily allow execure store queries without taking into account permissions

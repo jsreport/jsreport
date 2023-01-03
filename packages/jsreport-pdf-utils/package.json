@@ -45,7 +45,7 @@
     "@jsreport/jsreport-assets": "3.5.0",
     "@jsreport/jsreport-child-templates": "3.1.0",
     "@jsreport/jsreport-chrome-pdf": "3.2.1",
-    "@jsreport/jsreport-core": "3.9.0",
+    "@jsreport/jsreport-core": "3.10.0",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-jsrender": "3.0.0",
     "@jsreport/jsreport-scripts": "3.3.0",
