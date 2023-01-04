@@ -5,7 +5,7 @@ import styles from './TextSearchPreviewType.css'
 
 function ResultDisplay (props) {
   const { text, result } = props
-  const { matchesCount, entitiesCount, results } = result
+  const { matchesCount, entitiesCount, results } = result.data
 
   if (results.length === 0) {
     return null

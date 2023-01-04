@@ -11,8 +11,16 @@ import styles from './TextSearchPreviewType.css'
 function ResultItem (props) {
   const { id, text, result, expanded, onToggle } = props
   const { docPropMatches } = result
-  const localEntity = storeMethods.getEntityById(result.entity._id)
-  const entityIconClass = resolveEntityTreeIconStyle(localEntity) || (entitySets[result.entitySet].faIcon || styles.defaultEntityIcon)
+  const localEntity = storeMethods.getEntityById(result.entity._id, false)
+  const entityIconClass = enhancedResolveEntityTreeIconStyle(localEntity) || (entitySets[result.entitySet].faIcon || styles.defaultEntityIcon)
+
+  const titleClass = classNames({
+    [styles.itemRemoved]: localEntity == null
+  })
+
+  const itemClass = classNames(styles.itemContent, {
+    [styles.itemRemoved]: localEntity == null
+  })
 
   const matchesCount = useMemo(() => (
     docPropMatches.reduce((count, item) => count + item.lineMatches.length, 0)
@@ -26,6 +34,7 @@ function ResultItem (props) {
     <Accordion
       title={(
         <Title
+          className={titleClass}
           name={result.entity.name}
           matchesCount={matchesCount}
           expanded={expanded}
@@ -36,10 +45,11 @@ function ResultItem (props) {
       expanded={expanded}
       onToggle={handleOnToggle}
     >
-      <div className={styles.itemContent}>
+      <div className={itemClass}>
         {docPropMatches.map((docPropMatch) => (
           <Match
             key={docPropMatch.docProp}
+            mode={docPropMatches.length > 1 ? 'group' : 'single'}
             shortid={result.entity.shortid}
             text={text}
             match={docPropMatch}
@@ -51,20 +61,21 @@ function ResultItem (props) {
   )
 }
 
-function Title ({ name, matchesCount, expanded, entityPath, entityIconClass }) {
+function Title ({ className, name, matchesCount, expanded, entityPath, entityIconClass }) {
+  const itemClass = classNames(styles.itemTitle, className)
+
   const expandedIconClass = classNames('fa', {
     'fa-chevron-down': expanded,
     'fa-chevron-right': !expanded
   }, styles.fullWidthIcon)
 
   const eIconClass = classNames('fa', entityIconClass, styles.fullWidthIcon)
-
   const ePathClass = classNames(styles.secondaryText, styles.parentPath)
 
   const entityParentPath = useMemo(() => getEntityParentPath(entityPath), [entityPath])
 
   return (
-    <div className={styles.itemTitle}>
+    <div className={itemClass}>
       <span className={styles.expandedIcon}>
         <i className={expandedIconClass} />
       </span>
@@ -78,17 +89,25 @@ function Title ({ name, matchesCount, expanded, entityPath, entityIconClass }) {
   )
 }
 
-function Match ({ shortid, text, match }) {
+function Match ({ mode = 'group', shortid, text, match }) {
   const { docProp, lineMatches } = match
   const docPropId = useMemo(() => docProp.replace(/\./g, '_'), [docProp])
 
+  if (mode !== 'group' && mode !== 'single') {
+    throw new Error(`Invalid value "${mode}" for mode prop - Match`)
+  }
+
+  const shouldShowTitle = mode === 'group'
+
   return (
     <div key={docProp}>
-      <div className={`${styles.docPropMatchTitle} ${styles.secondaryText}`}>
-        <span><i className='fa fa-bars' /> {docProp}</span>
-        <span className={styles.matchesBadge}>{lineMatches.length}</span>
-        <div className={styles.docPropMatchSeparator} />
-      </div>
+      {shouldShowTitle && (
+        <div className={`${styles.docPropMatchTitle} ${styles.secondaryText}`}>
+          <span><i className='fa fa-bars' /> {docProp}</span>
+          <span className={styles.matchesBadge}>{lineMatches.length}</span>
+          <div className={styles.docPropMatchSeparator} />
+        </div>
+      )}
       {lineMatches.map((match, idx) => (
         <div
           key={`${docProp}-${idx}`}
@@ -134,6 +153,14 @@ function Match ({ shortid, text, match }) {
       ))}
     </div>
   )
+}
+
+function enhancedResolveEntityTreeIconStyle (entity) {
+  if (entity == null) {
+    return
+  }
+
+  return resolveEntityTreeIconStyle(entity)
 }
 
 function getMatchTitle (match) {

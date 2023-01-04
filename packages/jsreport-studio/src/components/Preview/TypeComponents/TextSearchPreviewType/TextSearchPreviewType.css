@@ -1,4 +1,14 @@
 
+@keyframes runningBlinker {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.running {
+  animation: runningBlinker 0.7s linear infinite 0.2s;
+}
+
 .secondaryText {
   opacity: 0.7;
 }
@@ -10,6 +20,11 @@
 
 .itemContent {
   position: relative;
+}
+
+.itemRemoved {
+  opacity: 0.5;
+  text-decoration: line-through;
 }
 
 .itemContentGuide {

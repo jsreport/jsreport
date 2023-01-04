@@ -9,10 +9,21 @@ export default async function openEditorLine (entityShortid, opts = {}) {
     openTabPayload.docProp = docProp
   }
 
+  const entityExists = storeMethods.getEntityByShortid(entityShortid, false) != null
+
+  if (!entityExists) {
+    return
+  }
+
   await storeMethods.openEditorTab(openTabPayload)
 
   setTimeout(() => {
-    const entity = storeMethods.getEntityByShortid(entityShortid)
+    const entity = storeMethods.getEntityByShortid(entityShortid, false)
+
+    if (entity == null) {
+      return
+    }
+
     const contentIsTheSame = typeof isContentTheSame !== 'function' ? false : isContentTheSame(entity) === true
     const editorName = typeof getEditorName !== 'function' ? undefined : getEditorName(entity)
     const entityEditor = editorName == null ? undefined : findTextEditor(editorName)

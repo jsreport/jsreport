@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import shortid from 'shortid'
+import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import resolveUrl from '../../../../helpers/resolveUrl'
 import ResultDisplay from './ResultsDisplay'
+import styles from './TextSearchPreviewType.css'
 
 function TextSearchPreviewType (props) {
   const searchElRef = useRef(null)
@@ -11,7 +13,7 @@ function TextSearchPreviewType (props) {
   const [searchResult, setSearchResult] = useState(null)
 
   const debouncedTextSearch = useMemo(() => {
-    return debounce(doTextSearch, 350)
+    return debounce(doTextSearch, 500)
   }, [])
 
   const updateTextareaHeight = useCallback(() => {
@@ -45,15 +47,13 @@ function TextSearchPreviewType (props) {
 
     searchFn(text, {
       onStart: () => {
+        setSearchResult({ id: shortid.generate() })
         searchAbortControllerRef.current = new AbortController()
         return searchAbortControllerRef.current.signal
       },
       onSuccess: (data) => {
         searchAbortControllerRef.current = null
-        setSearchResult({
-          ...data,
-          id: shortid.generate()
-        })
+        setSearchResult((prevResult) => ({ ...prevResult, data }))
       },
       onFail: (err) => {
         searchAbortControllerRef.current = null
@@ -62,10 +62,7 @@ function TextSearchPreviewType (props) {
           return
         }
 
-        setSearchResult({
-          id: shortid.generate(),
-          error: err.message
-        })
+        setSearchResult((prevResult) => ({ ...prevResult, error: err.message }))
       }
     })
   }, [])
@@ -103,9 +100,19 @@ function TextSearchPreviewType (props) {
     }, 150)
   }, [updateTextareaHeight])
 
+  const isSearching = (
+    searchResult != null &&
+    searchResult.data == null &&
+    searchResult.error == null
+  )
+
+  const inputClass = classNames('text-input', {
+    [styles.running]: isSearching
+  })
+
   let resultEl
 
-  if (searchResult != null) {
+  if (searchResult != null && !isSearching) {
     if (searchResult.error) {
       resultEl = (
         <div className='form-group'>
@@ -131,7 +138,7 @@ function TextSearchPreviewType (props) {
         <textarea
           ref={searchElRef}
           id='jsreport-entities-text-search'
-          className='text-input'
+          className={inputClass}
           autoCorrect='false'
           autoCapitalize='false'
           spellCheck='false'
