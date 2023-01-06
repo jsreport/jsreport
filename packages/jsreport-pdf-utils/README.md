@@ -7,6 +7,12 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.7.0
+
+- support copy outlines when doing merge/append
+- add studio UI to handle pdfMeta custom metadata
+- fix typo in definition of sandbox hidden property
+
 ### 3.6.0
 
 - added support for specifying custom properties for PDF metadata

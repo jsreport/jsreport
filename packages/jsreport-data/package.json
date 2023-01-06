@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-data",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "jsreport extension adding support for using sample data for previewing templates",
   "keywords": [
     "jsreport",

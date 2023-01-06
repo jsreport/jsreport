@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 3.4.0
+
+- add support for specifying what are the main document properties of scripts entitySet
+
 ### 3.3.0
 
 - ignore scripts attached to template which contain scope that is not compatible to run at the template level

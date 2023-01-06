@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 3.4.0
+
+- fix pptxSlides issues with updates after xmldom dep update
+
 ### 3.3.0
 
 - fix support of pptxTable and add support for vertical tables
