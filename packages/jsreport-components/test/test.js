@@ -259,4 +259,21 @@ describe('components', function () {
     })
     res.content.toString().should.not.containEql('hello')
   })
+
+  it('hash params should be passed as data to component', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: 'c1 {{foo}}',
+      engine: 'handlebars'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{component "c1" foo="hello"}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      }
+    })
+    res.content.toString().should.containEql('c1 hello')
+  })
 })

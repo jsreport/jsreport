@@ -29,6 +29,12 @@ async function component (path, options) {
     let currentContext
     if (isHandlebars) {
       currentContext = this
+      if (options.hash) {
+        currentContext = {
+          ...currentContext,
+          ...options.hash
+        }
+      }
     }
 
     if (isJsRender) {
