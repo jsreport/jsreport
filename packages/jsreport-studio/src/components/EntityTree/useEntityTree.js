@@ -525,14 +525,28 @@ export default function useEntityTree (main, {
 
         if (isEntity || isGroupEntity) {
           const originalTargetEntityId = node.data._id
+          const selectReference = [originalTargetEntityId]
           let targetEntityId = originalTargetEntityId
 
-          if (createRange && editSelectionRefs != null && editSelectionRefs.length > 0) {
-            const startEntityId = editSelectionRefs[editSelectionRefs.length - 1]
-            const startRelativeEntitiesNodes = listRef.current.getRelativeEntitiesById(startEntityId)
+          if (createRange) {
+            const activeEntity = storeMethods.getEditorActiveEntity()
+            let startEntityId
+
+            if (editSelectionRefs != null && editSelectionRefs.length > 0) {
+              startEntityId = editSelectionRefs[editSelectionRefs.length - 1]
+            } else if (activeEntity != null) {
+              // start the range with active entity if there was no previous selection
+              startEntityId = activeEntity._id
+
+              if (!selectReference.includes(startEntityId)) {
+                selectReference.push(startEntityId)
+              }
+            }
+
+            const startRelativeEntitiesNodes = startEntityId != null ? listRef.current.getRelativeEntitiesById(startEntityId) : []
             const endExistsInRelativesOfStart = startRelativeEntitiesNodes.find((n) => n.data._id === targetEntityId) != null
 
-            if (startEntityId !== targetEntityId && endExistsInRelativesOfStart) {
+            if (startEntityId != null && startEntityId !== targetEntityId && endExistsInRelativesOfStart) {
               const startIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === startEntityId)
               const endIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === targetEntityId)
               const step = endIndex > startIndex ? 1 : -1
@@ -549,7 +563,7 @@ export default function useEntityTree (main, {
             }
           }
 
-          const selectOpts = { initializeWithActive: true, reference: [originalTargetEntityId] }
+          const selectOpts = { initializeWithActive: true, reference: selectReference }
 
           if (createRange) {
             selectOpts.value = true

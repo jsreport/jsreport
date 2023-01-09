@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 3.4.0
+
+- update deps to fix npm audit
+
 ### 3.3.2
 
 - add option to disable users .username -> name migration

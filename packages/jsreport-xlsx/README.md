@@ -7,6 +7,11 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 3.4.0
+
+- add support for specifying what are the main document properties of xlsxTemplates entitySet
+- do not fail parsing cell found with error and no formula definition found
+
 ### 3.3.0
 
 - xlsxAddImage support for alt text

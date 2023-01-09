@@ -29,6 +29,10 @@ chrome-image
 
 ## Changelog
 
+### 3.3.0
+
+- use `Studio.openTab` with `docProp` option to open chrome header/footer tabs
+
 ### 3.2.1
 
 - user level logs now use `logger.debug`

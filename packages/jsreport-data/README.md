@@ -7,6 +7,10 @@ See https://jsreport.net/learn/inline-data
 
 ## Changelog
 
+### 3.1.0
+
+- add support for specifying what are the main document properties of data entitySet
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

@@ -31,11 +31,17 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
     return []
   }, [])
 
+  // we don't define any deps because we want the new ref exposed values to recreate on each render,
+  // because we expose object values directly from other internal refs, we are basically copying
+  // values from other refs to this one, and since our internal refs values are calculated
+  // during render we want to keep up to date values.
+  // (if we declare deps the ref handler will be called according to changes to deps and
+  // we don't want that)
   useImperativeHandle(ref, () => ({
     entityNodesById: entityNodesByIdRef.current,
     getRelativeEntitiesById,
     node: containerRef.current
-  }), [getRelativeEntitiesById])
+  }))
 
   /*
     When a render callback (function as child) is passed it means that an extension

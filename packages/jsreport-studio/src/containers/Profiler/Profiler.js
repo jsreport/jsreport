@@ -196,7 +196,6 @@ class Profiler extends Component {
   }
 
   filterTemplatesChanged (selected) {
-    console.log('chaning', selected)
     this.setState({
       filterTemplatesShortids: selected.map((t) => t.shortid)
     })

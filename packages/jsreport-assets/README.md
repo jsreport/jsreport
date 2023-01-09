@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 3.6.0
+
+- add support for specifying what are the main document properties of assets entitySet
+
 ### 3.5.0
 
 - errors from asset logic should be weak

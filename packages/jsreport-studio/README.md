@@ -18,6 +18,15 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.9.0
+
+- add support for text search across entities content
+- fix starting multi selection with ⇧ + click when there is only active entity tab opened
+- fix delete of multiple folders (with multi selection) was removing only the folders and leaving its children as root entities
+- closing a main editor tab now also closes all dependant tabs (like pdf utils, chrome header/footer)
+- `.openTab` method now supports opening dependant editor tabs (like chrome header/footer tabs) with the option `docProp`
+- define `/studio/hierarchyMove` api endpoint as post route explicitly
+
 ### 3.8.0
 
 - improve ⇧ + ↑, ⇧ + ↓ entity tree multi selection in studio
