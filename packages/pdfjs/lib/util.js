@@ -1,7 +1,7 @@
 const zlib = require('zlib')
 
 module.exports.inflate = (obj) => {
-  return zlib.unzipSync(obj.content.content).toString('latin1')
+  return zlib.unzipSync(obj.content.content)
 }
 
 exports.toArrayBuffer = function (b) {

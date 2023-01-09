@@ -67,7 +67,8 @@ class PDFObject {
 
     lexer.shift(3)
 
-    lexer.skipEOL(1)
+    // pofider, the line break doesnt need to be there apparently
+    lexer.skipEOL(1, true)
     lexer.skipWhitespace(null, true)
 
     const obj = PDFObject.parseInner(xref, lexer)

@@ -10,7 +10,7 @@
   "scripts": {
     "test": "mocha --timeout=8000 test&&standard"
   },
-  "dependencies": {
+  "dependencies": {  
     "@jsreport/node-signpdf": "1.4.2",
     "crypto-js": "4.1.1",
     "parse-color": "1.0.0",

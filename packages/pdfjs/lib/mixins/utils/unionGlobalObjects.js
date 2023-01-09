@@ -38,7 +38,7 @@ module.exports = (doc, ext, options) => {
       docAcroForm.properties.set('SigFlags', extAcroForm.properties.get('SigFlags'))
     }
 
-    if (extAcroForm.properties.get('DR')?.get('Font')) {
+    if (extAcroForm.properties.get('DR')?.get && extAcroForm.properties.get('DR')?.get('Font')) {
       let dr = docAcroForm.properties.get('DR')
       if (dr == null) {
         dr = new PDF.Dictionary({

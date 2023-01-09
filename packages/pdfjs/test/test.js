@@ -835,6 +835,26 @@ describe('pdfjs', () => {
     catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(4)
   })
 
+  it('handle linearized pdf with no line break after endobject', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'linearized-no-linebreak-after-endobject.pdf')))
+    document.append(external)
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
+  it('handle cross reference streams', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'cross-reference-streams.pdf')))
+    document.append(external)
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
   it('pdf/A basic', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
