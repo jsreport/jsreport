@@ -89,6 +89,7 @@ module.exports = (options = {}) => {
         }
 
         if (options.useChromiumMacosWorkaround) {
+          debug('using chromiumMacosWorkaround')
           chromeLaunchOptions.executablePath = 'chromium-browser'
           chromeLaunchOptions.args = ['--no-sandbox', '--disable-dev-shm-usage', '--disable-dev-profile', '--no-zygote', '--disable-gpu', '--disable-audio-output', '--disable-setuid-sandbox', '--single-process']
         }
