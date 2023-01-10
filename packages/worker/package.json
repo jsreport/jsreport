@@ -31,6 +31,7 @@
     "@jsreport/jsreport-reports": "3.1.1",
     "@jsreport/jsreport-scripts": "3.4.0",
     "@jsreport/jsreport-static-pdf": "3.0.1",
+    "@jsreport/jsreport-studio": "3.9.0",
     "@jsreport/jsreport-text": "3.0.0",
     "@jsreport/jsreport-version-control": "3.1.2",
     "@jsreport/jsreport-xlsx": "3.4.0",
