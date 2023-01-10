@@ -17,7 +17,7 @@ RUN apt-get update && \
     # these extra ppa provide those updated packages
     add-apt-repository ppa:savoury1/ffmpeg4 && add-apt-repository ppa:savoury1/display && add-apt-repository ppa:savoury1/chromium && \
     apt-get update && \
-    apt install -y chromium-browser=1:107.0.5304.121-0ubuntu0.16.04.1sav0 chromium-codecs-ffmpeg=1:107.0.5304.121-0ubuntu0.16.04.1sav0 && \
+    apt install -y chromium-browser=1:108.0.5359.124-0ubuntu0.16.04.1sav0 chromium-codecs-ffmpeg=1:108.0.5359.124-0ubuntu0.16.04.1sav0 && \
     # fonts for chrome
     apt install -y xfonts-base xfonts-75dpi fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst
 
