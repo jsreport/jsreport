@@ -409,6 +409,40 @@ describe('pdf utils', () => {
     parsedPdf.pages[1].text.includes('anotherpage').should.be.ok()
   })
 
+  it('append to specific page using script', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'page 1<div style=\'page-break-before: always;\'></div>page 2',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        scripts: [{
+          content: `
+            const jsreport = require('jsreport-proxy')
+            async function afterRender(req, res) {
+              const r = await jsreport.render({
+                template: {
+                  content: 'hello',
+                  engine: 'none',
+                  recipe: 'chrome-pdf'
+                }
+              })
+              res.content = await jsreport.pdfUtils.append(res.content, r.content, {
+                appendAfterPageNumber: 1
+              })
+            }          
+          `
+        }]
+      }
+    })
+
+    const parsedPdf = await parsePdf(result.content, {
+      includeText: true
+    })
+    parsedPdf.pages[0].text.includes('page 1').should.be.ok()
+    parsedPdf.pages[1].text.includes('hello').should.be.ok()
+    parsedPdf.pages[2].text.includes('page 2').should.be.ok()
+  })
+
   it('append and merge shouldnt remove the hidden marks from pdf', async () => {
     await jsreport.documentStore.collection('templates').insert({
       content: '{{{pdfAddPageItem \'one\'}}} <a href=\'#main\' data-pdf-outline>link to main</a>',

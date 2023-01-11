@@ -32,6 +32,21 @@ describe('pdfjs', () => {
     texts[1].should.be.eql('Page 2')
   })
 
+  it('append should insert after specific number', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, '3pages.pdf')))
+    document.append(external)
+    const external2 = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
+    document.append(external2, { appendAfterIndex: 0 })
+    const pdfBuffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdfBuffer)
+    const { catalog, texts } = await validate(pdfBuffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(4)
+    texts[0].should.be.eql('Page 1')
+    texts[1].should.be.eql('main')
+    texts[2].should.be.eql('Page 2')
+  })
+
   it('append should not break acroForm fields', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, '2pages2fields.pdf')))

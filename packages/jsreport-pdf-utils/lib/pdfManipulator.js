@@ -23,10 +23,13 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
       return currentlyParsedPdf
     },
 
-    async append (appendBuffer) {
+    async append (appendBuffer, options = {}) {
       const document = new Document()
       document.append(new External(currentBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
-      document.append(new External(appendBuffer), { copyAccessibilityTags: pdfAccessibility?.enabled })
+      document.append(new External(appendBuffer), {
+        copyAccessibilityTags: pdfAccessibility?.enabled,
+        appendAfterIndex: options.appendAfterPageNumber != null ? options.appendAfterPageNumber - 1 : null
+      })
       currentBuffer = await document.asBuffer()
     },
 

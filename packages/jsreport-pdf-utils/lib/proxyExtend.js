@@ -19,10 +19,10 @@ module.exports = (proxy, req) => {
 
       return resultPdfBuf
     },
-    append: async (sourcePdfBuf, extraPdfBuf) => {
+    append: async (sourcePdfBuf, extraPdfBuf, options) => {
       const manipulator = require('./pdfManipulator')(sourcePdfBuf)
 
-      await manipulator.append(extraPdfBuf)
+      await manipulator.append(extraPdfBuf, options)
 
       const resultPdfBuf = await manipulator.toBuffer()
 

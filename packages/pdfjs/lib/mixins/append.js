@@ -6,6 +6,7 @@ module.exports = (doc) => {
 }
 
 function append (ext, doc, options = {}) {
+  let appendAfterIndex = options.appendAfterIndex
   unionGlobalObjects(doc, ext, options)
   const pages = ext.pages
   for (let i = 0; i < pages.length; i++) {
@@ -14,7 +15,12 @@ function append (ext, doc, options = {}) {
     if (options.pageIndexes == null || options.pageIndexes.includes(i)) {
       page.prop('Parent', doc.catalog.properties.get('Pages'))
       doc.catalog.properties.get('Pages').object.prop('Count', doc.catalog.properties.get('Pages').object.properties.get('Count') + 1)
-      doc.catalog.properties.get('Pages').object.properties.get('Kids').push(page.toReference())
+
+      if (appendAfterIndex != null) {
+        doc.catalog.properties.get('Pages').object.properties.get('Kids').splice(++appendAfterIndex, 0, page.toReference())
+      } else {
+        doc.catalog.properties.get('Pages').object.properties.get('Kids').push(page.toReference())
+      }
 
       unionPageObjects(ext, doc, { copyAccessibilityTags: options.copyAccessibilityTags, newPage: page })
     } else {
