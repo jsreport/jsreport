@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.8.0
+
+- allow pdf-utils append/prepend operation at specific page #551 
+
 ### 3.7.0
 
 - support copy outlines when doing merge/append

@@ -33,10 +33,11 @@ module.exports = async (inputs, reporter, req, res) => {
       reporter.logger.debug(`Skipping disabled pdf operation ${operation.type}`, req)
       continue
     }
-
+    console.time('parse')
     await manipulator.parse({
       hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
     })
+    console.timeEnd('parse')
 
     let templateDef
 
@@ -55,7 +56,10 @@ module.exports = async (inputs, reporter, req, res) => {
         name: 'pdf utils append',
         previousOperationId: pdfUtilsProfilerEvent.operationId
       }, req, res)
-      await manipulator.append(await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } }))
+      const r = await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
+      console.time('append')
+      await manipulator.append(r)
+      console.timeEnd('append')
       reporter.profiler.emit({
         type: 'operationEnd',
         operationId: profilerEvent.operationId
@@ -87,7 +91,9 @@ module.exports = async (inputs, reporter, req, res) => {
       }, req, res)
       if (operation.mergeWholeDocument) {
         const mergeBuffer = await runRender(templateDef, { $pdf: { pages: manipulator.parsedPdf.pages } })
+        console.time('merge')
         await manipulator.merge(mergeBuffer, operation.mergeToFront)
+        console.timeEnd('merge')
         reporter.profiler.emit({
           type: 'operationEnd',
           operationId: profilerEvent.operationId
@@ -125,9 +131,11 @@ module.exports = async (inputs, reporter, req, res) => {
   }
 
   reporter.logger.debug('pdf-utils postproces start', req)
+  console.time('postprocess')
   await manipulator.postprocess({
     hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
   })
+  console.timeEnd('postprocess')
   reporter.logger.debug('pdf-utils postproces end', req)
 
   reporter.profiler.emit({
@@ -137,5 +145,10 @@ module.exports = async (inputs, reporter, req, res) => {
 
   req.context.profiling.lastOperationId = pdfUtilsProfilerEvent.operationId
 
-  return manipulator.toBuffer()
+  try {
+    console.time('toBuffer')
+    return manipulator.toBuffer()
+  } finally {
+    console.timeEnd('toBuffer')
+  }
 }
