@@ -38,6 +38,10 @@ async function openProfileFromServer (profile = {}, openTemplateEditor = false) 
     }
 
     await openProfileFromStreamReader(async () => {
+      if (p.blobName == null && p.state === 'error' && p.error) {
+        throw new Error(p.error)
+      }
+
       const getBlobUrl = resolveUrl(`/api/profile/${p._id}/events`)
 
       const response = await window.fetch(getBlobUrl, {

@@ -12,7 +12,8 @@ module.exports = (reporter) => {
     state: { type: 'Edm.String' },
     error: { type: 'Edm.String' },
     mode: { type: 'Edm.String', schema: { enum: ['full', 'standard', 'disabled'] } },
-    blobName: { type: 'Edm.String' }
+    blobName: { type: 'Edm.String' },
+    timeout: { type: 'Edm.Int32' }
   })
 
   reporter.documentStore.registerEntitySet('profiles', {
@@ -167,7 +168,8 @@ module.exports = (reporter) => {
       _id: reporter.documentStore.generateId(),
       timestamp: new Date(),
       state: 'queued',
-      mode: req.context.profiling.mode
+      mode: req.context.profiling.mode,
+      timeout: reporter.options.enableRequestReportTimeout && req.options.timeout ? req.options.timeout : reporter.options.reportTimeout
     }
 
     const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.log`, '')
@@ -422,11 +424,10 @@ module.exports = (reporter) => {
 
     profilesCleanupRunning = true
 
-    let lastRemoveError
+    let lastError
 
     try {
-      const profiles = await reporter.documentStore.collection('profiles').find({}).sort({ timestamp: -1 })
-      const profilesToRemove = profiles.slice(reporter.options.profiler.maxProfilesHistory)
+      const profilesToRemove = await reporter.documentStore.collection('profiles').find({}).sort({ timestamp: -1 }).skip(reporter.options.profiler.maxProfilesHistory).toArray()
 
       for (const profile of profilesToRemove) {
         if (reporter.closed || reporter.closing) {
@@ -438,7 +439,38 @@ module.exports = (reporter) => {
             _id: profile._id
           })
         } catch (e) {
-          lastRemoveError = e
+          lastError = e
+        }
+      }
+
+      const notFinishedProfiles = await reporter.documentStore.collection('profiles').find({ $or: [{ state: 'running' }, { state: 'queued' }] })
+
+      for (const profile of notFinishedProfiles) {
+        if (reporter.closed || reporter.closing) {
+          return
+        }
+
+        if (!profile.timeout) {
+          continue
+        }
+
+        const whenShouldBeFinished = profile.timestamp + profile.timeout + reporter.options.reportTimeoutMargin * 2
+        if (whenShouldBeFinished < new Date().getTime()) {
+          continue
+        }
+
+        try {
+          await reporter.documentStore.collection('profiles').update({
+            _id: profile._id
+          }, {
+            $set: {
+              state: 'error',
+              finishedOn: new Date(),
+              error: 'The server did not update the report profile before its timeout. This can happen when the server is unexpectedly stopped.'
+            }
+          })
+        } catch (e) {
+          lastError = e
         }
       }
     } catch (e) {
@@ -447,8 +479,8 @@ module.exports = (reporter) => {
       profilesCleanupRunning = false
     }
 
-    if (lastRemoveError) {
-      reporter.logger.warn('Profile cleanup failed for some entities, last error:', lastRemoveError)
+    if (lastError) {
+      reporter.logger.warn('Profile cleanup failed for some entities, last error:', lastError)
     }
   }
 

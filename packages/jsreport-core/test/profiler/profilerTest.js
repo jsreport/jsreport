@@ -504,7 +504,8 @@ describe('profiler cleanup', () => {
   })
 
   afterEach(() => reporter.close())
-  it('should clean old profiles', async () => {
+
+  it('should clean profiles after reaching maxProfilesHistory', async () => {
     for (let i = 0; i < 3; i++) {
       await reporter.render({
         template: {
@@ -517,5 +518,17 @@ describe('profiler cleanup', () => {
     await new Promise((resolve) => setTimeout(resolve, 60))
     const profiles = await reporter.documentStore.collection('profiles').find({})
     profiles.should.have.length(2)
+  })
+
+  it('should error orphan profiles', async () => {
+    await reporter.documentStore.collection('profiles').insert({
+      timestamp: new Date(),
+      timeout: 1,
+      state: 'running'
+    })
+    await new Promise((resolve) => setTimeout(resolve, 60))
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    profile.state.should.be.eql('error')
+    profile.error.should.containEql('before its timeout')
   })
 })
