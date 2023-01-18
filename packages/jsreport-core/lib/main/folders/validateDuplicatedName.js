@@ -74,6 +74,7 @@ async function validateDuplicatedName (reporter, c, doc, originalIdValue, req) {
 
     throw reporter.createError(msg, {
       statusCode: 400,
+      weak: true,
       code: 'DUPLICATED_ENTITY',
       existingEntity: existingEntity.entity,
       existingEntityEntitySet: existingEntity.entitySet
