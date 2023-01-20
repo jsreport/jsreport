@@ -3,8 +3,9 @@ const fs = require('fs')
 const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
 const WordExtractor = require('word-extractor')
-const { nodeListToArray, findChildNode } = require('../lib/utils')
-const { getDocumentsFromDocxBuf, getTextNodesMatching } = require('./utils')
+const sizeOf = require('image-size')
+const { getDocumentsFromDocxBuf, getTextNodesMatching, getImageEl, getImageSize } = require('./utils')
+const { nodeListToArray, findChildNode, cmToEMU, pxToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { SUPPORTED_ELEMENTS, BLOCK_ELEMENTS, ELEMENTS } = require('../lib/postprocess/html/supportedElements')
 const extractor = new WordExtractor()
 
@@ -574,7 +575,7 @@ describe('docx html embed', () => {
 
   describe('<a> tag', () => {
     const opts = {
-      outputDocuments: ['word/styles.xml', 'word/_rels/document.xml.rels'],
+      outputDocuments: ['word/styles.xml', 'word/_rels/document.xml.rels', 'word/_rels/header1.xml.rels', 'word/_rels/header2.xml.rels', 'word/_rels/header3.xml.rels', 'word/_rels/footer1.xml.rels', 'word/_rels/footer2.xml.rels', 'word/_rels/footer3.xml.rels'],
       paragraphAssert: (paragraphNode, templateTextNodeForDocxHtml) => {
         commonHtmlParagraphAssertions(paragraphNode, templateTextNodeForDocxHtml.parentNode.parentNode)
       },
@@ -585,7 +586,7 @@ describe('docx html embed', () => {
 
         const linkStyleId = rStyle.getAttribute('w:val')
 
-        const [stylesDoc, documentRelsDoc] = extra.outputDocuments
+        const [stylesDoc, documentRelsDoc, header1RelsDoc, header2RelsDoc, header3RelsDoc, footer1RelsDoc, footer2RelsDoc, footer3RelsDoc] = extra.outputDocuments
 
         should(findChildNode((n) => (
           n.nodeName === 'w:style' &&
@@ -603,11 +604,25 @@ describe('docx html embed', () => {
         should(linkRelVal).be.ok()
         should(linkRelVal !== '').be.True()
 
-        should(findChildNode((n) => (
-          n.nodeName === 'Relationship' &&
-          n.getAttribute('Id') === linkRelVal &&
-          n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink'
-        ), documentRelsDoc.documentElement)).be.ok()
+        const relsDocs = [
+          documentRelsDoc,
+          header1RelsDoc,
+          header2RelsDoc,
+          header3RelsDoc,
+          footer1RelsDoc,
+          footer2RelsDoc,
+          footer3RelsDoc
+        ]
+
+        relsDocs.should.matchAny((relsDoc) => {
+          should(relsDoc).be.ok()
+
+          should(findChildNode((n) => (
+            n.nodeName === 'Relationship' &&
+            n.getAttribute('Id') === linkRelVal &&
+            n.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink'
+          ), relsDoc.documentElement)).be.ok()
+        })
       }
     }
 
@@ -753,6 +768,558 @@ describe('docx html embed', () => {
         should(textNodes[2].textContent).eql('font, and it preserves')
         should(textNodes[3].textContent).eql('both      spaces and')
         should(textNodes[4].textContent).eql('line breaks')
+      })
+    }
+  })
+
+  describe('img', () => {
+    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const imageDataSrc = 'data:image/png;base64,' + imageBuf.toString('base64')
+    const imageDimensions = sizeOf(imageBuf)
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const image2Buf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const image2DataSrc = 'data:image/png;base64,' + image2Buf.toString('base64')
+    const image2Dimensions = sizeOf(image2Buf)
+
+    const targetImage2Size = {
+      width: pxToEMU(image2Dimensions.width),
+      height: pxToEMU(image2Dimensions.height)
+    }
+
+    for (const mode of ['block', 'inline']) {
+      const templateEmptyStr = '<img />'
+
+      it(`${mode} mode - <img> ${templateEmptyStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateEmptyStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(mode === 'block' ? 0 : 1)
+
+        const outputImageSize = await getImageSize(result.content)
+
+        should(outputImageSize).be.not.ok()
+      })
+
+      const templateStr = `<img src="${imageDataSrc}" />`
+
+      it(`${mode} mode - <img> ${templateStr.slice(0, 35)}...`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(1)
+
+        const outputImageSize = await getImageSize(result.content)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        const drawingEl = doc.getElementsByTagName('w:drawing')[0]
+        const docPrEl = getDocPrEl(drawingEl)
+        const pictureEl = getPictureElInfo(drawingEl).picture
+        const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+
+        // should generate id when image is created from scratch
+        docPrEl.getAttribute('id').should.be.eql('1')
+        docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
+      })
+
+      const templateMultipleStr = `<img src="${imageDataSrc}" /><img src="${image2DataSrc}" />`
+
+      it(`${mode} mode - <img> ${templateMultipleStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateMultipleStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(2)
+
+        const outputImageSizes = await getImageSize(result.content, null, true)
+        const targetImageSizes = [targetImageSize, targetImage2Size]
+
+        for (const [idx, outputImageSize] of outputImageSizes.entries()) {
+          // should preserve original image size by default
+          outputImageSize.width.should.be.eql(targetImageSizes[idx].width)
+          outputImageSize.height.should.be.eql(targetImageSizes[idx].height)
+        }
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
+      })
+
+      const templateTextStr = `...<img src="${imageDataSrc}" />...`
+
+      it(`${mode} mode - <img> ${templateTextStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateTextStr, ['Hello', 'World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(3)
+
+        const outputImageSize = await getImageSize(result.content)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(2)
+
+        should(textNodes[0].textContent).eql('Hello')
+        should(textNodes[1].textContent).eql('World')
+      })
+
+      const units = ['cm', 'px']
+
+      for (const unit of units) {
+        describe(`${mode} mode - <img> size in ${unit}`, () => {
+          const targetSize = unit === 'cm' ? 3 : 100
+          const targetSizeForWidth = unit === 'cm' ? 2 : 100
+          const targetSizeForHeight = unit === 'cm' ? 2 : 50
+
+          const templateCustomSizeStr = `<img src="${imageDataSrc}" style="width: ${targetSize}${unit}; height: ${targetSize}${unit}" />`
+
+          it(`${mode} mode - <img> custom size (width, height) ${templateCustomSizeStr.slice(0, 35)}`, async () => {
+            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+            const targetCustomImageSize = {
+              width: unit === 'cm' ? cmToEMU(targetSize) : pxToEMU(targetSize),
+              height: unit === 'cm' ? cmToEMU(targetSize) : pxToEMU(targetSize)
+            }
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(templateCustomSizeStr, [])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync('out.docx', result.content)
+
+            const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+            const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+            const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).eql(1)
+
+            commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).eql(1)
+
+            const outputImageSize = await getImageSize(result.content)
+
+            outputImageSize.width.should.be.eql(targetCustomImageSize.width)
+            outputImageSize.height.should.be.eql(targetCustomImageSize.height)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).eql(0)
+          })
+
+          const templateCustomWidthStr = `<img src="${imageDataSrc}" style="width: ${targetSizeForWidth}${unit}" />`
+
+          it(`${mode} mode - <img> custom size (width set and height automatic - keep aspect ratio) ${templateCustomWidthStr.slice(0, 35)}`, async () => {
+            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+            const targetCustomImageSize = {
+              width: unit === 'cm' ? cmToEMU(targetSizeForWidth) : pxToEMU(targetSizeForWidth),
+              // height is calculated automatically based on aspect ratio of image
+              height: unit === 'cm' ? cmToEMU(0.5142851308524194) : pxToEMU(25.714330708661418)
+            }
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(templateCustomWidthStr, [])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync('out.docx', result.content)
+
+            const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+            const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+            const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).eql(1)
+
+            commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).eql(1)
+
+            const outputImageSize = await getImageSize(result.content)
+
+            outputImageSize.width.should.be.eql(targetCustomImageSize.width)
+            outputImageSize.height.should.be.eql(targetCustomImageSize.height)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).eql(0)
+          })
+
+          const templateCustomHeightStr = `<img src="${imageDataSrc}" style="height: ${targetSizeForHeight}${unit}" />`
+
+          it(`${mode} mode - <img> custom size (height set and width automatic - keep aspect ratio) ${templateCustomHeightStr.slice(0, 35)}`, async () => {
+            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+            const targetCustomImageSize = {
+              // width is calculated automatically based on aspect ratio of image
+              width: unit === 'cm' ? cmToEMU(7.777781879962101) : pxToEMU(194.4444094488189),
+              height: unit === 'cm' ? cmToEMU(targetSizeForHeight) : pxToEMU(targetSizeForHeight)
+            }
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(templateCustomHeightStr, [])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync('out.docx', result.content)
+
+            const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+            const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+            const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).eql(1)
+
+            commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).eql(1)
+
+            const outputImageSize = await getImageSize(result.content)
+
+            outputImageSize.width.should.be.eql(targetCustomImageSize.width)
+            outputImageSize.height.should.be.eql(targetCustomImageSize.height)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).eql(0)
+          })
+        })
+      }
+
+      const templateUrlStr = '<img src="https://some-server.com/some-image.png" />'
+
+      it(`${mode} mode - <img> ${templateUrlStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        reporter.tests.beforeRenderEval((req, res, { require }) => {
+          require('nock')('https://some-server.com')
+            .get('/some-image.png')
+            .replyWithFile(200, req.data.imagePath, {
+              'content-type': 'image/png'
+            })
+        })
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, []),
+            imagePath: path.join(__dirname, 'image.png')
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(1)
+
+        const outputImageSize = await getImageSize(result.content)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
+      })
+
+      const customAlt = 'custom alt set'
+      const templateAltStr = `<img alt="${customAlt}" src="${imageDataSrc}" />`
+
+      it(`${mode} mode - <img> ${templateAltStr.slice(0, 60)}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateAltStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(1)
+
+        const outputImageSize = await getImageSize(result.content)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        const pictureEl = await getImageEl(result.content)
+        const pictureCNvPrEl = pictureEl.getElementsByTagName('pic:cNvPr')[0]
+
+        should(pictureCNvPrEl.getAttribute('descr')).be.eql(customAlt)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
+      })
+
+      const customLink = 'https://jsreport.net/'
+      const templateLinkStr = `<a href="${customLink}"><img src="${imageDataSrc}"</a>`
+
+      it(`${mode} mode - <img> ${templateLinkStr.slice(0, 50)}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateLinkStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc, relsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'])
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        commonHtmlParagraphAssertions(paragraphNodes[0], templateTextNodesForDocxHtml[0].parentNode.parentNode)
+
+        const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+        should(runNodes.length).eql(1)
+
+        const outputImageSize = await getImageSize(result.content)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        const drawingEl = doc.getElementsByTagName('w:drawing')[0]
+        const docPrEl = getDocPrEl(drawingEl)
+        const pictureEl = getPictureElInfo(drawingEl).picture
+        const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+
+        for (const srcEl of [docPrEl, pictureCnvPrEl]) {
+          const aHlinkClickEl = nodeListToArray(srcEl.childNodes).find((el) => el.nodeName === 'a:hlinkClick')
+          const aHLinkRelId = aHlinkClickEl.getAttribute('r:id')
+
+          const aHLinkRelEl = nodeListToArray(relsDoc.documentElement.getElementsByTagName('Relationship')).find((el) => (
+            el.getAttribute('Id') === aHLinkRelId &&
+            el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink' &&
+            el.getAttribute('Target') === customLink &&
+            el.getAttribute('TargetMode') === 'External'
+          ))
+
+          aHLinkRelEl.should.be.ok()
+        }
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+        should(textNodes.length).eql(0)
       })
     }
   })

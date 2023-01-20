@@ -2,10 +2,10 @@ const cheerio = require('cheerio')
 const styleAttr = require('style-attr')
 const { customAlphabet } = require('nanoid')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 const parseCssSides = require('parse-css-sides')
 const color = require('tinycolor2')
-const { lengthToPt } = require('../../utils')
+const { lengthToPt, getDimension } = require('../../utils')
+const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 
 const NODE_TYPES = {
   DOCUMENT: 9,
@@ -107,6 +107,34 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
 
         if (currentNode.tagName === 'br') {
           newItem = createBreak()
+        } else if (
+          // only accept image as valid if there is src defined
+          currentNode.tagName === 'img' &&
+          currentNode.attribs?.src != null &&
+          typeof currentNode.attribs?.src === 'string'
+        ) {
+          // if width comes from style, we just use it, if not parse it from the attribute if present
+          if (data.static.width == null && currentNode.attribs?.width) {
+            const parsedWidth = parseFloat(currentNode.attribs.width)
+
+            if (parsedWidth != null && !isNaN(parsedWidth)) {
+              data.static.width = `${parsedWidth}px`
+            }
+          }
+
+          if (data.static.height == null && currentNode.attribs?.height) {
+            const parsedHeight = parseFloat(currentNode.attribs.height)
+
+            if (parsedHeight != null && !isNaN(parsedHeight)) {
+              data.static.height = `${parsedHeight}px`
+            }
+          }
+
+          if (currentNode.attribs?.alt) {
+            data.static.alt = currentNode.attribs.alt
+          }
+
+          newItem = createImage(currentNode.attribs.src, data)
         }
       } else {
         if (mode === 'block') {
@@ -217,6 +245,76 @@ function createParagraph () {
     type: 'paragraph',
     children: []
   }
+}
+
+function createText (text, data) {
+  const textItem = {
+    type: 'text',
+    value: text != null ? text : ''
+  }
+
+  const boolProperties = [
+    'bold', 'italic', 'underline', 'subscript', 'strike', 'superscript',
+    'preformatted', 'code'
+  ]
+
+  const notNullProperties = [
+    'link', 'fontSize', 'fontFamily', 'color', 'backgroundColor'
+  ]
+
+  for (const prop of boolProperties) {
+    if (data[prop] === true) {
+      textItem[prop] = data[prop]
+    }
+  }
+
+  for (const prop of notNullProperties) {
+    if (data[prop] != null) {
+      textItem[prop] = data[prop]
+    }
+  }
+
+  return textItem
+}
+
+function createBreak (target = 'line') {
+  if (target !== 'line' && target !== 'page') {
+    throw new Error(`Invalid break target "${target}"`)
+  }
+
+  return {
+    type: 'break',
+    target
+  }
+}
+
+function createImage (src, data) {
+  const imageItem = {
+    type: 'image',
+    src
+  }
+
+  const staticNotNullProperties = [
+    'width', 'height', 'alt'
+  ]
+
+  const notNullProperties = [
+    'link'
+  ]
+
+  for (const prop of staticNotNullProperties) {
+    if (data.static[prop] != null) {
+      imageItem[prop] = data.static[prop]
+    }
+  }
+
+  for (const prop of notNullProperties) {
+    if (data[prop] != null) {
+      imageItem[prop] = data[prop]
+    }
+  }
+
+  return imageItem
 }
 
 // normalization implies ignoring nodes that we don't need and normalizing
@@ -412,47 +510,6 @@ function normalizeText (text, data) {
   }
 
   return createText(text, data)
-}
-
-function createText (text, data) {
-  const textItem = {
-    type: 'text',
-    value: text != null ? text : ''
-  }
-
-  const boolProperties = [
-    'bold', 'italic', 'underline', 'subscript', 'strike', 'superscript',
-    'preformatted', 'code'
-  ]
-
-  const notNullProperties = [
-    'link', 'fontSize', 'fontFamily', 'color', 'backgroundColor'
-  ]
-
-  for (const prop of boolProperties) {
-    if (data[prop] === true) {
-      textItem[prop] = data[prop]
-    }
-  }
-
-  for (const prop of notNullProperties) {
-    if (data[prop] != null) {
-      textItem[prop] = data[prop]
-    }
-  }
-
-  return textItem
-}
-
-function createBreak (target = 'line') {
-  if (target !== 'line' && target !== 'page') {
-    throw new Error(`Invalid break target "${target}"`)
-  }
-
-  return {
-    type: 'break',
-    target
-  }
 }
 
 function applyBoldDataIfNeeded (data, node) {
@@ -826,6 +883,22 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     if (parsedMarginBottom != null) {
       data.spacing = data.spacing || {}
       data.spacing.after = parsedMarginBottom
+    }
+  }
+
+  if (styles.width != null) {
+    const parsedWidth = getDimension(styles.width)
+
+    if (parsedWidth != null) {
+      data.static.width = styles.width
+    }
+  }
+
+  if (styles.height != null) {
+    const parsedHeight = getDimension(styles.height)
+
+    if (parsedHeight != null) {
+      data.static.height = styles.height
     }
   }
 

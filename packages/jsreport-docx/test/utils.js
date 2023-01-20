@@ -79,13 +79,14 @@ module.exports.getTextNodesMatching = function getTextNodesMatching (doc, target
   return textNodesMatching.nodes
 }
 
-module.exports.getImageSize = async function getImageSize (buf, target = 'word/document.xml') {
+async function getImageEl (buf, _target, all = false) {
   const files = await decompress()(buf)
+  const target = _target || 'word/document.xml'
 
   const file = files.find(f => f.path === target)
 
   if (file == null) {
-    return
+    return all ? [] : undefined
   }
 
   const doc = new DOMParser().parseFromString(
@@ -93,27 +94,41 @@ module.exports.getImageSize = async function getImageSize (buf, target = 'word/d
   )
 
   if (doc == null) {
-    return
+    return all ? [] : undefined
   }
 
-  const drawingEl = doc.getElementsByTagName('w:drawing')[0]
+  const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+  const results = []
 
-  if (drawingEl == null) {
-    return
+  for (const drawingEl of drawingEls) {
+    const pictureEl = findDirectPictureChild(drawingEl)
+
+    if (pictureEl == null) {
+      continue
+    }
+
+    results.push(pictureEl)
   }
 
-  const pictureEl = findDirectPictureChild(drawingEl)
+  return all ? results : results[0]
+}
 
-  if (pictureEl == null) {
-    return
+module.exports.getImageEl = getImageEl
+
+module.exports.getImageSize = async function getImageSize (buf, _target, all = false) {
+  const pictureEls = await getImageEl(buf, _target, true)
+  const results = []
+
+  for (const pictureEl of pictureEls) {
+    const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
+
+    results.push({
+      width: parseFloat(aExtEl.getAttribute('cx')),
+      height: parseFloat(aExtEl.getAttribute('cy'))
+    })
   }
 
-  const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
-
-  return {
-    width: parseFloat(aExtEl.getAttribute('cx')),
-    height: parseFloat(aExtEl.getAttribute('cy'))
-  }
+  return all ? results : results[0]
 }
 
 module.exports.findDirectPictureChild = findDirectPictureChild

@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
 const sizeOf = require('image-size')
-const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
+const { nodeListToArray, pxToEMU, cmToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { getDocumentsFromDocxBuf, getImageSize } = require('./utils')
 
 describe('docx image', () => {
@@ -468,9 +468,15 @@ describe('docx image', () => {
     drawingEls.length.should.be.eql(2)
 
     drawingEls.forEach((drawingEl, idx) => {
-      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+      const docPrEl = getDocPrEl(drawingEl)
+      const pictureEl = getPictureElInfo(drawingEl).picture
+      const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
+      const isImg = pictureEl != null
 
       isImg.should.be.True()
+
+      // should autogenerate id when image is created from loop
+      docPrEl.getAttribute('id').should.be.eql(pictureCnvPrEl.getAttribute('id'))
 
       const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
 

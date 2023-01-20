@@ -50,6 +50,10 @@ const elements = [
     tag: 'a'
   },
   {
+    type: 'inline',
+    tag: 'img'
+  },
+  {
     tag: 'pre'
   },
   {
