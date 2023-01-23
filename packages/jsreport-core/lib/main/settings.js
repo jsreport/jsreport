@@ -6,7 +6,7 @@
 const Request = require('../shared/request')
 
 const Settings = module.exports = function () {
-  this._collection = []
+
 }
 
 Settings.prototype.add = function (key, value, req) {
@@ -15,13 +15,7 @@ Settings.prototype.add = function (key, value, req) {
     value: typeof value !== 'string' ? JSON.stringify(value) : value
   }
 
-  this._collection.push(settingItem)
-
   return this.documentStore.collection('settings').insert(settingItem, localReqWithoutAuthorization(req))
-}
-
-Settings.prototype.get = function (key) {
-  return this._collection.find((s) => s.key === key)
 }
 
 Settings.prototype.findValue = async function (key, req) {
@@ -35,8 +29,6 @@ Settings.prototype.findValue = async function (key, req) {
 
 Settings.prototype.set = function (key, avalue, req) {
   const value = typeof avalue !== 'string' ? JSON.stringify(avalue) : avalue
-
-  this.get(key).value = value
 
   return this.documentStore.collection('settings').update({
     key: key
@@ -57,8 +49,6 @@ Settings.prototype.addOrSet = async function (key, avalue, req) {
 
 Settings.prototype.init = async function (documentStore, authorization) {
   this.documentStore = documentStore
-
-  const incompatibleSettingsToRemove = []
 
   if (authorization != null) {
     const col = documentStore.collection('settings')
@@ -94,30 +84,6 @@ Settings.prototype.init = async function (documentStore, authorization) {
         throw authorization.createAuthorizationError(col.name)
       }
     })
-  }
-
-  const res = await documentStore.collection('settings').find({})
-
-  res.forEach((v) => {
-    if (typeof v.value !== 'string') {
-      return this._collection.push({
-        key: v.key,
-        value: v.value
-      })
-    }
-
-    try {
-      return this._collection.push({
-        key: v.key,
-        value: JSON.parse(v.value)
-      })
-    } catch (e) {
-      incompatibleSettingsToRemove.push(v._id)
-    }
-  })
-
-  if (incompatibleSettingsToRemove.length) {
-    return documentStore.collection('settings').remove({ _id: { $in: incompatibleSettingsToRemove } })
   }
 }
 
