@@ -870,6 +870,16 @@ describe('pdfjs', () => {
     catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
   })
 
+  it('handle cross reference streams with predictor', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'cross-reference-streams-predictor.pdf')))
+    document.append(external)
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+    const { catalog } = await validate(buffer)
+    catalog.properties.get('Pages').object.properties.get('Kids').should.have.length(1)
+  })
+
   it('pdf/A basic', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
