@@ -70,6 +70,23 @@ describe('query', function () {
     r.values[0].should.be.eql('foo')
   })
 
+  it('should support ne filter on complex props', function () {
+    const r = query(table, {
+      $filter: { address: { street: { $ne: 'foo' } } }
+    }, 'users', model)
+
+    r.text.should.be.eql('SELECT [UserType].* FROM [UserType] WHERE ([UserType].[address_street] <> @1)')
+    r.values[0].should.be.eql('foo')
+  })
+
+  it('should support ne filter on complex props and null', function () {
+    const r = query(table, {
+      $filter: { address: { $ne: null } }
+    }, 'users', model)
+
+    r.text.should.be.eql('SELECT [UserType].* FROM [UserType] WHERE (([UserType].[address_street] IS NOT NULL) OR ([UserType].[address_number] IS NOT NULL))')
+  })
+
   it('should support is null filters', function () {
     query(table, {
       $filter: { int: null }
@@ -107,6 +124,12 @@ describe('query', function () {
     query(table, {
       $filter: { int: { $in: [] } }
     }, 'users', model).text.should.be.eql('SELECT [UserType].* FROM [UserType] WHERE (1=0)')
+  })
+
+  it('should support $ne', function () {
+    query(table, {
+      $filter: { _id: { $ne: 'foo' } }
+    }, 'users', model).text.should.be.eql('SELECT [UserType].* FROM [UserType] WHERE ([UserType].[_id] <> @1)')
   })
 
   it('should support $lt', function () {

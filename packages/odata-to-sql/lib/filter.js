@@ -5,7 +5,7 @@ function getOperation (el, obj) {
 
   if (obj != null) {
     for (const key in operations) {
-      if (obj[key]) {
+      if (Object.hasOwn(obj, key)) {
         return operations[key]
       }
     }
@@ -63,6 +63,24 @@ function eq (table, col, el, v, entityType) {
   }
 }
 
+function ne (table, col, el, v, entityType) {
+  if (entityType[el].complexType && v.$ne == null) {
+    // we check that there is not null column
+    let sq
+    for (const prop in entityType[el].complexType) {
+      const op = table[el + '_' + prop].isNotNull()
+      sq = sq == null ? op : sq.or(op)
+    }
+    return sq
+  }
+
+  if (v.$ne == null) {
+    return table[col].isNotNull()
+  }
+
+  return table[col].notEquals(v.$ne)
+}
+
 function and (table, col, el, v, entityType) {
   let cq
   for (const andV of v) {
@@ -91,6 +109,7 @@ function filterObject (table, filter, entityType) {
     const sq = getOperation(el, filter[el])(table, el, el, filter[el], entityType)
     cq = cq == null ? sq : cq.and(sq)
   }
+
   return cq
 }
 
@@ -109,5 +128,6 @@ const operations = {
   $lte: lte,
   $and: and,
   $or: or,
-  $in: inFn
+  $in: inFn,
+  $ne: ne
 }
