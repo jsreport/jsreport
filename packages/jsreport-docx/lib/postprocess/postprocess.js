@@ -1,4 +1,4 @@
-const headerFooterReferences = require('./headerFooterReferences')
+const sections = require('./sections')
 const bookmark = require('./bookmark')
 const style = require('./style')
 const drawingObject = require('./drawingObject')
@@ -13,7 +13,16 @@ const child = require('./child')
 
 module.exports = async (files, options) => {
   const newBookmarksMap = new Map()
-  const headerFooterRefs = await headerFooterReferences(files)
+  const sectionsDetails = await sections(files)
+
+  const headerFooterRefs = sectionsDetails.reduce((acu, section) => {
+    if (section.headerFooterReferences) {
+      acu.push(...section.headerFooterReferences)
+    }
+
+    return acu
+  }, [])
+
   // we handle the html step as the first to ensure no other step
   // work with the attribute and comment we put for the <w:p> elements for the html handling
   await html(files, headerFooterRefs)
