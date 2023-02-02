@@ -1,4 +1,5 @@
 const concatTags = require('./concatTags')
+const context = require('./context')
 const sections = require('./sections')
 const bookmark = require('./bookmark')
 const drawingObject = require('./drawingObject')
@@ -15,6 +16,8 @@ const child = require('./child')
 
 module.exports = (files) => {
   concatTags(files)
+  context(files)
+
   const sectionsDetails = sections(files)
 
   const headerFooterRefs = sectionsDetails.reduce((acu, section) => {

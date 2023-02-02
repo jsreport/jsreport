@@ -1,6 +1,33 @@
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
+
+function docxContext (options) {
+  const Handlebars = require('handlebars')
+  let data
+
+  if (options.hash.type === 'document') {
+    data = Handlebars.createFrame({})
+    data.currentSectionIdx = 0
+  } else if (options.hash.type === 'sectionIdx') {
+    const idx = options.data.currentSectionIdx
+
+    if (options.hash.increment === true) {
+      options.data.currentSectionIdx += 1
+    }
+
+    return idx
+  }
+
+  const context = {}
+
+  if (data) {
+    context.data = data
+  }
+
+  return options.fn(this, context)
+}
+
 function docxPageBreak () {
   const Handlebars = require('handlebars')
   return new Handlebars.SafeString('')

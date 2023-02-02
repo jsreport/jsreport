@@ -82,6 +82,27 @@ const elements = [
   },
   {
     tag: 'li'
+  },
+  {
+    tag: 'table'
+  },
+  {
+    tag: 'thead'
+  },
+  {
+    tag: 'tbody'
+  },
+  {
+    tag: 'tfoot'
+  },
+  {
+    tag: 'tr'
+  },
+  {
+    tag: 'td'
+  },
+  {
+    tag: 'th'
   }
 ]
 

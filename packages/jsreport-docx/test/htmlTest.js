@@ -5,7 +5,8 @@ const jsreport = require('@jsreport/jsreport-core')
 const WordExtractor = require('word-extractor')
 const sizeOf = require('image-size')
 const { getDocumentsFromDocxBuf, getTextNodesMatching, getImageEl, getImageSize } = require('./utils')
-const { nodeListToArray, findChildNode, cmToEMU, pxToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
+const { nodeListToArray, findChildNode, pxToEMU, cmToEMU, emuToTOAP, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
+const { getSectionDetail } = require('../lib/sectionUtils')
 const { SUPPORTED_ELEMENTS, BLOCK_ELEMENTS, ELEMENTS } = require('../lib/postprocess/html/supportedElements')
 const extractor = new WordExtractor()
 
@@ -14,6 +15,7 @@ describe('docx html embed', () => {
 
   beforeEach(() => {
     reporter = jsreport({
+      reportTimeout: 99999999,
       store: {
         provider: 'memory'
       }
@@ -772,7 +774,7 @@ describe('docx html embed', () => {
     }
   })
 
-  describe('img', () => {
+  describe('<img> tag', () => {
     const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
     const imageDataSrc = 'data:image/png;base64,' + imageBuf.toString('base64')
     const imageDimensions = sizeOf(imageBuf)
@@ -1599,6 +1601,9403 @@ describe('docx html embed', () => {
       should(textNodes[10].textContent).eql('Testing title6')
       should(textNodes[11].textContent).eql('another text')
     })
+  })
+
+  describe('<table>, <tr>, <td>', () => {
+    const generateRows = (amountOfCols, amountOfRows = 1, cellTag = 'td') => {
+      const rows = []
+
+      for (let i = 0; i < amountOfRows; i++) {
+        const cells = []
+
+        for (let j = 0; j < amountOfCols; j++) {
+          cells.push(`<${cellTag}>col${i + 1}-${j + 1}</${cellTag}>`)
+        }
+
+        rows.push(`<tr>${cells.join('')}</tr>`)
+      }
+
+      return rows
+    }
+
+    const getValueForTest = (values) => (unit) => {
+      const item = values.find((val) => val.unit === unit)
+
+      if (item == null) {
+        throw new Error(`Unit "${unit}" is not supported`)
+      }
+
+      return item.value
+    }
+
+    const getValueInDXAForTest = (value, unit, docOrNumber) => {
+      const numberValue = parseFloat(value)
+
+      if (isNaN(numberValue)) {
+        throw new Error('Invalid value input', value)
+      }
+
+      switch (unit) {
+        case 'px':
+          return Math.round(emuToTOAP(pxToEMU(numberValue)))
+        case 'cm':
+          return Math.round(emuToTOAP(cmToEMU(numberValue)))
+        case '%': {
+          if (docOrNumber == null) {
+            throw new Error(`docOrNumber param is required when unit "${unit}" to get value in DXA`)
+          }
+
+          let containerWidth
+
+          if (typeof docOrNumber === 'number') {
+            containerWidth = docOrNumber
+          } else {
+            const sectPtEl = docOrNumber.getElementsByTagName('w:sectPr')[0]
+            const sectionDetail = getSectionDetail(sectPtEl, { includesHeaderFooterReferences: false })
+            containerWidth = sectionDetail.colsWidth[0]
+          }
+
+          return Math.round((numberValue / 100) * containerWidth)
+        }
+      }
+    }
+
+    const modes = ['block', 'inline']
+
+    for (const mode of modes) {
+      it(`${mode} mode - <table> with row`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(3)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with multiple rows`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3, 3).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(9)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with multiple rows and columns`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(6, 3).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(18)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 6) + 1
+            let cellIdx = idx % 6
+            cellIdx = cellIdx === 0 ? 6 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(6)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(6)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with th`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3, 2, 'th').join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(6)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with thead`, async () => {
+        const templateStr = [
+          '<table>',
+          `<thead>${generateRows(3, 2).join('')}</thead>`,
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(6)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with tfoot`, async () => {
+        const templateStr = [
+          '<table>',
+          `<tfoot>${generateRows(3, 2).join('')}</tfoot>`,
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(6)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with tbody`, async () => {
+        const templateStr = [
+          '<table>',
+          `<tbody>${generateRows(3, 2).join('')}</tbody>`,
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(6)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with thead, tbody and tfoot`, async () => {
+        const templateStr = [
+          '<table>',
+          `<thead>${generateRows(3, 2).join('')}</thead>`,
+          `<tbody>${generateRows(3, 2).join('')}</tbody>`,
+          `<tfoot>${generateRows(3, 2).join('')}</tfoot>`,
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(18)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor((runIdx / 3) % 2) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(6)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            const targetRowIdx = rowIdx % 2
+
+            should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> in document header`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3, 3).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header' : 'html-embed-inline-header'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, []),
+            headerHtml: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc, header1Doc, header2Doc, header3Doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
+
+        const targetDocs = [{ doc }]
+
+        const headerInfos = [
+          { doc: header1Doc },
+          { doc: header2Doc },
+          { doc: header3Doc }
+        ]
+
+        for (const headerInfo of headerInfos) {
+          if (headerInfo.doc == null) {
+            continue
+          }
+
+          if (!headerInfo.doc.documentElement.textContent.includes('col1-1')) {
+            continue
+          }
+
+          targetDocs.push(headerInfo)
+        }
+
+        should(targetDocs.length).be.eql(2)
+
+        for (const [idx, { doc }] of targetDocs.entries()) {
+          const containerNode = idx === 0 ? doc.getElementsByTagName('w:body')[0] : doc.documentElement
+          const paragraphAtRootNodes = nodeListToArray(containerNode.childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+          const tableAtRootNodes = nodeListToArray(containerNode.childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+          if (mode !== 'block') {
+            const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(9)
+
+            for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+              const idx = runIdx + 1
+              const runNode = runNodes[runIdx]
+              const textNode = runNode.getElementsByTagName('w:t')[0]
+              const rowIdx = Math.floor(runIdx / 3) + 1
+              let cellIdx = idx % 3
+              cellIdx = cellIdx === 0 ? 3 : cellIdx
+              should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+            }
+
+            return
+          }
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> in document footer`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3, 3).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-footer' : 'html-embed-inline-footer'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, []),
+            footerHtml: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc, footer1Doc, footer2Doc, footer3Doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
+
+        const targetDocs = [{ doc }]
+
+        const footerInfos = [
+          { doc: footer1Doc },
+          { doc: footer2Doc },
+          { doc: footer3Doc }
+        ]
+
+        for (const footerInfo of footerInfos) {
+          if (footerInfo.doc == null) {
+            continue
+          }
+
+          if (!footerInfo.doc.documentElement.textContent.includes('col1-1')) {
+            continue
+          }
+
+          targetDocs.push(footerInfo)
+        }
+
+        should(targetDocs.length).be.eql(2)
+
+        for (const [idx, { doc }] of targetDocs.entries()) {
+          const containerNode = idx === 0 ? doc.getElementsByTagName('w:body')[0] : doc.documentElement
+          const paragraphAtRootNodes = nodeListToArray(containerNode.childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+          const tableAtRootNodes = nodeListToArray(containerNode.childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+          if (mode !== 'block') {
+            const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(9)
+
+            for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+              const idx = runIdx + 1
+              const runNode = runNodes[runIdx]
+              const textNode = runNode.getElementsByTagName('w:t')[0]
+              const rowIdx = Math.floor(runIdx / 3) + 1
+              let cellIdx = idx % 3
+              cellIdx = cellIdx === 0 ? 3 : cellIdx
+              should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+            }
+
+            return
+          }
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> in document header and footer`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3, 3).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header-footer' : 'html-embed-inline-header-footer'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, []),
+            headerHtml: createHtml(templateStr, []),
+            footerHtml: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc, header1Doc, header2Doc, header3Doc, footer1Doc, footer2Doc, footer3Doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
+
+        const targetDocs = [{ doc }]
+
+        const headerFooterInfos = [
+          { doc: header1Doc },
+          { doc: header2Doc },
+          { doc: header3Doc },
+          { doc: footer1Doc },
+          { doc: footer2Doc },
+          { doc: footer3Doc }
+        ]
+
+        for (const headerFooterInfo of headerFooterInfos) {
+          if (headerFooterInfo.doc == null) {
+            continue
+          }
+
+          if (!headerFooterInfo.doc.documentElement.textContent.includes('col1-1')) {
+            continue
+          }
+
+          targetDocs.push(headerFooterInfo)
+        }
+
+        should(targetDocs.length).be.eql(3)
+
+        for (const [idx, { doc }] of targetDocs.entries()) {
+          const containerNode = idx === 0 ? doc.getElementsByTagName('w:body')[0] : doc.documentElement
+          const paragraphAtRootNodes = nodeListToArray(containerNode.childNodes).filter((el) => el.nodeName === 'w:p')
+
+          should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+          const tableAtRootNodes = nodeListToArray(containerNode.childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+          should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+          if (mode !== 'block') {
+            const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(9)
+
+            for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+              const idx = runIdx + 1
+              const runNode = runNodes[runIdx]
+              const textNode = runNode.getElementsByTagName('w:t')[0]
+              const rowIdx = Math.floor(runIdx / 3) + 1
+              let cellIdx = idx % 3
+              cellIdx = cellIdx === 0 ? 3 : cellIdx
+              should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+            }
+
+            return
+          }
+
+          const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+          const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+          should(gridColNodes.length).be.eql(3)
+
+          const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+          should(rowNodes.length).be.eql(3)
+
+          for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+            const rowNode = rowNodes[rowIdx]
+            const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+            should(cellNodes.length).be.eql(3)
+
+            for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+              const cellNode = cellNodes[cellIdx]
+              const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+              should(paragraphNodes.length).be.eql(1)
+
+              const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+              should(runNodes.length).be.eql(1)
+
+              const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+              should(textNodes.length).be.eql(1)
+
+              should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+            }
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with rows that have different cells count`, async () => {
+        const templateStr = [
+          '<table>',
+          generateRows(3, 1).join(''),
+          generateRows(6, 1).join(''),
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(9)
+
+          const targetRunNodes = [runNodes.slice(0, 3), runNodes.slice(3)]
+
+          for (const [cIdx, rNodes] of targetRunNodes.entries()) {
+            for (let runIdx = 0; runIdx < rNodes.length; runIdx++) {
+              const idx = runIdx + 1
+              const runNode = rNodes[runIdx]
+              const textNode = runNode.getElementsByTagName('w:t')[0]
+              const cellsCount = cIdx === 0 ? 3 : 6
+              const rowIdx = Math.floor(runIdx / cellsCount) + 1
+              let cellIdx = idx % cellsCount
+              cellIdx = cellIdx === 0 ? cellsCount : cellIdx
+              should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+            }
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(6)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 6)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            const expectedRowIdx = (rowIdx > 0 ? rowIdx - 1 : rowIdx) + 1
+
+            should(textNodes[0].textContent).be.eql(`col${expectedRowIdx}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with empty cell`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td></td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(0)
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(1)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(1)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql('')
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with empty cells`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td></td>',
+          '<td></td>',
+          '<td></td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(0)
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql('')
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> empty (no rows) should not produce table at all`, async () => {
+        const templateStr = [
+          '<table>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(0)
+      })
+
+      it(`${mode} mode - <table> with only empty row should not produce table at all`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(0)
+      })
+
+      it(`${mode} mode - <table> with empty row and normal rows should ignore the empty rows`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col3-1', 'col3-2', 'col3-3']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(targetTexts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> with strange children elements betweens rows should be ignored in table but parsed in another place like browsers`, async () => {
+        const templateStr = [
+          '<table>',
+          '<p>demo</p>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<p>demo</p>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 2 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['demo', 'demo', 'col1-1', 'col1-2', 'col1-3']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(targetTexts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        for (const paragraphAtRootNode of paragraphAtRootNodes) {
+          const runNodes = nodeListToArray(paragraphAtRootNode.getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(1)
+
+          const textNodes = nodeListToArray(runNodes[0].getElementsByTagName('w:t'))
+
+          should(textNodes.length).be.eql(1)
+
+          should(textNodes[0].textContent).be.eql('demo')
+        }
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        let targetTextIdx = -1
+
+        const tableTexts = targetTexts.slice(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(tableTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td negative colspan set should default to as if there was no colspan set`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="-2">col1-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(3)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+
+            should(gridSpanNode).be.not.ok()
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set on single row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="2">col1-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(3)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+
+            should(gridSpanNode).be.not.ok()
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set but not enough cells available in next row (diff 0)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="2">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(6)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+
+            should(gridSpanNode).be.not.ok()
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set but not enough cells available in next row (diff > 0)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="3">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          should(runNodes.length).be.eql(targetTexts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+
+            if (rowIdx === 0 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+            } else {
+              should(gridSpanNode).be.not.ok()
+            }
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the start of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td colspan="2">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td decimal colspan set should default to just integer part`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="2.9">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+
+            if (rowIdx === 0 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+            } else {
+              should(gridSpanNode).be.not.ok()
+            }
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set to 0 should default to as if there was no colspan set`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="0">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(targetTexts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+
+            should(gridSpanNode).be.not.ok()
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set in the middle of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td colspan="2">col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the end of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="2">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the start of last row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td colspan="2">col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', 'col2-1', 'col2-2', 'col2-3']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 4 : 3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 1 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the middle of last row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td colspan="2">col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', 'col2-1', 'col2-2', 'col2-3']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 4 : 3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 1 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the end of last row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td colspan="2">col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(7)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', 'col2-1', 'col2-2', 'col2-3']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 4 : 3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 1 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the start of middle row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td colspan="2">col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '<td>col3-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(11)
+
+          const targetTexts = [
+            'col1-1', 'col1-2', 'col1-3', 'col1-4',
+            'col2-1', 'col2-2', 'col2-3',
+            'col3-1', 'col3-2', 'col3-3', 'col3-4'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 1 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 1 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the middle of middle row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td colspan="2">col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '<td>col3-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(11)
+
+          const targetTexts = [
+            'col1-1', 'col1-2', 'col1-3', 'col1-4',
+            'col2-1', 'col2-2', 'col2-3',
+            'col3-1', 'col3-2', 'col3-3', 'col3-4'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 1 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 1 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at the end of middle row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td colspan="2">col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '<td>col3-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(11)
+
+          const targetTexts = [
+            'col1-1', 'col1-2', 'col1-3', 'col1-4',
+            'col2-1', 'col2-2', 'col2-3',
+            'col3-1', 'col3-2', 'col3-3', 'col3-4'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 1 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 1 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set on the single cell first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td colspan="4">col1-1</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(5)
+
+          const targetTexts = ['col1-1', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 1 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('4')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set on all cells of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td colspan="2">col1-1</td>',
+          '<td colspan="2">col1-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(6)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col2-1', 'col2-2', 'col2-3', 'col2-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 2 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && (cellIdx === 0 || cellIdx === 1)) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set continues to work with rows across thead, tbody`, async () => {
+        const templateStr = [
+          '<table>',
+          '<thead>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="2">col1-3</td>',
+          '</tr>',
+          '</thead>',
+          '<tbody>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '<td>col3-3</td>',
+          '<td>col3-4</td>',
+          '</tr>',
+          '</tbody>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(11)
+
+          const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col2-4', 'col3-1', 'col3-2', 'col3-3', 'col3-4']
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td colspan set at but with empty cell on next row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td colspan="2">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td></td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', '']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 4)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 3 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 2) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td negative rowspan set should default to as if there was no rowspan set`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td rowspan="-2">col1-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(3)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+
+            should(vMergeNode).be.not.ok()
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set on single row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td rowspan="2">col1-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(3)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const idx = runIdx + 1
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            const rowIdx = Math.floor(runIdx / 3) + 1
+            let cellIdx = idx % 3
+            cellIdx = cellIdx === 0 ? 3 : cellIdx
+            should(textNode.textContent).be.eql(`col${rowIdx}-${cellIdx}`)
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(1)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+
+            should(vMergeNode).be.not.ok()
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set but not enough cells available (diff > 0)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td rowspan="3">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', '']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / 3)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+
+            if (cellIdx === 2) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set at the start of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="2">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', '', 'col2-1', 'col2-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td decimal rowspan set should default to just integer part`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="2.9">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', '', 'col2-1', 'col2-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      // NOTE: if we set rowspan to "0" for now we just make it count like we have rowspan="1"
+      // however rowspan="0" is a special feature in some browsers,
+      // so we may want to review in the future if we want to make it work
+      // context:
+      // - https://www.w3schools.com/tags/att_td_rowspan.asp
+      // - https://stackoverflow.com/questions/34044438/why-may-not-the-colspan-attribute-be-set-to-zero
+      it(`${mode} mode - <table> td rowspan set to 0 should default to as if there was no rowspan set`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="0">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(targetTexts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            should(vMergeNode).be.not.ok()
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set in the middle of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td rowspan="2">col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', '', 'col2-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 1) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set at the end of first row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td rowspan="2">col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', '']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 2) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set at the start of middle row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', '', 'col3-1', 'col3-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (rowIdx > 0 && cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set at the middle of middle row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td rowspan="2">col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col3-1', '', 'col3-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (rowIdx > 0 && cellIdx === 1) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set at the end of middle row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td rowspan="2">col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3', 'col3-1', 'col3-2', '']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (rowIdx > 0 && cellIdx === 2) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan should not work if it is from different group`, async () => {
+        const templateStr = [
+          '<table>',
+          '<thead>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td>col1-2</td>',
+          '<td rowspan="2">col1-3</td>',
+          '</tr>',
+          '</thead>',
+          '<tbody>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '</tbody>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col2-1', 'col2-2', 'col2-3']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(targetTexts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            should(vMergeNode).be.not.ok()
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #1 (rowspan set on different rows making placeholders on the last row)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">col2-1</td>',
+          '<td rowspan="2">col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', '', 'col2-1', 'col2-2', 'col2-3', '', '', '', 'col3-1']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else if (rowIdx > 0 && cellIdx === 1) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else if (rowIdx > 0 && cellIdx === 2) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #2 (rowspan set on first row with one cell, rows that fullfil the rowspan)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', '', 'col2-1', 'col2-2', '', 'col3-1', 'col3-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 1 : 3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #3 (rowspan set on first row with one cell, rows that fullfil the rowspan and more)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col4-1</td>',
+          '<td>col4-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', '', 'col2-1', 'col2-2', '', 'col3-1', 'col3-2', 'col4-1', 'col4-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(4)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 3
+
+          if (rowIdx === 0) {
+            expectedCells = 1
+          } else if (rowIdx === 3) {
+            expectedCells = 2
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0 && rowIdx !== 3) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #4 (rowspan set on first row with other cells on it, rows that fullfil the rowspan)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '<td>col3-2</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', '', 'col2-1', 'col2-2', '', 'col3-1', 'col3-2']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(3)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(3)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #5 (rowspan set on first row on all of its cells, rows that fullfil the rowspan)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '<td rowspan="3">col1-2</td>',
+          '<td rowspan="3">col1-3</td>',
+          '<td rowspan="3">col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', '', '', '', '', 'col2-1', '', '', '', '', 'col3-1']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(5)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx >= 1 ? 5 : 4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx >= 0 && cellIdx <= 3) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #6 (rowspan set on first row on all of its cells except last one, rows that fullfil the rowspan)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '<td rowspan="3">col1-2</td>',
+          '<td rowspan="3">col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', '', '', '', 'col2-1', '', '', '', 'col3-1']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx >= 0 && cellIdx <= 2) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #7 (rowspan set on first row on all of its cells except last one which uses colspan, rows that fullfil the rowspan)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '<td rowspan="3">col1-2</td>',
+          '<td rowspan="3">col1-3</td>',
+          '<td colspan="3">col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td colspan="2">col2-2</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', '', '', '', 'col2-1', 'col2-2', '', '', '', 'col3-1']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(5)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 4
+
+          if (rowIdx === 1) {
+            expectedCells = 5
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (cellIdx >= 0 && cellIdx <= 2) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if (rowIdx === 0 && cellIdx === 3) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #8 (rowspan set on first row on all of its cells except last one which uses colspan, rows that fullfil the rowspan)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="2" colspan="2">corner</td>',
+          '<td colspan="5">2015</td>',
+          '<td colspan="5">2016</td>',
+          '<td colspan="5">Summary</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Amount 1</td>',
+          '<td>Amount 2</td>',
+          '<td>Amount 3</td>',
+          '<td>Amount 4</td>',
+          '<td>Amount 5</td>',
+          '<td>Amount 1</td>',
+          '<td>Amount 2</td>',
+          '<td>Amount 3</td>',
+          '<td>Amount 4</td>',
+          '<td>Amount 5</td>',
+          '<td>Total Amount 1</td>',
+          '<td>Total Amount 2</td>',
+          '<td>Total Amount 3</td>',
+          '<td>Total Amount 4</td>',
+          '<td>Total Amount 5</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">Buffer</td>',
+          '<td>Jane Doe</td>',
+          '<td>10</td>',
+          '<td>15</td>',
+          '<td>20</td>',
+          '<td>25</td>',
+          '<td>30</td>',
+          '<td>2</td>',
+          '<td>4</td>',
+          '<td>6</td>',
+          '<td>8</td>',
+          '<td>10</td>',
+          '<td>12</td>',
+          '<td>19</td>',
+          '<td>26</td>',
+          '<td>32</td>',
+          '<td>40</td>',
+          '</tr>',
+          '<tr>',
+          '<td>Thomas Smith</td>',
+          '<td>0</td>',
+          '<td>25</td>',
+          '<td>20</td>',
+          '<td>15</td>',
+          '<td>10</td>',
+          '<td>5</td>',
+          '<td>3</td>',
+          '<td>6</td>',
+          '<td>9</td>',
+          '<td>12</td>',
+          '<td>15</td>',
+          '<td>5</td>',
+          '<td>28</td>',
+          '<td>26</td>',
+          '<td>22</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = [
+          'corner', '2015', '2016', 'Summary',
+          '', 'Amount 1', 'Amount 2', 'Amount 3', 'Amount 4', 'Amount 5', 'Amount 1', 'Amount 2', 'Amount 3', 'Amount 4', 'Amount 5',
+          'Total Amount 1', 'Total Amount 2', 'Total Amount 3', 'Total Amount 4', 'Total Amount 5',
+          'Buffer', 'Jane Doe', '10', '15', '20', '25', '30', '2', '4', '6', '8', '10', '12', '19', '26', '32', '40',
+          '', 'Thomas Smith', '0', '25', '20', '15', '10', '5', '3', '6', '9', '12', '15', '5', '28', '26', '22'
+        ]
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(17)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[6].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[7].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[8].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[9].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[10].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[11].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[12].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[13].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[14].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[15].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[16].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(4)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 17
+
+          if (rowIdx === 0) {
+            expectedCells = 4
+          } else if (rowIdx === 1) {
+            expectedCells = 16
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 || rowIdx === 2 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if ((rowIdx === 0 || rowIdx === 1) && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else if (rowIdx === 0 && (cellIdx === 1 || cellIdx === 2 || cellIdx === 3)) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('5')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #9 (using rowspan in different rows)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="3">col1-1</td>',
+          '<td>col1-2</td>',
+          '<td>col1-3</td>',
+          '<td>col1-4</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">col2-1</td>',
+          '<td rowspan="2">col2-2</td>',
+          '<td>col2-3</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col3-1</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['col1-1', 'col1-2', 'col1-3', 'col1-4', '', 'col2-1', 'col2-2', 'col2-3', '', '', '', 'col3-1']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(4)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(4)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 0) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else if (rowIdx >= 1 && (cellIdx === 1 || cellIdx === 2)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #10 (using rowspan and colspan in one row leaving a hole in cells for next row)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td colspan="10">project portfolio data</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">project name</td>',
+          '<td colspan="4">timeline</td>',
+          '<td rowspan="2">number of team members</td>',
+          '</tr>',
+          '<tr>',
+          '<td>calendar</td>',
+          '<td>begin</td>',
+          '<td>finish</td>',
+          '<td># of days</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['project portfolio data', 'project name', 'timeline', 'number of team members', '', 'calendar', 'begin', 'finish', '# of days', '']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(6)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 6
+
+          if (rowIdx === 0) {
+            expectedCells = 1
+          } else if (rowIdx === 1) {
+            expectedCells = 3
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (rowIdx >= 1 && (cellIdx === 0 || cellIdx === cellNodes.length - 1)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 1 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('6')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else if (rowIdx === 1 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('4')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #11 (using rowspan and colspan in one row leaving one set of holes in cells for next row and covering more cells than the available holes)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td colspan="10">project portfolio data</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">project name</td>',
+          '<td colspan="4">timeline</td>',
+          '<td rowspan="2">number of team members</td>',
+          '</tr>',
+          '<tr>',
+          '<td>calendar</td>',
+          '<td>begin</td>',
+          '<td>finish</td>',
+          '<td># of days</td>',
+          '<td>projected</td>',
+          '<td>actual</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = ['project portfolio data', 'project name', 'timeline', 'number of team members', '', 'calendar', 'begin', 'finish', '# of days', '', 'projected', 'actual']
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(8)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[6].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[7].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 8
+
+          if (rowIdx === 0) {
+            expectedCells = 1
+          } else if (rowIdx === 1) {
+            expectedCells = 3
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (rowIdx === 1 && (cellIdx === 0 || cellIdx === 2)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('restart')
+            } else if (rowIdx === 2 && (cellIdx === 0 || cellIdx === 5)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('8')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else if (rowIdx === 1 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('4')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #12 (using two rowspan and colspan in one row leaving two sets of holes in cells for next row)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td colspan="10">project portfolio data</td>',
+          '</tr>',
+          '<tr>',
+          '<td rowspan="2">project name</td>',
+          '<td colspan="4">timeline</td>',
+          '<td rowspan="2">number of team members</td>',
+          '<td colspan="3">budget</td>',
+          '<td colspan="3">risks</td>',
+          '<td colspan="2">open</td>',
+          '<td rowspan="2">pending actions</td>',
+          '</tr>',
+          '<tr>',
+          '<td>calendar</td>',
+          '<td>begin</td>',
+          '<td>finish</td>',
+          '<td># of days</td>',
+          '<td>projected</td>',
+          '<td>actual</td>',
+          '<td>remainder</td>',
+          '<td>high</td>',
+          '<td>medium</td>',
+          '<td>low</td>',
+          '<td>issues</td>',
+          '<td>revisions</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = [
+          'project portfolio data', 'project name', 'timeline', 'number of team members', 'budget', 'risks', 'open', 'pending actions',
+          '', 'calendar', 'begin', 'finish', '# of days', '', 'projected', 'actual', 'remainder', 'high', 'medium', 'low', 'issues', 'revisions', ''
+        ]
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(15)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[6].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[7].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[8].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[9].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[10].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[11].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[12].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[13].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[14].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 15
+
+          if (rowIdx === 0) {
+            expectedCells = 1
+          } else if (rowIdx === 1) {
+            expectedCells = 7
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (rowIdx === 1 && (cellIdx === 0 || cellIdx === 2 || cellIdx === 6)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('restart')
+            } else if (rowIdx === 2 && (cellIdx === 0 || cellIdx === 5 || cellIdx === 14)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if (rowIdx === 0 && cellIdx === 0) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('10')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else if (rowIdx === 1 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('4')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else if (rowIdx === 1 && (cellIdx === 3 || cellIdx === 4)) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('3')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else if (rowIdx === 1 && cellIdx === 5) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #13 (using multiple rowspan in one row and then continuing with cells in next row)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="2">date</td>',
+          '<td rowspan="2">info1</td>',
+          '<td colspan="2">group1</td>',
+          '<td colspan="2">group2</td>',
+          '<td rowspan="2">info8</td>',
+          '<td rowspan="2">info9</td>',
+          '<td rowspan="2">info10</td>',
+          '<td rowspan="2">info11</td>',
+          '</tr>',
+          '<tr>',
+          '<td>test1</td>',
+          '<td>test2</td>',
+          '<td>test3</td>',
+          '<td>test4</td>',
+          '</tr>',
+          '<tr>',
+          '<td>01022021</td>',
+          '<td>i1</td>',
+          '<td>g11</td>',
+          '<td>g12</td>',
+          '<td>g21</td>',
+          '<td>g22</td>',
+          '<td>i8</td>',
+          '<td>i9</td>',
+          '<td>i10</td>',
+          '<td>i11</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = [
+          'date', 'info1', 'group1', 'group2', 'info8', 'info9', 'info10', 'info11',
+          '', '', 'test1', 'test2', 'test3', 'test4', '', '', '', '',
+          '01022021', 'i1', 'g11', 'g12', 'g21', 'g22', 'i8', 'i9', 'i10', 'i11'
+        ]
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(10)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[6].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[7].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[8].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[9].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 10
+
+          if (rowIdx === 0) {
+            expectedCells = 8
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (rowIdx === 0 && (cellIdx === 0 || cellIdx === 1 || cellIdx === 4 || cellIdx === 5 || cellIdx === 6 || cellIdx === 7)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('restart')
+            } else if (rowIdx === 1 && (cellIdx === 0 || cellIdx === 1 || cellIdx === 6 || cellIdx === 7 || cellIdx === 8 || cellIdx === 9)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if (rowIdx === 0 && (cellIdx === 2 || cellIdx === 3)) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan layout #14 (using multiple rowspan and colspan in one row leaving holes in cells for next row)`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td rowspan="2">date</td>',
+          '<td rowspan="2">info1</td>',
+          '<td colspan="2">group1</td>',
+          '<td colspan="2">group2</td>',
+          '<td rowspan="2">info8</td>',
+          '<td rowspan="2">info9</td>',
+          '<td colspan="2">group3</td>',
+          '<td rowspan="2">info11</td>',
+          '</tr>',
+          '<tr>',
+          '<td>test1</td>',
+          '<td>test2</td>',
+          '<td>test3</td>',
+          '<td>test4</td>',
+          '<td>test5</td>',
+          '<td>test6</td>',
+          '</tr>',
+          '<tr>',
+          '<td>01022021</td>',
+          '<td>i1</td>',
+          '<td>g11</td>',
+          '<td>g12</td>',
+          '<td>g21</td>',
+          '<td>g22</td>',
+          '<td>i8</td>',
+          '<td>i9</td>',
+          '<td>g31</td>',
+          '<td>g32</td>',
+          '<td>i11</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = [
+          'date', 'info1', 'group1', 'group2', 'info8', 'info9', 'group3', 'info11',
+          '', '', 'test1', 'test2', 'test3', 'test4', '', '', 'test5', 'test6', '',
+          '01022021', 'i1', 'g11', 'g12', 'g21', 'g22', 'i8', 'i9', 'g31', 'g32', 'i11'
+        ]
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(11)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[6].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[7].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[8].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[9].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[10].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(3)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          let expectedCells = 11
+
+          if (rowIdx === 0) {
+            expectedCells = 8
+          }
+
+          should(cellNodes.length).be.eql(expectedCells)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            let cellWidth = colWidth
+
+            if (rowIdx === 0 && (cellIdx === 0 || cellIdx === 1 || cellIdx === 4 || cellIdx === 5 || cellIdx === 7)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('restart')
+            } else if (rowIdx === 1 && (cellIdx === 0 || cellIdx === 1 || cellIdx === 6 || cellIdx === 7 || cellIdx === 10)) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql('continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            if (rowIdx === 0 && (cellIdx === 2 || cellIdx === 3 || cellIdx === 6)) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              should(gridSpanNode).be.not.ok()
+              cellWidth = colWidth
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+
+      const origins = ['attribute', 'style']
+      const units = ['px', 'cm', '%']
+
+      for (const origin of origins) {
+        if (mode !== 'block') {
+          continue
+        }
+
+        for (const unit of units) {
+          it(`${mode} mode - <table> ${origin} width="0${unit}" should be ignored`, async () => {
+            const template = [
+              `<table ${origin === 'attribute' ? `width="0${unit}"` : `style="width: 0${unit}"`}>`,
+              generateRows(3, 1).join(''),
+              '</table>'
+            ].join('')
+
+            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(template, [])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync('out.docx', result.content)
+
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+            const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+            should(paragraphAtRootNodes.length).be.eql(0)
+
+            const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+            should(tableAtRootNodes.length).be.eql(1)
+
+            const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+            const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+            should(tblWNode.getAttribute('w:w')).be.eql('0')
+            should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+            const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+            const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+            should(gridColNodes.length).be.eql(3)
+
+            const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+            should(rowNodes.length).be.eql(1)
+
+            for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+              const rowNode = rowNodes[rowIdx]
+              const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+              should(cellNodes.length).be.eql(3)
+
+              for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                const cellNode = cellNodes[cellIdx]
+                const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                should(paragraphNodes.length).be.eql(1)
+
+                const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                should(runNodes.length).be.eql(1)
+
+                const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                should(textNodes.length).be.eql(1)
+
+                should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+              }
+            }
+          })
+
+          it(`${mode} mode - <table> ${origin} width in ${unit}`, async () => {
+            const getTableWidth = getValueForTest([{
+              unit: 'px',
+              value: '150px'
+            }, {
+              unit: 'cm',
+              value: '6cm'
+            }, {
+              unit: '%',
+              value: '50%'
+            }])
+
+            const tableWidth = getTableWidth(unit)
+
+            const template = [
+              `<table ${origin === 'attribute' ? `width="${tableWidth}"` : `style="width: ${tableWidth}"`}>`,
+              generateRows(3, 1).join(''),
+              '</table>'
+            ].join('')
+
+            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+            const result = await reporter.render({
+              template: {
+                engine: 'handlebars',
+                recipe: 'docx',
+                docx: {
+                  templateAsset: {
+                    content: docxTemplateBuf
+                  }
+                }
+              },
+              data: {
+                html: createHtml(template, [])
+              }
+            })
+
+            // Write document for easier debugging
+            fs.writeFileSync('out.docx', result.content)
+
+            const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+            const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+            should(paragraphAtRootNodes.length).be.eql(0)
+
+            const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+            should(tableAtRootNodes.length).be.eql(1)
+
+            const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+            const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+            should(tblWNode.getAttribute('w:w')).be.eql(getValueInDXAForTest(tableWidth, unit, doc).toString())
+            should(tblWNode.getAttribute('w:type')).be.eql('dxa')
+
+            const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+            const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+            should(gridColNodes.length).be.eql(3)
+
+            const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+            should(rowNodes.length).be.eql(1)
+
+            for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+              const rowNode = rowNodes[rowIdx]
+              const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+              should(cellNodes.length).be.eql(3)
+
+              for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                const cellNode = cellNodes[cellIdx]
+                const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                should(paragraphNodes.length).be.eql(1)
+
+                const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                should(runNodes.length).be.eql(1)
+
+                const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                should(textNodes.length).be.eql(1)
+
+                should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+              }
+            }
+          })
+
+          if (origin === 'style') {
+            const tableModes = ['default', 'custom']
+
+            for (const tableMode of tableModes) {
+              it(`${mode} mode - <table> (${tableMode} width) single td ${origin} width (bigger than default col width) in ${unit}`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '250px'
+                }, {
+                  unit: 'cm',
+                  value: '6cm'
+                }, {
+                  unit: '%',
+                  value: '40%'
+                }])
+
+                const getRemainingColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: tableMode === 'custom' ? 1875 : 2544
+                }, {
+                  unit: 'cm',
+                  value: tableMode === 'custom' ? 2049 : 2718
+                }, {
+                  unit: '%',
+                  value: tableMode === 'custom' ? 2250 : 2652
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table$>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : '0')
+                should(tblWNode.getAttribute('w:type')).be.eql(tableMode === 'custom' ? 'dxa' : 'auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> (${tableMode} width) single td ${origin} width (smaller than default col width) in ${unit}`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '100px'
+                }, {
+                  unit: 'cm',
+                  value: '3cm'
+                }, {
+                  unit: '%',
+                  value: '20%'
+                }])
+
+                const getRemainingColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: tableMode === 'custom' ? 3000 : 3669
+                }, {
+                  unit: 'cm',
+                  value: tableMode === 'custom' ? 2900 : 3569
+                }, {
+                  unit: '%',
+                  value: tableMode === 'custom' ? 3000 : 3535
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : '0')
+                should(tblWNode.getAttribute('w:type')).be.eql(tableMode === 'custom' ? 'dxa' : 'auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> (${tableMode} width) multiple td ${origin} widths set greater than table width in ${unit}`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '400px'
+                }, {
+                  unit: 'cm',
+                  value: '10cm'
+                }, {
+                  unit: '%',
+                  value: '60%'
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  `<td style="width: ${colWidth}">col1-2</td>`,
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : '0')
+                should(tblWNode.getAttribute('w:type')).be.eql(tableMode === 'custom' ? 'dxa' : 'auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql('1')
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> (${tableMode} width) multiple td ${origin} widths set lesser than table width in ${unit}`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '100px'
+                }, {
+                  unit: 'cm',
+                  value: '2cm'
+                }, {
+                  unit: '%',
+                  value: '20%'
+                }])
+
+                const getRemainingColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: tableMode === 'custom' ? 4500 : 5838
+                }, {
+                  unit: 'cm',
+                  value: tableMode === 'custom' ? 5232 : 6570
+                }, {
+                  unit: '%',
+                  value: tableMode === 'custom' ? 4500 : 5302
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  `<td style="width: ${colWidth}">col1-2</td>`,
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : '0')
+                should(tblWNode.getAttribute('w:type')).be.eql(tableMode === 'custom' ? 'dxa' : 'auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> (${tableMode} width) all td ${origin} widths set greater than table width in ${unit}`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '400px'
+                }, {
+                  unit: 'cm',
+                  value: '10cm'
+                }, {
+                  unit: '%',
+                  value: '60%'
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  `<td style="width: ${colWidth}">col1-2</td>`,
+                  `<td style="width: ${colWidth}">col1-3</td>`,
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : '0')
+                should(tblWNode.getAttribute('w:type')).be.eql(tableMode === 'custom' ? 'dxa' : 'auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> (${tableMode} width) all td ${origin} widths set lesser than available table width in ${unit}`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '100px'
+                }, {
+                  unit: 'cm',
+                  value: '2cm'
+                }, {
+                  unit: '%',
+                  value: '20%'
+                }])
+
+                const getTableWidth = getValueForTest([{
+                  unit: 'px',
+                  value: 4500
+                }, {
+                  unit: 'cm',
+                  value: 3402
+                }, {
+                  unit: '%',
+                  value: 5304
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  `<td style="width: ${colWidth}">col1-2</td>`,
+                  `<td style="width: ${colWidth}">col1-3</td>`,
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : getTableWidth(unit).toString())
+                should(tblWNode.getAttribute('w:type')).be.eql('dxa')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> (${tableMode} width td multiple width in ${unit} set on different rows but same col index`, async () => {
+                const getColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '250px'
+                }, {
+                  unit: 'cm',
+                  value: '6cm'
+                }, {
+                  unit: '%',
+                  value: '40%'
+                }])
+
+                const getAlternativeColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: '100px'
+                }, {
+                  unit: 'cm',
+                  value: '3cm'
+                }, {
+                  unit: '%',
+                  value: '20%'
+                }])
+
+                const getRemainingColWidth = getValueForTest([{
+                  unit: 'px',
+                  value: tableMode === 'custom' ? 1875 : 2544
+                }, {
+                  unit: 'cm',
+                  value: tableMode === 'custom' ? 2049 : 2718
+                }, {
+                  unit: '%',
+                  value: tableMode === 'custom' ? 2250 : 2652
+                }])
+
+                const customTableWidth = 500
+                const customTableWidthInDXA = getValueInDXAForTest(customTableWidth, 'px')
+                const colWidth = getColWidth(unit)
+                const alternativeColWidth = getAlternativeColWidth(unit)
+
+                const template = [
+                  `<table${tableMode === 'custom' ? ` width="${customTableWidth}"` : ''}>`,
+                  '<tr>',
+                  `<td style="width: ${alternativeColWidth}">col1-1</td>`,
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  '<tr>',
+                  `<td style="width: ${colWidth}">col1-1</td>`,
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  '<tr>',
+                  `<td style="width: ${alternativeColWidth}">col1-1</td>`,
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql(tableMode === 'custom' ? customTableWidthInDXA.toString() : '0')
+                should(tblWNode.getAttribute('w:type')).be.eql(tableMode === 'custom' ? 'dxa' : 'auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                should(gridColNodes[0].getAttribute('w:w')).be.eql(getValueInDXAForTest(colWidth, unit, tableMode === 'custom' ? customTableWidthInDXA : doc).toString())
+                should(gridColNodes[1].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+                should(gridColNodes[2].getAttribute('w:w')).be.eql(getRemainingColWidth(unit).toString())
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(3)
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    should(textNodes[0].textContent).containEql('col')
+                    should(textNodes[0].textContent).containEql('-')
+                  }
+                }
+              })
+            }
+
+            if (unit !== '%') {
+              it(`${mode} mode - <table> tr ${origin} height in ${unit}`, async () => {
+                const getRowHeight = getValueForTest([{
+                  unit: 'px',
+                  value: '250px'
+                }, {
+                  unit: 'cm',
+                  value: '6cm'
+                }])
+
+                const rowHeight = getRowHeight(unit)
+
+                const template = [
+                  '<table>',
+                  `<tr style="height: ${rowHeight}">`,
+                  '<td>col1-1</td>',
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql('0')
+                should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                should(findChildNode('w:trHeight', findChildNode('w:trPr', rowNodes[0])).getAttribute('w:val')).be.eql(getValueInDXAForTest(rowHeight, unit).toString())
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> single td ${origin} height in ${unit}`, async () => {
+                const getRowHeight = getValueForTest([{
+                  unit: 'px',
+                  value: '250px'
+                }, {
+                  unit: 'cm',
+                  value: '6cm'
+                }])
+
+                const rowHeight = getRowHeight(unit)
+
+                const template = [
+                  '<table>',
+                  '<tr>',
+                  `<td style="height: ${rowHeight}">col1-1</td>`,
+                  '<td>col1-2</td>',
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql('0')
+                should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                should(findChildNode('w:trHeight', findChildNode('w:trPr', rowNodes[0])).getAttribute('w:val')).be.eql(getValueInDXAForTest(rowHeight, unit).toString())
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> multiple td ${origin} heights set in ${unit}`, async () => {
+                const getRowHeight = getValueForTest([{
+                  unit: 'px',
+                  value: '250px'
+                }, {
+                  unit: 'cm',
+                  value: '6cm'
+                }])
+
+                const getAlternativeRowHeight = getValueForTest([{
+                  unit: 'px',
+                  value: '150px'
+                }, {
+                  unit: 'cm',
+                  value: '4cm'
+                }])
+
+                const rowHeight = getRowHeight(unit)
+                const alternativeRowHeight = getAlternativeRowHeight(unit)
+
+                const template = [
+                  '<table>',
+                  '<tr>',
+                  `<td style="height: ${alternativeRowHeight}">col1-1</td>`,
+                  `<td style="height: ${rowHeight}">col1-2</td>`,
+                  `<td style="height: ${alternativeRowHeight}">col1-3</td>`,
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql('0')
+                should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                should(findChildNode('w:trHeight', findChildNode('w:trPr', rowNodes[0])).getAttribute('w:val')).be.eql(getValueInDXAForTest(rowHeight, unit).toString())
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+
+              it(`${mode} mode - <table> both tr height and td ${origin} height set in ${unit} (the greater value wins)`, async () => {
+                const getRowHeight = getValueForTest([{
+                  unit: 'px',
+                  value: '250px'
+                }, {
+                  unit: 'cm',
+                  value: '6cm'
+                }])
+
+                const getAlternativeRowHeight = getValueForTest([{
+                  unit: 'px',
+                  value: '150px'
+                }, {
+                  unit: 'cm',
+                  value: '4cm'
+                }])
+
+                const rowHeight = getRowHeight(unit)
+                const alternativeRowHeight = getAlternativeRowHeight(unit)
+
+                const template = [
+                  '<table>',
+                  `<tr style="height: ${alternativeRowHeight}">`,
+                  '<td>col1-1</td>',
+                  `<td style="height: ${rowHeight}">col1-2</td>`,
+                  '<td>col1-3</td>',
+                  '</tr>',
+                  generateRows(3, 1).join(''),
+                  '</table>'
+                ].join('')
+
+                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+
+                const result = await reporter.render({
+                  template: {
+                    engine: 'handlebars',
+                    recipe: 'docx',
+                    docx: {
+                      templateAsset: {
+                        content: docxTemplateBuf
+                      }
+                    }
+                  },
+                  data: {
+                    html: createHtml(template, [])
+                  }
+                })
+
+                // Write document for easier debugging
+                fs.writeFileSync('out.docx', result.content)
+
+                const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+                const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+                should(paragraphAtRootNodes.length).be.eql(0)
+
+                const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+                should(tableAtRootNodes.length).be.eql(1)
+
+                const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+                const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+                should(tblWNode.getAttribute('w:w')).be.eql('0')
+                should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+                const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+                const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+                should(gridColNodes.length).be.eql(3)
+
+                const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+                should(rowNodes.length).be.eql(2)
+
+                should(findChildNode('w:trHeight', findChildNode('w:trPr', rowNodes[0])).getAttribute('w:val')).be.eql(getValueInDXAForTest(rowHeight, unit).toString())
+
+                for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+                  const rowNode = rowNodes[rowIdx]
+                  const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+                  should(cellNodes.length).be.eql(3)
+
+                  for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+                    const cellNode = cellNodes[cellIdx]
+                    const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+                    should(paragraphNodes.length).be.eql(1)
+
+                    const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+                    should(runNodes.length).be.eql(1)
+
+                    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+                    should(textNodes.length).be.eql(1)
+
+                    const targetRowIdx = rowIdx === 0 ? 0 : rowIdx - 1
+
+                    should(textNodes[0].textContent).be.eql(`col${targetRowIdx + 1}-${cellIdx + 1}`)
+                  }
+                }
+              })
+            }
+          }
+        }
+      }
+
+      it(`${mode} mode - <table> td colspan set and custom cell width on same row`, async () => {
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td colspan="2">col1-2</td>',
+          '<td>col1-3</td>',
+          '<td style="width: 150px">col1-4</td>',
+          '<td>col1-5</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '<td>col2-5</td>',
+          '<td>col2-6</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          should(runNodes.length).be.eql(11)
+
+          const targetTexts = [
+            'col1-1', 'col1-2', 'col1-3', 'col1-4', 'col1-5',
+            'col2-1', 'col2-2', 'col2-3', 'col2-4', 'col2-5', 'col2-6'
+          ]
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(targetTexts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(6)
+
+        const colWidth = 1318
+        const customColWidth = getValueInDXAForTest('150px', 'px', doc)
+
+        should(gridColNodes[0].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[1].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[2].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[3].getAttribute('w:w')).be.eql(colWidth.toString())
+        should(gridColNodes[4].getAttribute('w:w')).be.eql(customColWidth.toString())
+        should(gridColNodes[5].getAttribute('w:w')).be.eql(colWidth.toString())
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(rowIdx === 0 ? 5 : 6)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const gridSpanNode = findChildNode('w:gridSpan', tcPrNode)
+            let cellWidth
+
+            if (rowIdx === 0 && cellIdx === 1) {
+              should(gridSpanNode).be.ok()
+              should(gridSpanNode.getAttribute('w:val')).be.eql('2')
+              cellWidth = colWidth * parseInt(gridSpanNode.getAttribute('w:val'), 10)
+            } else {
+              if (
+                (rowIdx === 0 && cellIdx === 3) ||
+                (rowIdx === 1 && cellIdx === 4)
+              ) {
+                cellWidth = customColWidth
+              } else {
+                cellWidth = colWidth
+              }
+
+              should(gridSpanNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(`col${rowIdx + 1}-${cellIdx + 1}`)
+          }
+        }
+      })
+
+      it(`${mode} mode - <table> td rowspan set and custom cell height on same row`, async () => {
+        const targetHeight = '200px'
+
+        const templateStr = [
+          '<table>',
+          '<tr>',
+          '<td>col1-1</td>',
+          '<td rowspan="2">col1-2</td>',
+          '<td>col1-3</td>',
+          `<td style="height: ${targetHeight}">col1-4</td>`,
+          '<td>col1-5</td>',
+          '</tr>',
+          '<tr>',
+          '<td>col2-1</td>',
+          '<td>col2-2</td>',
+          '<td>col2-3</td>',
+          '<td>col2-4</td>',
+          '</tr>',
+          '</table>'
+        ].join('')
+
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateStr, [])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+        const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
+
+        should(paragraphAtRootNodes.length).be.eql(mode === 'block' ? 0 : 1)
+
+        const tableAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:tbl')
+
+        should(tableAtRootNodes.length).be.eql(mode === 'block' ? 1 : 0)
+
+        const targetTexts = [
+          'col1-1', 'col1-2', 'col1-3', 'col1-4', 'col1-5',
+          'col2-1', '', 'col2-2', 'col2-3', 'col2-4'
+        ]
+
+        if (mode !== 'block') {
+          const runNodes = nodeListToArray(paragraphAtRootNodes[0].getElementsByTagName('w:r'))
+
+          const texts = targetTexts.filter((t) => t !== '')
+
+          should(runNodes.length).be.eql(texts.length)
+
+          for (let runIdx = 0; runIdx < runNodes.length; runIdx++) {
+            const runNode = runNodes[runIdx]
+            const textNode = runNode.getElementsByTagName('w:t')[0]
+            should(textNode.textContent).be.eql(texts[runIdx])
+          }
+
+          return
+        }
+
+        const tblPrNode = tableAtRootNodes[0].getElementsByTagName('w:tblPr')[0]
+        const tblWNode = tblPrNode.getElementsByTagName('w:tblW')[0]
+
+        should(tblWNode.getAttribute('w:w')).be.eql('0')
+        should(tblWNode.getAttribute('w:type')).be.eql('auto')
+
+        const tblGridNode = tableAtRootNodes[0].getElementsByTagName('w:tblGrid')[0]
+        const gridColNodes = nodeListToArray(tblGridNode.getElementsByTagName('w:gridCol'))
+
+        should(gridColNodes.length).be.eql(5)
+
+        const tableWidth = getValueInDXAForTest('100%', '%', doc)
+        const colWidth = Math.round(tableWidth / gridColNodes.length)
+
+        const rowNodes = nodeListToArray(tableAtRootNodes[0].childNodes).filter((el) => el.nodeName === 'w:tr')
+
+        should(rowNodes.length).be.eql(2)
+
+        let targetTextIdx = -1
+
+        for (let rowIdx = 0; rowIdx < rowNodes.length; rowIdx++) {
+          const rowNode = rowNodes[rowIdx]
+          const rowPrNode = findChildNode('w:trPr', rowNode)
+          const trHeightNode = rowPrNode != null ? findChildNode('w:trHeight', rowPrNode) : null
+
+          if (rowIdx === 0) {
+            should(trHeightNode.getAttribute('w:val')).be.eql(getValueInDXAForTest(targetHeight, 'px').toString())
+          } else {
+            should(trHeightNode).be.not.ok()
+          }
+
+          const cellNodes = nodeListToArray(rowNode.childNodes).filter((el) => el.nodeName === 'w:tc')
+
+          should(cellNodes.length).be.eql(5)
+
+          for (let cellIdx = 0; cellIdx < cellNodes.length; cellIdx++) {
+            const cellNode = cellNodes[cellIdx]
+            const tcPrNode = findChildNode('w:tcPr', cellNode)
+            const tcWNode = findChildNode('w:tcW', tcPrNode)
+            const vMergeNode = findChildNode('w:vMerge', tcPrNode)
+            const cellWidth = colWidth
+
+            if (cellIdx === 1) {
+              should(vMergeNode).be.ok()
+              should(vMergeNode.getAttribute('w:val')).be.eql(rowIdx === 0 ? 'restart' : 'continue')
+            } else {
+              should(vMergeNode).be.not.ok()
+            }
+
+            should(tcWNode.getAttribute('w:type')).be.eql('dxa')
+            should(tcWNode.getAttribute('w:w')).be.eql(cellWidth.toString())
+
+            const paragraphNodes = nodeListToArray(cellNode.getElementsByTagName('w:p'))
+
+            should(paragraphNodes.length).be.eql(1)
+
+            const runNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:r'))
+
+            should(runNodes.length).be.eql(1)
+
+            targetTextIdx++
+
+            const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+            should(textNodes.length).be.eql(1)
+
+            should(textNodes[0].textContent).be.eql(targetTexts[targetTextIdx])
+          }
+        }
+      })
+    }
   })
 
   for (const listTag of ['ul', 'ol']) {

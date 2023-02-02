@@ -25,7 +25,7 @@ module.exports = async (files, options) => {
 
   // we handle the html step as the first to ensure no other step
   // work with the attribute and comment we put for the <w:p> elements for the html handling
-  await html(files, headerFooterRefs)
+  await html(files, sectionsDetails)
   await child(files, headerFooterRefs)
   await bookmark(files, headerFooterRefs, newBookmarksMap)
   await watermark(files)

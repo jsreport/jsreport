@@ -1,4 +1,5 @@
 const path = require('path')
+const escapeStringRegexp = require('escape-string-regexp')
 const { XMLSerializer } = require('@xmldom/xmldom')
 
 function nodeListToArray (nodes) {
@@ -366,14 +367,43 @@ function createNode (doc, name, opts = {}) {
   return newEl
 }
 
-function getDimension (value) {
-  const regexp = /^(\d+(.\d+)?)(cm|px)$/
-  const match = regexp.exec(value)
+function getDimension (value, opts = {}) {
+  const units = Array.isArray(opts.units) ? [...opts.units] : ['px', 'cm']
 
-  if (match) {
+  if (units.length === 0) {
+    units.push('px')
+  }
+
+  const defaultUnit = opts.defaultUnit
+  const numberRegExp = /^(\d+(.\d+)?)/
+  const dimensionRegExp = new RegExp(`^(\\d+(.\\d+)?)(${units.map((u) => escapeStringRegexp(u)).join('|')})?$`)
+  const dimensionMatch = dimensionRegExp.exec(value)
+
+  if (dimensionMatch) {
+    let unit
+
+    if (defaultUnit == null && dimensionMatch[3] == null) {
+      return null
+    }
+
+    if (dimensionMatch[3] == null && defaultUnit != null) {
+      unit = defaultUnit
+    } else {
+      unit = dimensionMatch[3]
+    }
+
     return {
-      value: parseFloat(match[1]),
-      unit: match[3]
+      value: parseFloat(dimensionMatch[1]),
+      unit: unit
+    }
+  } else if (defaultUnit != null) {
+    const numberMatch = numberRegExp.exec(value)
+
+    if (numberMatch) {
+      return {
+        value: parseFloat(numberMatch[1]),
+        unit: defaultUnit
+      }
     }
   }
 
@@ -406,6 +436,11 @@ function ptToHalfPoint (val) {
   }
 
   return val * 2
+}
+
+// emu to twentieths of a point (dxa)
+function emuToTOAP (val) {
+  return (val / 914400) * 72 * 20
 }
 
 // pt to twentieths of a point (dxa)
@@ -637,6 +672,7 @@ module.exports.lengthToPt = (value) => {
 module.exports.getDimension = getDimension
 module.exports.pxToEMU = pxToEMU
 module.exports.cmToEMU = cmToEMU
+module.exports.emuToTOAP = emuToTOAP
 module.exports.ptToHalfPoint = ptToHalfPoint
 module.exports.ptToTOAP = ptToTOAP
 module.exports.serializeXml = (doc) => new XMLSerializer().serializeToString(doc).replace(/ xmlns(:[a-z0-9]+)?=""/g, '')

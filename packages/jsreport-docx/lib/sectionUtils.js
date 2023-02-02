@@ -1,6 +1,6 @@
 const { findChildNode, getHeaderFooterDocs } = require('./utils')
 
-module.exports.getSectionDetail = (sectionPrEl, documentFilePath, documentRelsDoc, files) => {
+module.exports.getSectionDetail = (sectionPrEl, { includesHeaderFooterReferences = true, documentFilePath, documentRelsDoc, files } = {}) => {
   let width
   let height
   let marginLeft
@@ -59,20 +59,22 @@ module.exports.getSectionDetail = (sectionPrEl, documentFilePath, documentRelsDo
     }
   }
 
-  const headerReferences = findChildNode('w:headerReference', sectionPrEl, true).map((el) => ({
-    type: 'header',
-    referenceEl: el
-  }))
-
-  const footerReferences = findChildNode('w:footerReference', sectionPrEl, true).map((el) => ({
-    type: 'footer',
-    referenceEl: el
-  }))
-
   let headerFooterReferences
 
-  if (headerReferences.length > 0 || footerReferences.length > 0) {
-    headerFooterReferences = getHeaderFooterDocs([...headerReferences, ...footerReferences], documentFilePath, documentRelsDoc, files)
+  if (includesHeaderFooterReferences) {
+    const headerReferences = findChildNode('w:headerReference', sectionPrEl, true).map((el) => ({
+      type: 'header',
+      referenceEl: el
+    }))
+
+    const footerReferences = findChildNode('w:footerReference', sectionPrEl, true).map((el) => ({
+      type: 'footer',
+      referenceEl: el
+    }))
+
+    if (headerReferences.length > 0 || footerReferences.length > 0) {
+      headerFooterReferences = getHeaderFooterDocs([...headerReferences, ...footerReferences], documentFilePath, documentRelsDoc, files)
+    }
   }
 
   const section = {

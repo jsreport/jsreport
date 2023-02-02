@@ -8,7 +8,7 @@ module.exports = (files, headerFooterRefs) => {
     toProcess.push(rResult.doc)
   }
 
-  for (const targetDoc of toProcess) {
+  for (const [targetIdx, targetDoc] of toProcess.entries()) {
     const docxHtmlTextElements = nodeListToArray(targetDoc.getElementsByTagName('w:t')).filter((tEl) => {
       return tEl.textContent.includes('{{docxHtml')
     })
@@ -58,6 +58,11 @@ module.exports = (files, headerFooterRefs) => {
 
       // insert attribute and comment as last child for easy replacement on postprocess step
       paragraphEl.setAttribute('__html_embed_container__', true)
+
+      // only insert section idx for paragraphs in the main document
+      if (targetIdx === 0) {
+        paragraphEl.setAttribute('__sectionIdx__', '{{docxContext type="sectionIdx"}}')
+      }
 
       const commentNode = targetDoc.createComment('__html_embed_container__')
       paragraphEl.appendChild(commentNode)

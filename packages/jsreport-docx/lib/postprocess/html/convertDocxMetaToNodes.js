@@ -58,8 +58,8 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
   while (pending.length > 0) {
     const { parent, item: currentDocxMeta } = pending.shift()
 
-    if (mode === 'block' && parent == null && currentDocxMeta.type !== 'paragraph') {
-      throw new Error(`Top level elements in docx meta for "${mode}" mode must be paragraphs`)
+    if (mode === 'block' && parent == null && (currentDocxMeta.type !== 'paragraph' && currentDocxMeta.type !== 'table')) {
+      throw new Error(`Top level elements in docx meta for "${mode}" mode must be paragraphs or tables`)
     } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text' && currentDocxMeta.type !== 'break' && currentDocxMeta.type !== 'image') {
       throw new Error(`Top level elements in docx meta for "${mode}" mode must be text, image or break`)
     }
@@ -153,7 +153,11 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         }
       }
 
-      result.push(containerEl)
+      if (parent == null) {
+        result.push(containerEl)
+      } else {
+        parent.appendChild(containerEl)
+      }
 
       const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({
         parent: containerEl,
@@ -162,6 +166,135 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       if (pendingItemsInCurrent.length > 0) {
         pending.unshift(...pendingItemsInCurrent)
+      }
+    } else if (currentDocxMeta.type === 'table' || currentDocxMeta.type === 'row' || currentDocxMeta.type === 'cell') {
+      if (mode === 'inline') {
+        throw new Error(`docx meta ${currentDocxMeta.type} element can not be applied for "${mode}" mode`)
+      }
+
+      const validChildTypes = []
+
+      if (currentDocxMeta.type === 'table') {
+        validChildTypes.push('row')
+      } else if (currentDocxMeta.type === 'row') {
+        validChildTypes.push('cell')
+      } else if (currentDocxMeta.type === 'cell') {
+        validChildTypes.push('paragraph')
+        validChildTypes.push('table')
+      }
+
+      const invalidChildMeta = currentDocxMeta.children.find((childMeta) => (
+        !validChildTypes.includes(childMeta.type)
+      ))
+
+      if (invalidChildMeta != null) {
+        throw new Error(`Invalid docx meta child "${invalidChildMeta.type}" found in ${currentDocxMeta.type}`)
+      }
+
+      let containerEl
+
+      if (currentDocxMeta.type === 'table') {
+        // validating that table has at least one row and one cell, if not
+        // don't continue producing the table
+        if (
+          currentDocxMeta.children.length > 0 &&
+          currentDocxMeta.children[0].type === 'row' &&
+          currentDocxMeta.children[0].children.length > 0 &&
+          currentDocxMeta.children[0].children[0].type === 'cell'
+        ) {
+          containerEl = createNode(doc, 'w:tbl', {
+            children: [
+              createNode(doc, 'w:tblPr', {
+                children: [
+                  createNode(doc, 'w:tblW', { attributes: { 'w:w': currentDocxMeta.width != null ? currentDocxMeta.width : '0', 'w:type': currentDocxMeta.width != null ? 'dxa' : 'auto' } }),
+                  createNode(doc, 'w:tblInd', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
+                  createNode(doc, 'w:tblCellMar', {
+                    children: [
+                      createNode(doc, 'w:top', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
+                      createNode(doc, 'w:left', { attributes: { 'w:w': '108', 'w:type': 'dxa' } }),
+                      createNode(doc, 'w:bottom', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
+                      createNode(doc, 'w:right', { attributes: { 'w:w': '108', 'w:type': 'dxa' } })
+                    ]
+                  }),
+                  createNode(doc, 'w:tblBorders', {
+                    children: [
+                      createNode(doc, 'w:top', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:left', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:bottom', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:right', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:insideH', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:insideV', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } })
+                    ]
+                  }),
+                  // the only required attr of this element is w:val which is a bitmask of
+                  // the enabled options, the rest of attrs just describe the boolean values
+                  // of the options applied
+                  createNode(doc, 'w:tblLook', { attributes: { 'w:val': '04A0', 'w:firstRow': '1', 'w:lastRow': '0', 'w:firstColumn': '1', 'w:lastColumn': '0', 'w:noHBand': '0', 'w:noVBand': '1' } })
+                ]
+              }),
+              createNode(doc, 'w:tblGrid', {
+                children: currentDocxMeta.cols.map((colInfo) => {
+                  return createNode(doc, 'w:gridCol', { attributes: { 'w:w': colInfo.width } })
+                })
+              })
+            ]
+          })
+        }
+      } else if (currentDocxMeta.type === 'row') {
+        containerEl = createNode(doc, 'w:tr')
+
+        if (currentDocxMeta.height != null) {
+          containerEl.appendChild(createNode(doc, 'w:trPr', {
+            children: [
+              createNode(doc, 'w:trHeight', { attributes: { 'w:val': currentDocxMeta.height } })
+            ]
+          }))
+        }
+      } else if (currentDocxMeta.type === 'cell') {
+        const cellPrChildren = [
+          createNode(doc, 'w:tcW', { attributes: { 'w:w': currentDocxMeta.width, 'w:type': 'dxa' } })
+        ]
+
+        if (currentDocxMeta.colspan != null) {
+          cellPrChildren.push(
+            createNode(doc, 'w:gridSpan', { attributes: { 'w:val': currentDocxMeta.colspan } })
+          )
+        }
+
+        if (currentDocxMeta.vMerge === true) {
+          cellPrChildren.push(
+            createNode(doc, 'w:vMerge', { attributes: { 'w:val': 'continue' } })
+          )
+        } else if (currentDocxMeta.rowspan != null) {
+          cellPrChildren.push(
+            createNode(doc, 'w:vMerge', { attributes: { 'w:val': 'restart' } })
+          )
+        }
+
+        containerEl = createNode(doc, 'w:tc', {
+          children: [
+            createNode(doc, 'w:tcPr', {
+              children: cellPrChildren
+            })
+          ]
+        })
+      }
+
+      if (containerEl != null) {
+        if (parent == null) {
+          result.push(containerEl)
+        } else {
+          parent.appendChild(containerEl)
+        }
+
+        const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({
+          parent: containerEl,
+          item: meta
+        }))
+
+        if (pendingItemsInCurrent.length > 0) {
+          pending.unshift(...pendingItemsInCurrent)
+        }
       }
     } else if (currentDocxMeta.type === 'text') {
       const runEl = htmlEmbedDef.tEl.parentNode.cloneNode(true)
