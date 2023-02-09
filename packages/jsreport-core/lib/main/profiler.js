@@ -1,9 +1,9 @@
 const EventEmitter = require('events')
-const winston = require('winston')
+const Transport = require('winston-transport')
 const extend = require('node.extend.without.arrays')
 const generateRequestId = require('../shared/generateRequestId')
 const fs = require('fs/promises')
-
+const { SPLAT } = require('triple-beam')
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('ProfileType', {
     templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
@@ -24,7 +24,6 @@ module.exports = (reporter) => {
   const profilersMap = new Map()
   const profilerOperationsChainsMap = new Map()
   const profilerRequestMap = new Map()
-  const profilerLogRequestMap = new Map()
 
   function runInProfilerChain (fnOrOptions, req) {
     if (req.context.profiling.mode === 'disabled') {
@@ -90,7 +89,7 @@ module.exports = (reporter) => {
     for (const m of events) {
       if (m.type === 'log') {
         if (log) {
-          reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp, fromEmitProfile: true })
+          reporter.logger[m.level](m.message, { ...req, ...m.meta, timestamp: m.timestamp, logged: true })
         }
       } else {
         lastOperation = m
@@ -327,49 +326,40 @@ module.exports = (reporter) => {
     }
   })
 
+  // we want to add to profiles also log messages from the main
   const configuredPreviously = reporter.logger.__profilerConfigured__ === true
-
   if (!configuredPreviously) {
-    const originalLog = reporter.logger.log
+    // we emit from winston transport, so winston formatters can still format message
+    class EmittingProfilesTransport extends Transport {
+      log (info, callback) {
+        setImmediate(() => {
+          this.emit('logged', info)
+        })
 
-    // we want to catch the original request
-    reporter.logger.log = function (level, msg, ...splat) {
-      const [meta] = splat
+        if (info[SPLAT]) {
+          const [req] = info[SPLAT]
 
-      if (typeof meta === 'object' && meta !== null && meta.context?.rootId != null) {
-        profilerLogRequestMap.set(meta.context.rootId, meta)
+          if (req && req.context && req.logged !== true) {
+            emitProfiles({
+              events: [createProfileMessage({
+                type: 'log',
+                level: info.level,
+                message: info.message,
+                previousOperationId: req.context.profiling.lastOperationId
+              }, req)],
+              log: false
+            }, req)
+          }
+        }
+
+        callback()
       }
-
-      return originalLog.call(this, level, msg, ...splat)
     }
 
-    const mainLogsToProfile = winston.format((info) => {
-      // propagate the request logs occurring on main to the profile
-      if (info.rootId != null && info.fromEmitProfile == null && profilerLogRequestMap.has(info.rootId)) {
-        const req = profilerLogRequestMap.get(info.rootId)
-
-        emitProfiles({
-          events: [createProfileMessage({
-            type: 'log',
-            level: info.level,
-            message: info.message,
-            previousOperationId: req.context.profiling.lastOperationId
-          }, req)],
-          log: false
-        }, req)
-      }
-
-      if (info.fromEmitProfile != null) {
-        delete info.fromEmitProfile
-      }
-
-      return info
-    })
-
-    reporter.logger.format = winston.format.combine(
-      reporter.logger.format,
-      mainLogsToProfile()
-    )
+    reporter.logger.add(new EmittingProfilesTransport({
+      format: reporter.logger.format,
+      level: 'debug'
+    }))
 
     reporter.logger.__profilerConfigured__ = true
   }
@@ -412,7 +402,6 @@ module.exports = (reporter) => {
     profilersMap.clear()
     profilerOperationsChainsMap.clear()
     profilerRequestMap.clear()
-    profilerLogRequestMap.clear()
   })
 
   let profilesCleanupRunning = false
@@ -427,7 +416,10 @@ module.exports = (reporter) => {
     let lastError
 
     try {
-      const profilesToRemove = await reporter.documentStore.collection('profiles').find({}).sort({ timestamp: -1 }).skip(reporter.options.profiler.maxProfilesHistory).toArray()
+      const profilesToRemove = await reporter.documentStore.collection('profiles')
+        .find({}, { _id: 1 }).sort({ timestamp: -1 })
+        .skip(reporter.options.profiler.maxProfilesHistory)
+        .toArray()
 
       for (const profile of profilesToRemove) {
         if (reporter.closed || reporter.closing) {
@@ -443,7 +435,9 @@ module.exports = (reporter) => {
         }
       }
 
-      const notFinishedProfiles = await reporter.documentStore.collection('profiles').find({ $or: [{ state: 'running' }, { state: 'queued' }] })
+      const notFinishedProfiles = await reporter.documentStore.collection('profiles')
+        .find({ $or: [{ state: 'running' }, { state: 'queued' }] }, { _id: 1, timeout: 1, timestamp: 1 })
+        .toArray()
 
       for (const profile of notFinishedProfiles) {
         if (reporter.closed || reporter.closing) {
@@ -493,7 +487,6 @@ module.exports = (reporter) => {
       profilersMap.delete(req.context.rootId)
       profilerOperationsChainsMap.delete(req.context.rootId)
       profilerRequestMap.delete(req.context.rootId)
-      profilerLogRequestMap.delete(req.context.rootId)
       return
     }
 
@@ -503,7 +496,6 @@ module.exports = (reporter) => {
         profilersMap.delete(req.context.rootId)
         profilerOperationsChainsMap.delete(req.context.rootId)
         profilerRequestMap.delete(req.context.rootId)
-        profilerLogRequestMap.delete(req.context.rootId)
       }
     }, req)
   }

@@ -90,11 +90,7 @@ describe('reporter', () => {
     const stdoutContent = stdMocks.flush()
     stdoutContent.stdout.length.should.be.eql(0)
 
-    const allTransportsAreSilent = Object.keys(reporter.logger.transports).every(function (transportName) {
-      return reporter.logger.transports[transportName].silent === true
-    })
-
-    allTransportsAreSilent.should.be.eql(true)
+    reporter.logger.transports.find(t => t.name === 'debug').silent.should.be.true()
   })
 
   it('should have Debug transport for logs enabled by default', async () => {

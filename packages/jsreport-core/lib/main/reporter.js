@@ -449,6 +449,7 @@ class MainReporter extends Reporter {
           } catch (err) {
             await this._handleRenderError(req, res, err).catch((e) => {})
           } finally {
+            this._cleanProfileInRequest(req)
             if (!workerAborted) {
               await worker.release(req)
             }
