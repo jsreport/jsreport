@@ -95,9 +95,11 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
         timeout: container.remote ? opts.timeout * 1.2 : opts.timeout
       })
     } catch (e) {
-      containersManager.recycle({ container, originalTenant: discriminator }).catch((err) => {
-        reporter.logger.error(`Error while trying to recycle container after allocate error ${container.id} (${container.url}): ${err.stack}`)
-      })
+      if (container.remote !== true) {
+        containersManager.recycle({ container, originalTenant: discriminator }).catch((err) => {
+          reporter.logger.error(`Error while trying to recycle container after allocate error ${container.id} (${container.url}): ${err.stack}`)
+        })
+      }
 
       reporter.logger.error(`Error while trying to allocate worker in container${container.remote ? '' : ` ${container.id}`} (${container.url}): ${e.stack}`)
 
@@ -113,12 +115,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
             systemAction: 'execute'
           })
         } catch (e) {
-          // the weak is normally set in the reporter, but that is here too late
-          if (e.code === 'WORKER_ABORTED' || e.code === 'WORKER_TIMEOUT') {
-            e.weak = true
-          }
-
-          if (!e.weak) {
+          if (e.needRestart) {
             container.needRestart = true
           }
           throw e

@@ -390,14 +390,12 @@ describe('docker manager', () => {
     containers[0].numberOfRestarts.should.be.eql(1)
   })
 
-  it('should restart if worker response does not have weak attribute', async () => {
+  it('should restart if worker returns invalid error', async () => {
     containers[0].handleReq(async (ctx) => {
       const reqData = serializator.parse(ctx.request.rawBody)
       if (reqData.actionName === 'render') {
         ctx.status = 500
-        ctx.body = serializator.serialize({
-          message: 'handlebars failure'
-        })
+        ctx.body = 'xxx'
       } else {
         ctx.status = 201
         ctx.body = '{}'
@@ -448,7 +446,7 @@ describe('docker manager', () => {
     containers[0].numberOfRestarts.should.be.eql(1)
   })
 
-  it('should not restart if worker response have weak attribute', async () => {
+  it('should not restart if worker sends a valid error', async () => {
     containers[0].handleReq(async (ctx) => {
       const reqData = serializator.parse(ctx.request.rawBody)
 
@@ -456,8 +454,7 @@ describe('docker manager', () => {
         ctx.status = 400
 
         ctx.body = serializator.serialize({
-          message: 'handlebars failure',
-          weak: true
+          message: 'handlebars failure'
         })
       } else {
         ctx.status = 201
@@ -591,6 +588,42 @@ describe('docker manager', () => {
       })
 
       res.content.toString().should.be.eql('from local worker')
+    })
+
+    it('should not try to recycle if remote allocation fails', async () => {
+      remoteContainers[0].handleReq(async (ctx) => {
+        ctx.status = 400
+
+        ctx.body = serializator.serialize({
+          message: 'error during allocate'
+        })
+      })
+
+      await reporter.documentStore.internalCollection('tenantWorkers').insert({
+        ip: remoteIp,
+        port: 5489,
+        stack: reporter.options.stack,
+        tenant: 'a',
+        updateAt: new Date()
+      })
+
+      let wasCalled = false
+      reporter.dockerManager.containersManager.recycle = () => {
+        wasCalled = true
+      }
+
+      await reporter.render({
+        template: {
+          recipe: 'html',
+          engine: 'none',
+          content: 'hello'
+        },
+        context: {
+          tenant: 'a'
+        }
+      }).should.be.rejected()
+
+      wasCalled.should.be.false()
     })
   })
 

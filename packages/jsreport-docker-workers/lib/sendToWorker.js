@@ -72,6 +72,7 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
         if (!err.response?.data) {
           const error = new Error('Error when communicating with worker: ' + err.message)
           Object.assign(error, { ...err })
+          error.needRestart = true
           throw error
         }
 
@@ -83,6 +84,7 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
         } catch (e) {
           const error = new Error('Error when communicating with worker: ' + err.response.data)
           Object.assign(error, { ...e })
+          error.needRestart = true
           throw error
         }
 
@@ -100,7 +102,9 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
 
       if (res.status !== 200) {
         isDone = true
-        throw new Error('Unexpected response from worker: ' + res.data)
+        const e = new Error('Unexpected response from worker: ' + res.data)
+        e.needRestart = true
+        throw e
       }
 
       let mainDataResponse = {}
@@ -146,7 +150,9 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
     timeout
       ? setTimeout(timeout, undefined, { signal: timeoutController.signal }).then(() => {
           isDone = true
-          throw new Error('Timeout when communicating with worker')
+          const e = new Error('Timeout when communicating with worker')
+          e.needRestart = true
+          throw e
         })
 
       : null
