@@ -478,6 +478,10 @@ class MainReporter extends Reporter {
 
       await this.afterRenderListeners.fire(req, res)
 
+      if (!res.content) {
+        this.logger.error('Worker didnt return render res.content, returned:' + JSON.stringify(responseResult), req)
+      }
+
       res.stream = Readable.from(res.content)
 
       this._cleanProfileInRequest(req)
