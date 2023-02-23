@@ -251,7 +251,7 @@ module.exports = (app, reporter, exposedOptions) => {
           }
         }
 
-        if (profile.state !== 'success' && profile.state !== 'error') {
+        if (!profile.blobName || (profile.state !== 'success' && profile.state !== 'error')) {
           throw reporter.createError('Timeout when waiting for profile blob to be fully persisted')
         }
       }
