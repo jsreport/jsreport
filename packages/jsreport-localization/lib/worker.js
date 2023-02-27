@@ -13,7 +13,7 @@ module.exports = async (reporter, definition) => {
   })
 
   reporter.beforeRenderListeners.add(definition.name, (req) => {
-    if (req.template.localization?.language != null && req.options.localization?.language == null) {
+    if (req.template.localization?.language != null && req.options.localization?.language == null && req.options.language == null) {
       req.options.localization = Object.assign({}, req.options.localization, { language: req.template.localization.language })
     }
   })

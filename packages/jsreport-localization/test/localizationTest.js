@@ -74,6 +74,43 @@ describe('localization', () => {
     res.content.toString().should.be.eql('Hello')
   })
 
+  it('persisted template with template.localization.language = \'\' should be overriden with req.ptions.language', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        message: 'Hello'
+      })),
+      folder: {
+        shortid: 'localization'
+      }
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      content: "{{localize 'message' 'localization'}}",
+      engine: 'handlebars',
+      recipe: 'html',
+      name: 'test',
+      localization: {
+        language: ''
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        name: 'test'
+      },
+      options: {
+        language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql('Hello')
+  })
+
   it('should provide localize helper accepting object', async () => {
     await reporter.documentStore.collection('folders').insert({
       name: 'localization',
