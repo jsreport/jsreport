@@ -62,9 +62,10 @@ set NODE_ENV=jsreport-development&&yarn start
 ```
 
 ## Roadmap
-- integrate to the xlsx recipe the same templating capabilities as in the docx
-- pdf linearization, PDF/A
-- docx/pptx - simple html embedding, raw openxml, memory optimization
+- adding more features to docx/pptx/xlsx recipes
+- pdf compression
+- version control extension direct git integration and improvements
+- studio editor intellisense
 - html-to-xlsx - images, filters...
 
 More in the [backlog](https://github.com/jsreport/jsreport/issues).
@@ -73,10 +74,10 @@ More in the [backlog](https://github.com/jsreport/jsreport/issues).
 
 ## Vulnerabilities
 
-We guarantee every release is stable and has 0 vulnerabilities mentioned in the npm audit. Please wait until we release the next version with the dependencies update when you see a security warning in your audit. There is no need to create a ticket for it. In case you see a direct impact on jsreport security, please send us an email and we will apply a direct hotfix if it will be possible.
+We guarantee every release is stable and has 0 vulnerabilities mentioned in the npm audit. Please wait until we release the next version with the dependencies update when you see a security warning in your audit. There is no need to create a ticket for it. In case you see a direct impact on jsreport security that you can replicate, please send us an email and we will make sure it's fixed ASAP. Note there is no need to panic when there is a vulnerability mentioned in the audit because it is the most likely in the code path that is not used. A typical example of a vulnerability is an eventual DDoS attack through a dependency parsing some internal config, which in fact can't happen and isn't a vulnerability at all.
 
 ## Licensing
-Copyright (C) 2021 Jan Blaha
+Copyright (C) 2023 Jan Blaha
 
 Do you want to use jsreport for a personal purpose, in a school project or a non-profit organization?
 Then you don't need the author's permission, just go on and use it. You can use jsreport without the author's permission
