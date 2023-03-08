@@ -4,7 +4,6 @@ const fs = require('fs').promises
 const axios = require('axios')
 const hostname = require('os').hostname()
 const crypto = require('crypto')
-const hostId = crypto.createHash('sha1').update(hostname + __dirname).digest('hex')
 
 async function exists (path) {
   try {
@@ -35,7 +34,7 @@ async function verifyLicenseKey (reporter, definition, key) {
     licenseKey: trimmedKey,
     numberOfTemplates: count,
     version: reporter.version,
-    hostId: hostId
+    hostId: definition.options.hostId
   })
 }
 
@@ -261,7 +260,7 @@ async function verifyLicenseUsage (reporter, definition) {
         },
         data: {
           licenseKey: definition.options.licenseKey,
-          hostId,
+          hostId: definition.options.hostId,
           checkInterval: licensingUsageCheckInterval
         }
       })
@@ -308,6 +307,7 @@ function exposeOptions (reporter, definition) {
 
 module.exports = function (reporter, definition) {
   Object.assign(definition.options, reporter.options.license)
+  definition.options.hostId = `${Buffer.from(hostname).toString('base64')}:${Buffer.from(reporter.options.rootDirectory).toString('base64')}`
   reporter.on('express-configure', (app) => {
     app.post('/api/licensing/trial', (req, res, next) => {
       verifyLicenseKey(reporter, definition, 'free')
