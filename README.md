@@ -62,9 +62,10 @@ set NODE_ENV=jsreport-development&&yarn start
 ```
 
 ## Roadmap
-- integrate to the xlsx recipe the same templating capabilities as in the docx
-- pdf linearization, PDF/A
-- docx/pptx - simple html embedding, raw openxml, memory optimization
+- adding more features to docx/pptx/xlsx recipes
+- pdf compression
+- version control extension direct git integration and improvements
+- studio editor intellisense
 - html-to-xlsx - images, filters...
 
 More in the [backlog](https://github.com/jsreport/jsreport/issues).
