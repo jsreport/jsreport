@@ -88,7 +88,27 @@ function mergePage (docPage, page, mergeToFront, doc, ext) {
   xobjectsDictionary.set(xobjectAlias, xobj.toReference())
   docPageResourcesDictionary.set('XObject', xobjectsDictionary)
 
-  const pageStream = docPage.properties.get('Contents').object.content
+  let pageStream
+  if (Array.isArray(docPage.properties.get('Contents'))) {
+    // if there are multiple page streams, we concat them into one
+    let content = ''
+    for (const c of docPage.properties.get('Contents')) {
+      if (c.object.content.object.properties.get('Filter')) {
+        content += zlib.unzipSync(c.object.content.content).toString('latin1') + '\n'
+      } else {
+        content += uint8ToString(c.object.content.content) + '\n'
+      }
+    }
+    pageStream = docPage.properties.get('Contents')[0].object.content
+    pageStream.content = zlib.deflateSync(Buffer.from(content, 'latin1'))
+
+    pageStream.object.prop('Length', content.length)
+    pageStream.object.prop('Filter', 'FlateDecode')
+    docPage.properties.set('Contents', docPage.properties.get('Contents')[0])
+  } else {
+    pageStream = docPage.properties.get('Contents').object.content
+  }
+
   if (pageStream.object.properties.get('Filter')) {
     pageStream.content = zlib.unzipSync(pageStream.content).toString('latin1')
   } else {
