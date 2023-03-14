@@ -14,7 +14,7 @@
     "@jsreport/node-signpdf": "1.4.2",
     "crypto-js": "4.1.1",
     "parse-color": "1.0.0",
-    "pdfjs-dist": "2.14.305"
+    "pdfjs-dist": "2.16.105"
   },
   "devDependencies": {
     "mocha": "10.0.0",
