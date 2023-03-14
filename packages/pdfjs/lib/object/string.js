@@ -174,7 +174,7 @@ class PDFString {
           break
         case 0x0d: // CR
         case 0x0a: // LF
-          lexer.skipEOL(1)
+          lexer.skipEOL(1, true)
           break
         default:
           str += String.fromCharCode(c)
