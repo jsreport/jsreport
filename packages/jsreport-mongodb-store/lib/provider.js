@@ -1,4 +1,4 @@
-const ObjectId = require('mongodb').ObjectID
+const ObjectId = require('mongodb').ObjectId
 const hexTest = /^[0-9A-Fa-f]{24}$/
 
 function _convertStringsToObjectIds (o) {
@@ -220,7 +220,7 @@ module.exports = (client, options, db) => {
     },
 
     generateId () {
-      return ObjectId().toString()
+      return new ObjectId().toString()
     },
 
     drop (opts = {}) {

@@ -23,7 +23,7 @@
     "test-with-transactions": "cross-env RUN_TRANSACTIONS_TESTS=true USE_REPLICA=true mocha --timeout 15000 test && standard"
   },
   "dependencies": {
-    "mongodb": "3.6.5"
+    "mongodb": "5.1.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.10.0",

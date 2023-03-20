@@ -41,15 +41,7 @@ module.exports = async function (config, logger) {
 
   logger.info('Connecting mongo to ' + connectionString)
 
-  // required for azure - firewall closes idle connections, wee need to set the lower value for timeouts
-  const options = {
-    auto_reconnect: true,
-    keepAlive: 1,
-    connectTimeoutMS: 10000,
-    socketTimeoutMS: 60000,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  }
+  const options = {}
 
   if (config.connectOptions) {
     Object.assign(options, config.connectOptions)

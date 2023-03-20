@@ -16,7 +16,7 @@ Then alter jsreport configuration with:
     "provider": "mongodb",
   },
   "blobStorage": {
-    "provider": "gridFS"
+    "provider": "mongodb"
   },
   "extensions": {
     "mongodb-store": {
@@ -47,6 +47,10 @@ You can also pass connection uri like this
 ```
 
 ## Changelog
+
+### 3.2.0
+
+- updated mongodb driver
 
 ### 3.1.1
 
