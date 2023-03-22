@@ -1076,6 +1076,43 @@ describe('docx', () => {
       }
     })
   })
+
+  it('remove nodes that were just containing block helper definition calls (end block and start block on the same line)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'remove-block-end-start-on-same-line.docx'))
+          }
+        }
+      },
+      data: {
+        location: {},
+        attachments: [{
+          name: 'a'
+        }, {
+          name: 'b'
+        }]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Some attachments')
+
+    const files = await decompress()(result.content)
+
+    const doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'word/document.xml').data.toString()
+    )
+
+    const textElements = nodeListToArray(doc.getElementsByTagName('w:t'))
+
+    should(textElements).have.length(1)
+  })
 })
 
 describe('docx with extensions.docx.previewInWordOnline === false', () => {

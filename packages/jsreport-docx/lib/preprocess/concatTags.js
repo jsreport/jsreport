@@ -118,16 +118,21 @@ function concatTextNodes (doc, elements) {
 
       let remainingText = tNodeToEvaluate.textContent
 
-      // detect if the text node only contain a block helper call
-      // if yes then we mark this node to later remove it if its parent paragraph turns
-      // to be empty
-      if (tNodeToEvaluate.textContent.startsWith('{{#')) {
-        remainingText = remainingText.replace(/^{{#[^{}]{0,500}}}/, '')
-      } else if (tNodeToEvaluate.textContent.startsWith('{{else')) {
-        remainingText = remainingText.replace(/^{{else ?[^{}]{0,500}}}/, '')
-      } else if (tNodeToEvaluate.textContent.startsWith('{{/')) {
-        remainingText = remainingText.replace(/^{{\/[^{}]{0,500}}}/, '')
-      }
+      // we execute it in a while because there can be multiple block helpers in one text node
+      // (like the end of a block helper and the start of another one)
+      // example: {{/if}}{{#if ...}}
+      do {
+        // detect if the text node only contain a block helper call
+        // if yes then we mark this node to later remove it if its parent paragraph turns
+        // to be empty
+        if (remainingText.startsWith('{{#')) {
+          remainingText = remainingText.replace(/^{{#[^{}]{0,500}}}/, '')
+        } else if (remainingText.startsWith('{{else')) {
+          remainingText = remainingText.replace(/^{{else ?[^{}]{0,500}}}/, '')
+        } else if (remainingText.startsWith('{{/')) {
+          remainingText = remainingText.replace(/^{{\/[^{}]{0,500}}}/, '')
+        }
+      } while (remainingText.startsWith('{{#'))
 
       if (remainingText === '') {
         tNodeToEvaluate.setAttribute('__block_helper__', true)
