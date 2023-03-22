@@ -125,8 +125,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
           }
           throw e
         } finally {
-          abortController = null
-          console.log('execute finished')
+          abortController = null          
         }
       },
 
