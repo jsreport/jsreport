@@ -36,13 +36,13 @@ module.exports = function processImage (files, drawingEl, relsDoc) {
 
 function getPictureElInfo (drawingEl) {
   const els = []
-  let wpExtendEl
+  let wpExtentEl
 
   if (isDrawingPicture(drawingEl)) {
     const wpDocPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
     let linkInDrawing
 
-    wpExtendEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:extent')
+    wpExtentEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:extent')
 
     if (wpDocPrEl) {
       linkInDrawing = nodeListToArray(wpDocPrEl.childNodes).find((el) => el.nodeName === 'a:hlinkClick')
@@ -58,7 +58,7 @@ function getPictureElInfo (drawingEl) {
   if (!pictureEl) {
     return {
       picture: undefined,
-      wpExtend: undefined,
+      wpExtent: undefined,
       links: els
     }
   }
@@ -71,7 +71,7 @@ function getPictureElInfo (drawingEl) {
 
   return {
     picture: pictureEl,
-    wpExtend: wpExtendEl,
+    wpExtent: wpExtentEl,
     links: els
   }
 }

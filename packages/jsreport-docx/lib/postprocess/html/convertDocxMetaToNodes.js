@@ -3,14 +3,37 @@ const fs = require('fs/promises')
 const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const { clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP } = require('../../utils')
+const { resolveImageSrc, getImageSizeInEMU } = require('../../imageUtils')
+const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
-module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { doc, files, paragraphNode } = {}) {
+module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
 
+  const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
+  const typesEl = contentTypesFile.doc.getElementsByTagName('Types')[0]
+  let relsDoc
+
+  if (!_relsDoc) {
+    // initialize rels doc if it doesn't exist, it is usually the case when there are header/footer
+    const docBasename = path.posix.basename(docPath)
+    const emptyRelsXMLStr = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships" />'
+    const newRelsDoc = new DOMParser().parseFromString(emptyRelsXMLStr)
+
+    relsDoc = newRelsDoc
+
+    files.push({
+      path: `word/_rels/${docBasename}.rels`,
+      data: emptyRelsXMLStr,
+      doc: newRelsDoc
+    })
+  } else {
+    relsDoc = _relsDoc
+  }
+
+  const relsEl = relsDoc.getElementsByTagName('Relationships')[0]
   const stylesDoc = files.find(f => f.path === 'word/styles.xml').doc
   const pending = docxMeta.map((meta) => ({ item: meta }))
   const result = []
@@ -18,6 +41,11 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
   const listParagraphStyleIdCache = {}
   const numberingListsCache = new Map()
   const hyperlinkStyleIdCache = {}
+  let maxDocPrId
+
+  if (contentTypesFile.doc.documentElement.hasAttribute('drawingMaxDocPrId')) {
+    maxDocPrId = parseInt(contentTypesFile.doc.documentElement.getAttribute('drawingMaxDocPrId'), 10)
+  }
 
   let templateParagraphNode
 
@@ -30,10 +58,10 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
   while (pending.length > 0) {
     const { parent, item: currentDocxMeta } = pending.shift()
 
-    if (mode === 'block' && parent == null && currentDocxMeta.type !== 'paragraph') {
-      throw new Error(`Top level elements in docx meta for "${mode}" mode must be paragraphs`)
-    } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text' && currentDocxMeta.type !== 'break') {
-      throw new Error(`Top level elements in docx meta for "${mode}" mode must be text or break`)
+    if (mode === 'block' && parent == null && (currentDocxMeta.type !== 'paragraph' && currentDocxMeta.type !== 'table')) {
+      throw new Error(`Top level elements in docx meta for "${mode}" mode must be paragraphs or tables`)
+    } else if (mode === 'inline' && parent == null && currentDocxMeta.type !== 'text' && currentDocxMeta.type !== 'break' && currentDocxMeta.type !== 'image') {
+      throw new Error(`Top level elements in docx meta for "${mode}" mode must be text, image or break`)
     }
 
     if (currentDocxMeta.type === 'paragraph') {
@@ -45,7 +73,8 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       const invalidChildMeta = currentDocxMeta.children.find((childMeta) => (
         childMeta.type !== 'text' &&
-        childMeta.type !== 'break'
+        childMeta.type !== 'break' &&
+        childMeta.type !== 'image'
       ))
 
       if (invalidChildMeta != null) {
@@ -124,7 +153,11 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
         }
       }
 
-      result.push(containerEl)
+      if (parent == null) {
+        result.push(containerEl)
+      } else {
+        parent.appendChild(containerEl)
+      }
 
       const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({
         parent: containerEl,
@@ -133,6 +166,135 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       if (pendingItemsInCurrent.length > 0) {
         pending.unshift(...pendingItemsInCurrent)
+      }
+    } else if (currentDocxMeta.type === 'table' || currentDocxMeta.type === 'row' || currentDocxMeta.type === 'cell') {
+      if (mode === 'inline') {
+        throw new Error(`docx meta ${currentDocxMeta.type} element can not be applied for "${mode}" mode`)
+      }
+
+      const validChildTypes = []
+
+      if (currentDocxMeta.type === 'table') {
+        validChildTypes.push('row')
+      } else if (currentDocxMeta.type === 'row') {
+        validChildTypes.push('cell')
+      } else if (currentDocxMeta.type === 'cell') {
+        validChildTypes.push('paragraph')
+        validChildTypes.push('table')
+      }
+
+      const invalidChildMeta = currentDocxMeta.children.find((childMeta) => (
+        !validChildTypes.includes(childMeta.type)
+      ))
+
+      if (invalidChildMeta != null) {
+        throw new Error(`Invalid docx meta child "${invalidChildMeta.type}" found in ${currentDocxMeta.type}`)
+      }
+
+      let containerEl
+
+      if (currentDocxMeta.type === 'table') {
+        // validating that table has at least one row and one cell, if not
+        // don't continue producing the table
+        if (
+          currentDocxMeta.children.length > 0 &&
+          currentDocxMeta.children[0].type === 'row' &&
+          currentDocxMeta.children[0].children.length > 0 &&
+          currentDocxMeta.children[0].children[0].type === 'cell'
+        ) {
+          containerEl = createNode(doc, 'w:tbl', {
+            children: [
+              createNode(doc, 'w:tblPr', {
+                children: [
+                  createNode(doc, 'w:tblW', { attributes: { 'w:w': currentDocxMeta.width != null ? currentDocxMeta.width : '0', 'w:type': currentDocxMeta.width != null ? 'dxa' : 'auto' } }),
+                  createNode(doc, 'w:tblInd', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
+                  createNode(doc, 'w:tblCellMar', {
+                    children: [
+                      createNode(doc, 'w:top', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
+                      createNode(doc, 'w:left', { attributes: { 'w:w': '108', 'w:type': 'dxa' } }),
+                      createNode(doc, 'w:bottom', { attributes: { 'w:w': '0', 'w:type': 'dxa' } }),
+                      createNode(doc, 'w:right', { attributes: { 'w:w': '108', 'w:type': 'dxa' } })
+                    ]
+                  }),
+                  createNode(doc, 'w:tblBorders', {
+                    children: [
+                      createNode(doc, 'w:top', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:left', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:bottom', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:right', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:insideH', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } }),
+                      createNode(doc, 'w:insideV', { attributes: { 'w:val': 'single', 'w:sz': '4', 'w:space': '0', 'w:color': 'auto' } })
+                    ]
+                  }),
+                  // the only required attr of this element is w:val which is a bitmask of
+                  // the enabled options, the rest of attrs just describe the boolean values
+                  // of the options applied
+                  createNode(doc, 'w:tblLook', { attributes: { 'w:val': '04A0', 'w:firstRow': '1', 'w:lastRow': '0', 'w:firstColumn': '1', 'w:lastColumn': '0', 'w:noHBand': '0', 'w:noVBand': '1' } })
+                ]
+              }),
+              createNode(doc, 'w:tblGrid', {
+                children: currentDocxMeta.cols.map((colInfo) => {
+                  return createNode(doc, 'w:gridCol', { attributes: { 'w:w': colInfo.width } })
+                })
+              })
+            ]
+          })
+        }
+      } else if (currentDocxMeta.type === 'row') {
+        containerEl = createNode(doc, 'w:tr')
+
+        if (currentDocxMeta.height != null) {
+          containerEl.appendChild(createNode(doc, 'w:trPr', {
+            children: [
+              createNode(doc, 'w:trHeight', { attributes: { 'w:val': currentDocxMeta.height } })
+            ]
+          }))
+        }
+      } else if (currentDocxMeta.type === 'cell') {
+        const cellPrChildren = [
+          createNode(doc, 'w:tcW', { attributes: { 'w:w': currentDocxMeta.width, 'w:type': 'dxa' } })
+        ]
+
+        if (currentDocxMeta.colspan != null) {
+          cellPrChildren.push(
+            createNode(doc, 'w:gridSpan', { attributes: { 'w:val': currentDocxMeta.colspan } })
+          )
+        }
+
+        if (currentDocxMeta.vMerge === true) {
+          cellPrChildren.push(
+            createNode(doc, 'w:vMerge', { attributes: { 'w:val': 'continue' } })
+          )
+        } else if (currentDocxMeta.rowspan != null) {
+          cellPrChildren.push(
+            createNode(doc, 'w:vMerge', { attributes: { 'w:val': 'restart' } })
+          )
+        }
+
+        containerEl = createNode(doc, 'w:tc', {
+          children: [
+            createNode(doc, 'w:tcPr', {
+              children: cellPrChildren
+            })
+          ]
+        })
+      }
+
+      if (containerEl != null) {
+        if (parent == null) {
+          result.push(containerEl)
+        } else {
+          parent.appendChild(containerEl)
+        }
+
+        const pendingItemsInCurrent = currentDocxMeta.children.map((meta) => ({
+          parent: containerEl,
+          item: meta
+        }))
+
+        if (pendingItemsInCurrent.length > 0) {
+          pending.unshift(...pendingItemsInCurrent)
+        }
       }
     } else if (currentDocxMeta.type === 'text') {
       const runEl = htmlEmbedDef.tEl.parentNode.cloneNode(true)
@@ -296,12 +458,14 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
         rPrEl.insertBefore(createNode(doc, 'w:rStyle', { attributes: { 'w:val': hyperlinkStyleId } }), rPrEl.firstChild)
 
-        const hyperlinkRelId = addHyperlinkRel(files, currentDocxMeta.link)
+        const hyperlinkRelId = addHyperlinkRel(relsDoc, currentDocxMeta.link)
 
-        newEl = createNode(doc, 'w:hyperlink', {
-          attributes: { 'r:id': hyperlinkRelId },
-          children: [runEl]
-        })
+        if (hyperlinkRelId) {
+          newEl = createNode(doc, 'w:hyperlink', {
+            attributes: { 'r:id': hyperlinkRelId },
+            children: [runEl]
+          })
+        }
       }
 
       if (mode === 'block') {
@@ -335,9 +499,199 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
       } else if (mode === 'inline') {
         result.push(runEl)
       }
+    } else if (currentDocxMeta.type === 'image') {
+      const runEl = htmlEmbedDef.tEl.parentNode.cloneNode(true)
+
+      // inherit only the run properties of the html embed call
+      clearEl(runEl, (c) => c.nodeName === 'w:rPr')
+
+      const { imageBuffer, imageExtension } = await resolveImageSrc(currentDocxMeta.src)
+
+      const newImageRelId = getNewRelId(relsDoc)
+
+      const relEl = relsDoc.createElement('Relationship')
+
+      relEl.setAttribute('Id', newImageRelId)
+
+      relEl.setAttribute(
+        'Type',
+        'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'
+      )
+
+      relEl.setAttribute('Target', `media/imageDocx${newImageRelId}.${imageExtension}`)
+
+      files.push({
+        path: `word/media/imageDocx${newImageRelId}.${imageExtension}`,
+        data: imageBuffer
+      })
+
+      const existsTypeForImageExtension = nodeListToArray(typesEl.getElementsByTagName('Default')).find(
+        d => d.getAttribute('Extension') === imageExtension
+      ) != null
+
+      if (!existsTypeForImageExtension) {
+        const newDefault = contentTypesFile.doc.createElement('Default')
+        newDefault.setAttribute('Extension', imageExtension)
+        newDefault.setAttribute('ContentType', `image/${imageExtension}`)
+        typesEl.appendChild(newDefault)
+      }
+
+      relsEl.appendChild(relEl)
+
+      const imageSizeEMU = getImageSizeInEMU(imageBuffer, {
+        width: currentDocxMeta.width,
+        height: currentDocxMeta.height
+      })
+
+      const imageWidthEMU = imageSizeEMU.width
+      const imageHeightEMU = imageSizeEMU.height
+
+      // we give as id the max id detected, we later modify this to the correct value
+      // at the drawingObject post-processing
+      const imageId = maxDocPrId != null ? maxDocPrId + 1 : 1
+      const imageName = `Picture ${imageId}`
+
+      maxDocPrId = imageId
+
+      const imageMetaAttrs = {
+        id: imageId,
+        name: imageName
+      }
+
+      const docPrChildren = []
+      const picCNvPrChildren = []
+
+      if (currentDocxMeta.alt != null) {
+        imageMetaAttrs.descr = currentDocxMeta.alt
+      }
+
+      if (currentDocxMeta.link != null) {
+        const hyperlinkRelId = addHyperlinkRel(relsDoc, currentDocxMeta.link)
+
+        if (hyperlinkRelId) {
+          docPrChildren.push(
+            createNode(doc, 'a:hlinkClick', {
+              attributes: {
+                'xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+                'r:id': hyperlinkRelId
+              }
+            })
+          )
+
+          picCNvPrChildren.push(
+            createNode(doc, 'a:hlinkClick', {
+              attributes: {
+                'r:id': hyperlinkRelId
+              }
+            })
+          )
+        }
+      }
+
+      const drawingEl = createNode(doc, 'w:drawing', {
+        children: [
+          createNode(doc, 'wp:inline', {
+            attributes: {
+              distT: '0',
+              distB: '0',
+              distL: '0',
+              distR: '0'
+            },
+            children: [
+              createNode(doc, 'wp:extent', { attributes: { cx: imageWidthEMU, cy: imageHeightEMU } }),
+              createNode(doc, 'wp:effectExtent', { attributes: { l: '0', t: '0', r: '0', b: '0' } }),
+              createNode(doc, 'wp:docPr', { attributes: { ...imageMetaAttrs }, children: docPrChildren }),
+              createNode(doc, 'wp:cNvGraphicFramePr', {
+                children: [
+                  createNode(doc, 'a:graphicFrameLocks', { attributes: { 'xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main', noChangeAspect: '1' } })
+                ]
+              }),
+              createNode(doc, 'a:graphic', {
+                attributes: { 'xmlns:a': 'http://schemas.openxmlformats.org/drawingml/2006/main' },
+                children: [
+                  createNode(doc, 'a:graphicData', {
+                    attributes: { uri: 'http://schemas.openxmlformats.org/drawingml/2006/picture' },
+                    children: [
+                      createNode(doc, 'pic:pic', {
+                        attributes: { 'xmlns:pic': 'http://schemas.openxmlformats.org/drawingml/2006/picture' },
+                        children: [
+                          createNode(doc, 'pic:nvPicPr', {
+                            children: [
+                              // we modify also the id of this node in the post image process based on the docPr id
+                              createNode(doc, 'pic:cNvPr', { attributes: { ...imageMetaAttrs }, children: picCNvPrChildren }),
+                              createNode(doc, 'pic:cNvPicPr')
+                            ]
+                          }),
+                          createNode(doc, 'pic:blipFill', {
+                            children: [
+                              createNode(doc, 'a:blip', {
+                                attributes: { 'r:embed': newImageRelId },
+                                children: [
+                                  createNode(doc, 'a:extLst', {
+                                    children: [
+                                      // this uri is an id for the useLocalDpi element used
+                                      createNode(doc, 'a:ext', {
+                                        attributes: { uri: '{28A0092B-C50C-407E-A947-70E740481C1C}' },
+                                        children: [
+                                          createNode(doc, 'a14:useLocalDpi', { attributes: { 'xmlns:a14': 'http://schemas.microsoft.com/office/drawing/2010/main', val: '0' } })
+                                        ]
+                                      })
+                                    ]
+                                  })
+                                ]
+                              }),
+                              createNode(doc, 'a:stretch', {
+                                children: [
+                                  createNode(doc, 'a:fillRect')
+                                ]
+                              })
+                            ]
+                          }),
+                          createNode(doc, 'pic:spPr', {
+                            children: [
+                              createNode(doc, 'a:xfrm', {
+                                children: [
+                                  createNode(doc, 'a:off', { attributes: { x: '0', y: '0' } }),
+                                  createNode(doc, 'a:ext', { attributes: { cx: imageWidthEMU, cy: imageHeightEMU } })
+                                ]
+                              }),
+                              createNode(doc, 'a:prstGeom', {
+                                attributes: { prst: 'rect' },
+                                children: [
+                                  createNode(doc, 'a:avLst')
+                                ]
+                              })
+                            ]
+                          })
+                        ]
+                      })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      })
+
+      runEl.appendChild(drawingEl)
+
+      if (mode === 'block') {
+        if (parent == null) {
+          throw new Error(`docx meta image element can not exists without parent for "${mode}" mode`)
+        }
+
+        parent.appendChild(runEl)
+      } else if (mode === 'inline') {
+        result.push(runEl)
+      }
     } else {
       throw new Error(`Unsupported docx node "${currentDocxMeta.type}"`)
     }
+  }
+
+  if (maxDocPrId != null) {
+    contentTypesFile.doc.documentElement.setAttribute('drawingMaxDocPrId', maxDocPrId)
   }
 
   return result
@@ -619,13 +973,15 @@ function createListParagraphStyle (stylesDoc, listParagraphStyleId, normalStyleI
   return newListParagraphStyleEl
 }
 
-function addHyperlinkRel (files, linkInfo) {
-  const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
+function addHyperlinkRel (relsDoc, linkInfo) {
+  if (!relsDoc) {
+    return
+  }
 
-  const newRelId = getNewRelId(documentRelsDoc)
+  const newRelId = getNewRelId(relsDoc)
 
-  documentRelsDoc.documentElement.appendChild(
-    createNode(documentRelsDoc, 'Relationship', {
+  relsDoc.documentElement.appendChild(
+    createNode(relsDoc, 'Relationship', {
       attributes: {
         Id: newRelId,
         Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink',

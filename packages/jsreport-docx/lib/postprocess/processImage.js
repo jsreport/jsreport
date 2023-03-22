@@ -1,6 +1,5 @@
-const sizeOf = require('image-size')
-const axios = require('axios')
-const { nodeListToArray, pxToEMU, cmToEMU, getNewRelIdFromBaseId, getNewRelId } = require('../utils')
+const { resolveImageSrc, getImageSizeInEMU } = require('../imageUtils')
+const { nodeListToArray, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
 
 module.exports = async function processImage (files, referenceDrawingEl, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
@@ -19,11 +18,20 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
     return
   }
 
+  const docPrEl = getDocPrEl(drawingEl)
+  const cnvPrEl = getPictureCnvPrEl(pictureEl)
+
+  // replicate picture cnvPr properties the same as docPr
+  if (docPrEl != null && cnvPrEl != null) {
+    cnvPrEl.setAttribute('id', docPrEl.getAttribute('id'))
+    cnvPrEl.setAttribute('name', docPrEl.getAttribute('name'))
+  }
+
   const linkClickEls = pictureElInfo.links
   const linkClickEl = linkClickEls[0]
 
   if (!linkClickEl) {
-    return
+    return drawingEl
   }
 
   if (pictureEl.firstChild.nodeName === 'Relationship') {
@@ -71,7 +79,7 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
   const tooltip = linkClickEl.getAttribute('tooltip')
 
   if (tooltip == null || !tooltip.includes('$docxImage')) {
-    return
+    return drawingEl
   }
 
   if (!pngDefault) {
@@ -94,41 +102,7 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
     elLinkClick.setAttribute('tooltip', tooltip.replace(match[0], ''))
   }
 
-  let imageBuffer
-  let imageExtension
-
-  if (imageConfig.src && imageConfig.src.startsWith('data:')) {
-    const imageSrc = imageConfig.src
-
-    imageExtension = imageSrc.split(';')[0].split('/')[1]
-
-    imageBuffer = Buffer.from(
-      imageSrc.split(';')[1].substring('base64,'.length),
-      'base64'
-    )
-  } else {
-    const response = await axios({
-      url: imageConfig.src,
-      responseType: 'arraybuffer',
-      method: 'GET'
-    })
-
-    const contentType = response.headers['content-type'] || response.headers['Content-Type']
-
-    if (!contentType) {
-      throw new Error(`Empty content-type for remote image at "${imageConfig.src}"`)
-    }
-
-    const extensionsParts = contentType.split(';')[0].split('/').filter((p) => p)
-
-    if (extensionsParts.length === 0 || extensionsParts.length > 2) {
-      throw new Error(`Invalid content-type "${contentType}" for remote image at "${imageConfig.src}"`)
-    }
-
-    // some servers returns the image content type without the "image/" prefix
-    imageExtension = extensionsParts.length === 1 ? extensionsParts[0] : extensionsParts[1]
-    imageBuffer = Buffer.from(response.data)
-  }
+  const { imageBuffer, imageExtension } = await resolveImageSrc(imageConfig.src)
 
   const newImageRelId = getNewRelId(relsDoc)
 
@@ -163,167 +137,34 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
 
   const relPlaceholder = pictureEl.getElementsByTagName('a:blip')[0]
   const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
-  const wpExtendEl = pictureElInfo.wpExtend
+  const wpExtentEl = pictureElInfo.wpExtent
 
   let imageWidthEMU
   let imageHeightEMU
 
-  if (imageConfig.width != null || imageConfig.height != null) {
-    const imageDimension = sizeOf(imageBuffer)
-    const targetWidth = getDimension(imageConfig.width)
-    const targetHeight = getDimension(imageConfig.height)
-
-    if (targetWidth) {
-      imageWidthEMU =
-        targetWidth.unit === 'cm'
-          ? cmToEMU(targetWidth.value)
-          : pxToEMU(targetWidth.value)
-    }
-
-    if (targetHeight) {
-      imageHeightEMU =
-        targetHeight.unit === 'cm'
-          ? cmToEMU(targetHeight.value)
-          : pxToEMU(targetHeight.value)
-    }
-
-    if (imageWidthEMU != null && imageHeightEMU == null) {
-      // adjust height based on aspect ratio of image
-      imageHeightEMU = Math.round(
-        imageWidthEMU *
-          (pxToEMU(imageDimension.height) / pxToEMU(imageDimension.width))
-      )
-    } else if (imageHeightEMU != null && imageWidthEMU == null) {
-      // adjust width based on aspect ratio of image
-      imageWidthEMU = Math.round(
-        imageHeightEMU *
-          (pxToEMU(imageDimension.width) / pxToEMU(imageDimension.height))
-      )
-    }
-  } else if (imageConfig.usePlaceholderSize) {
+  if (imageConfig.usePlaceholderSize) {
     // taking existing size defined in word
     imageWidthEMU = parseFloat(aExtEl.getAttribute('cx'))
     imageHeightEMU = parseFloat(aExtEl.getAttribute('cy'))
   } else {
-    const imageDimension = sizeOf(imageBuffer)
-    imageWidthEMU = pxToEMU(imageDimension.width)
-    imageHeightEMU = pxToEMU(imageDimension.height)
+    const imageSizeEMU = getImageSizeInEMU(imageBuffer, {
+      width: imageConfig.width,
+      height: imageConfig.height
+    })
+
+    imageWidthEMU = imageSizeEMU.width
+    imageHeightEMU = imageSizeEMU.height
   }
 
   relPlaceholder.setAttribute('r:embed', newImageRelId)
 
-  if (wpExtendEl) {
-    wpExtendEl.setAttribute('cx', imageWidthEMU)
-    wpExtendEl.setAttribute('cy', imageHeightEMU)
+  if (wpExtentEl) {
+    wpExtentEl.setAttribute('cx', imageWidthEMU)
+    wpExtentEl.setAttribute('cy', imageHeightEMU)
   }
 
   aExtEl.setAttribute('cx', imageWidthEMU)
   aExtEl.setAttribute('cy', imageHeightEMU)
 
   return drawingEl
-}
-
-function getDimension (value) {
-  const regexp = /^(\d+(.\d+)?)(cm|px)$/
-  const match = regexp.exec(value)
-
-  if (match) {
-    return {
-      value: parseFloat(match[1]),
-      unit: match[3]
-    }
-  }
-
-  return null
-}
-
-function getPictureElInfo (drawingEl) {
-  const els = []
-  let wpExtendEl
-
-  if (isDrawingPicture(drawingEl)) {
-    const wpDocPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
-    let linkInDrawing
-
-    wpExtendEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:extent')
-
-    if (wpDocPrEl) {
-      linkInDrawing = nodeListToArray(wpDocPrEl.childNodes).find((el) => el.nodeName === 'a:hlinkClick')
-    }
-
-    if (linkInDrawing) {
-      els.push(linkInDrawing)
-    }
-  }
-
-  const pictureEl = findDirectPictureChild(drawingEl)
-
-  if (!pictureEl) {
-    return {
-      picture: undefined,
-      wpExtend: undefined,
-      links: els
-    }
-  }
-
-  const linkInPicture = pictureEl.getElementsByTagName('a:hlinkClick')[0]
-
-  if (linkInPicture) {
-    els.push(linkInPicture)
-  }
-
-  return {
-    picture: pictureEl,
-    wpExtend: wpExtendEl,
-    links: els
-  }
-}
-
-function isDrawingPicture (drawingEl) {
-  const graphicEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'a:graphic')
-
-  if (!graphicEl) {
-    return false
-  }
-
-  const graphicDataEl = nodeListToArray(graphicEl.childNodes).find((el) => el.nodeName === 'a:graphicData' && el.getAttribute('uri') === 'http://schemas.openxmlformats.org/drawingml/2006/picture')
-
-  if (!graphicDataEl) {
-    return false
-  }
-
-  const pictureEl = nodeListToArray(graphicDataEl.childNodes).find((el) => el.nodeName === 'pic:pic')
-
-  if (!pictureEl) {
-    return false
-  }
-
-  return true
-}
-
-function findDirectPictureChild (parentNode) {
-  const childNodes = parentNode.childNodes || []
-  let pictureEl
-
-  for (let i = 0; i < childNodes.length; i++) {
-    const child = childNodes[i]
-
-    if (child.nodeName === 'w:drawing') {
-      break
-    }
-
-    if (child.nodeName === 'pic:pic') {
-      pictureEl = child
-      break
-    }
-
-    const foundInChild = findDirectPictureChild(child)
-
-    if (foundInChild) {
-      pictureEl = foundInChild
-      break
-    }
-  }
-
-  return pictureEl
 }

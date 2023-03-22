@@ -50,6 +50,10 @@ const elements = [
     tag: 'a'
   },
   {
+    type: 'inline',
+    tag: 'img'
+  },
+  {
     tag: 'pre'
   },
   {
@@ -78,6 +82,27 @@ const elements = [
   },
   {
     tag: 'li'
+  },
+  {
+    tag: 'table'
+  },
+  {
+    tag: 'thead'
+  },
+  {
+    tag: 'tbody'
+  },
+  {
+    tag: 'tfoot'
+  },
+  {
+    tag: 'tr'
+  },
+  {
+    tag: 'td'
+  },
+  {
+    tag: 'th'
   }
 ]
 

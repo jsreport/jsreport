@@ -2,10 +2,11 @@ const cheerio = require('cheerio')
 const styleAttr = require('style-attr')
 const { customAlphabet } = require('nanoid')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 const parseCssSides = require('parse-css-sides')
 const color = require('tinycolor2')
-const { lengthToPt } = require('../../utils')
+const { lengthToPt, getDimension } = require('../../utils')
+const transformTableMeta = require('./transformTableMeta')
+const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 
 const NODE_TYPES = {
   DOCUMENT: 9,
@@ -13,7 +14,7 @@ const NODE_TYPES = {
   TEXT: 3
 }
 
-module.exports = function parseHtmlToDocxMeta (html, mode) {
+module.exports = function parseHtmlToDocxMeta (html, mode, sectionDetail) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid parsing mode "${mode}"`)
   }
@@ -21,17 +22,18 @@ module.exports = function parseHtmlToDocxMeta (html, mode) {
   const $ = cheerio.load(html, null, false)
   const documentNode = $.root()[0]
 
-  return parseHtmlDocumentToMeta($, documentNode, mode)
+  return parseHtmlDocumentToMeta($, documentNode, mode, sectionDetail)
 }
 
-function parseHtmlDocumentToMeta ($, documentNode, mode) {
+function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
   const result = []
   const pending = [{ item: documentNode, collection: result }]
   const elementDataMap = new WeakMap()
   let documentEvaluated = false
 
   while (pending.length > 0) {
-    const { parent, collection, data: inheritedData, item: currentNode } = pending.shift()
+    const { parents = [], collection, data: inheritedData, item: currentNode } = pending.shift()
+    const parent = parents.length > 0 ? parents[parents.length - 1] : undefined
     const nodeType = currentNode.nodeType
     const data = Object.assign({}, inheritedData)
 
@@ -44,9 +46,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     let childNodes
 
     if (
-      nodeType === NODE_TYPES.TEXT ||
+      isTextElement(currentNode) ||
       // unsupported element, fallback to simple text
-      (nodeType === NODE_TYPES.ELEMENT && !SUPPORTED_ELEMENTS.includes(currentNode.tagName))
+      isUnsupportedElement(currentNode)
     ) {
       const getTextInNode = (n) => n.nodeType === NODE_TYPES.TEXT ? n.nodeValue : $(n).text()
 
@@ -107,6 +109,34 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
 
         if (currentNode.tagName === 'br') {
           newItem = createBreak()
+        } else if (
+          // only accept image as valid if there is src defined
+          currentNode.tagName === 'img' &&
+          currentNode.attribs?.src != null &&
+          typeof currentNode.attribs?.src === 'string'
+        ) {
+          // if width comes from style, we just use it, if not parse it from the attribute if present
+          if (data.static.width == null && currentNode.attribs?.width) {
+            const parsedWidth = parseFloat(currentNode.attribs.width)
+
+            if (parsedWidth != null && !isNaN(parsedWidth)) {
+              data.static.width = `${parsedWidth}px`
+            }
+          }
+
+          if (data.static.height == null && currentNode.attribs?.height) {
+            const parsedHeight = parseFloat(currentNode.attribs.height)
+
+            if (parsedHeight != null && !isNaN(parsedHeight)) {
+              data.static.height = `${parsedHeight}px`
+            }
+          }
+
+          if (currentNode.attribs?.alt) {
+            data.static.alt = currentNode.attribs.alt
+          }
+
+          newItem = createImage(currentNode.attribs.src, data)
         }
       } else {
         if (mode === 'block') {
@@ -114,6 +144,59 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         }
 
         applyPreformattedDataIfNeeded(data, currentNode)
+
+        if (currentNode.tagName === 'table') {
+          // if width comes from style, we just use it, if not parse it from the attribute if present
+          if (data.static.width == null && currentNode.attribs?.width) {
+            // when parsing width from attribute, we only accept px, cm and % and default to px for other cases
+            const validUnits = ['px', 'cm', '%']
+
+            const parsedWidth = getDimension(currentNode.attribs.width, {
+              units: validUnits,
+              defaultUnit: 'px'
+            })
+
+            if (parsedWidth != null) {
+              data.static.width = `${parsedWidth.value}${parsedWidth.unit}`
+            }
+          }
+
+          // parent in this case for the table element is the table itself
+          if (parent != null && data.static.width) {
+            parent.width = data.static.width
+          }
+        } else if (
+          currentNode.tagName === 'tr' &&
+          (
+            ['table', 'thead', 'tbody', 'tfoot'].includes(data.parentElement?.tagName)
+          )
+        ) {
+          data.static.group = data.parentElement.tagName
+          newItem = createTable('row', data)
+        } else if (
+          ['td', 'th'].includes(currentNode.tagName) &&
+          data.parentElement?.tagName === 'tr'
+        ) {
+          if (currentNode.attribs?.colspan != null) {
+            data.static.colspan = parseInt(currentNode.attribs?.colspan, 10)
+            data.static.colspan = isNaN(data.static.colspan) ? null : data.static.colspan
+          }
+
+          if (data.static.colspan == null || data.static.colspan <= 0) {
+            data.static.colspan = 1
+          }
+
+          if (currentNode.attribs?.rowspan != null) {
+            data.static.rowspan = parseInt(currentNode.attribs?.rowspan, 10)
+            data.static.rowspan = isNaN(data.static.rowspan) ? null : data.static.rowspan
+          }
+
+          if (data.static.rowspan == null || data.static.rowspan <= 0) {
+            data.static.rowspan = 1
+          }
+
+          newItem = createTable('cell', data)
+        }
       }
 
       childNodes = [...currentNode.childNodes]
@@ -148,7 +231,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     let newParent
 
     if (mode === 'block' && nodeType !== NODE_TYPES.DOCUMENT) {
-      newParent = parent
+      newParent = newItem != null && newItem.children != null ? newItem : parent
     }
 
     if (mode === 'inline') {
@@ -173,29 +256,54 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
         data: childData
       }
 
-      if (
-        (mode === 'block') &&
-        ((
-          prevChildNode != null &&
-          isBlockElement(prevChildNode)
-        ) ||
-        (
-          isBlockElement(childNode) &&
-          newParent != null &&
-          (newParent.children.length > 0 || cIdx !== 0)
-        ) ||
-        (
-          nodeType === NODE_TYPES.DOCUMENT &&
-          cIdx === 0
-        ))
-      ) {
-        newParent = createParagraph()
-        targetCollection = [newParent]
-        collection.push(targetCollection)
+      const createExtraElementResolvers = [rootExtraElementResolver, tableExtraElementResolver, paragraphExtraElementResolver]
+
+      let extraElementResultFromResolver
+
+      if (mode === 'block') {
+        // parents that are created from resolvers are going to be inserted as siblings
+        // of the current parent
+        for (const extraElementResolver of createExtraElementResolvers) {
+          const elementResult = extraElementResolver({
+            node: currentNode,
+            parent: newParent,
+            childNode,
+            childNodeIndex: cIdx,
+            prevChildNode
+          })
+
+          if (elementResult != null) {
+            if (elementResult.element == null) {
+              throw new Error('Element resolver must return a element')
+            }
+
+            if (elementResult.target == null) {
+              throw new Error('Element resolver must return a target')
+            }
+
+            if (elementResult.target !== 'sibling' && elementResult.target === 'children') {
+              throw new Error('Element resolver must return a valid target')
+            }
+
+            extraElementResultFromResolver = elementResult
+            break
+          }
+        }
+      }
+
+      if (extraElementResultFromResolver) {
+        if (extraElementResultFromResolver.target === 'sibling') {
+          newParent = extraElementResultFromResolver.element
+          targetCollection = [newParent]
+          collection.push(targetCollection)
+        } else if (extraElementResultFromResolver.target === 'parent') {
+          newParent.children.push(extraElementResultFromResolver.element)
+          newParent = extraElementResultFromResolver.element
+        }
       }
 
       if (mode === 'block') {
-        pendingItem.parent = newParent
+        pendingItem.parents = newParent !== parent ? [...parents, newParent] : [...parents]
       }
 
       pendingItem.collection = targetCollection
@@ -209,7 +317,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode) {
     }
   }
 
-  return normalizeMeta(result)
+  return transformMeta(result, sectionDetail)
 }
 
 function createParagraph () {
@@ -217,6 +325,105 @@ function createParagraph () {
     type: 'paragraph',
     children: []
   }
+}
+
+function createTable (type = 'table', data) {
+  if (type !== 'table' && type !== 'row' && type !== 'cell') {
+    throw new Error(`Invalid table type target "${type}"`)
+  }
+
+  const props = {}
+
+  if (data != null) {
+    const allNotNullPropertiesMap = {
+      row: ['height', 'group'],
+      cell: ['colspan', 'rowspan', 'width', 'height']
+    }
+
+    const staticNotNullProperties = allNotNullPropertiesMap[type] || []
+
+    for (const prop of staticNotNullProperties) {
+      if (data.static[prop] != null) {
+        props[prop] = data.static[prop]
+      }
+    }
+  }
+
+  return {
+    type,
+    children: [],
+    ...props
+  }
+}
+
+function createText (text, data) {
+  const textItem = {
+    type: 'text',
+    value: text != null ? text : ''
+  }
+
+  const boolProperties = [
+    'bold', 'italic', 'underline', 'subscript', 'strike', 'superscript',
+    'preformatted', 'code'
+  ]
+
+  const notNullProperties = [
+    'link', 'fontSize', 'fontFamily', 'color', 'backgroundColor'
+  ]
+
+  for (const prop of boolProperties) {
+    if (data[prop] === true) {
+      textItem[prop] = data[prop]
+    }
+  }
+
+  for (const prop of notNullProperties) {
+    if (data[prop] != null) {
+      textItem[prop] = data[prop]
+    }
+  }
+
+  return textItem
+}
+
+function createBreak (target = 'line') {
+  if (target !== 'line' && target !== 'page') {
+    throw new Error(`Invalid break target "${target}"`)
+  }
+
+  return {
+    type: 'break',
+    target
+  }
+}
+
+function createImage (src, data) {
+  const imageItem = {
+    type: 'image',
+    src
+  }
+
+  const staticNotNullProperties = [
+    'width', 'height', 'alt'
+  ]
+
+  const notNullProperties = [
+    'link'
+  ]
+
+  for (const prop of staticNotNullProperties) {
+    if (data.static[prop] != null) {
+      imageItem[prop] = data.static[prop]
+    }
+  }
+
+  for (const prop of notNullProperties) {
+    if (data[prop] != null) {
+      imageItem[prop] = data[prop]
+    }
+  }
+
+  return imageItem
 }
 
 // normalization implies ignoring nodes that we don't need and normalizing
@@ -412,47 +619,6 @@ function normalizeText (text, data) {
   }
 
   return createText(text, data)
-}
-
-function createText (text, data) {
-  const textItem = {
-    type: 'text',
-    value: text != null ? text : ''
-  }
-
-  const boolProperties = [
-    'bold', 'italic', 'underline', 'subscript', 'strike', 'superscript',
-    'preformatted', 'code'
-  ]
-
-  const notNullProperties = [
-    'link', 'fontSize', 'fontFamily', 'color', 'backgroundColor'
-  ]
-
-  for (const prop of boolProperties) {
-    if (data[prop] === true) {
-      textItem[prop] = data[prop]
-    }
-  }
-
-  for (const prop of notNullProperties) {
-    if (data[prop] != null) {
-      textItem[prop] = data[prop]
-    }
-  }
-
-  return textItem
-}
-
-function createBreak (target = 'line') {
-  if (target !== 'line' && target !== 'page') {
-    throw new Error(`Invalid break target "${target}"`)
-  }
-
-  return {
-    type: 'break',
-    target
-  }
 }
 
 function applyBoldDataIfNeeded (data, node) {
@@ -829,6 +995,30 @@ function inspectStylesAndApplyDataIfNeeded (data, node) {
     }
   }
 
+  if (styles.width != null) {
+    const parseArgs = [styles.width]
+
+    if (node.tagName === 'table' || node.tagName === 'td' || node.tagName === 'th') {
+      parseArgs.push({
+        units: ['px', 'cm', '%']
+      })
+    }
+
+    const parsedWidth = getDimension(...parseArgs)
+
+    if (parsedWidth != null) {
+      data.static.width = styles.width
+    }
+  }
+
+  if (styles.height != null) {
+    const parsedHeight = getDimension(styles.height)
+
+    if (parsedHeight != null) {
+      data.static.height = styles.height
+    }
+  }
+
   if (styles['break-before'] != null) {
     if (styles['break-before'] === 'page') {
       data.static.breakPage = data.static.breakPage || {}
@@ -948,6 +1138,10 @@ function applySpacingIfNeeded (parentMeta, data) {
   parentMeta.spacing = data.spacing
 }
 
+function isTextElement (node) {
+  return node.nodeType === NODE_TYPES.TEXT
+}
+
 function isInlineElement (node) {
   if (node == null) {
     return false
@@ -970,19 +1164,34 @@ function isBlockElement (node) {
   )
 }
 
-function normalizeMeta (fullMeta) {
+function isUnsupportedElement (node) {
+  return node.nodeType === NODE_TYPES.ELEMENT && !SUPPORTED_ELEMENTS.includes(node.tagName)
+}
+
+function isTableItemElement (node) {
+  if (node == null) {
+    return false
+  }
+
+  return (
+    node.nodeType === NODE_TYPES.ELEMENT &&
+    ['table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th'].includes(node.tagName)
+  )
+}
+
+function transformMeta (fullMeta, sectionDetail) {
   const normalized = []
-  const pending = fullMeta
+  const pending = [{ item: fullMeta, collection: normalized }]
 
   while (pending.length > 0) {
-    const currentItem = pending.shift()
+    const { item: currentItem, collection } = pending.shift()
 
     if (currentItem == null) {
       continue
     }
 
     if (Array.isArray(currentItem)) {
-      pending.unshift(...currentItem)
+      pending.unshift(...currentItem.map((cItem) => ({ item: cItem, collection })))
     } else {
       if (
         currentItem.children == null ||
@@ -991,10 +1200,99 @@ function normalizeMeta (fullMeta) {
           currentItem.children.length > 0
         )
       ) {
-        normalized.push(currentItem)
+        if (currentItem.type === 'table') {
+          transformTableMeta(currentItem, sectionDetail)
+        }
+
+        collection.push(currentItem)
+
+        if (currentItem.children != null) {
+          pending.unshift(...currentItem.children.map((cItem) => ({ item: cItem, collection: [] })))
+        }
       }
     }
   }
 
   return normalized
+}
+
+function rootExtraElementResolver ({ node, childNode, childNodeIndex }) {
+  if (node.nodeType === NODE_TYPES.DOCUMENT && childNodeIndex === 0) {
+    const element = childNode.tagName === 'table' ? createTable() : createParagraph()
+
+    return {
+      element,
+      target: 'sibling'
+    }
+  }
+}
+
+function tableExtraElementResolver ({ parent, childNode, childNodeIndex, prevChildNode }) {
+  let element
+
+  if (
+    childNode.tagName === 'table' &&
+    parent != null &&
+    (parent.children.length > 0 || childNodeIndex !== 0)
+  ) {
+    element = createTable()
+  }
+
+  if (element == null) {
+    return
+  }
+
+  return {
+    element,
+    target: 'sibling'
+  }
+}
+
+function paragraphExtraElementResolver ({ parent, childNode, childNodeIndex, prevChildNode }) {
+  const testsMatches = [
+    () => {
+      if (
+        prevChildNode != null &&
+        isBlockElement(prevChildNode) &&
+        !isTableItemElement(prevChildNode)
+      ) {
+        return { target: 'sibling' }
+      }
+    },
+    () => {
+      if (
+        isBlockElement(childNode) &&
+        !isTableItemElement(childNode) &&
+        parent != null &&
+        (parent.children.length > 0 || childNodeIndex !== 0)
+      ) {
+        return { target: 'sibling' }
+      }
+    },
+    () => {
+      if (
+        parent != null &&
+        parent.children.length === 0 &&
+        parent.type !== 'paragraph' &&
+        (
+          isTextElement(childNode) ||
+          isInlineElement(childNode) ||
+          isUnsupportedElement(childNode)
+        )
+      ) {
+        return { target: 'parent' }
+      }
+    }
+  ]
+
+  for (const testMatch of testsMatches) {
+    const match = testMatch()
+
+    if (match != null) {
+      return {
+        element: createParagraph(),
+        target: match.target
+      }
+    }
+  }
 }

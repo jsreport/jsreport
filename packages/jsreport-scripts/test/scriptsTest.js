@@ -699,6 +699,26 @@ describe('scripts', () => {
       })
     })
 
+    it('should be able to replace an existing buffer in req properly without error', async () => {
+      return reporter.render({
+        template: {
+          content: 'yyy',
+          recipe: 'html',
+          engine: 'none',
+          docx: {
+            templateAsset: {
+              content: Buffer.from('first content')
+            }
+          },
+          scripts: [{
+            content: `
+            function afterRender(req, res) { req.template.docx.templateAsset.content = Buffer.from('some content') }
+            `
+          }]
+        }
+      })
+    })
+
     it('should be able to render with template content set in script', async () => {
       const res = await reporter.render({
         template: {

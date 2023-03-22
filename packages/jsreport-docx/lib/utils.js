@@ -1,4 +1,5 @@
 const path = require('path')
+const escapeStringRegexp = require('escape-string-regexp')
 const { XMLSerializer } = require('@xmldom/xmldom')
 
 function nodeListToArray (nodes) {
@@ -71,6 +72,119 @@ function getNewIdFromBaseId (itemsMap, baseId, maxId) {
   }
 
   return maxId + 1
+}
+
+function getPictureElInfo (drawingEl) {
+  const els = []
+  let wpExtentEl
+
+  if (isDrawingPicture(drawingEl)) {
+    const wpDocPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
+    let linkInDrawing
+
+    wpExtentEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:extent')
+
+    if (wpDocPrEl) {
+      linkInDrawing = nodeListToArray(wpDocPrEl.childNodes).find((el) => el.nodeName === 'a:hlinkClick')
+    }
+
+    if (linkInDrawing) {
+      els.push(linkInDrawing)
+    }
+  }
+
+  const pictureEl = findDirectPictureChild(drawingEl)
+
+  if (!pictureEl) {
+    return {
+      picture: undefined,
+      wpExtent: undefined,
+      links: els
+    }
+  }
+
+  const linkInPicture = pictureEl.getElementsByTagName('a:hlinkClick')[0]
+
+  if (linkInPicture) {
+    els.push(linkInPicture)
+  }
+
+  return {
+    picture: pictureEl,
+    wpExtent: wpExtentEl,
+    links: els
+  }
+}
+
+function isDrawingPicture (drawingEl) {
+  const graphicEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'a:graphic')
+
+  if (!graphicEl) {
+    return false
+  }
+
+  const graphicDataEl = nodeListToArray(graphicEl.childNodes).find((el) => el.nodeName === 'a:graphicData' && el.getAttribute('uri') === 'http://schemas.openxmlformats.org/drawingml/2006/picture')
+
+  if (!graphicDataEl) {
+    return false
+  }
+
+  const pictureEl = nodeListToArray(graphicDataEl.childNodes).find((el) => el.nodeName === 'pic:pic')
+
+  if (!pictureEl) {
+    return false
+  }
+
+  return true
+}
+
+function findDirectPictureChild (parentNode) {
+  const childNodes = parentNode.childNodes || []
+  let pictureEl
+
+  for (let i = 0; i < childNodes.length; i++) {
+    const child = childNodes[i]
+
+    if (child.nodeName === 'w:drawing') {
+      break
+    }
+
+    if (child.nodeName === 'pic:pic') {
+      pictureEl = child
+      break
+    }
+
+    const foundInChild = findDirectPictureChild(child)
+
+    if (foundInChild) {
+      pictureEl = foundInChild
+      break
+    }
+  }
+
+  return pictureEl
+}
+
+function getPictureCnvPrEl (pictureEl) {
+  const nvPicPrEl = nodeListToArray(pictureEl.childNodes).find((el) => el.nodeName === 'pic:nvPicPr')
+
+  if (!nvPicPrEl) {
+    return
+  }
+
+  const cnvPrEl = nodeListToArray(nvPicPrEl.childNodes).find((el) => el.nodeName === 'pic:cNvPr')
+
+  return cnvPrEl
+}
+
+function getDocPrEl (drawingEl) {
+  const docPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
+
+  if (!docPrEl) {
+    return
+  }
+
+  return docPrEl
 }
 
 function getChartEl (drawingEl) {
@@ -253,6 +367,49 @@ function createNode (doc, name, opts = {}) {
   return newEl
 }
 
+function getDimension (value, opts = {}) {
+  const units = Array.isArray(opts.units) ? [...opts.units] : ['px', 'cm']
+
+  if (units.length === 0) {
+    units.push('px')
+  }
+
+  const defaultUnit = opts.defaultUnit
+  const numberRegExp = /^(\d+(.\d+)?)/
+  const dimensionRegExp = new RegExp(`^(\\d+(.\\d+)?)(${units.map((u) => escapeStringRegexp(u)).join('|')})?$`)
+  const dimensionMatch = dimensionRegExp.exec(value)
+
+  if (dimensionMatch) {
+    let unit
+
+    if (defaultUnit == null && dimensionMatch[3] == null) {
+      return null
+    }
+
+    if (dimensionMatch[3] == null && defaultUnit != null) {
+      unit = defaultUnit
+    } else {
+      unit = dimensionMatch[3]
+    }
+
+    return {
+      value: parseFloat(dimensionMatch[1]),
+      unit: unit
+    }
+  } else if (defaultUnit != null) {
+    const numberMatch = numberRegExp.exec(value)
+
+    if (numberMatch) {
+      return {
+        value: parseFloat(numberMatch[1]),
+        unit: defaultUnit
+      }
+    }
+  }
+
+  return null
+}
+
 function pxToEMU (val) {
   return Math.round(val * 914400 / 96)
 }
@@ -279,6 +436,11 @@ function ptToHalfPoint (val) {
   }
 
   return val * 2
+}
+
+// emu to twentieths of a point (dxa)
+function emuToTOAP (val) {
+  return (val / 914400) * 72 * 20
 }
 
 // pt to twentieths of a point (dxa)
@@ -507,14 +669,19 @@ module.exports.lengthToPt = (value) => {
   return pxToPt(sizeInPx)
 }
 
+module.exports.getDimension = getDimension
 module.exports.pxToEMU = pxToEMU
 module.exports.cmToEMU = cmToEMU
+module.exports.emuToTOAP = emuToTOAP
 module.exports.ptToHalfPoint = ptToHalfPoint
 module.exports.ptToTOAP = ptToTOAP
 module.exports.serializeXml = (doc) => new XMLSerializer().serializeToString(doc).replace(/ xmlns(:[a-z0-9]+)?=""/g, '')
 module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
+module.exports.getDocPrEl = getDocPrEl
+module.exports.getPictureElInfo = getPictureElInfo
+module.exports.getPictureCnvPrEl = getPictureCnvPrEl
 module.exports.getChartEl = getChartEl
 module.exports.getHeaderFooterDocs = getHeaderFooterDocs
 module.exports.getClosestEl = getClosestEl

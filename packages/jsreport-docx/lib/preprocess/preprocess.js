@@ -1,5 +1,6 @@
 const concatTags = require('./concatTags')
-const headerFooterReferences = require('./headerFooterReferences')
+const context = require('./context')
+const sections = require('./sections')
 const bookmark = require('./bookmark')
 const drawingObject = require('./drawingObject')
 const list = require('./list')
@@ -15,7 +16,18 @@ const child = require('./child')
 
 module.exports = (files) => {
   concatTags(files)
-  const headerFooterRefs = headerFooterReferences(files)
+  context(files)
+
+  const sectionsDetails = sections(files)
+
+  const headerFooterRefs = sectionsDetails.reduce((acu, section) => {
+    if (section.headerFooterReferences) {
+      acu.push(...section.headerFooterReferences)
+    }
+
+    return acu
+  }, [])
+
   bookmark(files, headerFooterRefs)
   watermark(files, headerFooterRefs)
   drawingObject(files, headerFooterRefs)

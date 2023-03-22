@@ -1,11 +1,11 @@
 const { DOMParser } = require('@xmldom/xmldom')
-const { nodeListToArray, serializeXml, getNewIdFromBaseId } = require('../utils')
+const { nodeListToArray, serializeXml, getNewIdFromBaseId, getDocPrEl } = require('../utils')
 const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const processImage = require('./processImage')
 const processChart = require('./processChart')
 
 module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
-  const contentTypesFile = files.find(f => f.path === '[Content_Types].xml').doc
+  const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
   const docPrIdCounterMap = new Map()
@@ -14,9 +14,9 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
   const originalChartsXMLMap = new Map()
   let maxDocPrId
 
-  if (contentTypesFile.documentElement.hasAttribute('drawingMaxDocPrId')) {
-    maxDocPrId = parseInt(contentTypesFile.documentElement.getAttribute('drawingMaxDocPrId'), 10)
-    contentTypesFile.documentElement.removeAttribute('drawingMaxDocPrId')
+  if (contentTypesDoc.documentElement.hasAttribute('drawingMaxDocPrId')) {
+    maxDocPrId = parseInt(contentTypesDoc.documentElement.getAttribute('drawingMaxDocPrId'), 10)
+    contentTypesDoc.documentElement.removeAttribute('drawingMaxDocPrId')
   }
 
   documentFile.data = await recursiveStringReplaceAsync(
@@ -109,14 +109,4 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
 
     return changedDocPrId ? drawingEl : null
   }
-}
-
-function getDocPrEl (drawingEl) {
-  const docPrEl = nodeListToArray(drawingEl.firstChild.childNodes).find((el) => el.nodeName === 'wp:docPr')
-
-  if (!docPrEl) {
-    return
-  }
-
-  return docPrEl
 }

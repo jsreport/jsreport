@@ -170,7 +170,17 @@ class Scripts {
           continue
         }
 
-        if (typeof obj2[key] !== 'object' || typeof obj[key] === 'undefined') {
+        if (Buffer.isBuffer(obj2[key])) {
+          obj[key] = Buffer.from(obj2[key])
+        } else if (Object.prototype.toString.call(obj2[key]) === '[object Uint8Array]') {
+          let newBuf = Buffer.from(obj2[key].buffer)
+
+          if (obj2[key].byteLength !== obj2[key].buffer.byteLength) {
+            newBuf = newBuf.slice(obj2[key].byteOffset, obj2[key].byteOffset + obj2[key].byteLength)
+          }
+
+          obj[key] = newBuf
+        } else if (typeof obj2[key] !== 'object' || typeof obj[key] === 'undefined') {
           obj[key] = obj2[key]
         } else {
           merge(obj[key], obj2[key])
