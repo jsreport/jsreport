@@ -1,7 +1,7 @@
 const get = require('lodash.get')
 const _sendToWorker = require('./sendToWorker')
 
-module.exports = ({ reporter, containersManager, ip, stack, serversChecker, discriminatorPath, reportTimeoutMargin }) => {
+module.exports = ({ reporter, containersManager, ip, stack, serversChecker, discriminatorPath, reportTimeoutMargin, releaseTimeout }) => {
   containersManager.onRecycle(({ container, originalTenant }) => {
     return reporter.documentStore.internalCollection('tenantWorkers').remove({
       ip,
@@ -106,25 +106,34 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
       throw reporter.createError('Unable to allocate worker', { ...e })
     }
 
+    let abortController
     return {
       rootId: req.context.rootId,
+
       async execute (userData, options) {
         try {
+          // eslint-disable-next-line
+          abortController = new AbortController()
           return await sendToWorker(container.url, userData, {
             ...options,
-            systemAction: 'execute'
+            systemAction: 'execute',
+            signal: abortController.signal
           })
         } catch (e) {
           if (e.needRestart) {
             container.needRestart = true
           }
           throw e
+        } finally {
+          abortController = null
+          console.log('execute finished')
         }
       },
 
       async release () {
         let releaseError
         try {
+          abortController?.abort()
           await sendToWorker(container.url, {
             req: {
               context: {
@@ -133,7 +142,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
             }
           }, {
             systemAction: 'release',
-            timeout: req.timeout
+            timeout: releaseTimeout
           })
         } catch (e) {
           releaseError = e

@@ -28,7 +28,7 @@ module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } =
   }
 }
 
-async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, systemAction, httpOptions = {} }) {
+async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, systemAction, httpOptions = {}, signal }) {
   let data = { ..._data, timeout, systemAction }
 
   if (originUrl != null) {
@@ -39,6 +39,11 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
 
   async function run () {
     while (true && !isDone) {
+      if (signal?.aborted) {
+        const e = new Error('Worker aborted')
+        e.code = 'WORKER_ABORTED'
+        throw e
+      }
       const stringBody = serializator.serialize(data)
       let res
 
@@ -135,6 +140,10 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
     timeoutController = new AbortController()
   }
 
+  if (!timeout) {
+    return run()
+  }
+
   // we handle the timeout using promises to avoid loosing stack in case of error
   // mixing new Promise with async await leads to loosing it. we ensure that when run ends
   // we clean the timeout to avoid keeping handlers in memory longer than needed and allow
@@ -147,14 +156,11 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
       timeoutController?.abort()
       throw err
     }),
-    timeout
-      ? setTimeout(timeout, undefined, { signal: timeoutController.signal }).then(() => {
-          isDone = true
-          const e = new Error('Timeout when communicating with worker')
-          e.needRestart = true
-          throw e
-        })
-
-      : null
+    setTimeout(timeout, undefined, { signal: timeoutController.signal }).then(() => {
+      isDone = true
+      const e = new Error('Timeout when communicating with worker')
+      e.needRestart = true
+      throw e
+    })
   ])
 }

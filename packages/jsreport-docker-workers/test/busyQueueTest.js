@@ -9,7 +9,7 @@ describe('busy queue', () => {
   beforeEach(() => {
     busyQueue = BusyQueue({
       logger: reporter.logger,
-      waitingTimeout: 10,
+      waitingTimeout: 50,
       run: () => Promise.resolve()
     })
   })
@@ -21,11 +21,11 @@ describe('busy queue', () => {
   })
 
   it('multiple flush should clear queue', (done) => {
-    busyQueue.push(1, () => {}, () => {})
+    busyQueue.push(1, () => {}, (e) => { throw e })
     busyQueue.push(1, () => {
       busyQueue.length.should.be.eql(0)
       done()
-    }, () => {})
+    }, (e) => { throw e })
     busyQueue.flush()
     busyQueue.flush()
   })
@@ -40,6 +40,6 @@ describe('busy queue', () => {
       done()
     })
 
-    setTimeout(() => busyQueue.flush(), 20)
+    setTimeout(() => busyQueue.flush(), 100)
   })
 })

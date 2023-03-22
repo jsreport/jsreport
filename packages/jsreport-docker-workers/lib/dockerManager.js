@@ -12,6 +12,7 @@ module.exports = (reporter, {
   subnet,
   network,
   reportTimeoutMargin,
+  releaseTimeout,
   busyQueueWaitingTimeout,
   numberOfWorkers,
   customContainersPoolFactory
@@ -49,7 +50,8 @@ module.exports = (reporter, {
     stack: reporter.options.stack,
     serversChecker,
     discriminatorPath,
-    reportTimeoutMargin
+    reportTimeoutMargin,
+    releaseTimeout
   })
 
   function onSIGTERM () {

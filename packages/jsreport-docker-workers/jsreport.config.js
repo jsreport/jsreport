@@ -91,7 +91,12 @@ module.exports = {
             '$jsreport-acceptsDuration': true,
             default: 10000
           },
-          numberOfWorkers: { type: 'number', minimum: 1, default: 4 }
+          numberOfWorkers: { type: 'number', minimum: 1, default: 4 },
+          releaseTimeout: {
+            type: ['string', 'number'],
+            '$jsreport-acceptsDuration': true,
+            default: 10000
+          }
         }
       }
     }
