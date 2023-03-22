@@ -6,6 +6,10 @@ module.exports = (initData, { executeMain }) => {
 
     execute: (data) => {
       return executeMain(data)
+    },
+
+    close: async () => {
+
     }
   }
 }

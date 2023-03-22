@@ -298,4 +298,22 @@ describe('advanced workers', () => {
       e.message.should.containEql('Worker unexpectedly exited')
     }
   })
+
+  it('release when execution in main thread', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'executeMain.js'),
+      numberOfWorkers: 1
+    })
+
+    await workers.init()
+
+    const worker = await workers.allocate()
+    return worker.execute({
+      someData: 'hello'
+    }, {
+      executeMain: async (data) => {
+        worker.release()
+      }
+    }).should.be.rejectedWith(/aborted/)
+  })
 })

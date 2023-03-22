@@ -24,6 +24,7 @@ module.exports = ({
   initTimeout = 15000
 }) => {
   let currentAsyncAwaiter
+  let closingWhenWaitingForMainExecution
 
   worker.on('message', (m) => {
     currentAsyncAwaiter.resolve(m)
@@ -77,6 +78,14 @@ module.exports = ({
         if (workerResponse.type === 'callback') {
           try {
             const callbackResponse = await executeMain(serializator.parse(workerResponse.userData))
+
+            if (closingWhenWaitingForMainExecution) {
+              const err = new Error('Worker aborted')
+              err.code = 'WORKER_ABORTED'
+              worker.unref()
+              return reject(err)
+            }
+
             m = {
               systemAction: 'callback-response',
               userData: callbackResponse
@@ -151,6 +160,8 @@ module.exports = ({
           err
         })
         worker.unref()
+      } else {
+        closingWhenWaitingForMainExecution = true
       }
 
       setTimeout(() => {
