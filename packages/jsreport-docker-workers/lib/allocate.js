@@ -125,7 +125,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
           }
           throw e
         } finally {
-          abortController = null          
+          abortController = null
         }
       },
 
