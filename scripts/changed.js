@@ -290,6 +290,23 @@ if (targetPkg != null && targetPkg !== '') {
       }
     }
 
+    const packagesInWorkspace = getPackagesInWorkspace()
+
+    // inspect if there are any packages in workspace that depend on the changed packages, if so then
+    // add the package to the list of changed packages
+    for (const [packageName, packageFolder] of [...packagesInWorkspace.entries()]) {
+      const currentRelatedPackages = getPackagesIn(path.join(process.cwd(), `packages/${packageFolder}`), packagesInWorkspace, {
+        target: ['dependencies'],
+        includePackagesNotInWorkspace: false
+      })
+
+      for (const rPkg of currentRelatedPackages) {
+        if (extensionsChanged.has(rPkg)) {
+          extensionsChanged.add(packageName)
+        }
+      }
+    }
+
     const extensions = getExtensionsInOrder([...extensionsChanged])
 
     if (extensions.length === 0) {
@@ -297,7 +314,6 @@ if (targetPkg != null && targetPkg !== '') {
     } else {
       console.log(`\ndetected changed packages: ${extensions.length}`)
 
-      const packagesInWorkspace = getPackagesInWorkspace()
       const jsreportPackages = getPackagesIn(path.join(process.cwd(), 'packages/jsreport'), packagesInWorkspace)
 
       const packagesRelevantForJsreportRelease = []
@@ -333,22 +349,32 @@ if (targetPkg != null && targetPkg !== '') {
   }
 }
 
-function getPackagesIn (pkgPath, packagesInWorkspace, stop = false) {
+function getPackagesIn (pkgPath, packagesInWorkspace, _options, stop = false) {
+  const options = _options || {}
+  const includePackagesNotInWorkspace = options.includePackagesNotInWorkspace ?? true
+  const target = options.target ?? ['dependencies', 'devDependencies']
   const packageJSON = JSON.parse(fs.readFileSync(path.join(pkgPath, 'package.json'), 'utf8'))
-  const packagesFromDeps = [...Object.keys(packageJSON.dependencies || {}), ...Object.keys(packageJSON.devDependencies || {})]
+
+  const packagesFromDeps = target.reduce((acu, t) => {
+    acu.push(...Object.keys(packageJSON.dependencies || {}))
+    return acu
+  }, [])
+
   const results = new Set()
 
   for (const pkg of packagesFromDeps) {
-    if (packagesInWorkspace.has(pkg) && !stop) {
+    if (packagesInWorkspace.has(pkg)) {
       results.add(pkg)
 
-      const childResults = getPackagesIn(path.join(process.cwd(), 'packages', packagesInWorkspace.get(pkg)), packagesInWorkspace, true)
+      const childResults = getPackagesIn(path.join(process.cwd(), 'packages', packagesInWorkspace.get(pkg)), packagesInWorkspace, options)
 
       for (const r of childResults) {
         results.add(r)
       }
     } else {
-      results.add(pkg)
+      if (includePackagesNotInWorkspace) {
+        results.add(pkg)
+      }
     }
   }
 
