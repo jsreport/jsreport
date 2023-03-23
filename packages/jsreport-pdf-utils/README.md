@@ -7,9 +7,14 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 3.9.0
+
+- improve the support for parsing and working with external pdfs
+- support new option `appendAfterPageNumber` in jsreport-proxy `pdfUtils.append` to allowing appending new pages starting at specific index
+
 ### 3.8.0
 
-- allow pdf-utils append/prepend operation at specific page #551 
+- allow pdf-utils append/prepend operation at specific page #551
 
 ### 3.7.0
 

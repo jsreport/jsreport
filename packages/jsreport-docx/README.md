@@ -7,6 +7,13 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.7.0
+
+- fix `template.docx.templateAsset` from payload not overwriting the `template.docx.templateAssetShortid`
+- fix parsing of end of `if` and start of another `if` in same line
+- add support for `table` tag in `docxHtml` helper
+- add support for `img` tag in `docxHtml` helper
+
 ### 3.6.0
 
 - make `docxStyle` work in document header/footer

@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docx",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "jsreport recipe rendering docx files",
   "keywords": [
     "jsreport",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.6.0",
-    "@jsreport/jsreport-core": "3.10.0",
+    "@jsreport/jsreport-core": "3.11.0",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/studio-dev": "3.2.1",
     "handlebars": "4.7.7",

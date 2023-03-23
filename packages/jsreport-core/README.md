@@ -282,6 +282,14 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.11.0
+
+- log when worker returns bad res.content
+- fix profiler leaks
+- remove settings sync API and avoid loading all items to memory
+- throw weak error when validating duplicated entity
+- ensure we end with profiles with error state when there is server or req timeout
+
 ### 3.10.0
 
 - `mainReporter.executeWorkerAction` now supports cancellation with `AbortController.signal`

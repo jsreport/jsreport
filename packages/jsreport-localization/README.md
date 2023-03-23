@@ -7,6 +7,10 @@ See https://jsreport.net/learn/localization
 
 ## Changelog
 
+### 3.2.2
+
+- use old `req.options.language` when `req.template.localization` is empty
+
 ### 3.2.1
 
 - changes to enable caching of system helpers

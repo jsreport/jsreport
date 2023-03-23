@@ -7,6 +7,10 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 3.4.1
+
+- fix issue with `beforeRender`/`afterRender` scripts not being able to merge/replace existing buffers
+
 ### 3.4.0
 
 - add support for specifying what are the main document properties of scripts entitySet

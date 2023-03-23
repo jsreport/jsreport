@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.7.0
+
+- add support for odata `ne` operator
+
 ### 3.6.0
 
 - update deps to fix npm audit

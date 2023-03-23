@@ -1470,20 +1470,6 @@
   dependencies:
     mongodb "3.6.5"
 
-"@jsreport/jsreport-pdf-utils@3.7.0":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@jsreport/jsreport-pdf-utils/-/jsreport-pdf-utils-3.7.0.tgz#12b850bf92c66cc5df62651cc9e01275f14331d2"
-  integrity sha512-2b2cRQQBg4S7oBTTBePN329HJc4v3QD349NyE7gsBlT4zqJNfyXXfUA1FSD58Klkwp8RkNfRXa2jsY5fddmpLA==
-  dependencies:
-    "@jsreport/node-signpdf" "1.4.2"
-    "@jsreport/pdfjs" "1.2.0"
-    cheerio "1.0.0-rc.12"
-    lodash.omit "4.5.0"
-    nanoid "3.2.0"
-    node-forge "1.3.1"
-    parse-color "1.0.0"
-    pdfjs-dist "2.12.313"
-
 "@jsreport/jsreport-postgres-store@3.0.0":
   version "3.0.0"
   resolved "https://registry.npmjs.org/@jsreport/jsreport-postgres-store/-/jsreport-postgres-store-3.0.0.tgz"
@@ -1509,16 +1495,6 @@
   dependencies:
     jsreport-sql-2 "0.0.1"
     lodash "4.17.21"
-
-"@jsreport/pdfjs@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@jsreport/pdfjs/-/pdfjs-1.2.0.tgz#0ec3b25c0cf267d9683fefafc0b8b1228f0a74cd"
-  integrity sha512-fp/qGFsNIuNDPZ1+ajvlmQtsnAgiho59c02/4jNYi50Bsir+xjR3WX2hxmwGPuqI4Ep2H4ek+qxA1MrNFS+1Ng==
-  dependencies:
-    "@jsreport/node-signpdf" "1.4.2"
-    crypto-js "4.1.1"
-    parse-color "1.0.0"
-    pdfjs-dist "2.14.305"
 
 "@jsreport/sql-store@3.0.0":
   version "3.0.0"
@@ -6768,7 +6744,7 @@ domhandler@^5.0.1, domhandler@^5.0.2, domhandler@^5.0.3:
   dependencies:
     domelementtype "^2.3.0"
 
-dommatrix@^1.0.1, dommatrix@^1.0.3:
+dommatrix@^1.0.3:
   version "1.0.3"
   resolved "https://registry.npmjs.org/dommatrix/-/dommatrix-1.0.3.tgz"
   integrity sha512-l32Xp/TLgWb8ReqbVJAFIvXmY7go4nTxxlWiAFyhoQw9RKEOHBZNnyGvJWqDVSPmq3Y9HlM4npqF/T6VMOXhww==
@@ -14364,19 +14340,6 @@ pdfjs-dist@2.0.489:
   dependencies:
     node-ensure "^0.0.0"
     worker-loader "^1.1.1"
-
-pdfjs-dist@2.12.313:
-  version "2.12.313"
-  resolved "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-2.12.313.tgz"
-  integrity sha512-1x6iXO4Qnv6Eb+YFdN5JdUzt4pAkxSp3aLAYPX93eQCyg/m7QFzXVWJHJVtoW48CI8HCXju4dSkhQZwoheL5mA==
-
-pdfjs-dist@2.14.305:
-  version "2.14.305"
-  resolved "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-2.14.305.tgz"
-  integrity sha512-5f7i25J1dKIBczhgfxEgNxfYNIxXEdxqo6Qb4ehY7Ja+p6AI4uUmk/OcVGXfRGm2ys5iaJJhJUwBFwv6Jl/Qww==
-  dependencies:
-    dommatrix "^1.0.1"
-    web-streams-polyfill "^3.2.1"
 
 pdfjs-dist@2.16.105:
   version "2.16.105"
