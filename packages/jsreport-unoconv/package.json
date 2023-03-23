@@ -36,7 +36,7 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "3.10.0",
     "@jsreport/jsreport-html-to-xlsx": "3.3.0",
-    "@jsreport/studio-dev": "3.2.0",
+    "@jsreport/studio-dev": "3.2.1",
     "mocha": "6.2.2",
     "should": "13.2.3",
     "standard": "16.0.4"

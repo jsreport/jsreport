@@ -37,7 +37,7 @@
     "@jsreport/jsreport-express": "3.6.0",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-scripts": "3.4.0",
-    "@jsreport/studio-dev": "3.2.0",
+    "@jsreport/studio-dev": "3.2.1",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "16.0.4",

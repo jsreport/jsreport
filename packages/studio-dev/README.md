@@ -19,6 +19,10 @@
 
 ## Changelog
 
+### 3.2.1
+
+- fix jsreport-studio-start, jsreport-studio-build commands not working with node 18
+
 ### 3.2.0
 
 - add option `removeSourceMapUrl` to build command which allows to remove source map url references to packages

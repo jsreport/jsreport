@@ -33,7 +33,7 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "3.10.0",
     "@jsreport/jsreport-handlebars": "3.2.1",
-    "@jsreport/studio-dev": "3.2.0",
+    "@jsreport/studio-dev": "3.2.1",
     "handlebars": "4.7.7",
     "mocha": "6.1.4",
     "parse-pdf": "1.0.0",

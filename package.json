@@ -21,7 +21,7 @@
   },
   "resolutions": {},
   "dependencies": {
-    "@jsreport/studio-dev": "3.2.0",
+    "@jsreport/studio-dev": "3.2.1",
     "extract-zip": "2.0.1",
     "ignore": "5.2.0",
     "xml-formatter": "2.6.1",
