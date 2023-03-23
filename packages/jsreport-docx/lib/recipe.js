@@ -17,17 +17,15 @@ module.exports = async (reporter, definition, req, res) => {
 
   let templateAsset = req.template.docx.templateAsset
 
-  if (req.template.docx.templateAssetShortid) {
+  if (templateAsset?.content != null && !Buffer.isBuffer(templateAsset.content)) {
+    templateAsset.content = Buffer.from(templateAsset.content, templateAsset.encoding || 'base64')
+  } else if (req.template.docx.templateAssetShortid) {
     templateAsset = await reporter.documentStore.collection('assets').findOne({ shortid: req.template.docx.templateAssetShortid }, req)
 
     if (!templateAsset) {
       throw reporter.createError(`Asset with shortid ${req.template.docx.templateAssetShortid} was not found`, {
         statusCode: 400
       })
-    }
-  } else {
-    if (!Buffer.isBuffer(templateAsset.content)) {
-      templateAsset.content = Buffer.from(templateAsset.content, templateAsset.encoding || 'base64')
     }
   }
 
