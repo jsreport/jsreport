@@ -1,4 +1,9 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --openssl-legacy-provider
+// NOTE: the --openssl-legacy-provider option from above was used because webpack@4
+// is not compatible with the openssl version that comes with node.js 18.
+// webpack 4 uses md4 hashes which are not supported in that version of openssl,
+// this is a problem that is fixed in webpack >=5, so we can remove the above when
+// updating webpack in the future
 const fs = require('fs')
 const path = require('path')
 const execSync = require('child_process').execSync
