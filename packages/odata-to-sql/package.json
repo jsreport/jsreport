@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/odata-to-sql",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Generate SQL from OData in node.js",
   "homepage": "https://github.com/jsreport/jsreport",
   "bugs": {

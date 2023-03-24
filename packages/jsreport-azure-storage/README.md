@@ -54,6 +54,10 @@ jsreport.use(require('@jsreport/jsreport-azure-storage')({}))
 
 ## Changelog
 
+### 3.0.1
+
+- move some deps to dev deps
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

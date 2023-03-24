@@ -44,6 +44,10 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 3.2.1
+
+- add support for odata ne operator
+
 ### 3.2.0
 
 - move `oracledb` from `dependencies` to `optionalDependencies` to be able to run for docker ARM images

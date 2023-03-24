@@ -20,7 +20,7 @@ Then alter jsreport configuration
 			"password": "password",
 			"server": "janblaha-PC\\SQLEXPRESS",
 			"database": "jsreport",
-			"schema": "mycustomschema",			
+			"schema": "mycustomschema",
 			"options": {
 				/* required for sql azure */
 				"encrypt": true,
@@ -53,10 +53,14 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 3.1.1
+
+- add support for odata ne operator
+
 ### 3.1.0
 
-Support for complex $filter in count quert. Fix for 3.7.1 profiler
+- Support for complex $filter in count quert. Fix for 3.7.1 profiler
 
 ### 3.0.0-beta.1
 
-Adaptations for the v3 APIs
+- Adaptations for the v3 APIs

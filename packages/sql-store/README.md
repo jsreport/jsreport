@@ -4,6 +4,10 @@
 
 ## Changelog
 
+### 3.1.1
+
+- add support for odata ne operator
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
