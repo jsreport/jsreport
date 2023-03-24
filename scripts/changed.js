@@ -106,7 +106,7 @@ if (targetPkg != null && targetPkg !== '') {
   const targetPkgFoldername = packagesInWorkspace.get(targetPkg)
   const packageJSONPath = path.join(process.cwd(), 'packages', targetPkgFoldername, 'package.json')
   const packageJSON = JSON.parse(fs.readFileSync(packageJSONPath))
-  const commands = ['git', 'log', '--pretty="format:[%an] %H %ad | %s"', '--date=short', `${firstCommit}..${lastCommit}`, '--', `packages/${targetPkgFoldername}`]
+  const commands = ['git', 'log', '--pretty="format:[%an] %H %cd | %s"', '--date=short', `${firstCommit}..${lastCommit}`, '--', `packages/${targetPkgFoldername}`]
 
   console.log(`running ${commands.join(' ')}`)
 
