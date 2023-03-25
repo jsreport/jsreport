@@ -1,4 +1,5 @@
 FROM jsreport/jsreport:3.10.0-full
+ARG TARGETPLATFORM
 
 RUN npm install --save --save-exact jsreport@3.11.0 \
     @jsreport/jsreport-ejs@3.0.0 \
@@ -21,7 +22,7 @@ COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js inst
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
 # script created with steps recommend here from oracledb repository
 # https://github.com/oracle/node-oracledb/issues/1382#issuecomment-849157748
-RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=3.1.0
+RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --storeVersion=3.2.1
 
 RUN npm cache clean -f && rm -rf /tmp/*
 
