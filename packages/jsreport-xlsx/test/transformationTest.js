@@ -13,7 +13,9 @@ const xlsxRecipe = require('../index')
 const jsonToXml = require('../lib/transformation/jsonToXml')
 const { decompress } = require('@jsreport/office')
 
-describe('xlsx transformation handlebars', () => {
+const xlsxDirPath = path.join(__dirname, './xlsx')
+
+describe('xlsx transformation - handlebars', () => {
   let reporter
 
   beforeEach(() => {
@@ -125,7 +127,7 @@ describe('xlsx transformation handlebars', () => {
   }))
 
   it('should be able to use uploaded xlsx template', async () => {
-    const templateContent = fs.readFileSync(path.join(__dirname, 'Book1.xlsx'))
+    const templateContent = fs.readFileSync(path.join(xlsxDirPath, 'Book1.xlsx'))
 
     await reporter.documentStore.collection('assets').insert({
       content: templateContent,
@@ -149,7 +151,7 @@ describe('xlsx transformation handlebars', () => {
   })
 
   it('should be able to use xlsx template content from request', async () => {
-    const templateContent = fs.readFileSync(path.join(__dirname, 'Book1.xlsx'))
+    const templateContent = fs.readFileSync(path.join(xlsxDirPath, 'Book1.xlsx'))
 
     const res = await reporter.render({
       template: {
@@ -396,7 +398,7 @@ describe('xlsx transformation handlebars', () => {
         xlsx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.xlsx')
+              path.join(xlsxDirPath, 'variable-replace.xlsx')
             )
           }
         }
@@ -446,7 +448,7 @@ describe('xlsx transformation handlebars', () => {
   })
 })
 
-describe('xlsx transformation jsrender', () => {
+describe('xlsx transformation - jsrender', () => {
   let reporter
 
   beforeEach(() => {
@@ -482,7 +484,7 @@ describe('xlsx transformation jsrender', () => {
   }))
 })
 
-describe('excel recipe with previewInExcelOnline false', () => {
+describe('xlsx transformation - excel recipe with previewInExcelOnline false', () => {
   let reporter
 
   beforeEach(() => {
@@ -520,7 +522,7 @@ describe('excel recipe with previewInExcelOnline false', () => {
   })
 })
 
-describe('excel recipe with office.preview.enabled=false and extensions.xlsx.preview.enabled=true', () => {
+describe('xlsx transformation - excel recipe with office.preview.enabled=false and extensions.xlsx.preview.enabled=true', () => {
   let reporter
 
   beforeEach(() => {
@@ -567,7 +569,7 @@ describe('excel recipe with office.preview.enabled=false and extensions.xlsx.pre
   })
 })
 
-describe('excel recipe with office.preview.enabled=false and extensions.xlsx.previewInExcelOnline=true', () => {
+describe('xlsx transformation - excel recipe with office.preview.enabled=false and extensions.xlsx.previewInExcelOnline=true', () => {
   let reporter
 
   beforeEach(() => {
@@ -612,7 +614,7 @@ describe('excel recipe with office.preview.enabled=false and extensions.xlsx.pre
   })
 })
 
-describe('excel recipe with office.preview.enabled=false and xlsx.previewInExcelOnline=true', () => {
+describe('xlsx transformation - excel recipe with office.preview.enabled=false and xlsx.previewInExcelOnline=true', () => {
   let reporter
 
   beforeEach(() => {
@@ -655,7 +657,7 @@ describe('excel recipe with office.preview.enabled=false and xlsx.previewInExcel
   })
 })
 
-describe('excel recipe with disabled add parsing', () => {
+describe('xlsx transformation - excel recipe with disabled add parsing', () => {
   let reporter
 
   beforeEach(() => {
@@ -751,7 +753,7 @@ describe('excel recipe with disabled add parsing', () => {
 })
 
 // https://github.com/jsreport/jsreport/issues/312
-describe('excel recipe should not be broken by assets running after', () => {
+describe('xlsx transformation - excel recipe should not be broken by assets running after', () => {
   let reporter
 
   beforeEach(() => {
@@ -784,7 +786,7 @@ describe('excel recipe should not be broken by assets running after', () => {
 })
 
 // https://github.com/jsreport/jsreport/issues/908
-describe('excel recipe should not be broken by components usage', () => {
+describe('xlsx transformation - excel recipe should not be broken by components usage', () => {
   let reporter
 
   beforeEach(() => {
@@ -834,7 +836,7 @@ describe('excel recipe should not be broken by components usage', () => {
   })
 })
 
-describe('jsonToXml', () => {
+describe('xlsx transformation - jsonToXml', () => {
   describe('escaping node values', () => {
     it('should escape entities', () => {
       jsonToXml({ a: '<>&' }).xml.should.containEql('&lt;&gt;&amp;')
