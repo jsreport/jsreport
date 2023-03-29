@@ -478,6 +478,35 @@ describe('render (single timeout per request as req.options.timeout)', () => {
   timeoutTests(true)
 })
 
+describe('render with enableRequestReportTimeout', () => {
+  let reporter
+
+  beforeEach(() => {
+    const opts = { enableRequestReportTimeout: true, discover: false, reportTimeoutMargin: 0 }
+
+    reporter = core(opts)
+
+    reporter.use(core.tests.listeners())
+    return reporter.init()
+  })
+
+  afterEach(() => {
+    if (reporter) {
+      return reporter.close()
+    }
+  })
+
+  it('should render normally even if req.options.timeout is not specified', async () => {
+    return reporter.render({
+      template: {
+        engine: 'none',
+        content: 'foo',
+        recipe: 'html'
+      }
+    }).should.not.be.rejected()
+  })
+})
+
 function timeoutTests (asReqOption = false) {
   let reporter
   const reportTimeout = 1000
