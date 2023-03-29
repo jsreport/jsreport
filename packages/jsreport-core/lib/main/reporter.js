@@ -378,6 +378,7 @@ class MainReporter extends Reporter {
     req.context.id = req.context.rootId
     req.context.reportCounter = ++reportCounter
     req.context.startTimestamp = new Date().getTime()
+    req.options = Object.assign({}, req.options)
 
     let worker
     let workerAborted
