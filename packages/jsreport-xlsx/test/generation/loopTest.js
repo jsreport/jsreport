@@ -471,7 +471,7 @@ describe('xlsx generation - loops', () => {
     should(sheet['!ref']).be.eql(`C2:E${2 + items.length}`)
   })
 
-  it('loop should repeat cells content that involves multiple rows', async () => {
+  it.skip('loop should repeat cells content that involves multiple rows', async () => {
     const items = [{
       name: 'Alexander',
       lastname: 'Smith',

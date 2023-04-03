@@ -9304,12 +9304,12 @@ html-to-text@8.0.0:
     minimist "^1.2.5"
     selderee "^0.6.0"
 
-html-to-xlsx@2.2.3:
-  version "2.2.3"
-  resolved "https://registry.npmjs.org/html-to-xlsx/-/html-to-xlsx-2.2.3.tgz"
-  integrity sha512-3koGWKi/0HbiLI58QAAiGxhp00/XjR6k2lOeiPvaWhshVCXXBAWD9RpT07EgJrXBJCLkd3I1rA3vk0NvjDEfZQ==
+html-to-xlsx@2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/html-to-xlsx/-/html-to-xlsx-2.2.4.tgz#d4ebec0af0a8da1b81e5b76eb79cf1f39e7d113e"
+  integrity sha512-NmSYo8vAK1HiLfq0DoOqXWhyIDCV8cEaV35wIPtJXpkIRBbA9F/Y/LGqt7leo3U4dna1ylCTd84jWUdemoaK0w==
   dependencies:
-    jsreport-exceljs "3.8.2"
+    jsreport-exceljs "3.8.3"
     moment "2.29.4"
     tinycolor2 "1.4.2"
     uuid "8.3.2"
@@ -10746,16 +10746,16 @@ jsrender@1.0.11:
   dependencies:
     through2 "^3.0.1"
 
-jsreport-exceljs@3.8.2:
-  version "3.8.2"
-  resolved "https://registry.npmjs.org/jsreport-exceljs/-/jsreport-exceljs-3.8.2.tgz"
-  integrity sha512-1H0d4cAKqfvUqncDJL6HdGfHIJ0IavS536pU4zCP31UuY2Uq2PCc64m8M7d5O+mL7gU8SL7UH+TyGzQTFltHhg==
+jsreport-exceljs@3.8.3:
+  version "3.8.3"
+  resolved "https://registry.yarnpkg.com/jsreport-exceljs/-/jsreport-exceljs-3.8.3.tgz#0797db35d9a7d681b4fcc81cf0beed2d767f829e"
+  integrity sha512-W1TRXXNe+N8amwkhOhBWpx71PWrIx4DkEaJNw7Q9a/EFyH3tJQz+Ip6AZBq0vjKwPtxQjy2Qe+58li8UqcviPQ==
   dependencies:
     "@xmldom/xmldom" "0.8.6"
     archiver "5.3.1"
     dayjs "^1.8.15"
     fast-csv "4.3.6"
-    jszip "3.7.1"
+    jszip "3.8.0"
     sax "^1.2.4"
     streamifier "0.1.1"
     tmp "^0.1.0"
@@ -10800,10 +10800,10 @@ jszip@2.6.1, jszip@^2.3.0:
   dependencies:
     pako "~1.0.2"
 
-jszip@3.7.1:
-  version "3.7.1"
-  resolved "https://registry.npmjs.org/jszip/-/jszip-3.7.1.tgz"
-  integrity sha512-ghL0tz1XG9ZEmRMcEN2vt7xabrDdqHHeykgARpmZ0BiIctWxM47Vt63ZO2dnp4QYt/xJVLLy5Zv1l/xRdh2byg==
+jszip@3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/jszip/-/jszip-3.8.0.tgz#a2ac3c33fe96a76489765168213655850254d51b"
+  integrity sha512-cnpQrXvFSLdsR9KR5/x7zdf6c3m8IhZfZzSblFEHSqBaVwD2nvJ4CuCKLyvKvwBgZm08CgfSoiTBQLm5WW9hGw==
   dependencies:
     lie "~3.3.0"
     pako "~1.0.2"
