@@ -1,7 +1,7 @@
-FROM jsreport/jsreport:3.10.0-full
+FROM jsreport/jsreport:3.11.0-full
 ARG TARGETPLATFORM
 
-RUN npm install --save --save-exact jsreport@3.11.0 \
+RUN npm install --save --save-exact jsreport@3.11.1 \
     @jsreport/jsreport-ejs@3.0.0 \
     @jsreport/jsreport-pug@4.0.0 \
     @jsreport/jsreport-aws-s3-storage@3.0.0 \
