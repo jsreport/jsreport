@@ -31,7 +31,6 @@ module.exports = (app, reporter, exposedOptions) => {
   reporter.extensionsManager.extensions.forEach((e) => app.use('/extension/' + e.name, serveStatic(e.directory, { maxAge: oneMonth })))
 
   function httpRender (renderRequestContent, req, res, stream, next) {
-    res.setTimeout((reporter.getReportTimeout(req) + reporter.options.reportTimeoutMargin) * 1.2)
     res.setHeader('X-XSS-Protection', 0)
 
     const renderRequest = typeof renderRequestContent === 'string'
@@ -68,7 +67,9 @@ module.exports = (app, reporter, exposedOptions) => {
       abortEmitter.emit('abort')
     })
 
-    reporter.render(renderRequest, { abortEmitter }).then((renderResponse) => {
+    const onReqReady = (req) => res.setTimeout((reporter.getReportTimeout(req) + reporter.options.reportTimeoutMargin) * 1.2)
+
+    reporter.render(renderRequest, { abortEmitter, onReqReady }).then((renderResponse) => {
       abortEmitter.removeAllListeners('abort')
       if (stream) {
         form.append('report', renderResponse.stream, {

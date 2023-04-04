@@ -417,6 +417,7 @@ class MainReporter extends Reporter {
       }
 
       req = Request(req)
+      options.onReqReady?.(req)
 
       // TODO: we will probably validate in the thread
       if (this.entityTypeValidator.getSchema('TemplateType') != null) {

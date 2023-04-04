@@ -539,3 +539,35 @@ describe('express with disabled cors', () => {
     r.headers.should.not.have.property('access-control-allow-methods')
   })
 })
+
+describe('express with low reportTimeout', () => {
+  let jsreport
+
+  beforeEach(() => {
+    jsreport = JsReport({
+      enableRequestReportTimeout: true,
+      reportTimeout: 100,
+      reportTimeoutMargin: 0
+    })
+      .use(require('../')())
+
+    return jsreport.init()
+  })
+
+  afterEach(() => jsreport && jsreport.close())
+
+  it('/api/report and res.setTimeout when options.timeout passed', () => {
+    return supertest(jsreport.express.app)
+      .post('/api/report')
+      .send({
+        template: {
+          content: 'hello',
+          engine: 'none',
+          helpers: 'await new Promise((resolve) => setTimeout(resolve, 110))',
+          recipe: 'html'
+        },
+        options: { timeout: 5000 }
+      })
+      .expect(200, 'hello')
+  })
+})
