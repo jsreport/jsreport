@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 3.7.1
+
+- postpone setting http response timeout until the `req.options.timeout` is parsed
+
 ### 3.7.0
 
 - add support for odata `ne` operator

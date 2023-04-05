@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.11.2
+
+- add `options.onReqReady` to be able to receive the parsed req values
+
 ### 3.11.1
 
 - fix error when trying to read `req.options` on reporter main code when `enableRequestReportTimeout` is enabled
