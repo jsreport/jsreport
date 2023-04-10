@@ -158,6 +158,34 @@ describe('docx', () => {
     ])
   })
 
+  it('handlebars-partials', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        helpers: `
+          const h = require('handlebars')
+
+          h.registerPartial('test', '{{name}}')
+        `,
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'partial.docx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Hello world John')
+  })
+
   it('invoice', async () => {
     const result = await reporter.render({
       template: {
