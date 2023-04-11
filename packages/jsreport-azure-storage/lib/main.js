@@ -1,6 +1,13 @@
-const stream = require('stream')
 const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob')
 const { DefaultAzureCredential } = require('@azure/identity')
+
+async function streamToBuffer (readable) {
+  const bufs = []
+  for await (const chunk of readable) {
+    bufs.push(chunk)
+  }
+  return Buffer.concat(bufs)
+}
 
 module.exports = function (reporter, definition) {
   if (reporter.options.blobStorage.provider !== 'azure-storage') {
@@ -34,15 +41,8 @@ module.exports = function (reporter, definition) {
   reporter.blobStorage.registerProvider({
     init: () => containerClient.createIfNotExists(),
     read: async (blobName) => {
-      try {
-        const res = await containerClient.getBlockBlobClient(blobName).download()
-        return res.readableStreamBody
-      } catch (e) {
-        const r = stream.Readable()
-        r._read = () => {}
-        process.nextTick(() => r.emit('error', e))
-        return r
-      }
+      const res = await containerClient.getBlockBlobClient(blobName).download()
+      return streamToBuffer(res.readableStreamBody)
     },
     write: async (blobName, buffer) => {
       await containerClient.getBlockBlobClient(blobName).upload(buffer, Buffer.byteLength(buffer))
