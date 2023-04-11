@@ -185,6 +185,11 @@ module.exports.getRootSchemaOptions = () => ({
           '$jsreport-acceptsDuration': true,
           default: '1m'
         },
+        maxUnallocatedProfileAge: {
+          type: ['string', 'number'],
+          '$jsreport-acceptsDuration': true,
+          default: '24h'
+        },
         maxDiffSize: {
           type: ['string', 'number'],
           '$jsreport-acceptsSize': true,

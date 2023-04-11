@@ -167,8 +167,7 @@ module.exports = (reporter) => {
       _id: reporter.documentStore.generateId(),
       timestamp: new Date(),
       state: 'queued',
-      mode: req.context.profiling.mode,
-      timeout: reporter.options.enableRequestReportTimeout && req.options.timeout ? req.options.timeout : reporter.options.reportTimeout
+      mode: req.context.profiling.mode
     }
 
     const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.log`, '')
@@ -204,7 +203,9 @@ module.exports = (reporter) => {
 
   reporter.beforeRenderListeners.add('profiler', async (req, res) => {
     const update = {
-      state: 'running'
+      state: 'running',
+      // the timeout needs to be calculated later here, because the req.options.timeout isnt yet parsed in beforeRenderWorkerAllocatedListeners
+      timeout: reporter.options.enableRequestReportTimeout && req.options.timeout ? req.options.timeout : reporter.options.reportTimeout
     }
 
     // we set the request here because this listener will container the req which
@@ -445,11 +446,28 @@ module.exports = (reporter) => {
         }
 
         if (!profile.timeout) {
+          // we can calculate profile timeout only after worker parses request and req.options.timeout is calculated
+          // if the timeout isnt calculated we error orphans that hangs for very long time before worker gets allocated and parses req
+          if ((profile.timestamp.getTime() + reporter.options.profiler.maxUnallocatedProfileAge) < new Date().getTime()) {
+            try {
+              await reporter.documentStore.collection('profiles').update({
+                _id: profile._id
+              }, {
+                $set: {
+                  state: 'error',
+                  finishedOn: new Date(),
+                  error: `The request wasn't parsed before ${reporter.options.profiler.maxUnallocatedProfileAge}ms. This can happen when the server is unexpectedly stopped.`
+                }
+              })
+            } catch (e) {
+              lastError = e
+            }
+          }
           continue
         }
 
-        const whenShouldBeFinished = profile.timestamp + profile.timeout + reporter.options.reportTimeoutMargin * 2
-        if (whenShouldBeFinished < new Date().getTime()) {
+        const whenShouldBeFinished = profile.timestamp.getTime() + profile.timeout + reporter.options.reportTimeoutMargin * 2
+        if (whenShouldBeFinished > new Date().getTime()) {
           continue
         }
 

@@ -7,6 +7,7 @@ describe('profiler', () => {
 
   beforeEach(() => {
     reporter = jsreport({
+      enableRequestReportTimeout: true,
       profiler: {
         maxDiffSize: '1mb'
       }
@@ -418,6 +419,39 @@ describe('profiler', () => {
     const renderStartEvent = events.find(e => e.type === 'operationStart' && e.subtype === 'render')
     renderStartEvent.req.tooLarge.should.be.true()
   })
+
+  it('should persist profile.timeout in beforeRender when req is already parsed and may contain req.options.timeout ', async () => {
+    let profile
+
+    reporter.beforeRenderListeners.insert(0, 'test', async (req) => {
+      while (true) {
+        profile = await reporter.documentStore.collection('profiles').findOne({})
+        if (profile && profile.state === 'queued') {
+          break
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      }
+      req.options.timeout = 100000
+    })
+
+    await reporter.render({
+      template: {
+        engine: 'none',
+        recipe: 'html',
+        content: 'Hello'
+      }
+    })
+
+    while (true) {
+      profile = await reporter.documentStore.collection('profiles').findOne({})
+      if (profile && profile.state === 'success') {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
+
+    profile.timeout.should.be.eql(100000)
+  })
 })
 
 describe('profiler with custom blobStorage', () => {
@@ -494,9 +528,11 @@ describe('profiler cleanup', () => {
 
   beforeEach(() => {
     reporter = jsreport({
+      reportTimeoutMargin: 1,
       profiler: {
         maxProfilesHistory: 2,
-        cleanupInterval: '50ms'
+        cleanupInterval: '50ms',
+        maxUnallocatedProfileAge: '30ms'
       }
     })
     reporter.use(jsreport.tests.listeners())
@@ -527,8 +563,21 @@ describe('profiler cleanup', () => {
       state: 'running'
     })
     await new Promise((resolve) => setTimeout(resolve, 60))
+    await reporter._profilesCleanup()
     const profile = await reporter.documentStore.collection('profiles').findOne({})
     profile.state.should.be.eql('error')
     profile.error.should.containEql('before its timeout')
+  })
+
+  it('should error orphan profiles with not yet calculated timeout and reached maxUnallocatedProfileAge', async () => {
+    await reporter.documentStore.collection('profiles').insert({
+      timestamp: new Date(),
+      state: 'running'
+    })
+    await new Promise((resolve) => setTimeout(resolve, 40))
+    await reporter._profilesCleanup()
+    const profile = await reporter.documentStore.collection('profiles').findOne({})
+    profile.state.should.be.eql('error')
+    profile.error.should.containEql('The request wasn\'t parsed before')
   })
 })
