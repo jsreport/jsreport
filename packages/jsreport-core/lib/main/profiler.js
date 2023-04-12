@@ -4,6 +4,9 @@ const extend = require('node.extend.without.arrays')
 const generateRequestId = require('../shared/generateRequestId')
 const fs = require('fs/promises')
 const { SPLAT } = require('triple-beam')
+const promisify = require('util').promisify
+const stringifyAsync = promisify(require('yieldable-json').stringifyAsync)
+
 module.exports = (reporter) => {
   reporter.documentStore.registerEntityType('ProfileType', {
     templateShortid: { type: 'Edm.String', referenceTo: 'templates' },
@@ -104,8 +107,11 @@ module.exports = (reporter) => {
       req.context.profiling.lastOperation = lastOperation
     }
 
-    runInProfilerChain(() => {
-      return fs.appendFile(req.context.profiling.logFilePath, Buffer.from(events.map(m => JSON.stringify(m)).join('\n') + '\n'))
+    runInProfilerChain(async () => {
+      const stringifiedMessages = req.context.mode === 'full'
+        ? await Promise.all(events.map(m => stringifyAsync(m)))
+        : events.map(m => JSON.stringify(m))
+      await fs.appendFile(req.context.profiling.logFilePath, Buffer.from(stringifiedMessages.join('\n') + '\n'))
     }, req)
   }
 

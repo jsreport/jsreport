@@ -73,7 +73,8 @@
     "uuid": "8.3.2",
     "vm2": "3.9.11",
     "winston": "3.8.1",
-    "winston-transport": "4.5.0"
+    "winston-transport": "4.5.0",
+    "yieldable-json": "2.0.1"
   },
   "devDependencies": {
     "mocha": "9.2.2",
