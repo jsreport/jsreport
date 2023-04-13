@@ -372,6 +372,7 @@ module.exports = (reporter) => {
   }
 
   let profilesCleanupInterval
+  let fullModeDurationCheckInterval
 
   reporter.initializeListeners.add('profiler', async () => {
     reporter.documentStore.collection('profiles').beforeRemoveListeners.add('profiles', async (query, req) => {
@@ -384,12 +385,20 @@ module.exports = (reporter) => {
       }
     })
 
+    // exposing it to jo for override
     function profilesCleanupExec () {
       return reporter._profilesCleanup()
     }
 
+    function fullModeDurationCheckExec () {
+      return reporter._profilesFullModeDurationCheck()
+    }
+
     profilesCleanupInterval = setInterval(profilesCleanupExec, reporter.options.profiler.cleanupInterval)
     profilesCleanupInterval.unref()
+
+    fullModeDurationCheckInterval = setInterval(fullModeDurationCheckExec, reporter.options.profiler.fullModeDurationCheckInterval)
+    fullModeDurationCheckInterval.unref()
 
     await reporter._profilesCleanup()
   })
@@ -397,6 +406,10 @@ module.exports = (reporter) => {
   reporter.closeListeners.add('profiler', async () => {
     if (profilesCleanupInterval) {
       clearInterval(profilesCleanupInterval)
+    }
+
+    if (fullModeDurationCheckInterval) {
+      clearInterval(fullModeDurationCheckInterval)
     }
 
     for (const key of profilerOperationsChainsMap.keys()) {
@@ -499,6 +512,29 @@ module.exports = (reporter) => {
 
     if (lastError) {
       reporter.logger.warn('Profile cleanup failed for some entities, last error:', lastError)
+    }
+  }
+
+  reporter._profilesFullModeDurationCheck = async function () {
+    try {
+      if (reporter.options.profiler.defaultMode === 'full') {
+        return
+      }
+      const profiler = await reporter.documentStore.collection('settings').findOne({ key: 'profiler' })
+      if (profiler == null || (profiler.modificationDate.getTime() + reporter.options.profiler.fullModeDuration) > new Date().getTime()) {
+        return
+      }
+
+      const profilerValue = JSON.parse(profiler.value)
+
+      if (profilerValue.mode !== 'full') {
+        return
+      }
+
+      reporter.logger.info('Switching full mode profiling back to standard to avoid performance degradation.')
+      await reporter.settings.addOrSet('profiler', { mode: 'standard' })
+    } catch (e) {
+      reporter.logger.warn('Failed to change profiling mode', e)
     }
   }
 

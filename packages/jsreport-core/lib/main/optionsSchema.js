@@ -176,6 +176,16 @@ module.exports.getRootSchemaOptions = () => ({
           type: 'string',
           default: 'standard'
         },
+        fullModeDurationCheckInterval: {
+          type: ['string', 'number'],
+          '$jsreport-acceptsDuration': true,
+          default: '10m'
+        },
+        fullModeDuration: {
+          type: ['string', 'number'],
+          '$jsreport-acceptsDuration': true,
+          default: '4h'
+        },
         maxProfilesHistory: {
           type: 'number',
           default: 1000

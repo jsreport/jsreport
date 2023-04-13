@@ -233,7 +233,7 @@ class Profiler extends Component {
                   ev.target.checked && this.startFullRequestProfiling()
                 }}
               />
-              <span>Full profiling</span>
+              <span>Full profiling (limited for {configuration.extensions.studio.options.profiler.fullModeDurationStr})</span>
             </label>
             <label style={{ paddingLeft: '1rem' }}>
               <input

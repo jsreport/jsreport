@@ -11,6 +11,7 @@ const compression = require('compression')
 const ThemeManager = require('./themeManager')
 const createTextSearch = require('./textSearch')
 const distPath = path.join(__dirname, '../static/dist')
+const ms = require('ms')
 
 module.exports = (reporter, definition) => {
   const diff2htmlStyle = fs.readFileSync(path.join(__dirname, '../static/diff.css')).toString()
@@ -553,7 +554,8 @@ module.exports = (reporter, definition) => {
         entityTreeOrder: definition.options.entityTreeOrder,
         linkButtonVisibility: definition.options.linkButtonVisibility,
         profiler: {
-          defaultMode: reporter.options.profiler.defaultMode
+          defaultMode: reporter.options.profiler.defaultMode,
+          fullModeDurationStr: ms(reporter.options.profiler.fullModeDuration)
         }
       })
     }

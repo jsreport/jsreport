@@ -581,3 +581,36 @@ describe('profiler cleanup', () => {
     profile.error.should.containEql('The request wasn\'t parsed before')
   })
 })
+
+describe('profiler full mode duration check', () => {
+  let reporter
+
+  beforeEach(() => {
+    reporter = jsreport({
+      profiler: {
+        fullModeDurationCheckInterval: '10ms',
+        fullModeDuration: '20ms'
+      }
+    })
+    reporter.use(jsreport.tests.listeners())
+    return reporter.init()
+  })
+
+  afterEach(() => reporter.close())
+
+  it('shouldnt change profiling mode when fullModeDuration didnt elapsed', async () => {
+    await reporter.documentStore.collection('settings').insert({ key: 'profiler', value: JSON.stringify({ mode: 'full' }) })
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const profiler = await reporter.documentStore.collection('settings').findOne({ key: 'profiler' })
+    const profilerVal = JSON.parse(profiler.value)
+    profilerVal.mode.should.be.eql('full')
+  })
+
+  it('should change profiling mode when fullModeDuration didnt elapsed', async () => {
+    await reporter.documentStore.collection('settings').insert({ key: 'profiler', value: JSON.stringify({ mode: 'full' }) })
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    const profiler = await reporter.documentStore.collection('settings').findOne({ key: 'profiler' })
+    const profilerVal = JSON.parse(profiler.value)
+    profilerVal.mode.should.be.eql('standard')
+  })
+})
