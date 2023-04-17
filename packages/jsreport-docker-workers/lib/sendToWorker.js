@@ -76,7 +76,6 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
         isDone = true
         if (!err.response?.data) {
           const error = new Error('Error when communicating with worker: ' + err.message)
-          Object.assign(error, { ...err })
           error.needRestart = true
           throw error
         }
@@ -88,7 +87,6 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
           Object.assign(workerError, errorData)
         } catch (e) {
           const error = new Error('Error when communicating with worker: ' + err.response.data)
-          Object.assign(error, { ...e })
           error.needRestart = true
           throw error
         }
