@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.9.2
+
+- show full profile duration limit on profile UI
+
 ### 3.9.1
 
 - throw error when opening an orphan profile

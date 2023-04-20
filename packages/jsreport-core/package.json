@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-core",
-  "version": "3.11.2",
+  "version": "3.11.4",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -69,7 +69,7 @@
     "serializator": "1.0.2",
     "stack-trace": "0.0.10",
     "triple-beam": "1.3.0",
-    "unset-value": "1.0.0",
+    "unset-value": "2.0.1",
     "uuid": "8.3.2",
     "vm2": "3.9.17",
     "winston": "3.8.1",

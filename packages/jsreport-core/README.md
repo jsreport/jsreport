@@ -282,6 +282,17 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.11.4
+
+- update unset-value to fix security issue
+
+### 3.11.3
+
+- update vm2 to fix security issue
+- automatically disable full profiling after some time to avoid performance degradation
+- improvements to full profile serialization (prevent blocking)
+- fix profiles cleaning and calculate timeout in beforeRender
+
 ### 3.11.2
 
 - add `options.onReqReady` to be able to receive the parsed req values

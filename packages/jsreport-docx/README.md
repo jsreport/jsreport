@@ -7,6 +7,10 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.7.1
+
+- fix docx rendering with handlebars partials
+
 ### 3.7.0
 
 - fix `template.docx.templateAsset` from payload not overwriting the `template.docx.templateAssetShortid`
