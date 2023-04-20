@@ -630,6 +630,37 @@ describe('sandbox', () => {
           }
         }).should.be.rejectedWith(/process is not defined/)
       })
+
+      it('should prevent constructor hacks #3', async () => {
+        reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+          const r = await reporter.runInSandbox({
+            context: {},
+            userCode: `
+              function getRandom() {
+                Error.prepareStackTrace = (e, frames) => {
+                  frames.constructor.constructor('return process')().mainModule.require('child_process').execSync('testing');
+                };
+                (async() => {}).constructor('return process')()
+                return Math.random()
+              }
+
+              getRandom()
+            `,
+            executionFn: ({ context }) => {
+              return JSON.stringify(context)
+            }
+          }, req)
+          res.content = Buffer.from(r)
+        })
+
+        return reporter.render({
+          template: {
+            engine: 'none',
+            content: ' ',
+            recipe: 'html'
+          }
+        }).should.be.rejectedWith(/called on incompatible receiver/)
+      })
     }
 
     it('should allow top level await in sandbox eval', async () => {
