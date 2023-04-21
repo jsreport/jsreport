@@ -1,4 +1,4 @@
-const htmlDocx = require('html-docx-js')
+const htmlDocx = require('html-docx-js-typescript')
 const juice = require('juice')
 const { response } = require('@jsreport/office')
 
@@ -7,7 +7,8 @@ module.exports = (reporter, definition) => async (req, res) => {
   let docxContent
 
   try {
-    docxContent = htmlDocx.asBlob(juice(htmlContent)).toString('base64')
+    const docxBuffer = await htmlDocx.asBlob(juice(htmlContent))
+    docxContent = docxBuffer.toString('base64')
   } catch (err) {
     const error = new Error(err.message)
     error.stack = err.stack

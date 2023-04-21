@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-html-embedded-in-docx",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "jsreport recipe embedding output html into the docx",
   "keywords": [
     "jsreport",
@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "@jsreport/office": "3.0.0",
-    "html-docx-js": "0.3.1",
-    "juice": "5.2.0",
+    "html-docx-js-typescript": "0.1.5",
+    "juice": "9.0.0",
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {

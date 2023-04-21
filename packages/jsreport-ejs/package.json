@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-ejs",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "jsreport ejs templating engine",
   "keywords": [
     "jsreport",
@@ -30,7 +30,7 @@
     "test": "mocha test && standard"
   },
   "dependencies": {
-    "ejs": "3.1.6",
+    "ejs": "3.1.9",
     "node.extend.without.arrays": "1.1.6"
   },
   "devDependencies": {

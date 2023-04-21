@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docxtemplater",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "jsreport recipe using docxtemplater to create docx files",
   "keywords": [
     "jsreport",
@@ -33,8 +33,8 @@
   },
   "dependencies": {
     "@jsreport/office": "3.0.0",
-    "docxtemplater": "3.16.11",
-    "jszip": "2.6.1"
+    "docxtemplater": "3.37.0",
+    "pizzip": "3.1.4"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.6.0",

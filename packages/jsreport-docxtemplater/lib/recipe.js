@@ -1,5 +1,5 @@
 const Docxtemplater = require('docxtemplater')
-const JSZip = require('jszip')
+const PizZip = require('pizzip')
 const { response } = require('@jsreport/office')
 
 module.exports = (reporter, definition) => async (req, res) => {
@@ -25,12 +25,10 @@ module.exports = (reporter, definition) => async (req, res) => {
     }
   }
 
-  const zip = new JSZip(templateAsset.content)
-  const docx = new Docxtemplater()
-  docx.loadZip(zip)
+  const zip = new PizZip(templateAsset.content.toString('binary'))
+  const docx = new Docxtemplater(zip)
 
-  docx.setData(req.data)
-  docx.render()
+  docx.render(req.data)
 
   return response({
     previewOptions: definition.options.preview,
