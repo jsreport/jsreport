@@ -24,8 +24,13 @@ describe('browser client', () => {
   })
 
   afterEach(async () => {
-    await jsreport.close()
-    await browser.close()
+    if (jsreport) {
+      await jsreport.close()
+    }
+
+    if (browser) {
+      await browser.close()
+    }
   })
 
   it('should render and expose async toString', async () => {
@@ -242,8 +247,13 @@ describe('browser client with auth', () => {
   })
 
   afterEach(async () => {
-    await jsreport.close()
-    await browser.close()
+    if (jsreport) {
+      await jsreport.close()
+    }
+
+    if (browser) {
+      await browser.close()
+    }
   })
 
   it('should render and expose async toString', async () => {
@@ -282,5 +292,48 @@ describe('browser client with auth', () => {
     e.statusText.should.containEql('Unauthorized')
     e.status.should.be.eql(401)
     e.message.should.containEql('Unauthorized')
+  })
+})
+
+describe.only('browser client and custom serverUrl', () => {
+  let jsreport
+  let browser
+  let page
+
+  beforeEach(async () => {
+    browser = await puppeteer.launch()
+    page = await browser.newPage()
+    page.setContent(`<script>${jsreportClientDist}</script>`)
+    await page.evaluate(async () => {
+      jsreport.serverUrl = 'http://localhost:5488/reporting/test'
+    })
+
+    jsreport = JsReport({ appPath: '/reporting/test', mountOnAppPath: true }).use(require('@jsreport/jsreport-express')()).use(require('@jsreport/jsreport-chrome-pdf')())
+    await jsreport.init()
+  })
+
+  afterEach(async () => {
+    if (jsreport) {
+      await jsreport.close()
+    }
+
+    if (browser) {
+      await browser.close()
+    }
+  })
+
+  it('should render and expose async toString', async () => {
+    const r = await page.evaluate(async () => {
+      const res = await jsreport.render({
+        template: {
+          content: '<h1>Hello world</h1>',
+          engine: 'none',
+          recipe: 'html'
+        }
+      })
+
+      return res.toString()
+    })
+    r.should.be.eql('<h1>Hello world</h1>')
   })
 })
