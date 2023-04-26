@@ -33,573 +33,716 @@ describe('xlsx generation - loops', () => {
     }
   })
 
-  it('loop should keep the row empty if array have 0 items', async () => {
-    const items = []
+  const modes = ['row', 'block']
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop.xlsx')
-            )
+  for (const mode of modes) {
+    it(`${mode} loop should keep the row empty if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} loop should generate new rows`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    should(sheet.C3.v).be.eql('')
-    should(sheet.D3.v).be.eql('')
-    should(sheet.E3.v).be.eql('')
-  })
-
-  it('loop should generate new rows', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} loop should generate new rows and update existing rows/cells`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-  })
-
-  it('loop should generate new rows and update existing rows/cells', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-and-existing-cells.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-and-existing-cells.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.B7.v).be.eql('another')
+        should(sheet.C7.v).be.eql('content')
+        should(sheet.D7.v).be.eql('here')
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8).be.not.ok()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.B18.v).be.eql('another')
+        should(sheet.C18.v).be.eql('content')
+        should(sheet.D18.v).be.eql('here')
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} loop should preserve the content of cells that are not in the loop (left) but in the same row`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-    should(sheet.B7.v).be.eql('another')
-    should(sheet.C7.v).be.eql('content')
-    should(sheet.D7.v).be.eql('here')
-  })
-
-  it('loop should preserve the content of cells that are not in the loop (left) but in the same row', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-left-preserve.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-preserve.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3.v).be.eql('preserve')
+        should(sheet.B3.v).be.eql('preserve2')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+      } else {
+        should(sheet.A2.v).be.eql('preserve')
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8).be.not.ok()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} loop should preserve the content of cells that are not in the loop (right) but in the same row`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    // preserving the cells on the left of the loop
-    should(sheet.A3.v).be.eql('preserve')
-    should(sheet.B3.v).be.eql('preserve2')
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.A4).be.not.ok()
-    should(sheet.B4).be.not.ok()
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.A5).be.not.ok()
-    should(sheet.B5).be.not.ok()
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-  })
-
-  it('loop should preserve the content of cells that are not in the loop (right) but in the same row', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-right-preserve.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-preserve.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        // preserving the cells on the left of the loop
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql('preserve')
+        should(sheet.G3.v).be.eql('preserve2')
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8).be.not.ok()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.C16.v).be.eql('preserve')
+        should(sheet.D16.v).be.eql('preserve2')
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} loop should preserve the content of cells that are not in the loop (left, right) but in the same row`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    // preserving the cells on the left of the loop
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.F3.v).be.eql('preserve')
-    should(sheet.G3.v).be.eql('preserve2')
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.F4).be.not.ok()
-    should(sheet.G4).be.not.ok()
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-    should(sheet.F5).be.not.ok()
-    should(sheet.G5).be.not.ok()
-  })
-
-  it('loop should preserve the content of cells that are not in the loop (left, right) but in the same row', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-left-right-preserve.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-preserve.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        // preserving the cells on the left of the loop
+        should(sheet.A3.v).be.eql('preserve')
+        should(sheet.B3.v).be.eql('preserve2')
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql('preserve3')
+        should(sheet.G3.v).be.eql('preserve4')
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
+      } else {
+        should(sheet.A2.v).be.eql('preserve')
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8).be.not.ok()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.C16.v).be.eql('preserve2')
+        should(sheet.D16.v).be.eql('preserve3')
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} multiple loops should generate new rows and update existing rows/cells`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    // preserving the cells on the left of the loop
-    should(sheet.A3.v).be.eql('preserve')
-    should(sheet.B3.v).be.eql('preserve2')
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.F3.v).be.eql('preserve3')
-    should(sheet.G3.v).be.eql('preserve4')
-    should(sheet.A4).be.not.ok()
-    should(sheet.B4).be.not.ok()
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.F4).be.not.ok()
-    should(sheet.G4).be.not.ok()
-    should(sheet.A5).be.not.ok()
-    should(sheet.B5).be.not.ok()
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-    should(sheet.F5).be.not.ok()
-    should(sheet.G5).be.not.ok()
-  })
+      const items2 = [{
+        name: 'Robert',
+        lastname: 'Hill',
+        age: 49
+      }, {
+        name: 'Rebeca',
+        lastname: 'Hilton',
+        age: 22
+      }, {
+        name: 'Scarlet',
+        lastname: 'Strange',
+        age: 33
+      }]
 
-  it('multiple loops should generate new rows and update existing rows/cells', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
+      const items3 = [{
+        name: 'Mathew',
+        lastname: 'Gonzales',
+        age: 26
+      }, {
+        name: 'Esperanza',
+        lastname: 'Lopez',
+        age: 29
+      }, {
+        name: 'Lucian',
+        lastname: 'Heart',
+        age: 23
+      }]
 
-    const items2 = [{
-      name: 'Robert',
-      lastname: 'Hill',
-      age: 49
-    }, {
-      name: 'Rebeca',
-      lastname: 'Hilton',
-      age: 22
-    }, {
-      name: 'Scarlet',
-      lastname: 'Strange',
-      age: 33
-    }]
-
-    const items3 = [{
-      name: 'Mathew',
-      lastname: 'Gonzales',
-      age: 26
-    }, {
-      name: 'Esperanza',
-      lastname: 'Lopez',
-      age: 29
-    }, {
-      name: 'Lucian',
-      lastname: 'Heart',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'multiple-loops.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'multiple' : 'multiple-row'}-loops.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items,
+          items2,
+          items3
         }
-      },
-      data: {
-        items,
-        items2,
-        items3
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+
+        should(sheet.B7.v).be.eql('another')
+        should(sheet.C7.v).be.eql('content')
+        should(sheet.D7.v).be.eql('here')
+
+        should(sheet.C10.v).be.eql(items2[0].name)
+        should(sheet.D10.v).be.eql(items2[0].lastname)
+        should(sheet.E10.v).be.eql(items2[0].age)
+        should(sheet.C11.v).be.eql(items2[1].name)
+        should(sheet.D11.v).be.eql(items2[1].lastname)
+        should(sheet.E11.v).be.eql(items2[1].age)
+        should(sheet.C12.v).be.eql(items2[2].name)
+        should(sheet.D12.v).be.eql(items2[2].lastname)
+        should(sheet.E12.v).be.eql(items2[2].age)
+
+        should(sheet.B14.v).be.eql('another2')
+        should(sheet.C14.v).be.eql('content2')
+        should(sheet.D14.v).be.eql('here2')
+
+        should(sheet.C17.v).be.eql(items3[0].name)
+        should(sheet.D17.v).be.eql(items3[0].lastname)
+        should(sheet.E17.v).be.eql(items3[0].age)
+        should(sheet.C18.v).be.eql(items3[1].name)
+        should(sheet.D18.v).be.eql(items3[1].lastname)
+        should(sheet.E18.v).be.eql(items3[1].age)
+        should(sheet.C19.v).be.eql(items3[2].name)
+        should(sheet.D19.v).be.eql(items3[2].lastname)
+        should(sheet.E19.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8).be.not.ok()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.B18.v).be.eql('another')
+        should(sheet.C18.v).be.eql('content')
+        should(sheet.D18.v).be.eql('here')
+
+        should(sheet.B10).be.not.ok()
+        should(sheet.B14).be.not.ok()
+
+        should(sheet.C21.v).be.eql('Name')
+        should(sheet.D21.v).be.eql('Lastname')
+        should(sheet.E21.v).be.eql('Age')
+        should(sheet.C22.v).be.eql(items[0].name)
+        should(sheet.D22.v).be.eql(items[0].lastname)
+        should(sheet.E22.v).be.eql(items[0].age)
+
+        should(sheet.C26.v).be.eql('Name')
+        should(sheet.D26.v).be.eql('Lastname')
+        should(sheet.E26.v).be.eql('Age')
+        should(sheet.C27.v).be.eql(items[1].name)
+        should(sheet.D27.v).be.eql(items[1].lastname)
+        should(sheet.E27.v).be.eql(items[1].age)
+
+        should(sheet.C31.v).be.eql('Name')
+        should(sheet.D31.v).be.eql('Lastname')
+        should(sheet.E31.v).be.eql('Age')
+        should(sheet.C32.v).be.eql(items[2].name)
+        should(sheet.D32.v).be.eql(items[2].lastname)
+        should(sheet.E32.v).be.eql(items[2].age)
+
+        should(sheet.B36.v).be.eql('another2')
+        should(sheet.C36.v).be.eql('content2')
+        should(sheet.D36.v).be.eql('here2')
+
+        should(sheet.B22).be.not.ok()
+
+        should(sheet.C39.v).be.eql('Name')
+        should(sheet.D39.v).be.eql('Lastname')
+        should(sheet.E39.v).be.eql('Age')
+        should(sheet.C40.v).be.eql(items[0].name)
+        should(sheet.D40.v).be.eql(items[0].lastname)
+        should(sheet.E40.v).be.eql(items[0].age)
+
+        should(sheet.C44.v).be.eql('Name')
+        should(sheet.D44.v).be.eql('Lastname')
+        should(sheet.E44.v).be.eql('Age')
+        should(sheet.C45.v).be.eql(items[1].name)
+        should(sheet.D45.v).be.eql(items[1].lastname)
+        should(sheet.E45.v).be.eql(items[1].age)
+
+        should(sheet.C49.v).be.eql('Name')
+        should(sheet.D49.v).be.eql('Lastname')
+        should(sheet.E49.v).be.eql('Age')
+        should(sheet.C50.v).be.eql(items[2].name)
+        should(sheet.D50.v).be.eql(items[2].lastname)
+        should(sheet.E50.v).be.eql(items[2].age)
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} should update dimension information in sheet after loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-
-    should(sheet.B7.v).be.eql('another')
-    should(sheet.C7.v).be.eql('content')
-    should(sheet.D7.v).be.eql('here')
-
-    should(sheet.C10.v).be.eql(items2[0].name)
-    should(sheet.D10.v).be.eql(items2[0].lastname)
-    should(sheet.E10.v).be.eql(items2[0].age)
-    should(sheet.C11.v).be.eql(items2[1].name)
-    should(sheet.D11.v).be.eql(items2[1].lastname)
-    should(sheet.E11.v).be.eql(items2[1].age)
-    should(sheet.C12.v).be.eql(items2[2].name)
-    should(sheet.D12.v).be.eql(items2[2].lastname)
-    should(sheet.E12.v).be.eql(items2[2].age)
-
-    should(sheet.B14.v).be.eql('another2')
-    should(sheet.C14.v).be.eql('content2')
-    should(sheet.D14.v).be.eql('here2')
-
-    should(sheet.C17.v).be.eql(items3[0].name)
-    should(sheet.D17.v).be.eql(items3[0].lastname)
-    should(sheet.E17.v).be.eql(items3[0].age)
-    should(sheet.C18.v).be.eql(items3[1].name)
-    should(sheet.D18.v).be.eql(items3[1].lastname)
-    should(sheet.E18.v).be.eql(items3[1].age)
-    should(sheet.C19.v).be.eql(items3[2].name)
-    should(sheet.D19.v).be.eql(items3[2].lastname)
-    should(sheet.E19.v).be.eql(items3[2].age)
-  })
-
-  it('should update dimension information in sheet after loop', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop.xlsx')
-            )
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet['!ref']).be.eql(`C2:E${2 + items.length}`)
+      } else {
+        should(sheet['!ref']).be.eql(`B2:E${1 + (5 * items.length)}`)
       }
     })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    should(sheet['!ref']).be.eql(`C2:E${2 + items.length}`)
-  })
-
-  it.skip('loop should repeat cells content that involves multiple rows', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-multiple-rows.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    should(sheet.B2.v).be.eql('')
-    should(sheet.B6.v).be.eql('')
-
-    should(sheet.C3.v).be.eql('Name')
-    should(sheet.D3.v).be.eql('Lastname')
-    should(sheet.E3.v).be.eql('Age')
-    should(sheet.C4.v).be.eql('Alexander')
-    should(sheet.D4.v).be.eql('Smith')
-    should(sheet.E4.v).be.eql(32)
-
-    should(sheet.C8.v).be.eql('Name')
-    should(sheet.D8.v).be.eql('Lastname')
-    should(sheet.E8.v).be.eql('Age')
-    should(sheet.C9.v).be.eql('John')
-    should(sheet.D9.v).be.eql('Doe')
-    should(sheet.E9.v).be.eql(29)
-
-    should(sheet.C13.v).be.eql('Name')
-    should(sheet.D13.v).be.eql('Lastname')
-    should(sheet.E13.v).be.eql('Age')
-    should(sheet.C14.v).be.eql('Jane')
-    should(sheet.D14.v).be.eql('Montana')
-    should(sheet.E14.v).be.eql(23)
-  })
-
-  it('update existing merged cells after loop', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'update-merged-cells-loop.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    should(mergeCellExists(sheet, 'B1:C1')).be.True()
-    should(sheet.B1.v).be.eql('merged')
-    should(mergeCellExists(sheet, 'B7:C7')).be.True()
-    should(sheet.B7.v).be.eql('merged2')
-    should(mergeCellExists(sheet, 'E7:G7')).be.True()
-    should(sheet.E7.v).be.eql('merged3')
-  })
-
-  it('create new merged cells from loop', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'new-merged-cells-loop.xlsx')
-            )
           }
         }
       },
@@ -625,6 +768,7 @@ describe('xlsx generation - loops', () => {
     should(mergeCellExists(sheet, 'D5:E5')).be.True()
     should(sheet.F5.v).be.eql(items[2].age)
   })
+  }
 
   it('create new multiple merged cells from loop', async () => {
     const items = [{

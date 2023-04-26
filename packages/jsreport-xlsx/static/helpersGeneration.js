@@ -182,15 +182,19 @@ function xlsxSData (data, options) {
         let totalPrev = 0
 
         if (previousMatches.length > 0) {
+          const previousRowMatchedLoopItems = []
+
           totalPrev = previousMatches.reduce((acu, item) => {
             if (item.type === 'block') {
-              return acu + (((item.end - item.start) + 1) * item.length)
+              return acu + (((item.end - item.start) + 1) * (item.length - 1))
+            } else {
+              previousRowMatchedLoopItems.push(item)
             }
 
             return acu + item.length
           }, 0)
 
-          totalPrev += (previousMatches.length * -1)
+          totalPrev += previousRowMatchedLoopItems.length > 0 ? (previousRowMatchedLoopItems.length * -1) : 0
         }
 
         if (currentLoopItem.type === 'block') {
@@ -199,15 +203,19 @@ function xlsxSData (data, options) {
           increment = totalPrev + optionsToUse.data.index
         }
       } else {
+        const rowMatchedLoopItems = []
+
         increment = matchedLoopItems.reduce((acu, item) => {
           if (item.type === 'block') {
-            return acu + (((item.end - item.start) + 1) * item.length)
+            return acu + (((item.end - item.start) + 1) * (item.length - 1))
+          } else {
+            rowMatchedLoopItems.push(item)
           }
 
           return acu + item.length
         }, 0)
 
-        increment += (matchedLoopItems.length * -1)
+        increment += rowMatchedLoopItems.length > 0 ? (rowMatchedLoopItems.length * -1) : 0
       }
 
       newData.rowNumber = originalRowNumber + increment

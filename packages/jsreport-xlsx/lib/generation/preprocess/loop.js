@@ -1,7 +1,7 @@
 const path = require('path')
 const { num2col } = require('xlsx-coordinates')
 const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, parseCellRef } = require('../../utils')
-const regexp = /{{#each ([^{}]{0,500})}}/
+const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
 
 module.exports = (files) => {
   const workbookPath = 'xl/workbook.xml'
@@ -285,8 +285,7 @@ module.exports = (files) => {
             !info.value.includes('{{/each}}')
           ) {
             loopsDetected.push({
-              // TODO: change this to "block" when we are to reveal the block loop support
-              type: 'row',
+              type: 'block',
               start: {
                 el: cellEl,
                 cellRef,
@@ -320,35 +319,11 @@ module.exports = (files) => {
       }
 
       for (const currentRowLoopDetected of rowLoops) {
-        let currentCell = currentRowLoopDetected.start.el
-
-        // we should unset the cells that are using shared strings
-        while (currentCell != null) {
-          const currentCellInfo = getCellInfo(currentCell, sharedStringsEls, sheetFilepath)
-
-          if (currentCellInfo != null) {
-            if (currentCell === currentRowLoopDetected.start.el) {
-              if (currentCellInfo.type !== 's') {
-                currentCellInfo.valueEl.textContent = currentCellInfo.valueEl.textContent.replace(regexp, '')
-              }
-            }
-
-            if (currentCell === currentRowLoopDetected.end.el) {
-              if (currentCellInfo.type !== 's') {
-                currentCellInfo.valueEl.textContent = currentCellInfo.valueEl.textContent.replace('{{/each}}', '')
-              }
-            }
-          }
-
-          if (currentCell === currentRowLoopDetected.end.el) {
-            currentCell = null
-          } else {
-            currentCell = currentCell.nextSibling
-          }
-        }
+        // we should remove the handlebars loop call from the start/end cell
+        normalizeLoopStartEndCell(currentRowLoopDetected)
 
         const rowEl = currentRowLoopDetected.start.el.parentNode
-        const loopHelperCall = currentRowLoopDetected.start.info.value.match(regexp)[0]
+        const loopHelperCall = currentRowLoopDetected.start.info.value.match(startLoopRegexp)[0]
 
         if (currentRowLoopDetected.start.el.previousSibling != null) {
           // we include a if condition to preserve the cells that are before the each
@@ -363,7 +338,7 @@ module.exports = (files) => {
         }
 
         // we want to put the loop wrapper around the row wrapper
-        processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(regexp, (match, valueInsideEachCall) => {
+        processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
           return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${originalRowNumber} }}`
         }))
 
@@ -382,23 +357,33 @@ module.exports = (files) => {
       }
 
       for (const currentBlockLoopDetected of blockLoops) {
-        // we should unset the cells that are using shared strings
-        // TODO: add implementation here
-
-        // TODO: add condition to render only on the left of block starting row
-
-        // TODO: add condition to render only on the right of block ending row
+        // we should remove the handlebars loop call from the start/end cell
+        normalizeLoopStartEndCell(currentBlockLoopDetected)
 
         const startingRowEl = currentBlockLoopDetected.start.el.parentNode
         const endingRowEl = currentBlockLoopDetected.end.el.parentNode
-        const loopHelperCall = currentBlockLoopDetected.start.info.value.match(regexp)[0]
+        const loopHelperCall = currentBlockLoopDetected.start.info.value.match(startLoopRegexp)[0]
+
+        if (currentBlockLoopDetected.start.el.previousSibling != null) {
+          const startingRowCellsEls = nodeListToArray(startingRowEl.getElementsByTagName('c'))
+          // we include a if condition to preserve the cells that are before the each
+          processOpeningTag(sheetDoc, startingRowCellsEls[0], '{{#if @first}}')
+          processClosingTag(sheetDoc, currentBlockLoopDetected.start.el.previousSibling, '{{/if}}')
+        }
+
+        if (currentBlockLoopDetected.end.el.nextSibling != null) {
+          const endingRowCellsEls = nodeListToArray(endingRowEl.getElementsByTagName('c'))
+          // we include a if condition to preserve the cells that are after the each
+          processOpeningTag(sheetDoc, currentBlockLoopDetected.end.el.nextSibling, '{{#if @last}}')
+          processClosingTag(sheetDoc, endingRowCellsEls[endingRowCellsEls.length - 1], '{{/if}}')
+        }
 
         // we want to put the loop wrapper around the start row wrapper
-        processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(regexp, (match, valueInsideEachCall) => {
+        processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
           return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${currentBlockLoopDetected.start.originalRowNumber} end=${currentBlockLoopDetected.end.originalRowNumber} }}`
         }))
 
-        // we want to put the loop wrapper around the row wrapper
+        // we want to put the loop wrapper around the end row wrapper
         processClosingTag(sheetDoc, endingRowEl.nextSibling, '{{/xlsxSData}}')
       }
 
@@ -423,7 +408,7 @@ module.exports = (files) => {
         const isPartOfLoopEnd = loopsDetected.find((l) => l.end?.el === cellEl) != null
 
         if (isPartOfLoopStart) {
-          newTextValue = cellInfo.value.replace(regexp, '')
+          newTextValue = cellInfo.value.replace(startLoopRegexp, '')
         } else if (isPartOfLoopEnd) {
           newTextValue = cellInfo.value.replace('{{/each}}', '')
         } else {
@@ -941,6 +926,25 @@ function findAutofitConfigured (sheetFilepath, sheetDoc, sheetRelsDoc, files) {
   }
 
   return result
+}
+
+function normalizeLoopStartEndCell (loopDetectedInfo) {
+  const cells = [{
+    cell: loopDetectedInfo.start.el,
+    cellInfo: loopDetectedInfo.start.info,
+    target: startLoopRegexp
+  }, {
+    cell: loopDetectedInfo.end.el,
+    cellInfo: loopDetectedInfo.end.info,
+    target: '{{/each}}'
+  }]
+
+  for (const { cellInfo, target } of cells) {
+    // when it is not a shared string
+    if (cellInfo.type !== 's') {
+      cellInfo.valueEl.textContent = cellInfo.valueEl.textContent.replace(target, '')
+    }
+  }
 }
 
 function processOpeningTag (doc, refElement, helperCall) {
