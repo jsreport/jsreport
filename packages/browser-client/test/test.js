@@ -295,7 +295,7 @@ describe('browser client with auth', () => {
   })
 })
 
-describe.only('browser client and custom serverUrl', () => {
+describe('browser client and custom serverUrl', () => {
   let jsreport
   let browser
   let page
