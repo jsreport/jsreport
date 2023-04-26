@@ -200,6 +200,7 @@ module.exports = (files) => {
     const loopsDetected = []
     const outOfLoopElsToHandle = []
     const mergeCellElsToHandle = []
+    const formulaCellElsToHandle = []
 
     const lastRowIdx = rowsEls.length - 1
 
@@ -209,7 +210,6 @@ module.exports = (files) => {
       const standardCellElsToHandle = []
       const contentDetectCellElsToHandle = []
       const calcCellElsToHandle = []
-      const formulaCellElsToHandle = []
 
       if (originalRowNumber == null || originalRowNumber === '') {
         throw new Error('Expected row to contain r attribute defined')
@@ -308,10 +308,27 @@ module.exports = (files) => {
             cellEl.setAttribute('t', info.type)
           }
 
-          formulaCellElsToHandle.push({
+          const isSharedFormula = (
+            info.valueEl.getAttribute('t') === 'shared' &&
+            info.valueEl.getAttribute('ref') != null &&
+            info.valueEl.getAttribute('ref') !== '' &&
+            info.valueEl.getAttribute('si') != null &&
+            info.valueEl.getAttribute('si') !== ''
+          )
+
+          const formulaInfo = {
             cellRef,
-            cellEl
-          })
+            formula: info.value,
+            formulaEl: info.valueEl
+          }
+
+          if (isSharedFormula) {
+            formulaInfo.sharedFormula = {
+              ref: info.valueEl.getAttribute('ref')
+            }
+          }
+
+          formulaCellElsToHandle.push(formulaInfo)
         }
       }
 
@@ -500,59 +517,6 @@ module.exports = (files) => {
         // for the first item in loop
         cellEl.insertBefore(wrapperElement, cellEl.firstChild)
       }
-
-      for (const { cellEl, cellRef } of formulaCellElsToHandle) {
-        const newFormulaWrapperEl = sheetDoc.createElement('formulaUpdated')
-        const info = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
-        let fromLoop = false
-
-        const isSharedFormula = (
-          info.valueEl.getAttribute('t') === 'shared' &&
-          info.valueEl.getAttribute('ref') != null &&
-          info.valueEl.getAttribute('ref') !== '' &&
-          info.valueEl.getAttribute('si') != null &&
-          info.valueEl.getAttribute('si') !== ''
-        )
-
-        const parsedCell = parseCellRef(cellRef)
-        let formulaContent = `type='formula' originalCellRef='${cellRef}' originalFormula='${info.value}'`
-
-        if (isSharedFormula) {
-          formulaContent += ` originalSharedRefRange='${info.valueEl.getAttribute('ref')}'`
-        }
-
-        const loopDetected = loopsDetected.find((l) => (
-          l.start.originalRowNumber === parsedCell.rowNumber
-        ))
-
-        if (loopDetected != null) {
-          const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
-          const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
-
-          fromLoop = (
-            parsedCell.columnNumber >= parsedLoopStart.columnNumber &&
-            parsedCell.columnNumber <= parsedLoopEnd.columnNumber &&
-            parsedCell.rowNumber === parsedLoopStart.rowNumber
-          )
-        }
-
-        if (fromLoop) {
-          formulaContent += ' fromLoop=true'
-        }
-
-        // on the contrary with the merge cells case, the formulaUpdated is inserted
-        // in the cell, so there is no need for a wrapper that only renders it
-        // for the first item in loop
-        info.valueEl.setAttribute('formulaIndex', "{{xlsxSData type='formulaIndex'}}")
-
-        if (isSharedFormula) {
-          info.valueEl.setAttribute('sharedFormulaIndex', "{{xlsxSData type='sharedFormulaIndex'}}")
-        }
-
-        info.valueEl.textContent = `{{xlsxSData ${formulaContent}}}`
-        info.valueEl.parentNode.replaceChild(newFormulaWrapperEl, info.valueEl)
-        newFormulaWrapperEl.appendChild(info.valueEl)
-      }
     }
 
     let outLoopItemIndex = 0
@@ -620,7 +584,7 @@ module.exports = (files) => {
     }
 
     for (const { ref, rowEl } of mergeCellElsToHandle) {
-      // we want to put the all the mergeCell that affect this row
+      // we want to put the all the mergeCell detected
       // as its the last child of row
       const newMergeCellWrapperEl = sheetDoc.createElement('mergeCellUpdated')
       const newMergeCellEl = sheetDoc.createElement('mergeCell')
@@ -689,6 +653,70 @@ module.exports = (files) => {
         processOpeningTag(sheetDoc, newMergeCellWrapperEl, `{{#if @${stayAt}}}`)
         processClosingTag(sheetDoc, newMergeCellWrapperEl, '{{/if}}')
       }
+    }
+
+    for (const { cellRef, formula, formulaEl, sharedFormula } of formulaCellElsToHandle) {
+      const newFormulaWrapperEl = sheetDoc.createElement('formulaUpdated')
+      let fromLoop = false
+
+      const parsedCell = parseCellRef(cellRef)
+      let formulaContent = `type='formula' originalCellRef='${cellRef}' originalFormula='${formula}'`
+
+      if (sharedFormula != null) {
+        formulaContent += ` originalSharedRefRange='${sharedFormula.ref}'`
+      }
+
+      // TODO: check how this work when there is nested loop
+      // we check here if there is a loop that start/end in the same row of merged cell
+      // (this does not necessarily mean that merged cell is part of the loop)
+      const loopDetected = loopsDetected.find((l) => {
+        if (l.type === 'block') {
+          return (
+            parsedCell.rowNumber >= l.start.originalRowNumber &&
+            parsedCell.rowNumber <= l.end.originalRowNumber
+          )
+        }
+
+        return l.start.originalRowNumber === parsedCell.rowNumber
+      })
+
+      if (loopDetected != null) {
+        const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
+        const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
+
+        // here we check if the formula cell is really part of the loop or not
+        if (loopDetected.type === 'block') {
+          if (parsedLoopStart.rowNumber === parsedCell.rowNumber) {
+            fromLoop = parsedCell.columnNumber >= parsedLoopStart.columnNumber
+          } else if (parsedLoopEnd.rowNumber === parsedCell.rowNumber) {
+            fromLoop = parsedCell.columnNumber <= parsedLoopEnd.columnNumber
+          } else {
+            fromLoop = true
+          }
+        } else {
+          fromLoop = (
+            parsedCell.columnNumber >= parsedLoopStart.columnNumber &&
+            parsedCell.columnNumber <= parsedLoopEnd.columnNumber
+          )
+        }
+      }
+
+      if (fromLoop) {
+        formulaContent += ' fromLoop=true'
+      }
+
+      // on the contrary with the merge cells case, the formulaUpdated is inserted
+      // in the cell, so there is no need for a wrapper that only renders it
+      // for the first item in loop
+      formulaEl.setAttribute('formulaIndex', "{{xlsxSData type='formulaIndex'}}")
+
+      if (sharedFormula != null) {
+        formulaEl.setAttribute('sharedFormulaIndex', "{{xlsxSData type='sharedFormulaIndex'}}")
+      }
+
+      formulaEl.textContent = `{{xlsxSData ${formulaContent}}}`
+      formulaEl.parentNode.replaceChild(newFormulaWrapperEl, formulaEl)
+      newFormulaWrapperEl.appendChild(formulaEl)
     }
   }
 
