@@ -269,7 +269,8 @@ module.exports = (files) => {
 
           if (
             currentLoopDetected != null &&
-            info.value.includes('{{/each}}')
+            info.value.includes('{{/each}}') &&
+            !info.value.includes('{{#each')
           ) {
             currentLoopDetected.end = {
               el: cellEl,

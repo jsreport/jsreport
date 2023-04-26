@@ -34,6 +34,39 @@ describe('xlsx generation - loops', () => {
   })
 
   const modes = ['row', 'block']
+  it('inner loop', async () => {
+    const items = [{
+      name: 'Alexander'
+    }, {
+      name: 'John'
+    }, {
+      name: 'Jane'
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'inner-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        items
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.C2.v).be.eql('Names')
+    should(sheet.C3.v).be.eql(`${items[0].name}${items[1].name}${items[2].name}`)
+  })
 
   for (const mode of modes) {
     it(`${mode} loop should keep the row empty if array have 0 items`, async () => {
@@ -237,6 +270,95 @@ describe('xlsx generation - loops', () => {
         should(sheet.B18.v).be.eql('another')
         should(sheet.C18.v).be.eql('content')
         should(sheet.D18.v).be.eql('here')
+      }
+    })
+
+    it(`${mode} loop should work with inner loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        colors: [{ name: 'red' }, { name: 'black' }],
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        colors: [{ name: 'blue' }, { name: 'yellow' }, { name: 'green' }],
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        colors: [{ name: 'black' }],
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-and-inner-loop.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Colors')
+        should(sheet.F2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].colors.map((item) => item.name).join(''))
+        should(sheet.F3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].colors.map((item) => item.name).join(''))
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].colors.map((item) => item.name).join(''))
+        should(sheet.F5.v).be.eql(items[2].age)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Colors')
+        should(sheet.F3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].colors.map((item) => item.name).join(''))
+        should(sheet.F4.v).be.eql(items[0].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Colors')
+        should(sheet.F8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].colors.map((item) => item.name).join(''))
+        should(sheet.F9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Colors')
+        should(sheet.F13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].colors.map((item) => item.name).join(''))
+        should(sheet.F14.v).be.eql(items[2].age)
       }
     })
 
