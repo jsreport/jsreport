@@ -39,6 +39,66 @@ module.exports = async (files) => {
       }
     )
 
+    const outOfLoopItems = new Map()
+
+    sheetFile.data = await recursiveStringReplaceAsync(
+      sheetFile.data.toString(),
+      '<outOfLoop>',
+      '</outOfLoop>',
+      'g',
+      async (val, content, hasNestedMatch) => {
+        if (hasNestedMatch) {
+          return val
+        }
+
+        const doc = new DOMParser().parseFromString(val)
+        const outOfLoopEl = doc.documentElement
+        const childNodes = nodeListToArray(outOfLoopEl.childNodes)
+        const generatedEls = []
+        let itemIndex
+
+        for (const childNode of childNodes) {
+          if (childNode.nodeName === 'item') {
+            itemIndex = parseInt(childNode.textContent, 10)
+          } else {
+            generatedEls.push(childNode.cloneNode(true))
+          }
+        }
+
+        outOfLoopItems.set(itemIndex, generatedEls)
+
+        return ''
+      }
+    )
+
+    sheetFile.data = await recursiveStringReplaceAsync(
+      sheetFile.data.toString(),
+      '<outOfLoopPlaceholder>',
+      '</outOfLoopPlaceholder>',
+      'g',
+      async (val, content, hasNestedMatch) => {
+        if (hasNestedMatch) {
+          return val
+        }
+
+        const doc = new DOMParser().parseFromString(val)
+        const itemEl = doc.documentElement.firstChild
+        const itemIndex = parseInt(itemEl.textContent, 10)
+        const generatedEls = outOfLoopItems.get(itemIndex)
+        let newContent = ''
+
+        if (generatedEls == null || generatedEls.length === 0) {
+          return newContent
+        }
+
+        for (const generatedEl of generatedEls) {
+          newContent += serializeXml(generatedEl)
+        }
+
+        return newContent
+      }
+    )
+
     const updatedCalcChainCountMap = new Map()
 
     // update the calcChain.xml to the new updated cells

@@ -206,6 +206,8 @@ function xlsxSData (data, options) {
     type === 'row'
   ) {
     const originalRowNumber = optionsToUse.hash.originalRowNumber
+    // a default loop index will exists for example for out of loop items
+    const defaultLoopIndex = optionsToUse.hash.loopIndex
 
     if (originalRowNumber == null) {
       throw new Error('xlsxSData type="row" helper originalRowNumber arg is required')
@@ -246,10 +248,20 @@ function xlsxSData (data, options) {
           totalPrev += previousRowMatchedLoopItems.length > 0 ? (previousRowMatchedLoopItems.length * -1) : 0
         }
 
+        let loopIndex = optionsToUse.data.index != null ? optionsToUse.data.index : defaultLoopIndex
+
+        if (Array.isArray(loopIndex)) {
+          loopIndex = loopIndex.length - 1
+        }
+
+        if (optionsToUse.data.index == null && loopIndex != null) {
+          newData.index = loopIndex
+        }
+
         if (currentLoopItem.type === 'block') {
-          increment = totalPrev + (((currentLoopItem.end - currentLoopItem.start) + 1) * optionsToUse.data.index)
+          increment = totalPrev + (((currentLoopItem.end - currentLoopItem.start) + 1) * loopIndex)
         } else {
-          increment = totalPrev + optionsToUse.data.index
+          increment = totalPrev + loopIndex
         }
       } else {
         const rowMatchedLoopItems = []
@@ -298,7 +310,20 @@ function xlsxSData (data, options) {
     const updatedCellRef = `${parsedOriginalCellRef.letter}${rowNumber}`
 
     // keeping the lastCellRef updated
-    optionsToUse.data.meta.lastCellRef = updatedCellRef
+    if (optionsToUse.data.meta.lastCellRef == null) {
+      optionsToUse.data.meta.lastCellRef = updatedCellRef
+    } else {
+      const parsedLastCellRef = parseCellRef(optionsToUse.data.meta.lastCellRef)
+      const parsedUpdatedCellRef = parseCellRef(updatedCellRef)
+
+      if (
+        (parsedUpdatedCellRef.rowNumber === parsedLastCellRef.rowNumber &&
+        parsedUpdatedCellRef.columnNumber > parsedLastCellRef.columnNumber) ||
+        (parsedUpdatedCellRef.rowNumber > parsedLastCellRef.rowNumber)
+      ) {
+        optionsToUse.data.meta.lastCellRef = updatedCellRef
+      }
+    }
 
     let shouldUpdateOriginalCell
 

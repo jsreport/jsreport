@@ -452,6 +452,99 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop should preserve the content of cells that are not in the loop (left) but in the same row, the cells should not have access to data from the loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-preserve-without-context.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          name: 'test',
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.D2.v).be.eql('Name')
+        should(sheet.E2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3.v).be.eql('')
+        should(sheet.B3.v).be.eql('test')
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[0].age)
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4.v).be.eql(items[1].name)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5).be.not.ok()
+        should(sheet.D5.v).be.eql(items[2].name)
+        should(sheet.E5.v).be.eql(items[2].lastname)
+        should(sheet.F5.v).be.eql(items[2].age)
+      } else {
+        should(sheet.A2.v).be.eql('')
+        should(sheet.B2.v).be.eql('test')
+        should(sheet.C2.v).be.eql('')
+        should(sheet.D2.v).be.eql('')
+        should(sheet.D6.v).be.eql('')
+
+        should(sheet.E3.v).be.eql('Name')
+        should(sheet.F3.v).be.eql('Lastname')
+        should(sheet.G3.v).be.eql('Age')
+        should(sheet.E4.v).be.eql(items[0].name)
+        should(sheet.F4.v).be.eql(items[0].lastname)
+        should(sheet.G4.v).be.eql(items[0].age)
+
+        should(sheet.D8).be.not.ok()
+
+        should(sheet.E8.v).be.eql('Name')
+        should(sheet.F8.v).be.eql('Lastname')
+        should(sheet.G8.v).be.eql('Age')
+        should(sheet.E9.v).be.eql(items[1].name)
+        should(sheet.F9.v).be.eql(items[1].lastname)
+        should(sheet.G9.v).be.eql(items[1].age)
+
+        should(sheet.E13.v).be.eql('Name')
+        should(sheet.F13.v).be.eql('Lastname')
+        should(sheet.G13.v).be.eql('Age')
+        should(sheet.E14.v).be.eql(items[2].name)
+        should(sheet.F14.v).be.eql(items[2].lastname)
+        should(sheet.G14.v).be.eql(items[2].age)
+      }
+    })
+
     it(`${mode} loop should preserve the content of cells that are not in the loop (right) but in the same row`, async () => {
       const items = [{
         name: 'Alexander',
@@ -537,6 +630,99 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve')
         should(sheet.D16.v).be.eql('preserve2')
+      }
+    })
+
+    it(`${mode} loop should preserve the content of cells that are not in the loop (right) but in the same row, the cells should not have access to data from the loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-preserve-without-context.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          name: 'test',
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        // preserving the cells on the left of the loop
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('test')
+        should(sheet.H3.v).be.eql('')
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5).be.not.ok()
+        should(sheet.G5).be.not.ok()
+        should(sheet.H5).be.not.ok()
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8).be.not.ok()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.C16.v).be.eql('')
+        should(sheet.D16.v).be.eql('test')
+        should(sheet.E16.v).be.eql('')
       }
     })
 
@@ -632,6 +818,112 @@ describe('xlsx generation - loops', () => {
 
         should(sheet.C16.v).be.eql('preserve2')
         should(sheet.D16.v).be.eql('preserve3')
+      }
+    })
+
+    it(`${mode} loop should preserve the content of cells that are not in the loop (left, right) but in the same row, the cells should not have access to data from the loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-preserve-without-context.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          name: 'test',
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.D2.v).be.eql('Name')
+        should(sheet.E2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3.v).be.eql('')
+        should(sheet.B3.v).be.eql('test')
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql(items[0].name)
+        should(sheet.E3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[0].age)
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.v).be.eql('test')
+        should(sheet.I3.v).be.eql('')
+        should(sheet.A4).be.not.ok()
+        should(sheet.B4).be.not.ok()
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4.v).be.eql(items[1].name)
+        should(sheet.E4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+        should(sheet.I4).be.not.ok()
+        should(sheet.A5).be.not.ok()
+        should(sheet.B5).be.not.ok()
+        should(sheet.C5).be.not.ok()
+        should(sheet.D5.v).be.eql(items[2].name)
+        should(sheet.E5.v).be.eql(items[2].lastname)
+        should(sheet.F5.v).be.eql(items[2].age)
+        should(sheet.G5).be.not.ok()
+        should(sheet.H5).be.not.ok()
+        should(sheet.I5).be.not.ok()
+      } else {
+        should(sheet.A2.v).be.eql('')
+        should(sheet.B2.v).be.eql('test')
+        should(sheet.C2.v).be.eql('')
+        should(sheet.D2.v).be.eql('')
+        should(sheet.D6.v).be.eql('')
+
+        should(sheet.E3.v).be.eql('Name')
+        should(sheet.F3.v).be.eql('Lastname')
+        should(sheet.G3.v).be.eql('Age')
+        should(sheet.E4.v).be.eql(items[0].name)
+        should(sheet.F4.v).be.eql(items[0].lastname)
+        should(sheet.G4.v).be.eql(items[0].age)
+
+        should(sheet.D8).be.not.ok()
+
+        should(sheet.E8.v).be.eql('Name')
+        should(sheet.F8.v).be.eql('Lastname')
+        should(sheet.G8.v).be.eql('Age')
+        should(sheet.E9.v).be.eql(items[1].name)
+        should(sheet.F9.v).be.eql(items[1].lastname)
+        should(sheet.G9.v).be.eql(items[1].age)
+
+        should(sheet.E13.v).be.eql('Name')
+        should(sheet.F13.v).be.eql('Lastname')
+        should(sheet.G13.v).be.eql('Age')
+        should(sheet.E14.v).be.eql(items[2].name)
+        should(sheet.F14.v).be.eql(items[2].lastname)
+        should(sheet.G14.v).be.eql(items[2].age)
+
+        should(sheet.E16.v).be.eql('')
+        should(sheet.F16.v).be.eql('test')
+        should(sheet.G16.v).be.eql('')
       }
     })
 
@@ -1544,6 +1836,72 @@ describe('xlsx generation - loops', () => {
 
         should(sheet['!merges']).have.length(4)
       }
+    })
+
+    // TODO: add tests (start/end) when just one part (or even all the parts surpasses the loop edges)
+    // of vertical merged cell is part of block/row loop
+    it.skip(`${mode} loop vertical merged cells from loop only matches partially (from start)`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, 'partial-start-vertical-merged-cells-loop-multiple-rows.xlsx')
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      should(sheet.B2.v).be.eql('')
+      should(sheet.B6.v).be.eql('')
+
+      // should(sheet.C3.v).be.eql('Name')
+      // should(sheet.D3.v).be.eql('Lastname')
+      // should(sheet.E3.v).be.eql('Age')
+      // should(sheet.C4.v).be.eql(items[0].name)
+      // should(sheet.D4.v).be.eql(items[0].lastname)
+      // should(sheet.E4.v).be.eql(items[0].age)
+      // should(mergeCellExists(sheet, 'D4:D5')).be.True()
+
+      // should(sheet.C8.v).be.eql('Name')
+      // should(sheet.D8.v).be.eql('Lastname')
+      // should(sheet.E8.v).be.eql('Age')
+      // should(sheet.C9.v).be.eql(items[1].name)
+      // should(sheet.D9.v).be.eql(items[1].lastname)
+      // should(sheet.E9.v).be.eql(items[1].age)
+      // should(mergeCellExists(sheet, 'D9:D10')).be.True()
+
+      // should(sheet.C13.v).be.eql('Name')
+      // should(sheet.D13.v).be.eql('Lastname')
+      // should(sheet.E13.v).be.eql('Age')
+      // should(sheet.C14.v).be.eql(items[2].name)
+      // should(sheet.D14.v).be.eql(items[2].lastname)
+      // should(sheet.E14.v).be.eql(items[2].age)
+      // should(mergeCellExists(sheet, 'D14:D15')).be.True()
     })
 
     if (mode === 'block') {

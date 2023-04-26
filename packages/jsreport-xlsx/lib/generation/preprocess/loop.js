@@ -198,6 +198,7 @@ module.exports = (files) => {
     }
 
     const loopsDetected = []
+    const outOfLoopElsToHandle = []
     const mergeCellElsToHandle = []
 
     const lastRowIdx = rowsEls.length - 1
@@ -288,6 +289,7 @@ module.exports = (files) => {
           ) {
             loopsDetected.push({
               type: 'block',
+              sourceDataCall: null,
               start: {
                 el: cellEl,
                 cellRef,
@@ -324,23 +326,33 @@ module.exports = (files) => {
         // we should remove the handlebars loop call from the start/end cell
         normalizeLoopStartEndCell(currentRowLoopDetected)
 
-        const rowEl = currentRowLoopDetected.start.el.parentNode
+        const startingRowEl = currentRowLoopDetected.start.el.parentNode
         const loopHelperCall = currentRowLoopDetected.start.info.value.match(startLoopRegexp)[0]
 
+        const outOfLoopTypes = []
+
         if (currentRowLoopDetected.start.el.previousSibling != null) {
-          // we include a if condition to preserve the cells that are before the each
-          processOpeningTag(sheetDoc, cellsEls[0], '{{#if @first}}')
-          processClosingTag(sheetDoc, currentRowLoopDetected.start.el.previousSibling, '{{/if}}')
+          // specify that there are cells to preserve that are before the each
+          outOfLoopTypes.push('left')
         }
 
         if (currentRowLoopDetected.end.el.nextSibling != null) {
-          // we include a if condition to preserve the cells that are after the each
-          processOpeningTag(sheetDoc, currentRowLoopDetected.end.el.nextSibling, '{{#if @first}}')
-          processClosingTag(sheetDoc, cellsEls[cellsEls.length - 1], '{{/if}}')
+          // specify that there are cells to preserve that are after the each
+          outOfLoopTypes.push('right')
+        }
+
+        if (outOfLoopTypes.length > 0) {
+          outOfLoopElsToHandle.push({
+            loopDetected: currentRowLoopDetected,
+            startingRowEl,
+            endingRowEl: startingRowEl,
+            types: outOfLoopTypes
+          })
         }
 
         // we want to put the loop wrapper around the row wrapper
         processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
+          currentRowLoopDetected.sourceDataCall = valueInsideEachCall
           const parsedLoopStart = parseCellRef(currentRowLoopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(currentRowLoopDetected.end.cellRef)
           return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
@@ -368,22 +380,30 @@ module.exports = (files) => {
         const endingRowEl = currentBlockLoopDetected.end.el.parentNode
         const loopHelperCall = currentBlockLoopDetected.start.info.value.match(startLoopRegexp)[0]
 
+        const outOfLoopTypes = []
+
         if (currentBlockLoopDetected.start.el.previousSibling != null) {
-          const startingRowCellsEls = nodeListToArray(startingRowEl.getElementsByTagName('c'))
-          // we include a if condition to preserve the cells that are before the each
-          processOpeningTag(sheetDoc, startingRowCellsEls[0], '{{#if @first}}')
-          processClosingTag(sheetDoc, currentBlockLoopDetected.start.el.previousSibling, '{{/if}}')
+          // specify that there are cells to preserve that are before the each
+          outOfLoopTypes.push('left')
         }
 
         if (currentBlockLoopDetected.end.el.nextSibling != null) {
-          const endingRowCellsEls = nodeListToArray(endingRowEl.getElementsByTagName('c'))
-          // we include a if condition to preserve the cells that are after the each
-          processOpeningTag(sheetDoc, currentBlockLoopDetected.end.el.nextSibling, '{{#if @last}}')
-          processClosingTag(sheetDoc, endingRowCellsEls[endingRowCellsEls.length - 1], '{{/if}}')
+          // specify that there are cells to preserve that are after the each
+          outOfLoopTypes.push('right')
+        }
+
+        if (outOfLoopTypes.length > 0) {
+          outOfLoopElsToHandle.push({
+            loopDetected: currentBlockLoopDetected,
+            startingRowEl,
+            endingRowEl,
+            types: outOfLoopTypes
+          })
         }
 
         // we want to put the loop wrapper around the start row wrapper
         processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
+          currentBlockLoopDetected.sourceDataCall = valueInsideEachCall
           const parsedLoopStart = parseCellRef(currentBlockLoopDetected.start.cellRef)
           const parsedLoopEnd = parseCellRef(currentBlockLoopDetected.end.cellRef)
           return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
@@ -532,6 +552,70 @@ module.exports = (files) => {
         info.valueEl.textContent = `{{xlsxSData ${formulaContent}}}`
         info.valueEl.parentNode.replaceChild(newFormulaWrapperEl, info.valueEl)
         newFormulaWrapperEl.appendChild(info.valueEl)
+      }
+    }
+
+    let outLoopItemIndex = 0
+
+    for (const { loopDetected, startingRowEl, endingRowEl, types } of outOfLoopElsToHandle) {
+      for (const type of types) {
+        const outOfLoopElement = sheetDoc.createElement('outOfLoop')
+        let itemEl = sheetDoc.createElement('item')
+        itemEl.textContent = outLoopItemIndex
+
+        let rowHandlebarsWrapperText = type === 'left' ? startingRowEl.previousSibling.textContent : endingRowEl.previousSibling.textContent
+
+        rowHandlebarsWrapperText = rowHandlebarsWrapperText.replace("type='row'", `type='row' loopIndex=${loopDetected.type === 'block' && type === 'right' ? loopDetected.sourceDataCall : '0'}`)
+
+        const toCloneEls = []
+        let currentEl = type === 'left' ? loopDetected.start.el : loopDetected.end.el
+
+        if (type === 'left') {
+          while (currentEl.previousSibling != null) {
+            toCloneEls.push(currentEl.previousSibling)
+            currentEl = currentEl.previousSibling
+          }
+
+          toCloneEls.reverse()
+        } else {
+          while (currentEl.nextSibling != null) {
+            toCloneEls.push(currentEl.nextSibling)
+            currentEl = currentEl.nextSibling
+          }
+        }
+
+        for (const toCloneEl of toCloneEls) {
+          const newEl = toCloneEl.cloneNode(true)
+          outOfLoopElement.appendChild(newEl)
+          toCloneEl.parentNode.removeChild(toCloneEl)
+        }
+
+        // we include a if condition to preserve the cells that are before the each
+        processOpeningTag(sheetDoc, outOfLoopElement.firstChild, rowHandlebarsWrapperText)
+        processClosingTag(sheetDoc, outOfLoopElement.lastChild, '{{/xlsxSData}}')
+
+        outOfLoopElement.insertBefore(itemEl, outOfLoopElement.firstChild)
+
+        const loopEdgeEl = type === 'left' ? startingRowEl.previousSibling.previousSibling : endingRowEl.nextSibling.nextSibling
+
+        loopEdgeEl.parentNode.insertBefore(outOfLoopElement, type === 'left' ? loopEdgeEl : loopEdgeEl.nextSibling)
+
+        const outOfLoopPlaceholderElement = sheetDoc.createElement('outOfLoopPlaceholder')
+        itemEl = sheetDoc.createElement('item')
+        itemEl.textContent = outLoopItemIndex
+
+        outOfLoopPlaceholderElement.appendChild(itemEl)
+
+        if (type === 'left') {
+          loopDetected.start.el.parentNode.insertBefore(outOfLoopPlaceholderElement, loopDetected.start.el)
+        } else {
+          loopDetected.end.el.parentNode.insertBefore(outOfLoopPlaceholderElement, loopDetected.end.el.nextSibling)
+        }
+
+        outLoopItemIndex++
+
+        processOpeningTag(sheetDoc, outOfLoopPlaceholderElement, `{{#if ${loopDetected.type === 'block' && type === 'right' ? '@last' : '@first'}}}`)
+        processClosingTag(sheetDoc, outOfLoopPlaceholderElement, '{{/if}}')
       }
     }
 
