@@ -1,6 +1,5 @@
 const path = require('path')
 const { XMLSerializer } = require('@xmldom/xmldom')
-const { col2num } = require('xlsx-coordinates')
 
 function nodeListToArray (nodes) {
   const arr = []
@@ -158,27 +157,6 @@ function isWorksheetRelsFile (sheetFilename, filePath) {
   return filePath === `xl/worksheets/_rels/${sheetFilename}.rels`
 }
 
-function parseCellRef (cellRef) {
-  const cellRefRegexp = /^(\$?[A-Z]+)(\$?\d+)$/
-  const matches = cellRef.match(cellRefRegexp)
-
-  if (matches == null || matches[1] == null) {
-    throw new Error(`"${cellRef}" is not a valid cell reference`)
-  }
-
-  const lockedColumn = matches[1].startsWith('$')
-  const lockedRow = matches[2].startsWith('$')
-  const letter = lockedColumn ? matches[1].slice(1) : matches[1]
-
-  return {
-    letter,
-    lockedColumn,
-    columnNumber: col2num(letter) + 1,
-    lockedRow,
-    rowNumber: parseInt(lockedRow ? matches[2].slice(1) : matches[2], 10)
-  }
-}
-
 module.exports.contentIsXML = (content) => {
   if (!Buffer.isBuffer(content) && typeof content !== 'string') {
     return false
@@ -211,4 +189,3 @@ module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray
 module.exports.isWorksheetFile = isWorksheetFile
 module.exports.isWorksheetRelsFile = isWorksheetRelsFile
-module.exports.parseCellRef = parseCellRef

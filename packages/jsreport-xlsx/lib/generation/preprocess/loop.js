@@ -1,6 +1,7 @@
 const path = require('path')
 const { num2col } = require('xlsx-coordinates')
-const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, parseCellRef } = require('../../utils')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile } = require('../../utils')
+const parseCellRef = require('../../../lib/parseCellRef')
 const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
 
 module.exports = (files) => {
@@ -197,6 +198,7 @@ module.exports = (files) => {
     }
 
     const loopsDetected = []
+    const mergeCellElsToHandle = []
 
     const lastRowIdx = rowsEls.length - 1
 
@@ -205,7 +207,6 @@ module.exports = (files) => {
       const isLastRow = rowIdx === lastRowIdx
       const standardCellElsToHandle = []
       const contentDetectCellElsToHandle = []
-      const mergeCellElsToHandle = []
       const calcCellElsToHandle = []
       const formulaCellElsToHandle = []
 
@@ -248,7 +249,7 @@ module.exports = (files) => {
         })
 
         if (mergeCellEl != null) {
-          mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref') })
+          mergeCellElsToHandle.push({ ref: mergeCellEl.getAttribute('ref'), rowEl })
         }
 
         const currentLoopDetected = loopsDetected[loopsDetected.length - 1]
@@ -339,7 +340,9 @@ module.exports = (files) => {
 
         // we want to put the loop wrapper around the row wrapper
         processOpeningTag(sheetDoc, rowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
-          return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${originalRowNumber} }}`
+          const parsedLoopStart = parseCellRef(currentRowLoopDetected.start.cellRef)
+          const parsedLoopEnd = parseCellRef(currentRowLoopDetected.end.cellRef)
+          return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${originalRowNumber} columnStart=${parsedLoopStart.columnNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
         }))
 
         // we want to put the loop wrapper around the row wrapper
@@ -380,7 +383,9 @@ module.exports = (files) => {
 
         // we want to put the loop wrapper around the start row wrapper
         processOpeningTag(sheetDoc, startingRowEl.previousSibling, loopHelperCall.replace(startLoopRegexp, (match, valueInsideEachCall) => {
-          return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${currentBlockLoopDetected.start.originalRowNumber} end=${currentBlockLoopDetected.end.originalRowNumber} }}`
+          const parsedLoopStart = parseCellRef(currentBlockLoopDetected.start.cellRef)
+          const parsedLoopEnd = parseCellRef(currentBlockLoopDetected.end.cellRef)
+          return `{{#xlsxSData ${valueInsideEachCall} type='loop' start=${currentBlockLoopDetected.start.originalRowNumber} columnStart=${parsedLoopStart.columnNumber} end=${currentBlockLoopDetected.end.originalRowNumber} columnEnd=${parsedLoopEnd.columnNumber} }}`
         }))
 
         // we want to put the loop wrapper around the end row wrapper
@@ -458,53 +463,6 @@ module.exports = (files) => {
         cellEl.replaceChild(newContentEl, cellInfo.contentEl)
       }
 
-      for (const { ref } of mergeCellElsToHandle) {
-        // we want to put the all the mergeCell that affect this row
-        // as its the last child
-        const newMergeCellWrapperEl = sheetDoc.createElement('mergeCellUpdated')
-        const newMergeCellEl = sheetDoc.createElement('mergeCell')
-
-        let content = `type='mergeCell' originalCellRefRange='${ref}'`
-        let fromLoop = false
-
-        const mergeStartCellRef = ref.split(':')[0]
-        const parsedMergeStart = parseCellRef(mergeStartCellRef)
-
-        const loopDetected = loopsDetected.find((l) => (
-          l.start.originalRowNumber === parsedMergeStart.rowNumber
-        ))
-
-        if (loopDetected != null) {
-          const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
-          const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
-
-          fromLoop = (
-            parsedMergeStart.columnNumber >= parsedLoopStart.columnNumber &&
-            parsedMergeStart.columnNumber <= parsedLoopEnd.columnNumber &&
-            parsedMergeStart.rowNumber === parsedLoopStart.rowNumber
-          )
-        }
-
-        if (fromLoop) {
-          content += ' fromLoop=true'
-        }
-
-        newMergeCellEl.setAttribute('ref', `{{xlsxSData ${content}}}`)
-
-        newMergeCellWrapperEl.appendChild(newMergeCellEl)
-        rowEl.appendChild(newMergeCellWrapperEl)
-
-        // if there is loop in row but the merge cell is not part
-        // of it, we need to include a condition to only render
-        // the mergeCellUpdated for the first item in the loop,
-        // this is needed because we insert mergeCellUpdated nodes
-        // inside the row
-        if (loopDetected != null && !fromLoop) {
-          processOpeningTag(sheetDoc, newMergeCellWrapperEl, '{{#if @first}}')
-          processClosingTag(sheetDoc, newMergeCellWrapperEl, '{{/if}}')
-        }
-      }
-
       for (const { calcCellEl, cellRef, cellEl } of calcCellElsToHandle) {
         // we add the referenced cell in the calcChain in the cell
         // to be able to update the ref by the handlebars
@@ -573,6 +531,78 @@ module.exports = (files) => {
         info.valueEl.textContent = `{{xlsxSData ${formulaContent}}}`
         info.valueEl.parentNode.replaceChild(newFormulaWrapperEl, info.valueEl)
         newFormulaWrapperEl.appendChild(info.valueEl)
+      }
+    }
+
+    for (const { ref, rowEl } of mergeCellElsToHandle) {
+      // we want to put the all the mergeCell that affect this row
+      // as its the last child of row
+      const newMergeCellWrapperEl = sheetDoc.createElement('mergeCellUpdated')
+      const newMergeCellEl = sheetDoc.createElement('mergeCell')
+
+      let content = `type='mergeCell' originalCellRefRange='${ref}'`
+      let fromLoop = false
+
+      const mergeStartCellRef = ref.split(':')[0]
+      const parsedMergeStart = parseCellRef(mergeStartCellRef)
+      let stayAt = 'first'
+
+      // TODO: check how this work when there is nested loop
+      // we check here if there is a loop that start/end in the same row of merged cell
+      // (this does not necessarily mean that merged cell is part of the loop)
+      const loopDetected = loopsDetected.find((l) => {
+        if (l.type === 'block') {
+          return (
+            parsedMergeStart.rowNumber >= l.start.originalRowNumber &&
+            parsedMergeStart.rowNumber <= l.end.originalRowNumber
+          )
+        }
+
+        return l.start.originalRowNumber === parsedMergeStart.rowNumber
+      })
+
+      if (loopDetected != null) {
+        const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
+        const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
+
+        // here we check if the merged cell is really part of the loop or not
+        if (loopDetected.type === 'block') {
+          if (parsedLoopStart.rowNumber === parsedMergeStart.rowNumber) {
+            fromLoop = parsedMergeStart.columnNumber >= parsedLoopStart.columnNumber
+          } else if (parsedLoopEnd.rowNumber === parsedMergeStart.rowNumber) {
+            fromLoop = parsedMergeStart.columnNumber <= parsedLoopEnd.columnNumber
+
+            if (!fromLoop) {
+              stayAt = 'last'
+            }
+          } else {
+            fromLoop = true
+          }
+        } else {
+          fromLoop = (
+            parsedMergeStart.columnNumber >= parsedLoopStart.columnNumber &&
+            parsedMergeStart.columnNumber <= parsedLoopEnd.columnNumber
+          )
+        }
+      }
+
+      if (fromLoop) {
+        content += ' fromLoop=true'
+      }
+
+      newMergeCellEl.setAttribute('ref', `{{xlsxSData ${content}}}`)
+
+      newMergeCellWrapperEl.appendChild(newMergeCellEl)
+      rowEl.appendChild(newMergeCellWrapperEl)
+
+      // if there is loop in row but the merge cell is not part
+      // of it, we need to include a condition to only render
+      // the mergeCellUpdated for the first/last item in the loop,
+      // this is needed because we insert mergeCellUpdated nodes
+      // inside the row
+      if (loopDetected != null && !fromLoop) {
+        processOpeningTag(sheetDoc, newMergeCellWrapperEl, `{{#if @${stayAt}}}`)
+        processClosingTag(sheetDoc, newMergeCellWrapperEl, '{{/if}}')
       }
     }
   }

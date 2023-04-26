@@ -81,7 +81,9 @@ function xlsxSData (data, options) {
     type === 'loop'
   ) {
     const start = optionsToUse.hash.start
+    const columnStart = optionsToUse.hash.columnStart
     const end = optionsToUse.hash.end
+    const columnEnd = optionsToUse.hash.columnEnd
     const newData = Handlebars.createFrame(optionsToUse.data)
 
     if (start == null) {
@@ -102,32 +104,16 @@ function xlsxSData (data, options) {
     newData.loopItems.push({
       type: end == null ? 'row' : 'block',
       start,
+      columnStart,
       end,
+      columnEnd,
       length: targetData.length
     })
 
     return Handlebars.helpers.each(targetData, { ...optionsToUse, data: newData })
   }
 
-  const parseCellRef = (cellRef) => {
-    const cellRefRegexp = /^(\$?[A-Z]+)(\$?\d+)$/
-    const matches = cellRef.match(cellRefRegexp)
-
-    if (matches == null || matches[1] == null) {
-      throw new Error(`"${cellRef}" is not a valid cell reference`)
-    }
-
-    const lockedColumn = matches[1].startsWith('$')
-    const lockedRow = matches[2].startsWith('$')
-    const letter = lockedColumn ? matches[1].slice(1) : matches[1]
-
-    return {
-      letter,
-      lockedColumn,
-      lockedRow,
-      rowNumber: parseInt(lockedRow ? matches[2].slice(1) : matches[2], 10)
-    }
-  }
+  const parseCellRef = require('parseCellRef')
 
   const getMatchedLoopItems = (rowNumber, loopItems, filterEmpty = true) => {
     return loopItems.filter((item) => {
@@ -138,6 +124,80 @@ function xlsxSData (data, options) {
       }
 
       return result
+    })
+  }
+
+  const getCurrentLoopItem = (matchedLoopItems, byTarget) => {
+    if (byTarget == null || byTarget.rowNumber == null) {
+      throw new Error('getCurrentLoopItem byTarget arg is invalid')
+    }
+
+    return matchedLoopItems.find((item) => {
+      let match = false
+      let byRowsMatch = false
+
+      if (item.type === 'block') {
+        byRowsMatch = (
+          byTarget.rowNumber >= item.start &&
+          byTarget.rowNumber <= item.end
+        )
+      } else {
+        byRowsMatch = item.start === byTarget.rowNumber
+      }
+
+      if (byTarget.columnNumber == null) {
+        return byRowsMatch
+      }
+
+      if (byRowsMatch) {
+        let byColumnsMatch = false
+
+        if (item.type === 'block') {
+          if (item.start === byTarget.rowNumber) {
+            byColumnsMatch = byTarget.columnNumber >= item.columnStart
+          } else if (item.end === byTarget.rowNumber) {
+            byColumnsMatch = byTarget.columnNumber <= item.columnEnd
+          } else {
+            byColumnsMatch = true
+          }
+        } else {
+          byColumnsMatch = (
+            byTarget.columnNumber >= item.columnStart &&
+            byTarget.columnNumber <= item.columnEnd
+          )
+        }
+
+        match = byColumnsMatch
+      }
+
+      return match
+    })
+  }
+
+  const getPreviousLoopItems = (matchedLoopItems, byTarget) => {
+    if (byTarget == null || byTarget.rowNumber == null) {
+      throw new Error('getCurrentLoopItem byTarget arg is invalid')
+    }
+
+    return matchedLoopItems.filter((item) => {
+      let match = false
+
+      const limit = item.type === 'block' ? item.end : item.start
+
+      if (byTarget.rowNumber === limit) {
+        if (byTarget.columnNumber == null) {
+          match = false
+        } else {
+          // for row loops we assume there is no previous loop item even if cell
+          // colum comes after column end of end of loop
+          // this is because in that case that cell will anyway keep on its original place
+          match = item.type === 'block' ? byTarget.columnNumber > item.columnEnd : false
+        }
+      } else {
+        match = byTarget.rowNumber > limit
+      }
+
+      return match
     })
   }
 
@@ -159,32 +219,21 @@ function xlsxSData (data, options) {
     } else {
       let increment = 0
 
-      const currentLoopItem = matchedLoopItems.find((item) => {
-        if (item.type === 'block') {
-          return (
-            originalRowNumber >= item.start &&
-            originalRowNumber <= item.end
-          )
-        }
-
-        return item.start === originalRowNumber
+      const currentLoopItem = getCurrentLoopItem(matchedLoopItems, {
+        rowNumber: originalRowNumber
       })
 
       if (currentLoopItem) {
-        const previousMatches = matchedLoopItems.filter((item) => {
-          if (item.type === 'block') {
-            return item.end < originalRowNumber
-          }
-
-          return item.start < originalRowNumber
+        const previousLoopItems = getPreviousLoopItems(matchedLoopItems, {
+          rowNumber: originalRowNumber
         })
 
         let totalPrev = 0
 
-        if (previousMatches.length > 0) {
+        if (previousLoopItems.length > 0) {
           const previousRowMatchedLoopItems = []
 
-          totalPrev = previousMatches.reduce((acu, item) => {
+          totalPrev = previousLoopItems.reduce((acu, item) => {
             if (item.type === 'block') {
               return acu + (((item.end - item.start) + 1) * (item.length - 1))
             } else {
@@ -417,6 +466,7 @@ function xlsxSData (data, options) {
     const parsedOriginCellRef = originCellRef != null ? parseCellRef(originCellRef) : undefined
     const normalizedCellRef = cellRef.replace('$', '')
     let newCellRef = updatedOriginalCells[normalizedCellRef]
+    let currentLoopItem
 
     if (newCellRef == null) {
       // if not found on original cells then do a check if we find
@@ -426,9 +476,17 @@ function xlsxSData (data, options) {
       if (matchedLoopItems.length === 0) {
         newCellRef = cellRef
       } else {
-        const isLoopItem = matchedLoopItems.find((item) => item.start === parsedCellRef.rowNumber) != null
+        currentLoopItem = getCurrentLoopItem(matchedLoopItems, {
+          rowNumber: parsedCellRef.rowNumber,
+          columnNumber: parsedCellRef.columnNumber
+        })
 
-        const originIsLoopItem = parsedOriginCellRef == null ? false : matchedLoopItems.find((item) => item.start === parsedOriginCellRef.rowNumber) != null
+        const originIsLoopItem = parsedOriginCellRef == null
+          ? false
+          : getCurrentLoopItem(matchedLoopItems, {
+            rowNumber: parsedOriginCellRef.rowNumber,
+            columnNumber: parsedOriginCellRef.columnNumber
+          }) != null
 
         const getAfterIncrement = (parsedC, all = false) => {
           let filteredItems
@@ -436,19 +494,32 @@ function xlsxSData (data, options) {
           if (all) {
             filteredItems = matchedLoopItems
           } else {
-            filteredItems = matchedLoopItems.filter((item) => item.start < parsedCellRef.rowNumber)
+            const previousLoopItems = getPreviousLoopItems(matchedLoopItems, {
+              rowNumber: parsedC.rowNumber,
+              columnNumber: parsedC.columnNumber
+            })
+
+            filteredItems = previousLoopItems
           }
 
+          const rowMatchedLoopItems = []
+
           let increment = filteredItems.reduce((acu, item) => {
+            if (item.type === 'block') {
+              return acu + (((item.end - item.start) + 1) * (item.length - 1))
+            } else {
+              rowMatchedLoopItems.push(item)
+            }
+
             return acu + item.length
           }, 0)
 
-          increment += (filteredItems.length * -1)
+          increment += rowMatchedLoopItems.length > 0 ? (rowMatchedLoopItems.length * -1) : 0
 
           return `${parsedC.lockedColumn ? '$' : ''}${parsedC.letter}${parsedC.lockedRow ? '$' : ''}${parsedC.rowNumber + increment}`
         }
 
-        if (isLoopItem) {
+        if (currentLoopItem) {
           let includeAll = false
 
           if (
@@ -474,7 +545,11 @@ function xlsxSData (data, options) {
 
       // when in loop don't increase the row number for locked row references
       if (!parsedNewCellRef.lockedRow) {
-        newRowNumber += loopIndex
+        if (currentLoopItem && currentLoopItem.type === 'block') {
+          newRowNumber += (((currentLoopItem.end - currentLoopItem.start) + 1) * loopIndex)
+        } else {
+          newRowNumber += loopIndex
+        }
       }
 
       newCellRef = `${parsedNewCellRef.lockedColumn ? '$' : ''}${parsedNewCellRef.letter}${parsedNewCellRef.lockedRow ? '$' : ''}${newRowNumber}`

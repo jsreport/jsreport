@@ -240,6 +240,9 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    // TODO: add tests when there is text next (left/right) to (inside same cell) the start/end cell of loop [preserve{{#each}}], [{{/#each}}preserve]?
+    // use loop-left-preserve-cell-text.xlsx file for the test
+
     it(`${mode} loop should preserve the content of cells that are not in the loop (left) but in the same row`, async () => {
       const items = [{
         name: 'Alexander',
@@ -510,7 +513,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} multiple loops should generate new rows and update existing rows/cells`, async () => {
+    it(`${mode} loop multiple loops should generate new rows and update existing rows/cells`, async () => {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -701,7 +704,7 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    it(`${mode} should update dimension information in sheet after loop`, async () => {
+    it(`${mode} loop should update dimension information in sheet after loop`, async () => {
       const items = [{
         name: 'Alexander',
         lastname: 'Smith',
@@ -743,345 +746,750 @@ describe('xlsx generation - loops', () => {
         should(sheet['!ref']).be.eql(`B2:E${1 + (5 * items.length)}`)
       }
     })
+
+    it(`${mode} loop update existing merged cells after loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
           }
+        },
+        data: {
+          items
         }
-      },
-      data: {
-        items
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B7.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B7:C7')).be.True()
+        should(sheet.E7.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E7:G7')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B18.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B18:C18')).be.True()
+        should(sheet.E18.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E18:G18')).be.True()
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    it(`${mode} loop create new merged cells from loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
 
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(mergeCellExists(sheet, 'D3:E3')).be.True()
-    should(sheet.F3.v).be.eql(items[0].age)
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(mergeCellExists(sheet, 'D4:E4')).be.True()
-    should(sheet.F4.v).be.eql(items[1].age)
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(mergeCellExists(sheet, 'D5:E5')).be.True()
-    should(sheet.F5.v).be.eql(items[2].age)
-  })
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.F5.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D5:E5')).be.True()
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.F3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.F4.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.F8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.F9.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D9:E9')).be.True()
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.F13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.F14.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D14:E14')).be.True()
+      }
+    })
+
+    it(`${mode} loop create new multiple merged cells from loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        job: 'Developer',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        job: 'Designer',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        job: 'Lawyer',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-multiple-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Job')
+        should(sheet.H2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[0].job)
+        should(sheet.H3.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+        should(mergeCellExists(sheet, 'F3:G3')).be.True()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[1].job)
+        should(sheet.H4.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+        should(mergeCellExists(sheet, 'F4:G4')).be.True()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.F5.v).be.eql(items[2].job)
+        should(sheet.H5.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D5:E5')).be.True()
+        should(mergeCellExists(sheet, 'F5:G5')).be.True()
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.F3.v).be.eql('Job')
+        should(sheet.H3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.F4.v).be.eql(items[0].job)
+        should(sheet.H4.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+        should(mergeCellExists(sheet, 'F4:G4')).be.True()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.F8.v).be.eql('Job')
+        should(sheet.H8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.F9.v).be.eql(items[1].job)
+        should(sheet.H9.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D9:E9')).be.True()
+        should(mergeCellExists(sheet, 'F9:G9')).be.True()
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.F13.v).be.eql('Job')
+        should(sheet.H13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.F14.v).be.eql(items[2].job)
+        should(sheet.H14.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D14:E14')).be.True()
+        should(mergeCellExists(sheet, 'F14:G14')).be.True()
+      }
+    })
+
+    it(`${mode} create new merged cells from loop and update existing`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.F4.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.F5.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D5:E5')).be.True()
+
+        should(sheet.B7.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B7:C7')).be.True()
+        should(sheet.E7.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E7:G7')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.F3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.F4.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.F8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.F9.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D9:E9')).be.True()
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.F13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.F14.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D14:E14')).be.True()
+
+        should(sheet.B18.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B18:C18')).be.True()
+        should(sheet.E18.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E18:G18')).be.True()
+      }
+    })
+
+    it(`${mode} loop should preserve the content of merged cells that are not in the loop (left) but in the same row`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-merge-cell-preserve.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.F2.v).be.eql('Name')
+        should(sheet.G2.v).be.eql('Lastname')
+        should(sheet.H2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'A3:B3')).be.True()
+        should(sheet.D3.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+        should(sheet.F3.v).be.eql(items[0].name)
+        should(sheet.G3.v).be.eql(items[0].lastname)
+        should(sheet.H3.v).be.eql(items[0].age)
+        should(sheet.A4).be.not.ok()
+        should(mergeCellExists(sheet, 'A4:B4')).be.False()
+        should(sheet.D4).be.not.ok()
+        should(mergeCellExists(sheet, 'D4:E4')).be.False()
+        should(sheet.F4.v).be.eql(items[1].name)
+        should(sheet.G4.v).be.eql(items[1].lastname)
+        should(sheet.H4.v).be.eql(items[1].age)
+        should(sheet.A5).be.not.ok()
+        should(mergeCellExists(sheet, 'A5:B5')).be.False()
+        should(sheet.D5).be.not.ok()
+        should(mergeCellExists(sheet, 'D5:E5')).be.False()
+        should(sheet.F5.v).be.eql(items[2].name)
+        should(sheet.G5.v).be.eql(items[2].lastname)
+        should(sheet.H5.v).be.eql(items[2].age)
+        should(sheet['!merges']).have.length(2)
+      } else {
+        should(sheet.F2.v).be.eql('')
+        should(sheet.F6.v).be.eql('')
+
+        should(sheet.G3.v).be.eql('Name')
+        should(sheet.H3.v).be.eql('Lastname')
+        should(sheet.I3.v).be.eql('Age')
+        should(sheet.G4.v).be.eql(items[0].name)
+        should(sheet.H4.v).be.eql(items[0].lastname)
+        should(sheet.I4.v).be.eql(items[0].age)
+        should(sheet.A2.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'A2:B2')).be.True()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D2:E2')).be.True()
+
+        should(sheet.G8.v).be.eql('Name')
+        should(sheet.H8.v).be.eql('Lastname')
+        should(sheet.I8.v).be.eql('Age')
+        should(sheet.G9.v).be.eql(items[1].name)
+        should(sheet.H9.v).be.eql(items[1].lastname)
+        should(sheet.I9.v).be.eql(items[1].age)
+        should(sheet.A7).be.not.ok()
+        should(mergeCellExists(sheet, 'A7:B7')).be.False()
+        should(sheet.D7).be.not.ok()
+        should(mergeCellExists(sheet, 'D7:E7')).be.False()
+
+        should(sheet.G13.v).be.eql('Name')
+        should(sheet.H13.v).be.eql('Lastname')
+        should(sheet.I13.v).be.eql('Age')
+        should(sheet.G14.v).be.eql(items[2].name)
+        should(sheet.H14.v).be.eql(items[2].lastname)
+        should(sheet.I14.v).be.eql(items[2].age)
+        should(sheet.A12).be.not.ok()
+        should(mergeCellExists(sheet, 'A12:B12')).be.False()
+        should(sheet.D12).be.not.ok()
+        should(mergeCellExists(sheet, 'D12:E12')).be.False()
+
+        should(sheet['!merges']).have.length(2)
+      }
+    })
+
+    it(`${mode} loop should preserve the content of merged cells that are not in the loop (right) but in the same row`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-right-merge-cell-preserve.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'F3:G3')).be.True()
+        should(sheet.I3.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'I3:J3')).be.True()
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4).be.not.ok()
+        should(mergeCellExists(sheet, 'F4:G4')).be.False()
+        should(sheet.I4).be.not.ok()
+        should(mergeCellExists(sheet, 'I4:J4')).be.False()
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5).be.not.ok()
+        should(mergeCellExists(sheet, 'F5:G5')).be.False()
+        should(sheet.I5).be.not.ok()
+        should(mergeCellExists(sheet, 'I5:J5')).be.False()
+        should(sheet['!merges']).have.length(2)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.D6).be.not.ok()
+        should(mergeCellExists(sheet, 'D6:E6')).be.False()
+        should(sheet.G6).be.not.ok()
+        should(mergeCellExists(sheet, 'G6:H6')).be.False()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(sheet.D11).be.not.ok()
+        should(mergeCellExists(sheet, 'D11:E11')).be.False()
+        should(sheet.G11).be.not.ok()
+        should(mergeCellExists(sheet, 'G11:H11')).be.False()
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(sheet.D16.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'D16:E16')).be.True()
+        should(sheet.G16.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'G16:H16')).be.True()
+
+        should(sheet['!merges']).have.length(2)
+      }
+    })
+
+    it(`${mode} loop should preserve the content of merged cells that are not in the loop (left, right) but in the same row`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-left-right-merge-cell-preserve.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.F2.v).be.eql('Name')
+        should(sheet.G2.v).be.eql('Lastname')
+        should(sheet.H2.v).be.eql('Age')
+
+        // preserving the cells on the left of the loop
+        should(sheet.A3.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'A3:B3')).be.True()
+        should(sheet.D3.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+        should(sheet.F3.v).be.eql(items[0].name)
+        should(sheet.G3.v).be.eql(items[0].lastname)
+        should(sheet.H3.v).be.eql(items[0].age)
+        should(sheet.I3.v).be.eql('preserve3')
+        // preserving the cells on the right of the loop
+        should(mergeCellExists(sheet, 'I3:J3')).be.True()
+        should(sheet.K3.v).be.eql('preserve4')
+        should(mergeCellExists(sheet, 'K3:L3')).be.True()
+        should(sheet.A4).be.not.ok()
+        should(mergeCellExists(sheet, 'A4:B4')).be.False()
+        should(sheet.D4).be.not.ok()
+        should(mergeCellExists(sheet, 'D4:E4')).be.False()
+        should(sheet.F4.v).be.eql(items[1].name)
+        should(sheet.G4.v).be.eql(items[1].lastname)
+        should(sheet.H4.v).be.eql(items[1].age)
+        should(sheet.I4).be.not.ok()
+        should(mergeCellExists(sheet, 'I4:J4')).be.False()
+        should(sheet.K4).be.not.ok()
+        should(mergeCellExists(sheet, 'K4:L4')).be.False()
+        should(sheet.A5).be.not.ok()
+        should(mergeCellExists(sheet, 'A5:B5')).be.False()
+        should(sheet.D5).be.not.ok()
+        should(mergeCellExists(sheet, 'D5:E5')).be.False()
+        should(sheet.F5.v).be.eql(items[2].name)
+        should(sheet.G5.v).be.eql(items[2].lastname)
+        should(sheet.H5.v).be.eql(items[2].age)
+        should(sheet.I5).be.not.ok()
+        should(mergeCellExists(sheet, 'I5:J5')).be.False()
+        should(sheet.K5).be.not.ok()
+        should(mergeCellExists(sheet, 'K5:L5')).be.False()
+        should(sheet['!merges']).have.length(4)
+      } else {
+        should(sheet.F2.v).be.eql('')
+        should(sheet.F6.v).be.eql('')
+
+        should(sheet.G3.v).be.eql('Name')
+        should(sheet.H3.v).be.eql('Lastname')
+        should(sheet.I3.v).be.eql('Age')
+        should(sheet.G4.v).be.eql(items[0].name)
+        should(sheet.H4.v).be.eql(items[0].lastname)
+        should(sheet.I4.v).be.eql(items[0].age)
+        // preserving the cells on the left of the loop
+        should(sheet.A2.v).be.eql('preserve')
+        should(mergeCellExists(sheet, 'A2:B2')).be.True()
+        should(sheet.D2.v).be.eql('preserve2')
+        should(mergeCellExists(sheet, 'D2:E2')).be.True()
+        should(sheet.H6).be.not.ok()
+        should(mergeCellExists(sheet, 'H6:I6')).be.False()
+        should(sheet.K6).be.not.ok()
+        should(mergeCellExists(sheet, 'K6:L6')).be.False()
+
+        should(sheet.G8.v).be.eql('Name')
+        should(sheet.H8.v).be.eql('Lastname')
+        should(sheet.I8.v).be.eql('Age')
+        should(sheet.G9.v).be.eql(items[1].name)
+        should(sheet.H9.v).be.eql(items[1].lastname)
+        should(sheet.I9.v).be.eql(items[1].age)
+        should(sheet.A7).be.not.ok()
+        should(mergeCellExists(sheet, 'A7:B7')).be.False()
+        should(sheet.D7).be.not.ok()
+        should(mergeCellExists(sheet, 'D7:E7')).be.False()
+        should(sheet.H11).be.not.ok()
+        should(mergeCellExists(sheet, 'H11:I11')).be.False()
+        should(sheet.K11).be.not.ok()
+        should(mergeCellExists(sheet, 'K11:L11')).be.False()
+
+        should(sheet.G13.v).be.eql('Name')
+        should(sheet.H13.v).be.eql('Lastname')
+        should(sheet.I13.v).be.eql('Age')
+        should(sheet.G14.v).be.eql(items[2].name)
+        should(sheet.H14.v).be.eql(items[2].lastname)
+        should(sheet.I14.v).be.eql(items[2].age)
+        should(sheet.A12).be.not.ok()
+        should(mergeCellExists(sheet, 'A12:B12')).be.False()
+        should(sheet.D12).be.not.ok()
+        should(mergeCellExists(sheet, 'D12:E12')).be.False()
+        // preserving the cells on the right of the loop
+        should(sheet.H16.v).be.eql('preserve3')
+        should(mergeCellExists(sheet, 'H16:I16')).be.True()
+        should(sheet.K16.v).be.eql('preserve4')
+        should(mergeCellExists(sheet, 'K16:L16')).be.True()
+
+        should(sheet['!merges']).have.length(4)
+      }
+    })
+
+    if (mode === 'block') {
+      it(`${mode} loop create new vertical merged cells from loop`, async () => {
+        const items = [{
+          name: 'Alexander',
+          lastname: 'Smith',
+          age: 32
+        }, {
+          name: 'John',
+          lastname: 'Doe',
+          age: 29
+        }, {
+          name: 'Jane',
+          lastname: 'Montana',
+          age: 23
+        }]
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'xlsx',
+            xlsx: {
+              templateAsset: {
+                content: fs.readFileSync(
+                  path.join(xlsxDirPath, 'new-vertical-merged-cells-loop-multiple-rows.xlsx')
+                )
+              }
+            }
+          },
+          data: {
+            items
+          }
+        })
+
+        fs.writeFileSync(outputPath, result.content)
+        const workbook = xlsx.read(result.content)
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D4:D5')).be.True()
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(mergeCellExists(sheet, 'D9:D10')).be.True()
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(mergeCellExists(sheet, 'D14:D15')).be.True()
+      })
+    }
   }
-
-  it('create new multiple merged cells from loop', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      job: 'Developer',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      job: 'Designer',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      job: 'Lawyer',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'new-multiple-merged-cells-loop.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(mergeCellExists(sheet, 'D3:E3')).be.True()
-    should(sheet.F3.v).be.eql(items[0].job)
-    should(mergeCellExists(sheet, 'F3:G3')).be.True()
-    should(sheet.H3.v).be.eql(items[0].age)
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(mergeCellExists(sheet, 'D4:E4')).be.True()
-    should(sheet.F4.v).be.eql(items[1].job)
-    should(mergeCellExists(sheet, 'F4:G4')).be.True()
-    should(sheet.H4.v).be.eql(items[1].age)
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(mergeCellExists(sheet, 'D5:E5')).be.True()
-    should(sheet.F5.v).be.eql(items[2].job)
-    should(mergeCellExists(sheet, 'F5:G5')).be.True()
-    should(sheet.H5.v).be.eql(items[2].age)
-  })
-
-  it('create new merged cells from loop and update existing', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'merged-cells-loop.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    should(mergeCellExists(sheet, 'B1:C1')).be.True()
-    should(sheet.B1.v).be.eql('merged')
-
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(mergeCellExists(sheet, 'D3:E3')).be.True()
-    should(sheet.F3.v).be.eql(items[0].age)
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(mergeCellExists(sheet, 'D4:E4')).be.True()
-    should(sheet.F4.v).be.eql(items[1].age)
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(mergeCellExists(sheet, 'D5:E5')).be.True()
-    should(sheet.F5.v).be.eql(items[2].age)
-
-    should(mergeCellExists(sheet, 'B7:C7')).be.True()
-    should(sheet.B7.v).be.eql('merged2')
-    should(mergeCellExists(sheet, 'E7:G7')).be.True()
-    should(sheet.E7.v).be.eql('merged3')
-  })
-
-  it('loop should preserve the content of merged cells that are not in the loop (left) but in the same row', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-left-merge-cell-preserve.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    // preserving the cells on the left of the loop
-    should(sheet.A3.v).be.eql('preserve')
-    should(mergeCellExists(sheet, 'A3:B3')).be.True()
-    should(sheet.D3.v).be.eql('preserve2')
-    should(mergeCellExists(sheet, 'D3:E3')).be.True()
-    should(sheet.F3.v).be.eql(items[0].name)
-    should(sheet.G3.v).be.eql(items[0].lastname)
-    should(sheet.H3.v).be.eql(items[0].age)
-    should(sheet.A4).be.not.ok()
-    should(mergeCellExists(sheet, 'A4:B4')).be.False()
-    should(sheet.D4).be.not.ok()
-    should(mergeCellExists(sheet, 'D4:E4')).be.False()
-    should(sheet.F4.v).be.eql(items[1].name)
-    should(sheet.G4.v).be.eql(items[1].lastname)
-    should(sheet.H4.v).be.eql(items[1].age)
-    should(sheet.A5).be.not.ok()
-    should(mergeCellExists(sheet, 'A5:B5')).be.False()
-    should(sheet.D5).be.not.ok()
-    should(mergeCellExists(sheet, 'D5:E5')).be.False()
-    should(sheet.F5.v).be.eql(items[2].name)
-    should(sheet.G5.v).be.eql(items[2].lastname)
-    should(sheet.H5.v).be.eql(items[2].age)
-    should(sheet['!merges']).have.length(2)
-  })
-
-  it('loop should preserve the content of merged cells that are not in the loop (right) but in the same row', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-right-merge-cell-preserve.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    // preserving the cells on the left of the loop
-    should(sheet.C3.v).be.eql(items[0].name)
-    should(sheet.D3.v).be.eql(items[0].lastname)
-    should(sheet.E3.v).be.eql(items[0].age)
-    should(sheet.F3.v).be.eql('preserve')
-    should(mergeCellExists(sheet, 'F3:G3')).be.True()
-    should(sheet.I3.v).be.eql('preserve2')
-    should(mergeCellExists(sheet, 'I3:J3')).be.True()
-    should(sheet.C4.v).be.eql(items[1].name)
-    should(sheet.D4.v).be.eql(items[1].lastname)
-    should(sheet.E4.v).be.eql(items[1].age)
-    should(sheet.F4).be.not.ok()
-    should(mergeCellExists(sheet, 'F4:G4')).be.False()
-    should(sheet.I4).be.not.ok()
-    should(mergeCellExists(sheet, 'I4:J4')).be.False()
-    should(sheet.C5.v).be.eql(items[2].name)
-    should(sheet.D5.v).be.eql(items[2].lastname)
-    should(sheet.E5.v).be.eql(items[2].age)
-    should(sheet.F5).be.not.ok()
-    should(mergeCellExists(sheet, 'F5:G5')).be.False()
-    should(sheet.I5).be.not.ok()
-    should(mergeCellExists(sheet, 'I5:J5')).be.False()
-    should(sheet['!merges']).have.length(2)
-  })
-
-  it('loop should preserve the content of merged cells that are not in the loop (left, right) but in the same row', async () => {
-    const items = [{
-      name: 'Alexander',
-      lastname: 'Smith',
-      age: 32
-    }, {
-      name: 'John',
-      lastname: 'Doe',
-      age: 29
-    }, {
-      name: 'Jane',
-      lastname: 'Montana',
-      age: 23
-    }]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'xlsx',
-        xlsx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(xlsxDirPath, 'loop-left-right-merge-cell-preserve.xlsx')
-            )
-          }
-        }
-      },
-      data: {
-        items
-      }
-    })
-
-    fs.writeFileSync(outputPath, result.content)
-    const workbook = xlsx.read(result.content)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-    // preserving the cells on the left of the loop
-
-    should(sheet.A3.v).be.eql('preserve')
-    should(mergeCellExists(sheet, 'A3:B3')).be.True()
-    should(sheet.D3.v).be.eql('preserve2')
-    should(mergeCellExists(sheet, 'D3:E3')).be.True()
-    should(sheet.F3.v).be.eql(items[0].name)
-    should(sheet.G3.v).be.eql(items[0].lastname)
-    should(sheet.H3.v).be.eql(items[0].age)
-    should(sheet.I3.v).be.eql('preserve3')
-    should(mergeCellExists(sheet, 'I3:J3')).be.True()
-    should(sheet.K3.v).be.eql('preserve4')
-    should(mergeCellExists(sheet, 'K3:L3')).be.True()
-    should(sheet.A4).be.not.ok()
-    should(mergeCellExists(sheet, 'A4:B4')).be.False()
-    should(sheet.D4).be.not.ok()
-    should(mergeCellExists(sheet, 'D4:E4')).be.False()
-    should(sheet.F4.v).be.eql(items[1].name)
-    should(sheet.G4.v).be.eql(items[1].lastname)
-    should(sheet.H4.v).be.eql(items[1].age)
-    should(sheet.I4).be.not.ok()
-    should(mergeCellExists(sheet, 'I4:J4')).be.False()
-    should(sheet.K4).be.not.ok()
-    should(mergeCellExists(sheet, 'K4:L4')).be.False()
-    should(sheet.A5).be.not.ok()
-    should(mergeCellExists(sheet, 'A5:B5')).be.False()
-    should(sheet.D5).be.not.ok()
-    should(mergeCellExists(sheet, 'D5:E5')).be.False()
-    should(sheet.F5.v).be.eql(items[2].name)
-    should(sheet.G5.v).be.eql(items[2].lastname)
-    should(sheet.H5.v).be.eql(items[2].age)
-    should(sheet.I5).be.not.ok()
-    should(mergeCellExists(sheet, 'I5:J5')).be.False()
-    should(sheet.K5).be.not.ok()
-    should(mergeCellExists(sheet, 'K5:L5')).be.False()
-    should(sheet['!merges']).have.length(4)
-  })
 
   it('loop should generate workbook with full recalculation of formulas on load', async () => {
     const items = [{
