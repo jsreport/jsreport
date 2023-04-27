@@ -140,6 +140,10 @@ class JsReportClient {
       return rootUrl.toString()
     }
 
+    const normalizedOriginalPathname = rootUrl.pathname[rootUrl.pathname.length - 1] === '/' ? rootUrl.pathname.slice(0, -1) : rootUrl.pathname
+
+    normalizedPaths.unshift(normalizedOriginalPathname)
+
     return new URL(normalizedPaths.join('/'), rootUrl).toString()
   }
 
