@@ -52,7 +52,6 @@ const LogsDisplay = React.memo(function LogsDisplay (props) {
         </span>
         <span
           className={`${styles.profileLogItemMessage} ${log.meta != null && log.meta.userLevel ? styles.userLevel : ''}`}
-          title={log.message}
         >
           {log.message}
         </span>
