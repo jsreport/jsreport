@@ -53,7 +53,7 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
           url,
           maxContentLength: Infinity,
           maxBodyLength: Infinity,
-          responseType: 'text',
+          responseType: 'stream',
           transformResponse: [data => data],
           headers: {
             'Content-Type': 'text/plain',
@@ -80,13 +80,22 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
           throw error
         }
 
+        let errorResponseData
+        try {
+          errorResponseData = await readStringFromStream(err.response.data)
+        } catch (e) {
+          const error = new Error('Error when communicating with worker (unable to read error data): ' + err.message + '(' + e.message + ')')
+          error.needRestart = true
+          throw error
+        }
+
         let workerError = null
         try {
-          const errorData = JSON.parse(err.response.data)
+          const errorData = JSON.parse(errorResponseData)
           workerError = new Error(errorData.message)
           Object.assign(workerError, errorData)
         } catch (e) {
-          const error = new Error('Error when communicating with worker: ' + err.response.data)
+          const error = new Error('Error when communicating with worker (unable to parse error data): ' + err.message + '(' + errorResponseData + ')')
           error.needRestart = true
           throw error
         }
@@ -98,14 +107,23 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
         return
       }
 
+      let responseData
+      try {
+        responseData = await readStringFromStream(res.data)
+      } catch (err) {
+        const error = new Error('Error when communicating with worker (unable to read data): ' + err.message)
+        error.needRestart = true
+        throw error
+      }
+
       if (res.status === 201) {
         isDone = true
-        return serializator.parse(res.data)
+        return serializator.parse(responseData)
       }
 
       if (res.status !== 200) {
         isDone = true
-        const e = new Error('Unexpected response from worker: ' + res.data)
+        const e = new Error('Unexpected response from worker: ' + responseData)
         e.needRestart = true
         throw e
       }
@@ -113,7 +131,7 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
       let mainDataResponse = {}
 
       try {
-        mainDataResponse = await executeMain(serializator.parse(res.data))
+        mainDataResponse = await executeMain(serializator.parse(responseData))
       } catch (err) {
         mainDataResponse.error = {
           ...err,
@@ -161,4 +179,13 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
       throw e
     })
   ])
+}
+
+async function readStringFromStream (stream) {
+  const bufs = []
+  for await (const chunk of stream) {
+    bufs.push(chunk)
+  }
+
+  return Buffer.concat(bufs).toString()
 }
