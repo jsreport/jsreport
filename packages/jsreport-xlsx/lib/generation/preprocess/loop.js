@@ -347,13 +347,15 @@ module.exports = (files) => {
         const loopHelperCall = currentRowLoopDetected.start.info.value.match(startLoopRegexp)[0]
 
         const outOfLoopTypes = []
+        const previousEls = getCellElsAndWrappers(currentRowLoopDetected.start.el, 'previous')
+        const nextEls = getCellElsAndWrappers(currentRowLoopDetected.end.el, 'next')
 
-        if (currentRowLoopDetected.start.el.previousSibling != null) {
+        if (previousEls.length > 0) {
           // specify that there are cells to preserve that are before the each
           outOfLoopTypes.push('left')
         }
 
-        if (currentRowLoopDetected.end.el.nextSibling != null) {
+        if (nextEls.length > 0) {
           // specify that there are cells to preserve that are after the each
           outOfLoopTypes.push('right')
         }
@@ -398,13 +400,15 @@ module.exports = (files) => {
         const loopHelperCall = currentBlockLoopDetected.start.info.value.match(startLoopRegexp)[0]
 
         const outOfLoopTypes = []
+        const previousEls = getCellElsAndWrappers(currentBlockLoopDetected.start.el, 'previous')
+        const nextEls = getCellElsAndWrappers(currentBlockLoopDetected.end.el, 'next')
 
-        if (currentBlockLoopDetected.start.el.previousSibling != null) {
+        if (previousEls.length > 0) {
           // specify that there are cells to preserve that are before the each
           outOfLoopTypes.push('left')
         }
 
-        if (currentBlockLoopDetected.end.el.nextSibling != null) {
+        if (nextEls.length > 0) {
           // specify that there are cells to preserve that are after the each
           outOfLoopTypes.push('right')
         }
@@ -443,8 +447,6 @@ module.exports = (files) => {
       for (const cellEl of contentDetectCellElsToHandle) {
         const cellInfo = getCellInfo(cellEl, sharedStringsEls, sheetFilepath)
 
-        cellEl.setAttribute('__detectCellContent__', 'true')
-
         let newTextValue
 
         const isPartOfLoopStart = loopsDetected.find((l) => l.start.el === cellEl) != null
@@ -458,12 +460,10 @@ module.exports = (files) => {
           newTextValue = cellInfo.value
         }
 
-        const newContentEl = sheetDoc.createElement('info')
+        const newContentEl = sheetDoc.createElement('xlsxRemove')
         const cellValueWrapperEl = sheetDoc.createElement('xlsxRemove')
         const cellValueWrapperEndEl = sheetDoc.createElement('xlsxRemove')
-        const rawEl = sheetDoc.createElement('raw')
-        const typeEl = sheetDoc.createElement('type')
-        const contentEl = sheetDoc.createElement('content')
+        const rawEl = sheetDoc.createElement('xlsxRemove')
         const handlebarsRegexp = /{{{?(#[\w-]+ )?([\w-]+[^\n\r}]*)}?}}/g
         const matches = Array.from(newTextValue.matchAll(handlebarsRegexp))
         const isSingleMatch = matches.length === 1 && matches[0][0] === newTextValue && matches[0][1] == null
@@ -484,21 +484,18 @@ module.exports = (files) => {
           rawEl.textContent = `{{#xlsxSData type='cellValueRaw' }}${newTextValue}{{/xlsxSData}}`
         }
 
-        typeEl.textContent = "{{xlsxSData type='cellValueType' }}"
-        contentEl.textContent = "{{xlsxSData type='cellContent' }}"
+        cellEl.setAttribute('t', "{{xlsxSData type='cellValueType' }}")
+        newContentEl.textContent = "{{xlsxSData type='cellContent' }}"
         cellValueWrapperEndEl.textContent = '{{/xlsxSData}}'
 
-        newContentEl.appendChild(cellValueWrapperEl)
+        cellEl.replaceChild(newContentEl, cellInfo.contentEl)
+        cellEl.parentNode.insertBefore(cellValueWrapperEl, cellEl)
 
         if (!isSingleMatch) {
-          newContentEl.appendChild(rawEl)
+          cellEl.parentNode.insertBefore(rawEl, cellValueWrapperEl.nextSibling)
         }
 
-        newContentEl.appendChild(typeEl)
-        newContentEl.appendChild(contentEl)
-        newContentEl.appendChild(cellValueWrapperEndEl)
-
-        cellEl.replaceChild(newContentEl, cellInfo.contentEl)
+        cellEl.parentNode.insertBefore(cellValueWrapperEndEl, cellEl.nextSibling)
       }
 
       for (const { calcCellEl, cellRef, cellEl } of calcCellElsToHandle) {
@@ -532,20 +529,14 @@ module.exports = (files) => {
         rowHandlebarsWrapperText = rowHandlebarsWrapperText.replace("type='row'", `type='row' loopIndex=${loopDetected.type === 'block' && type === 'right' ? loopDetected.sourceDataCall : '0'}`)
 
         const toCloneEls = []
-        let currentEl = type === 'left' ? loopDetected.start.el : loopDetected.end.el
+        const currentEl = type === 'left' ? loopDetected.start.el : loopDetected.end.el
 
         if (type === 'left') {
-          while (currentEl.previousSibling != null) {
-            toCloneEls.push(currentEl.previousSibling)
-            currentEl = currentEl.previousSibling
-          }
+          toCloneEls.push(...getCellElsAndWrappers(currentEl, 'previous'))
 
           toCloneEls.reverse()
         } else {
-          while (currentEl.nextSibling != null) {
-            toCloneEls.push(currentEl.nextSibling)
-            currentEl = currentEl.nextSibling
-          }
+          toCloneEls.push(...getCellElsAndWrappers(currentEl, 'next'))
         }
 
         for (const toCloneEl of toCloneEls) {
@@ -732,6 +723,36 @@ module.exports = (files) => {
       tEl.textContent = `{{{{xlsxSData type='raw'}}}}${tEl.textContent}{{{{/xlsxSData}}}}`
     }
   }
+}
+
+function getCellElsAndWrappers (currentEl, type = 'previous') {
+  if (type !== 'previous' && type !== 'next') {
+    throw new Error('type parameter must be previous or next')
+  }
+
+  const els = []
+  let ready = false
+
+  const target = type === 'previous' ? 'previousSibling' : 'nextSibling'
+
+  while (currentEl[target] != null) {
+    if (!ready) {
+      ready = (
+        // if the node is not xlsxRemove then we are ready
+        currentEl[target].nodeName !== 'xlsxRemove' ||
+        // if it is xlsxRemove but it is not end point then we are ready
+        !currentEl[target].textContent.startsWith(type === 'previous' ? '{{#xlsxSData' : '{{/xlsxSData')
+      )
+    }
+
+    if (ready) {
+      els.push(currentEl[target])
+    }
+
+    currentEl = currentEl[target]
+  }
+
+  return els
 }
 
 function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {

@@ -26,7 +26,7 @@
     "build": "jsreport-studio-build",
     "prepublish": "jsreport-studio-build",
     "start": "jsreport-studio-start --httpPort 4900",
-    "test": "mocha test --recursive --timeout 10000 && standard"
+    "test": "mocha test --recursive --timeout 15000 && standard"
   },
   "dependencies": {
     "@jsreport/office": "3.0.0",

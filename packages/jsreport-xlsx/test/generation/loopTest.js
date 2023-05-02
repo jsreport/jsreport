@@ -8,6 +8,7 @@ const xlsx = require('xlsx')
 const { parseCell } = require('xlsx-coordinates')
 const { nodeListToArray } = require('../../lib/utils')
 
+const dataDirPath = path.join(__dirname, '../data')
 const xlsxDirPath = path.join(__dirname, '../xlsx')
 const outputPath = path.join(__dirname, '../../out.xlsx')
 
@@ -4444,6 +4445,32 @@ describe('xlsx generation - loops', () => {
       const clientColumnEl = clientDataEl.getElementsByTagName('x:Column')[0]
       clientColumnEl.textContent.should.be.eql('0')
     })
+  })
+
+  it('should not hang with lot of rows', async () => {
+    const data = JSON.parse(fs.readFileSync(path.join(dataDirPath, 'lot-of-rows.json')).toString())
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'lot-of-rows.xlsx')
+            )
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet['!ref']).be.eql('A1:V4228')
   })
 })
 

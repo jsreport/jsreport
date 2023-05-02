@@ -399,7 +399,7 @@ function xlsxSData (data, options) {
       optionsToUse.data.currentCellValueInfo.value = result
     }
 
-    return result
+    return ''
   }
 
   if (

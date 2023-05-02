@@ -93,7 +93,7 @@ module.exports = (reporter) => async (inputs, req) => {
       files
     })
 
-    reporter.logger.debug('xlsx successfully zipped')
+    reporter.logger.debug('xlsx successfully zipped', req)
 
     return {
       xlsxFilePath: outputPath

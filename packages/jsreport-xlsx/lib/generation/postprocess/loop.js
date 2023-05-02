@@ -8,37 +8,6 @@ module.exports = async (files) => {
   const calcChainDoc = files.find((f) => f.path === 'xl/calcChain.xml')?.doc
 
   for (const sheetFile of files.filter((f) => isWorksheetFile(f.path))) {
-    // update the cells in loop that are meant to auto detect the content
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<c( [^>]*__detectCellContent__="true"[^>]*)>',
-      '</c>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        const doc = new DOMParser().parseFromString(val)
-        const cellEl = doc.documentElement
-
-        cellEl.removeAttribute('__detectCellContent__')
-
-        const infoEl = nodeListToArray(cellEl.getElementsByTagName('info'))[0]
-        const typeEl = nodeListToArray(infoEl.getElementsByTagName('type'))[0]
-        const contentEl = nodeListToArray(infoEl.getElementsByTagName('content'))[0]
-
-        cellEl.setAttribute('t', typeEl.textContent)
-        cellEl.removeChild(infoEl)
-
-        for (const childEl of nodeListToArray(contentEl.childNodes)) {
-          cellEl.appendChild(childEl)
-        }
-
-        return serializeXml(cellEl)
-      }
-    )
-
     const outOfLoopItems = new Map()
 
     sheetFile.data = await recursiveStringReplaceAsync(
