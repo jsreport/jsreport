@@ -154,6 +154,8 @@ module.exports = (reporter) => {
           handleError(reporter, e)
         }
       }
+
+      console.log('REQUIRE CACHE LENGTH AFTER SANDBOX INIT FN:', Object.keys(require.cache).length)
     }
 
     const functionNames = getTopLevelFunctions(functionsCache, userCode)

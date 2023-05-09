@@ -1,6 +1,8 @@
+const Module = require('module')
 const os = require('os')
 const util = require('util')
 const path = require('path')
+const fs = require('fs')
 const extend = require('node.extend.without.arrays')
 const get = require('lodash.get')
 const set = require('lodash.set')
@@ -12,7 +14,14 @@ const originalVM = require('vm')
 const stackTrace = require('stack-trace')
 const { codeFrameColumns } = require('@babel/code-frame')
 
+let CONTEXT
+
+const RESOLVE_CACHE = Object.create(null)
+const SCRIPT_CACHE = Object.create(null)
+
 module.exports = (_sandbox, options = {}) => {
+  // console.log('REQUIRE CACHE INITIAL LENGTH:', Object.keys(require.cache).length)
+
   const {
     onLog,
     formatError,
@@ -57,42 +66,6 @@ module.exports = (_sandbox, options = {}) => {
   addConsoleMethod('warn', 'warn')
   addConsoleMethod('error', 'error')
 
-  const _require = function (moduleName, { context, allowAllModules = false } = {}) {
-    if (requireMap) {
-      const mapResult = requireMap(moduleName, { context })
-
-      if (mapResult != null) {
-        return mapResult
-      }
-    }
-
-    if (!safeExecution || allowAllModules || allowedModules === '*') {
-      return doRequire(moduleName, requirePaths, modulesCache)
-    }
-
-    const m = allowedModules.find(mod => (mod.id || mod) === moduleName)
-
-    if (m) {
-      return doRequire(m.path || moduleName, requirePaths, modulesCache)
-    }
-
-    const error = new Error(
-      `require of "${moduleName}" module has been blocked.`
-    )
-
-    if (formatError) {
-      formatError(error, moduleName)
-    }
-
-    throw error
-  }
-
-  for (const info of globalModules) {
-    // it is important to use "doRequire" function here to avoid
-    // getting hit by the allowed modules restriction
-    _sandbox[info.globalVariableName] = doRequire(info.module, requirePaths, modulesCache)
-  }
-
   const propsConfig = normalizePropertiesConfigInHierarchy(propertiesConfig)
   const originalValues = {}
   const proxiesInVM = new WeakMap()
@@ -107,13 +80,44 @@ module.exports = (_sandbox, options = {}) => {
     customProxies
   })
 
-  Object.assign(sandbox, {
-    console: _console,
-    require: (m) => _require(m, { context: _sandbox })
-  })
-
   let safeVM
   let vmSandbox
+
+  const _require = function (moduleName, { context, useMap = true, allowAllModules = false } = {}) {
+    if (useMap && requireMap) {
+      const mapResult = requireMap(moduleName, { context })
+
+      if (mapResult != null) {
+        return mapResult
+      }
+    }
+
+    if (!safeExecution || allowAllModules || allowedModules === '*') {
+      // return require.main.require(moduleName)
+      return doRequire(safeExecution, safeVM, moduleName, requirePaths, modulesCache, context)
+    }
+
+    const m = allowedModules.find(mod => (mod.id || mod) === moduleName)
+
+    if (m) {
+      return doRequire(safeExecution, safeVM, m.path || moduleName, requirePaths, modulesCache, context)
+    }
+
+    const error = new Error(
+      `require of "${moduleName}" module has been blocked.`
+    )
+
+    if (formatError) {
+      formatError(error, moduleName)
+    }
+
+    throw error
+  }
+
+  Object.assign(sandbox, {
+    console: _console,
+    require: (m) => _require(m, { context: vmSandbox })
+  })
 
   if (safeExecution) {
     safeVM = new VM()
@@ -128,8 +132,13 @@ module.exports = (_sandbox, options = {}) => {
 
     vmSandbox = safeVM.sandbox
   } else {
+    // if (CONTEXT) {
+    //   vmSandbox = CONTEXT
+    // } else {
     vmSandbox = originalVM.createContext(undefined)
     vmSandbox.Buffer = Buffer
+    //   CONTEXT = vmSandbox
+    // }
 
     for (const name in sandbox) {
       vmSandbox[name] = sandbox[name]
@@ -146,6 +155,12 @@ module.exports = (_sandbox, options = {}) => {
     }
   })
 
+  for (const info of globalModules) {
+    // it is important to use "doRequire" function here to avoid
+    // getting hit by the allowed modules restriction
+    vmSandbox[info.globalVariableName] = _require(info.module, { context: vmSandbox, useMap: false, allowAllModules: true }) // doRequire(info.module, requirePaths, modulesCache)
+  }
+
   const sourceFilesInfo = new Map()
 
   return {
@@ -158,7 +173,7 @@ module.exports = (_sandbox, options = {}) => {
     restore: () => {
       return restoreProperties(vmSandbox, originalValues, proxiesInVM, customProxies)
     },
-    sandboxRequire: (modulePath) => _require(modulePath, { context: _sandbox, allowAllModules: true }),
+    sandboxRequire: (modulePath) => _require(modulePath, { context: vmSandbox, allowAllModules: true }),
     run: async (codeOrScript, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
       let run
 
@@ -235,71 +250,20 @@ function doCompileScript (code, filename, safeExecution) {
   return script
 }
 
-function doRequire (moduleName, requirePaths = [], modulesCache) {
+function doRequire (safeExecution, safeVM, moduleName, _requirePaths, modulesCache, context) {
+  // console.log('REQUIRE CACHE CURRENT LENGTH BEFORE require():', Object.keys(require.cache).length)
   const searchedPaths = []
+  const requirePaths = _requirePaths || []
 
-  function optimizedRequire (require, modulePath) {
-    // save the current module cache, we will use this to restore the cache to the
-    // original values after the require finish
-    const originalModuleCache = Object.assign(Object.create(null), require.cache)
-
-    // clean/empty the current module cache
-    for (const cacheKey of Object.keys(require.cache)) {
-      delete require.cache[cacheKey]
-    }
-
-    // restore any previous cache generated in the sandbox
-    for (const cacheKey of Object.keys(modulesCache)) {
-      require.cache[cacheKey] = modulesCache[cacheKey]
-    }
-
-    try {
-      const moduleExport = require.main ? require.main.require(modulePath) : require(modulePath)
-      require.main.children.splice(require.main.children.indexOf(m => m.id === require.resolve(modulePath)), 1)
-
-      // save the current module cache generated after the require into the internal cache,
-      // and clean the current module cache again
-      for (const cacheKey of Object.keys(require.cache)) {
-        modulesCache[cacheKey] = require.cache[cacheKey]
-        delete require.cache[cacheKey]
-      }
-
-      // restore the current module cache to the original cache values
-      for (const [oldCacheKey, value] of Object.entries(originalModuleCache)) {
-        require.cache[oldCacheKey] = value
-      }
-
-      return moduleExport
-    } catch (e) {
-      // clean the current module cache again
-      for (const cacheKey of Object.keys(require.cache)) {
-        delete require.cache[cacheKey]
-      }
-
-      // restore the current module cache to the original cache values
-      for (const [oldCacheKey, value] of Object.entries(originalModuleCache)) {
-        require.cache[oldCacheKey] = value
-      }
-
-      if (e.code && e.code === 'MODULE_NOT_FOUND') {
-        if (!searchedPaths.includes(modulePath)) {
-          searchedPaths.push(modulePath)
-        }
-
-        return false
-      } else {
-        throw new Error(`Unable to require module ${moduleName}. ${e.message}${os.EOL}${e.stack}`)
-      }
-    }
-  }
-
-  let result = optimizedRequire(require, moduleName)
+  let result = customRequire(safeExecution, safeVM, moduleName, modulesCache, searchedPaths, context)
+  // let result = optimizedRequire(require, moduleName, modulesCache, searchedPaths)
 
   if (!result) {
     let pathsSearched = 0
 
     while (!result && pathsSearched < requirePaths.length) {
-      result = optimizedRequire(require, path.join(requirePaths[pathsSearched], moduleName))
+      result = customRequire(safeExecution, safeVM, path.join(requirePaths[pathsSearched], moduleName), modulesCache, searchedPaths, context)
+      // result = optimizedRequire(require, path.join(requirePaths[pathsSearched], moduleName), modulesCache, searchedPaths)
       pathsSearched++
     }
   }
@@ -309,6 +273,212 @@ function doRequire (moduleName, requirePaths = [], modulesCache) {
   }
 
   return result
+}
+
+function optimizedRequire (_require, modulePath, modulesCache, searchedPaths) {
+  // save the current module cache, we will use this to restore the cache to the
+  // original values after the require finish
+  const originalModuleCache = Object.assign(Object.create(null), _require.cache)
+
+  // clean/empty the current module cache
+  for (const cacheKey of Object.keys(_require.cache)) {
+    delete _require.cache[cacheKey]
+  }
+
+  // restore any previous cache generated in the sandbox
+  for (const cacheKey of Object.keys(modulesCache)) {
+    _require.cache[cacheKey] = modulesCache[cacheKey]
+  }
+
+  try {
+    const moduleExport = _require.main ? _require.main.require(modulePath) : _require(modulePath)
+
+    // console.log('REQUIRE CACHE CURRENT LENGTH AFTER require():', Object.keys(require.cache).length)
+
+    _require.main.children.splice(_require.main.children.indexOf(m => m.id === _require.resolve(modulePath)), 1)
+
+    // save the current module cache generated after the require into the internal cache,
+    // and clean the current module cache again
+    for (const cacheKey of Object.keys(_require.cache)) {
+      modulesCache[cacheKey] = _require.cache[cacheKey]
+      delete _require.cache[cacheKey]
+    }
+
+    // restore the current module cache to the original cache values
+    for (const [oldCacheKey, value] of Object.entries(originalModuleCache)) {
+      _require.cache[oldCacheKey] = value
+    }
+
+    return moduleExport
+  } catch (e) {
+    // clean the current module cache again
+    for (const cacheKey of Object.keys(_require.cache)) {
+      delete _require.cache[cacheKey]
+    }
+
+    // restore the current module cache to the original cache values
+    for (const [oldCacheKey, value] of Object.entries(originalModuleCache)) {
+      _require.cache[oldCacheKey] = value
+    }
+
+    if (e.code && e.code === 'MODULE_NOT_FOUND') {
+      if (!searchedPaths.includes(modulePath)) {
+        searchedPaths.push(modulePath)
+      }
+
+      return false
+    } else {
+      throw new Error(`Unable to require module ${moduleName}. ${e.message}${os.EOL}${e.stack}`)
+    }
+  }
+}
+
+function customRequire (safeExecution, safeVM, _modulePath, modulesCache, searchedPaths, context) {
+  const parentModulePath = typeof _modulePath !== 'string' ? _modulePath.parent : null
+  const modulePath = parentModulePath ? _modulePath.module : _modulePath
+
+  try {
+    if (Module.isBuiltin(modulePath)) {
+      return require(modulePath)
+    }
+
+    const resolveCacheKey = parentModulePath ? `${parentModulePath}::${modulePath}` : modulePath
+    let fullModulePath
+
+    if (RESOLVE_CACHE[resolveCacheKey]) {
+      console.log('REUSING FROM RESOLVE CACHE')
+      fullModulePath = RESOLVE_CACHE[resolveCacheKey]
+    } else {
+      fullModulePath = parentModulePath ? require.resolve(modulePath, { paths: [parentModulePath] }) : require.resolve(modulePath)
+      RESOLVE_CACHE[resolveCacheKey] = fullModulePath
+    }
+
+    console.log('RESOLVE CACHE:', Object.keys(RESOLVE_CACHE).join(' '))
+
+    if (modulesCache[fullModulePath]) {
+      return modulesCache[fullModulePath]
+    }
+
+    const dirname = path.dirname(fullModulePath)
+
+    let script
+
+    if (SCRIPT_CACHE[fullModulePath]) {
+      console.log('REUSING FROM SCRIPT CACHE')
+      script = SCRIPT_CACHE[fullModulePath]
+    } else {
+      let content = fs.readFileSync(fullModulePath, 'utf-8')
+      const contLen = content.length
+
+      if (contLen >= 2) {
+        if (
+          content.charCodeAt(0) === 35/*#*/ &&
+          content.charCodeAt(1) === 33/*!*/
+        ) {
+          if (contLen === 2) {
+            // Exact match
+            content = ''
+          } else {
+            // Find end of shebang line and slice it off
+            let i = 2
+
+            for (; i < contLen; ++i) {
+              const code = content.charCodeAt(i)
+
+              if (code === 10/*\n*/ || code === 13/*\r*/) {
+                break
+              }
+            }
+
+            if (i === contLen) {
+              content = ''
+            } else {
+              // Note that this actually includes the newline character(s) in the
+              // new output. This duplicates the behavior of the regular
+              // expression that was previously used to replace the shebang line
+              content = content.slice(i)
+            }
+          }
+        }
+      }
+
+      const wrapper = Module.wrap(content)
+
+      // script = new originalVM.Script(wrapper, {
+      //   filename: fullModulePath,
+      //   lineOffset: 0,
+      //   displayErrors: true
+      // })
+
+      script = doCompileScript(wrapper, fullModulePath, safeExecution)
+
+      SCRIPT_CACHE[fullModulePath] = script
+    }
+
+    // console.log('SCRIPT CACHE:', Object.keys(SCRIPT_CACHE).join(' '))
+
+    let run
+
+    if (safeExecution) {
+      run = () => {
+        return safeVM.run(script)
+      }
+    } else {
+      run = () => {
+        return script.runInContext(context, {
+          displayErrors: true
+        })
+      }
+    }
+
+    const compiledWrapper = run()
+
+    // const compiledWrapper = script.runInContext(context, {
+    //   filename: fullModulePath,
+    //   lineOffset: 0,
+    //   columnOffset: 0,
+    //   displayErrors: true
+    // })
+
+    // const compiledWrapper = originalVM.compileFunction(content, ['exports', 'require', 'module', '__filename', '__dirname'], {
+    //   filename: fullModulePath,
+    //   lineOffset: 0,
+    //   columnOffset: 0,
+    //   parsingContext: context
+    // })
+
+    function _require (id) {
+      return customRequire(safeExecution, safeVM, { parent: dirname, module: id }, modulesCache, null, context)
+    }
+
+    const mod = {
+      exports: {}
+    }
+
+    const args = [mod.exports, _require, mod, fullModulePath, dirname]
+
+    compiledWrapper.apply(mod.exports, args)
+
+    // console.log('REQUIRE CACHE CURRENT LENGTH AFTER require():', Object.keys(require.cache).length)
+
+    modulesCache[fullModulePath] = mod.exports
+
+    return mod.exports
+  } catch (e) {
+    if (e.code && e.code === 'MODULE_NOT_FOUND' && searchedPaths) {
+      if (!searchedPaths.includes(modulePath)) {
+        searchedPaths.push(modulePath)
+      }
+
+      return false
+    } else {
+      if (searchedPaths) {
+        throw new Error(`Unable to require module ${modulePath}. ${e.message}${os.EOL}${e.stack}`)
+      }
+
+      throw e
+    }
+  }
 }
 
 function decorateErrorMessage (e, sourceFilesInfo) {

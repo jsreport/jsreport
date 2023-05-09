@@ -15,6 +15,80 @@ describe('sandbox', () => {
     common(true)
   })
 
+  describe.skip('safe and require', () => {
+    beforeEach(async () => {
+      reporter = jsreport({
+        reportTimeout: 99999999,
+        rootDirectory: __dirname,
+        appDirectory: __dirname,
+        sandbox: {
+          allowedModules: ['helperB', 'hackHelperB']
+        }
+      })
+      reporter.use(jsreport.tests.listeners())
+
+      await reporter.init()
+    })
+
+    it('should prevent constructor hacks when using require', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: 'const b = require(\'helperB\'); debugger;this.constructor.constructor(\'return process\')().exit()',
+          executionFn: ({ context }) => {
+            return JSON.stringify(context)
+          },
+          propertiesConfig: {
+            'a.d': {
+              sandboxHidden: true
+            },
+            'a.c': {
+              sandboxReadOnly: true
+            }
+          }
+        }, req)
+        res.content = Buffer.from(r)
+      })
+
+      return reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      }).should.be.rejectedWith(/process is not defined/)
+    })
+
+    it('should prevent constructor hacks when using require #2', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: 'require(\'hackHelperB\')();',
+          executionFn: ({ context }) => {
+            return JSON.stringify(context)
+          },
+          propertiesConfig: {
+            'a.d': {
+              sandboxHidden: true
+            },
+            'a.c': {
+              sandboxReadOnly: true
+            }
+          }
+        }, req)
+        res.content = Buffer.from(r)
+      })
+
+      return reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      }).should.be.rejectedWith(/process is not defined/)
+    })
+  })
+
   describe('unsafe', () => {
     beforeEach(async () => {
       reporter = jsreport({ trustUserCode: true })
