@@ -5,10 +5,10 @@ const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 10)
 const createSandbox = require('./createSandbox')
 const normalizeError = require('../../shared/normalizeError')
 
-module.exports = (reporter) => {
+module.exports = function createRunInSandbox (reporter) {
   const functionsCache = LRU(reporter.options.sandbox.cache)
 
-  return async ({
+  return async function runInSandbox ({
     manager = {},
     context,
     userCode,
@@ -18,7 +18,7 @@ module.exports = (reporter) => {
     onRequire,
     propertiesConfig,
     errorLineNumberOffset = 0
-  }, req) => {
+  }, req) {
     let jsreportProxy = null
 
     // we use dynamic name because of the potential nested vm2 execution in the jsreportProxy.assets.require
@@ -34,6 +34,7 @@ module.exports = (reporter) => {
     context.__handleError = (err) => handleError(reporter, err)
 
     const { sourceFilesInfo, run, compileScript, restore, sandbox, sandboxRequire } = createSandbox(context, {
+      rootDirectory: reporter.options.rootDirectory,
       onLog: (log) => {
         // we mark any log done in sandbox as userLevel: true, this allows us to detect which logs belongs to user
         // and can potentially contain sensitive information
@@ -52,6 +53,7 @@ module.exports = (reporter) => {
         error.message += ` To be able to require custom modules you need to add to configuration { "trustUserCode": true } or enable just specific module using { sandbox: { allowedModules": ["${moduleName}"] }`
       },
       safeExecution: reporter.options.trustUserCode === false,
+      isolateModules: reporter.options.sandbox.isolateModules !== false,
       modulesCache: reporter.requestModulesCache.get(req.context.rootId),
       globalModules: reporter.options.sandbox.nativeModules || [],
       allowedModules: reporter.options.sandbox.allowedModules,
@@ -78,7 +80,7 @@ module.exports = (reporter) => {
       }
     })
 
-    const _getTopLevelFunctions = (code) => {
+    const _getTopLevelFunctions = function _getTopLevelFunctions (code) {
       return getTopLevelFunctions(functionsCache, code)
     }
 
@@ -90,7 +92,7 @@ module.exports = (reporter) => {
       sandboxRequire
     })
 
-    jsreportProxy.currentPath = async () => {
+    jsreportProxy.currentPath = async function getCurrentPath () {
       // we get the current path by throwing an error, which give us a stack trace
       // which we analyze and see if some source file is associated to an entity
       // if it is then we can properly get the path associated to it, if not we
@@ -119,7 +121,7 @@ module.exports = (reporter) => {
       return resolvedPath
     }
 
-    jsreportProxy.currentDirectoryPath = async () => {
+    jsreportProxy.currentDirectoryPath = async function getCurrentDirectoryPath () {
       const currentPath = await jsreportProxy.currentPath()
 
       if (currentPath != null) {
@@ -154,8 +156,6 @@ module.exports = (reporter) => {
           handleError(reporter, e)
         }
       }
-
-      console.log('REQUIRE CACHE LENGTH AFTER SANDBOX INIT FN:', Object.keys(require.cache).length)
     }
 
     const functionNames = getTopLevelFunctions(functionsCache, userCode)

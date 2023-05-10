@@ -1,5 +1,6 @@
 const extend = require('node.extend.without.arrays')
 const vm = require('vm')
+const Module = require('module')
 const path = require('path')
 const process = require('process')
 
@@ -39,7 +40,12 @@ module.exports = (reporter, definition) => {
       return script.runInThisContext({
         displayErrors: true
       })(req, res, {
+        mainModuleFilename: require.main.filename,
         require: (m) => {
+          if (Module.builtinModules.includes(m)) {
+            return require(m)
+          }
+
           try {
             return require(path.join(process.cwd(), 'node_modules', m))
           } catch (e) {

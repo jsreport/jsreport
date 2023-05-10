@@ -129,14 +129,35 @@ module.exports = (options = {}) => {
           workerOptions.options.chrome.launchOptions.executablePath = chromeLaunchOptions.executablePath
         }
 
+        let rootDirectory
+
+        if (options.rootDirectory) {
+          rootDirectory = options.rootDirectory
+        } else {
+          if (process.env.WORKDIR == null) {
+            throw new Error('env var WORKDIR is not defined, define it to allow correct setup of worker rootDirectory')
+          }
+
+          rootDirectory = process.env.WORKDIR
+        }
+
+        workerOptions.options.rootDirectory = rootDirectory
+        workerOptions.options.appDirectory = rootDirectory
+        workerOptions.options.parentModuleDirectory = rootDirectory
         workerOptions.options.tempDirectory = options.tempDirectory || '/tmp/jsreport'
+        workerOptions.options.tempCoreDirectory = options.tempCoreDirectory || '/tmp/jsreport/core'
         workerOptions.options.tempAutoCleanupDirectory = options.tempAutoCleanupDirectory || '/tmp/jsreport/autocleanup'
+
         await fs.promises.mkdir(workerOptions.options.tempDirectory, {
+          recursive: true
+        })
+        await fs.promises.mkdir(workerOptions.options.tempCoreDirectory, {
           recursive: true
         })
         await fs.promises.mkdir(workerOptions.options.tempAutoCleanupDirectory, {
           recursive: true
         })
+
         const workerSystemOptions = reqBody.workerSystemOptions
         workerSystemOptions.workerModule = require.resolve('@jsreport/jsreport-core/lib/worker/workerHandler.js')
 

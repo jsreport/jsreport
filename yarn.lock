@@ -1480,6 +1480,84 @@
   resolved "https://registry.npmjs.org/@jsreport/node-signpdf/-/node-signpdf-1.4.2.tgz"
   integrity sha512-qk2IBd27OcrUc0JTNgzTwErZtOWO1BRzMEp153ShtZv9HGRF5KiyhAR0PqBx32LKdwlzcaCwHzSC9ciiuZJC/g==
 
+"@node-rs/jsonwebtoken-android-arm-eabi@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-android-arm-eabi/-/jsonwebtoken-android-arm-eabi-0.2.0.tgz#a8a36bddfb57c616cd0806c5296f3e8432969c14"
+  integrity sha512-HX/H83WxpB2nDQOdpYNyuaF4RRoddSPjNzHEJLD6lN1qeEOy61i3yz2XWS9t/s0POhqfFFHXFQKEtKR2LAi0QQ==
+
+"@node-rs/jsonwebtoken-android-arm64@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-android-arm64/-/jsonwebtoken-android-arm64-0.2.0.tgz#9288dc5371c134403c603435feb182ac2963e04f"
+  integrity sha512-uosWkkuKk+Q78wwfUGJJYFxM8I+WhDKMBMVXZC7mteDafGVSUE+SwbITOaCknqNa7QsTjeXINGJui0f2AEp58w==
+
+"@node-rs/jsonwebtoken-darwin-arm64@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-darwin-arm64/-/jsonwebtoken-darwin-arm64-0.2.0.tgz#6e15c2dad0f130f500762e70c85c85d50332a44c"
+  integrity sha512-RspcYQHx6+ahS74QIR5OG6lBiBrzFddND5bvvHFYcE9WOIjHYxa2e1LgQb1fn+VpEHjg6YYzIyb8EYiL2U7sEQ==
+
+"@node-rs/jsonwebtoken-darwin-x64@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-darwin-x64/-/jsonwebtoken-darwin-x64-0.2.0.tgz#296db2f041f7bad08972c0a203cacb1948a47100"
+  integrity sha512-E9D78S02i0B6AdGGNfyaMk6zbnxoH6yGYwsYaVoplb8iP4v2ID1M2S+tYLDQw+guUgiLQgYPh8PMkc51RD9B+Q==
+
+"@node-rs/jsonwebtoken-freebsd-x64@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-freebsd-x64/-/jsonwebtoken-freebsd-x64-0.2.0.tgz#95df7d02a2a5cdab4fa7d34dd31d22a2f6476ad8"
+  integrity sha512-I2xPa1CL8HKEiVXXj7LbM/qziLeIKdd/ku92b7OmUv+7OJBuanOI9Edxskj8sJid1iqufErg4RcRUZu8nXupEw==
+
+"@node-rs/jsonwebtoken-linux-arm-gnueabihf@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-linux-arm-gnueabihf/-/jsonwebtoken-linux-arm-gnueabihf-0.2.0.tgz#cf35070a93cf5172a0b15d90ee5e93f37904e5d9"
+  integrity sha512-vfnc6OjcdyuZQGCiyI4zarGTJRq+iqZP/IjGvi1s5Av73wmyYf0GiF3M2QRl2Iy5M4uGMON1NoR9vd+4Je+fLw==
+
+"@node-rs/jsonwebtoken-linux-arm64-gnu@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-linux-arm64-gnu/-/jsonwebtoken-linux-arm64-gnu-0.2.0.tgz#74e18d876dfab0aebbdda7b6a235d025efaf9748"
+  integrity sha512-svmVjb4QOoh/kw7zSKteNh08QujWxp5NPhKHHm99a7GcO7zVjTLslX/eM52CEgtk1Bgk5qA1v2n6Njt38vL2fQ==
+
+"@node-rs/jsonwebtoken-linux-arm64-musl@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-linux-arm64-musl/-/jsonwebtoken-linux-arm64-musl-0.2.0.tgz#9ba3d6857c6cb2bb944a58ce91099d5e7a442ece"
+  integrity sha512-LIqUDeJUeEz1otkJ9ziBEkhWurS20fUJ/NqMRpNBU2pM668U5WrBDyBg9Ov11m4iAFycjH/hBHFWRJpKqIzGbQ==
+
+"@node-rs/jsonwebtoken-linux-x64-gnu@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-linux-x64-gnu/-/jsonwebtoken-linux-x64-gnu-0.2.0.tgz#dbd8aea9fe4ab16e19c2a8cdf3bf426572077627"
+  integrity sha512-yvyWYo+P5tzlrq/DS+G2yrq2n4NSl+S8Lsq0rRiUFWbDAEFiSKMHel4iwi770eu/RtxuNqTGGWuRShBfSXo3Rg==
+
+"@node-rs/jsonwebtoken-linux-x64-musl@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-linux-x64-musl/-/jsonwebtoken-linux-x64-musl-0.2.0.tgz#c9da9e34318dd247086e01718326b7057ecb3e97"
+  integrity sha512-9/qRvpW0vA+GsZ1o1a2tmSgW7bdlw0r082/HKuyVwbDadBh1xy9mEIhJD9wDZ0hDkH/0LIdlzxAwFsW8eb/lfA==
+
+"@node-rs/jsonwebtoken-win32-ia32-msvc@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-win32-ia32-msvc/-/jsonwebtoken-win32-ia32-msvc-0.2.0.tgz#2082c09ea64f1c78c69712e0d5e7596bce705471"
+  integrity sha512-pcoiGPq7lE0KQLuyqVosO8kgwkGVN2yk8xD6y1s0RUxmVcObfemSxrPc15CvHb4Ypw8NFw5/V7fXCSNlccp+wQ==
+
+"@node-rs/jsonwebtoken-win32-x64-msvc@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken-win32-x64-msvc/-/jsonwebtoken-win32-x64-msvc-0.2.0.tgz#d887e40be5d3c9d9d65696adaa49f73c3fe547b6"
+  integrity sha512-yVDl1+spwRn5nXS7mpoifSjgGSgDZayJW0OHBW56fcT2S9wx2xZ9tEydJpiyScaTbKMqNTwwIwuIWXSw3voDsg==
+
+"@node-rs/jsonwebtoken@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@node-rs/jsonwebtoken/-/jsonwebtoken-0.2.0.tgz#6de475d9a4becb8b71148583c66ba0f3eec91c36"
+  integrity sha512-jX/fZFM2D1mcAaqE2QIG6hexPs6N5it18KdMvqxnLUu+gCYpIa5xtnM4ovVMYAUuzbp2Mk0eDfY4n3wbRBwK4g==
+  optionalDependencies:
+    "@node-rs/jsonwebtoken-android-arm-eabi" "0.2.0"
+    "@node-rs/jsonwebtoken-android-arm64" "0.2.0"
+    "@node-rs/jsonwebtoken-darwin-arm64" "0.2.0"
+    "@node-rs/jsonwebtoken-darwin-x64" "0.2.0"
+    "@node-rs/jsonwebtoken-freebsd-x64" "0.2.0"
+    "@node-rs/jsonwebtoken-linux-arm-gnueabihf" "0.2.0"
+    "@node-rs/jsonwebtoken-linux-arm64-gnu" "0.2.0"
+    "@node-rs/jsonwebtoken-linux-arm64-musl" "0.2.0"
+    "@node-rs/jsonwebtoken-linux-x64-gnu" "0.2.0"
+    "@node-rs/jsonwebtoken-linux-x64-musl" "0.2.0"
+    "@node-rs/jsonwebtoken-win32-ia32-msvc" "0.2.0"
+    "@node-rs/jsonwebtoken-win32-x64-msvc" "0.2.0"
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.npmjs.org/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz"

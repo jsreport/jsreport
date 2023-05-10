@@ -1,0 +1,5 @@
+{
+  "name": "module-with-type-module",
+  "type": "module",
+  "main": "index.js"
+}

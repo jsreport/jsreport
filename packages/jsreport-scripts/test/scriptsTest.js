@@ -6,6 +6,7 @@ describe('scripts', () => {
 
   beforeEach(() => {
     reporter = JsReport({
+      rootDirectory: __dirname,
       reportTimeout: 4000,
       sandbox: {
         allowedModules: ['bluebird', 'helperA']

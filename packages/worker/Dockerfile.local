@@ -43,7 +43,8 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | b
 ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
 ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
-WORKDIR /app
+ENV WORKDIR=/app
+WORKDIR $WORKDIR
 
 ENV WORKSPACE_PACKAGES_BUILD true
 

@@ -1,34 +1,21 @@
-const Module = require('module')
-const os = require('os')
 const util = require('util')
-const path = require('path')
-const fs = require('fs')
-const extend = require('node.extend.without.arrays')
-const get = require('lodash.get')
-const set = require('lodash.set')
-const hasOwn = require('has-own-deep')
-const unsetValue = require('unset-value')
-const groupBy = require('lodash.groupby')
 const { VM, VMScript } = require('vm2')
 const originalVM = require('vm')
 const stackTrace = require('stack-trace')
 const { codeFrameColumns } = require('@babel/code-frame')
+const createPropertiesManager = require('./propertiesSandbox')
+const createSandboxRequire = require('./requireSandbox')
 
-let CONTEXT
-
-const RESOLVE_CACHE = Object.create(null)
-const SCRIPT_CACHE = Object.create(null)
-
-module.exports = (_sandbox, options = {}) => {
-  // console.log('REQUIRE CACHE INITIAL LENGTH:', Object.keys(require.cache).length)
-
+module.exports = function createSandbox (_sandbox, options = {}) {
   const {
+    rootDirectory,
     onLog,
     formatError,
     propertiesConfig = {},
     globalModules = [],
     allowedModules = [],
     safeExecution,
+    isolateModules,
     requireMap
   } = options
 
@@ -48,75 +35,35 @@ module.exports = (_sandbox, options = {}) => {
   // remove duplicates in paths
   requirePaths = requirePaths.filter((v, i) => requirePaths.indexOf(v) === i)
 
-  function addConsoleMethod (consoleMethod, level) {
-    _console[consoleMethod] = function () {
-      if (onLog == null) {
-        return
-      }
+  addConsoleMethod(_console, 'log', 'debug', onLog)
+  addConsoleMethod(_console, 'warn', 'warn', onLog)
+  addConsoleMethod(_console, 'error', 'error', onLog)
 
-      onLog({
-        timestamp: new Date().getTime(),
-        level: level,
-        message: util.format.apply(util, arguments)
-      })
-    }
-  }
-
-  addConsoleMethod('log', 'debug')
-  addConsoleMethod('warn', 'warn')
-  addConsoleMethod('error', 'error')
-
-  const propsConfig = normalizePropertiesConfigInHierarchy(propertiesConfig)
-  const originalValues = {}
-  const proxiesInVM = new WeakMap()
-  const customProxies = new WeakMap()
+  const propsManager = createPropertiesManager(propertiesConfig)
 
   // we copy the object based on config to avoid sharing same context
   // (with getters/setters) in the rest of request pipeline
-  const sandbox = copyBasedOnPropertiesConfig(_sandbox, propertiesConfig)
+  const sandbox = propsManager.copyPropertyValuesFrom(_sandbox)
 
-  applyPropertiesConfig(sandbox, propsConfig, {
-    original: originalValues,
-    customProxies
-  })
+  propsManager.applyPropertiesConfigTo(sandbox)
 
   let safeVM
+  // with standard vm this variable is the same as context, with vm2 it is a proxy of context
+  // (which is not the real internal context)
   let vmSandbox
 
-  const _require = function (moduleName, { context, useMap = true, allowAllModules = false } = {}) {
-    if (useMap && requireMap) {
-      const mapResult = requireMap(moduleName, { context })
-
-      if (mapResult != null) {
-        return mapResult
-      }
-    }
-
-    if (!safeExecution || allowAllModules || allowedModules === '*') {
-      // return require.main.require(moduleName)
-      return doRequire(safeExecution, safeVM, moduleName, requirePaths, modulesCache, context)
-    }
-
-    const m = allowedModules.find(mod => (mod.id || mod) === moduleName)
-
-    if (m) {
-      return doRequire(safeExecution, safeVM, m.path || moduleName, requirePaths, modulesCache, context)
-    }
-
-    const error = new Error(
-      `require of "${moduleName}" module has been blocked.`
-    )
-
-    if (formatError) {
-      formatError(error, moduleName)
-    }
-
-    throw error
-  }
+  const doSandboxRequire = createSandboxRequire(safeExecution, isolateModules, modulesCache, {
+    rootDirectory,
+    requirePaths,
+    requireMap,
+    allowedModules,
+    compileScript: doCompileScript,
+    formatError
+  })
 
   Object.assign(sandbox, {
     console: _console,
-    require: (m) => _require(m, { context: vmSandbox })
+    require (m) { return doSandboxRequire(m, { context: vmSandbox }) }
   })
 
   if (safeExecution) {
@@ -130,35 +77,39 @@ module.exports = (_sandbox, options = {}) => {
       safeVM.setGlobal(name, sandbox[name])
     }
 
+    // so far we don't have the need to have access to real vm context inside vm2,
+    // but if we need it, we should use the code bellow to get it.
+    // NOTE: if we need to upgrade vm2 we will need to check the source of this function
+    // in vm2 repo and see if we need to change this,
+    // we just execute this to get access to the internal context, so we can use it later
+    // with the our require function, in newer versions of vm2 we may need to change how to
+    // get access to it
+    // https://github.com/patriksimek/vm2/blob/3.9.17/lib/vm.js#L281
+    // safeVM._runScript({
+    //   runInContext: (_context) => {
+    //     vmContext = _context
+    //     return ''
+    //   }
+    // })
+
     vmSandbox = safeVM.sandbox
   } else {
-    // if (CONTEXT) {
-    //   vmSandbox = CONTEXT
-    // } else {
     vmSandbox = originalVM.createContext(undefined)
     vmSandbox.Buffer = Buffer
-    //   CONTEXT = vmSandbox
-    // }
 
     for (const name in sandbox) {
       vmSandbox[name] = sandbox[name]
     }
   }
 
-  // processing top level props because getter/setter descriptors
+  // processing top level props here because getter/setter descriptors
   // for top level properties will only work after VM instantiation
-  Object.keys(propsConfig).forEach((key) => {
-    const currentConfig = propsConfig[key]
-
-    if (currentConfig.root && currentConfig.root.sandboxReadOnly) {
-      readOnlyProp(vmSandbox, key, [], customProxies, { onlyTopLevel: true })
-    }
-  })
+  propsManager.applyRootPropertiesConfigTo(vmSandbox)
 
   for (const info of globalModules) {
-    // it is important to use "doRequire" function here to avoid
+    // it is important to use _sandboxRequire function with allowAllModules: true here to avoid
     // getting hit by the allowed modules restriction
-    vmSandbox[info.globalVariableName] = _require(info.module, { context: vmSandbox, useMap: false, allowAllModules: true }) // doRequire(info.module, requirePaths, modulesCache)
+    vmSandbox[info.globalVariableName] = doSandboxRequire(info.module, { context: vmSandbox, useMap: false, allowAllModules: true })
   }
 
   const sourceFilesInfo = new Map()
@@ -167,15 +118,17 @@ module.exports = (_sandbox, options = {}) => {
     sandbox: vmSandbox,
     console: _console,
     sourceFilesInfo,
-    compileScript: (code, filename) => {
+    compileScript (code, filename) {
       return doCompileScript(code, filename, safeExecution)
     },
-    restore: () => {
-      return restoreProperties(vmSandbox, originalValues, proxiesInVM, customProxies)
+    restore () {
+      return propsManager.restorePropertiesFrom(vmSandbox)
     },
-    sandboxRequire: (modulePath) => _require(modulePath, { context: vmSandbox, allowAllModules: true }),
-    run: async (codeOrScript, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) => {
-      let run
+    sandboxRequire (modulePath) {
+      return doSandboxRequire(modulePath, { context: vmSandbox, allowAllModules: true })
+    },
+    async run (codeOrScript, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) {
+      let runScript
 
       if (filename != null && source != null) {
         sourceFilesInfo.set(filename, { filename, source, entity, entitySet, errorLineNumberOffset })
@@ -184,11 +137,11 @@ module.exports = (_sandbox, options = {}) => {
       const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
 
       if (safeExecution) {
-        run = async () => {
+        runScript = async function runScript () {
           return safeVM.run(script)
         }
       } else {
-        run = async () => {
+        runScript = async function runScript () {
           return script.runInContext(vmSandbox, {
             displayErrors: true
           })
@@ -196,7 +149,7 @@ module.exports = (_sandbox, options = {}) => {
       }
 
       try {
-        const result = await run()
+        const result = await runScript()
         return result
       } catch (e) {
         decorateErrorMessage(e, sourceFilesInfo)
@@ -217,6 +170,7 @@ function doCompileScript (code, filename, safeExecution) {
     // in vm2 repo and see if we need to change this,
     // we needed to override this method because we want "displayErrors" to be true in order
     // to show nice error when the compile of a script fails
+    // https://github.com/patriksimek/vm2/blob/3.9.17/lib/script.js#L329
     script._compile = function (prefix, suffix) {
       return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
         __proto__: null,
@@ -248,237 +202,6 @@ function doCompileScript (code, filename, safeExecution) {
   }
 
   return script
-}
-
-function doRequire (safeExecution, safeVM, moduleName, _requirePaths, modulesCache, context) {
-  // console.log('REQUIRE CACHE CURRENT LENGTH BEFORE require():', Object.keys(require.cache).length)
-  const searchedPaths = []
-  const requirePaths = _requirePaths || []
-
-  let result = customRequire(safeExecution, safeVM, moduleName, modulesCache, searchedPaths, context)
-  // let result = optimizedRequire(require, moduleName, modulesCache, searchedPaths)
-
-  if (!result) {
-    let pathsSearched = 0
-
-    while (!result && pathsSearched < requirePaths.length) {
-      result = customRequire(safeExecution, safeVM, path.join(requirePaths[pathsSearched], moduleName), modulesCache, searchedPaths, context)
-      // result = optimizedRequire(require, path.join(requirePaths[pathsSearched], moduleName), modulesCache, searchedPaths)
-      pathsSearched++
-    }
-  }
-
-  if (!result) {
-    throw new Error(`Unable to find module ${moduleName}${os.EOL}The require calls:${os.EOL}${searchedPaths.map(p => `require('${p}')`).join(os.EOL)}${os.EOL}`)
-  }
-
-  return result
-}
-
-function optimizedRequire (_require, modulePath, modulesCache, searchedPaths) {
-  // save the current module cache, we will use this to restore the cache to the
-  // original values after the require finish
-  const originalModuleCache = Object.assign(Object.create(null), _require.cache)
-
-  // clean/empty the current module cache
-  for (const cacheKey of Object.keys(_require.cache)) {
-    delete _require.cache[cacheKey]
-  }
-
-  // restore any previous cache generated in the sandbox
-  for (const cacheKey of Object.keys(modulesCache)) {
-    _require.cache[cacheKey] = modulesCache[cacheKey]
-  }
-
-  try {
-    const moduleExport = _require.main ? _require.main.require(modulePath) : _require(modulePath)
-
-    // console.log('REQUIRE CACHE CURRENT LENGTH AFTER require():', Object.keys(require.cache).length)
-
-    _require.main.children.splice(_require.main.children.indexOf(m => m.id === _require.resolve(modulePath)), 1)
-
-    // save the current module cache generated after the require into the internal cache,
-    // and clean the current module cache again
-    for (const cacheKey of Object.keys(_require.cache)) {
-      modulesCache[cacheKey] = _require.cache[cacheKey]
-      delete _require.cache[cacheKey]
-    }
-
-    // restore the current module cache to the original cache values
-    for (const [oldCacheKey, value] of Object.entries(originalModuleCache)) {
-      _require.cache[oldCacheKey] = value
-    }
-
-    return moduleExport
-  } catch (e) {
-    // clean the current module cache again
-    for (const cacheKey of Object.keys(_require.cache)) {
-      delete _require.cache[cacheKey]
-    }
-
-    // restore the current module cache to the original cache values
-    for (const [oldCacheKey, value] of Object.entries(originalModuleCache)) {
-      _require.cache[oldCacheKey] = value
-    }
-
-    if (e.code && e.code === 'MODULE_NOT_FOUND') {
-      if (!searchedPaths.includes(modulePath)) {
-        searchedPaths.push(modulePath)
-      }
-
-      return false
-    } else {
-      throw new Error(`Unable to require module ${moduleName}. ${e.message}${os.EOL}${e.stack}`)
-    }
-  }
-}
-
-function customRequire (safeExecution, safeVM, _modulePath, modulesCache, searchedPaths, context) {
-  const parentModulePath = typeof _modulePath !== 'string' ? _modulePath.parent : null
-  const modulePath = parentModulePath ? _modulePath.module : _modulePath
-
-  try {
-    if (Module.isBuiltin(modulePath)) {
-      return require(modulePath)
-    }
-
-    const resolveCacheKey = parentModulePath ? `${parentModulePath}::${modulePath}` : modulePath
-    let fullModulePath
-
-    if (RESOLVE_CACHE[resolveCacheKey]) {
-      console.log('REUSING FROM RESOLVE CACHE')
-      fullModulePath = RESOLVE_CACHE[resolveCacheKey]
-    } else {
-      fullModulePath = parentModulePath ? require.resolve(modulePath, { paths: [parentModulePath] }) : require.resolve(modulePath)
-      RESOLVE_CACHE[resolveCacheKey] = fullModulePath
-    }
-
-    console.log('RESOLVE CACHE:', Object.keys(RESOLVE_CACHE).join(' '))
-
-    if (modulesCache[fullModulePath]) {
-      return modulesCache[fullModulePath]
-    }
-
-    const dirname = path.dirname(fullModulePath)
-
-    let script
-
-    if (SCRIPT_CACHE[fullModulePath]) {
-      console.log('REUSING FROM SCRIPT CACHE')
-      script = SCRIPT_CACHE[fullModulePath]
-    } else {
-      let content = fs.readFileSync(fullModulePath, 'utf-8')
-      const contLen = content.length
-
-      if (contLen >= 2) {
-        if (
-          content.charCodeAt(0) === 35/*#*/ &&
-          content.charCodeAt(1) === 33/*!*/
-        ) {
-          if (contLen === 2) {
-            // Exact match
-            content = ''
-          } else {
-            // Find end of shebang line and slice it off
-            let i = 2
-
-            for (; i < contLen; ++i) {
-              const code = content.charCodeAt(i)
-
-              if (code === 10/*\n*/ || code === 13/*\r*/) {
-                break
-              }
-            }
-
-            if (i === contLen) {
-              content = ''
-            } else {
-              // Note that this actually includes the newline character(s) in the
-              // new output. This duplicates the behavior of the regular
-              // expression that was previously used to replace the shebang line
-              content = content.slice(i)
-            }
-          }
-        }
-      }
-
-      const wrapper = Module.wrap(content)
-
-      // script = new originalVM.Script(wrapper, {
-      //   filename: fullModulePath,
-      //   lineOffset: 0,
-      //   displayErrors: true
-      // })
-
-      script = doCompileScript(wrapper, fullModulePath, safeExecution)
-
-      SCRIPT_CACHE[fullModulePath] = script
-    }
-
-    // console.log('SCRIPT CACHE:', Object.keys(SCRIPT_CACHE).join(' '))
-
-    let run
-
-    if (safeExecution) {
-      run = () => {
-        return safeVM.run(script)
-      }
-    } else {
-      run = () => {
-        return script.runInContext(context, {
-          displayErrors: true
-        })
-      }
-    }
-
-    const compiledWrapper = run()
-
-    // const compiledWrapper = script.runInContext(context, {
-    //   filename: fullModulePath,
-    //   lineOffset: 0,
-    //   columnOffset: 0,
-    //   displayErrors: true
-    // })
-
-    // const compiledWrapper = originalVM.compileFunction(content, ['exports', 'require', 'module', '__filename', '__dirname'], {
-    //   filename: fullModulePath,
-    //   lineOffset: 0,
-    //   columnOffset: 0,
-    //   parsingContext: context
-    // })
-
-    function _require (id) {
-      return customRequire(safeExecution, safeVM, { parent: dirname, module: id }, modulesCache, null, context)
-    }
-
-    const mod = {
-      exports: {}
-    }
-
-    const args = [mod.exports, _require, mod, fullModulePath, dirname]
-
-    compiledWrapper.apply(mod.exports, args)
-
-    // console.log('REQUIRE CACHE CURRENT LENGTH AFTER require():', Object.keys(require.cache).length)
-
-    modulesCache[fullModulePath] = mod.exports
-
-    return mod.exports
-  } catch (e) {
-    if (e.code && e.code === 'MODULE_NOT_FOUND' && searchedPaths) {
-      if (!searchedPaths.includes(modulePath)) {
-        searchedPaths.push(modulePath)
-      }
-
-      return false
-    } else {
-      if (searchedPaths) {
-        throw new Error(`Unable to require module ${modulePath}. ${e.message}${os.EOL}${e.stack}`)
-      }
-
-      throw e
-    }
-  }
 }
 
 function decorateErrorMessage (e, sourceFilesInfo) {
@@ -553,484 +276,88 @@ function decorateErrorMessage (e, sourceFilesInfo) {
   e.message = `${e.message}`
 }
 
-function getOriginalFromProxy (proxiesInVM, customProxies, value) {
-  let newValue
-
-  if (customProxies.has(value)) {
-    newValue = getOriginalFromProxy(proxiesInVM, customProxies, customProxies.get(value))
-  } else if (proxiesInVM.has(value)) {
-    newValue = getOriginalFromProxy(proxiesInVM, customProxies, proxiesInVM.get(value))
-  } else {
-    newValue = value
-  }
-
-  return newValue
-}
-
-function copyBasedOnPropertiesConfig (context, propertiesMap) {
-  const copied = []
-  const newContext = Object.assign({}, context)
-
-  Object.keys(propertiesMap).sort(sortPropertiesByLevel).forEach((prop) => {
-    const parts = prop.split('.')
-    const lastPartsIndex = parts.length - 1
-
-    for (let i = 0; i <= lastPartsIndex; i++) {
-      let currentContext = newContext
-      const propName = parts[i]
-      const parentPath = parts.slice(0, i).join('.')
-      const fullPropName = parts.slice(0, i + 1).join('.')
-      let value
-
-      if (copied.indexOf(fullPropName) !== -1) {
-        continue
-      }
-
-      if (parentPath !== '') {
-        currentContext = get(newContext, parentPath)
-      }
-
-      if (currentContext) {
-        value = currentContext[propName]
-
-        if (typeof value === 'object') {
-          if (value === null) {
-            value = null
-          } else if (Array.isArray(value)) {
-            value = Object.assign([], value)
-          } else {
-            value = Object.assign({}, value)
-          }
-
-          currentContext[propName] = value
-          copied.push(fullPropName)
-        }
-      }
-    }
-  })
-
-  return newContext
-}
-
-function applyPropertiesConfig (context, config, {
-  original,
-  customProxies,
-  isRoot = true,
-  isGrouped = true,
-  onlyReadOnlyTopLevel = false,
-  parentOpts,
-  prop
-} = {}, readOnlyConfigured = []) {
-  let isHidden
-  let isReadOnly
-  let standalonePropertiesHandled = false
-  let innerPropertiesHandled = false
-
-  if (isRoot) {
-    return Object.keys(config).forEach((key) => {
-      applyPropertiesConfig(context, config[key], {
-        original,
-        customProxies,
-        prop: key,
-        isRoot: false,
-        isGrouped: true,
-        onlyReadOnlyTopLevel,
-        parentOpts
-      }, readOnlyConfigured)
-    })
-  }
-
-  if (parentOpts && parentOpts.sandboxHidden === true) {
-    return
-  }
-
-  if (isGrouped) {
-    isHidden = config.root ? config.root.sandboxHidden === true : false
-    isReadOnly = config.root ? config.root.sandboxReadOnly === true : false
-  } else {
-    isHidden = config ? config.sandboxHidden === true : false
-    isReadOnly = config ? config.sandboxReadOnly === true : false
-  }
-
-  let shouldStoreOriginal = isHidden || isReadOnly
-
-  // prevent storing original value if there is config some child prop
-  if (
-    shouldStoreOriginal &&
-    isGrouped &&
-    (config.inner != null || config.standalone != null)
-  ) {
-    shouldStoreOriginal = false
-  }
-
-  // saving original value
-  if (shouldStoreOriginal) {
-    let exists = true
-    let newValue
-
-    if (hasOwn(context, prop)) {
-      const originalPropValue = get(context, prop)
-
-      if (typeof originalPropValue === 'object' && originalPropValue != null) {
-        if (Array.isArray(originalPropValue)) {
-          newValue = extend(true, [], originalPropValue)
-        } else {
-          newValue = extend(true, {}, originalPropValue)
-        }
-      } else {
-        newValue = originalPropValue
-      }
-    } else {
-      exists = false
-    }
-
-    original[prop] = {
-      exists,
-      value: newValue
-    }
-  }
-
-  const processStandAloneProperties = (c) => {
-    Object.keys(c.standalone).forEach((skey) => {
-      const sconfig = c.standalone[skey]
-
-      applyPropertiesConfig(context, sconfig, {
-        original,
-        customProxies,
-        prop: skey,
-        isRoot: false,
-        isGrouped: false,
-        onlyReadOnlyTopLevel,
-        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
-      }, readOnlyConfigured)
-    })
-  }
-
-  const processInnerProperties = (c) => {
-    Object.keys(c.inner).forEach((ikey) => {
-      const iconfig = c.inner[ikey]
-
-      applyPropertiesConfig(context, iconfig, {
-        original,
-        customProxies,
-        prop: ikey,
-        isRoot: false,
-        isGrouped: true,
-        parentOpts: { sandboxHidden: isHidden, sandboxReadOnly: isReadOnly }
-      }, readOnlyConfigured)
-    })
-  }
-
-  if (isHidden) {
-    omitProp(context, prop)
-  } else if (isReadOnly) {
-    readOnlyProp(context, prop, readOnlyConfigured, customProxies, {
-      onlyTopLevel: false,
-      onBeforeProxy: () => {
-        if (isGrouped && config.standalone != null) {
-          processStandAloneProperties(config)
-          standalonePropertiesHandled = true
-        }
-
-        if (isGrouped && config.inner != null) {
-          processInnerProperties(config)
-          innerPropertiesHandled = true
-        }
-      }
-    })
-  }
-
-  if (!isGrouped) {
-    return
-  }
-
-  // don't process inner config when the value in context is empty
-  if (get(context, prop) == null) {
-    return
-  }
-
-  if (!standalonePropertiesHandled && config.standalone != null) {
-    processStandAloneProperties(config)
-  }
-
-  if (!innerPropertiesHandled && config.inner != null) {
-    processInnerProperties(config)
-  }
-}
-
-function restoreProperties (context, originalValues, proxiesInVM, customProxies) {
-  const restored = []
-  const newContext = Object.assign({}, context)
-
-  Object.keys(originalValues).sort(sortPropertiesByLevel).forEach((prop) => {
-    const confValue = originalValues[prop]
-    const parts = prop.split('.')
-    const lastPartsIndex = parts.length - 1
-
-    for (let i = 0; i <= lastPartsIndex; i++) {
-      let currentContext = newContext
-      const propName = parts[i]
-      const parentPath = parts.slice(0, i).join('.')
-      const fullPropName = parts.slice(0, i + 1).join('.')
-      let value
-
-      if (restored.indexOf(fullPropName) !== -1) {
-        continue
-      }
-
-      if (parentPath !== '') {
-        currentContext = get(newContext, parentPath)
-      }
-
-      if (currentContext) {
-        value = currentContext[propName]
-
-        // unwrapping proxies
-        value = getOriginalFromProxy(proxiesInVM, customProxies, value)
-
-        if (typeof value === 'object') {
-          // we call object assign to be able to get rid of
-          // previous properties descriptors (hide/readOnly) configured
-          if (value === null) {
-            value = null
-          } else if (Array.isArray(value)) {
-            value = Object.assign([], value)
-          } else {
-            value = Object.assign({}, value)
-          }
-
-          currentContext[propName] = value
-          restored.push(fullPropName)
-        }
-
-        if (i === lastPartsIndex) {
-          if (confValue.exists) {
-            currentContext[propName] = confValue.value
-          } else {
-            delete currentContext[propName]
-          }
-        }
-      }
-    }
-  })
-
-  // unwrapping proxies for top level properties
-  Object.keys(newContext).forEach((prop) => {
-    newContext[prop] = getOriginalFromProxy(proxiesInVM, customProxies, newContext[prop])
-  })
-
-  return newContext
-}
-
-function omitProp (context, prop) {
-  // if property has value, then set it to undefined first,
-  // unsetValue expects that property has some non empty value to remove the property
-  // so we set to "true" to ensure it works for all cases,
-  // we use unsetValue instead of lodash.omit because
-  // it supports object paths x.y.z and does not copy the object for each call
-  if (hasOwn(context, prop)) {
-    set(context, prop, true)
-    unsetValue(context, prop)
-  }
-}
-
-function readOnlyProp (context, prop, configured, customProxies, { onlyTopLevel = false, onBeforeProxy } = {}) {
-  const parts = prop.split('.')
-  const lastPartsIndex = parts.length - 1
-
-  const throwError = (fullPropName) => {
-    throw new Error(`Can't modify read only property "${fullPropName}" inside sandbox`)
-  }
-
-  for (let i = 0; i <= lastPartsIndex; i++) {
-    let currentContext = context
-    const isTopLevelProp = i === 0
-    const propName = parts[i]
-    const parentPath = parts.slice(0, i).join('.')
-    const fullPropName = parts.slice(0, i + 1).join('.')
-    let value
-
-    if (configured.indexOf(fullPropName) !== -1) {
-      continue
-    }
-
-    if (parentPath !== '') {
-      currentContext = get(context, parentPath)
-    }
-
-    if (currentContext) {
-      value = currentContext[propName]
-
-      if (
-        i === lastPartsIndex &&
-        typeof value === 'object' &&
-        value != null
-      ) {
-        const valueType = Array.isArray(value) ? 'array' : 'object'
-        const rawValue = value
-
-        if (onBeforeProxy) {
-          onBeforeProxy()
-        }
-
-        value = new Proxy(rawValue, {
-          set: (target, prop) => {
-            throw new Error(`Can't add or modify property "${prop}" to read only ${valueType} "${fullPropName}" inside sandbox`)
-          },
-          deleteProperty: (target, prop) => {
-            throw new Error(`Can't delete property "${prop}" in read only ${valueType} "${fullPropName}" inside sandbox`)
-          }
-        })
-
-        customProxies.set(value, rawValue)
-      }
-
-      // only create the getter/setter wrapper if the property is defined,
-      // this prevents getting errors about proxy traps and descriptors differences
-      // when calling `JSON.stringify(req.context)` from a script
-      if (Object.prototype.hasOwnProperty.call(currentContext, propName)) {
-        if (!configured.includes(fullPropName)) {
-          configured.push(fullPropName)
-        }
-
-        Object.defineProperty(currentContext, propName, {
-          get: () => value,
-          set: () => { throwError(fullPropName) },
-          enumerable: true
-        })
-      }
-
-      if (isTopLevelProp && onlyTopLevel) {
-        break
-      }
-    }
-  }
-}
-
-function sortPropertiesByLevel (a, b) {
-  const parts = a.split('.')
-  const parts2 = b.split('.')
-
-  return parts.length - parts2.length
-}
-
-function normalizePropertiesConfigInHierarchy (configMap) {
-  const configMapKeys = Object.keys(configMap)
-
-  const groupedKeys = groupBy(configMapKeys, (key) => {
-    const parts = key.split('.')
-
-    if (parts.length === 1) {
-      return ''
-    }
-
-    return parts.slice(0, -1).join('.')
-  })
-
-  const hierarchy = []
-  const hierarchyLevels = {}
-
-  // we sort to ensure that top level properties names are processed first
-  Object.keys(groupedKeys).sort(sortPropertiesByLevel).forEach((key) => {
-    if (key === '') {
-      hierarchy.push('')
+function addConsoleMethod (target, consoleMethod, level, onLog) {
+  target[consoleMethod] = function () {
+    if (onLog == null) {
       return
     }
 
-    const parts = key.split('.')
-    const lastIndexParts = parts.length - 1
-
-    if (parts.length === 1) {
-      hierarchy.push(parts[0])
-      hierarchyLevels[key] = {}
-      return
-    }
-
-    for (let i = 0; i < parts.length; i++) {
-      const currentKey = parts.slice(0, i + 1).join('.')
-      const indexInHierarchy = hierarchy.indexOf(currentKey)
-      let parentHierarchy = hierarchyLevels
-
-      if (indexInHierarchy === -1 && i === lastIndexParts) {
-        let parentExistsInTopLevel = false
-
-        for (let j = 0; j < i; j++) {
-          const segmentedKey = parts.slice(0, j + 1).join('.')
-
-          if (parentExistsInTopLevel !== true) {
-            parentExistsInTopLevel = hierarchy.indexOf(segmentedKey) !== -1
-          }
-
-          if (parentHierarchy[segmentedKey] != null) {
-            parentHierarchy = parentHierarchy[segmentedKey]
-          }
-        }
-
-        if (!parentExistsInTopLevel) {
-          hierarchy.push(key)
-        }
-
-        parentHierarchy[key] = {}
-      }
-    }
-  })
-
-  const toHierarchyConfigMap = (parentLevels) => {
-    return (acu, key) => {
-      if (key === '') {
-        groupedKeys[key].forEach((g) => {
-          acu[g] = {}
-
-          if (configMap[g] != null) {
-            acu[g].root = configMap[g]
-          }
-        })
-
-        return acu
-      }
-
-      const currentLevel = parentLevels[key]
-
-      if (acu[key] == null) {
-        acu[key] = {}
-
-        if (configMap[key] != null) {
-          // root is config that was defined in the same property
-          // that it is grouped
-          acu[key].root = configMap[key]
-        }
-      }
-
-      // standalone are properties that are direct, no groups
-      acu[key].standalone = groupedKeys[key].reduce((obj, stdProp) => {
-        // only add the property is not already grouped
-        if (groupedKeys[stdProp] == null) {
-          obj[stdProp] = configMap[stdProp]
-        }
-
-        return obj
-      }, {})
-
-      if (Object.keys(acu[key].standalone).length === 0) {
-        delete acu[key].standalone
-      }
-
-      const levelKeys = Object.keys(currentLevel)
-
-      if (levelKeys.length === 0) {
-        return acu
-      }
-
-      // inner are properties which contains other properties, groups
-      acu[key].inner = levelKeys.reduce(toHierarchyConfigMap(currentLevel), {})
-
-      if (Object.keys(acu[key].inner).length === 0) {
-        delete acu[key].inner
-      }
-
-      return acu
-    }
+    onLog({
+      timestamp: new Date().getTime(),
+      level: level,
+      message: util.format.apply(util, arguments)
+    })
   }
-
-  return hierarchy.reduce(toHierarchyConfigMap(hierarchyLevels), {})
 }
+
+/**
+ * NOTE: In the past (<= 3.11.3) the code sandbox in jsreport have worked like this:
+ * User code (helpers, scripts, etc) are evaluated in a context we create dedicated to it
+ * (`vmSandbox` variable in this file), Modules (code you import using `require`) are evaluated
+ * with normal node.js require mechanism, which means such code is evaluated in the main context.
+ * One of our requirements is to have isolated modules in the sandbox, this means that
+ * imported modules in a render are not re-used in other completely different renders.
+ * This requirement differs in the way the node.js require works because it caches the modules,
+ * so if you require the same module in different places you get the same module instance,
+ * we don't want that, we want to have isolated modules in each render.
+ *
+ * To fullfil this requirement the approach we took was to make all the require calls inside the sandbox
+ * to not cache its resolved modules, to achieve that after a require call is done
+ * we proceed to restore the require.cache to its original state, the state that was there before
+ * a require call happens, which means we would have to save the current require.cache (before a require) then
+ * delete all entries in that object (using delete require.cache[entry]),
+ * so the require can re-evaluate the module code and give a fresh module instance.
+ * The problem we discovered later was that this approach leads to memory leaks,
+ * using the normal require and deleting something from require.cache is not a good idea,
+ * it makes memory leaks happen, we didn't dig deeper but it seems node.js internals rely
+ * on the presence of the entries to be there in the require.cache in order to execute
+ * cleanup during the require execution, handling this improperly make the memory leaks happens,
+ * unfortunately doing this properly seems to require access to node.js internals,
+ * so nothing else we can do here.
+ *
+ * NOTE: Currently (>= 3.12.0) the code sandbox works like this:
+ * User code (helpers, scripts, etc) are evaluated just like before, in a context we create dedicated to it,
+ * however Modules (code you import using `require`) are evaluated with a custom version of require (requireSandbox) we've created.
+ * This version of require does not cache resolved modules into the require.cache, so it does not suffer
+ * from the memory leaks described above in the past version.
+ * The required modules are still cached but in our own managed cache, which only lives per render,
+ * so different requires to same modules in same render will return the same module instance (as expected)
+ *
+ * The main problem we found initially with the custom require was that creating a new
+ * instance of vm.Script per module to be evaluated allocated a lot of memory when doing a test case with lot of renders,
+ * no matter how many times the same module is required across renders, it was going to be compiled again.
+ * the problem was that GC (Garbage Collector) becomes really lazy to claim back the memory used
+ * for these scripts, in the end after some idle time the GC claims back the memory but it takes time,
+ * this is problem when you do a test case like doing 200 to 1000 renders to a template,
+ * it makes memory to be allocated a lot and not released just after some time of being idle, if you don't
+ * give it idle time it will eventually just choke and break with heap of out memory errors
+ * https://github.com/nodejs/node/issues/40014, https://github.com/nodejs/node/issues/3113,
+ * https://github.com/jestjs/jest/issues/11956
+ * A workaround to alleviate the issue was to cache scripts, so module is evaluated only once
+ * across renders, this is not a problem because we are not caching the module itself, only the compile part
+ * which makes sense. with this workaround the test case of 200 - 1000 renders allocates less memory
+ * but still the GC continue to be lazy, just that it will hold longer until it breaks
+ * with the heap out of memory error.
+ * A possible fix to this problem of the lazy GC we found was to use manually call the GC
+ * (when running node with --expose-gc), using something like this after render `setTimeout(() => { gc() }, 500)`,
+ * this makes the case to release memory better and more faster, however we did not added this because
+ * we don't want to deal with running node with exposed gc
+ *
+ * Another problem we found during the custom require implementation was that all render requests was
+ * just going to one worker (the rest were not used and idle), we fixed this and rotated the requests
+ * across the workers and the memory release was better (it seems it gives the GC of each worker a bit more of idle time)
+ *
+ * Last problem we found, was to decide in which context the Modules are going to be run,
+ * this affects the results of the user code will get when running constructor comparison,
+ * instanceof checks, or when errors originate from modules and are catch in the user code.
+ * There were alternatives to run in it in main context (just like the the normal node.js require does it),
+ * run it in the same context than sandbox (the context in which the user code is evaluated),
+ * or run it in a new context (managed by us).
+ * Something that affected our decision was to check how the constructors and instanceof checks
+ * were already working in past versions, how it behaves when using trustUserCode: true or not,
+ * the results were that when trustUserCode: true is used it produces different results
+ * to the results of trustUserCode: false, there was already some inconsistency,
+ * so we decided to keep the same behavior and not introduce more inconsistencies,
+ * which means we evaluate Modules with main context, one benefit or using the main context
+ * was that we did not have to care about re-exposing node.js globals (like Buffer, etc)
+ */
