@@ -1,3 +1,4 @@
+const path = require('path')
 const should = require('should')
 const extend = require('node.extend.without.arrays')
 const core = require('../../index')
@@ -295,7 +296,7 @@ describe('engine', () => {
 
   it('should be able use local modules if enabled in allowedModules and appDirectory path points there', async () => {
     const reporter2 = createReporter({
-      rootDirectory: 'foo',
+      rootDirectory: path.resolve(__dirname, '../../'),
       appDirectory: __dirname,
       sandbox: {
         allowedModules: ['helperB']
@@ -320,8 +321,8 @@ describe('engine', () => {
 
   it('should be able use local modules if enabled in allowedModules and parentModuleDirectory path points there', async () => {
     const reporter2 = createReporter({
-      rootDirectory: 'foo',
-      appDirectory: 'foo',
+      rootDirectory: path.resolve(__dirname, '../../'),
+      appDirectory: path.resolve(__dirname, '../../'),
       parentModuleDirectory: __dirname,
       sandbox: {
         allowedModules: ['helperB']

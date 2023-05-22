@@ -6,7 +6,7 @@ describe('version control', () => {
   let jsreport
 
   beforeEach(async () => {
-    jsreport = JsReport({ reportTimeout: 99999999 })
+    jsreport = JsReport({})
     jsreport.use(require('@jsreport/jsreport-data')())
     jsreport.use(require('@jsreport/jsreport-chrome-pdf')())
     jsreport.use(require('@jsreport/jsreport-assets')())
@@ -178,7 +178,7 @@ describe('version control with custom blobStorage', () => {
   let jsreport
 
   beforeEach(async () => {
-    jsreport = JsReport({ reportTimeout: 99999999 })
+    jsreport = JsReport({})
     jsreport.use(require('../')())
     await jsreport.init()
     jsreport.blobStorage.write = (blobName) => 'xxx-' + blobName

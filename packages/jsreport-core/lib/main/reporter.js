@@ -219,6 +219,10 @@ class MainReporter extends Reporter {
         this.logger.info('Code sandboxing is disabled, users can potentially penetrate the local system if you allow code from external users to be part of your reports')
       }
 
+      if (!this.options.sandbox.isolateModules) {
+        this.logger.info('Modules isolation is disabled, require of modules during rendering will be shared across all renders')
+      }
+
       if (explicitOptions.trustUserCode == null && explicitOptions.allowLocalFilesAccess != null) {
         this.logger.warn('options.allowLocalFilesAccess is deprecated, use options.trustUserCode instead')
       }

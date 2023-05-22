@@ -6,6 +6,7 @@ const axios = require('axios')
 const serializator = require('serializator')
 
 const workerTempDirectory = path.join(require('os').tmpdir(), 'test-jsreport-worker')
+const workerTempCoreDirectory = path.join(workerTempDirectory, 'core')
 const workerTempAutoCleanupDirectory = path.join(workerTempDirectory, 'autocleanup')
 
 describe('worker', () => {
@@ -35,6 +36,7 @@ describe('worker', () => {
       overwriteExtensionPaths: false,
       httpPort: 3000,
       tempDirectory: workerTempDirectory,
+      tempCoreDirectory: workerTempCoreDirectory,
       tempAutoCleanupDirectory: workerTempAutoCleanupDirectory
     })
     await worker.init()

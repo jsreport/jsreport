@@ -80,6 +80,7 @@ module.exports.getRootSchemaOptions = () => ({
       type: 'object',
       default: {},
       properties: {
+        isolateModules: { type: 'boolean', default: true, description: 'option that control whether require/import of modules during rendering are isolated from other renders or not. when this is false the require/import of modules will behave like normal require, which means that module is evaluated only once and next require/import are resolved from a cache' },
         allowedModules: {
           anyOf: [{
             type: 'string',

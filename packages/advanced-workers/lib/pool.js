@@ -28,9 +28,21 @@ module.exports = ({
     },
 
     async allocate (data, opts) {
-      const worker = this.workers.find(w => w.isBusy !== true)
+      const notBusyWorkers = this.workers.filter(w => w.isBusy !== true)
+
+      const worker = notBusyWorkers.sort((a, b) => {
+        if (a.lastUsed == null) {
+          return -1
+        }
+        if (b.lastUsed == null) {
+          return 1
+        }
+        return a.lastUsed <= b.lastUsed ? -1 : 1
+      })[0]
+
       if (worker) {
         worker.isBusy = true
+        worker.lastUsed = new Date()
         return {
           release: async () => {
             if (worker.needRestart || worker.running) {
