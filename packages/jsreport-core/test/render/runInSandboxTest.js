@@ -1378,6 +1378,43 @@ describe('sandbox', () => {
       should(content.b).be.eql(true, 'expected content.b to be true')
     })
 
+    it('complex module with circular dependencies should work', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {
+            RESULT: null
+          },
+          userCode: `
+            RESULT = false
+
+            try {
+              const pkg = require('request')
+              RESULT = true
+            } catch (err) {}
+          `,
+          executionFn: ({ context }) => {
+            return JSON.stringify({
+              result: context.RESULT
+            })
+          }
+        }, req)
+
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const { result } = JSON.parse(res.content)
+
+      should(result).be.True('expected module "request" to be required normally')
+    })
+
     it('module and require object should have standard properties', async () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
@@ -1445,6 +1482,7 @@ describe('sandbox', () => {
         allowedModules: [
           'fs',
           'node:fs',
+          'request',
           'moduleCreateStringObject',
           'moduleGetNumberConstructor',
           'moduleWithBuiltin',

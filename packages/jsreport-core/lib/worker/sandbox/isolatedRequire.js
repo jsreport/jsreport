@@ -37,7 +37,7 @@ function isolatedRequire (_moduleId, requireFromRootDirectory, isolatedModulesMe
   const fullModulePath = resolveFilename(requireFromRootDirectory, moduleId, { parentModulePath: parentModule?.path })
 
   if (modulesCache[fullModulePath]) {
-    return modulesCache[fullModulePath]
+    return modulesCache[fullModulePath].exports
   }
 
   const mod = new IsolatedModule(fullModulePath, parentModule)
@@ -48,10 +48,7 @@ function isolatedRequire (_moduleId, requireFromRootDirectory, isolatedModulesMe
     return isolatedRequire({ parent: this, moduleId: id }, requireFromRootDirectory, isolatedModulesMeta)
   }
 
-  // our cache is different than the node.js cache, because we just cache the exports
-  // not the module instance, not sure if this is the best approach yet, it may turn that we
-  // need to cache the module too, but for now this is enough
-  modulesCache[fullModulePath] = mod.exports
+  modulesCache[fullModulePath] = mod
 
   mod.filename = fullModulePath
   mod.paths = Module._nodeModulePaths(path.dirname(fullModulePath))
