@@ -1336,6 +1336,48 @@ describe('sandbox', () => {
       should(typeof content).be.eql('string', 'expected content to be string')
     })
 
+    it('module with circular dependencies should work', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {
+            RESULT: null,
+            CONTENT: null
+          },
+          userCode: `
+            RESULT = false
+
+            try {
+              const pkg = require('module-with-circular-dependencies/main.js')
+              RESULT = true
+              CONTENT = pkg
+            } catch (err) {}
+          `,
+          executionFn: ({ context }) => {
+            return JSON.stringify({
+              result: context.RESULT,
+              content: context.CONTENT
+            })
+          }
+        }, req)
+
+        res.content = Buffer.from(r)
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const { result, content } = JSON.parse(res.content)
+
+      should(result).be.True('expected module "module-with-circular-dependencies" to be required normally')
+      should(content.a).be.eql(true, 'expected content.a to be true')
+      should(content.b).be.eql(true, 'expected content.b to be true')
+    })
+
     it('module and require object should have standard properties', async () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
@@ -1412,6 +1454,7 @@ describe('sandbox', () => {
           'moduleWithJSON',
           'moduleWithMJS',
           'module-with-type-module/index.cjs',
+          'module-with-circular-dependencies/main.js',
           'moduleWithCJS',
           'moduleWithAddon',
           'modulePropertiesExport',
