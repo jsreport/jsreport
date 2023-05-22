@@ -40,7 +40,8 @@ module.exports = (reporter, definition) => {
           const prefix = path.join(rootPrefix, 'modules', module.replace(/\//g, '-'))
 
           reporter.logger.debug(`require of npm ${module}`, req)
-          const modulePath = path.join(prefix, 'node_modules', module.split('@')[0])
+          const modulePath = path.join(prefix, 'node_modules', module.substring(0, module.lastIndexOf('@')))
+
           // we are including check for package.json, because sometimes the files in the module are missing because of some auto os temp cleanup
           if (!(await exists(path.join(modulePath, 'package.json')))) {
             const npmInstallProfilerEvent = reporter.profiler.emit({
@@ -78,7 +79,7 @@ module.exports = (reporter, definition) => {
           extensions: ['.js', '.json']
         })
 
-        const moduleName = module.split('@')[0]
+        const moduleName = module.substring(0, module.lastIndexOf('@'))
 
         const modulePath = await new Promise((resolve, reject) => {
           moduleResolve(path.join(rootPrefix, 'modules', module.replace(/\//g, '-')), moduleName, (err, result) => {

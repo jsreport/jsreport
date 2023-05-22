@@ -66,6 +66,26 @@ describe('npm', function () {
     res.content.toString().should.be.eql('not')
   })
 
+  it('jsreport.npm.require should work for scoped packages', async () => {
+    const res = await reporter.render({
+      template: {
+        content: '{{test}}',
+        engine: 'handlebars',
+        recipe: 'html',
+        helpers: `
+          const jsreport = require('jsreport-proxy')
+          const TestCore = await jsreport.npm.require('@jsreport/jsreport-core@3.11.4')
+
+          function test() {
+            return typeof TestCore
+          }
+        `
+      }
+    })
+    res.content.toString().should.be.eql('function')
+    fs.existsSync(path.join(reporter.options.tempDirectory, 'npm', 'modules', '@jsreport-jsreport-core@3.11.4')).should.be.ok()
+  })
+
   it('jsreport.npm.require should be cleared from require cache in second request', async () => {
     await reporter.render({
       template: {
@@ -97,6 +117,17 @@ describe('npm', function () {
   })
 
   it('should expose npmModule helper', async () => {
+    const res = await reporter.render({
+      template: {
+        content: '{{npmModule "@jsreport/jsreport-core@3.11.4"}}',
+        engine: 'handlebars',
+        recipe: 'html'
+      }
+    })
+    res.content.toString().should.containEql('jsreport')
+  })
+
+  it('should expose npmModule helper working with scoped module', async () => {
     const res = await reporter.render({
       template: {
         content: '{{npmModule "moment@2.29.1"}}',
