@@ -14,7 +14,6 @@ describe('pdf utils', () => {
 
   beforeEach(async () => {
     jsreport = JsReport({
-      reportTimeout: 999999999,
       encryption: {
         secretKey: '1111111811111118'
       },
@@ -429,7 +428,7 @@ describe('pdf utils', () => {
               res.content = await jsreport.pdfUtils.append(res.content, r.content, {
                 appendAfterPageNumber: 1
               })
-            }          
+            }
           `
         }]
       }
@@ -2303,7 +2302,7 @@ describe('pdf utils', () => {
         scripts: [{
           content: `
           async function afterRender(req, res) {
-            const jsreport = require('jsreport-proxy')         
+            const jsreport = require('jsreport-proxy')
             res.content = await jsreport.pdfUtils.removePages(res.content, 2)
           }
           `
@@ -2326,9 +2325,9 @@ describe('pdf utils', () => {
         scripts: [{
           content: `
           async function afterRender(req, res) {
-            const jsreport = require('jsreport-proxy')  
-            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('first'), { name: 'first.txt', description: 'first description', modificationDate: new Date(), creationDate: new Date() })                   
-            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('second'), { name: 'second.txt' })                   
+            const jsreport = require('jsreport-proxy')
+            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('first'), { name: 'first.txt', description: 'first description', modificationDate: new Date(), creationDate: new Date() })
+            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('second'), { name: 'second.txt' })
           }
           `
         }]
@@ -2370,8 +2369,8 @@ describe('pdf utils', () => {
         scripts: [{
           content: `
           async function afterRender(req, res) {
-            const jsreport = require('jsreport-proxy')  
-            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('first'), { name: 'first.txt', description: 'first description' })                               
+            const jsreport = require('jsreport-proxy')
+            res.content = await jsreport.pdfUtils.addAttachment(res.content, Buffer.from('first'), { name: 'first.txt', description: 'first description' })
           }
           `
         }],
@@ -2406,7 +2405,7 @@ describe('pdf utils', () => {
           template: {
             content: `
             <div style='margin-top: 200px'></div>
-            {{{pdfDest "1"}}}<strong id='1'>target 1</strong>                        
+            {{{pdfDest "1"}}}<strong id='1'>target 1</strong>
             <div style='page-break-before: always;'></div>`,
             engine: 'handlebars',
             recipe: 'chrome-pdf'

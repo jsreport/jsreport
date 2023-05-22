@@ -15,7 +15,6 @@ describe('docx html embed', () => {
 
   beforeEach(() => {
     reporter = jsreport({
-      reportTimeout: 99999999,
       store: {
         provider: 'memory'
       }

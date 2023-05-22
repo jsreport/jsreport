@@ -6,7 +6,6 @@ describe('handlebars', () => {
 
   beforeEach(() => {
     jsreport = JsReport({
-      reportTimeout: 99999999
     })
     jsreport.use(require('../')())
     return jsreport.init()
@@ -295,7 +294,7 @@ describe('handlebars', () => {
         engine: 'handlebars',
         recipe: 'html',
         content: `
-          {{#helperA}}hello {{/helperA}}       
+          {{#helperA}}hello {{/helperA}}
         `,
         helpers: `
         function helperA(options) {
@@ -316,8 +315,8 @@ describe('handlebars', () => {
         content: `
         {{#each items}}
           {{#helperA}}{{this}}{{/helperA}}
-        {{/each}}   
-        {{result}}    
+        {{/each}}
+        {{result}}
         `,
         helpers: `
         let counter = 0

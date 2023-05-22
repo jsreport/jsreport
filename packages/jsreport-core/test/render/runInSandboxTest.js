@@ -1437,7 +1437,6 @@ describe('sandbox', () => {
     }
 
     const reporter = jsreport({
-      reportTimeout: 99999999,
       rootDirectory: __dirname,
       appDirectory: __dirname,
       trustUserCode: !safe,
