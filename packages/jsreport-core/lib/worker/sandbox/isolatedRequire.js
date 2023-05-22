@@ -1,11 +1,10 @@
 const Module = require('module')
 const path = require('path')
 const fs = require('fs')
-const LRU = require('lru-cache')
 
-const REQUIRE_RESOLVE_CACHE = LRU({ max: 1000 })
-const REQUIRE_SCRIPT_CACHE = LRU({ max: 1000 })
-const PACKAGE_JSON_CACHE = LRU({ max: 1000 })
+const REQUIRE_RESOLVE_CACHE = new Map()
+const REQUIRE_SCRIPT_CACHE = new Map()
+const PACKAGE_JSON_CACHE = new Map()
 
 let ALL_BUILTIN_MODULES
 
