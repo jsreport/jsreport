@@ -5,7 +5,7 @@ const SQS = require('aws-sdk/clients/sqs')
 const { v4: uuidv4 } = require('uuid')
 const instanceId = uuidv4()
 
-module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3Options = {} }) => {
+module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock = {}, s3Options = {} }) => {
   if (!bucket) {
     throw new Error('The fs store is configured to use aws s3 persistence but the bucket is not set. Use store.persistence.bucket or extensions.fs-store-aws-s3-persistence.bucket to set the proper value.')
   }
@@ -98,26 +98,32 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       }
     },
     readdir: async (p) => {
+      p = pathWithPrefix(p)
       const res = await listObjectKeys(p)
       const topFilesOrDirectories = res.map(e => e.replace(p, '').split('/').filter(f => f)[0]).filter(f => f)
       return [...new Set(topFilesOrDirectories)]
     },
     readFile: async (p) => {
+      p = pathWithPrefix(p)
       const res = await s3Async.getObject({
         Bucket: bucket,
         Key: p
       })
       return res.Body
     },
-    writeFile: (p, c) => s3Async.putObject({
-      Bucket: bucket,
-      Key: p,
-      Body: c,
-      Metadata: {
-        mtime: new Date().getTime().toString()
-      }
-    }),
+    writeFile: (p, c) => {
+      p = pathWithPrefix(p)
+      return s3Async.putObject({
+        Bucket: bucket,
+        Key: p,
+        Body: c,
+        Metadata: {
+          mtime: new Date().getTime().toString()
+        }
+      })
+    },
     appendFile: async (p, c) => {
+      p = pathWithPrefix(p)
       let existingBuffer = Buffer.from([])
       try {
         const res = await s3Async.getObject({
@@ -139,6 +145,8 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       })
     },
     rename: async (p, pp) => {
+      p = pathWithPrefix(p)
+      pp = pathWithPrefix(pp)
       const objectsToRename = await listObjectKeys(p)
 
       await Promise.all(objectsToRename.map(async (key) => {
@@ -165,6 +173,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       })))
     },
     exists: async (p) => {
+      p = pathWithPrefix(p)
       try {
         await s3Async.headObject({ Bucket: bucket, Key: p })
         return true
@@ -173,6 +182,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
       }
     },
     stat: async (p) => {
+      p = pathWithPrefix(p)
       // directory always fail for some reason
       try {
         const r = await s3Async.headObject({ Bucket: bucket, Key: p })
@@ -184,6 +194,7 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
     },
     mkdir: (p) => Promise.resolve(),
     remove: async (p) => {
+      p = pathWithPrefix(p)
       const blobsToRemove = await listObjectKeys(p)
       const chunks = blobsToRemove.reduce((all, one, i) => {
         const ch = Math.floor(i / 1000)
@@ -199,11 +210,16 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
         }
       })))
     },
-    copyFile: (p, pp) => s3Async.copyObject({
-      Bucket: bucket,
-      CopySource: `/${bucket}/${encodeURIComponent(p)}`,
-      Key: pp
-    }),
+    copyFile: (p, pp) => {
+      p = pathWithPrefix(p)
+      pp = pathWithPrefix(pp)
+
+      return s3Async.copyObject({
+        Bucket: bucket,
+        CopySource: `/${bucket}/${encodeURIComponent(p)}`,
+        Key: pp
+      })
+    },
     path: {
       join: (...args) => args.filter(a => a).join('/'),
       sep: '/',
@@ -278,5 +294,20 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, lock = {}, s3O
 
       }
     }
+  }
+
+  function pathWithPrefix (p) {
+    if (!prefix) {
+      return p
+    }
+
+    const prefixNoSlash = prefix.endsWith('/') ? prefix.substring(0, prefix.length - 1) : prefix
+    const pNoSlash = p.startsWith('/') ? p.substring(1) : p
+
+    if (!p) {
+      return prefixNoSlash
+    }
+
+    return prefixNoSlash + '/' + pNoSlash
   }
 }

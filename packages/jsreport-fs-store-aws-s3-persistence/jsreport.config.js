@@ -26,6 +26,7 @@ module.exports = {
           secretAccessKey: { type: 'string' },
           bucket: { type: 'string' },
           s3Options: { type: 'object' },
+          prefix: { type: 'string', description: 'Optional prefix to a folder inside bucket' },
           lock: {
             type: 'object',
             properties: {
