@@ -278,8 +278,14 @@ function docxStyle (options) {
   )
 }
 
-function docxImage (options) {
+async function docxImage (options) {
   const Handlebars = require('handlebars')
+  const jsreport = require('jsreport-proxy')
+
+  options.hash.src = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.src)
+  options.hash.width = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.width)
+  options.hash.height = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.height)
+  options.hash.usePlaceholderSize = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.usePlaceholderSize)
 
   if (!options.hash.src) {
     throw new Error(

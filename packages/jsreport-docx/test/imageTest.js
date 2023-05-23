@@ -61,6 +61,41 @@ describe('docx image', () => {
     fs.writeFileSync('out.docx', result.content)
   })
 
+  it('image from async result', async () => {
+    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const imageDimensions = sizeOf(imageBuf)
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'image-async.docx'))
+          }
+        },
+        helpers: `
+        function getImage() {
+          return new Promise((resolve) => resolve('data:image/png;base64,${imageBuf.toString('base64')}') )
+        }
+        `
+      }
+    })
+
+    const outputImageSize = await getImageSize(result.content)
+
+    // should preserve original image size by default
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    fs.writeFileSync('out.docx', result.content)
+  })
+
   it('image with placeholder size (usePlaceholderSize)', async () => {
     const docxBuf = fs.readFileSync(
       path.join(__dirname, 'image-use-placeholder-size.docx')
