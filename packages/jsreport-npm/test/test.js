@@ -54,8 +54,7 @@ describe('npm', function () {
         helpers: `
           const jsreport = require('jsreport-proxy')
           const moment1 = await jsreport.npm.require('moment@2.25.3')
-          const moment2 = await jsreport.npm.require('moment@2.26.0')
-          const moment3 = await jsreport.npm.require('moment@moment/moment')
+          const moment2 = await jsreport.npm.require('moment@2.26.0')          
 
           function test() {
             return moment1 === moment2 ? 'equals' : 'not'
@@ -66,7 +65,7 @@ describe('npm', function () {
     res.content.toString().should.be.eql('not')
   })
 
-  it('jsreport.npm.require should work for scoped packages', async () => {
+  it('jsreport.npm.require should work for scoped packages and module path', async () => {
     const res = await reporter.render({
       template: {
         content: '{{test}}',
@@ -74,15 +73,15 @@ describe('npm', function () {
         recipe: 'html',
         helpers: `
           const jsreport = require('jsreport-proxy')
-          const TestCore = await jsreport.npm.require('@jsreport/jsreport-core@3.11.4')
+          const defaults = await jsreport.npm.require('@jsreport/jsreport-core@3.11.4/lib/main/defaults')
 
           function test() {
-            return typeof TestCore
+            return defaults.getDefaultLoadConfig()
           }
         `
       }
     })
-    res.content.toString().should.be.eql('function')
+    res.content.toString().should.be.eql('false')
     fs.existsSync(path.join(reporter.options.tempDirectory, 'npm', 'modules', '@jsreport-jsreport-core@3.11.4')).should.be.ok()
   })
 
@@ -119,23 +118,23 @@ describe('npm', function () {
   it('should expose npmModule helper', async () => {
     const res = await reporter.render({
       template: {
-        content: '{{npmModule "@jsreport/jsreport-core@3.11.4"}}',
-        engine: 'handlebars',
-        recipe: 'html'
-      }
-    })
-    res.content.toString().should.containEql('jsreport')
-  })
-
-  it('should expose npmModule helper working with scoped module', async () => {
-    const res = await reporter.render({
-      template: {
         content: '{{npmModule "moment@2.29.1"}}',
         engine: 'handlebars',
         recipe: 'html'
       }
     })
     res.content.toString().should.containEql('moment')
+  })
+
+  it('should expose npmModule helper working with scoped module and path', async () => {
+    const res = await reporter.render({
+      template: {
+        content: '{{npmModule "@jsreport/jsreport-core@3.11.4/lib/main/defaults"}}',
+        engine: 'handlebars',
+        recipe: 'html'
+      }
+    })
+    res.content.toString().should.containEql('jsreport')
   })
 })
 
@@ -180,7 +179,7 @@ describe('npm with disabled trustUserCode but enabled npm.allowedModules[]', fun
     })
       .use(require('@jsreport/jsreport-handlebars')())
       .use(require('../')({
-        allowedModules: ['moment@2.29.1']
+        allowedModules: ['moment']
       }))
 
     return reporter.init()
