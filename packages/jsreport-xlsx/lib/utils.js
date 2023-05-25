@@ -107,6 +107,39 @@ function findChildNode (nodeName, targetNode, allNodes = false) {
   return allNodes ? result : result[0]
 }
 
+function getClosestEl (el, targetNodeNameOrFn, targetType = 'parent') {
+  let currentEl = el
+  let parentEl
+
+  const nodeTest = (n) => {
+    if (typeof targetNodeNameOrFn === 'string') {
+      return n.nodeName === targetNodeNameOrFn
+    } else {
+      return targetNodeNameOrFn(n)
+    }
+  }
+
+  if (targetType !== 'parent' && targetType !== 'previous' && targetType !== 'next') {
+    throw new Error(`Invalid target type "${targetType}"`)
+  }
+
+  do {
+    if (targetType === 'parent') {
+      currentEl = currentEl.parentNode
+    } else if (targetType === 'previous') {
+      currentEl = currentEl.previousSibling
+    } else if (targetType === 'next') {
+      currentEl = currentEl.nextSibling
+    }
+
+    if (currentEl != null && nodeTest(currentEl)) {
+      parentEl = currentEl
+    }
+  } while (currentEl != null && !nodeTest(currentEl))
+
+  return parentEl
+}
+
 function getChartEl (drawingEl) {
   let parentEl = drawingEl.parentNode
 
@@ -184,6 +217,7 @@ module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
+module.exports.getClosestEl = getClosestEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray

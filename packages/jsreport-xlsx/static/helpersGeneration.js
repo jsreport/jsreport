@@ -67,13 +67,84 @@ function xlsxSData (data, options) {
         enabledFor: optionsToUse.hash.autofit != null ? optionsToUse.hash.autofit.split(',') : []
       },
       mergeCells: [],
-      formulas: [],
-      sharedFormulas: [],
+      trackedLoopCells: {},
       updatedOriginalCells: {},
       lastCellRef: null
     }
+
     newData.loopItems = []
+    newData.evaluatedLoopsIds = []
+    newData.outOfLoopItems = Object.create(null)
+
     return optionsToUse.fn(this, { data: newData })
+  }
+
+  const getLoopItemById = (byTarget, loopItems) => {
+    if (byTarget == null) {
+      throw new Error('getLoopItemById byTarget arg is invalid')
+    }
+
+    if (!Array.isArray(loopItems)) {
+      throw new Error('getLoopItemById loopItems arg is invalid')
+    }
+
+    const { idName, idValue } = byTarget
+
+    if (idName == null || typeof idName !== 'string') {
+      throw new Error('getLoopItemById byTarget.idName arg is invalid')
+    }
+
+    if (idName !== 'hierarchyId' && idName !== 'id') {
+      throw new Error('getLoopItemById byTarget.idName should be either "hierarchyId" or "id"')
+    }
+
+    if (idValue == null || typeof idValue !== 'string') {
+      throw new Error('getLoopItemById byTarget.idValue arg is invalid')
+    }
+
+    const idParts = idValue.split('#')
+    let ctx = { children: loopItems }
+    let targetIdValue = ''
+    let parent
+
+    while (idParts.length > 0) {
+      const idx = idParts.shift()
+
+      targetIdValue = targetIdValue !== '' ? `${targetIdValue}#${idx}` : `${idx}`
+
+      const matches = ctx.children.filter((c) => c[idName] === targetIdValue)
+      const result = matches[matches.length - 1]
+
+      if (result == null) {
+        break
+      }
+
+      ctx = result
+
+      if (idParts.length === 0) {
+        parent = ctx
+      }
+    }
+
+    return parent
+  }
+
+  const getParentLoopItemByHierarchy = (childLoopItem, loopItems) => {
+    if (childLoopItem == null) {
+      throw new Error('getParentLoopItemByHierarchy childLoopItem arg is invalid')
+    }
+
+    if (!Array.isArray(loopItems)) {
+      throw new Error('getParentLoopItemByHierarchy loopItems arg is invalid')
+    }
+
+    const parentHierarchyId = childLoopItem.hierarchyId.split('#').slice(0, -1).join('#')
+
+    if (parentHierarchyId === '') {
+      return
+    }
+
+    return getLoopItemById({ idName: 'hierarchyId', idValue: parentHierarchyId }, loopItems)
   }
 
   if (
@@ -84,10 +155,23 @@ function xlsxSData (data, options) {
     const columnStart = optionsToUse.hash.columnStart
     const end = optionsToUse.hash.end
     const columnEnd = optionsToUse.hash.columnEnd
+    const hierarchyId = optionsToUse.hash.hierarchyId
     const newData = Handlebars.createFrame(optionsToUse.data)
 
     if (start == null) {
       throw new Error('xlsxSData type="loop" helper start arg is required')
+    }
+
+    if (columnStart == null) {
+      throw new Error('xlsxSData type="loop" helper columnStart arg is required')
+    }
+
+    if (columnEnd == null) {
+      throw new Error('xlsxSData type="loop" helper columnEnd arg is required')
+    }
+
+    if (hierarchyId == null) {
+      throw new Error('xlsxSData type="loop" helper hierarchyId arg is required')
     }
 
     let targetData = data
@@ -101,104 +185,273 @@ function xlsxSData (data, options) {
       targetData = [{}]
     }
 
-    newData.loopItems.push({
+    const loopItem = {
       type: end == null ? 'row' : 'block',
+      id: null,
+      hierarchyId,
       start,
       columnStart,
       end,
       columnEnd,
-      length: targetData.length
-    })
-
-    return Handlebars.helpers.each(targetData, { ...optionsToUse, data: newData })
-  }
-
-  const parseCellRef = require('parseCellRef')
-
-  const getMatchedLoopItems = (rowNumber, loopItems, filterEmpty = true) => {
-    return loopItems.filter((item) => {
-      let result = rowNumber >= item.start
-
-      if (filterEmpty) {
-        result = result && item.length > 0
-      }
-
-      return result
-    })
-  }
-
-  const getCurrentLoopItem = (matchedLoopItems, byTarget) => {
-    if (byTarget == null || byTarget.rowNumber == null) {
-      throw new Error('getCurrentLoopItem byTarget arg is invalid')
+      length: targetData.length,
+      parentLoopIndex: optionsToUse.data.index,
+      children: [],
+      completed: false
     }
 
-    return matchedLoopItems.find((item) => {
-      let match = false
-      let byRowsMatch = false
+    const parentLoopItem = getParentLoopItemByHierarchy(loopItem, newData.loopItems)
 
-      if (item.type === 'block') {
-        byRowsMatch = (
-          byTarget.rowNumber >= item.start &&
-          byTarget.rowNumber <= item.end
-        )
-      } else {
-        byRowsMatch = item.start === byTarget.rowNumber
-      }
+    let container
 
-      if (byTarget.columnNumber == null) {
-        return byRowsMatch
-      }
-
-      if (byRowsMatch) {
-        let byColumnsMatch = false
-
-        if (item.type === 'block') {
-          if (item.start === byTarget.rowNumber) {
-            byColumnsMatch = byTarget.columnNumber >= item.columnStart
-          } else if (item.end === byTarget.rowNumber) {
-            byColumnsMatch = byTarget.columnNumber <= item.columnEnd
-          } else {
-            byColumnsMatch = true
-          }
-        } else {
-          byColumnsMatch = (
-            byTarget.columnNumber >= item.columnStart &&
-            byTarget.columnNumber <= item.columnEnd
-          )
-        }
-
-        match = byColumnsMatch
-      }
-
-      return match
-    })
-  }
-
-  const getPreviousLoopItems = (matchedLoopItems, byTarget) => {
-    if (byTarget == null || byTarget.rowNumber == null) {
-      throw new Error('getCurrentLoopItem byTarget arg is invalid')
+    if (parentLoopItem) {
+      container = parentLoopItem.children
+    } else {
+      container = newData.loopItems
     }
 
-    return matchedLoopItems.filter((item) => {
-      let match = false
+    loopItem.id = `${parentLoopItem != null ? `${parentLoopItem.id}#` : ''}${container.length}`
 
-      const limit = item.type === 'block' ? item.end : item.start
+    container.push(loopItem)
 
-      if (byTarget.rowNumber === limit) {
-        if (byTarget.columnNumber == null) {
-          match = false
-        } else {
-          // for row loops we assume there is no previous loop item even if cell
-          // colum comes after column end of end of loop
-          // this is because in that case that cell will anyway keep on its original place
-          match = item.type === 'block' ? byTarget.columnNumber > item.columnEnd : false
-        }
-      } else {
-        match = byTarget.rowNumber > limit
+    newData.currentLoopId = loopItem.id
+    newData.evaluatedLoopsIds.push(loopItem.id)
+
+    const result = Handlebars.helpers.each(targetData, { ...optionsToUse, data: newData })
+
+    loopItem.completed = true
+
+    return result
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'outOfLoopPlaceholder'
+  ) {
+    const item = optionsToUse.hash.item
+
+    if (item == null) {
+      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper item arg is required')
+    }
+
+    const currentLoopId = optionsToUse.data.currentLoopId
+
+    if (currentLoopId == null) {
+      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper invalid usage, currentLoopId not found')
+    }
+
+    let metaItem
+
+    if (optionsToUse.data.outOfLoopItems[item] != null) {
+      metaItem = optionsToUse.data.outOfLoopItems[item]
+    } else {
+      metaItem = { pendingExecutions: [] }
+      optionsToUse.data.outOfLoopItems[item] = metaItem
+    }
+
+    metaItem.pendingExecutions.push({
+      loopId: currentLoopId,
+      index: optionsToUse.data.index
+    })
+
+    return optionsToUse.fn(this, { data: optionsToUse.data })
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'outOfLoop'
+  ) {
+    const item = optionsToUse.hash.item
+
+    if (item == null) {
+      throw new Error('xlsxSData type="outOfLoop" helper item arg is required')
+    }
+
+    const outOfLoopItem = optionsToUse.data.outOfLoopItems[item]
+
+    if (outOfLoopItem == null) {
+      throw new Error('xlsxSData type="outOfLoop" helper invalid usage, outOfLoopItem was not found')
+    }
+
+    const pendingExecutions = outOfLoopItem.pendingExecutions.splice(0, outOfLoopItem.pendingExecutions.length)
+
+    if (pendingExecutions == null || pendingExecutions.length === 0) {
+      throw new Error('xlsxSData type="outOfLoop" helper invalid usage, pendingExecution was not found')
+    }
+
+    const output = []
+
+    for (const pendingExecution of pendingExecutions) {
+      const currentLoopId = pendingExecution.loopId
+      const currentIdx = pendingExecution.index
+
+      if (currentLoopId == null) {
+        throw new Error('xlsxSData type="outOfLoop" helper invalid usage, loopId was not found')
       }
 
-      return match
+      const newData = Handlebars.createFrame(optionsToUse.data)
+
+      newData.currentLoopId = currentLoopId
+
+      if (currentIdx != null) {
+        newData.index = currentIdx
+      }
+
+      const content = optionsToUse.fn(this, { data: newData })
+
+      output.push(`<data>${content}</data>`)
+    }
+
+    return new Handlebars.SafeString(output.join(''))
+  }
+
+  const { parseCellRef, evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
+
+  const getCurrentLoopItem = (loopId, loopItems) => {
+    if (!Array.isArray(loopItems)) {
+      throw new Error('getCurrentLoopItem loopItems arg is invalid')
+    }
+
+    if (loopId == null) {
+      return
+    }
+
+    return getLoopItemById({ idName: 'id', idValue: loopId }, loopItems)
+  }
+
+  const getPreviousLoopItems = (loopId, evaluatedLoopsIds, loopItems) => {
+    if (!Array.isArray(evaluatedLoopsIds)) {
+      throw new Error('getPreviousLoopItems evaluatedLoopsIds arg is invalid')
+    }
+
+    if (!Array.isArray(loopItems)) {
+      throw new Error('getPreviousLoopItems loopItems arg is invalid')
+    }
+
+    const lastEvaluatedLoopId = evaluatedLoopsIds[evaluatedLoopsIds.length - 1]
+    const loopItemsToGet = loopId != null && loopId === lastEvaluatedLoopId ? evaluatedLoopsIds.slice(0, -1) : evaluatedLoopsIds
+    const result = []
+
+    for (const lId of loopItemsToGet) {
+      const loopItem = getLoopItemById({ idName: 'id', idValue: lId }, loopItems)
+
+      if (loopItem == null) {
+        throw new Error(`Can not find loop item by id "${lId}"`)
+      }
+
+      if (!loopItem.completed) {
+        continue
+      }
+
+      result.push(loopItem)
+    }
+
+    return result
+  }
+
+  const getCurrentAndPreviousLoopItemsByTarget = (byTarget, loopItems) => {
+    if (byTarget == null) {
+      throw new Error('getCurrentAndPreviousLoopItemsByTarget byTarget arg is invalid')
+    }
+
+    if (byTarget.rowNumber == null) {
+      throw new Error('getCurrentAndPreviousLoopItemsByTarget byTarget.rowNumber arg is required')
+    }
+
+    if (byTarget.columnNumber == null) {
+      throw new Error('getCurrentAndPreviousLoopItemsByTarget byTarget.columnNumber arg is required')
+    }
+
+    if (!Array.isArray(loopItems)) {
+      throw new Error('getCurrentAndPreviousLoopItemsByTarget loopItems arg is invalid')
+    }
+
+    const { rowNumber, columnNumber } = byTarget
+
+    const matchedLoopItems = loopItems.filter((item) => {
+      if (!item.completed) {
+        throw new Error('getCurrentAndPreviousLoopItemsByTarget invalid usage, it should be called only after all loop items are completed evaluated')
+      }
+
+      return item.start <= rowNumber
     })
+
+    let current
+    const previousAll = [...matchedLoopItems]
+    const targetLoopItem = previousAll[previousAll.length - 1]
+    const previous = previousAll.slice(0, -1)
+
+    if (targetLoopItem != null) {
+      let isInside = false
+      const limit = targetLoopItem.type === 'block' ? targetLoopItem.end : targetLoopItem.start
+
+      if (rowNumber === limit) {
+        // for row loops we assume the row is inside when the row just matches the limit
+        // (even if technically on the out of loop right case we should check columnEnd,
+        // we don't do that because in that case the cell will anyway keep on its original place)
+        isInside = targetLoopItem.type === 'block' ? targetLoopItem.columnEnd > columnNumber : true
+      } else {
+        isInside = limit > rowNumber
+      }
+
+      if (!isInside) {
+        previous.push(targetLoopItem)
+      } else {
+        current = targetLoopItem
+      }
+    }
+
+    return {
+      current,
+      previousAll,
+      previous
+    }
+  }
+
+  const getLoopItemTemplateLength = (loopItem) => {
+    if (loopItem == null) {
+      throw new Error('getLoopItemTemplateLength loopItem arg is invalid')
+    }
+
+    let templateLength = 1
+
+    if (loopItem.type === 'block') {
+      templateLength = (loopItem.end - loopItem.start) + 1
+    }
+
+    return templateLength
+  }
+
+  const getParentsLoopItems = (loopId, loopItems) => {
+    if (loopId == null) {
+      throw new Error('getParentsLoopItems loopId arg is invalid')
+    }
+
+    if (!Array.isArray(loopItems)) {
+      throw new Error('getParentsLoopItems loopItems arg is invalid')
+    }
+
+    const results = []
+    const parentIdParts = loopId.split('#').slice(0, -1)
+
+    if (parentIdParts.length === 0) {
+      return results
+    }
+
+    let parentId = ''
+
+    for (let index = 0; index < parentIdParts.length; index++) {
+      parentId += parentId === '' ? parentIdParts[index] : `#${parentIdParts[index]}`
+
+      const result = getLoopItemById({ idName: 'id', idValue: parentId }, loopItems)
+
+      if (!result) {
+        throw new Error(`Can not find loop item by id "${parentId}"`)
+      }
+
+      results.push(result)
+    }
+
+    return results
   }
 
   if (
@@ -206,81 +459,59 @@ function xlsxSData (data, options) {
     type === 'row'
   ) {
     const originalRowNumber = optionsToUse.hash.originalRowNumber
-    // a default loop index will exists for example for out of loop items
-    const defaultLoopIndex = optionsToUse.hash.loopIndex
 
     if (originalRowNumber == null) {
       throw new Error('xlsxSData type="row" helper originalRowNumber arg is required')
     }
 
     const newData = Handlebars.createFrame(optionsToUse.data)
-    const matchedLoopItems = getMatchedLoopItems(originalRowNumber, newData.loopItems)
 
-    if (matchedLoopItems.length === 0) {
-      newData.rowNumber = originalRowNumber
-    } else {
-      let increment = 0
+    const currentLoopItem = getCurrentLoopItem(newData.currentLoopId, newData.loopItems)
+    const previousLoopItems = getPreviousLoopItems(newData.currentLoopId, newData.evaluatedLoopsIds, newData.loopItems)
+    let increment
 
-      const currentLoopItem = getCurrentLoopItem(matchedLoopItems, {
-        rowNumber: originalRowNumber
-      })
+    const prevRowMatchedLoopItems = []
 
-      if (currentLoopItem) {
-        const previousLoopItems = getPreviousLoopItems(matchedLoopItems, {
-          rowNumber: originalRowNumber
-        })
+    let totalPrev = previousLoopItems.reduce((acu, item) => {
+      let totalAcu = acu
 
-        let totalPrev = 0
-
-        if (previousLoopItems.length > 0) {
-          const previousRowMatchedLoopItems = []
-
-          totalPrev = previousLoopItems.reduce((acu, item) => {
-            if (item.type === 'block') {
-              return acu + (((item.end - item.start) + 1) * (item.length - 1))
-            } else {
-              previousRowMatchedLoopItems.push(item)
-            }
-
-            return acu + item.length
-          }, 0)
-
-          totalPrev += previousRowMatchedLoopItems.length > 0 ? (previousRowMatchedLoopItems.length * -1) : 0
-        }
-
-        let loopIndex = optionsToUse.data.index != null ? optionsToUse.data.index : defaultLoopIndex
-
-        if (Array.isArray(loopIndex)) {
-          loopIndex = loopIndex.length - 1
-        }
-
-        if (optionsToUse.data.index == null && loopIndex != null) {
-          newData.index = loopIndex
-        }
-
-        if (currentLoopItem.type === 'block') {
-          increment = totalPrev + (((currentLoopItem.end - currentLoopItem.start) + 1) * loopIndex)
-        } else {
-          increment = totalPrev + loopIndex
-        }
+      if (item.type === 'block') {
+        totalAcu += getLoopItemTemplateLength(item) * (item.length - 1)
       } else {
-        const rowMatchedLoopItems = []
-
-        increment = matchedLoopItems.reduce((acu, item) => {
-          if (item.type === 'block') {
-            return acu + (((item.end - item.start) + 1) * (item.length - 1))
-          } else {
-            rowMatchedLoopItems.push(item)
-          }
-
-          return acu + item.length
-        }, 0)
-
-        increment += rowMatchedLoopItems.length > 0 ? (rowMatchedLoopItems.length * -1) : 0
+        prevRowMatchedLoopItems.push(item)
+        totalAcu += item.length
       }
 
-      newData.rowNumber = originalRowNumber + increment
+      return totalAcu
+    }, 0)
+
+    totalPrev += prevRowMatchedLoopItems.length > 0 ? (prevRowMatchedLoopItems.length * -1) : 0
+
+    if (currentLoopItem) {
+      const loopIndex = optionsToUse.data.index
+
+      if (loopIndex == null) {
+        throw new Error('xlsxSData type="row" helper expected loop index to be defined')
+      }
+
+      const parents = getParentsLoopItems(currentLoopItem.id, newData.loopItems)
+      let parentLoopIndex = currentLoopItem.parentLoopIndex
+
+      parents.reverse()
+
+      for (const parentLoopItem of parents) {
+        totalPrev += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        parentLoopIndex = parentLoopItem.parentLoopIndex
+      }
+
+      const templateLength = getLoopItemTemplateLength(currentLoopItem)
+
+      increment = totalPrev + (templateLength * loopIndex)
+    } else {
+      increment = totalPrev
     }
+
+    newData.rowNumber = originalRowNumber + increment
 
     newData.columnLetter = null
     newData.currentCellRef = null
@@ -328,7 +559,7 @@ function xlsxSData (data, options) {
     let shouldUpdateOriginalCell
 
     // if we are in loop then don't add item to updatedOriginalCells
-    if (optionsToUse.data.index != null) {
+    if (optionsToUse.data.currentLoopId != null) {
       shouldUpdateOriginalCell = false
     } else {
       shouldUpdateOriginalCell = originalCellRef !== updatedCellRef && optionsToUse.data.meta.updatedOriginalCells[originalCellRef] == null
@@ -475,7 +706,7 @@ function xlsxSData (data, options) {
     return new Handlebars.SafeString(result.join('\n'))
   }
 
-  const getNewCellRef = (cellRefInput, loopIndex, mode = 'standalone', context) => {
+  const getNewCellRef = (cellRefInput, originLoopMeta, mode = 'standalone', context) => {
     const { updatedOriginalCells, loopItems } = context
     let cellRef
     let originCellRef
@@ -495,48 +726,42 @@ function xlsxSData (data, options) {
 
     if (newCellRef == null) {
       // if not found on original cells then do a check if we find
-      // matched loop items for the referenced row number
-      const matchedLoopItems = getMatchedLoopItems(parsedCellRef.rowNumber, loopItems)
+      // matched loop items for the referenced row numbers
+      const {
+        current: currentLoopItemForTarget,
+        previousAll: previousAllLoopItemsForTarget,
+        previous: previousLoopItemsForTarget
+      } = getCurrentAndPreviousLoopItemsByTarget({
+        rowNumber: parsedCellRef.rowNumber,
+        columnNumber: parsedCellRef.columnNumber
+      }, loopItems)
 
-      if (matchedLoopItems.length === 0) {
-        newCellRef = cellRef
-      } else {
-        currentLoopItem = getCurrentLoopItem(matchedLoopItems, {
-          rowNumber: parsedCellRef.rowNumber,
-          columnNumber: parsedCellRef.columnNumber
-        })
+      currentLoopItem = currentLoopItemForTarget
 
+      if (currentLoopItemForTarget != null || previousLoopItemsForTarget.length > 0) {
         const originIsLoopItem = parsedOriginCellRef == null
           ? false
-          : getCurrentLoopItem(matchedLoopItems, {
+          : getCurrentAndPreviousLoopItemsByTarget({
             rowNumber: parsedOriginCellRef.rowNumber,
             columnNumber: parsedOriginCellRef.columnNumber
-          }) != null
+          }, loopItems).current != null
 
         const getAfterIncrement = (parsedC, all = false) => {
-          let filteredItems
-
-          if (all) {
-            filteredItems = matchedLoopItems
-          } else {
-            const previousLoopItems = getPreviousLoopItems(matchedLoopItems, {
-              rowNumber: parsedC.rowNumber,
-              columnNumber: parsedC.columnNumber
-            })
-
-            filteredItems = previousLoopItems
-          }
+          const filteredLoopItems = all ? previousAllLoopItemsForTarget : previousLoopItemsForTarget
 
           const rowMatchedLoopItems = []
 
-          let increment = filteredItems.reduce((acu, item) => {
+          let increment = filteredLoopItems.reduce((acu, item) => {
+            let totalAcu = acu
+
             if (item.type === 'block') {
-              return acu + (((item.end - item.start) + 1) * (item.length - 1))
+              totalAcu += getLoopItemTemplateLength(item) * (item.length - 1)
             } else {
               rowMatchedLoopItems.push(item)
+              totalAcu += item.length
             }
 
-            return acu + item.length
+            return totalAcu
           }, 0)
 
           increment += rowMatchedLoopItems.length > 0 ? (rowMatchedLoopItems.length * -1) : 0
@@ -544,36 +769,37 @@ function xlsxSData (data, options) {
           return `${parsedC.lockedColumn ? '$' : ''}${parsedC.letter}${parsedC.lockedRow ? '$' : ''}${parsedC.rowNumber + increment}`
         }
 
-        if (currentLoopItem) {
-          let includeAll = false
+        let includeAll = false
 
-          if (
+        if (
+          currentLoopItemForTarget != null &&
+          (
             (type === 'newCellRef' && mode === 'rangeEnd') ||
             (type === 'formulas' &&
             originCellRef != null &&
             !originIsLoopItem &&
             mode === 'rangeEnd')
-          ) {
-            includeAll = true
-          }
-
-          newCellRef = getAfterIncrement(parsedCellRef, includeAll)
-        } else {
-          newCellRef = getAfterIncrement(parsedCellRef)
+          )
+        ) {
+          includeAll = true
         }
+
+        newCellRef = getAfterIncrement(parsedCellRef, includeAll)
+      } else {
+        newCellRef = cellRef
       }
     }
 
-    if (loopIndex != null) {
+    if (originLoopMeta != null) {
       const parsedNewCellRef = parseCellRef(newCellRef)
       let newRowNumber = parsedNewCellRef.rowNumber
 
       // when in loop don't increase the row number for locked row references
       if (!parsedNewCellRef.lockedRow) {
         if (currentLoopItem && currentLoopItem.type === 'block') {
-          newRowNumber += (((currentLoopItem.end - currentLoopItem.start) + 1) * loopIndex)
+          newRowNumber += getLoopItemTemplateLength(currentLoopItem) * originLoopMeta.index
         } else {
-          newRowNumber += loopIndex
+          newRowNumber += originLoopMeta.index
         }
       }
 
@@ -585,43 +811,46 @@ function xlsxSData (data, options) {
 
   if (
     arguments.length === 1 &&
-    (type === 'formulaIndex' || type === 'sharedFormulaIndex')
-  ) {
-    if (type === 'sharedFormulaIndex') {
-      return optionsToUse.data.meta.sharedFormulas.length
-    }
-
-    return optionsToUse.data.meta.formulas.length
-  }
-
-  if (
-    arguments.length === 1 &&
     (type === 'mergeCell' || type === 'formula')
   ) {
-    const fromLoop = optionsToUse.hash.fromLoop === true && Object.prototype.hasOwnProperty.call(optionsToUse.data, 'index')
+    const rowNumber = optionsToUse.data.rowNumber
+
+    if (rowNumber == null) {
+      throw new Error(`xlsxSData type="${type}" invalid usage, rowNumber needs to exists on internal data`)
+    }
+
+    let output = ''
 
     if (type === 'mergeCell') {
       const originalCellRefRange = optionsToUse.hash.originalCellRefRange
 
       if (originalCellRefRange == null) {
-        throw new Error('xlsxSData type="mergeCell" helper originalCellRefRange arg is required')
+        throw new Error(`xlsxSData type="${type}" helper originalCellRefRange arg is required`)
       }
+
+      const { newValue } = evaluateCellRefsFromExpression(originalCellRefRange, (cellRefInfo) => {
+        const isRange = cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd'
+
+        if (!isRange) {
+          throw new Error(`xlsxSData type="mergeCell" helper only support range for cell refs. value: "${originalCellRefRange}"`)
+        }
+
+        const increment = cellRefInfo.type === 'rangeEnd' ? cellRefInfo.parsedRangeEnd.rowNumber - cellRefInfo.parsedRangeStart.rowNumber : 0
+
+        const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber + increment)
+
+        return newCellRef
+      })
 
       const mergeCell = {
-        value: originalCellRefRange
-      }
-
-      if (fromLoop) {
-        mergeCell.loopIndex = optionsToUse.data.index
+        original: originalCellRefRange,
+        value: newValue
       }
 
       optionsToUse.data.meta.mergeCells.push(mergeCell)
-
-      return ''
-    } else if (type === 'formula') {
+    } else {
       const originalCellRef = optionsToUse.hash.originalCellRef
       const originalFormula = optionsToUse.hash.originalFormula
-      const originalSharedRefRange = optionsToUse.hash.originalSharedRefRange
 
       if (originalCellRef == null) {
         throw new Error('xlsxSData type="formula" helper originalCellRef arg is required')
@@ -631,30 +860,159 @@ function xlsxSData (data, options) {
         throw new Error('xlsxSData type="formula" helper originalFormula arg is required')
       }
 
-      const formula = {
-        cellRef: originalCellRef,
-        value: originalFormula
-      }
+      const parsedOriginCellRef = parseCellRef(originalCellRef)
+      const newOriginCellRef = generateNewCellRefFromRow(parsedOriginCellRef, rowNumber)
+      const parsedNewOriginCellRef = parseCellRef(newOriginCellRef)
 
-      if (fromLoop) {
-        formula.loopIndex = optionsToUse.data.index
-      }
+      const trackedLoopCells = optionsToUse.data.meta.trackedLoopCells
+      const originCellIsFromLoop = optionsToUse.data.currentLoopId != null
 
-      optionsToUse.data.meta.formulas.push(formula)
+      const { newValue } = evaluateCellRefsFromExpression(originalFormula, (cellRefInfo) => {
+        const cellRefIsFromLoop = trackedLoopCells[cellRefInfo.ref]?.count != null
+        let newRowNumber
 
-      if (originalSharedRefRange != null) {
-        const sharedFormula = { ...formula }
-        sharedFormula.value = originalSharedRefRange
-        optionsToUse.data.meta.sharedFormulas.push(sharedFormula)
-      }
+        if (
+          !originCellIsFromLoop &&
+          (cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd') &&
+          cellRefIsFromLoop
+        ) {
+          newRowNumber = cellRefInfo.type === 'rangeStart' ? cellRefInfo.parsed.rowNumber : parseCellRef(trackedLoopCells[cellRefInfo.ref].last).rowNumber
+        } else {
+          const originRowNumber = originCellIsFromLoop ? parsedNewOriginCellRef.rowNumber : parsedOriginCellRef.rowNumber
+          const targetRowNumber = cellRefIsFromLoop ? parseCellRef(trackedLoopCells[cellRefInfo.ref].last).rowNumber : cellRefInfo.parsed.rowNumber
+          const diff = originRowNumber - targetRowNumber
 
-      return ''
+          if (diff < 0) {
+            throw new Error(`xlsxSData type="formula" helper only support cell refs that are above the current cell ref. cell ref: "${originalCellRef}", formula: "${originalFormula}"`)
+          }
+
+          newRowNumber = parsedNewOriginCellRef.rowNumber - diff
+        }
+
+        const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, newRowNumber)
+
+        return newCellRef
+      })
+
+      output = newValue
     }
+
+    return output
   }
 
   if (
     arguments.length === 1 &&
-    (type === 'newCellRef' || type === 'mergeCells' || type === 'formulas' || type === 'sharedFormulas')
+    type === 'mergeCells'
+  ) {
+    const targetItems = optionsToUse.data.meta.mergeCells
+    const newData = Handlebars.createFrame(optionsToUse.data)
+
+    newData.mergeCellsCount = targetItems.length
+    newData.mergeCellsTemplates = Object.create(null)
+
+    return optionsToUse.fn(this, { data: newData })
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'mergeCellsItems'
+  ) {
+    const targetItems = optionsToUse.data.meta.mergeCells
+
+    // run the body to fulfill the merge cells templates
+    optionsToUse.fn(this)
+
+    const mergeCellsTemplates = optionsToUse.data.mergeCellsTemplates
+
+    const updated = []
+
+    for (const targetItem of targetItems) {
+      const template = mergeCellsTemplates[targetItem.original]
+      const output = template({ newRef: targetItem.value })
+      updated.push(output)
+    }
+
+    return new Handlebars.SafeString(updated.join('\n'))
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'mergeCellItem'
+  ) {
+    const originalCellRefRange = optionsToUse.hash.originalCellRefRange
+
+    if (originalCellRefRange == null) {
+      throw new Error('xlsxSData type="mergeCellItem" helper originalCellRefRange arg is required')
+    }
+
+    optionsToUse.data.mergeCellsTemplates[originalCellRefRange] = optionsToUse.fn
+
+    return ''
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'formulaPart'
+  ) {
+    const currentCellRef = optionsToUse.data.currentCellRef
+
+    if (currentCellRef == null) {
+      throw new Error('xlsxSData type="formulaPart" invalid usage, currentCellRef needs to exists on internal data')
+    }
+
+    const originalCellRef = optionsToUse.hash.originalCellRef
+
+    if (originalCellRef == null) {
+      throw new Error('xlsxSData type="formulaPart" helper originalCellRef arg is required')
+    }
+
+    // we only track the cell if it is from loop
+    if (optionsToUse.data.currentLoopId != null) {
+      const trackedLoopCells = optionsToUse.data.meta.trackedLoopCells
+
+      trackedLoopCells[originalCellRef] = trackedLoopCells[originalCellRef] || { first: null, last: null, count: 0 }
+
+      if (trackedLoopCells[originalCellRef].first == null) {
+        trackedLoopCells[originalCellRef].first = currentCellRef
+      }
+
+      trackedLoopCells[originalCellRef].last = currentCellRef
+      trackedLoopCells[originalCellRef].count += 1
+    }
+
+    return ''
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'formulaSharedRefRange'
+  ) {
+    const rowNumber = optionsToUse.data.rowNumber
+
+    if (rowNumber == null) {
+      throw new Error('xlsxSData type="formulaSharedRefRange" invalid usage, rowNumber needs to exists on internal data')
+    }
+
+    const originalSharedRefRange = optionsToUse.hash.originalSharedRefRange
+
+    if (originalSharedRefRange == null) {
+      throw new Error('xlsxSData type="formulaSharedRefRange" helper originalSharedRefRange arg is required')
+    }
+
+    const { newValue } = evaluateCellRefsFromExpression(originalSharedRefRange, (cellRefInfo) => {
+      const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, rowNumber)
+      return newCellRef
+    })
+
+    return newValue
+  }
+
+  // TODO: this should be refactored at some point to be more generic
+  // and support nested loops, maybe the logic will be similar to mergeCell or formula helpers
+  // when this is done we can remove all the methods that are only used here "getNewCellRef", "getCurrentAndPreviousLoopItemsByTarget"
+  if (
+    arguments.length === 1 &&
+    type === 'newCellRef'
   ) {
     const updatedOriginalCells = optionsToUse.data.meta.updatedOriginalCells
     const loopItems = optionsToUse.data.loopItems
@@ -662,13 +1020,7 @@ function xlsxSData (data, options) {
     const updated = []
 
     if (type === 'newCellRef') {
-      targetItems = [{ value: optionsToUse.hash.originalCellRef }]
-    } else if (type === 'mergeCells') {
-      targetItems = optionsToUse.data.meta.mergeCells
-    } else if (type === 'sharedFormulas') {
-      targetItems = optionsToUse.data.meta.sharedFormulas
-    } else {
-      targetItems = optionsToUse.data.meta.formulas
+      targetItems = [{ value: optionsToUse.hash.originalCellRefRange }]
     }
 
     for (const targetItem of targetItems) {
@@ -686,12 +1038,12 @@ function xlsxSData (data, options) {
 
         if (isRange) {
           const startingCellRef = _startingCellRef.slice(0, -1)
-          const newStartingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, startingCellRef] : startingCellRef, targetItem.loopIndex, 'rangeStart', ctx)
-          const newEndingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopIndex, 'rangeEnd', ctx)
+          const newStartingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, startingCellRef] : startingCellRef, targetItem.loopMeta, 'rangeStart', ctx)
+          const newEndingCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopMeta, 'rangeEnd', ctx)
 
           return `${newStartingCellRef}:${newEndingCellRef}`
         } else {
-          newCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopIndex, 'standalone', ctx)
+          newCellRef = getNewCellRef(type === 'formulas' ? [targetItem.cellRef, endingCellRef] : endingCellRef, targetItem.loopMeta, 'standalone', ctx)
         }
 
         return newCellRef
@@ -699,10 +1051,6 @@ function xlsxSData (data, options) {
 
       if (type === 'newCellRef') {
         updated.push(newValue)
-      } else if (type === 'mergeCells') {
-        updated.push(`<mergeCell ref="${newValue}" />`)
-      } else {
-        updated.push(`<f>${newValue}</f>`)
       }
     }
 
@@ -731,5 +1079,5 @@ function xlsxSData (data, options) {
     return `${refsParts[0]}:${parsedEndCellRef.letter}${parsedLastCellRef.rowNumber}`
   }
 
-  throw new Error('invalid usage of xlsxSData helper')
+  throw new Error(`invalid usage of xlsxSData helper${type != null ? ` (type: ${type})` : ''}`)
 }

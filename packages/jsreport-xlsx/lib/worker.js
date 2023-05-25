@@ -8,8 +8,8 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
-    alias: 'parseCellRef',
-    path: path.join(__dirname, '../lib/parseCellRef.js')
+    alias: 'cellUtils',
+    path: path.join(__dirname, '../lib/cellUtils.js')
   })
 
   reporter.options.sandbox.modules.push({

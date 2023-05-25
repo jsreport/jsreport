@@ -189,6 +189,54 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop should keep the same row if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+      }
+    })
+
     it(`${mode} loop should generate new rows and update existing rows/cells`, async () => {
       const items = [{
         name: 'Alexander',
@@ -271,6 +319,112 @@ describe('xlsx generation - loops', () => {
         should(sheet.B18.v).be.eql('another')
         should(sheet.C18.v).be.eql('content')
         should(sheet.D18.v).be.eql('here')
+      }
+    })
+
+    it(`${mode} loop should not generate new row and keep existing rows/cells if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-and-existing-cells.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.B5.v).be.eql('another')
+        should(sheet.C5.v).be.eql('content')
+        should(sheet.D5.v).be.eql('here')
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+
+        should(sheet.B8.v).be.eql('another')
+        should(sheet.C8.v).be.eql('content')
+        should(sheet.D8.v).be.eql('here')
+      }
+    })
+
+    it(`${mode} loop should not generate new row and keep existing rows/cells if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-and-existing-cells.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.B5.v).be.eql('another')
+        should(sheet.C5.v).be.eql('content')
+        should(sheet.D5.v).be.eql('here')
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.B8.v).be.eql('another')
+        should(sheet.C8.v).be.eql('content')
+        should(sheet.D8.v).be.eql('here')
       }
     })
 
@@ -360,6 +514,325 @@ describe('xlsx generation - loops', () => {
         should(sheet.D14.v).be.eql(items[2].lastname)
         should(sheet.E14.v).be.eql(items[2].colors.map((item) => item.name).join(''))
         should(sheet.F14.v).be.eql(items[2].age)
+      }
+    })
+
+    it(`${mode} loop should generate new rows when there are siblings loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const items2 = [{
+        name: 'Emma',
+        lastname: 'Johnson',
+        age: 27
+      }, {
+        name: 'William',
+        lastname: 'Garcia',
+        age: 35
+      }]
+
+      const items3 = [{
+        name: 'Oliver',
+        lastname: 'Taylor',
+        age: 28
+      }, {
+        name: 'Ava',
+        lastname: 'Martinez',
+        age: 33
+      }, {
+        name: 'Lucas',
+        lastname: 'Ramirez',
+        age: 25
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-siblings.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items,
+          items2,
+          items3
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+
+        should(sheet.C7.v).be.eql('Name')
+        should(sheet.D7.v).be.eql('Lastname')
+        should(sheet.E7.v).be.eql('Age')
+        should(sheet.C8.v).be.eql(items2[0].name)
+        should(sheet.D8.v).be.eql(items2[0].lastname)
+        should(sheet.E8.v).be.eql(items2[0].age)
+        should(sheet.C9.v).be.eql(items2[1].name)
+        should(sheet.D9.v).be.eql(items2[1].lastname)
+        should(sheet.E9.v).be.eql(items2[1].age)
+
+        should(sheet.C11.v).be.eql('Name')
+        should(sheet.D11.v).be.eql('Lastname')
+        should(sheet.E11.v).be.eql('Age')
+        should(sheet.C12.v).be.eql(items3[0].name)
+        should(sheet.D12.v).be.eql(items3[0].lastname)
+        should(sheet.E12.v).be.eql(items3[0].age)
+        should(sheet.C13.v).be.eql(items3[1].name)
+        should(sheet.D13.v).be.eql(items3[1].lastname)
+        should(sheet.E13.v).be.eql(items3[1].age)
+        should(sheet.C14.v).be.eql(items3[2].name)
+        should(sheet.D14.v).be.eql(items3[2].lastname)
+        should(sheet.E14.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.C19.v).be.eql('Name')
+        should(sheet.D19.v).be.eql('Lastname')
+        should(sheet.E19.v).be.eql('Age')
+        should(sheet.C20.v).be.eql(items2[0].name)
+        should(sheet.D20.v).be.eql(items2[0].lastname)
+        should(sheet.E20.v).be.eql(items2[0].age)
+
+        should(sheet.C24.v).be.eql('Name')
+        should(sheet.D24.v).be.eql('Lastname')
+        should(sheet.E24.v).be.eql('Age')
+        should(sheet.C25.v).be.eql(items2[1].name)
+        should(sheet.D25.v).be.eql(items2[1].lastname)
+        should(sheet.E25.v).be.eql(items2[1].age)
+
+        should(sheet.C30.v).be.eql('Name')
+        should(sheet.D30.v).be.eql('Lastname')
+        should(sheet.E30.v).be.eql('Age')
+        should(sheet.C31.v).be.eql(items3[0].name)
+        should(sheet.D31.v).be.eql(items3[0].lastname)
+        should(sheet.E31.v).be.eql(items3[0].age)
+
+        should(sheet.C35.v).be.eql('Name')
+        should(sheet.D35.v).be.eql('Lastname')
+        should(sheet.E35.v).be.eql('Age')
+        should(sheet.C36.v).be.eql(items3[1].name)
+        should(sheet.D36.v).be.eql(items3[1].lastname)
+        should(sheet.E36.v).be.eql(items3[1].age)
+
+        should(sheet.C40.v).be.eql('Name')
+        should(sheet.D40.v).be.eql('Lastname')
+        should(sheet.E40.v).be.eql('Age')
+        should(sheet.C41.v).be.eql(items3[2].name)
+        should(sheet.D41.v).be.eql(items3[2].lastname)
+        should(sheet.E41.v).be.eql(items3[2].age)
+      }
+    })
+
+    it(`${mode} loop should generate new rows when there are mixed siblings loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const items2 = [{
+        name: 'Emma',
+        lastname: 'Johnson',
+        age: 27
+      }, {
+        name: 'William',
+        lastname: 'Garcia',
+        age: 35
+      }]
+
+      const items3 = [{
+        name: 'Oliver',
+        lastname: 'Taylor',
+        age: 28
+      }, {
+        name: 'Ava',
+        lastname: 'Martinez',
+        age: 33
+      }, {
+        name: 'Lucas',
+        lastname: 'Ramirez',
+        age: 25
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-mixed-siblings.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items,
+          items2,
+          items3
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items2[0].name)
+        should(sheet.D9.v).be.eql(items2[0].lastname)
+        should(sheet.E9.v).be.eql(items2[0].age)
+        should(sheet.C12.v).be.eql('Name')
+        should(sheet.D12.v).be.eql('Lastname')
+        should(sheet.E12.v).be.eql('Age')
+        should(sheet.C13.v).be.eql(items2[1].name)
+        should(sheet.D13.v).be.eql(items2[1].lastname)
+        should(sheet.E13.v).be.eql(items2[1].age)
+
+        should(sheet.C16.v).be.eql('Name')
+        should(sheet.D16.v).be.eql('Lastname')
+        should(sheet.E16.v).be.eql('Age')
+        should(sheet.C17.v).be.eql(items3[0].name)
+        should(sheet.D17.v).be.eql(items3[0].lastname)
+        should(sheet.E17.v).be.eql(items3[0].age)
+        should(sheet.C18.v).be.eql(items3[1].name)
+        should(sheet.D18.v).be.eql(items3[1].lastname)
+        should(sheet.E18.v).be.eql(items3[1].age)
+        should(sheet.C19.v).be.eql(items3[2].name)
+        should(sheet.D19.v).be.eql(items3[2].lastname)
+        should(sheet.E19.v).be.eql(items3[2].age)
+      } else {
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+
+        should(sheet.C18.v).be.eql('Name')
+        should(sheet.D18.v).be.eql('Lastname')
+        should(sheet.E18.v).be.eql('Age')
+        should(sheet.C19.v).be.eql(items2[0].name)
+        should(sheet.D19.v).be.eql(items2[0].lastname)
+        should(sheet.E19.v).be.eql(items2[0].age)
+        should(sheet.C20.v).be.eql(items2[1].name)
+        should(sheet.D20.v).be.eql(items2[1].lastname)
+        should(sheet.E20.v).be.eql(items2[1].age)
+
+        should(sheet.C23.v).be.eql('Name')
+        should(sheet.D23.v).be.eql('Lastname')
+        should(sheet.E23.v).be.eql('Age')
+        should(sheet.C24.v).be.eql(items3[0].name)
+        should(sheet.D24.v).be.eql(items3[0].lastname)
+        should(sheet.E24.v).be.eql(items3[0].age)
+
+        should(sheet.C28.v).be.eql('Name')
+        should(sheet.D28.v).be.eql('Lastname')
+        should(sheet.E28.v).be.eql('Age')
+        should(sheet.C29.v).be.eql(items3[1].name)
+        should(sheet.D29.v).be.eql(items3[1].lastname)
+        should(sheet.E29.v).be.eql(items3[1].age)
+
+        should(sheet.C33.v).be.eql('Name')
+        should(sheet.D33.v).be.eql('Lastname')
+        should(sheet.E33.v).be.eql('Age')
+        should(sheet.C34.v).be.eql(items3[2].name)
+        should(sheet.D34.v).be.eql(items3[2].lastname)
+        should(sheet.E34.v).be.eql(items3[2].age)
       }
     })
 
@@ -1215,6 +1688,92 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop not update existing merged cells after loop if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B5.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B5:C5')).be.True()
+        should(sheet.E5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E5:G5')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B8.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B8:C8')).be.True()
+        should(sheet.E8.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      }
+    })
+
+    it(`${mode} loop not update existing merged cells after loop if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B5.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B5:C5')).be.True()
+        should(sheet.E5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E5:G5')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B8.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B8:C8')).be.True()
+        should(sheet.E8.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      }
+    })
+
     it(`${mode} loop create new merged cells from loop`, async () => {
       const items = [{
         name: 'Alexander',
@@ -1494,6 +2053,136 @@ describe('xlsx generation - loops', () => {
         should(mergeCellExists(sheet, 'B18:C18')).be.True()
         should(sheet.E18.v).be.eql('merged3')
         should(mergeCellExists(sheet, 'E18:G18')).be.True()
+      }
+    })
+
+    it(`${mode} should not create new merged cells from loop and not update existing if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+
+        should(sheet.B5.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B5:C5')).be.True()
+        should(sheet.E5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E5:G5')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.F3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+
+        should(sheet.B8.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B8:C8')).be.True()
+        should(sheet.E8.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E8:G8')).be.True()
+      }
+    })
+
+    it(`${mode} should not create new merged cells from loop and not update existing if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `merged-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+        should(sheet.B1.v).be.eql('merged')
+
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.F2.v).be.eql('Age')
+
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.F3.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D3:E3')).be.True()
+
+        should(sheet.B5.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B5:C5')).be.True()
+        should(sheet.E5.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E5:G5')).be.True()
+      } else {
+        should(sheet.B1.v).be.eql('merged')
+        should(mergeCellExists(sheet, 'B1:C1')).be.True()
+
+        should(sheet.B2.v).be.eql('')
+        should(sheet.B6.v).be.eql('')
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.F3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.F4.v).be.eql(items[0].age)
+        should(mergeCellExists(sheet, 'D4:E4')).be.True()
+
+        should(sheet.B8.v).be.eql('merged2')
+        should(mergeCellExists(sheet, 'B8:C8')).be.True()
+        should(sheet.E8.v).be.eql('merged3')
+        should(mergeCellExists(sheet, 'E8:G8')).be.True()
       }
     })
 
@@ -2083,6 +2772,84 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop not update existing formulas after loop if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E5.v).be.ok()
+        should(sheet.E6.v).be.ok()
+        should(sheet.E7.f).be.eql('SUM(E5:E6)')
+        should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
+      } else {
+        should(sheet.E8.v).be.ok()
+        should(sheet.E9.v).be.ok()
+        should(sheet.E10.f).be.eql('SUM(E8:E9)')
+        should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      }
+    })
+
+    it(`${mode} loop not update existing formulas after loop if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E5.v).be.ok()
+        should(sheet.E6.v).be.ok()
+        should(sheet.E7.f).be.eql('SUM(E5:E6)')
+        should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
+      } else {
+        should(sheet.E8.v).be.ok()
+        should(sheet.E9.v).be.ok()
+        should(sheet.E10.f).be.eql('SUM(E8:E9)')
+        should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      }
+    })
+
     it(`${mode} loop update calcChain info of formulas after loop`, async () => {
       const items = [{
         name: 'Alexander',
@@ -2213,6 +2980,88 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E17)')
         should(sheet.E21.f).be.eql('MAX(E4:E17)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
+      }
+    })
+
+    it(`${mode} loop not update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop) if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E5.f).be.eql('SUM(E3:E4)')
+        should(sheet.E6.f).be.eql('AVERAGE(E3:E4)')
+        should(sheet.E7.f).be.eql('MIN(E3:E4)')
+        should(sheet.E8.f).be.eql('MAX(E3:E4)')
+        should(sheet.E9.f).be.eql('SUM(E7,E8)')
+      } else {
+        should(sheet.E8.f).be.eql('SUM(E4:E7)')
+        should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
+        should(sheet.E10.f).be.eql('MIN(E4:E7)')
+        should(sheet.E11.f).be.eql('MAX(E4:E7)')
+        should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      }
+    })
+
+    it(`${mode} loop not update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop) if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-(end-bellow)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E5.f).be.eql('SUM(E3:E4)')
+        should(sheet.E6.f).be.eql('AVERAGE(E3:E4)')
+        should(sheet.E7.f).be.eql('MIN(E3:E4)')
+        should(sheet.E8.f).be.eql('MAX(E3:E4)')
+        should(sheet.E9.f).be.eql('SUM(E7,E8)')
+      } else {
+        should(sheet.E8.f).be.eql('SUM(E4:E7)')
+        should(sheet.E9.f).be.eql('AVERAGE(E4:E7)')
+        should(sheet.E10.f).be.eql('MIN(E4:E7)')
+        should(sheet.E11.f).be.eql('MAX(E4:E7)')
+        should(sheet.E12.f).be.eql('SUM(E10,E11)')
       }
     })
 
@@ -2351,6 +3200,88 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('MIN(E4:E14)')
         should(sheet.E21.f).be.eql('MAX(E4:E14)')
         should(sheet.E22.f).be.eql('SUM(E20,E21)')
+      }
+    })
+
+    it(`${mode} loop not update existing formulas after loop (formula start and end points to cell in loop) if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E5.f).be.eql('SUM(E3:E3)')
+        should(sheet.E6.f).be.eql('AVERAGE(E3:E3)')
+        should(sheet.E7.f).be.eql('MIN(E3:E3)')
+        should(sheet.E8.f).be.eql('MAX(E3:E3)')
+        should(sheet.E9.f).be.eql('SUM(E7,E8)')
+      } else {
+        should(sheet.E8.f).be.eql('SUM(E4:E4)')
+        should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
+        should(sheet.E10.f).be.eql('MIN(E4:E4)')
+        should(sheet.E11.f).be.eql('MAX(E4:E4)')
+        should(sheet.E12.f).be.eql('SUM(E10,E11)')
+      }
+    })
+
+    it(`${mode} loop not update existing formulas after loop (formula start and end points to cell in loop) if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-(inside)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E5.f).be.eql('SUM(E3:E3)')
+        should(sheet.E6.f).be.eql('AVERAGE(E3:E3)')
+        should(sheet.E7.f).be.eql('MIN(E3:E3)')
+        should(sheet.E8.f).be.eql('MAX(E3:E3)')
+        should(sheet.E9.f).be.eql('SUM(E7,E8)')
+      } else {
+        should(sheet.E8.f).be.eql('SUM(E4:E4)')
+        should(sheet.E9.f).be.eql('AVERAGE(E4:E5)')
+        should(sheet.E10.f).be.eql('MIN(E4:E4)')
+        should(sheet.E11.f).be.eql('MAX(E4:E4)')
+        should(sheet.E12.f).be.eql('SUM(E10,E11)')
       }
     })
 
@@ -2514,6 +3445,106 @@ describe('xlsx generation - loops', () => {
         should(sheet.F14.v).be.eql(items[2].rate)
         should(sheet.G14.v).be.eql(items[2].hours)
         should(sheet.H14.f).be.eql('F14*G14')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+      } else {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('F4*G4')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('F4*G4')
       }
     })
 
@@ -2810,6 +3841,112 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop not create new multiple formula cells from loop if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-multiple-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.I3.f).be.eql('H3*100')
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+        should(sheet.I4).be.not.ok()
+      } else {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('F4*G4')
+        should(sheet.I4.f).be.eql('H4*100')
+      }
+    })
+
+    it(`${mode} loop not create new multiple formula cells from loop if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-multiple-formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.I3.f).be.eql('H3*100')
+        should(sheet.C4).be.not.ok()
+        should(sheet.D4).be.not.ok()
+        should(sheet.E4).be.not.ok()
+        should(sheet.F4).be.not.ok()
+        should(sheet.G4).be.not.ok()
+        should(sheet.H4).be.not.ok()
+        should(sheet.I4).be.not.ok()
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('F4*G4')
+        should(sheet.I4.f).be.eql('H4*100')
+      }
+    })
+
     it(`${mode} loop update calcChain info of formulas after loop created new multiple formula cells`, async () => {
       const items = [{
         name: 'Alexander',
@@ -2973,6 +4110,109 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    // TODO: add test for "loop create new formula cells from loop (increment range)" but
+    // with the formula cell before the evaluated cells (Total | Rate | Hours)
+
+    it(`${mode} loop not create new formula cells from loop (increment range) if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('SUM(F3:G3)')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop (increment range) if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('SUM(F3:G3)')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('SUM(F4:G4)')
+      }
+    })
+
     it(`${mode} loop update calcChain info of formulas after loop created new formula cells (increment range)`, async () => {
       const items = [{
         name: 'Alexander',
@@ -3129,6 +4369,108 @@ describe('xlsx generation - loops', () => {
         should(sheet.H14.f).be.eql('A$1*F14*G14')
       }
     })
+
+    it(`${mode} loop not create new formula cells from loop (increment standard cells but don't do it for cell using absolute reference for row $) if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('A$1*F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('A$1*F4*G4')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop (increment standard cells but don't do it for cell using absolute reference for row $) if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('A$1*F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('A$1*F4*G4')
+      }
+    })
+
+    // TODO: add more tests for formulas using absolute references (test formula that references a cell after loop, and also inside a loop)
 
     it(`${mode} loop update calcChain info of formulas after loop created new formula cells (increment standard cells but don't do it for cell using absolute reference $)`, async () => {
       const items = [{
@@ -3300,6 +4642,126 @@ describe('xlsx generation - loops', () => {
         should(sheet.E20.f).be.eql('SUM(E18:E19)')
         should(sheet.E21.f).be.eql('AVERAGE(E18:E19)')
         should(sheet.E22?.f).be.not.ok()
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop and not update existing if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+
+        should(sheet.E5).be.ok()
+        should(sheet.E6).be.ok()
+        should(sheet.E7.f).be.eql('SUM(E5:E6)')
+        should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
+      } else {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('F4*G4')
+
+        should(sheet.E8).be.ok()
+        should(sheet.E9).be.ok()
+        should(sheet.E10.f).be.eql('SUM(E8:E9)')
+        should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop and not update existing if array have 1 item`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `formula-cells-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+
+        should(sheet.E5).be.ok()
+        should(sheet.E6).be.ok()
+        should(sheet.E7.f).be.eql('SUM(E5:E6)')
+        should(sheet.E8.f).be.eql('AVERAGE(E5:E6)')
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('F4*G4')
+
+        should(sheet.E8).be.ok()
+        should(sheet.E9).be.ok()
+        should(sheet.E10.f).be.eql('SUM(E8:E9)')
+        should(sheet.E11.f).be.eql('AVERAGE(E8:E9)')
       }
     })
 
@@ -4007,6 +5469,9 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    // TODO: add test for "should not break shared formulas" but shared formulas is generated in loop
+    // TODO: check if shared formulas is valid for vertical ranges (verify if ms excel creates it when editing)
+
     it(`${mode} loop should generate cells with type according to the data rendered in each cell`, async () => {
       const items = [{
         name: 'Alexander',
@@ -4138,6 +5603,2418 @@ describe('xlsx generation - loops', () => {
       }
     })
   }
+
+  it('block loop and row loop nested', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and block loop nested', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.C6.v).be.eql(categories[0].posts[0].author)
+    should(sheet.C9.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C10.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.C11.v).be.eql(categories[0].posts[1].author)
+    should(sheet.C14.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C15.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.C16.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B19.v).be.eql(categories[1].name)
+    should(sheet.C21.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C22.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.C23.v).be.eql(categories[1].posts[0].author)
+    should(sheet.C26.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C27.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.C28.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B31.v).be.eql(categories[2].name)
+    should(sheet.C33.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C34.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.C35.v).be.eql(categories[2].posts[0].author)
+    should(sheet.C38.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C39.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.C40.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('row loop and row loop nested', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-single-row-and-nested-single-row-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B3.v).be.eql(categories[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.E3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.E4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.E5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B6.v).be.eql(categories[1].name)
+    should(sheet.C6.v).be.eql(categories[1].posts[0].name)
+    should(sheet.D6.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.E6.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.C7.v).be.eql(categories[1].posts[1].name)
+    should(sheet.D7.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.E7.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B8.v).be.eql(categories[2].name)
+    should(sheet.C8.v).be.eql(categories[2].posts[0].name)
+    should(sheet.D8.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.E8.v).be.eql(categories[2].posts[0].author)
+    should(sheet.C9.v).be.eql(categories[2].posts[1].name)
+    should(sheet.D9.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.E9.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and siblings nested row and block loops', async () => {
+    const categories = [
+      {
+        name: 'In',
+        tags: ['a', 'b', 'c'],
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        tags: ['a', 'c'],
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        tags: ['b'],
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-siblings-nested-row-and-multiple-rows-loop.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql('Tags')
+    should(sheet.B4.v).be.eql(categories[0].tags[0])
+    should(sheet.B5.v).be.eql(categories[0].tags[1])
+    should(sheet.B6.v).be.eql(categories[0].tags[2])
+
+    should(sheet.B8.v).be.eql('Posts')
+
+    should(sheet.B10.v).be.eql('Name:')
+    should(sheet.C10.v).be.eql(categories[0].posts[0].name)
+    should(sheet.B11.v).be.eql('Words Count:')
+    should(sheet.C11.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.B12.v).be.eql('Author:')
+    should(sheet.C12.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B15.v).be.eql('Name:')
+    should(sheet.C15.v).be.eql(categories[0].posts[1].name)
+    should(sheet.B16.v).be.eql('Words Count:')
+    should(sheet.C16.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.B17.v).be.eql('Author:')
+    should(sheet.C17.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B20.v).be.eql('Name:')
+    should(sheet.C20.v).be.eql(categories[0].posts[2].name)
+    should(sheet.B21.v).be.eql('Words Count:')
+    should(sheet.C21.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.B22.v).be.eql('Author:')
+    should(sheet.C22.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B25.v).be.eql(categories[1].name)
+    should(sheet.B26.v).be.eql('Tags')
+    should(sheet.B27.v).be.eql(categories[1].tags[0])
+    should(sheet.B28.v).be.eql(categories[1].tags[1])
+
+    should(sheet.B30.v).be.eql('Posts')
+
+    should(sheet.B32.v).be.eql('Name:')
+    should(sheet.C32.v).be.eql(categories[1].posts[0].name)
+    should(sheet.B33.v).be.eql('Words Count:')
+    should(sheet.C33.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.B34.v).be.eql('Author:')
+    should(sheet.C34.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B37.v).be.eql('Name:')
+    should(sheet.C37.v).be.eql(categories[1].posts[1].name)
+    should(sheet.B38.v).be.eql('Words Count:')
+    should(sheet.C38.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.B39.v).be.eql('Author:')
+    should(sheet.C39.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B42.v).be.eql(categories[2].name)
+    should(sheet.B43.v).be.eql('Tags')
+    should(sheet.B44.v).be.eql(categories[2].tags[0])
+
+    should(sheet.B46.v).be.eql('Posts')
+
+    should(sheet.B48.v).be.eql('Name:')
+    should(sheet.C48.v).be.eql(categories[2].posts[0].name)
+    should(sheet.B49.v).be.eql('Words Count:')
+    should(sheet.C49.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.B50.v).be.eql('Author:')
+    should(sheet.C50.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B53.v).be.eql('Name:')
+    should(sheet.C53.v).be.eql(categories[2].posts[1].name)
+    should(sheet.B54.v).be.eql('Words Count:')
+    should(sheet.C54.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.B55.v).be.eql('Author:')
+    should(sheet.C55.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and multiple nested loops', async () => {
+    const categories = [
+      {
+        name: 'In',
+        tags: ['a', 'b', 'c'],
+        maintainers: ['Olivia', 'Jacob'],
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins',
+            reviews: [{ name: 'Bob', message: 'A good content', stars: [{ value: 4, time: '1 day ago' }, { value: 5, time: '1 week ago' }] }, { name: 'Alice', message: 'Nice way to put it together' }]
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia',
+            reviews: [{ name: 'Sarah', message: 'Couldn\'t put it down! A must-read' }, { name: 'Christopher', message: 'Interesting perspective, but lacked depth' }]
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        tags: ['a', 'c'],
+        maintainers: ['Isabella'],
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood',
+            reviews: [{ name: 'Emily', message: 'Enjoyed the characters and plot twists', stars: [{ value: 4, time: '2 weeks ago' }] }]
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        tags: ['b'],
+        maintainers: ['Alexander', 'Mia', 'James'],
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine',
+            reviews: [{ name: 'David', message: 'Not my cup of tea, but may appeal to others' }, { name: 'Samantha', message: 'Too slow-paced for my taste' }]
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy',
+            reviews: [{ name: 'William', message: 'Powerful and moving. Left a lasting impression' }]
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-loops.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql('Tags:')
+    should(sheet.B4.v).be.eql(categories[0].tags[0])
+    should(sheet.B5.v).be.eql(categories[0].tags[1])
+    should(sheet.B6.v).be.eql(categories[0].tags[2])
+
+    should(sheet.B8.v).be.eql('Posts')
+
+    should(sheet.B10.v).be.eql('Name:')
+    should(sheet.C10.v).be.eql(categories[0].posts[0].name)
+    should(sheet.B11.v).be.eql('Words Count:')
+    should(sheet.C11.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.B12.v).be.eql('Author:')
+    should(sheet.C12.v).be.eql(categories[0].posts[0].author)
+
+    should(sheet.B13.v).be.eql('Reviews:')
+    should(sheet.B15.v).be.eql('Name:')
+    should(sheet.C15.v).be.eql(categories[0].posts[0].reviews[0].name)
+    should(sheet.B16.v).be.eql('Message:')
+    should(sheet.C16.v).be.eql(categories[0].posts[0].reviews[0].message)
+    should(sheet.B17.v).be.eql('Stars')
+    should(sheet.B18.v).be.eql(`${categories[0].posts[0].reviews[0].stars[0].value} - ${categories[0].posts[0].reviews[0].stars[0].time}`)
+    should(sheet.B19.v).be.eql(`${categories[0].posts[0].reviews[0].stars[1].value} - ${categories[0].posts[0].reviews[0].stars[1].time}`)
+
+    should(sheet.B22.v).be.eql('Name:')
+    should(sheet.C22.v).be.eql(categories[0].posts[0].reviews[1].name)
+    should(sheet.B23.v).be.eql('Message:')
+    should(sheet.C23.v).be.eql(categories[0].posts[0].reviews[1].message)
+    should(sheet.B24.v).be.eql('Stars')
+    should(sheet.B25.v).be.eql(' - ')
+
+    should(sheet.B29.v).be.eql('Name:')
+    should(sheet.C29.v).be.eql(categories[0].posts[1].name)
+    should(sheet.B30.v).be.eql('Words Count:')
+    should(sheet.C30.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.B31.v).be.eql('Author:')
+    should(sheet.C31.v).be.eql(categories[0].posts[1].author)
+
+    should(sheet.B32.v).be.eql('Reviews:')
+    should(sheet.B34.v).be.eql('Name:')
+    should(sheet.C34.v).be.eql('')
+    should(sheet.B35.v).be.eql('Message:')
+    should(sheet.C35.v).be.eql('')
+    should(sheet.B36.v).be.eql('Stars')
+    should(sheet.B37.v).be.eql(' - ')
+
+    should(sheet.B41.v).be.eql('Name:')
+    should(sheet.C41.v).be.eql(categories[0].posts[2].name)
+    should(sheet.B42.v).be.eql('Words Count:')
+    should(sheet.C42.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.B43.v).be.eql('Author:')
+    should(sheet.C43.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B44.v).be.eql('Reviews:')
+    should(sheet.B46.v).be.eql('Name:')
+    should(sheet.C46.v).be.eql(categories[0].posts[2].reviews[0].name)
+    should(sheet.B47.v).be.eql('Message:')
+    should(sheet.C47.v).be.eql(categories[0].posts[2].reviews[0].message)
+    should(sheet.B48.v).be.eql('Stars')
+    should(sheet.B49.v).be.eql(' - ')
+
+    should(sheet.B52.v).be.eql('Name:')
+    should(sheet.C52.v).be.eql(categories[0].posts[2].reviews[1].name)
+    should(sheet.B53.v).be.eql('Message:')
+    should(sheet.C53.v).be.eql(categories[0].posts[2].reviews[1].message)
+    should(sheet.B54.v).be.eql('Stars')
+    should(sheet.B55.v).be.eql(' - ')
+
+    should(sheet.B59.v).be.eql('Maintainers:')
+    should(sheet.B60.v).be.eql(categories[0].maintainers[0])
+    should(sheet.B61.v).be.eql(categories[0].maintainers[1])
+
+    should(sheet.B64.v).be.eql(categories[1].name)
+    should(sheet.B65.v).be.eql('Tags:')
+    should(sheet.B66.v).be.eql(categories[1].tags[0])
+    should(sheet.B67.v).be.eql(categories[1].tags[1])
+
+    should(sheet.B69.v).be.eql('Posts')
+
+    should(sheet.B71.v).be.eql('Name:')
+    should(sheet.C71.v).be.eql(categories[1].posts[0].name)
+    should(sheet.B72.v).be.eql('Words Count:')
+    should(sheet.C72.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.B73.v).be.eql('Author:')
+    should(sheet.C73.v).be.eql(categories[1].posts[0].author)
+
+    should(sheet.B74.v).be.eql('Reviews:')
+    should(sheet.B76.v).be.eql('Name:')
+    should(sheet.C76.v).be.eql(categories[1].posts[0].reviews[0].name)
+    should(sheet.B77.v).be.eql('Message:')
+    should(sheet.C77.v).be.eql(categories[1].posts[0].reviews[0].message)
+    should(sheet.B78.v).be.eql('Stars')
+    should(sheet.B79.v).be.eql(`${categories[1].posts[0].reviews[0].stars[0].value} - ${categories[1].posts[0].reviews[0].stars[0].time}`)
+
+    should(sheet.B83.v).be.eql('Name:')
+    should(sheet.C83.v).be.eql(categories[1].posts[1].name)
+    should(sheet.B84.v).be.eql('Words Count:')
+    should(sheet.C84.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.B85.v).be.eql('Author:')
+    should(sheet.C85.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B86.v).be.eql('Reviews:')
+    should(sheet.B88.v).be.eql('Name:')
+    should(sheet.C88.v).be.eql('')
+    should(sheet.B89.v).be.eql('Message:')
+    should(sheet.C89.v).be.eql('')
+    should(sheet.B90.v).be.eql('Stars')
+    should(sheet.B91.v).be.eql(' - ')
+
+    should(sheet.B95.v).be.eql('Maintainers:')
+    should(sheet.B96.v).be.eql(categories[1].maintainers[0])
+
+    should(sheet.B99.v).be.eql(categories[2].name)
+    should(sheet.B100.v).be.eql('Tags:')
+    should(sheet.B101.v).be.eql(categories[2].tags[0])
+
+    should(sheet.B103.v).be.eql('Posts')
+
+    should(sheet.B105.v).be.eql('Name:')
+    should(sheet.C105.v).be.eql(categories[2].posts[0].name)
+    should(sheet.B106.v).be.eql('Words Count:')
+    should(sheet.C106.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.B107.v).be.eql('Author:')
+    should(sheet.C107.v).be.eql(categories[2].posts[0].author)
+
+    should(sheet.B108.v).be.eql('Reviews:')
+    should(sheet.B110.v).be.eql('Name:')
+    should(sheet.C110.v).be.eql(categories[2].posts[0].reviews[0].name)
+    should(sheet.B111.v).be.eql('Message:')
+    should(sheet.C111.v).be.eql(categories[2].posts[0].reviews[0].message)
+    should(sheet.B112.v).be.eql('Stars')
+    should(sheet.B113.v).be.eql(' - ')
+
+    should(sheet.B116.v).be.eql('Name:')
+    should(sheet.C116.v).be.eql(categories[2].posts[0].reviews[1].name)
+    should(sheet.B117.v).be.eql('Message:')
+    should(sheet.C117.v).be.eql(categories[2].posts[0].reviews[1].message)
+    should(sheet.B118.v).be.eql('Stars')
+    should(sheet.B119.v).be.eql(' - ')
+
+    should(sheet.B123.v).be.eql('Name:')
+    should(sheet.C123.v).be.eql(categories[2].posts[1].name)
+    should(sheet.B124.v).be.eql('Words Count:')
+    should(sheet.C124.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.B125.v).be.eql('Author:')
+    should(sheet.C125.v).be.eql(categories[2].posts[1].author)
+
+    should(sheet.B126.v).be.eql('Reviews:')
+    should(sheet.B128.v).be.eql('Name:')
+    should(sheet.C128.v).be.eql(categories[2].posts[1].reviews[0].name)
+    should(sheet.B129.v).be.eql('Message:')
+    should(sheet.C129.v).be.eql(categories[2].posts[1].reviews[0].message)
+    should(sheet.B130.v).be.eql('Stars')
+    should(sheet.B131.v).be.eql(' - ')
+
+    should(sheet.B135.v).be.eql('Maintainers:')
+    should(sheet.B136.v).be.eql(categories[2].maintainers[0])
+    should(sheet.B137.v).be.eql(categories[2].maintainers[1])
+    should(sheet.B138.v).be.eql(categories[2].maintainers[2])
+  })
+
+  // TODO: the idea to support multiple row loop nesting will be to insert <outOfLoopPlaceholder>
+  // elements between loop start and row start and the <outOfLoopPlaceholder> inside <row> will
+  // combine results
+  // <xlsxRemove>{{#xlsxSData categories type='loop' hierarchyId='0' start=3 columnStart=2 columnEnd=12 }}</xlsxRemove>
+  // <outOfLoopPlaceholder>
+  //   ...NEW TYPE OF PLACEHOLDER...
+  //   HERE WILL COME THE "LEFT" part
+  // </outOfLoopPlaceholder>
+  // <outOfLoopPlaceholder>
+  //   ...NEW TYPE OF PLACEHOLDER...
+  //   HERE WILL COME THE "RIGHT" part
+  // </outOfLoopPlaceholder>
+  // <xlsxRemove>{{#xlsxSData type='row' originalRowNumber=3}}</xlsxRemove>
+  // <row r="{{xlsxSData type='rowNumber'}}" spans="2:12" x14ac:dyDescent="0.2">
+  //   <outOfLoopPlaceholder>
+  //     ...EXISTING TYPE OF PLACEHOLDER THAT WILL COMBINE RESULTS FROM OUTSIDE ROW (LEFT)...
+  //   </outOfLoopPlaceholder>
+  //   ...cells here...
+  //   <outOfLoopPlaceholder>
+  //     ...EXISTING TYPE OF PLACEHOLDER THAT WILL COMBINE RESULTS FROM OUTSIDE ROW (RIGHT)...
+  //   </outOfLoopPlaceholder>
+  // </row>
+  // <xlsxRemove>{{/xlsxSData}}</xlsxRemove>
+  // <xlsxRemove>{{/xlsxSData}}</xlsxRemove>
+  //
+  // Another approach a bit more radically can be to try to remove the usage of extra tags
+  // <outOfLoopPlaceholder>, <outOfLoop> and instead just prepare everything with helper calls
+  // the structure of calls will look very much the same as above but the difference will be
+  // that we will insert the tags directly during handlebars processing without the need to
+  // post-process, this will likely also improve performance with lot of rows
+  it.skip('row loop and multiple row loops nested', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins',
+            reviews: [{ name: 'Bob', message: 'A good content', stars: [{ value: 4, time: '1 day ago' }, { value: 5, time: '1 week ago' }] }, { name: 'Alice', message: 'Nice way to put it together' }]
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia',
+            reviews: [{ name: 'Sarah', message: 'Couldn\'t put it down! A must-read' }, { name: 'Christopher', message: 'Interesting perspective, but lacked depth' }]
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood',
+            reviews: [{ name: 'Emily', message: 'Enjoyed the characters and plot twists', stars: [{ value: 4, time: '2 weeks ago' }] }]
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine',
+            reviews: [{ name: 'David', message: 'Not my cup of tea, but may appeal to others' }, { name: 'Samantha', message: 'Too slow-paced for my taste' }]
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy',
+            reviews: [{ name: 'William', message: 'Powerful and moving. Left a lasting impression' }]
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-and-nested-loops.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    // const workbook = xlsx.read(result.content)
+    // const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    // should(sheet.B2.v).be.eql(categories[0].name)
+    // should(sheet.B3.v).be.eql('Tags:')
+    // should(sheet.B4.v).be.eql(categories[0].tags[0])
+    // should(sheet.B5.v).be.eql(categories[0].tags[1])
+    // should(sheet.B6.v).be.eql(categories[0].tags[2])
+
+    // should(sheet.B8.v).be.eql('Posts')
+
+    // should(sheet.B10.v).be.eql('Name:')
+    // should(sheet.C10.v).be.eql(categories[0].posts[0].name)
+    // should(sheet.B11.v).be.eql('Words Count:')
+    // should(sheet.C11.v).be.eql(categories[0].posts[0].wordsCount)
+    // should(sheet.B12.v).be.eql('Author:')
+    // should(sheet.C12.v).be.eql(categories[0].posts[0].author)
+
+    // should(sheet.B13.v).be.eql('Reviews:')
+    // should(sheet.B15.v).be.eql('Name:')
+    // should(sheet.C15.v).be.eql(categories[0].posts[0].reviews[0].name)
+    // should(sheet.B16.v).be.eql('Message:')
+    // should(sheet.C16.v).be.eql(categories[0].posts[0].reviews[0].message)
+    // should(sheet.B17.v).be.eql('Stars')
+    // should(sheet.B18.v).be.eql(`${categories[0].posts[0].reviews[0].stars[0].value} - ${categories[0].posts[0].reviews[0].stars[0].time}`)
+    // should(sheet.B19.v).be.eql(`${categories[0].posts[0].reviews[0].stars[1].value} - ${categories[0].posts[0].reviews[0].stars[1].time}`)
+
+    // should(sheet.B22.v).be.eql('Name:')
+    // should(sheet.C22.v).be.eql(categories[0].posts[0].reviews[1].name)
+    // should(sheet.B23.v).be.eql('Message:')
+    // should(sheet.C23.v).be.eql(categories[0].posts[0].reviews[1].message)
+    // should(sheet.B24.v).be.eql('Stars')
+    // should(sheet.B25.v).be.eql(' - ')
+
+    // should(sheet.B29.v).be.eql('Name:')
+    // should(sheet.C29.v).be.eql(categories[0].posts[1].name)
+    // should(sheet.B30.v).be.eql('Words Count:')
+    // should(sheet.C30.v).be.eql(categories[0].posts[1].wordsCount)
+    // should(sheet.B31.v).be.eql('Author:')
+    // should(sheet.C31.v).be.eql(categories[0].posts[1].author)
+
+    // should(sheet.B32.v).be.eql('Reviews:')
+    // should(sheet.B34.v).be.eql('Name:')
+    // should(sheet.C34.v).be.eql('')
+    // should(sheet.B35.v).be.eql('Message:')
+    // should(sheet.C35.v).be.eql('')
+    // should(sheet.B36.v).be.eql('Stars')
+    // should(sheet.B37.v).be.eql(' - ')
+
+    // should(sheet.B41.v).be.eql('Name:')
+    // should(sheet.C41.v).be.eql(categories[0].posts[2].name)
+    // should(sheet.B42.v).be.eql('Words Count:')
+    // should(sheet.C42.v).be.eql(categories[0].posts[2].wordsCount)
+    // should(sheet.B43.v).be.eql('Author:')
+    // should(sheet.C43.v).be.eql(categories[0].posts[2].author)
+
+    // should(sheet.B44.v).be.eql('Reviews:')
+    // should(sheet.B46.v).be.eql('Name:')
+    // should(sheet.C46.v).be.eql(categories[0].posts[2].reviews[0].name)
+    // should(sheet.B47.v).be.eql('Message:')
+    // should(sheet.C47.v).be.eql(categories[0].posts[2].reviews[0].message)
+    // should(sheet.B48.v).be.eql('Stars')
+    // should(sheet.B49.v).be.eql(' - ')
+
+    // should(sheet.B52.v).be.eql('Name:')
+    // should(sheet.C52.v).be.eql(categories[0].posts[2].reviews[1].name)
+    // should(sheet.B53.v).be.eql('Message:')
+    // should(sheet.C53.v).be.eql(categories[0].posts[2].reviews[1].message)
+    // should(sheet.B54.v).be.eql('Stars')
+    // should(sheet.B55.v).be.eql(' - ')
+
+    // should(sheet.B59.v).be.eql('Maintainers:')
+    // should(sheet.B60.v).be.eql(categories[0].maintainers[0])
+    // should(sheet.B61.v).be.eql(categories[0].maintainers[1])
+
+    // should(sheet.B64.v).be.eql(categories[1].name)
+    // should(sheet.B65.v).be.eql('Tags:')
+    // should(sheet.B66.v).be.eql(categories[1].tags[0])
+    // should(sheet.B67.v).be.eql(categories[1].tags[1])
+
+    // should(sheet.B69.v).be.eql('Posts')
+
+    // should(sheet.B71.v).be.eql('Name:')
+    // should(sheet.C71.v).be.eql(categories[1].posts[0].name)
+    // should(sheet.B72.v).be.eql('Words Count:')
+    // should(sheet.C72.v).be.eql(categories[1].posts[0].wordsCount)
+    // should(sheet.B73.v).be.eql('Author:')
+    // should(sheet.C73.v).be.eql(categories[1].posts[0].author)
+
+    // should(sheet.B74.v).be.eql('Reviews:')
+    // should(sheet.B76.v).be.eql('Name:')
+    // should(sheet.C76.v).be.eql(categories[1].posts[0].reviews[0].name)
+    // should(sheet.B77.v).be.eql('Message:')
+    // should(sheet.C77.v).be.eql(categories[1].posts[0].reviews[0].message)
+    // should(sheet.B78.v).be.eql('Stars')
+    // should(sheet.B79.v).be.eql(`${categories[1].posts[0].reviews[0].stars[0].value} - ${categories[1].posts[0].reviews[0].stars[0].time}`)
+
+    // should(sheet.B83.v).be.eql('Name:')
+    // should(sheet.C83.v).be.eql(categories[1].posts[1].name)
+    // should(sheet.B84.v).be.eql('Words Count:')
+    // should(sheet.C84.v).be.eql(categories[1].posts[1].wordsCount)
+    // should(sheet.B85.v).be.eql('Author:')
+    // should(sheet.C85.v).be.eql(categories[1].posts[1].author)
+
+    // should(sheet.B86.v).be.eql('Reviews:')
+    // should(sheet.B88.v).be.eql('Name:')
+    // should(sheet.C88.v).be.eql('')
+    // should(sheet.B89.v).be.eql('Message:')
+    // should(sheet.C89.v).be.eql('')
+    // should(sheet.B90.v).be.eql('Stars')
+    // should(sheet.B91.v).be.eql(' - ')
+
+    // should(sheet.B95.v).be.eql('Maintainers:')
+    // should(sheet.B96.v).be.eql(categories[1].maintainers[0])
+
+    // should(sheet.B99.v).be.eql(categories[2].name)
+    // should(sheet.B100.v).be.eql('Tags:')
+    // should(sheet.B101.v).be.eql(categories[2].tags[0])
+
+    // should(sheet.B103.v).be.eql('Posts')
+
+    // should(sheet.B105.v).be.eql('Name:')
+    // should(sheet.C105.v).be.eql(categories[2].posts[0].name)
+    // should(sheet.B106.v).be.eql('Words Count:')
+    // should(sheet.C106.v).be.eql(categories[2].posts[0].wordsCount)
+    // should(sheet.B107.v).be.eql('Author:')
+    // should(sheet.C107.v).be.eql(categories[2].posts[0].author)
+
+    // should(sheet.B108.v).be.eql('Reviews:')
+    // should(sheet.B110.v).be.eql('Name:')
+    // should(sheet.C110.v).be.eql(categories[2].posts[0].reviews[0].name)
+    // should(sheet.B111.v).be.eql('Message:')
+    // should(sheet.C111.v).be.eql(categories[2].posts[0].reviews[0].message)
+    // should(sheet.B112.v).be.eql('Stars')
+    // should(sheet.B113.v).be.eql(' - ')
+
+    // should(sheet.B116.v).be.eql('Name:')
+    // should(sheet.C116.v).be.eql(categories[2].posts[0].reviews[1].name)
+    // should(sheet.B117.v).be.eql('Message:')
+    // should(sheet.C117.v).be.eql(categories[2].posts[0].reviews[1].message)
+    // should(sheet.B118.v).be.eql('Stars')
+    // should(sheet.B119.v).be.eql(' - ')
+
+    // should(sheet.B123.v).be.eql('Name:')
+    // should(sheet.C123.v).be.eql(categories[2].posts[1].name)
+    // should(sheet.B124.v).be.eql('Words Count:')
+    // should(sheet.C124.v).be.eql(categories[2].posts[1].wordsCount)
+    // should(sheet.B125.v).be.eql('Author:')
+    // should(sheet.C125.v).be.eql(categories[2].posts[1].author)
+
+    // should(sheet.B126.v).be.eql('Reviews:')
+    // should(sheet.B128.v).be.eql('Name:')
+    // should(sheet.C128.v).be.eql(categories[2].posts[1].reviews[0].name)
+    // should(sheet.B129.v).be.eql('Message:')
+    // should(sheet.C129.v).be.eql(categories[2].posts[1].reviews[0].message)
+    // should(sheet.B130.v).be.eql('Stars')
+    // should(sheet.B131.v).be.eql(' - ')
+
+    // should(sheet.B135.v).be.eql('Maintainers:')
+    // should(sheet.B136.v).be.eql(categories[2].maintainers[0])
+    // should(sheet.B137.v).be.eql(categories[2].maintainers[1])
+    // should(sheet.B138.v).be.eql(categories[2].maintainers[2])
+  })
+
+  it('block loop and row loop nested - update existing merged cells after loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-merged-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B1.v).be.eql('merged')
+    should(mergeCellExists(sheet, 'B1:C1')).be.True()
+    should(sheet.B16.v).be.eql('merged2')
+    should(mergeCellExists(sheet, 'B16:C16')).be.True()
+    should(sheet.E16.v).be.eql('merged3')
+    should(mergeCellExists(sheet, 'E16:G16')).be.True()
+  })
+
+  it('block loop and row loop nested - create new merged cells from loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-merged-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(mergeCellExists(sheet, 'C3:D3')).be.True()
+    should(sheet.E3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(mergeCellExists(sheet, 'C4:D4')).be.True()
+    should(sheet.E4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(mergeCellExists(sheet, 'C5:D5')).be.True()
+    should(sheet.E5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(mergeCellExists(sheet, 'C8:D8')).be.True()
+    should(sheet.E8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(mergeCellExists(sheet, 'C9:D9')).be.True()
+    should(sheet.E9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(mergeCellExists(sheet, 'C12:D12')).be.True()
+    should(sheet.E12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(mergeCellExists(sheet, 'C13:D13')).be.True()
+    should(sheet.E13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and block loop nested - create new vertical merged cells from loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop-vertical-merged-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B4.v).be.eql('Name:')
+    should(sheet.C4.v).be.eql(categories[0].posts[0].name)
+    should(sheet.B5.v).be.eql('Words Count:')
+    should(sheet.C5.v).be.eql(categories[0].posts[0].wordsCount)
+    should(mergeCellExists(sheet, 'C5:C6')).be.True()
+    should(sheet.B7.v).be.eql('Author:')
+    should(sheet.C7.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B10.v).be.eql('Name:')
+    should(sheet.C10.v).be.eql(categories[0].posts[1].name)
+    should(sheet.B11.v).be.eql('Words Count:')
+    should(sheet.C11.v).be.eql(categories[0].posts[1].wordsCount)
+    should(mergeCellExists(sheet, 'C11:C12')).be.True()
+    should(sheet.B13.v).be.eql('Author:')
+    should(sheet.C13.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B16.v).be.eql('Name:')
+    should(sheet.C16.v).be.eql(categories[0].posts[2].name)
+    should(sheet.B17.v).be.eql('Words Count:')
+    should(sheet.C17.v).be.eql(categories[0].posts[2].wordsCount)
+    should(mergeCellExists(sheet, 'C17:C18')).be.True()
+    should(sheet.B19.v).be.eql('Author:')
+    should(sheet.C19.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B22.v).be.eql(categories[1].name)
+    should(sheet.B24.v).be.eql('Name:')
+    should(sheet.C24.v).be.eql(categories[1].posts[0].name)
+    should(sheet.B25.v).be.eql('Words Count:')
+    should(sheet.C25.v).be.eql(categories[1].posts[0].wordsCount)
+    should(mergeCellExists(sheet, 'C25:C26')).be.True()
+    should(sheet.B27.v).be.eql('Author:')
+    should(sheet.C27.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B30.v).be.eql('Name:')
+    should(sheet.C30.v).be.eql(categories[1].posts[1].name)
+    should(sheet.B31.v).be.eql('Words Count:')
+    should(sheet.C31.v).be.eql(categories[1].posts[1].wordsCount)
+    should(mergeCellExists(sheet, 'C31:C32')).be.True()
+    should(sheet.B33.v).be.eql('Author:')
+    should(sheet.C33.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B36.v).be.eql(categories[2].name)
+    should(sheet.B38.v).be.eql('Name:')
+    should(sheet.C38.v).be.eql(categories[2].posts[0].name)
+    should(sheet.B39.v).be.eql('Words Count:')
+    should(sheet.C39.v).be.eql(categories[2].posts[0].wordsCount)
+    should(mergeCellExists(sheet, 'C39:C40')).be.True()
+    should(sheet.B41.v).be.eql('Author:')
+    should(sheet.C41.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B44.v).be.eql('Name:')
+    should(sheet.C44.v).be.eql(categories[2].posts[1].name)
+    should(sheet.B45.v).be.eql('Words Count:')
+    should(sheet.C45.v).be.eql(categories[2].posts[1].wordsCount)
+    should(mergeCellExists(sheet, 'C45:C46')).be.True()
+    should(sheet.B47.v).be.eql('Author:')
+    should(sheet.C47.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and row loop nested - update existing formulas after loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].author)
+
+    should(sheet.D18.f).be.eql('SUM(D16:D17)')
+    should(sheet.D19.f).be.eql('AVERAGE(D16:D17)')
+  })
+
+  it('block loop and row loop nested - update existing formulas after loop (formula start in loop and formula end points to one cell bellow loop)', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells-(end-bellow).xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].author)
+
+    should(sheet.C16.f).be.eql('SUM(C3:C15)')
+    should(sheet.C17.f).be.eql('AVERAGE(C3:C15)')
+    should(sheet.C18.f).be.eql('MIN(C3:C15)')
+    should(sheet.C19.f).be.eql('MAX(C3:C15)')
+    should(sheet.C20.f).be.eql('SUM(C18,C19)')
+  })
+
+  it('block loop and row loop nested - update existing formulas after loop (formula start and end points to cell in loop)', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-update-formula-cells-(inside).xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].author)
+
+    should(sheet.C16.f).be.eql('SUM(C3:C13)')
+    should(sheet.C17.f).be.eql('AVERAGE(C3:C13)')
+    should(sheet.C18.f).be.eql('MIN(C3:C13)')
+    should(sheet.C19.f).be.eql('MAX(C3:C13)')
+    should(sheet.C20.f).be.eql('SUM(C18,C19)')
+  })
+
+  it('block loop and row loop nested - create new formula cells from loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('C3*D3')
+    should(sheet.F3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('C4*D4')
+    should(sheet.F4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('C5*D5')
+    should(sheet.F5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('C8*D8')
+    should(sheet.F8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('C9*D9')
+    should(sheet.F9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('C12*D12')
+    should(sheet.F12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('C13*D13')
+    should(sheet.F13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and block loop nested - create new formula cells (vertical) from loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-rows-loop-new-vertical-formula-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B4.v).be.eql('Name:')
+    should(sheet.C4.v).be.eql(categories[0].posts[0].name)
+    should(sheet.B5.v).be.eql('Words Count:')
+    should(sheet.C5.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.B6.v).be.eql('Time Per Word:')
+    should(sheet.C6.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.B7.v).be.eql('Total:')
+    should(sheet.C7.f).be.eql('C5*C6')
+    should(sheet.B8.v).be.eql('Author:')
+    should(sheet.C8.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B11.v).be.eql('Name:')
+    should(sheet.C11.v).be.eql(categories[0].posts[1].name)
+    should(sheet.B12.v).be.eql('Words Count:')
+    should(sheet.C12.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.B13.v).be.eql('Time Per Word:')
+    should(sheet.C13.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.B14.v).be.eql('Total:')
+    should(sheet.C14.f).be.eql('C12*C13')
+    should(sheet.B15.v).be.eql('Author:')
+    should(sheet.C15.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B18.v).be.eql('Name:')
+    should(sheet.C18.v).be.eql(categories[0].posts[2].name)
+    should(sheet.B19.v).be.eql('Words Count:')
+    should(sheet.C19.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.B20.v).be.eql('Time Per Word:')
+    should(sheet.C20.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.B21.v).be.eql('Total:')
+    should(sheet.C21.f).be.eql('C19*C20')
+    should(sheet.B22.v).be.eql('Author:')
+    should(sheet.C22.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B25.v).be.eql(categories[1].name)
+    should(sheet.B27.v).be.eql('Name:')
+    should(sheet.C27.v).be.eql(categories[1].posts[0].name)
+    should(sheet.B28.v).be.eql('Words Count:')
+    should(sheet.C28.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.B29.v).be.eql('Time Per Word:')
+    should(sheet.C29.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.B30.v).be.eql('Total:')
+    should(sheet.C30.f).be.eql('C28*C29')
+    should(sheet.B31.v).be.eql('Author:')
+    should(sheet.C31.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B34.v).be.eql('Name:')
+    should(sheet.C34.v).be.eql(categories[1].posts[1].name)
+    should(sheet.B35.v).be.eql('Words Count:')
+    should(sheet.C35.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.B36.v).be.eql('Time Per Word:')
+    should(sheet.C36.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.B37.v).be.eql('Total:')
+    should(sheet.C37.f).be.eql('C35*C36')
+    should(sheet.B38.v).be.eql('Author:')
+    should(sheet.C38.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B41.v).be.eql(categories[2].name)
+    should(sheet.B43.v).be.eql('Name:')
+    should(sheet.C43.v).be.eql(categories[2].posts[0].name)
+    should(sheet.B44.v).be.eql('Words Count:')
+    should(sheet.C44.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.B45.v).be.eql('Time Per Word:')
+    should(sheet.C45.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.B46.v).be.eql('Total:')
+    should(sheet.C46.f).be.eql('C44*C45')
+    should(sheet.B47.v).be.eql('Author:')
+    should(sheet.C47.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B50.v).be.eql('Name:')
+    should(sheet.C50.v).be.eql(categories[2].posts[1].name)
+    should(sheet.B51.v).be.eql('Words Count:')
+    should(sheet.C51.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.B52.v).be.eql('Time Per Word:')
+    should(sheet.C52.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.B53.v).be.eql('Total:')
+    should(sheet.C53.f).be.eql('C51*C52')
+    should(sheet.B54.v).be.eql('Author:')
+    should(sheet.C54.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and row loop nested - create new multiple formula cells from loop', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-multiple-formula-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('C3*D3')
+    should(sheet.F3.f).be.eql('E3*100')
+    should(sheet.G3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('C4*D4')
+    should(sheet.F4.f).be.eql('E4*100')
+    should(sheet.G4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('C5*D5')
+    should(sheet.F5.f).be.eql('E5*100')
+    should(sheet.G5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('C8*D8')
+    should(sheet.F8.f).be.eql('E8*100')
+    should(sheet.G8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('C9*D9')
+    should(sheet.F9.f).be.eql('E9*100')
+    should(sheet.G9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('C12*D12')
+    should(sheet.F12.f).be.eql('E12*100')
+    should(sheet.G12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('C13*D13')
+    should(sheet.F13.f).be.eql('E13*100')
+    should(sheet.G13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and row loop nested - create new formula cells from loop (increment range)', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells-(range).xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('SUM(C3:D3)')
+    should(sheet.F3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('SUM(C4:D4)')
+    should(sheet.F4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('SUM(C5:D5)')
+    should(sheet.F5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('SUM(C8:D8)')
+    should(sheet.F8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('SUM(C9:D9)')
+    should(sheet.F9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('SUM(C12:D12)')
+    should(sheet.F12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('SUM(C13:D13)')
+    should(sheet.F13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and row loop nested - create new formula cells from loop (increment standard cells but don\'t do it for cell using absolute reference for row $)', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-new-formula-cells-(row-absolute-reference).xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('A$1*C3*D3')
+    should(sheet.F3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('A$1*C4*D4')
+    should(sheet.F4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('A$1*C5*D5')
+    should(sheet.F5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('A$1*C8*D8')
+    should(sheet.F8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('A$1*C9*D9')
+    should(sheet.F9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('A$1*C12*D12')
+    should(sheet.F12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('A$1*C13*D13')
+    should(sheet.F13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and row loop nested - create new formula cells from loop and update existing', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-formula-cells.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('C3*D3')
+    should(sheet.F3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('C4*D4')
+    should(sheet.F4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('C5*D5')
+    should(sheet.F5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('C8*D8')
+    should(sheet.F8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('C9*D9')
+    should(sheet.F9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('C12*D12')
+    should(sheet.F12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('C13*D13')
+    should(sheet.F13.v).be.eql(categories[2].posts[1].author)
+
+    should(sheet.D18.f).be.eql('SUM(D16:D17)')
+    should(sheet.D19.f).be.eql('AVERAGE(D16:D17)')
+  })
 
   it('table generated with loop', async () => {
     const items = [{
