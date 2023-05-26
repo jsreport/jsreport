@@ -192,6 +192,7 @@ module.exports = async (reporter, definition) => {
           }
           )
           await conn.commit()
+          return blobName
         } finally {
           if (conn) {
             conn.close(() => {})
