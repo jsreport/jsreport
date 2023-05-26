@@ -44,6 +44,10 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 3.2.2
+
+- fix oracle blob storage
+
 ### 3.2.1
 
 - add support for odata ne operator
