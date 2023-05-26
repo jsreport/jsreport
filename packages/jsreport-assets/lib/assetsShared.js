@@ -155,8 +155,9 @@ async function readAsset (reporter, definition, { id, name, encoding, currentDir
       }
     }
 
+    const entityPath = await reporter.folders.resolveEntityPath(asset, 'assets', req)
     return {
-      content: resolveAssetLink(reporter, definition, req, { name }),
+      content: resolveAssetLink(reporter, definition, req, { name: entityPath }),
       filename: name,
       entity: asset
     }
@@ -229,23 +230,32 @@ function linkPath (reporter, definition, link) {
   return result
 }
 
-function combineURLs (baseURL, relativeURL) {
-  return relativeURL
-    ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
-    : baseURL
+function combineURLs () {
+  let resPath = ''
+  for (const p of arguments) {
+    if (p) {
+      if (resPath) {
+        resPath += '/'
+      }
+      resPath += p.replace(/^\/+/, '')
+      resPath = resPath.replace(/\/+$/, '')
+    }
+  }
+
+  return resPath
 }
 
 function resolveAssetLink (reporter, definition, req, { name: assetName, module = false }) {
   if (definition.options.rootUrlForLinks) {
-    return combineURLs(definition.options.rootUrlForLinks, 'assets/content/' + assetName)
+    return combineURLs(definition.options.rootUrlForLinks, 'assets', 'content', assetName)
   }
 
   if (!reporter.express) {
-    return 'assets/content/' + assetName
+    return combineURLs('assets', 'content', assetName)
   }
 
   const baseUrl = req.context.http ? req.context.http.baseUrl : reporter.express.localhostUrl
-  const url = baseUrl + '/assets/content/' + assetName
+  const url = combineURLs(baseUrl, 'assets', 'content', assetName)
 
   if (module) {
     return `${url}?module=true`

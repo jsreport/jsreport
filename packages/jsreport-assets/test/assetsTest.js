@@ -2136,9 +2136,18 @@ describe('assets with express', function () {
 
   it('should return link based on the originalUrl with query string', async () => {
     reporter.assets.options.allowedFiles = 'foo.html'
+
+    await reporter.documentStore.collection('folders').insert({
+      name: 'folderA',
+      shortid: 'folderA'
+    })
+
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
-      content: 'hello'
+      content: 'hello',
+      folder: {
+        shortid: 'folderA'
+      }
     })
 
     const response = await request(reporter.express.app)
@@ -2153,7 +2162,7 @@ describe('assets with express', function () {
       })
       .expect(200)
 
-    response.text.should.be.eql('http://localhost/assets/content/foo.html')
+    response.text.should.be.eql('http://localhost/assets/content/folderA/foo.html')
   })
 
   it('should return link based on the originalUrl and app path config', async () => {
