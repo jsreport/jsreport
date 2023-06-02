@@ -276,4 +276,33 @@ describe('components', function () {
     })
     res.content.toString().should.containEql('c1 hello')
   })
+
+  it('should cache entities', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: '{{message}}',
+      engine: 'handlebars'
+    })
+
+    const col = reporter.documentStore.collection('components')
+    const originalFind = col.find.bind(col)
+    let counter = 0
+    col.find = (...args) => {
+      counter++
+      return originalFind(...args)
+    }
+
+    const res = await reporter.render({
+      template: {
+        content: '{{component "c1"}}{{component "c1"}}',
+        engine: 'handlebars',
+        recipe: 'html'
+      },
+      data: {
+        message: 'hello'
+      }
+    })
+    res.content.toString().should.be.eql('hellohello')
+    counter.should.be.eql(1)
+  })
 })
