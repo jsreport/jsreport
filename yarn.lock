@@ -13766,10 +13766,10 @@ ora@^5.4.1:
     strip-ansi "^6.0.0"
     wcwidth "^1.0.1"
 
-oracledb@5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/oracledb/-/oracledb-5.1.0.tgz#2139469d7318a48f3fed6c00f0d98e5049bb769f"
-  integrity sha512-/IpzG729lFj8NBsA0xaOijdf6ZO3VuJbebma/hSf+VUZoIyzI/mCzBX047ramb/W8yJ1SV/HdWgs+XEczbqsXg==
+oracledb@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/oracledb/-/oracledb-6.0.0.tgz#cb3c8266e7306bdafa666ef7878bb3417ed8c2b7"
+  integrity sha512-GDCXmfkNqKQ7FNEuvPFuxOiW0KLgt7OfhTKejgxZD0hhAMbq1snAiWtrCkr2I2jcZFolSOb/r+zIkc/KFdQ2Mg==
 
 ordered-read-streams@^0.3.0:
   version "0.3.0"

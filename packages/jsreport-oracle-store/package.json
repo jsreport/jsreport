@@ -18,16 +18,14 @@
     "test": "mocha test/test.js --timeout=18000 && standard"
   },
   "dependencies": {
-    "@jsreport/sql-store": "3.1.1"
+    "@jsreport/sql-store": "3.1.1",
+    "oracledb": "6.0.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "3.11.4",
     "mocha": "8.3.2",
     "should": "13.2.3",
     "standard": "16.0.4"
-  },
-  "optionalDependencies": {
-    "oracledb": "5.1.0"
   },
   "engines": {
     "node": ">=16.11"
