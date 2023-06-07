@@ -123,6 +123,10 @@ The last example shows how to use the [jsreport borwser client](http://jsreport.
 
 ## Changelog
 
+### 3.1.2
+
+- fix url normalization. it was breaking playground serverUrl
+
 ### 3.1.1
 
 - changes to enable caching of system helpers

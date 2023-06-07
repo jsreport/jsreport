@@ -7,6 +7,11 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 3.7.2
+
+- fix table cells not being well-formed when user uses conditions (#if) across table rows and cells
+- support setting docxImage src from async result
+
 ### 3.7.1
 
 - fix docx rendering with handlebars partials

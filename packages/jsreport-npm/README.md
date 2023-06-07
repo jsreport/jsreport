@@ -7,6 +7,11 @@ See https://jsreport.net/learn/npm
 
 ## Changelog
 
+### 3.2.0
+
+- allow `jsreport.npm.require` to require sub paths `await jsreport.npm.require('yargs@17.7.2/package.json')`
+- allow `jsreport.npm.require` to require `@` scoped packages
+
 ### 3.1.2
 
 - changes to enable new `trustUserCode` option

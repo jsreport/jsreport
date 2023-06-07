@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/browser-client",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "jsreport browser client standalone distribution",
   "keywords": [
     "jsreport"
@@ -32,7 +32,7 @@
   "devDependencies": {
     "@jsreport/jsreport-authentication": "3.4.0",
     "@jsreport/jsreport-chrome-pdf": "3.3.0",
-    "@jsreport/jsreport-core": "3.11.4",
+    "@jsreport/jsreport-core": "3.12.0",
     "@jsreport/jsreport-express": "3.7.1",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-node-resolve": "13.0.5",

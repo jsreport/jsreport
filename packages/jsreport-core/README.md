@@ -282,6 +282,12 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 3.12.0
+
+- update vm2 to fix security issues
+- render requests are now rotated across not busy workers but considering its last usage too
+- require in sandbox now uses a custom require implementation that takes care of isolate module resolving and that uses our own cache (different to built in require.cache) to avoid using a lot of memory when there are a lot of requests. if module isolation is not needed (because user can trust the templates) then it can be disabled by using `sandbox.isolateModules: false`
+
 ### 3.11.4
 
 - update unset-value to fix security issue

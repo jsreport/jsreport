@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 3.9.3
+
+- remove title (the one that appears when you put mouse over it for some seconds) of log messages, to prevent them showing when trying to read the log and scrolling
+
 ### 3.9.2
 
 - show full profile duration limit on profile UI

@@ -7,6 +7,14 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 3.5.0
+
+- add support for nested loops (row/block loops nested)
+- remove VERTICAL TAB character (\u000b) and prevent bad xml to be generated
+- improve performance (and prevent hang) by not using regexp for the auto detect content feature
+- cells outside of loop should not access data from loop
+- add support for block loop (loop that repeats cells across multiple rows)
+
 ### 3.4.0
 
 - add support for specifying what are the main document properties of xlsxTemplates entitySet

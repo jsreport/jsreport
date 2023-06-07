@@ -7,6 +7,10 @@ See https://jsreport.net/learn/components
 
 ## Changelog
 
+### 3.3.1
+
+- fix components cache
+
 ### 3.3.0
 
 - component helper hash data is not propagated/merged to component data
