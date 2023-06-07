@@ -2,6 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
 const WordExtractor = require('word-extractor')
+const should = require('should')
+const { getDocumentsFromDocxBuf } = require('./utils')
+const { nodeListToArray } = require('../lib/utils')
 const extractor = new WordExtractor()
 
 describe('docx table', () => {
@@ -691,5 +694,61 @@ describe('docx table', () => {
       ['', '5-3', ''].join('\t'),
       ['6-0', '6-1', '6-2', '6-3', ''].join('\t')
     ].join('\n'))
+  })
+
+  it('conditions across rows/cells should produce valid document', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content.docx'))
+          }
+        }
+      },
+      data: JSON.parse(fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content.json'), 'utf8'))
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const cellEls = nodeListToArray(doc.getElementsByTagName('w:tc'))
+
+    should(cellEls).have.length(18)
+
+    for (const cellEl of cellEls) {
+      const cellChildEls = nodeListToArray(cellEl.childNodes)
+      const cellContentEls = cellChildEls.filter((node) => node.nodeName !== 'w:tcPr')
+      should(cellContentEls.length).greaterThan(0)
+    }
+  })
+
+  it('conditions across rows/cells should produce valid document - nested', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content2.docx'))
+          }
+        }
+      },
+      data: JSON.parse(fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content.json'), 'utf8'))
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const cellEls = nodeListToArray(doc.getElementsByTagName('w:tc'))
+
+    should(cellEls).have.length(64)
+
+    for (const cellEl of cellEls) {
+      const cellChildEls = nodeListToArray(cellEl.childNodes)
+      const cellContentEls = cellChildEls.filter((node) => node.nodeName !== 'w:tcPr')
+      should(cellContentEls.length).greaterThan(0)
+    }
   })
 })
