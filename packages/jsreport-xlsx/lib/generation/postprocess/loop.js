@@ -8,11 +8,12 @@ module.exports = async (files) => {
   const calcChainDoc = files.find((f) => f.path === 'xl/calcChain.xml')?.doc
 
   for (const sheetFile of files.filter((f) => isWorksheetFile(f.path))) {
-    // update the cells in loop that are meant to auto detect the content
+    const outOfLoopItems = new Map()
+
     sheetFile.data = await recursiveStringReplaceAsync(
       sheetFile.data.toString(),
-      '<c( [^>]*__detectCellContent__="true"[^>]*)>',
-      '</c>',
+      '<outOfLoop>',
+      '</outOfLoop>',
       'g',
       async (val, content, hasNestedMatch) => {
         if (hasNestedMatch) {
@@ -20,22 +21,76 @@ module.exports = async (files) => {
         }
 
         const doc = new DOMParser().parseFromString(val)
-        const cellEl = doc.documentElement
+        const outOfLoopEl = doc.documentElement
+        const childNodes = nodeListToArray(outOfLoopEl.childNodes)
+        const pendingReplacements = []
+        let itemIndex
 
-        cellEl.removeAttribute('__detectCellContent__')
+        for (const childNode of childNodes) {
+          if (childNode.nodeName === 'item') {
+            itemIndex = parseInt(childNode.textContent, 10)
+          } else if (childNode.nodeName === 'data') {
+            const dataChildNodes = nodeListToArray(childNode.childNodes)
+            const generatedEls = []
 
-        const infoEl = nodeListToArray(cellEl.getElementsByTagName('info'))[0]
-        const typeEl = nodeListToArray(infoEl.getElementsByTagName('type'))[0]
-        const contentEl = nodeListToArray(infoEl.getElementsByTagName('content'))[0]
+            for (const dataChildNode of dataChildNodes) {
+              generatedEls.push(dataChildNode.cloneNode(true))
+            }
 
-        cellEl.setAttribute('t', typeEl.textContent)
-        cellEl.removeChild(infoEl)
-
-        for (const childEl of nodeListToArray(contentEl.childNodes)) {
-          cellEl.appendChild(childEl)
+            pendingReplacements.push({
+              elements: generatedEls
+            })
+          }
         }
 
-        return serializeXml(cellEl)
+        if (!outOfLoopItems.has(itemIndex)) {
+          outOfLoopItems.set(itemIndex, { pendingReplacements: [] })
+        }
+
+        outOfLoopItems.get(itemIndex).pendingReplacements.push(...pendingReplacements)
+
+        return ''
+      }
+    )
+
+    sheetFile.data = await recursiveStringReplaceAsync(
+      sheetFile.data.toString(),
+      '<outOfLoopPlaceholder>',
+      '</outOfLoopPlaceholder>',
+      'g',
+      async (val, content, hasNestedMatch) => {
+        if (hasNestedMatch) {
+          return val
+        }
+
+        const doc = new DOMParser().parseFromString(val)
+        const itemEl = doc.documentElement.firstChild
+        const itemIndex = parseInt(itemEl.textContent, 10)
+        const pendingReplacements = outOfLoopItems.get(itemIndex)?.pendingReplacements
+
+        if (pendingReplacements == null) {
+          throw new Error(`outOfLoopPlaceholder can not find metadata with index "${itemIndex}"`)
+        }
+
+        const pendingReplacement = pendingReplacements.shift()
+
+        if (pendingReplacement == null) {
+          throw new Error('outOfLoopPlaceholder does not match with pending elements to replace')
+        }
+
+        const generatedEls = pendingReplacement.elements
+
+        let newContent = ''
+
+        if (generatedEls == null || generatedEls.length === 0) {
+          return newContent
+        }
+
+        for (const generatedEl of generatedEls) {
+          newContent += serializeXml(generatedEl)
+        }
+
+        return newContent
       }
     )
 
@@ -87,133 +142,6 @@ module.exports = async (files) => {
       for (const calcChainEl of newCalcChainEls) {
         calcChainEl.removeAttribute('oldR')
       }
-    }
-
-    const formulasUpdated = []
-    const sharedFormulasUpdated = []
-
-    // collect all the formulas that were updated
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<formulasUpdated>',
-      '</formulasUpdated>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        const doc = new DOMParser().parseFromString(val)
-        const childEls = nodeListToArray(doc.documentElement.childNodes)
-        const itemsEl = childEls.find((c) => c.nodeName === 'items')
-        const sharedItemsEl = childEls.find((c) => c.nodeName === 'sharedItems')
-
-        const items = nodeListToArray(itemsEl.childNodes).filter((el) => el.nodeName === 'f')
-
-        formulasUpdated.push(...items.map((item) => item.textContent))
-
-        const sharedItems = nodeListToArray(sharedItemsEl.childNodes).filter((el) => el.nodeName === 'f')
-
-        sharedFormulasUpdated.push(...sharedItems.map((item) => item.textContent))
-
-        return ''
-      }
-    )
-
-    // replace the formulas to its original places
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<formulaUpdated>',
-      '</formulaUpdated>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        const doc = new DOMParser().parseFromString(val)
-        const fEl = doc.documentElement.firstChild
-        const formulaIndex = parseInt(fEl.getAttribute('formulaIndex'), 10)
-        fEl.removeAttribute('formulaIndex')
-        fEl.textContent = formulasUpdated[formulaIndex]
-
-        if (fEl.getAttribute('sharedFormulaIndex') != null && fEl.getAttribute('sharedFormulaIndex') !== '') {
-          const sharedFormulaIndex = parseInt(fEl.getAttribute('sharedFormulaIndex'), 10)
-          fEl.removeAttribute('sharedFormulaIndex')
-          fEl.setAttribute('ref', sharedFormulasUpdated[sharedFormulaIndex])
-        }
-
-        return serializeXml(fEl)
-      }
-    )
-
-    // remove the mergeCellUpdated elements
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<mergeCellUpdated>',
-      '</mergeCellUpdated>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        return ''
-      }
-    )
-
-    const newMergeCellEls = []
-
-    // check if we need to update the <mergeCells> element
-    sheetFile.data = await recursiveStringReplaceAsync(
-      sheetFile.data.toString(),
-      '<mergeCellsUpdated>',
-      '</mergeCellsUpdated>',
-      'g',
-      async (val, content, hasNestedMatch) => {
-        if (hasNestedMatch) {
-          return val
-        }
-
-        const doc = new DOMParser().parseFromString(val)
-        const mergeCellsItemEl = doc.documentElement.firstChild
-        const mergeCellEls = nodeListToArray(mergeCellsItemEl.getElementsByTagName('mergeCell'))
-
-        for (const mergeCellEl of mergeCellEls) {
-          newMergeCellEls.push(mergeCellEl)
-        }
-
-        return ''
-      }
-    )
-
-    if (newMergeCellEls.length > 0) {
-      sheetFile.data = await recursiveStringReplaceAsync(
-        sheetFile.data.toString(),
-        '<mergeCells( [^>]*[^>]*)?',
-        '</mergeCells>',
-        'g',
-        async (val, content, hasNestedMatch) => {
-          if (hasNestedMatch) {
-            return val
-          }
-
-          const doc = new DOMParser().parseFromString(val)
-          const mergeCellsEl = doc.documentElement
-
-          while (mergeCellsEl.firstChild != null) {
-            mergeCellsEl.removeChild(mergeCellsEl.firstChild)
-          }
-
-          mergeCellsEl.setAttribute('count', newMergeCellEls.length)
-
-          for (const newMergeCellEl of newMergeCellEls) {
-            mergeCellsEl.appendChild(newMergeCellEl)
-          }
-
-          return serializeXml(mergeCellsEl)
-        }
-      )
     }
 
     let dimensionUpdatedRef

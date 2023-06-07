@@ -57,7 +57,7 @@ module.exports = (reporter) => async (inputs, req) => {
 
     // we remove NUL unicode characters, which is the only character that is illegal in XML
     // eslint-disable-next-line no-control-regex
-    const contents = newContent.toString().replace(/\u0000/g, '').split('$$$xlsxFile$$$')
+    const contents = newContent.toString().replace(/\u0000|\u000b/g, '').split('$$$xlsxFile$$$')
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
@@ -93,7 +93,7 @@ module.exports = (reporter) => async (inputs, req) => {
       files
     })
 
-    reporter.logger.debug('xlsx successfully zipped')
+    reporter.logger.debug('xlsx successfully zipped', req)
 
     return {
       xlsxFilePath: outputPath

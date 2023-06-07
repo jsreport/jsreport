@@ -8,6 +8,11 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.options.sandbox.modules.push({
+    alias: 'cellUtils',
+    path: path.join(__dirname, '../lib/cellUtils.js')
+  })
+
+  reporter.options.sandbox.modules.push({
     alias: 'lodash',
     path: require.resolve('lodash')
   })
