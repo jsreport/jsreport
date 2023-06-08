@@ -1,6 +1,6 @@
-FROM jsreport/jsreport:3.11.2
+FROM jsreport/jsreport:3.11.3
 
-RUN npm install jsreport@3.11.3
+RUN npm install jsreport@3.12.0
 RUN npm cache clean -f && rm -rf /tmp/*
 
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
