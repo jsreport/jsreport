@@ -18,6 +18,11 @@ RUN npm install --save --save-exact jsreport@3.12.0 \
     @jsreport/jsreport-unoconv@3.0.1 \
     cheerio-page-eval@1.0.0
 
+# we only add these lines because we are using FROM jsreport/jsreport:3.11.3-full
+# and we want to ensure that we don't use the deps built from the image
+RUN rm -rf /app/node_modules/oracledb
+RUN rm -rf /app/node_modules/@jsreport/jsreport-oracle-store
+
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
 # script created with steps recommend here from oracledb repository

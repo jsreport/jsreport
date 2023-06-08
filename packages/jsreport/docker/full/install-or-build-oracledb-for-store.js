@@ -1,4 +1,5 @@
 const args = process.argv.slice(2)
+const fs = require('fs')
 const spawnSync = require('child_process').spawnSync
 
 const argv = {}
@@ -56,7 +57,13 @@ if (npmInstallError || npmInstallStatus !== 0) {
   console.log(`\ninstall ${storeFullPackage} finished successfully`)
 }
 
-if (npmInstallWithError) {
+let oracledbDepInstalled = fs.existsSync('/app/node_modules/oracledb')
+
+if (!oracledbDepInstalled) {
+  console.log('\noracledb not found after npm install..')
+}
+
+if (!oracledbDepInstalled || npmInstallWithError) {
   if (argv.target === 'linux/amd64') {
     // if there was error during the install for amd64 we just exit with the failing
     process.exit(1)
@@ -89,6 +96,14 @@ if (npmInstallWithError) {
       }
 
       process.exit(1)
+    }
+
+    oracledbDepInstalled = fs.existsSync('/app/node_modules/oracledb')
+
+    if (!oracledbDepInstalled) {
+      console.log('\noracledb not found after manual build..')
+    } else {
+      console.log('\noracledb manual build finished correctly..')
     }
   }
 }
