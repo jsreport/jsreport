@@ -59,6 +59,21 @@ module.exports = async (reporter, definition) => {
 
       for (let i = 0; i < q.values.length; i++) {
         bindVars.push(q.values[i])
+
+        // the native oracledb 6.0.1 client has some issues with longer strings and buffers and throws several errors like "fetch out of sequence"
+        // I tried this simple hack to add maxSize, it works but still errors on buffers and clobs
+        // while buffers are easy, we don't know here what is clob and what is just string so we cant add prober binding type
+        // waiting if the native client fix the need to add bind options with next releases
+        /*
+        bindVars.push(typeof q.values[i] === 'string'
+          ? {
+              // we need to set maxSize, otherwise oracle throws "fetch out of sequence"
+              val: q.values[i],
+              type: oracledb.STRING,
+              maxSize: 10000,
+              dir: oracledb.BIND_INOUT
+            }
+          : q.values[i]) */
       }
 
       transformBindVarsBoolean(bindVars)
