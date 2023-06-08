@@ -278,6 +278,54 @@ describe('xlsx generation - base', () => {
     should(sheet.D2.v).be.eql('')
   })
 
+  it('work normally with NUL character (should remove it)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John\u0000'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+  })
+
+  it('work normally with VERTICAL TAB character (should remove it)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John\u000b'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+  })
+
   it('generate cells with type according to the data rendered in each cell', async () => {
     const data = {
       name: 'Alexander',

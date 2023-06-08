@@ -1,0 +1,215 @@
+{
+  "bypass": true,
+  "title": "Sample Report Title",
+  "date": "03 September 2019",
+  "agency": {
+      "name": "City of Jackson Hills",
+      "phone": "(555) 555-5555",
+      "streetAddress": "40 Temperance Street",
+      "city": "Bowmanville",
+      "state": "Ontario",
+      "postalCode": "L1C3A6",
+      "site": "www.maricopa-az.gov",
+      "email": "contact@maricopa-az.gov",
+      "formattedAddress": "40 Temperance Street, Bowmanville, Ontario, L1C3A6"
+  },
+  "options": {
+      "sort": [
+          "filename",
+          "sheetNumber",
+          "reviewerName"
+      ],
+      "includedProjectFields": [
+          "projectNumber",
+          "address"
+      ],
+      "includedCommentOptions": [
+          "reviewerName",
+          "commentNumber",
+          "sheetNumber",
+          "pageNumber",
+          "filename"
+      ],
+      "includedSummaryOptions": [],
+      "includedReviewerOptions": [],
+      "prefixFilename": false,
+      "suffixFilename": false,
+      "domain": "epr-qa.eplansoftreview.com",
+      "jsReport_id": "5SU98u9uKI"
+  },
+  "project": {
+      "projectNumber": "EPR-3412",
+      "projectType": "Demolition",
+      "projectName":  "Highland Hospital Acute Care Tower Replacement-Phase 3B Gallery/Connceting Corridor H Building Demolition",
+
+      "site": {
+          "name": "Amazon Building",
+          "parcel": "00046",
+          "lotNumber": "23",
+          "tractNumber": "84113"
+      },
+      "address": {
+          "streetNumber": "220",
+          "streetDirection": "NE",
+          "streetName": "Technology",
+          "streetType": "Dr",
+          "city": "Irvine",
+          "state": "CA",
+          "zipCode": "92612",
+          "country": "United States"
+      },
+      "contact": {
+          "name2": "Jony Ive",
+          "phone": "949 824 6548",
+          "email": "jonyive@apple.com",
+          "address": {
+              "streetNumber": "220",
+              "streetDirection": "NE",
+              "streetName": "Technology",
+              "streetType": "Dr",
+              "city": "Irvine",
+              "state": "CA",
+              "zipCode": "92612",
+              "country": "United States"
+          }
+      },
+      "occupancy": "High Hazard 1",
+      "squareFootage": "10000 sq ft",
+      "buildingHeight": "152 ft",
+      "applicationType": "Alternate Method of Compliance",
+      "constructionType": "Type 1 B",
+      "serviceArea": "Los Angeles",
+      "dueDate": "2019-12-21",
+      "notes": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. <b>Nisl rhoncus mattis rhoncus urna neque viverra justo nec ultrices. Iaculis nunc sed augue lacus viverra vitae congue eu. Sed felis eget velit aliquet sagittis id consectetur purus.</b> Etiam erat velit scelerisque in. Sodales neque sodales ut etiam sit amet. Urna duis convallis convallis tellus id. Consequat interdum varius sit amet mattis vulputate enim nulla. Amet mattis vulputate enim nulla aliquet porttitor lacus luctus. Aliquam sem et tortor consequat id porta nibh. Volutpat maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Faucibus et molestie ac feugiat sed lectus vestibulum. Lectus quam id leo in vitae turpis massa sed elementum. Sed elementum tempus egestas sed. At in tellus integer feugiat scelerisque varius morbi enim. Vestibulum sed arcu non odio euismod.</p>",
+      "scopeOfWork": "<p>Lorem ipsum dolor sit amet</p>, <strong>consectetur</strong> adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Nisl rhoncus mattis rhoncus urna neque viverra justo nec ultrices. Iaculis nunc sed augue lacus viverra vitae congue eu. Sed felis eget velit aliquet sagittis id consectetur purus. Etiam erat velit scelerisque in. Sodales neque sodales ut etiam sit amet. Urna duis convallis convallis tellus id. Consequat interdum varius sit amet mattis vulputate enim nulla. Amet mattis vulputate enim nulla aliquet porttitor lacus luctus. Aliquam sem et tortor consequat id porta nibh. Volutpat maecenas volutpat blandit aliquam etiam erat velit scelerisque in. Faucibus et molestie ac feugiat sed lectus vestibulum. Lectus quam id leo in vitae turpis massa sed elementum. Sed elementum tempus egestas sed. At in tellus integer feugiat scelerisque varius morbi enim. Vestibulum sed arcu non odio euismod."
+  },
+  "documents": [
+      {"filename": "PW_BUILDINGSET7.pdf", "cycle": "1st Submittal", "version": "20190819A"},
+      {"filename": "ARCH_BUILDINGSET.pdf", "cycle": "1st Submittal", "version": "20190811A"}
+  ],
+  "comments": [
+      {"filename": "PW_BUILDINGSET7.pdf", "commentNumber": "00001", "sheetNumber": "S.01", "pageNumber": "1", "content": "Testing's comment\" on review page."},
+      {"filename": "PW_BUILDINGSET7.pdf", "commentNumber": "00002", "sheetNumber": "S.03", "pageNumber": "3", "content": "Please fix this door or something"},
+      {"filename": "ARCH_BUILDINGSET.pdf", "commentNumber": "00001", "sheetNumber": "S.02", "pageNumber": "2", "content": "The door is still broken"},
+      {"filename": "ARCH_BUILDINGSET.pdf", "commentNumber": "00002", "sheetNumber": "S.02", "pageNumber": "2", "content": "Is it lunch time yet?"}
+  ],
+  "commentGroups": {
+      "Building": [
+          {
+              "filename": "PW_BUILDINGSET7.pdf",
+              "firstName": "John", "lastName": "Doe",
+              "email": "johndoe@gmail.com",
+              "primaryPhone": "7142223333",
+              "pageNumber": "1",
+              "commentNumber": "00001",
+              "sheetNumber": "S.01",
+              "attachments": [
+                  {
+                      "link": "https://epr-qa.eplansoftreview.com/files/attachments/13?hash=178492301311239",
+                      "filename": "Attachment-1.jpg"
+                  },
+                  {
+                      "link": "https://epr-qa.eplansoftreview.com/files/attachments/13?hash=178492301311239",
+                      "filename": "Attachment-2.jpg"
+                  },
+                  {
+                      "link": "https://epr-qa.eplansoftreview.com/files/attachments/13?hash=178492301311239",
+                      "filename": "Attachment-3.jpg"
+                  }
+              ],
+              "content": "<p>On your re-submittal, this page must be properly oriented, meaning upright, not sideways or upside down, so that the document can be viewed without rotation. Failure to submit correctly oriented plans may result in a ‘Hold’ being placed on the submittal, which will delay plan review.<br/><br/>See City of Manteca, Electronic Plan Submittal Requirements:<br/><br/>https://www.ci.manteca.ca.us/CommunityDevelopment/Building%20Safety%20Division/Building%20Safety%20Documents/Handouts%20and%20Resources/Electronic%20Plan%20Submittal%20Requirements.pdf</p>",
+              "category": "Accessibility",
+              "details": "S.01 | 00001 | \"PW_BUILDINGSET7.pdf\""
+          },
+
+          {"filename": "PW_BUILDINGSET7.pdf", "commentNumber": "00002", "sheetNumber": "S.03", "pageNumber": "3", "content": "<p>Once the General Building correction items of this letter have been addressed, a partial permit for the &ldquo;Building White box&ldquo; (unfinished tenant spaces) only may be issued with the condition that responsibility for compliance with subsequent code provisions for the complete building rests with the owner/the owner’s agents and/or the permittee. Additional building permits are required for work beyond the scope of this permit. Additional building permits are required for the finishing of the tenant spaces and work beyond the scope of this permit.(M.R. 1300.0130 Subpart8</p><p><span></span></p><p><br/></p>", "category": "Admin"},
+          {"filename": "ARCH_BUILDINGSET.pdf", "commentNumber": "00001", "sheetNumber": "S.02", "pageNumber": "2", "content": "The door is still broken"},
+          {"filename": "ARCH_BUILDINGSET.pdf", "commentNumber": "00002", "sheetNumber": "S.02", "pageNumber": "2", "content": "Is it lunch time yet?"},
+           {"filename": "ARCH_BUILDINGSET.pdf", "commentNumber": "00002", "sheetNumber": "S.02", "content": "<p>Sample comment with image </p><p><br/></p><img src=\"https://eplansoft-linhcao.s3.us-west-2.amazonaws.com/sample-comment-image.png\" alt=\"Loading Image\" class=\"comment-image\"/>"}
+      ],
+      "Electrical": [
+          {"filename": "PW_BUILDINGSET6.pdf", "commentNumber": "00003", "sheetNumber": "S.01", "pageNumber": "1", "content": "Testing comment on review page.", "category": "Accessibility"},
+          {"filename": "PW_BUILDINGSET6.pdf", "commentNumber": "00004", "sheetNumber": "S.03", "pageNumber": "3", "content": "Please fix this door or something", "category": "Admin", "subCategory": "subCategory", "reviewType": "reviewType"},
+          {"filename": "ARCH_BUILDINGSET2.pdf", "commentNumber": "00005", "sheetNumber": "S.02", "pageNumber": "2", "content": "The door is still broken"},
+          {"filename": "ARCH_BUILDINGSET2.pdf", "commentNumber": "00006", "sheetNumber": "S.02", "pageNumber": "2", "content": "Is it lunch time yet?"}
+      ]
+  },
+  "instructions": "The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place. The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans.\n\n Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.The items noted below require correction or clarification before this Plan Check submittal can be approved for permit issuance. Each line item includes a comment number and a sheet number, if applicable, for easy reference to the reviewed plans. Please resubmit all your revised plans, using the same filename, page order and sheet description provided in the original submittal. Place new sheets at the bottom of the file. If sheets have been removed, place an empty page in their place.",
+  "logo": "https://epr-joseph.s3.us-west-2.amazonaws.com/attachments/jsreport/155px-Fedora-logo.svg.png",
+  "projectDetails": [
+      {
+          "name": "projectType",
+          "text": "Project Type:",
+          "value": "Demolition"
+      },
+      {
+          "name": "occupancy",
+          "text": "Occupancy:",
+          "value": "High Hazard 1"
+      },
+      {
+          "name": "squareFootage",
+          "text": "Square Footage",
+          "value": "10000 sq ft"
+      },
+      {
+          "name": "buildingHeight",
+          "text": "Height:",
+          "value": "152 ft"
+      },
+      {
+          "name": "applicationType",
+          "text": "Application:",
+          "value": "Alternate Method of Compliance"
+      },
+      {
+          "name": "constructionType",
+          "text": "Construction:",
+          "value": "Type 1 B"
+      },
+      {
+          "name": "serviceArea",
+          "text": "Service Area:",
+          "value": "Los Angeles"
+      }
+  ],
+  "projectDetails1": [
+      {
+          "name": "projectType",
+          "text": "Project Type:",
+          "value": "Demolition"
+      },
+      {
+          "name": "occupancy",
+          "text": "Occupancy:",
+          "value": "High Hazard 1"
+      },
+      {
+          "name": "squareFootage",
+          "text": "Square Footage",
+          "value": "10000 sq ft"
+      },
+      {
+          "name": "buildingHeight",
+          "text": "Height:",
+          "value": "152 ft"
+      }
+  ],
+  "projectDetails2": [
+      {
+          "name": "applicationType",
+          "text": "Application:",
+          "value": "Alternate Method of Compliance"
+      },
+      {
+          "name": "constructionType",
+          "text": "Construction:",
+          "value": "Type 1 B"
+      },
+      {
+          "name": "serviceArea",
+          "text": "Service Area:",
+          "value": "Los Angeles"
+      }
+  ]
+}

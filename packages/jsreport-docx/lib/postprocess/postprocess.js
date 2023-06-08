@@ -2,6 +2,7 @@ const sections = require('./sections')
 const bookmark = require('./bookmark')
 const style = require('./style')
 const drawingObject = require('./drawingObject')
+const table = require('./table')
 const link = require('./link')
 const form = require('./form')
 const watermark = require('./watermark')
@@ -36,4 +37,5 @@ module.exports = async (files, options) => {
   form(files)
   await toc(files)
   await removeBlockHelper(files)
+  await table(files, headerFooterRefs)
 }

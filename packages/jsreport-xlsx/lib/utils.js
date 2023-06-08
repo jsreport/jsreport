@@ -1,6 +1,5 @@
 const path = require('path')
 const { XMLSerializer } = require('@xmldom/xmldom')
-const { col2num } = require('xlsx-coordinates')
 
 function nodeListToArray (nodes) {
   const arr = []
@@ -108,6 +107,39 @@ function findChildNode (nodeName, targetNode, allNodes = false) {
   return allNodes ? result : result[0]
 }
 
+function getClosestEl (el, targetNodeNameOrFn, targetType = 'parent') {
+  let currentEl = el
+  let parentEl
+
+  const nodeTest = (n) => {
+    if (typeof targetNodeNameOrFn === 'string') {
+      return n.nodeName === targetNodeNameOrFn
+    } else {
+      return targetNodeNameOrFn(n)
+    }
+  }
+
+  if (targetType !== 'parent' && targetType !== 'previous' && targetType !== 'next') {
+    throw new Error(`Invalid target type "${targetType}"`)
+  }
+
+  do {
+    if (targetType === 'parent') {
+      currentEl = currentEl.parentNode
+    } else if (targetType === 'previous') {
+      currentEl = currentEl.previousSibling
+    } else if (targetType === 'next') {
+      currentEl = currentEl.nextSibling
+    }
+
+    if (currentEl != null && nodeTest(currentEl)) {
+      parentEl = currentEl
+    }
+  } while (currentEl != null && !nodeTest(currentEl))
+
+  return parentEl
+}
+
 function getChartEl (drawingEl) {
   let parentEl = drawingEl.parentNode
 
@@ -158,27 +190,6 @@ function isWorksheetRelsFile (sheetFilename, filePath) {
   return filePath === `xl/worksheets/_rels/${sheetFilename}.rels`
 }
 
-function parseCellRef (cellRef) {
-  const cellRefRegexp = /^(\$?[A-Z]+)(\$?\d+)$/
-  const matches = cellRef.match(cellRefRegexp)
-
-  if (matches == null || matches[1] == null) {
-    throw new Error(`"${cellRef}" is not a valid cell reference`)
-  }
-
-  const lockedColumn = matches[1].startsWith('$')
-  const lockedRow = matches[2].startsWith('$')
-  const letter = lockedColumn ? matches[1].slice(1) : matches[1]
-
-  return {
-    letter,
-    lockedColumn,
-    columnNumber: col2num(letter) + 1,
-    lockedRow,
-    rowNumber: parseInt(lockedRow ? matches[2].slice(1) : matches[2], 10)
-  }
-}
-
 module.exports.contentIsXML = (content) => {
   if (!Buffer.isBuffer(content) && typeof content !== 'string') {
     return false
@@ -206,9 +217,9 @@ module.exports.getNewRelId = getNewRelId
 module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
+module.exports.getClosestEl = getClosestEl
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray
 module.exports.isWorksheetFile = isWorksheetFile
 module.exports.isWorksheetRelsFile = isWorksheetRelsFile
-module.exports.parseCellRef = parseCellRef

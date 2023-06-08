@@ -27,6 +27,7 @@ build/Release
 node_modules
 
 data
+!test/data
 
 # configuration files
 jsreport.config.json

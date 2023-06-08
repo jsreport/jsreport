@@ -137,8 +137,17 @@ function concatTextNodes (doc, elements) {
       if (remainingText === '') {
         tNodeToEvaluate.setAttribute('__block_helper__', true)
         tNodeToEvaluate.parentNode.parentNode.setAttribute('__block_helper_container__', true)
-        const commentNode = doc.createComment('__block_helper_container__')
-        tNodeToEvaluate.parentNode.parentNode.appendChild(commentNode)
+
+        const lastChildIsBlockHelperComment = (
+          tNodeToEvaluate.parentNode.parentNode.lastChild.nodeName === '#comment' &&
+          tNodeToEvaluate.parentNode.parentNode.lastChild.nodeValue === '__block_helper_container__'
+        )
+
+        // insert the comment just once
+        if (!lastChildIsBlockHelperComment) {
+          const commentNode = doc.createComment('__block_helper_container__')
+          tNodeToEvaluate.parentNode.parentNode.appendChild(commentNode)
+        }
       }
 
       shouldPreserveSpace = false

@@ -59,13 +59,13 @@ function matchRecursiveRegExp (str, left, right, flags) {
   return a
 }
 
-function matchAll (str, left, right, flags) {
+function matchAll (str, left, right, flags, onlyTopLevel) {
   const matches = []
 
   const results = matchRecursiveRegExp(str, left, right, flags)
 
   for (const result of results) {
-    const childMatches = matchAll(result.content, left, right, flags)
+    const childMatches = onlyTopLevel === true ? [] : matchAll(result.content, left, right, flags)
 
     if (childMatches.length > 0) {
       result.matches = childMatches
@@ -113,7 +113,7 @@ function execute (matches, replacer) {
   return Promise.all(promises)
 }
 
-async function processString (stringOrParams, left, right, flags, replacer) {
+async function processString (stringOrParams, left, right, flags, replacer, onlyTopLevel) {
   let str
   let parallelLimit
 
@@ -124,7 +124,7 @@ async function processString (stringOrParams, left, right, flags, replacer) {
     parallelLimit = stringOrParams.parallelLimit
   }
 
-  const matches = matchAll(str, left, right, flags)
+  const matches = matchAll(str, left, right, flags, onlyTopLevel)
   let semp
 
   if (parallelLimit != null && parallelLimit > 0) {
@@ -155,8 +155,8 @@ async function processString (stringOrParams, left, right, flags, replacer) {
   })
 }
 
-function recursiveStringReplaceAsync (str, left, right, flags, replacer) {
-  return processString(str, left, right, flags, replacer)
+function recursiveStringReplaceAsync (str, left, right, flags, replacer, onlyTopLevel) {
+  return processString(str, left, right, flags, replacer, onlyTopLevel)
 }
 
 module.exports = recursiveStringReplaceAsync
