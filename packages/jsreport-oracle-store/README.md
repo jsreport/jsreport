@@ -44,6 +44,16 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 3.3.2
+
+- moved oracledb to optionalDependencies to be able to build docker ARM image correctly
+- revert to the old oracledb thick client
+
+### 3.3.1
+
+- moved oracledb to dependencies
+- use new oracledb thin client
+
 ### 3.2.2
 
 - fix oracle blob storage
