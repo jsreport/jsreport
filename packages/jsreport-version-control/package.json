@@ -48,7 +48,7 @@
     "@jsreport/jsreport-express": "3.7.1",
     "@jsreport/studio-dev": "3.2.1",
     "mocha": "5.2.0",
-    "puppeteer": "16.1.0",
+    "puppeteer": "20.7.1",
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "standard": "16.0.4",

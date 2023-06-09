@@ -77,7 +77,7 @@
     "@jsreport/jsreport-version-control": "3.1.2",
     "@jsreport/jsreport-xlsx": "3.5.0",
     "handlebars": "4.7.7",
-    "puppeteer": "16.1.0",
+    "puppeteer": "20.7.1",
     "semver": "6.3.0"
   },
   "devDependencies": {

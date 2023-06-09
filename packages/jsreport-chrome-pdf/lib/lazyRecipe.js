@@ -30,6 +30,18 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
   return async (req, res) => {
     const launchOptions = Object.assign({}, definition.options.launchOptions)
 
+    // NOTE: make sure that we default to the old headless mode for now,
+    // we need to pass an explicit value for this, otherwise we get a warning on console.
+    // we will update to the new mode after some time to give some time to have it stable
+    // https://developer.chrome.com/articles/new-headless/
+    // something to remember is that it seems that the new mode is slower in rendering compared
+    // to the old one (https://github.com/puppeteer/puppeteer/issues/10071).
+    // we should have this in mind when updating in the future and comparing the
+    // performance between the two to see if there is significant difference
+    if (launchOptions.headless == null || launchOptions.headless === true || launchOptions.headless === 'true') {
+      launchOptions.headless = 'old'
+    }
+
     const chrome = Object.assign({}, imageExecution ? req.template.chromeImage : req.template.chrome)
 
     let htmlUrl

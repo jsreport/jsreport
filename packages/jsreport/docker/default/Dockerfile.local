@@ -65,7 +65,7 @@ ENV PATH $PATH:/home/jsreport/.npm-global/bin
 
 WORKDIR /app
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_SKIP_DOWNLOAD true
 
 RUN npm i -g yarn json-merger
 COPY ./packages/jsreport/server.js server.js

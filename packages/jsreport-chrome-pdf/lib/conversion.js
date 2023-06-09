@@ -367,9 +367,18 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       }))
     }`, req)
 
-    if (optionsToUse.scale == null) {
-      delete optionsToUse.scale
-    }
+    removePropertyIfEmpty(optionsToUse, 'scale')
+    removePropertyIfEmpty(optionsToUse, 'pageRanges')
+    removePropertyIfEmpty(optionsToUse, 'format')
+    removePropertyIfEmpty(optionsToUse, 'width')
+    removePropertyIfEmpty(optionsToUse, 'height')
+    removePropertyIfEmpty(optionsToUse?.margin, 'top')
+    removePropertyIfEmpty(optionsToUse?.margin, 'right')
+    removePropertyIfEmpty(optionsToUse?.margin, 'bottom')
+    removePropertyIfEmpty(optionsToUse?.margin, 'left')
+    removePropertyIfEmpty(optionsToUse, 'mediaType')
+    removePropertyIfEmpty(optionsToUse, 'viewportWidth')
+    removePropertyIfEmpty(optionsToUse, 'viewportHeight')
 
     let result
     let resultType
@@ -446,4 +455,16 @@ function runWithTimeout (fn, ms, reporter, msg) {
       clearTimeout(timer)
     }
   })
+}
+
+function removePropertyIfEmpty (obj, property) {
+  if (obj == null) {
+    return
+  }
+
+  const value = obj[property]
+
+  if (value == null || value === '') {
+    delete obj[property]
+  }
 }
