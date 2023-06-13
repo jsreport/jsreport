@@ -8,7 +8,7 @@ RUN adduser --disabled-password --gecos "" jsreport
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-transport-https apt-utils software-properties-common wget gnupg bzip2 git curl && \
     apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libappindicator3-1 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils && \
-    # adding custom ppa repository to get access to custom version of chromium for macOS M1 hardware
+    # adding custom ppa repository to get access to custom version of chromium for macOS Apple Silicon hardware
     # this ppa only has builds available for architecture amd64,
     # however it seems it is the only one releasing for ubuntu xenial and since jsreport/worker
     # does not have a requirement to be built for arm64 architecture we are fine.
