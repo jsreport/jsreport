@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "3.4.0",
-    "@jsreport/jsreport-chrome-pdf": "3.3.0",
+    "@jsreport/jsreport-chrome-pdf": "3.4.0",
     "@jsreport/jsreport-core": "3.12.0",
     "@jsreport/jsreport-express": "3.7.1",
     "@rollup/plugin-commonjs": "21.0.0",

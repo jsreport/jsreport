@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 3.3.2
+
+- fix passing chrome launchOptions to chrome-page-eval
+
 ### 3.3.1
 
 - update html-to-xlsx to fix npm audit

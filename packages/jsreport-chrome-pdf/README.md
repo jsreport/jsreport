@@ -29,6 +29,11 @@ chrome-image
 
 ## Changelog
 
+### 3.4.0
+
+- empty values `''` for pdf width, height and other options throw errors on recent versions of puppeteer, we now normalize options and don't pass empty values
+- set explicit `launchOptions.headless: old` to avoid warnings, for now we use the old headless mode until the new mode gets stable
+
 ### 3.3.0
 
 - use `Studio.openTab` with `docProp` option to open chrome header/footer tabs

@@ -44,7 +44,7 @@
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.6.1",
     "@jsreport/jsreport-child-templates": "3.1.0",
-    "@jsreport/jsreport-chrome-pdf": "3.3.0",
+    "@jsreport/jsreport-chrome-pdf": "3.4.0",
     "@jsreport/jsreport-core": "3.12.0",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "@jsreport/jsreport-jsrender": "3.0.0",
