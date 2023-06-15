@@ -12,9 +12,9 @@ describe('browser client', () => {
   let page
 
   beforeEach(async () => {
-    browser = await puppeteer.launch()
+    browser = await puppeteer.launch({ headless: 'old' })
     page = await browser.newPage()
-    page.setContent(`<script>${jsreportClientDist}</script>`)
+    await page.setContent(`<script>${jsreportClientDist}</script>`)
     await page.evaluate(async () => {
       jsreport.serverUrl = 'http://localhost:5488'
     })
@@ -227,9 +227,9 @@ describe('browser client with auth', () => {
   let page
 
   beforeEach(async () => {
-    browser = await puppeteer.launch()
+    browser = await puppeteer.launch({ headless: 'old' })
     page = await browser.newPage()
-    page.setContent(`<script>${jsreportClientDist}</script>`)
+    await page.setContent(`<script>${jsreportClientDist}</script>`)
     await page.evaluate(async () => {
       jsreport.serverUrl = 'http://localhost:5488'
     })
@@ -301,9 +301,9 @@ describe('browser client and custom serverUrl', () => {
   let page
 
   beforeEach(async () => {
-    browser = await puppeteer.launch()
+    browser = await puppeteer.launch({ headless: 'old' })
     page = await browser.newPage()
-    page.setContent(`<script>${jsreportClientDist}</script>`)
+    await page.setContent(`<script>${jsreportClientDist}</script>`)
     await page.evaluate(async () => {
       jsreport.serverUrl = 'http://localhost:5488/reporting/test'
     })
