@@ -23,7 +23,7 @@ module.exports = async (reporter, definition, req, res) => {
   }
 
   Object.assign(chromeOptions.eval, {
-    ...(chromeOptions.eval.launchOptions || {}),
+    launchOptions: { ...(chromeOptions.eval.launchOptions || {}) },
     args: [
       '--window-size=12800000000000,1024',
       ...(
@@ -31,6 +31,14 @@ module.exports = async (reporter, definition, req, res) => {
       )
     ]
   })
+
+  // NOTE: make sure that we default to the old headless mode for now,
+  // we need to pass an explicit value for this, otherwise we get a warning on console.
+  // we will update to the new mode after some time to give some time to have it stable
+  // https://developer.chrome.com/articles/new-headless/
+  if (chromeOptions.eval.launchOptions.headless == null || chromeOptions.eval.launchOptions.headless === true || chromeOptions.eval.launchOptions.headless === 'true') {
+    chromeOptions.eval.launchOptions.headless = 'old'
+  }
 
   const phantomEvalOptions = {
     tmpDir: definition.options.tmpDir,
