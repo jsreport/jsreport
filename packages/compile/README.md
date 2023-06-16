@@ -15,6 +15,10 @@ jsreport.exe start
 
 ## Changelog
 
+### 3.1.0
+
+- support store simple values
+
 ### 3.0.3
 
 - fix keep alive rendering

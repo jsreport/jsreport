@@ -4,6 +4,10 @@ You should not need this extension, only in case you try to compile your own jsr
 
 ## Changelog
 
+### 3.1.0
+
+- we now do not rely on hardcoded executable name for chrome, the name is derived from the path that puppeteer uses
+
 ### 3.0.2
 
 - check presence of chrome binary when decompressing binary
