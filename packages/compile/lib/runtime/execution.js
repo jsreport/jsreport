@@ -37,11 +37,23 @@ class Execution {
     this.tmpPath = path.join(tempDirectory != null ? tempDirectory : defaultTmpDir, 'compile', `jsreport-${version}-${shortid}`)
   }
 
+  value (name) {
+    const resource = this.resources[name]
+
+    if (!Object.hasOwn(resource, 'value')) {
+      throw new Error(`Can not get value for resource "${name}" because it is not a value`)
+    }
+
+    return resource.value
+  }
+
   resourcePath (name) {
     const resource = this.resources[name]
 
     if (resource.script === true) {
       throw new Error(`Can not get path for resource "${name}" because it is a script`)
+    } else if (Object.hasOwn(resource, 'value')) {
+      throw new Error(`Can not get path for resource "${name}" because it is a value`)
     }
 
     let pathToEvaluate

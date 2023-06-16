@@ -31,6 +31,9 @@ async function collectConfig (input) {
 
   // extend reporter with functions used by extension to include external modules and resources into the executable
   reporter.compilation = {
+    value: function (name, value) {
+      config.resources[name] = { value }
+    },
     script: function (name, p) {
       const projectDir = process.cwd()
 
@@ -146,6 +149,10 @@ async function writeStartup (config, options) {
 
 async function validateResources (resources) {
   await Promise.all(Object.keys(resources).map(async (rk) => {
+    if (Object.hasOwn(resources[rk], 'value')) {
+      return
+    }
+
     try {
       await statAsync(resources[rk].path)
     } catch (e) {
@@ -354,7 +361,7 @@ async function compileExe (label, config, options) {
     })
 
     Object.keys(config.resources).filter((rName) => {
-      return config.resources[rName].script !== true
+      return config.resources[rName].script !== true && !Object.hasOwn(config.resources[rName], 'value')
     }).forEach((rName) => {
       const resource = config.resources[rName]
       let pathToUse

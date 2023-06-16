@@ -5,7 +5,10 @@ const { compress, decompress } = require('./utils')
 
 module.exports = async function (reporter, definition) {
   if (reporter.compilation) {
-    const chromePath = path.dirname(puppeteer.executablePath())
+    const chromeExecutablePath = puppeteer.executablePath()
+    const chromePath = path.dirname(chromeExecutablePath)
+    let chromeExecutableName = path.basename(chromeExecutablePath)
+
     const localesPath = path.join(chromePath, 'locales')
 
     if (fs.existsSync(localesPath)) {
@@ -23,13 +26,16 @@ module.exports = async function (reporter, definition) {
     let chromeDirectory
 
     if (process.platform === 'darwin') {
-      chromeDirectory = path.join(path.dirname(puppeteer.executablePath()), '../../../')
+      chromeDirectory = path.join(path.dirname(chromeExecutablePath), '../../../')
+      // points to <Chrome app name>.app/Contents/MacOS/<Chrome exe name>
+      chromeExecutableName = path.relative(chromeDirectory, chromeExecutablePath)
     } else {
-      chromeDirectory = path.dirname(puppeteer.executablePath())
+      chromeDirectory = path.dirname(chromeExecutablePath)
     }
 
     await compress(chromeDirectory, pathToChromeZip)
 
+    reporter.compilation.value('chromeExeName', chromeExecutableName)
     reporter.compilation.resourceInTemp('chrome.zip', pathToChromeZip)
   }
 
@@ -39,9 +45,7 @@ module.exports = async function (reporter, definition) {
     reporter.options.chrome = reporter.options.chrome || {}
     reporter.options.chrome.launchOptions = reporter.options.chrome.launchOptions || {}
 
-    const chromeExeName = process.platform === 'darwin'
-      ? 'Chromium.app/Contents/MacOS/Chromium'
-      : (process.platform === 'win32' ? 'chrome.exe' : 'chrome')
+    const chromeExeName = reporter.execution.value('chromeExeName')
 
     reporter.options.chrome.launchOptions.executablePath = path.join(
       path.dirname(zipPath),
