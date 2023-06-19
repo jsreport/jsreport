@@ -4,3 +4,10 @@
 **jsreport extension managing docker containers and delegating work to them**
 
 See https://jsreport.net/learn/docker-workers
+
+## Changelog
+
+### 3.8.0
+
+- optimization using axios stream type instead of text
+- fix request aborting causing main container restarts
