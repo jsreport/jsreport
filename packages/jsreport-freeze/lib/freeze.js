@@ -1,6 +1,12 @@
 
-function isAdminUserAuthenticated (req) {
-  return req && req.user && req.user.isAdmin
+async function isAdminUserAuthenticated (reporter, req) {
+  if (reporter.authentication == null) {
+    return false
+  }
+
+  const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+  return req && req.user && isAdmin
 }
 
 function hookListeners (colName, col, rejectIfAppropriate) {
@@ -20,8 +26,11 @@ function hookListeners (colName, col, rejectIfAppropriate) {
 
 module.exports = (reporter, definition) => {
   function rejectIfAppropriate (req) {
-    return reporter.settings.findValue('freeze').then(function (freeze) {
-      if (isAdminUserAuthenticated() && !definition.options.hardFreeze && !freeze) {
+    return Promise.all([
+      reporter.settings.findValue('freeze'),
+      isAdminUserAuthenticated(reporter, req)
+    ]).then(function ([freeze, isAdmin]) {
+      if (isAdmin && !definition.options.hardFreeze && !freeze) {
         return
       }
 

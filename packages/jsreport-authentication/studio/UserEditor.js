@@ -11,10 +11,17 @@ class UserEditor extends Component {
 
   render () {
     const { entity, onUpdate } = this.props
+    const userIcon = Studio.resolveEntityTreeIconStyle(entity)
+    const isAdmin = Studio.authentication.isUserAdmin(entity)
 
     return (
       <div className='custom-editor'>
-        <h1><i className='fa fa-user' /> {entity.name}</h1>
+        <h1><i className={`fa ${userIcon}`} /> {entity.name}</h1>
+        {isAdmin && (
+          <div>
+            <b>Admin user</b>
+          </div>
+        )}
         <div>
           {Studio.authentication.useEditorComponents.map((c, i) => <div key={i}>{c(entity, onUpdate)}</div>)}
         </div>

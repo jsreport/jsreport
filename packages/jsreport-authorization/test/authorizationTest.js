@@ -16,6 +16,7 @@ describe('authorization', () => {
       }
     }))
     reporter.use(require('../')())
+
     reporter.use((reporter, definition) => {
       reporter.initializeListeners.add('authorization-test', async () => {
         await reporter.documentStore.collection('users').insert({
@@ -31,6 +32,29 @@ describe('authorization', () => {
           password: 'b',
           shortid: 'b'
         })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cAdmin',
+          isAdmin: true,
+          name: 'cAdmin',
+          password: 'cAdmin',
+          shortid: 'cAdmin'
+        })
+
+        await reporter.documentStore.collection('users').insert({
+          _id: 'cAdminFromGroup',
+          name: 'cAdminFromGroup',
+          password: 'cAdminFromGroup',
+          shortid: 'cAdminFromGroup'
+        })
+
+        await reporter.documentStore.collection('usersGroups').insert({
+          name: 'gAdmin',
+          isAdmin: true,
+          users: [{
+            shortid: 'cAdminFromGroup'
+          }]
+        }, reqAdmin())
       })
     })
     return reporter.init()
@@ -49,7 +73,9 @@ describe('authorization', () => {
 
   const req1 = () => reporter.Request({ context: { user: { _id: 'a', shortid: 'a' } } })
   const req2 = () => reporter.Request({ context: { user: { _id: 'b', shortid: 'b' } } })
-  const reqAdmin = () => reporter.Request({ context: { user: { _id: 'admin', isAdmin: true } } })
+  const reqAdmin = () => reporter.Request({ context: { user: { _id: 'admin', isSuperAdmin: true, isAdmin: true } } })
+  const reqCustomAdmin = () => reporter.Request({ context: { user: { _id: 'cAdmin', shortid: 'cAdmin' } } })
+  const reqCustomAdminFromGroup = () => reporter.Request({ context: { user: { _id: 'cAdminFromGroup', shortid: 'cAdminFromGroup' } } })
   const reqGroup = (g) => reporter.Request({ context: { user: { _id: g._id, isGroup: true } } })
 
   const addUserToGroup = async (name, userReq) => {
@@ -59,16 +85,254 @@ describe('authorization', () => {
       group = await reporter.documentStore.collection('usersGroups').insert({ name, users: [] }, reqAdmin())
     }
 
-    await reporter.documentStore.collection('usersGroups').update({
-      _id: group._id
-    }, {
-      $set: {
-        users: [...group.users, { shortid: userReq.context.user.shortid }]
-      }
-    }, reqAdmin())
+    if (userReq) {
+      await reporter.documentStore.collection('usersGroups').update({
+        _id: group._id
+      }, {
+        $set: {
+          users: [...group.users, { shortid: userReq.context.user.shortid }]
+        }
+      }, reqAdmin())
+    }
 
     return reporter.documentStore.collection('usersGroups').findOne({ name }, reqAdmin())
   }
+
+  it('user should not be able to create user', async () => {
+    const createPromise = reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, req1())
+    should(createPromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('user should not be able to update user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    const updatePromise = reporter.documentStore.collection('users').update({ name: 'custom' }, { $set: { name: 'custom2' } }, req1())
+    should(updatePromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('user should not be able to remove user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    const removePromise = reporter.documentStore.collection('users').remove({ name: 'custom' }, req1())
+    should(removePromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('custom admin user should be able to create user', async () => {
+    const uEntity = await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqCustomAdmin())
+    should(uEntity.name).be.eql('custom')
+  })
+
+  it('custom admin user should be able to update user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    await reporter.documentStore.collection('users').update({ name: 'custom' }, { $set: { name: 'custom2' } }, reqCustomAdmin())
+    const uEntity = await reporter.documentStore.collection('users').findOne({ name: 'custom2' }, reqCustomAdmin())
+    should(uEntity.name).be.eql('custom2')
+  })
+
+  it('custom admin user should be able to remove user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    await reporter.documentStore.collection('users').remove({ name: 'custom' }, reqCustomAdmin())
+    const uEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'custom' }, reqCustomAdmin())
+    should(uEntity).be.not.ok()
+  })
+
+  it('user inside admin group should be able to create user', async () => {
+    const uEntity = await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqCustomAdminFromGroup())
+    should(uEntity.name).be.eql('custom')
+  })
+
+  it('user inside admin group should be able to update user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    await reporter.documentStore.collection('users').update({ name: 'custom' }, { $set: { name: 'custom2' } }, reqCustomAdminFromGroup())
+    const uEntity = await reporter.documentStore.collection('users').findOne({ name: 'custom2' }, reqCustomAdminFromGroup())
+    should(uEntity.name).be.eql('custom2')
+  })
+
+  it('user inside admin group should be able to remove user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'custom' }, reqCustomAdminFromGroup())
+    const uEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'custom' }, reqCustomAdminFromGroup())
+    should(uEntity).be.not.ok()
+  })
+
+  it('user should not be able to create group', async () => {
+    const createPromise = reporter.documentStore.collection('usersGroups').insert({ name: 'g1', users: [] }, req1())
+    should(createPromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('user should not be able to update group', async () => {
+    await addUserToGroup('g1')
+    const updatePromise = reporter.documentStore.collection('usersGroups').update({ name: 'g1' }, { $set: { name: 'g2' } }, req1())
+    should(updatePromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('user should not be able to remove group', async () => {
+    await addUserToGroup('g1')
+    const removePromise = reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, req1())
+    should(removePromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('custom admin user should be able to create group', async () => {
+    const gEntity = await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', users: [] }, reqCustomAdmin())
+    should(gEntity.name).be.eql('g1')
+  })
+
+  it('custom admin user should be able to update group', async () => {
+    await addUserToGroup('g1')
+    await reporter.documentStore.collection('usersGroups').update({ name: 'g1' }, { $set: { name: 'g2' } }, reqCustomAdmin())
+    const gEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'g2' }, reqCustomAdmin())
+    should(gEntity.name).be.eql('g2')
+  })
+
+  it('custom admin user should be able to remove group', async () => {
+    await addUserToGroup('g1')
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqCustomAdmin())
+    const gEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'g1' }, reqCustomAdmin())
+    should(gEntity).be.not.ok()
+  })
+
+  it('user inside admin group should be able to create group', async () => {
+    const gEntity = await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', users: [] }, reqCustomAdminFromGroup())
+    should(gEntity.name).be.eql('g1')
+  })
+
+  it('user inside admin group should be able to update group', async () => {
+    await addUserToGroup('g1')
+    await reporter.documentStore.collection('usersGroups').update({ name: 'g1' }, { $set: { name: 'g2' } }, reqCustomAdminFromGroup())
+    const gEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'g2' }, reqCustomAdminFromGroup())
+    should(gEntity.name).be.eql('g2')
+  })
+
+  it('user inside admin group should be able to remove group', async () => {
+    await addUserToGroup('g1')
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqCustomAdminFromGroup())
+    const gEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'g1' }, reqCustomAdminFromGroup())
+    should(gEntity).be.not.ok()
+  })
+
+  it('admin user should be able to create custom admin user', async () => {
+    const uEntity = await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom', isAdmin: true }, reqAdmin())
+    should(uEntity.name).be.eql('custom')
+  })
+
+  it('admin user should be able to update user to custom admin user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqAdmin())
+
+    await reporter.documentStore.collection('users').update({ name: 'custom' }, { $set: { isAdmin: true } }, reqAdmin())
+    const uEntity = await reporter.documentStore.collection('users').findOne({ name: 'custom' }, reqAdmin())
+    should(uEntity.isAdmin).be.true()
+  })
+
+  it('admin user should be able to remove custom admin user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom', isAdmin: true }, reqAdmin())
+
+    await reporter.documentStore.collection('users').remove({ name: 'custom' }, reqAdmin())
+    const uEntity = await reporter.documentStore.collection('users').findOne({ name: 'custom' }, reqAdmin())
+    should(uEntity).be.not.ok()
+  })
+
+  it('admin user should be able to create admin group', async () => {
+    const uEntity = await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', isAdmin: true }, reqAdmin())
+    should(uEntity.name).be.eql('g1')
+  })
+
+  it('admin user should be able to update group to admin group', async () => {
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g1' }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').update({ name: 'g1' }, { $set: { isAdmin: true } }, reqAdmin())
+
+    const gEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'g1' }, reqAdmin())
+    should(gEntity.name).be.eql('g1')
+  })
+
+  it('admin user should be able to remove admin group', async () => {
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', isAdmin: true }, reqAdmin())
+
+    await reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqAdmin())
+
+    const gEntity = await reporter.documentStore.collection('usersGroups').findOne({ name: 'g1' }, reqAdmin())
+    should(gEntity).be.not.ok()
+  })
+
+  it('custom admin user should not be able to create custom admin user', async () => {
+    const createPromise = reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom', isAdmin: true }, reqCustomAdmin())
+    should(createPromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('custom admin user should not be able to update user to custom admin user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqCustomAdmin())
+
+    const updatePromise = reporter.documentStore.collection('users').update({ name: 'custom' }, { $set: { isAdmin: true } }, reqCustomAdmin())
+    should(updatePromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('custom admin user should not be able to remove custom admin user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom', isAdmin: true }, reqAdmin())
+
+    const removePromise = reporter.documentStore.collection('users').remove({ name: 'custom' }, reqCustomAdmin())
+    should(removePromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('custom admin user should not be able to create admin group', async () => {
+    const createPromise = reporter.documentStore.collection('usersGroups').insert({ name: 'g1', isAdmin: true }, reqCustomAdmin())
+    should(createPromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('custom admin user should not be able to update group to admin group', async () => {
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g1' }, reqCustomAdmin())
+
+    const updatePromise = reporter.documentStore.collection('usersGroups').update({ name: 'g1' }, { $set: { isAdmin: true } }, reqCustomAdmin())
+    should(updatePromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('custom admin user should not be able to remove admin group', async () => {
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', isAdmin: true }, reqAdmin())
+
+    const removePromise = reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqCustomAdmin())
+    should(removePromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('user inside admin group should not be able to create custom admin user', async () => {
+    const createPromise = reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom', isAdmin: true }, reqCustomAdminFromGroup())
+    should(createPromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('user inside admin group should not be able to update user to custom admin user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom' }, reqCustomAdminFromGroup())
+
+    const updatePromise = reporter.documentStore.collection('users').update({ name: 'custom' }, { $set: { isAdmin: true } }, reqCustomAdminFromGroup())
+    should(updatePromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('user inside admin group should not be able to remove custom admin user', async () => {
+    await reporter.documentStore.collection('users').insert({ name: 'custom', password: 'custom', isAdmin: true }, reqAdmin())
+
+    const removePromise = reporter.documentStore.collection('users').remove({ name: 'custom' }, reqCustomAdminFromGroup())
+    should(removePromise).be.rejectedWith(/Unauthorized for users/)
+  })
+
+  it('user inside admin group should not be able to create admin group', async () => {
+    const createPromise = reporter.documentStore.collection('usersGroups').insert({ name: 'g1', isAdmin: true }, reqCustomAdminFromGroup())
+    should(createPromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('user inside admin group should not be able to update group to admin group', async () => {
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g1' }, reqCustomAdminFromGroup())
+
+    const updatePromise = reporter.documentStore.collection('usersGroups').update({ name: 'g1' }, { $set: { isAdmin: true } }, reqCustomAdminFromGroup())
+    should(updatePromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
+
+  it('user inside admin group should not be able to remove admin group', async () => {
+    await reporter.documentStore.collection('usersGroups').insert({ name: 'g1', isAdmin: true }, reqAdmin())
+
+    const removePromise = reporter.documentStore.collection('usersGroups').remove({ name: 'g1' }, reqCustomAdminFromGroup())
+    should(removePromise).be.rejectedWith(/Unauthorized for usersGroups/)
+  })
 
   it('throw proper error when can not find template because permissions', async () => {
     await createTemplate(req1())
@@ -104,6 +368,44 @@ describe('authorization', () => {
     template.editPermissions.should.containEql(req.context.user._id)
   })
 
+  it('custom admin user creating entity should be able to read it', async () => {
+    await createTemplate(reqCustomAdmin())
+    const count = await countTemplates(reqCustomAdmin())
+    count.should.be.eql(1)
+  })
+
+  it('custom admin user creating entity should be added to read, edit permissions', async () => {
+    const req = reqCustomAdmin()
+    const template = await createTemplate(req)
+
+    const readPermissions = template.readPermissions || []
+    const editPermissions = template.editPermissions || []
+
+    readPermissions.should.have.length(1)
+    editPermissions.should.have.length(1)
+    template.readPermissions.should.containEql(req.context.user._id)
+    template.editPermissions.should.containEql(req.context.user._id)
+  })
+
+  it('user inside admin group creating entity should be able to read it', async () => {
+    await createTemplate(reqCustomAdminFromGroup())
+    const count = await countTemplates(reqCustomAdminFromGroup())
+    count.should.be.eql(1)
+  })
+
+  it('user inside admin group creating entity should be added to read, edit permissions', async () => {
+    const req = reqCustomAdminFromGroup()
+    const template = await createTemplate(req)
+
+    const readPermissions = template.readPermissions || []
+    const editPermissions = template.editPermissions || []
+
+    readPermissions.should.have.length(1)
+    editPermissions.should.have.length(1)
+    template.readPermissions.should.containEql(req.context.user._id)
+    template.editPermissions.should.containEql(req.context.user._id)
+  })
+
   it('admin user creating entity should not be added to read, edit permissions', async () => {
     const req = reqAdmin()
     const template = await createTemplate(req)
@@ -121,6 +423,18 @@ describe('authorization', () => {
     await createTemplate(req1())
     const count = await countTemplates(req2())
     count.should.be.eql(0)
+  })
+
+  it('custom admin user should be able to read entity without permission to it', async () => {
+    await createTemplate(req1())
+    const count = await countTemplates(reqCustomAdmin())
+    count.should.be.eql(1)
+  })
+
+  it('user inside admin group should be able to read entity without permission to it', async () => {
+    await createTemplate(req1())
+    const count = await countTemplates(reqCustomAdminFromGroup())
+    count.should.be.eql(1)
   })
 
   it('query should filter out entities without permissions', async () => {
@@ -159,18 +473,46 @@ describe('authorization', () => {
       .should.be.rejectedWith(/Unauthorized/)
   })
 
-  it('admin user should be able to remove entity even without permission', async () => {
+  it('custom admin user should be able to update entity even without permission', async () => {
     await createTemplate(req1())
-    await reporter.documentStore.collection('templates').remove({}, reporter.Request({ context: { user: { isAdmin: true } } }))
+    await reporter.documentStore.collection('templates').update({}, { $set: { content: 'hello' } }, reqCustomAdmin())
+    const templates = await reporter.documentStore.collection('templates').find({}, req1())
+    templates[0].content.should.be.eql('hello')
+  })
+
+  it('custom admin user should be able to remove entity even without permission', async () => {
+    await createTemplate(req1())
+    await reporter.documentStore.collection('templates').remove({}, reqCustomAdmin())
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
+  })
+
+  it('user inside admin group should be able to update entity even without permission', async () => {
+    await createTemplate(req1())
+    await reporter.documentStore.collection('templates').update({}, { $set: { content: 'hello' } }, reqCustomAdminFromGroup())
+    const templates = await reporter.documentStore.collection('templates').find({}, req1())
+    templates[0].content.should.be.eql('hello')
+  })
+
+  it('user inside admin group should be able to remove entity even without permission', async () => {
+    await createTemplate(req1())
+    await reporter.documentStore.collection('templates').remove({}, reqCustomAdminFromGroup())
     const count = await countTemplates(req1())
     count.should.be.eql(0)
   })
 
   it('admin user should be able to update entity even without permission', async () => {
     await createTemplate(req1())
-    await reporter.documentStore.collection('templates').update({}, { $set: { content: 'hello' } }, reporter.Request({ context: { user: { isAdmin: true } } }))
+    await reporter.documentStore.collection('templates').update({}, { $set: { content: 'hello' } }, reqAdmin())
     const templates = await reporter.documentStore.collection('templates').find({}, req1())
     templates[0].content.should.be.eql('hello')
+  })
+
+  it('admin user should be able to remove entity even without permission', async () => {
+    await createTemplate(req1())
+    await reporter.documentStore.collection('templates').remove({}, reqAdmin())
+    const count = await countTemplates(req1())
+    count.should.be.eql(0)
   })
 
   it('req with no user should be able to remove entities', async () => {

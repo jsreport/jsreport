@@ -237,7 +237,11 @@ class MainReporter extends Reporter {
 
       await this.documentStore.init()
       await this.blobStorage.init()
-      await this.settings.init(this.documentStore, this.authorization)
+
+      await this.settings.init(this.documentStore, {
+        authentication: this.authentication,
+        authorization: this.authorization
+      })
 
       const extensionsForWorkers = this.extensionsManager.extensions.filter(e => e.worker)
 

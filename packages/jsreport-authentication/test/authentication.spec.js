@@ -4,7 +4,9 @@ const request = require('supertest')
 const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 
-const CUSTOM_USER = { username: 'jsreport', password: 'jsreport' }
+const CUSTOM_USERS = [{ username: 'jsreport', password: 'jsreport' }, { username: 'cAdmin', isAdmin: true, password: '1234' }]
+const CUSTOM_USER = CUSTOM_USERS[0]
+const CUSTOM_ADMIN_USER = CUSTOM_USERS[1]
 
 describe('authentication', () => {
   let reporter
@@ -27,7 +29,9 @@ describe('authentication', () => {
 
     await reporter.init()
 
-    await reporter.documentStore.collection('users').insert({ ...CUSTOM_USER })
+    for (const user of CUSTOM_USERS) {
+      await reporter.documentStore.collection('users').insert({ ...user })
+    }
   })
 
   afterEach(() => reporter.close())
@@ -161,7 +165,7 @@ describe('authentication', () => {
     }
 
     function common (user) {
-      it('should block login attempts after reaching limit', async () => {
+      it(`(user: ${user.username}) should block login attempts after reaching limit`, async () => {
         const login = tryLogin(user)
 
         for (let i = 1; i <= reporter.authentication.usersRepository.maxFailedLoginAttempts + 1; i++) {
@@ -175,7 +179,7 @@ describe('authentication', () => {
         }
       })
 
-      it('should block successful login after reaching limit', async () => {
+      it(`(user: ${user.username}) should block successful login after reaching limit`, async () => {
         const login = tryLogin(user)
 
         for (let i = 1; i <= reporter.authentication.usersRepository.maxFailedLoginAttempts + 1; i++) {
@@ -189,7 +193,7 @@ describe('authentication', () => {
         }
       })
 
-      it('should block login attempts after reaching limit (http api)', async () => {
+      it(`(user: ${user.username}) should block login attempts after reaching limit (http api)`, async () => {
         const login = tryApiLogin(user)
 
         for (let i = 1; i <= reporter.authentication.usersRepository.maxFailedLoginAttempts + 1; i++) {
@@ -205,7 +209,7 @@ describe('authentication', () => {
         }
       })
 
-      it('should block successful login after reaching limit (http api)', async () => {
+      it(`(user: ${user.username}) should block successful login after reaching limit (http api)`, async () => {
         const login = tryApiLogin(user)
 
         for (let i = 1; i <= reporter.authentication.usersRepository.maxFailedLoginAttempts + 1; i++) {
@@ -347,6 +351,8 @@ describe('authentication', () => {
       })
 
       common(CUSTOM_USER)
+
+      common(CUSTOM_ADMIN_USER)
 
       it('should allow login after the block time has passed', async () => {
         const login = tryLogin(CUSTOM_USER)

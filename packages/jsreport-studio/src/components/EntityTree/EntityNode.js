@@ -4,8 +4,9 @@ import composeRefs from '@seznam/compose-react-refs'
 import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
-import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle } from './utils'
+import { renderEntityTreeItemComponents } from './utils'
 import { entitySets } from '../../lib/configuration'
+import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityTree.css'
 
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0

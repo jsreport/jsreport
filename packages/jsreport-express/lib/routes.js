@@ -136,9 +136,25 @@ module.exports = (app, reporter, exposedOptions) => {
 
   app.get('/api/version', (req, res, next) => res.send(reporter.version))
 
-  app.get('/api/settings', (req, res, next) => res.send({
-    tenant: omit(req.user, 'password')
-  }))
+  app.get('/api/settings', async (req, res, next) => {
+    try {
+      const data = {
+        tenant: omit(req.user, 'password')
+      }
+
+      if (reporter.authentication) {
+        const isAdmin = await reporter.authentication.isUserAdmin(req.user, req)
+
+        if (isAdmin) {
+          data.isTenantAdmin = isAdmin
+        }
+      }
+
+      res.send(data)
+    } catch (error) {
+      next(error)
+    }
+  })
 
   app.get('/api/recipe', (req, res, next) => res.json(reporter.extensionsManager.recipes.map((r) => r.name)))
 

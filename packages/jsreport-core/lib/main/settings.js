@@ -47,40 +47,46 @@ Settings.prototype.addOrSet = async function (key, avalue, req) {
   }
 }
 
-Settings.prototype.init = async function (documentStore, authorization) {
+Settings.prototype.init = async function (documentStore, { authentication, authorization }) {
   this.documentStore = documentStore
 
-  if (authorization != null) {
+  if (authentication != null && authorization != null) {
     const col = documentStore.collection('settings')
 
     // settings can be read by anyone so we don't add find listeners,
     // we only care about modification listeners
-    col.beforeInsertListeners.add('settings', (doc, req) => {
+    col.beforeInsertListeners.add('settings', async (doc, req) => {
       if (req && req.context && req.context.skipAuthorization) {
         return
       }
 
-      if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+      const isAdmin = await authentication.isUserAdmin(req?.context?.user, req)
+
+      if (req && req.context && req.context.user && !isAdmin) {
         throw authorization.createAuthorizationError(col.name)
       }
     })
 
-    col.beforeUpdateListeners.add('settings', (q, u, options, req) => {
+    col.beforeUpdateListeners.add('settings', async (q, u, options, req) => {
       if (req && req.context && req.context.skipAuthorization) {
         return
       }
 
-      if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+      const isAdmin = await authentication.isUserAdmin(req?.context?.user, req)
+
+      if (req && req.context && req.context.user && !isAdmin) {
         throw authorization.createAuthorizationError(col.name)
       }
     })
 
-    col.beforeRemoveListeners.add('settings', (q, req) => {
+    col.beforeRemoveListeners.add('settings', async (q, req) => {
       if (req && req.context && req.context.skipAuthorization) {
         return
       }
 
-      if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+      const isAdmin = await authentication.isUserAdmin(req?.context?.user, req)
+
+      if (req && req.context && req.context.user && !isAdmin) {
         throw authorization.createAuthorizationError(col.name)
       }
     })

@@ -136,7 +136,7 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          if (!(!_jsreportStudio2.default.authentication || !_jsreportStudio2.default.authentication.user.isAdmin)) {
+          if (!(!_jsreportStudio2.default.authentication || !_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user))) {
             _context.next = 2;
             break;
           }
@@ -149,6 +149,7 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
             name: 'usersGroups',
             faIcon: 'fa-users',
             visibleName: 'group',
+            referenceAttributes: ['users', 'isAdmin'],
             onNew: function onNew(options) {
               return _jsreportStudio2.default.openModal(_NewUsersGroupModal2.default, options);
             },
@@ -410,9 +411,51 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _jsreportStudio = __webpack_require__(0);
+
+var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var UsersGroupEditor = function UsersGroupEditor(props) {
   var entity = props.entity;
 
+
+  var content = null;
+
+  if (_jsreportStudio2.default.authentication.user.isSuperAdmin) {
+    content = React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'h2',
+        null,
+        'Admin Management'
+      ),
+      React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'div',
+          { className: 'form-group' },
+          React.createElement(
+            'label',
+            null,
+            'Give admin privileges'
+          ),
+          React.createElement('input', {
+            type: 'checkbox',
+            checked: entity.isAdmin === true,
+            onChange: function onChange(v) {
+              return _jsreportStudio2.default.updateEntity(_extends({}, entity, { isAdmin: v.target.checked }));
+            }
+          })
+        )
+      )
+    );
+  }
 
   return React.createElement(
     'div',
@@ -423,6 +466,24 @@ var UsersGroupEditor = function UsersGroupEditor(props) {
       React.createElement('i', { className: 'fa fa-users' }),
       ' ',
       entity.name
+    ),
+    entity.isAdmin && React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'b',
+        null,
+        'Admin group'
+      )
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'div',
+        null,
+        content
+      )
     )
   );
 };

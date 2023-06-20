@@ -3,8 +3,9 @@ import classNames from 'classnames'
 import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
-import { renderEntityTreeItemComponents, resolveEntityTreeIconStyle, checkIsGroupEntityNode } from './utils'
+import { renderEntityTreeItemComponents, checkIsGroupEntityNode } from './utils'
 import { entitySets } from '../../lib/configuration'
+import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityTree.css'
 
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0

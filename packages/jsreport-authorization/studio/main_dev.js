@@ -7,7 +7,7 @@ import Studio from 'jsreport-studio'
 Studio.sharedComponents.NewUsersGroupModal = NewUsersGroupModal
 
 Studio.initializeListeners.push(async () => {
-  if (!Studio.authentication || !Studio.authentication.user.isAdmin) {
+  if (!Studio.authentication || !Studio.authentication.isUserAdmin(Studio.authentication.user)) {
     return
   }
 
@@ -15,6 +15,7 @@ Studio.initializeListeners.push(async () => {
     name: 'usersGroups',
     faIcon: 'fa-users',
     visibleName: 'group',
+    referenceAttributes: ['users', 'isAdmin'],
     onNew: (options) => Studio.openModal(NewUsersGroupModal, options),
     entityTreePosition: 300
   })

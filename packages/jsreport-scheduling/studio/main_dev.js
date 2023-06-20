@@ -4,7 +4,7 @@ import DownloadButton from './DownloadButton.js'
 import Studio from 'jsreport-studio'
 
 Studio.initializeListeners.push(async () => {
-  if (Studio.authentication && !Studio.authentication.user.isAdmin) {
+  if (Studio.authentication && !Studio.authentication.isUserAdmin(Studio.authentication.user)) {
     return
   }
 

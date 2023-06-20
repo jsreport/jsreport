@@ -9,7 +9,7 @@ This server is used to test the following:
 
 In order to start testing, you need to do two things first:
 
-- From the monorepo root, start the Authorization server with `yarn workspace @jsreport/jsreport-authentication start-auth-server`, by default it will start on port `5000` but it can be changed [here](./startAuthServer.js), just make sure that if you change the port you need to also change the references to that port in the jsreport configuration `extensions.authentication.authorizationServer.issuer`, `extensions.authentication.authorizationServer.endpoints`
+- From the monorepo root, start the Authorization server with `yarn workspace @jsreport/jsreport-authentication start-auth-server`, by default it will start on port `5005` but it can be changed [here](./startAuthServer.js), just make sure that if you change the port you need to also change the references to that port in the jsreport configuration `extensions.authentication.authorizationServer.issuer`, `extensions.authentication.authorizationServer.endpoints`
 - Start jsreport on port `5488` with authentication enabled and with the following extra configuration
   ```js
   {
@@ -25,13 +25,13 @@ In order to start testing, you need to do two things first:
         },
         "authorizationServer": {
           "name": "AuthServer",
-          "issuer": "http://localhost:5000",
+          "issuer": "http://localhost:5005",
           "endpoints": {
-            "jwks": "http://localhost:5000/.well-known/openid-configuration/jwks",
-            "authorization": "http://localhost:5000/connect/authorize",
-            "token": "http://localhost:5000/connect/token",
-            "introspection": "http://localhost:5000/connect/introspect",
-            "userinfo": "http://localhost:5000/connect/userinfo"
+            "jwks": "http://localhost:5005/.well-known/openid-configuration/jwks",
+            "authorization": "http://localhost:5005/connect/authorize",
+            "token": "http://localhost:5005/connect/token",
+            "introspection": "http://localhost:5005/connect/introspect",
+            "userinfo": "http://localhost:5005/connect/userinfo"
           },
           "studioClient": {
             "clientId": "jsreport-studio",
@@ -97,7 +97,7 @@ The request is going to success if the token was validated correctly. Additional
 
 > Token validation
 ```
-POST http://localhost:5000/connect/introspect
+POST http://localhost:5005/connect/introspect
 
 Authorization: Basic <api resource credentials>
 Content-Type: application/x-www-form-urlencoded
@@ -108,7 +108,7 @@ token_type_hint=access_token
 
 > User info
 ```
-GET http://localhost:5000/connect/userinfo
+GET http://localhost:5005/connect/userinfo
 
 Authorization: Bearer <token we get from the console>
 ```

@@ -797,7 +797,6 @@ describe('sandbox', () => {
           },
           userCode: `
             const getNumberFromModule = require('moduleGetNumberConstructor')
-            debugger
             const NumberFromModule = getNumberFromModule()
             RESULT = Number === NumberFromModule
           `,

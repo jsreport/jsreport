@@ -39,26 +39,34 @@ module.exports = (reporter, options) => {
     if (reporter.authorization) {
       const col = reporter.documentStore.collection('versions')
 
-      col.beforeFindListeners.add('version-control', (q, p, req) => {
-        if (req && req.context && req.context.userFindCall && req.context.user && !req.context.user.isAdmin) {
+      col.beforeFindListeners.add('version-control', async (q, p, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.userFindCall && req.context.user && !isAdmin) {
           throw reporter.authorization.createAuthorizationError(col.name)
         }
       })
 
-      col.beforeInsertListeners.add('version-control', (doc, req) => {
-        if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+      col.beforeInsertListeners.add('version-control', async (doc, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.user && !isAdmin) {
           throw reporter.authorization.createAuthorizationError(col.name)
         }
       })
 
-      col.beforeUpdateListeners.add('version-control', (q, u, options, req) => {
-        if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+      col.beforeUpdateListeners.add('version-control', async (q, u, options, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.user && !isAdmin) {
           throw reporter.authorization.createAuthorizationError(col.name)
         }
       })
 
-      col.beforeRemoveListeners.add('version-control', (q, req) => {
-        if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+      col.beforeRemoveListeners.add('version-control', async (q, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.user && !isAdmin) {
           throw reporter.authorization.createAuthorizationError(col.name)
         }
       })

@@ -110,11 +110,15 @@ async function collectPermissionsFromEntityGroups (reporter, { entity, groupUser
       inheritedEditPermissionsFromGroup = mergeArrays(inheritedEditPermissionsFromGroup, [groupId])
     }
 
-    const usersInGroup = await reporter.documentStore.collection('users').findAdmin({
-      shortid: {
-        $in: group.users.map((g) => g.shortid)
-      }
-    }, { _id: 1 }, req)
+    let usersInGroup = []
+
+    if (group.users) {
+      usersInGroup = await reporter.documentStore.collection('users').findAdmin({
+        shortid: {
+          $in: group.users.map((g) => g.shortid)
+        }
+      }, { _id: 1 }, req)
+    }
 
     const usersIds = usersInGroup.map((u) => u._id.toString())
 

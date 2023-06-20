@@ -256,26 +256,34 @@ class Scheduling {
       const collections = [this.reporter.documentStore.collection('schedules'), this.reporter.documentStore.collection('tasks')]
 
       collections.forEach((col) => {
-        col.beforeFindListeners.add(this.definition.name, (q, p, req) => {
-          if (req && req.context && req.context.userFindCall && req.context.user && !req.context.user.isAdmin) {
+        col.beforeFindListeners.add(this.definition.name, async (q, p, req) => {
+          const isAdmin = await this.reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+          if (req && req.context && req.context.userFindCall && req.context.user && !isAdmin) {
             throw this.reporter.authorization.createAuthorizationError(col.name)
           }
         })
 
-        col.beforeInsertListeners.add(this.definition.name, (doc, req) => {
-          if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+        col.beforeInsertListeners.add(this.definition.name, async (doc, req) => {
+          const isAdmin = await this.reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+          if (req && req.context && req.context.user && !isAdmin) {
             throw this.reporter.authorization.createAuthorizationError(col.name)
           }
         })
 
-        col.beforeUpdateListeners.add(this.definition.name, (q, u, options, req) => {
-          if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+        col.beforeUpdateListeners.add(this.definition.name, async (q, u, options, req) => {
+          const isAdmin = await this.reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+          if (req && req.context && req.context.user && !isAdmin) {
             throw this.reporter.authorization.createAuthorizationError(col.name)
           }
         })
 
-        col.beforeRemoveListeners.add(this.definition.name, (q, req) => {
-          if (req && req.context && req.context.user && !req.context.user.isAdmin) {
+        col.beforeRemoveListeners.add(this.definition.name, async (q, req) => {
+          const isAdmin = await this.reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+          if (req && req.context && req.context.user && !isAdmin) {
             throw this.reporter.authorization.createAuthorizationError(col.name)
           }
         })
@@ -339,7 +347,7 @@ class Scheduling {
       template: {
         shortid: schedule.templateShortid
       },
-      context: { user: { isAdmin: true } },
+      context: { user: { isSuperAdmin: true, isAdmin: true } },
       options: {
         scheduling: { taskId: task._id.toString(), schedule: schedule },
         reports: { save: true, mergeProperties: { taskId: task._id.toString() } }

@@ -526,6 +526,107 @@ function Authentication (reporter, admin) {
     '/api/recipe', '/api/engine', '/api/settings', '/favicon.ico']
 
   this.usersRepository = UsersRepository(reporter, admin)
+
+  this.isUserAdmin = async function isUserAdmin (userInfo, req) {
+    if (userInfo == null) {
+      return false
+    }
+
+    // render from scheduling does not pass .name
+    if (userInfo.isSuperAdmin) {
+      return true
+    }
+
+    const validPropsForSearch = userInfo.isGroup ? ['_id'] : ['_id', 'shortid', 'name']
+    let currentProp
+
+    for (const targetProp of validPropsForSearch) {
+      if (userInfo[targetProp] == null || userInfo[targetProp] === '') {
+        continue
+      }
+
+      currentProp = targetProp
+      break
+    }
+
+    if (currentProp == null) {
+      const propsLabel = validPropsForSearch.map((p) => '.' + p).join(', ')
+      throw new Error(`reporter.authentication.isUserAdmin needs to have one of these ${propsLabel} properties on the user info param`)
+    }
+
+    const getCacheKey = (p) => `${p}:${userInfo[p]}`
+
+    const cacheKeyForCurrentProp = getCacheKey(currentProp)
+
+    if (req?.context?.isAdminCache && Object.hasOwn(req.context.isAdminCache, cacheKeyForCurrentProp)) {
+      return req.context.isAdminCache[cacheKeyForCurrentProp]
+    }
+
+    const { isAdmin, entityInStore } = await resolveIsAdmin(userInfo, currentProp)
+
+    if (entityInStore == null) {
+      return isAdmin
+    }
+
+    if (req?.context) {
+      req.context.isAdminCache = req.context.isAdminCache || Object.create(null)
+
+      for (const targetProp of validPropsForSearch) {
+        if (entityInStore[targetProp] == null || entityInStore[targetProp] === '') {
+          continue
+        }
+
+        const cacheKey = getCacheKey(targetProp)
+        req.context.isAdminCache[cacheKey] = isAdmin
+      }
+    }
+
+    return isAdmin
+  }
+
+  async function resolveIsAdmin (userInfo, currentProp) {
+    const query = { [currentProp]: userInfo[currentProp] }
+    const result = {}
+
+    if (userInfo.isGroup) {
+      result.isGroup = true
+
+      const groupInStore = await reporter.documentStore.collection('usersGroups').findOne(query)
+
+      result.entityInStore = groupInStore
+
+      if (groupInStore == null) {
+        result.isAdmin = false
+      } else {
+        result.isAdmin = groupInStore.isAdmin === true
+      }
+    } else {
+      const userInStore = await reporter.documentStore.collection('users').findOne(query)
+
+      result.entityInStore = userInStore
+
+      if (userInStore == null) {
+        result.isAdmin = false
+      } else if (userInStore.isAdmin) {
+        result.isAdmin = true
+      } else {
+        const groupCol = reporter.documentStore.collection('usersGroups')
+
+        if (groupCol == null) {
+          result.isAdmin = false
+        } else {
+          const adminGroupsForUser = await groupCol.find({
+            isAdmin: true,
+            'users.shortid': userInStore.shortid
+          }, { name: 1 })
+
+          result.isAdmin = adminGroupsForUser.length > 0
+        }
+      }
+    }
+
+    return result
+  }
 }
 
 module.exports = function (reporter, definition) {
@@ -546,6 +647,7 @@ module.exports = function (reporter, definition) {
 
   definition.options.admin.name = definition.options.admin.username
   definition.options.admin.isAdmin = true
+  definition.options.admin.isSuperAdmin = true
 
   reporter.authentication = new Authentication(reporter, definition.options.admin)
 

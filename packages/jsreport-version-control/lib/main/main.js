@@ -28,17 +28,23 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.on('express-configure', (app) => {
-    app.use('/api/version-control', (req, res, next) => {
-      if (reporter.authentication) {
-        if (req.context && req.context.user && req.context.user.isAdmin) {
-          next()
-        } else {
-          next(reporter.createError('version control is only available for admin user', {
-            statusCode: 401
-          }))
+    app.use('/api/version-control', async (req, res, next) => {
+      if (reporter.authentication == null) {
+        return next()
+      }
+
+      try {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req.context && req.context.user && isAdmin) {
+          return next()
         }
-      } else {
-        next()
+
+        throw reporter.createError('version control is only available for admin user', {
+          statusCode: 401
+        })
+      } catch (error) {
+        next(error)
       }
     })
 

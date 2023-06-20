@@ -4,8 +4,8 @@ import { connect } from 'react-redux'
 import fuzzyFilterFactory from 'react-fuzzy-filter-yarn-fix'
 import { createGetNormalizedEntitiesSelector } from '../../redux/entities/selectors'
 import { actions as editorActions } from '../../redux/editor'
-import { resolveEntityTreeIconStyle } from '../EntityTree/utils'
 import { entitySets } from '../../lib/configuration'
+import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityFuzzyFinderModal.css'
 
 const { InputFilter, FilterResults } = fuzzyFilterFactory()

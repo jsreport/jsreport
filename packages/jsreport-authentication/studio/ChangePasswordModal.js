@@ -21,7 +21,7 @@ class ChangePasswordModal extends Component {
         newPassword: this.newPassword1Ref.current.value
       }
 
-      if (!Studio.authentication.user.isAdmin) {
+      if (this.needsOldPassword(entity)) {
         data.oldPassword = this.oldPasswordRef.current.value
       }
 
@@ -42,12 +42,24 @@ class ChangePasswordModal extends Component {
       })
   }
 
+  needsOldPassword (entity) {
+    let needsOldPassword = true
+
+    if (Studio.authentication.isUserAdmin(Studio.authentication.user)) {
+      needsOldPassword = Studio.authentication.user.isGroup ? false : entity.name === Studio.authentication.user.name
+    }
+
+    return needsOldPassword
+  }
+
   render () {
+    const { entity } = this.props.options
+
     return (
       <div>
-        {Studio.authentication.user.isAdmin
-          ? ''
-          : <div className='form-group'><label>old password</label><input type='password' autoComplete='off' ref={this.oldPasswordRef} /></div>}
+        {this.needsOldPassword(entity)
+          ? <div className='form-group'><label>old password</label><input type='password' autoComplete='off' ref={this.oldPasswordRef} /></div>
+          : ''}
         <div className='form-group'>
           <label>new password</label>
           <input type='password' autoComplete='off' ref={this.newPassword1Ref} />

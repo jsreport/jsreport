@@ -28,7 +28,7 @@ module.exports = (reporter) => {
           return
         }
 
-        if (req && req.context && req.context.user && req.context.user._id && !req.context.user.isAdmin) {
+        if (req && req.context && req.context.user && !req.context.user.isSuperAdmin) {
           if (!req.context.user.isGroup) {
             doc.readPermissions = mergeArrays(doc.readPermissions, [req.context.user._id.toString()])
             doc.editPermissions = mergeArrays(doc.editPermissions, [req.context.user._id.toString()])

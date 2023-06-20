@@ -222,7 +222,7 @@ var release = function release() {
 };
 
 _jsreportStudio2.default.initializeListeners.push(function () {
-  if (_jsreportStudio2.default.authentication && !_jsreportStudio2.default.authentication.user.isAdmin) {
+  if (_jsreportStudio2.default.authentication && !_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user)) {
     return;
   }
 

@@ -19,6 +19,7 @@ import rootUrl from './helpers/rootUrl'
 import { openModal, isModalOpen } from './helpers/openModal'
 import resolveUrl from './helpers/resolveUrl'
 import { findTextEditor } from './helpers/textEditorInstance'
+import resolveEntityTreeIconStyle from './helpers/resolveEntityTreeIconStyle'
 import babelRuntime from './lib/babelRuntime'
 import bluebird from 'bluebird'
 
@@ -270,6 +271,15 @@ class Studio {
    */
   get tabTitleComponentKeyResolvers () {
     return configuration.tabTitleComponentKeyResolvers
+  }
+
+  /**
+   * Resolve the font awesome icon for the entity passed
+   *
+   * @return {String|null}
+   */
+  resolveEntityTreeIconStyle (entity, info) {
+    return resolveEntityTreeIconStyle(entity, info)
   }
 
   /**

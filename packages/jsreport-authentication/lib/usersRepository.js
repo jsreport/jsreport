@@ -7,6 +7,7 @@ module.exports = (reporter, admin) => {
     username: { type: 'Edm.String' },
     name: { type: 'Edm.String' },
     password: { type: 'Edm.String', visible: false },
+    isAdmin: { type: 'Edm.Boolean' },
     failedLoginAttemptsCount: { type: 'Edm.Int32', visible: false },
     failedLoginAttemptsStart: { type: 'Edm.DateTimeOffset', visible: false }
   })
@@ -37,28 +38,107 @@ module.exports = (reporter, admin) => {
     }
 
     if (reporter.authorization) {
-      const col = reporter.documentStore.collection('users')
+      const userCol = reporter.documentStore.collection('users')
 
       // users can be read by anyone so we don't add find listeners,
       // we only care about modification listeners.
-      col.beforeInsertListeners.add('users-authorization', (doc, req) => {
-        if (req && req.context && req.context.user && !req.context.user.isAdmin) {
-          throw reporter.authorization.createAuthorizationError(col.name)
+      userCol.beforeInsertListeners.add('users-authorization', async (doc, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.user && !isAdmin) {
+          throw reporter.authorization.createAuthorizationError(userCol.name)
+        }
+
+        if (req?.context?.user && !req.context.user.isSuperAdmin && (doc.isAdmin === true || doc.isSuperAdmin === true)) {
+          // admin user should not be able to create admin users
+          throw reporter.authorization.createAuthorizationError(`${userCol.name}. Only super admin user can create admin users`)
+        }
+
+        // remove invalid input for not super admin user
+        if (req?.context?.user && !req.context.user.isSuperAdmin) {
+          delete doc.isAdmin
+          delete doc.isSuperAdmin
         }
       })
 
       // updates from studio (like change password) will still work because the updates there use
       // the reporter.authentication.usersRepository api which does not have a req
       // attached to the store calls
-      col.beforeUpdateListeners.add('users-authorization', (q, u, options, req) => {
-        if (req && req.context && req.context.user && !req.context.user.isAdmin) {
-          throw reporter.authorization.createAuthorizationError(col.name)
+      userCol.beforeUpdateListeners.add('users-authorization', async (q, u, options, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.user && !isAdmin) {
+          throw reporter.authorization.createAuthorizationError(userCol.name)
+        }
+
+        if (req?.context?.user && !req.context.user.isSuperAdmin) {
+          const usersToUpdate = await reporter.documentStore.collection(userCol.name).findAdmin(q, req)
+
+          return Promise.all(usersToUpdate.map(async (currentUser) => {
+            const propertiesNotAllowed = ['isAdmin']
+
+            const currentUserIsAdmin = await reporter.authentication.isUserAdmin(currentUser, req)
+
+            if (currentUserIsAdmin) {
+              // admin user should not be able to update some properties about other admin users
+              propertiesNotAllowed.push('_id')
+              propertiesNotAllowed.push('shortid')
+              propertiesNotAllowed.push('name')
+            }
+
+            if (currentUser.name !== req.context.user.name) {
+              propertiesNotAllowed.push('password')
+            }
+
+            for (const prop of propertiesNotAllowed) {
+              if (
+                u.$set.isSuperAdmin != null ||
+                (
+                  Object.prototype.hasOwnProperty.call(u.$set, prop) &&
+                  (currentUser[prop] != null || u.$set[prop] != null) &&
+                  currentUser[prop] !== u.$set[prop]
+                )
+              ) {
+                // admin user should not be able to update the value of .isAdmin, .name, etc
+                throw reporter.authorization.createAuthorizationError(`${userCol.name}. Only super admin user can update .${prop} property for admin users`)
+              }
+            }
+
+            return null
+          }))
+        }
+
+        // cache invalidate when update to isAdmin value
+        if (req?.context?.isAdminCache && Object.hasOwn(u.$set, 'isAdmin')) {
+          delete req.context.isAdminCache
         }
       })
 
-      col.beforeRemoveListeners.add('users-authorization', (q, req) => {
-        if (req && req.context && req.context.user && !req.context.user.isAdmin) {
-          throw reporter.authorization.createAuthorizationError(col.name)
+      userCol.beforeRemoveListeners.add('users-authorization', async (q, req) => {
+        const isAdmin = await reporter.authentication.isUserAdmin(req?.context?.user, req)
+
+        if (req && req.context && req.context.user && !isAdmin) {
+          throw reporter.authorization.createAuthorizationError(userCol.name)
+        }
+
+        if (req?.context?.user && !req.context.user.isSuperAdmin) {
+          const usersToRemove = await reporter.documentStore.collection(userCol.name).find(q, req)
+
+          return Promise.all(usersToRemove.map(async (currentUser) => {
+            const currentUserIsAdmin = await reporter.authentication.isUserAdmin(currentUser, req)
+
+            if (currentUserIsAdmin) {
+              // admin user should not be able to remove other admin users (including itself)
+              throw reporter.authorization.createAuthorizationError(`${userCol.name}. Only super admin user can remove other admin users`)
+            }
+
+            return null
+          }))
+        }
+
+        // cache invalidate when removing user
+        if (req?.context?.isAdminCache) {
+          delete req.context.isAdminCache
         }
       })
     }
@@ -122,6 +202,7 @@ module.exports = (reporter, admin) => {
   return {
     async authenticate (username, password) {
       let user
+
       if (admin.name === username) {
         user = admin
       } else {
@@ -135,7 +216,7 @@ module.exports = (reporter, admin) => {
         }
       }
 
-      const validLogin = user.isAdmin ? user.password === password : passwordHash.verify(password, user.password)
+      const validLogin = user.isSuperAdmin ? user.password === password : passwordHash.verify(password, user.password)
       const lockWindowInterval = 5 * 60 * 1000 // 5 minutes is considered the valid range for failed attempts reset
       const failedLoginAttemptsStart = user.failedLoginAttemptsStart || new Date()
       const currentDate = new Date()
@@ -167,7 +248,7 @@ module.exports = (reporter, admin) => {
       }
 
       if (shouldUpdate) {
-        if (user.isAdmin) {
+        if (user.isSuperAdmin) {
           user.failedLoginAttemptsCount = newFailedAttemptsCount
           user.failedLoginAttemptsStart = newFailedLoginAttemptsStart
         } else {
@@ -194,6 +275,7 @@ module.exports = (reporter, admin) => {
 
     async find (username) {
       const users = await reporter.documentStore.collection('users').find({ name: username })
+
       if (users.length !== 1) {
         return null
       }
@@ -202,17 +284,41 @@ module.exports = (reporter, admin) => {
     },
 
     async changePassword (currentUser, shortid, oldPassword, newPassword) {
-      const users = await reporter.documentStore.collection('users').find({ shortid: shortid })
-      const user = users[0]
+      const userCol = reporter.documentStore.collection('users')
+      const targetUsers = await userCol.find({ shortid: shortid })
+      const targetUser = targetUsers[0]
       let password = newPassword
 
-      if (currentUser.isGroup) {
-        throw reporter.createError('Change password is an invalid action for a user identified as group', {
+      if (targetUser == null) {
+        throw reporter.createError('Invalid user', {
           statusCode: 400
         })
       }
 
-      if (!currentUser.isAdmin && !passwordHash.verify(oldPassword, user.password)) {
+      const isTargetUserAdmin = await reporter.authentication.isUserAdmin(targetUser)
+      const isCurrentUserAdmin = await reporter.authentication.isUserAdmin(currentUser)
+
+      // admin users can not change password of other admin users, the only exception is that
+      // it can change its own password
+      if (
+        isTargetUserAdmin &&
+        isCurrentUserAdmin &&
+        (currentUser.isGroup || currentUser.name !== targetUser.name)
+      ) {
+        throw reporter.createError('Invalid change password action. admin user can not change password of other admin user', {
+          statusCode: 400
+        })
+      }
+
+      let shouldCheckPassword = true
+
+      if (currentUser.isSuperAdmin) {
+        shouldCheckPassword = false
+      } else if (isCurrentUserAdmin) {
+        shouldCheckPassword = currentUser.isGroup ? false : currentUser.name === targetUser.name
+      }
+
+      if (shouldCheckPassword && !passwordHash.verify(oldPassword, targetUser.password)) {
         throw reporter.createError('Invalid password', {
           statusCode: 400
         })
@@ -232,7 +338,7 @@ module.exports = (reporter, admin) => {
 
       password = passwordHash.generate(password)
 
-      return reporter.documentStore.collection('users').update({ shortid: shortid }, { $set: { password: password } })
+      return userCol.update({ shortid: shortid }, { $set: { password: password } })
     },
 
     get maxFailedLoginAttempts () {

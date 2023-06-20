@@ -54,7 +54,7 @@ const release = () => {
 }
 
 Studio.initializeListeners.push(() => {
-  if (Studio.authentication && !Studio.authentication.user.isAdmin) {
+  if (Studio.authentication && !Studio.authentication.isUserAdmin(Studio.authentication.user)) {
     return
   }
 

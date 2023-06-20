@@ -22,12 +22,13 @@ module.exports = (reporter) => ({
 })
 
 async function check (reporter, collection, req, authAction) {
-  const fn = () => {
+  const fn = async () => {
     if (!req) {
       return true
     }
 
-    const defaultAuthResult = defaultAuth(collection, req)
+    const defaultAuthResult = await defaultAuth(reporter, collection, req)
+
     if (defaultAuthResult === true) {
       return true
     }
@@ -49,7 +50,7 @@ async function check (reporter, collection, req, authAction) {
   }
 }
 
-function defaultAuth (collection, req) {
+async function defaultAuth (reporter, collection, req) {
   if (collection.name === 'settings' || collection.name === 'profiles' || collection.name === 'monitoring') {
     return true
   }
@@ -66,7 +67,9 @@ function defaultAuth (collection, req) {
     return true
   }
 
-  if (req.context.user.isAdmin) {
+  const isAdmin = await reporter.authentication.isUserAdmin(req.context.user, req)
+
+  if (isAdmin) {
     return true
   }
 

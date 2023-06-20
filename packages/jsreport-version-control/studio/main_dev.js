@@ -7,7 +7,7 @@ import style from './VersionControl.css'
 const Popup = Studio.Popup
 
 Studio.initializeListeners.push(async () => {
-  if (Studio.authentication && !Studio.authentication.user.isAdmin) {
+  if (Studio.authentication && !Studio.authentication.isUserAdmin(Studio.authentication.user)) {
     return
   }
 

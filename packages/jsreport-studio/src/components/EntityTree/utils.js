@@ -1,7 +1,7 @@
 import React from 'react'
 import groupEntitiesByHierarchyHelper from '../../helpers/groupEntitiesByHierarchy'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
-import { entityTreeOrder, entityTreeItemComponents, entityTreeIconResolvers } from '../../lib/configuration'
+import { entityTreeOrder, entityTreeItemComponents } from '../../lib/configuration'
 
 export function pointIsInsideContainer (containerDimensions, point) {
   const insideX = point.x >= containerDimensions.left && point.x <= (containerDimensions.left + containerDimensions.width)
@@ -181,17 +181,4 @@ export function renderEntityTreeItemComponents (position, propsToItem, originalC
       ...propsToItem
     }))
   )
-}
-
-export function resolveEntityTreeIconStyle (entity, info) {
-  // eslint-disable-next-line
-  for (const k in entityTreeIconResolvers) {
-    const mode = entityTreeIconResolvers[k](entity, info)
-
-    if (mode) {
-      return mode
-    }
-  }
-
-  return null
 }

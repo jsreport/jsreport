@@ -160,7 +160,7 @@ var ChangePasswordModal = function (_Component) {
                 };
 
 
-                if (!_jsreportStudio2.default.authentication.user.isAdmin) {
+                if (this.needsOldPassword(entity)) {
                   data.oldPassword = this.oldPasswordRef.current.value;
                 }
 
@@ -203,14 +203,28 @@ var ChangePasswordModal = function (_Component) {
       });
     }
   }, {
+    key: 'needsOldPassword',
+    value: function needsOldPassword(entity) {
+      var needsOldPassword = true;
+
+      if (_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user)) {
+        needsOldPassword = _jsreportStudio2.default.authentication.user.isGroup ? false : entity.name === _jsreportStudio2.default.authentication.user.name;
+      }
+
+      return needsOldPassword;
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this2 = this;
 
+      var entity = this.props.options.entity;
+
+
       return _react2.default.createElement(
         'div',
         null,
-        _jsreportStudio2.default.authentication.user.isAdmin ? '' : _react2.default.createElement(
+        this.needsOldPassword(entity) ? _react2.default.createElement(
           'div',
           { className: 'form-group' },
           _react2.default.createElement(
@@ -219,7 +233,7 @@ var ChangePasswordModal = function (_Component) {
             'old password'
           ),
           _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.oldPasswordRef })
-        ),
+        ) : '',
         _react2.default.createElement(
           'div',
           { className: 'form-group' },
@@ -283,27 +297,33 @@ exports.default = ChangePasswordModal;
 "use strict";
 
 
-var _UserEditor = __webpack_require__(4);
-
-var _UserEditor2 = _interopRequireDefault(_UserEditor);
-
-var _LogoutSettingsButton = __webpack_require__(5);
-
-var _LogoutSettingsButton2 = _interopRequireDefault(_LogoutSettingsButton);
-
-var _ChangePasswordSettingsButton = __webpack_require__(6);
-
-var _ChangePasswordSettingsButton2 = _interopRequireDefault(_ChangePasswordSettingsButton);
-
-var _ChangePasswordButton = __webpack_require__(7);
-
-var _ChangePasswordButton2 = _interopRequireDefault(_ChangePasswordButton);
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _jsreportStudio = __webpack_require__(0);
 
 var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 
-var _NewUserModal = __webpack_require__(8);
+var _UserGroupsInfo = __webpack_require__(4);
+
+var _UserGroupsInfo2 = _interopRequireDefault(_UserGroupsInfo);
+
+var _UserEditor = __webpack_require__(5);
+
+var _UserEditor2 = _interopRequireDefault(_UserEditor);
+
+var _LogoutSettingsButton = __webpack_require__(6);
+
+var _LogoutSettingsButton2 = _interopRequireDefault(_LogoutSettingsButton);
+
+var _ChangePasswordSettingsButton = __webpack_require__(7);
+
+var _ChangePasswordSettingsButton2 = _interopRequireDefault(_ChangePasswordSettingsButton);
+
+var _ChangePasswordButton = __webpack_require__(8);
+
+var _ChangePasswordButton2 = _interopRequireDefault(_ChangePasswordButton);
+
+var _NewUserModal = __webpack_require__(9);
 
 var _NewUserModal2 = _interopRequireDefault(_NewUserModal);
 
@@ -315,7 +335,7 @@ _jsreportStudio2.default.sharedComponents.NewUserModal = _NewUserModal2.default;
 
 // we want to be at the front, because other extension like scheduling relies on loaded user
 _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-  var response;
+  var response, isTenantAdmin, userIcon;
   return regeneratorRuntime.wrap(function _callee$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
@@ -334,14 +354,167 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
           return _context.abrupt('return');
 
         case 5:
+          isTenantAdmin = response.isTenantAdmin === true;
 
-          _jsreportStudio2.default.authentication = { user: response.tenant, useEditorComponents: [] };
 
-          if (_jsreportStudio2.default.authentication.user.isAdmin) {
+          _jsreportStudio2.default.authentication = {
+            user: response.tenant,
+            useEditorComponents: [],
+            isUserAdmin: function isUserAdmin(userInfo) {
+              if (userInfo == null) {
+                return false;
+              }
+
+              if (userInfo.isSuperAdmin) {
+                return true;
+              }
+
+              var _Studio$getReferences = _jsreportStudio2.default.getReferences(),
+                  users = _Studio$getReferences.users,
+                  groups = _Studio$getReferences.usersGroups;
+
+              var validateUserInfoProps = function validateUserInfoProps(data, props) {
+                var currentProp = void 0;
+
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                  for (var _iterator = props[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var _targetProp = _step.value;
+
+                    if (data[_targetProp] == null || data[_targetProp] === '') {
+                      continue;
+                    }
+
+                    currentProp = _targetProp;
+                    break;
+                  }
+                } catch (err) {
+                  _didIteratorError = true;
+                  _iteratorError = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                      _iterator.return();
+                    }
+                  } finally {
+                    if (_didIteratorError) {
+                      throw _iteratorError;
+                    }
+                  }
+                }
+
+                if (currentProp == null) {
+                  var propsLabel = props.map(function (p) {
+                    return '.' + p;
+                  }).join(', ');
+                  throw new Error('Studio.authentication.isUserAdmin needs to have one of these ' + propsLabel + ' properties on the user info param');
+                }
+
+                return currentProp;
+              };
+
+              if (users == null || groups == null) {
+                var _targetProp2 = userInfo.isGroup ? '_id' : 'name';
+
+                validateUserInfoProps(userInfo, [_targetProp2]);
+
+                // when we are checking the current user we return the result of isTenantAdmin
+                // which comes from server, this is useful when we call this check when the entitySets
+                // are not yet registered
+                if (userInfo[_targetProp2] === _jsreportStudio2.default.authentication.user[_targetProp2]) {
+                  return isTenantAdmin;
+                } else {
+                  throw new Error('Could not find users or usersGroups entity sets');
+                }
+              }
+
+              var targetProp = validateUserInfoProps(userInfo, userInfo.isGroup ? ['_id'] : ['_id', 'shortid', 'name']);
+
+              if (userInfo.isGroup) {
+                var groupInStore = groups.find(function (u) {
+                  return u[targetProp] === userInfo[targetProp];
+                });
+
+                if (groupInStore == null) {
+                  return false;
+                }
+
+                return groupInStore.isAdmin === true;
+              } else {
+                var userInStore = users.find(function (u) {
+                  return u[targetProp] === userInfo[targetProp];
+                });
+
+                if (userInStore == null) {
+                  return false;
+                }
+
+                if (userInStore.isAdmin) {
+                  return true;
+                }
+
+                var adminGroupsForUser = groups.filter(function (g) {
+                  var users = g.users || [];
+                  return g.isAdmin === true && users.find(function (u) {
+                    return u.shortid === userInStore.shortid;
+                  }) != null;
+                });
+
+                return adminGroupsForUser.length > 0;
+              }
+            }
+          };
+
+          if (_jsreportStudio2.default.authentication.user.isSuperAdmin) {
+            _jsreportStudio2.default.authentication.useEditorComponents.push(function (user) {
+              return React.createElement(
+                'div',
+                null,
+                React.createElement(
+                  'h2',
+                  null,
+                  'Admin Management'
+                ),
+                React.createElement(
+                  'div',
+                  null,
+                  React.createElement(
+                    'div',
+                    { className: 'form-group' },
+                    React.createElement(
+                      'label',
+                      null,
+                      'Give admin privileges'
+                    ),
+                    React.createElement('input', {
+                      type: 'checkbox',
+                      checked: user.isAdmin === true,
+                      onChange: function onChange(v) {
+                        return _jsreportStudio2.default.updateEntity(_extends({}, user, { isAdmin: v.target.checked }));
+                      }
+                    })
+                  )
+                )
+              );
+            });
+          }
+
+          _jsreportStudio2.default.authentication.useEditorComponents.push(function (user) {
+            return React.createElement(_UserGroupsInfo2.default, { user: user });
+          });
+
+          userIcon = 'fa-user';
+
+
+          if (_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user)) {
             _jsreportStudio2.default.addEntitySet({
               name: 'users',
-              faIcon: 'fa-user',
+              faIcon: userIcon,
               visibleName: 'user',
+              referenceAttributes: ['isAdmin'],
               onNew: function onNew(options) {
                 return _jsreportStudio2.default.openModal(_NewUserModal2.default, options);
               },
@@ -352,16 +525,30 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
             _jsreportStudio2.default.addToolbarComponent(_ChangePasswordButton2.default);
           }
 
+          _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
+            if (entity.__entitySet === 'users') {
+              return _jsreportStudio2.default.authentication.isUserAdmin(entity) === true ? 'fa-user-circle-o' : userIcon;
+            }
+          });
+
           _jsreportStudio2.default.addToolbarComponent(_ChangePasswordSettingsButton2.default, 'settings');
 
           _jsreportStudio2.default.addToolbarComponent(function () {
+            var faUserIcon = void 0;
+
+            if (_jsreportStudio2.default.authentication.user.isGroup) {
+              faUserIcon = 'fa-users';
+            } else {
+              faUserIcon = _jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user) ? 'fa-user-circle-o' : userIcon;
+            }
+
             return React.createElement(
               'div',
               { className: 'toolbar-button' },
               React.createElement(
                 'span',
                 null,
-                React.createElement('i', { className: 'fa fa-' + (_jsreportStudio2.default.authentication.user.isGroup ? 'users' : 'user') }),
+                React.createElement('i', { className: 'fa ' + faUserIcon }),
                 _jsreportStudio2.default.authentication.user.name
               )
             );
@@ -369,7 +556,7 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
 
           _jsreportStudio2.default.addToolbarComponent(_LogoutSettingsButton2.default, 'settingsBottom');
 
-        case 10:
+        case 15:
         case 'end':
           return _context.stop();
       }
@@ -379,6 +566,109 @@ _jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PUR
 
 /***/ }),
 /* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _react = __webpack_require__(1);
+
+var _jsreportStudio = __webpack_require__(0);
+
+var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function UserGroupsInfo(props) {
+  var user = props.user;
+
+  var _Studio$getReferences = _jsreportStudio2.default.getReferences(),
+      groups = _Studio$getReferences.usersGroups;
+
+  var groupsForUser = (0, _react.useMemo)(function () {
+    return groups.filter(function (g) {
+      var users = g.users || [];
+      return users.find(function (u) {
+        return u.shortid === user.shortid;
+      }) != null;
+    });
+  }, [groups]);
+
+  return React.createElement(
+    'div',
+    null,
+    React.createElement(
+      'h2',
+      null,
+      'Groups'
+    ),
+    React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(GroupsDisplay, { groups: groupsForUser })
+      )
+    )
+  );
+}
+
+function GroupsDisplay(_ref) {
+  var groups = _ref.groups;
+
+  var handleOpenGroupTab = (0, _react.useCallback)(function handleOpenGroupTab(groupId) {
+    _jsreportStudio2.default.openTab({ _id: groupId });
+  }, []);
+
+  if (groups.length === 0) {
+    return React.createElement(
+      'span',
+      null,
+      React.createElement(
+        'i',
+        null,
+        'No groups assigned'
+      )
+    );
+  }
+
+  var groupsIcon = 'fa-users';
+  var lastGroupIdx = groups.length - 1;
+
+  return React.createElement(
+    'span',
+    null,
+    React.createElement('i', { className: 'fa ' + groupsIcon }),
+    '\xA0',
+    groups.map(function (g, idx) {
+      return React.createElement(
+        'span',
+        { key: g.name },
+        React.createElement(
+          'span',
+          {
+            onClick: function onClick() {
+              return handleOpenGroupTab(g._id);
+            },
+            style: { textDecoration: 'underline', cursor: 'pointer' }
+          },
+          g.name
+        ),
+        idx !== lastGroupIdx ? ', ' : ''
+      );
+    })
+  );
+}
+
+exports.default = UserGroupsInfo;
+
+/***/ }),
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -433,6 +723,8 @@ var UserEditor = function (_Component) {
           entity = _props.entity,
           onUpdate = _props.onUpdate;
 
+      var userIcon = _jsreportStudio2.default.resolveEntityTreeIconStyle(entity);
+      var isAdmin = _jsreportStudio2.default.authentication.isUserAdmin(entity);
 
       return _react2.default.createElement(
         'div',
@@ -440,9 +732,18 @@ var UserEditor = function (_Component) {
         _react2.default.createElement(
           'h1',
           null,
-          _react2.default.createElement('i', { className: 'fa fa-user' }),
+          _react2.default.createElement('i', { className: 'fa ' + userIcon }),
           ' ',
           entity.name
+        ),
+        isAdmin && _react2.default.createElement(
+          'div',
+          null,
+          _react2.default.createElement(
+            'b',
+            null,
+            'Admin user'
+          )
         ),
         _react2.default.createElement(
           'div',
@@ -465,7 +766,7 @@ var UserEditor = function (_Component) {
 exports.default = UserEditor;
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -540,7 +841,7 @@ var LogoutSettingsButton = function (_Component) {
 exports.default = LogoutSettingsButton;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -561,7 +862,7 @@ var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var ChangePasswordSettingsButton = function ChangePasswordSettingsButton(props) {
-  if (_jsreportStudio2.default.authentication.user.isAdmin || _jsreportStudio2.default.authentication.user.isGroup) {
+  if (_jsreportStudio2.default.authentication.user.isSuperAdmin || _jsreportStudio2.default.authentication.user.isGroup) {
     return React.createElement('span', null);
   }
 
@@ -587,7 +888,7 @@ var ChangePasswordSettingsButton = function ChangePasswordSettingsButton(props) 
 exports.default = ChangePasswordSettingsButton;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -633,7 +934,10 @@ var ChangePasswordButton = function (_Component) {
     value: function render() {
       var _this2 = this;
 
-      if (!this.props.tab || !this.props.tab.entity || this.props.tab.entity.__entitySet !== 'users') {
+      if (!this.props.tab || !this.props.tab.entity || this.props.tab.entity.__entitySet !== 'users' ||
+      // display change password always for super admin,
+      // and only if the current admin user opens its own user or a normal non-admin user
+      _jsreportStudio2.default.authentication.isUserAdmin(this.props.tab.entity) && (_jsreportStudio2.default.authentication.user.isGroup || this.props.tab.entity.name !== _jsreportStudio2.default.authentication.user.name) && !_jsreportStudio2.default.authentication.user.isSuperAdmin) {
         return _react2.default.createElement('span', null);
       }
 
@@ -661,7 +965,7 @@ var ChangePasswordButton = function (_Component) {
 exports.default = ChangePasswordButton;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

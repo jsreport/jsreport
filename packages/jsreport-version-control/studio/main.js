@@ -317,7 +317,7 @@ _jsreportStudio2.default.initializeListeners.push(_asyncToGenerator( /*#__PURE__
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
-          if (!(_jsreportStudio2.default.authentication && !_jsreportStudio2.default.authentication.user.isAdmin)) {
+          if (!(_jsreportStudio2.default.authentication && !_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user))) {
             _context.next = 2;
             break;
           }
