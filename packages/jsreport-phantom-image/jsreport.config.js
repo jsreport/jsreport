@@ -3,6 +3,7 @@ const schema = {
   type: 'object',
   properties: {
     strategy: { type: 'string' },
+    proxyHttpsCallsToResources: { type: 'boolean' },
     allowLocalFilesAccess: { type: 'boolean' }
   }
 }
