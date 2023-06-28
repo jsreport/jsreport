@@ -122,3 +122,28 @@ describe('phantom pdf with defaultPhantomjsVersion', function () {
     })
   })
 })
+
+describe('phantom pdf with proxyHttpsCallsToResources', function () {
+  let reporter
+
+  beforeEach(function () {
+    reporter = jsreport({
+      rootDirectory: path.join(__dirname, '../../../')
+    }).use(require('../')({
+      proxyHttpsCallsToResources: true
+    }))
+    return reporter.init()
+  })
+
+  afterEach(() => reporter && reporter.close())
+
+  it('should not fail when rendering', function () {
+    const request = {
+      template: { content: '<img src="https://jsreport.net/img/home.jpg"></img>', recipe: 'phantom-pdf', engine: 'none' }
+    }
+
+    return reporter.render(request).then(function (response) {
+      response.content.toString().should.containEql('%PDF')
+    })
+  })
+})

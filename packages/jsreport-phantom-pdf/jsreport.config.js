@@ -3,6 +3,7 @@ const schema = {
   type: 'object',
   properties: {
     strategy: { type: 'string', enum: ['dedicated-process', 'phantom-server'] },
+    proxyHttpsCallsToResources: { type: 'boolean' },
     numberOfWorkers: { type: 'number' },
     allowLocalFilesAccess: { type: 'boolean' },
     defaultPhantomjsVersion: { type: 'string' },

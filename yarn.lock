@@ -1569,6 +1569,22 @@
   resolved "https://registry.npmjs.org/@js-joda/core/-/core-3.2.0.tgz"
   integrity sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==
 
+"@jsreport/jsreport-docker-workers@3.7.0":
+  version "3.7.0"
+  resolved "https://registry.yarnpkg.com/@jsreport/jsreport-docker-workers/-/jsreport-docker-workers-3.7.0.tgz#fbd9300fe70011eef1d28be12d1edb228cc7f955"
+  integrity sha512-boQ6DVrHk4Ch9H0FI6ZqiYy4wpHeHof1vQJpjoKqtRbYCNogVs2TBcNvwveHK20QUIbT50+GCcAo803YjYEOJw==
+  dependencies:
+    axios "0.21.1"
+    express "4.18.2"
+    fs-extra "9.1.0"
+    ip "1.1.5"
+    listener-collection "2.0.0"
+    lodash.get "4.4.2"
+    lodash.omit "4.5.0"
+    node.extend "2.0.2"
+    serializator "1.0.2"
+    uuid "8.3.2"
+
 "@jsreport/jsreport-mongodb-store@3.1.1":
   version "3.1.1"
   resolved "https://registry.npmjs.org/@jsreport/jsreport-mongodb-store/-/jsreport-mongodb-store-3.1.1.tgz"
@@ -14629,6 +14645,18 @@ phantom-html-to-pdf@0.7.0:
   version "0.7.0"
   resolved "https://registry.npmjs.org/phantom-html-to-pdf/-/phantom-html-to-pdf-0.7.0.tgz"
   integrity sha512-Dz9ULe55yYRN0awXJcprHGJrfHOwCb13kG/kjPGHeK59DSs894Z1FOwmjPSUNFiXDvYKAkGlEeaIT9wDzZ164g==
+  dependencies:
+    lodash "4.17.11"
+    object-assign "4.1.1"
+    phantom-workers "0.6.0"
+    uuid "3.3.2"
+  optionalDependencies:
+    phantomjs "1.9.20"
+
+phantom-html-to-pdf@0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/phantom-html-to-pdf/-/phantom-html-to-pdf-0.8.1.tgz#30346c65b2cfebcfe1e1e3db1c1c23163dd002a0"
+  integrity sha512-0kDvoE6tFksjHPkojyFy2hyk1EBVqQ+PPghDZbxYLgxd8SJM353QeAOqaq/P22QW1pi/zraYD0uq/OtziL7yow==
   dependencies:
     lodash "4.17.11"
     object-assign "4.1.1"
