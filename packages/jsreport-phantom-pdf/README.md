@@ -31,3 +31,8 @@ var jsreport = require('jsreport-core')()
 jsreport.use(require('jsreport-phantom-pdf')({ strategy: 'phantom-server' }))
 ```
 
+## Changelog
+
+### 3.3.0
+
+update phantom-html-to-pdf with phantomjs ssl issues workaround
