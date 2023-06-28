@@ -27,8 +27,11 @@ function handleError (reporter) {
     }
 
     if (err.code === 'UNAUTHORIZED') {
-      res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
-      res.status(statusCode != null ? statusCode : 401).end()
+      if (req.get('X-WWW-Authenticate') !== 'none') {
+        res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
+      }
+
+      res.status(statusCode != null ? statusCode : 401).end(err.authorizationMessage)
       return
     }
 

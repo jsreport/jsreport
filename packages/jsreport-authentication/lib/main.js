@@ -338,13 +338,13 @@ function addPassport (reporter, app, admin, definition) {
             return next()
           }
 
-          res.setHeader('WWW-Authenticate', authSchema + ' realm=\'realm\'')
+          const authorizationError = reporter.createError(authInfo?.message != null ? authInfo.message : 'Unauthorized', {
+            statusCode: authInfo?.status != null ? authInfo.status : 401,
+            code: 'UNAUTHORIZED',
+            authorizationMessage: authInfo?.message
+          })
 
-          if (authInfo) {
-            return res.status(authInfo.status ? authInfo.status : 401).end(authInfo.message)
-          }
-
-          return res.status(401).end()
+          return next(authorizationError)
         }
 
         return next()
@@ -470,8 +470,9 @@ function configureRoutes (reporter, app, admin, definition) {
       return next()
     }
     if (!reporter.studio) {
-      res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
-      return res.status(401).end()
+      return next(reporter.createError('Unauthorized', {
+        code: 'UNAUTHORIZED'
+      }))
     }
 
     const viewModel = Object.assign({}, req.session.viewModel || {})
@@ -497,8 +498,7 @@ function configureRoutes (reporter, app, admin, definition) {
       }
 
       if (!reporter.studio || (req.url.indexOf('/api') > -1 || req.url.indexOf('/odata') > -1)) {
-        res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
-        return res.status(401).end()
+        return next(reporter.authorization.createAuthorizationError('Unauthorized'))
       }
 
       return res.redirect('/login')

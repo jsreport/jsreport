@@ -40,10 +40,11 @@ function routes (reporter) {
     })
 
     app.get('/public-templates', (req, res, next) => {
-      reporter.documentStore.collection('templates').findOne({ readSharingToken: req.query.access_token }).then((template) => {
+      const templatesCol = reporter.documentStore.collection('templates')
+
+      templatesCol.findOne({ readSharingToken: req.query.access_token }).then((template) => {
         if (!template) {
-          res.setHeader('WWW-Authenticate', (req.authSchema || 'Basic') + ' realm=\'realm\'')
-          return res.status(401).end()
+          return res.status(401).end('Invalid access token or template is no longer shared')
         }
 
         reporter.express.render({
