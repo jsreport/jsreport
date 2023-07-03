@@ -11013,6 +11013,11 @@ describe('docx html embed', () => {
     })
   }
 
+  // NOTE: when dealing with white space related issues, always remember
+  // that we want to match what the browser produces as the rendered/visual output.
+  // we don't care if internally in the browser the DOM node keeps preserving the white space
+  // when accessing .textContent, we only care about the visual output.
+  // ALWAYS REMEMBER THIS WHEN FIXING OR DEALING WITH PROBLEMS RELATED TO WHITE SPACE
   describe('white space handling in html input', () => {
     for (const mode of ['block', 'inline']) {
       const templateSpaceStr = '<p>      ...      ...     </p>'
@@ -11096,9 +11101,47 @@ describe('docx html embed', () => {
           const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
           should(textNodes.length).eql(2)
           commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
-          should(textNodes[0].textContent).eql('Hello')
+          should(textNodes[0].textContent).eql('Hello ')
           should(textNodes[1].textContent).eql('World')
         }
+      })
+
+      const templateSpaceMultipleInlineStr = '<span>  ...  </span>\n\n   <span>  ...  </span>\n'
+
+      it(`${mode} mode - ignore space in multiple inline ${templateSpaceMultipleInlineStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateSpaceMultipleInlineStr, ['Hello', 'World'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(2)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('Hello ')
+        should(textNodes[1].textContent).eql('World')
       })
 
       const templateLineBreakStr = '\n<p>\n...</p>\n'
@@ -11477,6 +11520,132 @@ describe('docx html embed', () => {
         should(textNodes[0].textContent).eql('jsreport')
         should(textNodes[1].textContent).eql(' is a ')
         should(textNodes[2].textContent).eql('javascript reporting server')
+      })
+
+      const templateLeadingSpaceInInlineStr = '<p> ...<span> ...</span><span> ...</span><span> ...</span> ...</p>'
+
+      it(`${mode} mode - preserve leading space in inline elements that have siblings ${templateLeadingSpaceInInlineStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateLeadingSpaceInInlineStr, ['Sintomi', 'vari', 'spesso', 'altalenanti prova prova prova', 'ora meglio?'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(5)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('Sintomi')
+        should(textNodes[1].textContent).eql(' vari')
+        should(textNodes[2].textContent).eql(' spesso')
+        should(textNodes[3].textContent).eql(' altalenanti prova prova prova')
+        should(textNodes[4].textContent).eql(' ora meglio?')
+      })
+
+      const templateTrailingSpaceInInlineStr = '<p>... <span>... </span><span>... </span><span>... </span>...</p>'
+
+      it(`${mode} mode - preserve trailing space in inline elements that have siblings ${templateTrailingSpaceInInlineStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateTrailingSpaceInInlineStr, ['Sintomi', 'vari', 'spesso', 'altalenanti prova prova prova', 'ora meglio?'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(5)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+        should(textNodes[0].textContent).eql('Sintomi ')
+        should(textNodes[1].textContent).eql('vari ')
+        should(textNodes[2].textContent).eql('spesso ')
+        should(textNodes[3].textContent).eql('altalenanti prova prova prova ')
+        should(textNodes[4].textContent).eql('ora meglio?')
+      })
+
+      const templateWithSpaceEntityStr = '<p>&nbsp;...&nbsp;<span>&nbsp;...&nbsp;</span><span>&nbsp;...&nbsp;</span><span>&nbsp;...&nbsp;</span>&nbsp;...&nbsp;</p>'
+
+      it(`${mode} mode - preserve &nbsp; space ${templateWithSpaceEntityStr}`, async () => {
+        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxTemplateBuf
+              }
+            }
+          },
+          data: {
+            html: createHtml(templateWithSpaceEntityStr, ['Sintomi', 'vari', 'spesso', 'altalenanti prova prova prova', 'ora meglio?'])
+          }
+        })
+
+        // Write document for easier debugging
+        fs.writeFileSync('out.docx', result.content)
+
+        const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
+        const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
+        const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+
+        const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+        should(paragraphNodes.length).eql(1)
+
+        const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+        should(textNodes.length).eql(5)
+        commonHtmlTextAssertions(textNodes[0], templateTextNodesForDocxHtml[0].parentNode)
+
+        const nbspSpace = String.fromCharCode(160)
+
+        should(textNodes[0].textContent).eql(`${nbspSpace}Sintomi${nbspSpace}`)
+        should(textNodes[1].textContent).eql(`${nbspSpace}vari${nbspSpace}`)
+        should(textNodes[2].textContent).eql(`${nbspSpace}spesso${nbspSpace}`)
+        should(textNodes[3].textContent).eql(`${nbspSpace}altalenanti prova prova prova${nbspSpace}`)
+        should(textNodes[4].textContent).eql(`${nbspSpace}ora meglio?${nbspSpace}`)
       })
     }
   })

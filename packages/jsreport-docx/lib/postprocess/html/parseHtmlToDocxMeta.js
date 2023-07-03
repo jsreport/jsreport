@@ -485,7 +485,26 @@ function normalizeChildNodes ($, mode, data, childNodes) {
     const middleNodes = newChildNodes.length > 2 ? newChildNodes.slice(1, -1) : []
 
     if (firstChildNode?.nodeType === NODE_TYPES.TEXT) {
-      firstChildNode.nodeValue = firstChildNode.nodeValue.replace(/^[ ]+([^ ]*)/, '$1')
+      let normalizeStartingSpace = true
+
+      // if the parent is not block element and the previous sibling of parent is text or element then don't normalize
+      if (
+        firstChildNode?.parentNode?.nodeType === NODE_TYPES.ELEMENT &&
+        !(mode === 'block' ? isBlockElement(firstChildNode?.parentNode) : false)
+      ) {
+        const isTextOrElement = (
+          isTextElement(firstChildNode.parentNode.previousSibling) ||
+          firstChildNode.parentNode.previousSibling?.nodeType === NODE_TYPES.ELEMENT
+        )
+
+        if (isTextOrElement) {
+          normalizeStartingSpace = false
+        }
+      }
+
+      if (normalizeStartingSpace) {
+        firstChildNode.nodeValue = firstChildNode.nodeValue.replace(/^[ ]+([^ ]*)/, '$1')
+      }
 
       // the next sibling here should be already normalized (so it will be either text or element)
       const nextSiblingNode = firstChildNode.nextSibling
@@ -507,7 +526,26 @@ function normalizeChildNodes ($, mode, data, childNodes) {
     }
 
     if (lastChildNode?.nodeType === NODE_TYPES.TEXT) {
-      lastChildNode.nodeValue = lastChildNode.nodeValue.replace(/([^ ]*)[ ]+$/, '$1')
+      let normalizeEndingSpace = true
+
+      // if the parent is not block element and the next sibling of parent is text or element then don't normalize
+      if (
+        lastChildNode?.parentNode?.nodeType === NODE_TYPES.ELEMENT &&
+        !(mode === 'block' ? isBlockElement(lastChildNode?.parentNode) : false)
+      ) {
+        const isTextOrElement = (
+          isTextElement(lastChildNode.parentNode.nextSibling) ||
+          lastChildNode.parentNode.nextSibling?.nodeType === NODE_TYPES.ELEMENT
+        )
+
+        if (isTextOrElement) {
+          normalizeEndingSpace = false
+        }
+      }
+
+      if (normalizeEndingSpace) {
+        lastChildNode.nodeValue = lastChildNode.nodeValue.replace(/([^ ]*)[ ]+$/, '$1')
+      }
 
       // the previous sibling here should be already normalized (so it will be either text or element)
       const previousSiblingNode = lastChildNode.previousSibling
@@ -1139,6 +1177,10 @@ function applySpacingIfNeeded (parentMeta, data) {
 }
 
 function isTextElement (node) {
+  if (node == null) {
+    return false
+  }
+
   return node.nodeType === NODE_TYPES.TEXT
 }
 
