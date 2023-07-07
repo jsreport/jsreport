@@ -12,7 +12,7 @@ const extensionBuildConfig = require('../extensionBuildConfig')
 const argv = argsParser(process.argv.slice(2), {
   // additionally to config args, we expect any option passed to "stats." to be parsed
   string: ['config', 'name'],
-  boolean: ['verbose'],
+  boolean: ['verbose', 'analyze'],
   array: ['removeSourceMapUrl'],
   alias: {
     verbose: ['v']
@@ -63,6 +63,12 @@ if (argv.config) {
   config = extensionBuildConfig(argv.name, {
     removeSourceMapUrl: argv.removeSourceMapUrl
   })
+}
+
+if (argv.analyze) {
+  const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+  config.plugins = config.plugins || []
+  config.plugins.push(new BundleAnalyzerPlugin())
 }
 
 webpack(config, (err, stats) => {

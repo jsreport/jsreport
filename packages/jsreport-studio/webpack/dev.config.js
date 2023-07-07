@@ -1,80 +1,22 @@
-require('babel-polyfill')
-
 // Webpack config for development
 const fs = require('fs')
 const path = require('path')
+const _ = require('lodash')
 const jsreportStudioDev = require('@jsreport/studio-dev')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const projectSrcAbsolutePath = path.join(__dirname, '../src')
 const assetsPath = path.resolve(__dirname, '../static/dist')
-const babelrc = fs.readFileSync(path.join(__dirname, '../.babelrc'))
-let babelrcObject = {}
+const babelrc = require('../.babelrc')
+
+const sepRe = `\\${path.sep}` // path separator regex
+
+const babelrcObject = _.cloneDeep(babelrc)
 
 const webpack = jsreportStudioDev.deps.webpack
 
-try {
-  babelrcObject = JSON.parse(babelrc)
-} catch (err) {
-  console.error('==>     ERROR: Error parsing your .babelrc.')
-  console.error(err)
-}
-
-const babelrcObjectDevelopment = babelrcObject.env != null ? babelrcObject.env.development : {}
-
-// merge global and dev-only plugins
-let combinedPlugins = babelrcObject.plugins || []
-
-combinedPlugins = combinedPlugins.concat(babelrcObjectDevelopment.plugins)
-
-const babelLoaderQuery = Object.assign({}, babelrcObjectDevelopment, babelrcObject, { plugins: combinedPlugins })
-
-delete babelLoaderQuery.env
-
-// Since we use .babelrc for client and server, and we don't want HMR enabled on the server, we have to add
-// the babel plugin react-transform-hmr manually here.
-
-// make sure react-transform is enabled
-babelLoaderQuery.plugins = babelLoaderQuery.plugins || []
-let reactTransform = null
-
-for (let i = 0; i < babelLoaderQuery.plugins.length; ++i) {
-  const plugin = babelLoaderQuery.plugins[i]
-  if (Array.isArray(plugin) && plugin[0] === 'react-transform') {
-    reactTransform = plugin
-  }
-}
-
-if (!reactTransform) {
-  reactTransform = [require.resolve('babel-plugin-react-transform'), { transforms: [] }]
-  babelLoaderQuery.plugins.push(reactTransform)
-}
-
-for (let j = 0; j < babelLoaderQuery.plugins.length; j++) {
-  if (typeof babelLoaderQuery.plugins[j] === 'string') {
-    babelLoaderQuery.plugins[j] = require.resolve('babel-plugin-' + babelLoaderQuery.plugins[j])
-  }
-
-  if (Array.isArray(babelLoaderQuery.plugins[j])) {
-    babelLoaderQuery.plugins[j][0] = require.resolve('babel-plugin-' + babelLoaderQuery.plugins[j][0])
-  }
-}
-
-for (let p = 0; p < babelLoaderQuery.presets.length; p++) {
-  babelLoaderQuery.presets[p] = require.resolve('babel-preset-' + babelLoaderQuery.presets[p])
-}
-
-if (!reactTransform[1] || !reactTransform[1].transforms) {
-  reactTransform[1] = Object.assign({}, reactTransform[1], { transforms: [] })
-}
-
-// make sure react-transform-hmr is enabled
-reactTransform[1].transforms.push({
-  transform: 'react-transform-hmr',
-  imports: ['react'],
-  locals: ['module']
-})
+const babelLoaderQuery = Object.assign({}, babelrcObject)
 
 module.exports = (extensions, extensionsInNormalMode) => {
   const { hasMatchWithExtension, getMatchedExtension } = getBuildHelpers(extensions)
@@ -136,6 +78,13 @@ module.exports = (extensions, extensionsInNormalMode) => {
             // we need to tell babel to exclude the processing of eslint-browser, babel-eslint-browser bundle
             if (modulePath.includes('eslint-browser.js') || modulePath.includes('babel-eslint-browser.js')) {
               return true
+            }
+
+            // we want to process monaco-editor files
+            if (
+              new RegExp(`node_modules${sepRe}monaco-editor${sepRe}`).test(modulePath)
+            ) {
+              return false
             }
 
             const matchedExtension = getMatchedExtension(modulePath, extensions)

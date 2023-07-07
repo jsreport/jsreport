@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import fuzzyFilterFactory from 'react-fuzzy-filter-yarn-fix'
 import { createGetNormalizedEntitiesSelector } from '../../redux/entities/selectors'
 import { actions as editorActions } from '../../redux/editor'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityFuzzyFinderModal.css'
 
@@ -262,7 +262,7 @@ class EntityFuzzyFinderModal extends Component {
       content = itemsToRender.map((current, idx) => {
         const item = this.getItem(current)
         const isActive = selectedIndex === idx
-        const iconStyle = resolveEntityTreeIconStyle(item.entity) || (entitySets[item.entity.__entitySet].faIcon || styles.resultsItemDefaultIcon)
+        const iconStyle = resolveEntityTreeIconStyle(item.entity) || (configuration.entitySets[item.entity.__entitySet].faIcon || styles.resultsItemDefaultIcon)
         // eslint-disable-next-line
         const keyMatch = (current.hasOwnProperty('_id') ? [] : current.matches).find((m) => m.key === 'path')
 

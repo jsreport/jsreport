@@ -6,7 +6,7 @@ import openProfileFromStreamReader from '../../helpers/openProfileFromStreamRead
 import storeMethods from '../../redux/methods'
 import { actions as settingsActions } from '../../redux/settings'
 import moment from 'moment'
-import * as configuration from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import EntityRefSelect from '../../components/common/EntityRefSelect'
 
 class Profiler extends Component {

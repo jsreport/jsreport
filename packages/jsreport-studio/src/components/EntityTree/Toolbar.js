@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react'
 import EntityTreeButton from './EntityTreeButton'
-import { entityTreeToolbarComponents } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
 const Toolbar = (props) => {
   const { setFilter, onNewEntity } = props
 
-  if (entityTreeToolbarComponents.single.length === 0 && entityTreeToolbarComponents.group.length === 0) {
+  if (configuration.entityTreeToolbarComponents.single.length === 0 && configuration.entityTreeToolbarComponents.group.length === 0) {
     return null
   }
 
-  const singleComponents = entityTreeToolbarComponents.single
-  const groupComponents = entityTreeToolbarComponents.group
+  const singleComponents = configuration.entityTreeToolbarComponents.single
+  const groupComponents = configuration.entityTreeToolbarComponents.group
 
   const commonProps = {
     setFilter,

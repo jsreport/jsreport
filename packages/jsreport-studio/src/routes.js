@@ -1,6 +1,6 @@
 import React from 'react'
 import { Route, Switch } from 'react-router-dom'
-import { rootPath } from './lib/configuration.js'
+import { rootPath } from './lib/configuration'
 import App from './containers/App/App.js'
 
 function getPathDef (path) {

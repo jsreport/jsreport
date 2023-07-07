@@ -1,11 +1,11 @@
-import { modalHandler } from '../lib/configuration'
+import { values as configuration } from '../lib/configuration'
 
 function openModal (componentOrText, options) {
-  modalHandler.open(componentOrText, options || {})
+  configuration.modalHandler.open(componentOrText, options || {})
 }
 
 function isModalOpen () {
-  return modalHandler.isModalOpen()
+  return configuration.modalHandler.isModalOpen()
 }
 
 export { openModal, isModalOpen }

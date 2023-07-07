@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Pane from './Pane'
 import Resizer from './Resizer'
-import { _splitResizeHandlers } from '../../../lib/configuration'
+import { values as configuration } from '../../../lib/configuration'
 
 class SplitPane extends Component {
   constructor (props) {
@@ -48,7 +48,7 @@ class SplitPane extends Component {
     }
 
     // eslint-disable-next-line
-    for (const handler of _splitResizeHandlers) {
+    for (const handler of configuration._splitResizeHandlers) {
       if (this.splitPaneRef.current.contains(handler.el) && handler.fnMap[eventName] != null) {
         listeners.push(handler.fnMap[eventName])
       }

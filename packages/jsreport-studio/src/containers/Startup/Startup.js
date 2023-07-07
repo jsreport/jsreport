@@ -4,7 +4,7 @@ import { actions } from '../../redux/editor'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
 import openProfileFromServer from '../../helpers/openProfileFromServer'
-import { startupComponents } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import moment from 'moment'
 
 class Startup extends Component {
@@ -309,7 +309,7 @@ class Startup extends Component {
 
     return (
       <div className='block custom-editor' style={{ overflow: 'auto', minHeight: 0, height: 'auto' }}>
-        {startupComponents.map((c, i) => <div key={'startuprow' + i} style={{ display: 'flex', flexDirection: 'row' }}>{React.createElement(c, { key: `StartupComponent${i}` })}       </div>)}
+        {configuration.startupComponents.map((c, i) => <div key={'startuprow' + i} style={{ display: 'flex', flexDirection: 'row' }}>{React.createElement(c, { key: `StartupComponent${i}` })}       </div>)}
 
         <div style={{ display: 'flex', flexDirection: 'row' }}>
           {this.renderBadges()}

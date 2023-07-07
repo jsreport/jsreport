@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { getCurrentTheme, getDefaultTheme, setCurrentTheme, setCurrentThemeToDefault } from '../../helpers/theme'
-import { extensions, triggerThemeChange } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import style from './ThemeModal.css'
 
 class ThemeModal extends Component {
@@ -17,14 +17,14 @@ class ThemeModal extends Component {
   changeTheme (newTheme) {
     const { theme, editorTheme } = getCurrentTheme()
 
-    const newEditorTheme = extensions.studio.options.availableThemes[newTheme].editorTheme
+    const newEditorTheme = configuration.extensions.studio.options.availableThemes[newTheme].editorTheme
 
     setCurrentTheme({
       theme: newTheme,
       editorTheme: newEditorTheme
     }, {
       onComplete: () => {
-        triggerThemeChange({
+        configuration.triggerThemeChange({
           oldTheme: theme,
           oldEditorTheme: editorTheme,
           newTheme: newTheme,
@@ -46,7 +46,7 @@ class ThemeModal extends Component {
       editorTheme: newEditorTheme
     }, {
       onComplete: () => {
-        triggerThemeChange({
+        configuration.triggerThemeChange({
           oldTheme: theme,
           oldEditorTheme: editorTheme,
           newTheme: newTheme,
@@ -66,7 +66,7 @@ class ThemeModal extends Component {
 
     setCurrentThemeToDefault({
       onComplete: () => {
-        triggerThemeChange({
+        configuration.triggerThemeChange({
           oldTheme: oldTheme,
           oldEditorTheme: oldEditorTheme,
           newTheme: newTheme,

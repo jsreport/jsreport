@@ -9,7 +9,7 @@ import {
   checkIsGroupNode,
   checkIsGroupEntityNode
 } from './utils'
-import { entitySets } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref) {
   const containerRef = useRef(null)
@@ -129,7 +129,7 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
   const renderDefaultTree = () => (
     <div ref={containerRef}>
       {renderTree(
-        groupEntitiesByHierarchy(entitySets, entities)
+        groupEntitiesByHierarchy(configuration.entitySets, entities)
       )}
     </div>
   )
@@ -147,7 +147,7 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
       getSetsToRender: getSetsToRender,
       groupEntitiesByType: groupEntitiesByType,
       groupEntitiesByHierarchy: groupEntitiesByHierarchy,
-      entitySets,
+      entitySets: configuration.entitySets,
       entities
     })
   }

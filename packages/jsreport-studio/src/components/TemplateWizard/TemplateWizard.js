@@ -4,7 +4,7 @@ import Wizard from '../Wizard/Wizard'
 import BasicAttributesStep from './BasicAttributesStep'
 import SampleDataStep from './SampleDataStep'
 import OfficeTemplateStep, { officeRecipes } from './OfficeTemplateStep'
-import { extensions } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 function TemplateWizard (props) {
   const { onChange, onValidate, onError, onSave } = props
@@ -20,7 +20,7 @@ function TemplateWizard (props) {
       title: 'Basic'
     }]
 
-    if (extensions.data != null) {
+    if (configuration.extensions.data != null) {
       initial.push({
         name: 'data',
         icon: 'fa-database',

@@ -2,7 +2,8 @@ import superagent from 'superagent'
 import Promise from 'bluebird'
 import parse from './parseJSON.js'
 import resolveUrl from './resolveUrl'
-import { apiHeaders } from '../lib/configuration.js'
+import { values as configuration } from '../lib/configuration'
+
 export const methods = ['get', 'post', 'put', 'patch', 'del']
 
 const requestHandler = {}
@@ -50,7 +51,7 @@ methods.forEach((m) => {
   requestHandler[m] = (path, { params, headers, data, attach, parseJSON, responseType } = {}) => new Promise((resolve, reject) => {
     const request = superagent[m](resolveUrl(path))
 
-    Object.keys(apiHeaders).forEach((k) => request.set(k, apiHeaders[k]))
+    Object.keys(configuration.apiHeaders).forEach((k) => request.set(k, configuration.apiHeaders[k]))
 
     if (headers) {
       Object.keys(headers).forEach((k) => request.set(k, headers[k]))

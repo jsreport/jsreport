@@ -5,7 +5,7 @@ import thunk from 'redux-thunk'
 import _assign from 'lodash/assign'
 import { stub as api } from '../../../src/helpers/api.js'
 import Invariant from 'redux-immutable-state-invariant'
-import * as configuration from '../../../src/lib/configuration.js'
+import { values as configuration } from '../../../src/lib/configuration'
 
 export const itAsync = (name, fn) => {
   it(name, (done) => {

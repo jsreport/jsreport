@@ -3,8 +3,9 @@ import EntityTreeButton from './EntityTreeButton'
 import NewFolderModal from '../Modals/NewFolderModal'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { openModal } from '../../helpers/openModal'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import style from './EntityTree.css'
+
 class EntityTreeNewButton extends Component {
   constructor (props) {
     super(props)
@@ -70,7 +71,7 @@ class EntityTreeNewButton extends Component {
       return null
     }
 
-    const entitySetsMenuItems = getVisibleEntitySetsInTree(entitySets).map((entitySet) => (
+    const entitySetsMenuItems = getVisibleEntitySetsInTree(configuration.entitySets).map((entitySet) => (
       <div
         key={entitySet.name}
         className={style.contextButton}

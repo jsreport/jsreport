@@ -1,32 +1,32 @@
-import { extensions } from '../lib/configuration.js'
-import resolveUrl from './resolveUrl.js'
+import { values as configuration } from '../lib/configuration'
+import resolveUrl from './resolveUrl'
 
 function getDefaultTheme () {
   return {
-    theme: extensions.studio.options.theme,
-    editorTheme: extensions.studio.options.editorTheme
+    theme: configuration.extensions.studio.options.theme,
+    editorTheme: configuration.extensions.studio.options.editorTheme
   }
 }
 
 function getCurrentTheme () {
-  const defaultTheme = extensions.studio.options.theme
-  const defaultEditorTheme = extensions.studio.options.editorTheme
+  const defaultTheme = configuration.extensions.studio.options.theme
+  const defaultEditorTheme = configuration.extensions.studio.options.editorTheme
 
   let currentTheme = defaultTheme
   let currentEditorTheme = defaultEditorTheme
   const userTheme = window.localStorage.getItem('studioTheme')
   const userEditorTheme = window.localStorage.getItem('studioEditorTheme')
 
-  if (userTheme != null && extensions.studio.options.availableThemes[userTheme] != null) {
+  if (userTheme != null && configuration.extensions.studio.options.availableThemes[userTheme] != null) {
     currentTheme = userTheme
   }
 
-  if (userEditorTheme != null && extensions.studio.options.availableEditorThemes[userEditorTheme] != null) {
+  if (userEditorTheme != null && configuration.extensions.studio.options.availableEditorThemes[userEditorTheme] != null) {
     currentEditorTheme = userEditorTheme
   }
 
   if (currentEditorTheme == null) {
-    currentEditorTheme = extensions.studio.options.availableThemes[currentTheme].editorTheme
+    currentEditorTheme = configuration.extensions.studio.options.availableThemes[currentTheme].editorTheme
   }
 
   return { theme: currentTheme, editorTheme: currentEditorTheme }
@@ -163,8 +163,8 @@ function setCurrentTheme ({ theme, editorTheme }, { onComplete, onError } = {}) 
 
 function setCurrentThemeToDefault (opts = {}) {
   setCurrentTheme({
-    theme: extensions.studio.options.theme,
-    editorTheme: extensions.studio.options.editorTheme
+    theme: configuration.extensions.studio.options.theme,
+    editorTheme: configuration.extensions.studio.options.editorTheme
   }, {
     ...opts,
     onComplete: () => {
@@ -178,8 +178,8 @@ function setCurrentThemeToDefault (opts = {}) {
   })
 
   return {
-    theme: extensions.studio.options.theme,
-    editorTheme: extensions.studio.options.editorTheme
+    theme: configuration.extensions.studio.options.theme,
+    editorTheme: configuration.extensions.studio.options.editorTheme
   }
 }
 

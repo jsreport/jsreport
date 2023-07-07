@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import composeRefs from '@seznam/compose-react-refs'
 import styles from './FrameDisplay.css'
-import { subscribeToSplitPaneEvents, subscribeToThemeChange } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 const FrameDisplay = React.forwardRef(function FrameDisplay (props, externalRef) {
   const { src, styles: frameStyles = {}, blobCleanup = true, onLoad } = props
@@ -43,7 +43,7 @@ const FrameDisplay = React.forwardRef(function FrameDisplay (props, externalRef)
       }
     }
 
-    const unsubscribe = subscribeToSplitPaneEvents(containerRef.current, {
+    const unsubscribe = configuration.subscribeToSplitPaneEvents(containerRef.current, {
       change: showOverlay,
       dragFinished: hideOverlay
     })
@@ -74,7 +74,7 @@ const FrameDisplay = React.forwardRef(function FrameDisplay (props, externalRef)
         setTimeout(reapplyStyles, 100)
       }
 
-      unsubscribeThemeChange = subscribeToThemeChange(themeChangeListener)
+      unsubscribeThemeChange = configuration.subscribeToThemeChange(themeChangeListener)
     }
 
     return () => {

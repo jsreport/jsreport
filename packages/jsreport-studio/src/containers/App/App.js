@@ -20,12 +20,7 @@ import openStartup from '../../helpers/openStartup'
 import openProfileFromServer from '../../helpers/openProfileFromServer'
 import runLastActiveTemplate from '../../helpers/runLastActiveTemplate'
 import { openPreviewWindow, previewWindows, getPreviewWindowOptions } from '../../helpers/previewWindow'
-
-import {
-  registerCollapseLeftHandler,
-  registerCollapsePreviewHandler,
-  collapseEntityHandler
-} from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 class App extends Component {
   constructor (props) {
@@ -50,11 +45,11 @@ class App extends Component {
       }
     }
 
-    registerCollapseLeftHandler((type = true) => {
+    configuration.registerCollapseLeftHandler((type = true) => {
       this.leftPaneRef.current.collapse(type)
     })
 
-    registerCollapsePreviewHandler((type = true) => {
+    configuration.registerCollapsePreviewHandler((type = true) => {
       this.previewPaneRef.current.collapse(type)
     })
 
@@ -63,7 +58,7 @@ class App extends Component {
 
       // delay the collapsing a bit to avoid showing ugly transition of collapsed -> uncollapsed
       setTimeout(() => {
-        collapseEntityHandler({ shortid }, false, { parents: true, self: false })
+        configuration.collapseEntityHandler({ shortid }, false, { parents: true, self: false })
       }, 200)
 
       this.props.openTab({ shortid, entitySet })

@@ -1,14 +1,20 @@
-require('babel-polyfill')
-
 // Webpack config for creating the production bundle.
 const path = require('path')
+const _ = require('lodash')
 const jsreportStudioDev = require('@jsreport/studio-dev')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 const CleanPlugin = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const babelrc = require('../.babelrc')
+
+const sepRe = `\\${path.sep}` // path separator regex
+
+const babelrcObject = _.cloneDeep(babelrc)
 
 const webpack = jsreportStudioDev.deps.webpack
+
+const babelLoaderQuery = Object.assign({}, babelrcObject)
 
 const projectSrcAbsolutePath = path.join(__dirname, '../src')
 const projectRootPath = path.resolve(__dirname, '../')
@@ -51,13 +57,23 @@ module.exports = {
             return true
           }
 
+          // we want to process monaco-editor files
+          if (
+            new RegExp(`node_modules${sepRe}monaco-editor${sepRe}`).test(modulePath)
+          ) {
+            return false
+          }
+
           if (modulePath.replace(projectRootPath, '').includes('node_modules')) {
             return true
           }
 
           return false
         },
-        use: ['babel-loader']
+        use: [{
+          loader: 'babel-loader',
+          options: babelLoaderQuery
+        }]
       },
       {
         test: /extensions\.css$/,

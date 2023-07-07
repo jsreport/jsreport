@@ -4,7 +4,7 @@ import ReactModal from 'react-modal'
 import { connect } from 'react-redux'
 import { actions as modalActions } from 'redux/modal'
 import debounce from 'lodash/debounce'
-import { registerModalHandler } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import style from './Modal.css'
 
 class ModalContent extends Component {
@@ -109,7 +109,7 @@ class Modal extends Component {
     this.getBodyParams = this.getBodyParams.bind(this)
     this.updateContainerPosition = this.updateContainerPosition.bind(this)
     this.close = this.close.bind(this)
-    registerModalHandler(this)
+    configuration.registerModalHandler(this)
   }
 
   componentDidMount () {

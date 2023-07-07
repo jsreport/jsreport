@@ -16,7 +16,7 @@ import {
   getNodeTitleDOMId
 } from './utils'
 import { openModal } from '../../helpers/openModal'
-import { registerCollapseEntityHandler, entityTreeDropResolvers } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 const mainEntityDropResolver = {
   type: ENTITY_NODE_DRAG_TYPE,
@@ -98,7 +98,7 @@ export default function useEntityTree (main, {
 
   useEffect(() => {
     if (main) {
-      registerCollapseEntityHandler(collapseHandler)
+      configuration.registerCollapseEntityHandler(collapseHandler)
     }
   }, [main, collapseHandler])
 
@@ -329,13 +329,13 @@ export default function useEntityTree (main, {
 
   useConstructor(() => {
     if (main) {
-      const registered = entityTreeDropResolvers.find((r) => r === mainEntityDropResolver)
+      const registered = configuration.entityTreeDropResolvers.find((r) => r === mainEntityDropResolver)
 
       if (registered != null) {
         return
       }
 
-      entityTreeDropResolvers.push(mainEntityDropResolver)
+      configuration.entityTreeDropResolvers.push(mainEntityDropResolver)
     }
   })
 

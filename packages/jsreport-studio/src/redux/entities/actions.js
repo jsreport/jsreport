@@ -1,7 +1,7 @@
 import * as ActionTypes from './constants'
 import api from '../../helpers/api'
 import * as selectors from './selectors'
-import { entitySets, entityNewListeners, entitySaveListeners, referencesLoader } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 export const prune = (entity) => {
   const pruned = {}
@@ -80,7 +80,7 @@ export function add (entity) {
   }
 
   // eslint-disable-next-line
-  for (const l of entityNewListeners) {
+  for (const l of configuration.entityNewListeners) {
     l(entity)
   }
 
@@ -150,10 +150,10 @@ export function loadReferences (entitySet) {
   return async function (dispatch) {
     let entities
 
-    if (referencesLoader) {
-      entities = await referencesLoader(entitySet)
+    if (configuration.referencesLoader) {
+      entities = await configuration.referencesLoader(entitySet)
     } else {
-      const referenceAttributes = entitySets[entitySet].referenceAttributes
+      const referenceAttributes = configuration.entitySets[entitySet].referenceAttributes
       const entitiesUrl = `/odata/${entitySet}?$select=${referenceAttributes}&$orderby=name`
       entities = (await api.get(entitiesUrl)).value
     }
@@ -198,7 +198,7 @@ export function save (id, { ignoreFailed = false, validateConcurrent = true } = 
       dispatch(apiStart())
 
       // eslint-disable-next-line
-      for (const l of entitySaveListeners) {
+      for (const l of configuration.entitySaveListeners) {
         await l(entity)
       }
 

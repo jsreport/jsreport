@@ -9,7 +9,7 @@ import { createGetReferencesSelector } from '../../redux/entities/selectors'
 import { createGetActiveEntitySelector } from '../../redux/editor/selectors'
 import { openModal } from '../../helpers/openModal'
 import getCloneName from '../../../shared/getCloneName'
-import { entitySets, entityTreeWrapperComponents } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import styles from './EntityTreeBox.css'
 
 const EntityTreeBox = () => {
@@ -22,8 +22,8 @@ const EntityTreeBox = () => {
   const lastEditSelectionFocused = useSelector(state => state.editor.lastEditSelectionFocused)
 
   const executeNewHandling = useCallback(function executeNewHandling (es, options) {
-    if (entitySets[es].onNew) {
-      return entitySets[es].onNew(options || {})
+    if (configuration.entitySets[es].onNew) {
+      return configuration.entitySets[es].onNew(options || {})
     }
 
     openModal(NewEntityModal, { ...options, entitySet: es })
@@ -82,14 +82,14 @@ const EntityTreeBox = () => {
   }
 
   // if there are no components registered, defaults to rendering the EntityTree alone
-  if (!entityTreeWrapperComponents.length) {
+  if (!configuration.entityTreeWrapperComponents.length) {
     entityTreeEl = React.createElement(EntityTree, entityTreeProps)
   } else {
     // composing components
-    const wrappedEntityTree = entityTreeWrapperComponents.reduce((prevElement, component) => {
+    const wrappedEntityTree = configuration.entityTreeWrapperComponents.reduce((prevElement, component) => {
       const propsToWrapper = {
         entities: references,
-        entitySets: entitySets,
+        entitySets: configuration.entitySets,
         containerStyles
       }
 

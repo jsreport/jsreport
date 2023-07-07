@@ -10,7 +10,7 @@ import runLastActiveTemplate from '../../helpers/runLastActiveTemplate'
 import openTextSearch from '../../helpers/openTextSearch'
 import openStartup from '../../helpers/openStartup'
 import resolveUrl from '../../helpers/resolveUrl'
-import { toolbarComponents, toolbarVisibilityResolver, extensions } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import style from './Toolbar.css'
 import logo from './js-logo.png'
 
@@ -150,7 +150,7 @@ class Toolbar extends Component {
     ) {
       e.preventDefault()
 
-      if (this.props.canSaveAll && toolbarVisibilityResolver('SaveAll')) {
+      if (this.props.canSaveAll && configuration.toolbarVisibilityResolver('SaveAll')) {
         this.handleSave(this.props.saveAll)
         return false
       }
@@ -163,7 +163,7 @@ class Toolbar extends Component {
     ) {
       e.preventDefault()
 
-      if (this.props.canSave && toolbarVisibilityResolver('SaveAll')) {
+      if (this.props.canSave && configuration.toolbarVisibilityResolver('SaveAll')) {
         this.handleSave(this.props.save)
         return false
       }
@@ -233,7 +233,7 @@ class Toolbar extends Component {
   }
 
   renderButton (onClick, enabled, text, imageClass, tooltip) {
-    if (toolbarVisibilityResolver(text) === false) {
+    if (configuration.toolbarVisibilityResolver(text) === false) {
       return null
     }
 
@@ -320,7 +320,7 @@ class Toolbar extends Component {
   }
 
   renderToolbarComponents (position, onCloseMenu) {
-    return toolbarComponents[position].map((p, i) => React.createElement(p, {
+    return configuration.toolbarComponents[position].map((p, i) => React.createElement(p, {
       key: i,
       tab: this.props.activeTabWithEntity,
       closeMenu: position === 'settings' || position === 'settingsBottom' ? onCloseMenu : undefined,
@@ -331,7 +331,7 @@ class Toolbar extends Component {
   }
 
   renderSettings () {
-    if (toolbarVisibilityResolver('settings') === false) {
+    if (configuration.toolbarVisibilityResolver('settings') === false) {
       return false
     }
 
@@ -357,7 +357,7 @@ class Toolbar extends Component {
               // eslint-disable-next-line
               <Fragment>
                 {this.renderToolbarComponents('settings', itemProps.closeMenu)}
-                {toolbarComponents.settingsBottom.length ? <hr /> : ''}
+                {configuration.toolbarComponents.settingsBottom.length ? <hr /> : ''}
                 {this.renderToolbarComponents('settingsBottom', itemProps.closeMenu)}
               </Fragment>
             )
@@ -375,7 +375,7 @@ class Toolbar extends Component {
       <div className={style.toolbar}>
         <div className={style.logo} onClick={() => openStartup()}>
           <img
-            src={extensions.studio.options.customLogo === true ? resolveUrl(`/studio/assets/custom-logo?${extensions.studio.options.serverStartupHash}`) : logo}
+            src={configuration.extensions.studio.options.customLogo === true ? resolveUrl(`/studio/assets/custom-logo?${configuration.extensions.studio.options.serverStartupHash}`) : logo}
             style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%', display: 'inline-block' }}
           />
         </div>

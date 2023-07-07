@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { entitySets } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 import { actions as entitiesActions } from '../../redux/entities'
 import { createGetByIdSelector } from '../../redux/entities/selectors'
 import storeMethods from '../../redux/methods'
@@ -45,7 +45,7 @@ class DeleteConfirmationModal extends Component {
       maxWidth: '350px'
     }
 
-    const getEntitySetDisplayName = (entitySet) => entitySets[entitySet].visibleName || entitySet
+    const getEntitySetDisplayName = (entitySet) => configuration.entitySets[entitySet].visibleName || entitySet
 
     if (isSingleDelete) {
       const entity = entitiesToRemove[0].entity

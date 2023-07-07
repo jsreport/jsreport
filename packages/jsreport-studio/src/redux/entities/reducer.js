@@ -1,13 +1,13 @@
 import _omit from 'lodash/omit'
 import createReducer from '../createReducer.js'
 import * as ActionTypes from './constants.js'
-import { entitySets } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 const reducer = createReducer({})
 export default reducer.export()
 
 const getMetaReferenceAttributes = (e) => {
-  const entitySet = entitySets[e.__entitySet]
+  const entitySet = configuration.entitySets[e.__entitySet]
 
   const result = {
     __name: e.name
@@ -19,7 +19,7 @@ const getMetaReferenceAttributes = (e) => {
 }
 
 const getReferenceAttributes = (e) => {
-  const entitySet = entitySets[e.__entitySet]
+  const entitySet = configuration.entitySets[e.__entitySet]
 
   const result = {
     name: e.__name
@@ -37,7 +37,7 @@ reducer.handleAction(ActionTypes.LOAD, (state, action) => ({
   }, getMetaReferenceAttributes(state[action.entity._id]))
 }))
 
-reducer.handleActions([ActionTypes.UPDATE, ActionTypes.DEBOUNCED_UPDATE], (state, action) => ({
+reducer.handleActions([ActionTypes.UPDATE, ActionTypes.GROUPED_UPDATE], (state, action) => ({
   ...state,
   [action.entity._id]: Object.assign({}, state[action.entity._id], action.entity, { __isDirty: true })
 }))

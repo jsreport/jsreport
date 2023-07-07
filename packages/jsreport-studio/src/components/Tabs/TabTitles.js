@@ -7,10 +7,10 @@ import { createGetTabWithEntitiesSelector } from '../../redux/editor/selectors'
 import { activateTab, closeTab } from '../../redux/editor/actions'
 import storeMethods from '../../redux/methods'
 import { openModal } from '../../helpers/openModal'
-import { entitySets, collapseEntityHandler } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import style from './Tabs.css'
 
-const getEntityName = (e) => entitySets[e.__entitySet].nameAttribute ? e[entitySets[e.__entitySet].nameAttribute] : e.name
+const getEntityName = (e) => configuration.entitySets[e.__entitySet].nameAttribute ? e[configuration.entitySets[e.__entitySet].nameAttribute] : e.name
 
 class TabTitles extends Component {
   constructor (props) {
@@ -109,7 +109,7 @@ class TabTitles extends Component {
   }
 
   revealInTree (entity) {
-    collapseEntityHandler({ _id: entity._id }, false, { parents: true, self: false })
+    configuration.collapseEntityHandler({ _id: entity._id }, false, { parents: true, self: false })
 
     const entityNodeId = getNodeTitleDOMId(entity)
 

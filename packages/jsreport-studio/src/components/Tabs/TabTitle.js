@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { tabTitleComponentKeyResolvers, tabTitleComponents } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import storeMethods from '../../redux/methods'
 import style from './Tabs.css'
 
@@ -55,7 +55,7 @@ class TabTitle extends Component {
       if (titleComponentKey == null) {
         let tabTitleComponentResult = {}
 
-        tabTitleComponentKeyResolvers.some((componentKeyResolverFn) => {
+        configuration.tabTitleComponentKeyResolvers.some((componentKeyResolverFn) => {
           const componentKey = componentKeyResolverFn(tab.entity, tab.tab.docProp)
           let found = false
 
@@ -73,7 +73,7 @@ class TabTitle extends Component {
     }
 
     if (titleComponentKey) {
-      titleEl = React.createElement(tabTitleComponents[titleComponentKey], {
+      titleEl = React.createElement(configuration.tabTitleComponents[titleComponentKey], {
         ...customProps,
         entity: tab.entity,
         complementTitle,

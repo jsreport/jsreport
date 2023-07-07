@@ -9,14 +9,7 @@ import { reformat } from '../../redux/editor/actions'
 import reformatter from '../../helpers/reformatter'
 import { getCurrentTheme } from '../../helpers/theme'
 import LinterWorker from './workers/linter.worker'
-import {
-  textEditorInstances,
-  textEditorInitializeListeners,
-  textEditorCreatedListeners,
-  subscribeToThemeChange,
-  subscribeToSplitPaneEvents,
-  subscribeToTabActiveEvent
-} from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 const lastTextEditorMounted = {
   timeoutId: null,
@@ -29,8 +22,7 @@ class TextEditor extends Component {
 
     this.lintWorker = null
     this.oldCode = null
-
-    this.monacoRef = React.createRef()
+    this.monacoEditorData = null
 
     this.getFocus = this.getFocus.bind(this)
     this.setUpLintWorker = this.setUpLintWorker.bind(this)
@@ -38,6 +30,7 @@ class TextEditor extends Component {
     this.lint = debounce(this.lint, 400)
     this.editorWillMount = this.editorWillMount.bind(this)
     this.editorDidMount = this.editorDidMount.bind(this)
+    this.editorWillUnmount = this.editorWillUnmount.bind(this)
     this.calculateEditorLayout = this.calculateEditorLayout.bind(this)
 
     this.state = {
@@ -45,43 +38,18 @@ class TextEditor extends Component {
     }
   }
 
-  componentDidMount () {
-    this.throttledCalculateEditorLayout = throttle(this.calculateEditorLayout, 200, {
-      trailing: true
-    })
-
-    this.unsubscribeSplitPaneEvents = subscribeToSplitPaneEvents(this.monacoRef.current.containerElement, {
-      change: this.throttledCalculateEditorLayout,
-      collapseChange: this.calculateEditorLayout
-    })
-
-    this.unsubscribeTabActiveEvent = subscribeToTabActiveEvent(this.monacoRef.current.containerElement, this.calculateEditorLayout)
-
-    window.addEventListener('resize', this.throttledCalculateEditorLayout)
-
-    this.unsubscribeThemeChange = subscribeToThemeChange(({ newEditorTheme }) => {
-      this.setState({
-        editorTheme: newEditorTheme
-      })
-    })
-
-    setTimeout(() => {
-      this.calculateEditorLayout()
-    }, 100)
-  }
-
   componentDidUpdate (prevProps) {
     if (prevProps.readOnly !== this.props.readOnly) {
-      this.monacoRef.current.editor.updateOptions({ readOnly: this.props.readOnly === true })
+      this.monacoEditorData.editor.updateOptions({ readOnly: this.props.readOnly === true })
     }
   }
 
   componentWillUnmount () {
-    for (let i = 0; i < textEditorInstances.length; i++) {
-      const textEditorInfo = textEditorInstances[i]
+    for (let i = 0; i < configuration.textEditorInstances.length; i++) {
+      const textEditorInfo = configuration.textEditorInstances[i]
 
       if (textEditorInfo.name === this.props.name) {
-        textEditorInstances.splice(i, 1)
+        configuration.textEditorInstances.splice(i, 1)
         break
       }
     }
@@ -127,7 +95,7 @@ class TextEditor extends Component {
     this.updateThemeRule(ChromeTheme, 'string.key.json', '1f19a6')
     this.updateThemeRule(ChromeTheme, 'string.value.json', '1f19a6')
 
-    textEditorInitializeListeners.forEach((fn) => {
+    configuration.textEditorInitializeListeners.forEach((fn) => {
       fn({ monaco, theme: ChromeTheme })
     })
 
@@ -135,7 +103,35 @@ class TextEditor extends Component {
   }
 
   editorDidMount (editor, monaco) {
-    textEditorInstances.push({ name: this.props.name, instance: editor })
+    this.monacoEditorData = {
+      containerElement: editor.getContainerDomNode(),
+      editor
+    }
+
+    this.throttledCalculateEditorLayout = throttle(this.calculateEditorLayout, 200, {
+      trailing: true
+    })
+
+    this.unsubscribeSplitPaneEvents = configuration.subscribeToSplitPaneEvents(this.monacoEditorData.containerElement, {
+      change: this.throttledCalculateEditorLayout,
+      collapseChange: this.calculateEditorLayout
+    })
+
+    this.unsubscribeTabActiveEvent = configuration.subscribeToTabActiveEvent(this.monacoEditorData.containerElement, this.calculateEditorLayout)
+
+    window.addEventListener('resize', this.throttledCalculateEditorLayout)
+
+    this.unsubscribeThemeChange = configuration.subscribeToThemeChange(({ newEditorTheme }) => {
+      this.setState({
+        editorTheme: newEditorTheme
+      })
+    })
+
+    setTimeout(() => {
+      this.calculateEditorLayout()
+    }, 100)
+
+    configuration.textEditorInstances.push({ name: this.props.name, instance: editor })
 
     monaco.languages.typescript.typescriptDefaults.setMaximumWorkerIdleTime(-1)
     monaco.languages.typescript.javascriptDefaults.setMaximumWorkerIdleTime(-1)
@@ -324,7 +320,7 @@ class TextEditor extends Component {
 
     this.oldCode = editor.getModel().getValue()
 
-    textEditorCreatedListeners.forEach((fn) => {
+    configuration.textEditorCreatedListeners.forEach((fn) => {
       fn({ monaco, editor })
     })
 
@@ -365,15 +361,19 @@ class TextEditor extends Component {
     }
   }
 
+  editorWillUnmount () {
+    this.monacoEditorData = null
+  }
+
   getFocus () {
     const self = this
 
-    if (!self.monacoRef.current) {
+    if (!self.monacoEditorData) {
       setTimeout(() => {
         self.getFocus()
       }, 150)
     } else {
-      self.monacoRef.current.editor.focus()
+      self.monacoEditorData.editor.focus()
     }
   }
 
@@ -428,8 +428,8 @@ class TextEditor extends Component {
   }
 
   calculateEditorLayout (ev) {
-    if (this.monacoRef.current && this.monacoRef.current.editor) {
-      this.monacoRef.current.editor.layout()
+    if (this.monacoEditorData && this.monacoEditorData.editor) {
+      this.monacoEditorData.editor.layout()
     }
   }
 
@@ -455,6 +455,7 @@ class TextEditor extends Component {
       dragAndDrop: false,
       lineNumbersMinChars: 4,
       fontSize: 11.8,
+      'bracketPairColorization.enabled': true,
       minimap: {
         enabled: false
       }
@@ -463,7 +464,6 @@ class TextEditor extends Component {
     return (
       <MonacoEditor
         name={name}
-        ref={this.monacoRef}
         width='100%'
         height='100%'
         language={mode}
@@ -471,6 +471,7 @@ class TextEditor extends Component {
         value={value || ''}
         editorWillMount={this.editorWillMount}
         editorDidMount={this.editorDidMount}
+        editorWillUnmount={this.editorWillUnmount}
         options={editorOptions}
         onChange={(v) => onUpdate(v)}
       />

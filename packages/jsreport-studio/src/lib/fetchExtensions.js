@@ -1,6 +1,7 @@
 import Promise from 'bluebird'
 
 export default function () {
+  /* eslint-disable-next-line */
   if (__DEVELOPMENT__) {
     require('../extensions_dev.js')
     require('../extensions_dev.css')

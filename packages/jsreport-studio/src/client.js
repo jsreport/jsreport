@@ -1,4 +1,3 @@
-import 'babel-polyfill'
 import Promise from 'bluebird'
 import PropTypes from 'prop-types'
 import React from 'react'
@@ -14,7 +13,7 @@ import fetchExtensions from './lib/fetchExtensions'
 import './theme/style.css'
 import * as entities from './redux/entities'
 import * as settings from './redux/settings'
-import * as configuration from './lib/configuration'
+import { values as configuration, rootPath } from './lib/configuration'
 import getEntityTreeOrder from './helpers/getEntityTreeOrder'
 
 window.React = React
@@ -25,11 +24,11 @@ window.React.PropTypes = PropTypes
 ReactModal.setAppElement(getAppElement())
 
 // eslint-disable-next-line no-undef, camelcase
-__webpack_public_path__ = configuration.rootPath() + '/studio/assets/'
+__webpack_public_path__ = rootPath() + '/studio/assets/'
 
 // we need to require the configurationDefaults, and Studio files api at this point because it requires some component files
 // that need to be evaluated/executed after we set the correct __webpack_public_path__
-const defaults = require('./configurationDefaults')
+const defaults = require('./configurationDefaults').default
 const { createStudio } = require('./Studio')
 
 defaults()

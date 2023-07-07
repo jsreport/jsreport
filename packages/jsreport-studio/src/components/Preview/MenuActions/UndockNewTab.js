@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { createGetActiveTabWithEntitySelector } from '../../../redux/editor/selectors'
-import { collapsePreviewHandler } from '../../../lib/configuration'
+import { values as configuration } from '../../../lib/configuration'
 import { actions as editorActions } from '../../../redux/editor'
 
 function UndockNewTab ({ id, completed, data, closeMenu }) {
@@ -30,7 +30,7 @@ function UndockNewTab ({ id, completed, data, closeMenu }) {
         }
 
         activateUndockMode()
-        collapsePreviewHandler(true)
+        configuration.collapsePreviewHandler(true)
         closeMenu()
       }}
     >

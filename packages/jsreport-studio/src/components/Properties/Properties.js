@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import styles from './Properties.css'
 import { createGetActiveEntitySelector, createGetActiveTabSelector } from '../../redux/editor/selectors'
-import { propertiesComponents } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import { useDispatch, useSelector } from 'react-redux'
 import { update } from '../../redux/editor/actions'
 
@@ -48,7 +48,7 @@ function Properties () {
             />
           </div>
         </div>
-        {propertiesComponents.map((def, i) => (
+        {configuration.propertiesComponents.map((def, i) => (
           <Property
             key={i}
             def={def}

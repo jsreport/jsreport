@@ -5,7 +5,7 @@ import EntityTreeContext from './EntityTreeContext'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { checkIsGroupNode, checkIsGroupEntityNode, getAllEntitiesInHierarchy } from './utils'
 import storeMethods from '../../redux/methods'
-import { entitySets, entityTreeContextMenuItemsResolvers } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
 const ContextMenu = React.forwardRef(function ContextMenu ({
@@ -85,7 +85,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     node,
     clipboard,
     entity,
-    entitySets,
+    entitySets: configuration.entitySets,
     editSelection: editSelectionContextMenu ? editSelection : null,
     isRoot,
     isGroup,
@@ -129,7 +129,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
       menuItems.push(...customItems)
     }
   } else {
-    const contextMenuResults = entityTreeContextMenuItemsResolvers.map((resolver) => {
+    const contextMenuResults = configuration.entityTreeContextMenuItemsResolvers.map((resolver) => {
       return resolver(resolverParam)
     })
 

@@ -39,4 +39,4 @@ function processItemsInInterval ({ baseInterval, queue, fulfilledCheck, handler 
   return processingExecution.promise
 }
 
-module.exports = processItemsInInterval
+export default processItemsInInterval

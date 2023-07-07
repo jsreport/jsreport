@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { actions } from '../../redux/editor'
 import api from '../../helpers/api.js'
-import { entitySets } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 class NewEntityModal extends Component {
   constructor (props) {
@@ -86,7 +86,7 @@ class NewEntityModal extends Component {
     return (
       <div>
         <div className='form-group'>
-          <label>New {entitySets[entitySet].visibleName}</label>
+          <label>New {configuration.entitySets[entitySet].visibleName}</label>
         </div>
         <div className='form-group'>
           <label>name</label>

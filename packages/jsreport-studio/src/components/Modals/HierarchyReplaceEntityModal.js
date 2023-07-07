@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import { connect } from 'react-redux'
 import { actions as editorActions } from '../../redux/editor'
 import storeMethods from '../../redux/methods'
@@ -43,8 +43,8 @@ class HierarchyReplaceEntityModal extends Component {
     }
 
     const sourceEntityName = sourceEntity.name
-    const sourceEntitySetVisibleName = entitySets[sourceEntity.__entitySet].visibleName || entitySets[sourceEntity.__entitySet].name
-    const existingEntityEntitySetVisibleName = entitySets[existingEntityEntitySet].visibleName || entitySets[existingEntityEntitySet].name
+    const sourceEntitySetVisibleName = configuration.entitySets[sourceEntity.__entitySet].visibleName || configuration.entitySets[sourceEntity.__entitySet].name
+    const existingEntityEntitySetVisibleName = configuration.entitySets[existingEntityEntitySet].visibleName || configuration.entitySets[existingEntityEntitySet].name
     const shouldCopy = options.shouldCopy
 
     return (

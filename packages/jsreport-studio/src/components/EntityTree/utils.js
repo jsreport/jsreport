@@ -1,7 +1,7 @@
 import React from 'react'
 import groupEntitiesByHierarchyHelper from '../../helpers/groupEntitiesByHierarchy'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
-import { entityTreeOrder, entityTreeItemComponents } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 export function pointIsInsideContainer (containerDimensions, point) {
   const insideX = point.x >= containerDimensions.left && point.x <= (containerDimensions.left + containerDimensions.width)
@@ -33,7 +33,7 @@ export function getSetsToRender (entitySets) {
   let setsInOrderSpecification = []
 
   const setsNotInOrderSpecification = setsNames.filter((setName) => {
-    const indexInOrder = entityTreeOrder.indexOf(setName)
+    const indexInOrder = configuration.entityTreeOrder.indexOf(setName)
     const found = indexInOrder !== -1
 
     if (found) {
@@ -155,12 +155,12 @@ export function getAllEntitiesInHierarchy (node, includeRoot, onlyDirectChildren
 export function renderEntityTreeItemComponents (position, propsToItem, originalChildren) {
   if (position === 'container') {
     // if there are no components registered, defaults to original children
-    if (!entityTreeItemComponents[position].length) {
+    if (!configuration.entityTreeItemComponents[position].length) {
       return originalChildren
     }
 
     // composing components when position is container
-    const wrappedItemElement = entityTreeItemComponents[position].reduce((prevElement, b) => {
+    const wrappedItemElement = configuration.entityTreeItemComponents[position].reduce((prevElement, b) => {
       if (prevElement == null) {
         return React.createElement(b, propsToItem, originalChildren)
       }
@@ -175,7 +175,7 @@ export function renderEntityTreeItemComponents (position, propsToItem, originalC
     return wrappedItemElement
   }
 
-  return entityTreeItemComponents[position].map((p, i) => (
+  return configuration.entityTreeItemComponents[position].map((p, i) => (
     React.createElement(p, {
       key: i,
       ...propsToItem

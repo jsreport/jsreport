@@ -19,16 +19,7 @@ import {
   addEvent as addProfileEvent
 } from '../../helpers/profileDataManager'
 
-import {
-  engines,
-  recipes,
-  entitySetsDocProps,
-  runListeners,
-  locationResolver,
-  editorComponents,
-  concurrentUpdateModal,
-  renderedEditorComponentsMeta
-} from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 const runningControllers = {}
 
@@ -92,8 +83,8 @@ export function openTab (tab, activate = true) {
     if (
       tab.docProp != null &&
       tab.key == null &&
-      entitySetsDocProps[tab.entitySet] != null &&
-      entitySetsDocProps[tab.entitySet].find((docProp) => docProp.name === tab.docProp && docProp.main !== true) != null
+      configuration.entitySetsDocProps[tab.entitySet] != null &&
+      configuration.entitySetsDocProps[tab.entitySet].find((docProp) => docProp.name === tab.docProp && docProp.main !== true) != null
     ) {
       tab.key = `${tab._id}_${tab.docProp.replace(/\./g, '_')}`
     } else {
@@ -146,11 +137,11 @@ export function openNewTab ({ entitySet, entity, name }, activate = true) {
 
       if (entitySet === 'templates') {
         if (newEntity.recipe == null) {
-          newEntity.recipe = recipes.includes('chrome-pdf') ? 'chrome-pdf' : 'html'
+          newEntity.recipe = configuration.recipes.includes('chrome-pdf') ? 'chrome-pdf' : 'html'
         }
 
         if (newEntity.engine == null) {
-          newEntity.engine = engines.includes('handlebars') ? 'handlebars' : engines[0]
+          newEntity.engine = configuration.engines.includes('handlebars') ? 'handlebars' : configuration.engines[0]
         }
       }
     }
@@ -238,8 +229,8 @@ export function updateHistory () {
       path = resolveUrl('/')
     }
 
-    if (locationResolver) {
-      path = locationResolver(path, entity)
+    if (configuration.locationResolver) {
+      path = configuration.locationResolver(path, entity)
     }
 
     if (path !== getState().router.location.pathname) {
@@ -400,7 +391,7 @@ export function save () {
       if (e.error && e.error.code === 'CONCURRENT_UPDATE_INVALID') {
         dispatch(progress.actions.stop())
 
-        openModal(concurrentUpdateModal, {
+        openModal(configuration.concurrentUpdateModal, {
           entityId: entityId,
           modificationDate: e.error.modificationDate
         })
@@ -444,7 +435,7 @@ export function saveAll () {
       if (e.error && e.error.code === 'CONCURRENT_UPDATE_INVALID') {
         dispatch(progress.actions.stop())
 
-        openModal(concurrentUpdateModal, {
+        openModal(configuration.concurrentUpdateModal, {
           entityId: e.entityId
         })
       } else {
@@ -460,8 +451,8 @@ export function reformat (shouldThrow = false) {
     dispatch(entities.actions.flushUpdates())
 
     const tab = selectors.getActiveTab(getState().editor.activeTabKey, getState().editor.tabs)
-    const currentEditorComponentKey = renderedEditorComponentsMeta.data[tab.key] != null ? renderedEditorComponentsMeta.data[tab.key].editorComponentKey : undefined
-    const editorReformat = editorComponents[currentEditorComponentKey || tab.editorComponentKey || tab.entitySet].reformat
+    const currentEditorComponentKey = configuration.renderedEditorComponentsMeta.data[tab.key] != null ? configuration.renderedEditorComponentsMeta.data[tab.key].editorComponentKey : undefined
+    const editorReformat = configuration.editorComponents[currentEditorComponentKey || tab.editorComponentKey || tab.entitySet].reformat
 
     if (!editorReformat && !shouldThrow) {
       return false
@@ -578,7 +569,7 @@ export function run (params = {}, opts = {}) {
 
     const entities = Object.assign({}, getState().entities)
 
-    await Promise.all([...runListeners.map((l) => l(request, entities))])
+    await Promise.all([...configuration.runListeners.map((l) => l(request, entities))])
 
     let previewId
     let previewWindow

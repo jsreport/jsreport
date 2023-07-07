@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from 'react'
-import { engines, recipes } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 function BasicAttributesStep (props) {
   const nameInputRef = useRef(null)
@@ -34,7 +34,7 @@ function BasicAttributesStep (props) {
           value={template.engine}
           onChange={(ev) => setAttributes({ engine: ev.target.value })}
         >
-          {engines.map((e) => <option key={e} value={e}>{e}</option>)}
+          {configuration.engines.map((e) => <option key={e} value={e}>{e}</option>)}
         </select>
       </div>
       <div className='form-group'>
@@ -43,7 +43,7 @@ function BasicAttributesStep (props) {
           value={template.recipe}
           onChange={(ev) => setAttributes({ recipe: ev.target.value })}
         >
-          {recipes.map((r) => <option key={r} value={r}>{r}</option>)}
+          {configuration.recipes.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
     </div>

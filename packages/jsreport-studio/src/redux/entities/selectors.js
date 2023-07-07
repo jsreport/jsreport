@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { entitySets } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 const getEntities = (state) => state.entities
 
@@ -49,7 +49,7 @@ export const getReferences = (entities) => {
     result[k] = result[k].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
   })
 
-  Object.keys(entitySets).forEach((e) => (result[e] = result[e] || []))
+  Object.keys(configuration.entitySets).forEach((e) => (result[e] = result[e] || []))
 
   return result
 }

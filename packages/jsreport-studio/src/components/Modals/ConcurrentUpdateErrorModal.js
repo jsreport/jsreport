@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import { createGetByIdSelector } from '../../redux/entities/selectors'
 import { actions as entitiesActions } from '../../redux/entities'
 
@@ -89,7 +89,7 @@ class ConcurrentUpdateErrorModal extends Component {
 
     return (
       <div>
-        <h2>Entity&nbsp;<b>{entity.name} ({entitySets[entity.__entitySet].visibleName || entity.__entitySet})</b> was updated by another source.</h2>
+        <h2>Entity&nbsp;<b>{entity.name} ({configuration.entitySets[entity.__entitySet].visibleName || entity.__entitySet})</b> was updated by another source.</h2>
         <div>
           You can either choose <b>"Refresh entity"</b>, which will discard the local changes you have
           {' '}done and will load the entity from the store again, or you can choose <b>"Override"</b>, which will save the local changes to

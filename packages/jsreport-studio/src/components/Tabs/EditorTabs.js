@@ -4,7 +4,7 @@ import _omit from 'lodash/omit'
 import TabPane from './TabPane'
 import { createGetActiveTabSelector, createGetTabWithEntitiesSelector } from '../../redux/editor/selectors'
 import { groupedUpdate } from '../../redux/editor/actions'
-import { editorComponents, entityEditorComponentKeyResolvers, renderedEditorComponentsMeta } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 class EditorTabs extends Component {
   constructor (props) {
@@ -55,7 +55,7 @@ class EditorTabs extends Component {
     if (t.tab.editorComponentKey != null) {
       editorComponentResult = { key: t.tab.editorComponentKey }
     } else {
-      entityEditorComponentKeyResolvers.some((componentKeyResolverFn) => {
+      configuration.entityEditorComponentKeyResolvers.some((componentKeyResolverFn) => {
         const componentKey = componentKeyResolverFn(t.entity, t.tab.docProp)
         let found = false
 
@@ -101,13 +101,13 @@ class EditorTabs extends Component {
       }
     }
 
-    renderedEditorComponentsMeta.data[t.tab.key] = {
+    configuration.renderedEditorComponentsMeta.data[t.tab.key] = {
       editorComponentKey: editorComponentResult.key
     }
 
     return (
       <Fragment key={t.tab.key}>
-        {React.createElement(editorComponents[editorComponentResult.key], editorProps)}
+        {React.createElement(configuration.editorComponents[editorComponentResult.key], editorProps)}
       </Fragment>
     )
   }
@@ -115,7 +115,7 @@ class EditorTabs extends Component {
   render () {
     const { activeTabKey, tabs } = this.props
 
-    renderedEditorComponentsMeta.data = {}
+    configuration.renderedEditorComponentsMeta.data = {}
 
     return (
       <TabPane

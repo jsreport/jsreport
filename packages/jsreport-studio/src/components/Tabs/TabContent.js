@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { _tabActiveHandlers } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 class TabContent extends Component {
   constructor (props) {
@@ -9,7 +9,7 @@ class TabContent extends Component {
 
   componentDidUpdate (prevProps) {
     if (this.props.active && !prevProps.active) {
-      for (const handler of _tabActiveHandlers) {
+      for (const handler of configuration._tabActiveHandlers) {
         if (this.tabRef.current.contains(handler.el)) {
           handler.fn()
         }

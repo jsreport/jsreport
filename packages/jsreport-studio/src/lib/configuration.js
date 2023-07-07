@@ -1,117 +1,125 @@
-/*eslint-disable*/
-export let version = null
-export let engines = []
-export let recipes = []
-export let previewComponents = {}
-export let initializeListeners = []
-export let readyListeners = []
-export let runListeners = []
-export let entityNewListeners = []
-export let entitySaveListeners = []
-export let textEditorInitializeListeners = []
-export let textEditorCreatedListeners = []
-export let _themeChangedListeners = []
-export let entitySets = {}
-export let entitySetsDocProps = {}
-export let reportPreviewStyleResolvers = []
-export let templateEditorModeResolvers = []
-export let entityTreeOrder = []
-export let entityTreeWrapperComponents = []
-export let entityTreeIconResolvers = []
-export let entityTreeFilterItemResolvers = []
-export let entityTreeDropResolvers = []
-export let tabTitleComponentKeyResolvers = []
-export let entityEditorComponentKeyResolvers = []
-export let entityTreeContextMenuItemsResolvers = []
-export let entityTreeToolbarComponents = {
+const values = {}
+
+values.version = null
+values.engines = []
+values.recipes = []
+values.previewComponents = {}
+values.initializeListeners = []
+values.readyListeners = []
+values.runListeners = []
+values.entityNewListeners = []
+values.entitySaveListeners = []
+values.textEditorInitializeListeners = []
+values.textEditorCreatedListeners = []
+values._themeChangedListeners = []
+values.entitySets = {}
+values.entitySetsDocProps = {}
+values.reportPreviewStyleResolvers = []
+values.templateEditorModeResolvers = []
+values.entityTreeOrder = []
+values.entityTreeWrapperComponents = []
+values.entityTreeIconResolvers = []
+values.entityTreeFilterItemResolvers = []
+values.entityTreeDropResolvers = []
+values.tabTitleComponentKeyResolvers = []
+values.entityEditorComponentKeyResolvers = []
+values.entityTreeContextMenuItemsResolvers = []
+
+values.entityTreeToolbarComponents = {
   single: [],
   group: []
 }
-export let entityTreeItemComponents = {
+
+values.entityTreeItemComponents = {
   container: [],
   right: [],
   groupRight: []
 }
-export let propertiesComponents = []
-export let editorComponents = []
-export let toolbarComponents = {
+
+values.propertiesComponents = []
+values.editorComponents = []
+
+values.toolbarComponents = {
   left: [],
   right: [],
   settings: [],
   settingsBottom: []
 }
-export let tabTitleComponents = []
-export let textEditorInstances = []
-export let renderedEditorComponentsMeta = { data: {} }
 
-export let toolbarVisibilityResolver = () => true
+values.tabTitleComponents = []
+values.textEditorInstances = []
+values.renderedEditorComponentsMeta = { data: {} }
 
-export let registerModalHandler = (fn) => { modalHandler = fn }
-export let modalHandler = () => {}
+values.toolbarVisibilityResolver = () => true
 
-export let concurrentUpdateModal = () => { return null }
+values.registerModalHandler = (fn) => { values.modalHandler = fn }
+values.modalHandler = () => {}
 
-export let aboutModal = () => { return null }
+values.concurrentUpdateModal = () => { return null }
 
-export let registerCollapseEntityHandler = (fn) => { collapseEntityHandler = fn }
-export let collapseEntityHandler = () => {}
+values.aboutModal = () => { return null }
 
-export let registerCollapseLeftHandler = (fn) => { collapseLeftHandler = fn }
-export let collapseLeftHandler = () => {}
+values.registerCollapseEntityHandler = (fn) => { values.collapseEntityHandler = fn }
+values.collapseEntityHandler = () => {}
 
-export let registerCollapsePreviewHandler = (fn) => { collapsePreviewHandler = fn }
-export let collapsePreviewHandler = () => {}
+values.registerCollapseLeftHandler = (fn) => { values.collapseLeftHandler = fn }
+values.collapseLeftHandler = () => {}
 
-export let shouldOpenStartupPage = true
+values.registerCollapsePreviewHandler = (fn) => { values.collapsePreviewHandler = fn }
+values.collapsePreviewHandler = () => {}
 
-export let apiHeaders = {}
+values.shouldOpenStartupPage = true
 
-export let _splitResizeHandlers = []
+values.apiHeaders = {}
 
-export let subscribeToSplitPaneEvents = (el, fnMap) => {
-  let handler = {
+values._splitResizeHandlers = []
+
+values.subscribeToSplitPaneEvents = (el, fnMap) => {
+  const handler = {
     el,
     fnMap
   }
 
-  _splitResizeHandlers.push(handler)
+  values._splitResizeHandlers.push(handler)
 
   return () => {
-    _splitResizeHandlers = _splitResizeHandlers.filter(h => h !== handler)
+    values._splitResizeHandlers = values._splitResizeHandlers.filter(h => h !== handler)
   }
 }
 
-export let subscribeToThemeChange = (fn) => {
-  _themeChangedListeners.push(fn)
-  return () => { _themeChangedListeners = _themeChangedListeners.filter((s) => s !== fn) }
+values.subscribeToThemeChange = (fn) => {
+  values._themeChangedListeners.push(fn)
+  return () => { values._themeChangedListeners = values._themeChangedListeners.filter((s) => s !== fn) }
 }
 
-export let _tabActiveHandlers = []
+values._tabActiveHandlers = []
 
-export let subscribeToTabActiveEvent = (el, fnHandler) => {
+values.subscribeToTabActiveEvent = (el, fnHandler) => {
   const handler = {
     el,
     fn: fnHandler
   }
 
-  _tabActiveHandlers.push(handler)
+  values._tabActiveHandlers.push(handler)
 
   return () => {
-    _tabActiveHandlers = _tabActiveHandlers.filter(h => h !== handler)
+    values._tabActiveHandlers = values._tabActiveHandlers.filter(h => h !== handler)
   }
 }
 
-export let triggerThemeChange = (data) => { _themeChangedListeners.forEach((fn) => fn(data)) }
+values.triggerThemeChange = (data) => { values._themeChangedListeners.forEach((fn) => fn(data)) }
 
-export let referencesLoader = null
+values.referencesLoader = null
 
-export let locationResolver = null
+values.locationResolver = null
 
-export let extensions = []
+values.extensions = []
+
+values.sharedComponents = {}
+
+export { values }
 
 export function rootPath () {
-  let _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
+  const _rootPath = window.location.pathname.indexOf('/studio') === -1 ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.indexOf('/studio'))
   return _rootPath[_rootPath.length - 1] === '/' ? _rootPath.substring(0, _rootPath.length - 1) : _rootPath
 }
-
-export const sharedComponents = {}

@@ -4,7 +4,7 @@ import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents, checkIsGroupEntityNode } from './utils'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityTree.css'
 
@@ -148,9 +148,9 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
           <a
             className={styles.add}
             title={`New ${
-              entitySets[node.name] && entitySets[node.name].visibleName
+              configuration.entitySets[node.name] && configuration.entitySets[node.name].visibleName
               ? (
-                entitySets[node.name].visibleName
+                configuration.entitySets[node.name].visibleName
               )
               : node.name
             }`}

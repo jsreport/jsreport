@@ -1,12 +1,12 @@
-import { extensions, shouldOpenStartupPage } from '../lib/configuration'
+import { values as configuration } from '../lib/configuration'
 import storeMethods from '../redux/methods'
 
 function openStartup () {
-  if (!extensions.studio.options.startupPage) {
+  if (!configuration.extensions.studio.options.startupPage) {
     return
   }
 
-  if (shouldOpenStartupPage) {
+  if (configuration.shouldOpenStartupPage) {
     storeMethods.openEditorTab({
       key: 'StartupPage',
       editorComponentKey: 'startup',

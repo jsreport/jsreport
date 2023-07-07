@@ -1,20 +1,14 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
-import TextEditor from './TextEditor.js'
-import SplitPane from '../../components/common/SplitPane/SplitPane.js'
-import { templateEditorModeResolvers } from '../../lib/configuration.js'
+import TextEditor from './TextEditor'
+import SplitPane from '../../components/common/SplitPane/SplitPane'
+import { values as configuration } from '../../lib/configuration'
 
 class TemplateEditor extends Component {
-  constructor (props) {
-    super(props)
-
-    this.contentEditorRef = React.createRef()
-  }
-
   resolveTemplateEditorMode (template) {
     // eslint-disable-next-line
-    for (const k in templateEditorModeResolvers) {
-      const mode = templateEditorModeResolvers[k](template)
+    for (const k in configuration.templateEditorModeResolvers) {
+      const mode = configuration.templateEditorModeResolvers[k](template)
       if (mode) {
         return mode
       }
@@ -36,7 +30,6 @@ class TemplateEditor extends Component {
       >
         <TextEditor
           key={entity._id}
-          ref={this.contentEditorRef}
           name={entity._id}
           getFilename={() => entity.name}
           mode={this.resolveTemplateEditorMode(entity) || 'handlebars'}

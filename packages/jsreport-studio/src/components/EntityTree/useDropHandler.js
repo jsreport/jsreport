@@ -3,7 +3,7 @@ import { useDrop } from 'react-dnd'
 import acceptDrop from './acceptDrop'
 import usePrevious from '../../hooks/usePrevious'
 import { pointIsInsideContainer } from './utils'
-import { entityTreeDropResolvers } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 export default function useDropHandler ({
   listRef,
@@ -73,7 +73,7 @@ export default function useDropHandler ({
     },
     drop: (item, monitor) => {
       const draggedItem = monitor.getItem()
-      const dropResolvers = entityTreeDropResolvers.filter((resolver) => resolver.type === monitor.getItemType())
+      const dropResolvers = configuration.entityTreeDropResolvers.filter((resolver) => resolver.type === monitor.getItemType())
 
       if (dropResolvers.length === 0) {
         return

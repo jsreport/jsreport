@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import TextEditor from '../Editor/TextEditor'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import storeMethods from '../../redux/methods'
 import api from '../../helpers/api'
 import rootUrl from '../../helpers/rootUrl'
@@ -16,7 +16,7 @@ function EntityDefinitionModal ({ close, options }) {
   const [odataCollapsed, setOdataCollapsed] = useState(true)
   const [entitySetSchema, setEntitySetSchema] = useState(null)
   const entitySetSchemaText = useMemo(() => getJsonWithSchemaText(entitySetSchema), [entitySetSchema])
-  const singleEntitySetName = entitySets[entity.__entitySet].visibleName
+  const singleEntitySetName = configuration.entitySets[entity.__entitySet].visibleName
 
   useEffect(() => {
     if (entityDefinition == null) {

@@ -1,9 +1,9 @@
-import { entityTreeIconResolvers } from '../lib/configuration.js'
+import { values as configuration } from '../lib/configuration'
 
 function resolveEntityTreeIconStyle (entity, info) {
   // eslint-disable-next-line
-  for (const k in entityTreeIconResolvers) {
-    const mode = entityTreeIconResolvers[k](entity, info)
+  for (const k in configuration.entityTreeIconResolvers) {
+    const mode = configuration.entityTreeIconResolvers[k](entity, info)
 
     if (mode) {
       return mode

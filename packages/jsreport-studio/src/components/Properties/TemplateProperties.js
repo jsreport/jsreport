@@ -1,6 +1,6 @@
 /* import PropTypes from 'prop-types' */
 import React, { Component } from 'react'
-import { engines, recipes } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 
 class TemplateProperties extends Component {
   /*
@@ -16,7 +16,7 @@ class TemplateProperties extends Component {
 
     return (
       <select value={entity.engine} onChange={(v) => onChange({ _id: entity._id, engine: v.target.value })}>
-        {engines.map((e) => <option key={e} value={e}>{e}</option>)}
+        {configuration.engines.map((e) => <option key={e} value={e}>{e}</option>)}
       </select>
     )
   }
@@ -30,7 +30,7 @@ class TemplateProperties extends Component {
 
     return (
       <select value={entity.recipe} onChange={(v) => onChange({ _id: entity._id, recipe: v.target.value })}>
-        {recipes.map((e) => <option key={e} value={e}>{e}</option>)}
+        {configuration.recipes.map((e) => <option key={e} value={e}>{e}</option>)}
       </select>
     )
   }

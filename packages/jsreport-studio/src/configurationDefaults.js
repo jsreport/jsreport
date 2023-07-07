@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { connect } from 'react-redux'
-import * as configuration from './lib/configuration'
+import { values as configuration } from './lib/configuration'
 import TextEditor from './components/Editor/TextEditor'
 import EntityRefSelect from './components/common/EntityRefSelect'
 import EntityTree from './components/EntityTree/EntityTree'
@@ -61,7 +61,7 @@ export default () => {
     component: TemplateProperties
   })
 
-  configuration.editorComponents.templates = require('./components/Editor/TemplateEditor.js')
+  configuration.editorComponents.templates = require('./components/Editor/TemplateEditor.js').default
 
   configuration.editorComponents.templates.reformat = (reformatter, entity) => {
     const content = reformatter(entity.content, 'html')
@@ -73,11 +73,11 @@ export default () => {
     }
   }
 
-  configuration.editorComponents.folders = require('./components/Editor/FolderEditor.js')
+  configuration.editorComponents.folders = require('./components/Editor/FolderEditor.js').default
   configuration.editorComponents.startup = Startup
   configuration.editorComponents.profiler = Profiler
 
-  configuration.editorComponents.inspectJSON = require('./components/Editor/InspectJSONEditor.js')
+  configuration.editorComponents.inspectJSON = require('./components/Editor/InspectJSONEditor.js').default
 
   configuration.entitySets.templates = {
     name: 'templates',

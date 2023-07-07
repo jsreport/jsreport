@@ -5,7 +5,7 @@ import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents } from './utils'
-import { entitySets } from '../../lib/configuration'
+import { values as configuration } from '../../lib/configuration'
 import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityTree.css'
 
@@ -58,7 +58,7 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
   const iconClass = classNames(
     styles.entityIcon,
     'fa',
-    entityStyle || (entitySets[entity.__entitySet].faIcon || styles.entityDefaultIcon)
+    entityStyle || (configuration.entitySets[entity.__entitySet].faIcon || styles.entityDefaultIcon)
   )
 
   const selectId = `select-${node.id}`

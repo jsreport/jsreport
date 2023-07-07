@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import Highlighter from 'react-highlight-words'
-import { entitySets } from '../../../../lib/configuration'
+import { values as configuration } from '../../../../lib/configuration'
 import openEditorLine from '../../../../helpers/openEditorLine'
 import resolveEntityTreeIconStyle from '../../../../helpers/resolveEntityTreeIconStyle'
 import storeMethods from '../../../../redux/methods'
@@ -12,7 +12,7 @@ function ResultItem (props) {
   const { id, text, result, expanded, onToggle } = props
   const { docPropMatches } = result
   const localEntity = storeMethods.getEntityById(result.entity._id, false)
-  const entityIconClass = enhancedResolveEntityTreeIconStyle(localEntity) || (entitySets[result.entitySet].faIcon || styles.defaultEntityIcon)
+  const entityIconClass = enhancedResolveEntityTreeIconStyle(localEntity) || (configuration.entitySets[result.entitySet].faIcon || styles.defaultEntityIcon)
 
   const titleClass = classNames({
     [styles.itemRemoved]: localEntity == null

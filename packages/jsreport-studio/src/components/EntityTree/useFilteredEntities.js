@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { entitySets, entityTreeFilterItemResolvers } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 const initialFilterState = {}
 
@@ -37,8 +37,8 @@ function filterEntities (entities, filter) {
 
   Object.keys(entities).forEach((k) => {
     result[k] = entities[k].filter((entity) => {
-      return entityTreeFilterItemResolvers.every((filterResolver) => {
-        const filterResult = filterResolver(entity, entitySets, filter)
+      return configuration.entityTreeFilterItemResolvers.every((filterResolver) => {
+        const filterResult = filterResolver(entity, configuration.entitySets, filter)
 
         if (typeof filterResult !== 'boolean') {
           throw new Error('filterItemResolver must return boolean values, invalid return found in resolvers')

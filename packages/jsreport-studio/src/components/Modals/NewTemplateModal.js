@@ -6,7 +6,7 @@ import { officeRecipes, getAttributeForRecipe as getOfficeAttributeForRecipe } f
 import { actions as editorActions } from '../../redux/editor'
 import { actions as entitiesActions } from '../../redux/entities'
 import api from '../../helpers/api.js'
-import { engines, recipes, entitySets } from '../../lib/configuration.js'
+import { values as configuration } from '../../lib/configuration'
 
 class NewTemplateModal extends Component {
   constructor (props) {
@@ -186,7 +186,7 @@ class NewTemplateModal extends Component {
   }
 
   render () {
-    const entitySet = entitySets.templates
+    const entitySet = configuration.entitySets.templates
     const { templateName, error } = this.state
 
     return (
@@ -215,23 +215,23 @@ NewTemplateModal.propTypes = {
 }
 
 function getDefaultEngine () {
-  const found = engines.find((e) => e === 'handlebars')
+  const found = configuration.engines.find((e) => e === 'handlebars')
 
   if (found) {
     return found
   }
 
-  return engines[0]
+  return configuration.engines[0]
 }
 
 function getDefaultRecipe () {
-  const found = recipes.find((e) => e === 'chrome-pdf')
+  const found = configuration.recipes.find((e) => e === 'chrome-pdf')
 
   if (found) {
     return found
   }
 
-  return recipes[0]
+  return configuration.recipes[0]
 }
 
 export default connect(

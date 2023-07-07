@@ -1,4 +1,4 @@
-import { textEditorInstances } from '../lib/configuration'
+import { values as configuration } from '../lib/configuration'
 
 function findTextEditor (nameOrArray) {
   const names = []
@@ -12,7 +12,7 @@ function findTextEditor (nameOrArray) {
   let found
 
   for (const name of names) {
-    found = textEditorInstances.find((info) => info.name === name)
+    found = configuration.textEditorInstances.find((info) => info.name === name)
 
     if (found) {
       break

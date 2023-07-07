@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 import FrameDisplay from '../FrameDisplay'
-import { reportPreviewStyleResolvers, subscribeToSplitPaneEvents } from '../../../lib/configuration'
+import { values as configuration } from '../../../lib/configuration'
 import useOpenErrorLine from '../useOpenErrorLine'
 
 const ReportPreviewType = React.memo(function ReportPreviewType (props) {
@@ -19,7 +19,7 @@ const ReportPreviewType = React.memo(function ReportPreviewType (props) {
     let styles
 
     // eslint-disable-next-line
-    for (const resolver of reportPreviewStyleResolvers) {
+    for (const resolver of configuration.reportPreviewStyleResolvers) {
       const result = resolver(reportFile)
 
       if (result != null) {
@@ -48,7 +48,7 @@ const ReportPreviewType = React.memo(function ReportPreviewType (props) {
       }
     }
 
-    const unsubscribe = subscribeToSplitPaneEvents(goToErrorLineContainerRef.current, {
+    const unsubscribe = configuration.subscribeToSplitPaneEvents(goToErrorLineContainerRef.current, {
       change: hideGoToErrorLine,
       dragFinished: showGoToErrorLine
     })
