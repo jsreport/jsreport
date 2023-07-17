@@ -169,6 +169,7 @@ class TagEntityTreeFilterByTags extends Component {
     return (
       <div className={style.searchTagsContainer}>
         <div className={style.searchTagsInputBox}>
+          <i className={style.searchTagsInputBoxIcon} />
           <div ref={this.tagSelectionRef} className={style.tagsSelect} onClick={this.handleTagSelectionClick}>
             <span>
               {selectedTags.map((tag, tagIndex) => {

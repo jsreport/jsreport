@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import * as organizeState from './organizeState'
+import { values as organizeState } from './organizeState'
 import emitter from './emitter'
 import styles from './TagEntityTreeButtonToolbar.css'
 

@@ -1,1219 +1,684 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
-/******/ })
-/************************************************************************/
-/******/ ([
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ChangePasswordModal = function (_Component) {
-  _inherits(ChangePasswordModal, _Component);
-
-  function ChangePasswordModal(props) {
-    _classCallCheck(this, ChangePasswordModal);
-
-    var _this = _possibleConstructorReturn(this, (ChangePasswordModal.__proto__ || Object.getPrototypeOf(ChangePasswordModal)).call(this, props));
-
-    _this.oldPasswordRef = _react2.default.createRef();
-    _this.newPassword1Ref = _react2.default.createRef();
-    _this.newPassword2Ref = _react2.default.createRef();
-
-    _this.state = {};
-    return _this;
+class ChangePasswordModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.oldPasswordRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.newPassword1Ref = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.newPassword2Ref = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.state = {};
   }
-
-  _createClass(ChangePasswordModal, [{
-    key: 'changePassword',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-        var entity, close, data;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                entity = this.props.options.entity;
-                close = this.props.close;
-                _context.prev = 2;
-                data = {
-                  newPassword: this.newPassword1Ref.current.value
-                };
-
-
-                if (this.needsOldPassword(entity)) {
-                  data.oldPassword = this.oldPasswordRef.current.value;
-                }
-
-                _context.next = 7;
-                return _jsreportStudio2.default.api.post('/api/users/' + entity.shortid + '/password', { data: data });
-
-              case 7:
-                this.newPassword1Ref.current.value = '';
-                this.newPassword2Ref.current.value = '';
-                close();
-                _context.next = 15;
-                break;
-
-              case 12:
-                _context.prev = 12;
-                _context.t0 = _context['catch'](2);
-
-                this.setState({ apiError: _context.t0.message });
-
-              case 15:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this, [[2, 12]]);
-      }));
-
-      function changePassword() {
-        return _ref.apply(this, arguments);
+  async changePassword() {
+    const {
+      entity
+    } = this.props.options;
+    const {
+      close
+    } = this.props;
+    try {
+      const data = {
+        newPassword: this.newPassword1Ref.current.value
+      };
+      if (this.needsOldPassword(entity)) {
+        data.oldPassword = this.oldPasswordRef.current.value;
       }
-
-      return changePassword;
-    }()
-  }, {
-    key: 'validatePassword',
-    value: function validatePassword() {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post(`/api/users/${entity.shortid}/password`, {
+        data: data
+      });
+      this.newPassword1Ref.current.value = '';
+      this.newPassword2Ref.current.value = '';
+      close();
+    } catch (e) {
       this.setState({
-        passwordError: this.newPassword2Ref.current.value && this.newPassword2Ref.current.value !== this.newPassword1Ref.current.value,
-        apiError: null
+        apiError: e.message
       });
     }
-  }, {
-    key: 'needsOldPassword',
-    value: function needsOldPassword(entity) {
-      var needsOldPassword = true;
-
-      if (_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user)) {
-        needsOldPassword = _jsreportStudio2.default.authentication.user.isGroup ? false : entity.name === _jsreportStudio2.default.authentication.user.name;
+  }
+  validatePassword() {
+    this.setState({
+      passwordError: this.newPassword2Ref.current.value && this.newPassword2Ref.current.value !== this.newPassword1Ref.current.value,
+      apiError: null
+    });
+  }
+  needsOldPassword(entity) {
+    let needsOldPassword = true;
+    if (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication.isUserAdmin((jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication).user)) {
+      needsOldPassword = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication).user.isGroup ? false : entity.name === (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication).user.name;
+    }
+    return needsOldPassword;
+  }
+  render() {
+    const {
+      entity
+    } = this.props.options;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, this.needsOldPassword(entity) ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "old password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "password",
+      autoComplete: "off",
+      ref: this.oldPasswordRef
+    })) : '', /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "new password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "password",
+      autoComplete: "off",
+      ref: this.newPassword1Ref
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "new password verification"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "password",
+      autoComplete: "off",
+      ref: this.newPassword2Ref,
+      onChange: () => this.validatePassword()
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      style: {
+        color: 'red',
+        display: this.state.passwordError ? 'block' : 'none'
       }
-
-      return needsOldPassword;
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      var entity = this.props.options.entity;
-
-
-      return _react2.default.createElement(
-        'div',
-        null,
-        this.needsOldPassword(entity) ? _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'old password'
-          ),
-          _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.oldPasswordRef })
-        ) : '',
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'new password'
-          ),
-          _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.newPassword1Ref })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'new password verification'
-          ),
-          _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.newPassword2Ref, onChange: function onChange() {
-              return _this2.validatePassword();
-            } })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'span',
-            { style: { color: 'red', display: this.state.passwordError ? 'block' : 'none' } },
-            'password doesn\'t match'
-          ),
-          _react2.default.createElement(
-            'span',
-            { style: { color: 'red', display: this.state.apiError ? 'block' : 'none' } },
-            this.state.apiError
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'button-bar' },
-          _react2.default.createElement(
-            'button',
-            { className: 'button confirmation', onClick: function onClick() {
-                return _this2.changePassword();
-              } },
-            'ok'
-          )
-        )
-      );
-    }
-  }]);
-
-  return ChangePasswordModal;
-}(_react.Component);
-
-exports.default = ChangePasswordModal;
+    }, "password doesn't match"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      style: {
+        color: 'red',
+        display: this.state.apiError ? 'block' : 'none'
+      }
+    }, this.state.apiError)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "button-bar"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      className: "button confirmation",
+      onClick: () => this.changePassword()
+    }, "ok")));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ChangePasswordModal);
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-var _UserGroupsInfo = __webpack_require__(4);
-
-var _UserGroupsInfo2 = _interopRequireDefault(_UserGroupsInfo);
-
-var _UserEditor = __webpack_require__(5);
-
-var _UserEditor2 = _interopRequireDefault(_UserEditor);
-
-var _LogoutSettingsButton = __webpack_require__(6);
-
-var _LogoutSettingsButton2 = _interopRequireDefault(_LogoutSettingsButton);
-
-var _ChangePasswordSettingsButton = __webpack_require__(7);
-
-var _ChangePasswordSettingsButton2 = _interopRequireDefault(_ChangePasswordSettingsButton);
-
-var _ChangePasswordButton = __webpack_require__(8);
-
-var _ChangePasswordButton2 = _interopRequireDefault(_ChangePasswordButton);
-
-var _NewUserModal = __webpack_require__(9);
-
-var _NewUserModal2 = _interopRequireDefault(_NewUserModal);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-_jsreportStudio2.default.sharedComponents.NewUserModal = _NewUserModal2.default;
-
-// we want to be at the front, because other extension like scheduling relies on loaded user
-_jsreportStudio2.default.initializeListeners.unshift(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-  var response, isTenantAdmin, userIcon;
-  return regeneratorRuntime.wrap(function _callee$(_context) {
-    while (1) {
-      switch (_context.prev = _context.next) {
-        case 0:
-          _context.next = 2;
-          return _jsreportStudio2.default.api.get('/api/settings');
-
-        case 2:
-          response = _context.sent;
-
-          if (response.tenant) {
-            _context.next = 5;
-            break;
-          }
-
-          return _context.abrupt('return');
-
-        case 5:
-          isTenantAdmin = response.isTenantAdmin === true;
-
-
-          _jsreportStudio2.default.authentication = {
-            user: response.tenant,
-            useEditorComponents: [],
-            isUserAdmin: function isUserAdmin(userInfo) {
-              if (userInfo == null) {
-                return false;
-              }
-
-              if (userInfo.isSuperAdmin) {
-                return true;
-              }
-
-              var _Studio$getReferences = _jsreportStudio2.default.getReferences(),
-                  users = _Studio$getReferences.users,
-                  groups = _Studio$getReferences.usersGroups;
-
-              var validateUserInfoProps = function validateUserInfoProps(data, props) {
-                var currentProp = void 0;
-
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                  for (var _iterator = props[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var _targetProp = _step.value;
-
-                    if (data[_targetProp] == null || data[_targetProp] === '') {
-                      continue;
-                    }
-
-                    currentProp = _targetProp;
-                    break;
-                  }
-                } catch (err) {
-                  _didIteratorError = true;
-                  _iteratorError = err;
-                } finally {
-                  try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
-                      _iterator.return();
-                    }
-                  } finally {
-                    if (_didIteratorError) {
-                      throw _iteratorError;
-                    }
-                  }
-                }
-
-                if (currentProp == null) {
-                  var propsLabel = props.map(function (p) {
-                    return '.' + p;
-                  }).join(', ');
-                  throw new Error('Studio.authentication.isUserAdmin needs to have one of these ' + propsLabel + ' properties on the user info param');
-                }
-
-                return currentProp;
-              };
-
-              if (users == null || groups == null) {
-                var _targetProp2 = userInfo.isGroup ? '_id' : 'name';
-
-                validateUserInfoProps(userInfo, [_targetProp2]);
-
-                // when we are checking the current user we return the result of isTenantAdmin
-                // which comes from server, this is useful when we call this check when the entitySets
-                // are not yet registered
-                if (userInfo[_targetProp2] === _jsreportStudio2.default.authentication.user[_targetProp2]) {
-                  return isTenantAdmin;
-                } else {
-                  throw new Error('Could not find users or usersGroups entity sets');
-                }
-              }
-
-              var targetProp = validateUserInfoProps(userInfo, userInfo.isGroup ? ['_id'] : ['_id', 'shortid', 'name']);
-
-              if (userInfo.isGroup) {
-                var groupInStore = groups.find(function (u) {
-                  return u[targetProp] === userInfo[targetProp];
-                });
-
-                if (groupInStore == null) {
-                  return false;
-                }
-
-                return groupInStore.isAdmin === true;
-              } else {
-                var userInStore = users.find(function (u) {
-                  return u[targetProp] === userInfo[targetProp];
-                });
-
-                if (userInStore == null) {
-                  return false;
-                }
-
-                if (userInStore.isAdmin) {
-                  return true;
-                }
-
-                var adminGroupsForUser = groups.filter(function (g) {
-                  var users = g.users || [];
-                  return g.isAdmin === true && users.find(function (u) {
-                    return u.shortid === userInStore.shortid;
-                  }) != null;
-                });
-
-                return adminGroupsForUser.length > 0;
-              }
-            }
-          };
-
-          if (_jsreportStudio2.default.authentication.user.isSuperAdmin) {
-            _jsreportStudio2.default.authentication.useEditorComponents.push(function (user) {
-              return React.createElement(
-                'div',
-                null,
-                React.createElement(
-                  'h2',
-                  null,
-                  'Admin Management'
-                ),
-                React.createElement(
-                  'div',
-                  null,
-                  React.createElement(
-                    'div',
-                    { className: 'form-group' },
-                    React.createElement(
-                      'label',
-                      null,
-                      'Give admin privileges'
-                    ),
-                    React.createElement('input', {
-                      type: 'checkbox',
-                      checked: user.isAdmin === true,
-                      onChange: function onChange(v) {
-                        return _jsreportStudio2.default.updateEntity(_extends({}, user, { isAdmin: v.target.checked }));
-                      }
-                    })
-                  )
-                )
-              );
-            });
-          }
-
-          _jsreportStudio2.default.authentication.useEditorComponents.push(function (user) {
-            return React.createElement(_UserGroupsInfo2.default, { user: user });
-          });
-
-          userIcon = 'fa-user';
-
-
-          if (_jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user)) {
-            _jsreportStudio2.default.addEntitySet({
-              name: 'users',
-              faIcon: userIcon,
-              visibleName: 'user',
-              referenceAttributes: ['isAdmin'],
-              onNew: function onNew(options) {
-                return _jsreportStudio2.default.openModal(_NewUserModal2.default, options);
-              },
-              entityTreePosition: 200
-            });
-
-            _jsreportStudio2.default.addEditorComponent('users', _UserEditor2.default);
-            _jsreportStudio2.default.addToolbarComponent(_ChangePasswordButton2.default);
-          }
-
-          _jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
-            if (entity.__entitySet === 'users') {
-              return _jsreportStudio2.default.authentication.isUserAdmin(entity) === true ? 'fa-user-circle-o' : userIcon;
-            }
-          });
-
-          _jsreportStudio2.default.addToolbarComponent(_ChangePasswordSettingsButton2.default, 'settings');
-
-          _jsreportStudio2.default.addToolbarComponent(function () {
-            var faUserIcon = void 0;
-
-            if (_jsreportStudio2.default.authentication.user.isGroup) {
-              faUserIcon = 'fa-users';
-            } else {
-              faUserIcon = _jsreportStudio2.default.authentication.isUserAdmin(_jsreportStudio2.default.authentication.user) ? 'fa-user-circle-o' : userIcon;
-            }
-
-            return React.createElement(
-              'div',
-              { className: 'toolbar-button' },
-              React.createElement(
-                'span',
-                null,
-                React.createElement('i', { className: 'fa ' + faUserIcon }),
-                _jsreportStudio2.default.authentication.user.name
-              )
-            );
-          }, 'settingsBottom');
-
-          _jsreportStudio2.default.addToolbarComponent(_LogoutSettingsButton2.default, 'settingsBottom');
-
-        case 15:
-        case 'end':
-          return _context.stop();
-      }
-    }
-  }, _callee, undefined);
-})));
-
-/***/ }),
+/* 3 */,
 /* 4 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _react = __webpack_require__(1);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function UserGroupsInfo(props) {
-  var user = props.user;
-
-  var _Studio$getReferences = _jsreportStudio2.default.getReferences(),
-      groups = _Studio$getReferences.usersGroups;
-
-  var groupsForUser = (0, _react.useMemo)(function () {
-    return groups.filter(function (g) {
-      var users = g.users || [];
-      return users.find(function (u) {
-        return u.shortid === user.shortid;
-      }) != null;
+  const {
+    user
+  } = props;
+  const {
+    usersGroups: groups
+  } = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences();
+  const groupsForUser = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    return groups.filter(g => {
+      const users = g.users || [];
+      return users.find(u => u.shortid === user.shortid) != null;
     });
   }, [groups]);
-
-  return React.createElement(
-    'div',
-    null,
-    React.createElement(
-      'h2',
-      null,
-      'Groups'
-    ),
-    React.createElement(
-      'div',
-      null,
-      React.createElement(
-        'div',
-        { className: 'form-group' },
-        React.createElement(GroupsDisplay, { groups: groupsForUser })
-      )
-    )
-  );
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Groups"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/React.createElement(GroupsDisplay, {
+    groups: groupsForUser
+  }))));
 }
-
 function GroupsDisplay(_ref) {
-  var groups = _ref.groups;
-
-  var handleOpenGroupTab = (0, _react.useCallback)(function handleOpenGroupTab(groupId) {
-    _jsreportStudio2.default.openTab({ _id: groupId });
+  let {
+    groups
+  } = _ref;
+  const handleOpenGroupTab = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function handleOpenGroupTab(groupId) {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab({
+      _id: groupId
+    });
   }, []);
-
   if (groups.length === 0) {
-    return React.createElement(
-      'span',
-      null,
-      React.createElement(
-        'i',
-        null,
-        'No groups assigned'
-      )
-    );
+    return /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", null, "No groups assigned"));
   }
-
-  var groupsIcon = 'fa-users';
-  var lastGroupIdx = groups.length - 1;
-
-  return React.createElement(
-    'span',
-    null,
-    React.createElement('i', { className: 'fa ' + groupsIcon }),
-    '\xA0',
-    groups.map(function (g, idx) {
-      return React.createElement(
-        'span',
-        { key: g.name },
-        React.createElement(
-          'span',
-          {
-            onClick: function onClick() {
-              return handleOpenGroupTab(g._id);
-            },
-            style: { textDecoration: 'underline', cursor: 'pointer' }
-          },
-          g.name
-        ),
-        idx !== lastGroupIdx ? ', ' : ''
-      );
-    })
-  );
+  const groupsIcon = 'fa-users';
+  const lastGroupIdx = groups.length - 1;
+  return /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: `fa ${groupsIcon}`
+  }), "\xA0", groups.map((g, idx) => /*#__PURE__*/React.createElement("span", {
+    key: g.name
+  }, /*#__PURE__*/React.createElement("span", {
+    onClick: () => handleOpenGroupTab(g._id),
+    style: {
+      textDecoration: 'underline',
+      cursor: 'pointer'
+    }
+  }, g.name), idx !== lastGroupIdx ? ', ' : '')));
 }
-
-exports.default = UserGroupsInfo;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (UserGroupsInfo);
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ChangePasswordModal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _ChangePasswordModal = __webpack_require__(2);
-
-var _ChangePasswordModal2 = _interopRequireDefault(_ChangePasswordModal);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var UserEditor = function (_Component) {
-  _inherits(UserEditor, _Component);
-
-  function UserEditor() {
-    _classCallCheck(this, UserEditor);
-
-    return _possibleConstructorReturn(this, (UserEditor.__proto__ || Object.getPrototypeOf(UserEditor)).apply(this, arguments));
+class UserEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  componentDidMount() {
+    if (this.props.entity.__isNew && !this.props.entity.password) {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_ChangePasswordModal_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        entity: this.props.entity
+      });
+    }
   }
-
-  _createClass(UserEditor, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      if (this.props.entity.__isNew && !this.props.entity.password) {
-        _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: this.props.entity });
-      }
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _props = this.props,
-          entity = _props.entity,
-          onUpdate = _props.onUpdate;
-
-      var userIcon = _jsreportStudio2.default.resolveEntityTreeIconStyle(entity);
-      var isAdmin = _jsreportStudio2.default.authentication.isUserAdmin(entity);
-
-      return _react2.default.createElement(
-        'div',
-        { className: 'custom-editor' },
-        _react2.default.createElement(
-          'h1',
-          null,
-          _react2.default.createElement('i', { className: 'fa ' + userIcon }),
-          ' ',
-          entity.name
-        ),
-        isAdmin && _react2.default.createElement(
-          'div',
-          null,
-          _react2.default.createElement(
-            'b',
-            null,
-            'Admin user'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          null,
-          _jsreportStudio2.default.authentication.useEditorComponents.map(function (c, i) {
-            return _react2.default.createElement(
-              'div',
-              { key: i },
-              c(entity, onUpdate)
-            );
-          })
-        )
-      );
-    }
-  }]);
-
-  return UserEditor;
-}(_react.Component);
-
-exports.default = UserEditor;
+  render() {
+    const {
+      entity,
+      onUpdate
+    } = this.props;
+    const userIcon = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().resolveEntityTreeIconStyle(entity);
+    const isAdmin = jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication.isUserAdmin(entity);
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "custom-editor"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+      className: `fa ${userIcon}`
+    }), " ", entity.name), isAdmin && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("b", null, "Admin user")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication.useEditorComponents.map((c, i) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      key: i
+    }, c(entity, onUpdate)))));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (UserEditor);
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var LogoutSettingsButton = function (_Component) {
-  _inherits(LogoutSettingsButton, _Component);
-
-  function LogoutSettingsButton(props) {
-    _classCallCheck(this, LogoutSettingsButton);
-
-    var _this = _possibleConstructorReturn(this, (LogoutSettingsButton.__proto__ || Object.getPrototypeOf(LogoutSettingsButton)).call(this, props));
-
-    _this.logoutRef = _react2.default.createRef();
-    return _this;
+class LogoutSettingsButton extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.logoutRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
   }
-
-  _createClass(LogoutSettingsButton, [{
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'div',
-          {
-            onClick: function onClick() {
-              _this2.logoutRef.current.click();
-              _this2.props.closeMenu();
-            },
-            style: { cursor: 'pointer' }
-          },
-          _react2.default.createElement(
-            'form',
-            { method: 'POST', action: _jsreportStudio2.default.resolveUrl('/logout') },
-            _react2.default.createElement('input', { ref: this.logoutRef, type: 'submit', id: 'logoutBtn', style: { display: 'none' } })
-          ),
-          _react2.default.createElement('i', { className: 'fa fa-power-off' }),
-          'Logout'
-        )
-      );
-    }
-  }]);
-
-  return LogoutSettingsButton;
-}(_react.Component);
-
-exports.default = LogoutSettingsButton;
+  render() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      onClick: () => {
+        this.logoutRef.current.click();
+        this.props.closeMenu();
+      },
+      style: {
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("form", {
+      method: "POST",
+      action: jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().resolveUrl('/logout')
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      ref: this.logoutRef,
+      type: "submit",
+      id: "logoutBtn",
+      style: {
+        display: 'none'
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+      className: "fa fa-power-off"
+    }), "Logout"));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (LogoutSettingsButton);
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _ChangePasswordModal_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _ChangePasswordModal = __webpack_require__(2);
-
-var _ChangePasswordModal2 = _interopRequireDefault(_ChangePasswordModal);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var ChangePasswordSettingsButton = function ChangePasswordSettingsButton(props) {
-  if (_jsreportStudio2.default.authentication.user.isSuperAdmin || _jsreportStudio2.default.authentication.user.isGroup) {
-    return React.createElement('span', null);
+const ChangePasswordSettingsButton = props => {
+  if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication).user.isSuperAdmin || (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication).user.isGroup) {
+    return /*#__PURE__*/React.createElement("span", null);
   }
-
-  return React.createElement(
-    'div',
-    null,
-    React.createElement(
-      'a',
-      {
-        id: 'changePassword',
-        onClick: function onClick() {
-          _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: _jsreportStudio2.default.authentication.user });
-          props.closeMenu();
-        },
-        style: { cursor: 'pointer' }
-      },
-      React.createElement('i', { className: 'fa fa-key' }),
-      'Change password'
-    )
-  );
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("a", {
+    id: "changePassword",
+    onClick: () => {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(_ChangePasswordModal_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+        entity: (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().authentication).user
+      });
+      props.closeMenu();
+    },
+    style: {
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-key"
+  }), "Change password"));
 };
-
-exports.default = ChangePasswordSettingsButton;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ChangePasswordSettingsButton);
 
 /***/ }),
 /* 8 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ChangePasswordModal_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+class ChangePasswordButton extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  render() {
+    if (!this.props.tab || !this.props.tab.entity || this.props.tab.entity.__entitySet !== 'users' ||
+    // display change password always for super admin,
+    // and only if the current admin user opens its own user or a normal non-admin user
 
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _ChangePasswordModal = __webpack_require__(2);
-
-var _ChangePasswordModal2 = _interopRequireDefault(_ChangePasswordModal);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ChangePasswordButton = function (_Component) {
-  _inherits(ChangePasswordButton, _Component);
-
-  function ChangePasswordButton() {
-    _classCallCheck(this, ChangePasswordButton);
-
-    return _possibleConstructorReturn(this, (ChangePasswordButton.__proto__ || Object.getPrototypeOf(ChangePasswordButton)).apply(this, arguments));
-  }
-
-  _createClass(ChangePasswordButton, [{
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      if (!this.props.tab || !this.props.tab.entity || this.props.tab.entity.__entitySet !== 'users' ||
-      // display change password always for super admin,
-      // and only if the current admin user opens its own user or a normal non-admin user
-      _jsreportStudio2.default.authentication.isUserAdmin(this.props.tab.entity) && (_jsreportStudio2.default.authentication.user.isGroup || this.props.tab.entity.name !== _jsreportStudio2.default.authentication.user.name) && !_jsreportStudio2.default.authentication.user.isSuperAdmin) {
-        return _react2.default.createElement('span', null);
-      }
-
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'div',
-          {
-            className: 'toolbar-button',
-            onClick: function onClick(e) {
-              return _jsreportStudio2.default.openModal(_ChangePasswordModal2.default, { entity: _this2.props.tab.entity });
-            }
-          },
-          _react2.default.createElement('i', { className: 'fa fa-key' }),
-          'Change Password'
-        )
-      );
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication.isUserAdmin(this.props.tab.entity) && ((jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication).user.isGroup || this.props.tab.entity.name !== (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication).user.name) && !(jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().authentication).user.isSuperAdmin) {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null);
     }
-  }]);
-
-  return ChangePasswordButton;
-}(_react.Component);
-
-exports.default = ChangePasswordButton;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "toolbar-button",
+      onClick: e => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().openModal(_ChangePasswordModal_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        entity: this.props.tab.entity
+      })
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+      className: "fa fa-key"
+    }), "Change Password"));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ChangePasswordButton);
 
 /***/ }),
 /* 9 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var NewUserModal = function (_Component) {
-  _inherits(NewUserModal, _Component);
-
-  function NewUserModal() {
-    _classCallCheck(this, NewUserModal);
-
-    var _this = _possibleConstructorReturn(this, (NewUserModal.__proto__ || Object.getPrototypeOf(NewUserModal)).call(this));
-
-    _this.usernameRef = _react2.default.createRef();
-    _this.password1Ref = _react2.default.createRef();
-    _this.password2Ref = _react2.default.createRef();
-
-    _this.state = {};
-    return _this;
+class NewUserModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor() {
+    super();
+    this.usernameRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.password1Ref = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.password2Ref = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.state = {};
   }
-
-  _createClass(NewUserModal, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      var _this2 = this;
-
-      setTimeout(function () {
-        return _this2.usernameRef.current.focus();
-      }, 0);
+  componentDidMount() {
+    setTimeout(() => this.usernameRef.current.focus(), 0);
+  }
+  handleKeyPress(e) {
+    if (e.key === 'Enter') {
+      this.createUser();
     }
-  }, {
-    key: 'handleKeyPress',
-    value: function handleKeyPress(e) {
-      if (e.key === 'Enter') {
-        this.createUser();
-      }
+  }
+  async createUser() {
+    let entity = {};
+    if (this.props.options.defaults != null) {
+      entity = Object.assign(entity, this.props.options.defaults);
     }
-  }, {
-    key: 'createUser',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-        var entity, response;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                entity = {};
-
-
-                if (this.props.options.defaults != null) {
-                  entity = Object.assign(entity, this.props.options.defaults);
-                }
-
-                if (this.usernameRef.current.value) {
-                  _context.next = 4;
-                  break;
-                }
-
-                return _context.abrupt('return', this.setState({ userNameError: true }));
-
-              case 4:
-                if (this.password1Ref.current.value) {
-                  _context.next = 6;
-                  break;
-                }
-
-                return _context.abrupt('return', this.setState({ passwordError: true }));
-
-              case 6:
-
-                entity.name = this.usernameRef.current.value;
-                entity.password = this.password1Ref.current.value;
-
-                _context.prev = 8;
-                _context.next = 11;
-                return _jsreportStudio2.default.api.post('/odata/users', {
-                  data: entity
-                });
-
-              case 11:
-                response = _context.sent;
-
-
-                response.__entitySet = 'users';
-
-                _jsreportStudio2.default.addExistingEntity(response);
-
-                if (this.props.options.onNewEntity) {
-                  this.props.options.onNewEntity(response);
-                }
-
-                this.props.close();
-                _context.next = 21;
-                break;
-
-              case 18:
-                _context.prev = 18;
-                _context.t0 = _context['catch'](8);
-
-                this.setState({ apiError: _context.t0.message });
-
-              case 21:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this, [[8, 18]]);
-      }));
-
-      function createUser() {
-        return _ref.apply(this, arguments);
-      }
-
-      return createUser;
-    }()
-  }, {
-    key: 'validatePassword',
-    value: function validatePassword() {
-      this.setState({
-        passwordError: this.password2Ref.current.value && this.password2Ref.current.value !== this.password1Ref.current.value,
-        apiError: null
+    if (!this.usernameRef.current.value) {
+      return this.setState({
+        userNameError: true
       });
     }
-  }, {
-    key: 'validateUsername',
-    value: function validateUsername() {
-      this.setState({
-        userNameError: this.usernameRef.current.value === '',
-        apiError: null
+    if (!this.password1Ref.current.value) {
+      return this.setState({
+        passwordError: true
       });
     }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this3 = this;
-
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'New user'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'username'
-          ),
-          _react2.default.createElement('input', { type: 'text', ref: this.usernameRef, onChange: function onChange() {
-              return _this3.validateUsername();
-            }, onKeyPress: function onKeyPress(e) {
-              return _this3.handleKeyPress(e);
-            } })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'password'
-          ),
-          _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.password1Ref })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'password verification'
-          ),
-          _react2.default.createElement('input', { type: 'password', autoComplete: 'off', ref: this.password2Ref, onChange: function onChange() {
-              return _this3.validatePassword();
-            } })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'span',
-            { style: { color: 'red', display: this.state.passwordError ? 'block' : 'none' } },
-            'password doesn\'t match'
-          ),
-          _react2.default.createElement(
-            'span',
-            {
-              style: { color: 'red', display: this.state.userNameError ? 'block' : 'none' }
-            },
-            'username must be filled'
-          ),
-          _react2.default.createElement(
-            'span',
-            { style: { color: 'red', display: this.state.apiError ? 'block' : 'none' } },
-            this.state.apiError
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'button-bar' },
-          _react2.default.createElement(
-            'button',
-            { className: 'button confirmation', onClick: function onClick() {
-                return _this3.createUser();
-              } },
-            'ok'
-          )
-        )
-      );
+    entity.name = this.usernameRef.current.value;
+    entity.password = this.password1Ref.current.value;
+    try {
+      const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/odata/users', {
+        data: entity
+      });
+      response.__entitySet = 'users';
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().addExistingEntity(response);
+      if (this.props.options.onNewEntity) {
+        this.props.options.onNewEntity(response);
+      }
+      this.props.close();
+    } catch (e) {
+      this.setState({
+        apiError: e.message
+      });
     }
-  }]);
-
-  return NewUserModal;
-}(_react.Component);
-
-exports.default = NewUserModal;
+  }
+  validatePassword() {
+    this.setState({
+      passwordError: this.password2Ref.current.value && this.password2Ref.current.value !== this.password1Ref.current.value,
+      apiError: null
+    });
+  }
+  validateUsername() {
+    this.setState({
+      userNameError: this.usernameRef.current.value === '',
+      apiError: null
+    });
+  }
+  render() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "New user")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "username"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      ref: this.usernameRef,
+      onChange: () => this.validateUsername(),
+      onKeyPress: e => this.handleKeyPress(e)
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "password",
+      autoComplete: "off",
+      ref: this.password1Ref
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "password verification"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "password",
+      autoComplete: "off",
+      ref: this.password2Ref,
+      onChange: () => this.validatePassword()
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      style: {
+        color: 'red',
+        display: this.state.passwordError ? 'block' : 'none'
+      }
+    }, "password doesn't match"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      style: {
+        color: 'red',
+        display: this.state.userNameError ? 'block' : 'none'
+      }
+    }, "username must be filled"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      style: {
+        color: 'red',
+        display: this.state.apiError ? 'block' : 'none'
+      }
+    }, this.state.apiError)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "button-bar"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      className: "button confirmation",
+      onClick: () => this.createUser()
+    }, "ok")));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (NewUserModal);
 
 /***/ })
-/******/ ]);
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _UserGroupsInfo__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var _UserEditor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _LogoutSettingsButton_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
+/* harmony import */ var _ChangePasswordSettingsButton_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7);
+/* harmony import */ var _ChangePasswordButton_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
+/* harmony import */ var _NewUserModal_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(9);
+
+
+
+
+
+
+
+(jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().sharedComponents).NewUserModal = _NewUserModal_js__WEBPACK_IMPORTED_MODULE_6__["default"];
+
+// we want to be at the front, because other extension like scheduling relies on loaded user
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().initializeListeners.unshift(async () => {
+  const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().api.get('/api/settings');
+  if (!response.tenant) {
+    // authentication not enabled in config
+    return;
+  }
+  const isTenantAdmin = response.isTenantAdmin === true;
+  (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication) = {
+    user: response.tenant,
+    useEditorComponents: [],
+    isUserAdmin: userInfo => {
+      if (userInfo == null) {
+        return false;
+      }
+      if (userInfo.isSuperAdmin) {
+        return true;
+      }
+      const isGroup = userInfo.isGroup === true || userInfo.__entitySet === 'usersGroups';
+      const {
+        users,
+        usersGroups: groups
+      } = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().getReferences();
+      const validateUserInfoProps = (data, props) => {
+        let currentProp;
+        for (const targetProp of props) {
+          if (data[targetProp] == null || data[targetProp] === '') {
+            continue;
+          }
+          currentProp = targetProp;
+          break;
+        }
+        if (currentProp == null) {
+          const propsLabel = props.map(p => '.' + p).join(', ');
+          throw new Error(`Studio.authentication.isUserAdmin needs to have one of these ${propsLabel} properties on the user info param`);
+        }
+        return currentProp;
+      };
+      if (users == null || groups == null) {
+        const targetProp = isGroup ? '_id' : 'name';
+        validateUserInfoProps(userInfo, [targetProp]);
+
+        // when we are checking the current user we return the result of isTenantAdmin
+        // which comes from server, this is useful when we call this check when the entitySets
+        // are not yet registered
+        if (userInfo[targetProp] === (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user[targetProp]) {
+          return isTenantAdmin;
+        } else {
+          throw new Error('Could not find users or usersGroups entity sets');
+        }
+      }
+      const targetProp = validateUserInfoProps(userInfo, isGroup ? ['_id'] : ['_id', 'shortid', 'name']);
+      if (isGroup) {
+        const groupInStore = groups.find(u => u[targetProp] === userInfo[targetProp]);
+        if (groupInStore == null) {
+          return false;
+        }
+        return groupInStore.isAdmin === true;
+      } else {
+        const userInStore = users.find(u => u[targetProp] === userInfo[targetProp]);
+        if (userInStore == null) {
+          return false;
+        }
+        if (userInStore.isAdmin) {
+          return true;
+        }
+        const adminGroupsForUser = groups.filter(g => {
+          const users = g.users || [];
+          return g.isAdmin === true && users.find(u => u.shortid === userInStore.shortid) != null;
+        });
+        return adminGroupsForUser.length > 0;
+      }
+    }
+  };
+  if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user.isSuperAdmin) {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.useEditorComponents.push(user => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "Admin Management"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/React.createElement("label", null, "Give admin privileges"), /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: user.isAdmin === true,
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().updateEntity({
+        ...user,
+        isAdmin: v.target.checked
+      })
+    })))));
+  }
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.useEditorComponents.push(user => /*#__PURE__*/React.createElement(_UserGroupsInfo__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    user: user
+  }));
+  const userIcon = 'fa-user';
+  if (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user)) {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntitySet({
+      name: 'users',
+      faIcon: userIcon,
+      visibleName: 'user',
+      referenceAttributes: ['isAdmin'],
+      onNew: options => jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openModal(_NewUserModal_js__WEBPACK_IMPORTED_MODULE_6__["default"], options),
+      entityTreePosition: 200
+    });
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent('users', _UserEditor_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(_ChangePasswordButton_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+  }
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().entityTreeIconResolvers.push(entity => {
+    if (entity.__entitySet === 'users') {
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin(entity) === true ? 'fa-user-gear' : userIcon;
+    } else if (entity.__entitySet === 'usersGroups') {
+      return jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin(entity) === true ? 'fa-users-gear' : 'fa-users';
+    }
+  });
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(_ChangePasswordSettingsButton_js__WEBPACK_IMPORTED_MODULE_4__["default"], 'settings');
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(() => {
+    let faUserIcon;
+    if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user.isGroup) {
+      faUserIcon = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user) ? 'fa-users-gear' : 'fa-users';
+    } else {
+      faUserIcon = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication.isUserAdmin((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user) ? 'fa-user-gear' : userIcon;
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      className: "toolbar-button"
+    }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+      className: `fa ${faUserIcon}`
+    }), (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().authentication).user.name));
+  }, 'settingsBottom');
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addToolbarComponent(_LogoutSettingsButton_js__WEBPACK_IMPORTED_MODULE_3__["default"], 'settingsBottom');
+});
+})();
+
+/******/ })()
+;

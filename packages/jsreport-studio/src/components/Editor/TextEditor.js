@@ -8,7 +8,6 @@ import debounce from 'lodash/debounce'
 import { reformat } from '../../redux/editor/actions'
 import reformatter from '../../helpers/reformatter'
 import { getCurrentTheme } from '../../helpers/theme'
-import LinterWorker from './workers/linter.worker'
 import { values as configuration } from '../../lib/configuration'
 
 const lastTextEditorMounted = {
@@ -395,7 +394,9 @@ class TextEditor extends Component {
       return
     }
 
-    this.lintWorker = new LinterWorker()
+    this.lintWorker = new Worker(
+      /* webpackChunkName: "linter-worker" */ new URL('./workers/linter.worker.js', import.meta.url)
+    )
 
     this.lintWorker.addEventListener('message', (event) => {
       const { markers } = event.data

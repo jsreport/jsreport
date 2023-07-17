@@ -133,6 +133,7 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
             onNodeClick(node)
           }}
         >
+          <i className={styles.nodeTitleIcon} />
           <div
             ref={connectDragging}
             className={displayContainerClass}

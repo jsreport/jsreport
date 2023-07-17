@@ -249,8 +249,8 @@
     <div class="side"></div>
 </div>
 <div id="content" class="root-container container"></div>
-<% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-<script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+<% for (var js in htmlWebpackPlugin.files.js) { %>
+<script src="<%= htmlWebpackPlugin.files.js[js] %>"></script>
 <% } %>
 </body>
 </html>

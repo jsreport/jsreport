@@ -68,9 +68,8 @@
   color: $entityIcon-color;
 }
 
-.resultsItemDefaultIcon:after {
-  font-family: FontAwesome;
-  content: "\f15b";
+.resultsItemDefaultIcon {
+  composes: fa fa-file from global;
 }
 
 .resultsItemPath {

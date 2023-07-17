@@ -18,11 +18,9 @@
   position: relative;
 }
 
-.x-tags-TagEntityTreeFilterByTags-searchTagsInputBox:before {
-  content: "\f02b";
+.x-tags-TagEntityTreeFilterByTags-searchTagsInputBoxIcon {
   margin-right: 0.3rem;
   color: $entityTree-collapseIcon-collapsed-color;
-  font-family: FontAwesome;
   position: absolute;
 }
 

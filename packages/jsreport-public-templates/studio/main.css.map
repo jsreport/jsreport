@@ -1,1 +1,1 @@
-{"version":3,"sources":["webpack:///ShareModal.css"],"names":[],"mappings":"AAAA;EACE,iBAAiB;EACjB,aAAa;AACf","file":"main.css","sourcesContent":[".infoBox {\n  margin: 1rem 0rem;\n  padding: 1rem;\n}\n"],"sourceRoot":""}
+{"version":3,"file":"main.css","mappings":"AAAA;EACE,iBAAiB;EACjB,aAAa;AACf","sources":["webpack://@jsreport/jsreport-public-templates/./studio/ShareModal.css"],"sourcesContent":[".infoBox {\n  margin: 1rem 0rem;\n  padding: 1rem;\n}\n"],"names":[],"sourceRoot":""}

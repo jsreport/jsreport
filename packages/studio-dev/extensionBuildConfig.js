@@ -1,9 +1,17 @@
 const path = require('path')
 const fs = require('fs')
 const { nanoid } = require('nanoid')
-const webpack = require('webpack')
+const { DefinePlugin, ProgressPlugin } = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const RemoveSourceMapUrlPlugin = require('@rbarilani/remove-source-map-url-webpack-plugin')
+const studioDev = require('.')
+const createBabelOptions = studioDev.babelOptions
+
+// in extensions we just share babel helpers, corejs polyfills are not configured
+const babelLoaderOptions = Object.assign(createBabelOptions({ withReact: true, withTransformRuntime: true }), {
+  // we don't want to take config from babelrc files
+  babelrc: false
+})
 
 const exposedLibraries = [
   'react',
@@ -12,7 +20,6 @@ const exposedLibraries = [
   'react-list',
   'superagent',
   'shortid',
-  'bluebird',
   'filesaver.js-npm'
 ]
 
@@ -34,7 +41,7 @@ module.exports = (customExtName, opts = {}) => {
 
   const webpackPlugins = []
 
-  webpackPlugins.push(new webpack.DefinePlugin({
+  webpackPlugins.push(new DefinePlugin({
     __DEVELOPMENT__: false
   }))
 
@@ -51,7 +58,7 @@ module.exports = (customExtName, opts = {}) => {
     }))
   }
 
-  webpackPlugins.push(new webpack.ProgressPlugin())
+  webpackPlugins.push(new ProgressPlugin())
 
   return {
     // we use 'none' to avoid webpack adding any plugin
@@ -71,15 +78,14 @@ module.exports = (customExtName, opts = {}) => {
     },
     optimization: {
       nodeEnv: 'production',
-      namedModules: false,
-      namedChunks: false,
-      occurrenceOrder: true,
+      moduleIds: 'size',
+      chunkIds: 'total-size',
       flagIncludedChunks: true
     },
     externals: [
-      (context, request, callback) => {
-        if (/babel-runtime/.test(request)) {
-          return callback(null, 'Studio.runtime[\'' + request.substring('babel-runtime/'.length) + '\']')
+      ({ context, request }, callback) => {
+        if (/@babel\/runtime\//.test(request)) {
+          return callback(null, 'Studio.runtime[\'' + request.substring('@babel/runtime/'.length) + '\']')
         }
 
         if (exposedLibraries.indexOf(request) > -1) {
@@ -100,13 +106,7 @@ module.exports = (customExtName, opts = {}) => {
           exclude: /node_modules/,
           use: [{
             loader: 'babel-loader',
-            options: {
-              presets: [
-                require.resolve('babel-preset-es2015'),
-                require.resolve('babel-preset-react'),
-                require.resolve('babel-preset-stage-0')
-              ]
-            }
+            options: babelLoaderOptions
           }]
         },
         {
@@ -118,17 +118,19 @@ module.exports = (customExtName, opts = {}) => {
             {
               loader: 'css-loader',
               options: {
-                modules: true,
                 importLoaders: 1,
                 sourceMap: true,
-                localIdentName: `x-${extensionName}-[name]-[local]`
+                modules: {
+                  localIdentName: `x-${extensionName}-[name]-[local]`
+                }
               }
             },
             {
               loader: 'postcss-loader',
               options: {
-                ident: 'postcss',
-                plugins: getPostcssPlugins
+                postcssOptions: {
+                  plugins: getPostcssPlugins()
+                }
               }
             }
           ]
@@ -153,7 +155,9 @@ module.exports = (customExtName, opts = {}) => {
 
 function getPostcssPlugins () {
   return [
-    require('postcss-flexbugs-fixes'),
-    require('autoprefixer')
+    studioDev.deps['postcss-flexbugs-fixes'],
+    // this makes the autoprefixer not try to search for browserslist config and use
+    // the one we have defined
+    studioDev.deps.autoprefixer({ overrideBrowserslist: studioDev.browserTargets })
   ]
 }

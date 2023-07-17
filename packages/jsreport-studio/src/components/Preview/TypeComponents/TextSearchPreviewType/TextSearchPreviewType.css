@@ -97,9 +97,8 @@
   padding-right: 3px;
 }
 
-.defaultEntityIcon:after {
-  font-family: FontAwesome;
-  content: "\f15b";
+.defaultEntityIcon {
+  composes: fa fa-file from global;
 }
 
 .fullWidthIcon {

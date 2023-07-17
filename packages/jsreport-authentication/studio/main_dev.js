@@ -31,6 +31,8 @@ Studio.initializeListeners.unshift(async () => {
         return true
       }
 
+      const isGroup = userInfo.isGroup === true || userInfo.__entitySet === 'usersGroups'
+
       const { users, usersGroups: groups } = Studio.getReferences()
 
       const validateUserInfoProps = (data, props) => {
@@ -54,7 +56,7 @@ Studio.initializeListeners.unshift(async () => {
       }
 
       if (users == null || groups == null) {
-        const targetProp = userInfo.isGroup ? '_id' : 'name'
+        const targetProp = isGroup ? '_id' : 'name'
 
         validateUserInfoProps(userInfo, [targetProp])
 
@@ -68,9 +70,9 @@ Studio.initializeListeners.unshift(async () => {
         }
       }
 
-      const targetProp = validateUserInfoProps(userInfo, userInfo.isGroup ? ['_id'] : ['_id', 'shortid', 'name'])
+      const targetProp = validateUserInfoProps(userInfo, isGroup ? ['_id'] : ['_id', 'shortid', 'name'])
 
-      if (userInfo.isGroup) {
+      if (isGroup) {
         const groupInStore = groups.find((u) => u[targetProp] === userInfo[targetProp])
 
         if (groupInStore == null) {
@@ -139,7 +141,9 @@ Studio.initializeListeners.unshift(async () => {
 
   Studio.entityTreeIconResolvers.push((entity) => {
     if (entity.__entitySet === 'users') {
-      return Studio.authentication.isUserAdmin(entity) === true ? 'fa-user-circle-o' : userIcon
+      return Studio.authentication.isUserAdmin(entity) === true ? 'fa-user-gear' : userIcon
+    } else if (entity.__entitySet === 'usersGroups') {
+      return Studio.authentication.isUserAdmin(entity) === true ? 'fa-users-gear' : 'fa-users'
     }
   })
 
@@ -149,9 +153,9 @@ Studio.initializeListeners.unshift(async () => {
     let faUserIcon
 
     if (Studio.authentication.user.isGroup) {
-      faUserIcon = 'fa-users'
+      faUserIcon = Studio.authentication.isUserAdmin(Studio.authentication.user) ? 'fa-users-gear' : 'fa-users'
     } else {
-      faUserIcon = Studio.authentication.isUserAdmin(Studio.authentication.user) ? 'fa-user-circle-o' : userIcon
+      faUserIcon = Studio.authentication.isUserAdmin(Studio.authentication.user) ? 'fa-user-gear' : userIcon
     }
 
     return (

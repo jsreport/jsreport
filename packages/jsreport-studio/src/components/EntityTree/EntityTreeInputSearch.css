@@ -6,7 +6,9 @@
 }
 
 .search {
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .search > input {
@@ -21,9 +23,8 @@
   border-bottom: solid 0.2rem $controls-hover-borderColor;
 }
 
-.search:before {
-  content: "\f002";
+.searchIcon {
+  composes: fa fa-search from global;
   margin-right: 0.3rem;
   color: $entityTree-icon-color;
-  font-family: FontAwesome;
 }

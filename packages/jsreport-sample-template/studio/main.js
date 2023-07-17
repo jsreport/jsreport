@@ -1,288 +1,177 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
-/******/ })
-/************************************************************************/
-/******/ ([
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio;
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-var _CreateSamplesModal = __webpack_require__(2);
-
-var _CreateSamplesModal2 = _interopRequireDefault(_CreateSamplesModal);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_jsreportStudio2.default.readyListeners.push(function () {
-  var samplesCreated = _jsreportStudio2.default.getSettingValueByKey('sample-created', false) === true;
-
-  if (_jsreportStudio2.default.extensions['sample-template'].options.createSamples != null || samplesCreated === true || _jsreportStudio2.default.extensions['sample-template'].options.skipCreateSamplesModal === true) {
-    return;
-  }
-
-  if (_jsreportStudio2.default.getAllEntities().length === 0) {
-    _jsreportStudio2.default.openModal(_CreateSamplesModal2.default);
-  }
-});
-
-/***/ }),
+/* 1 */,
 /* 2 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(3);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var CreateSamplesModal = function (_Component) {
-  _inherits(CreateSamplesModal, _Component);
-
-  function CreateSamplesModal(props) {
-    _classCallCheck(this, CreateSamplesModal);
-
-    var _this = _possibleConstructorReturn(this, (CreateSamplesModal.__proto__ || Object.getPrototypeOf(CreateSamplesModal)).call(this, props));
-
-    _this.state = {
+class CreateSamplesModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
       creating: false
     };
-    return _this;
   }
-
-  _createClass(CreateSamplesModal, [{
-    key: 'close',
-    value: function close() {
-      var close = this.props.close;
-
-
-      close();
-    }
-  }, {
-    key: 'createSamples',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(shouldIgnore) {
-        var close, ignore;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                close = this.props.close;
-                ignore = shouldIgnore === true;
-
-
-                this.setState({
-                  creating: true
-                });
-
-                _context.next = 5;
-                return _jsreportStudio2.default.api.post('/studio/create-samples', {
-                  data: {
-                    ignore: ignore
-                  }
-                });
-
-              case 5:
-
-                this.setState({
-                  creating: false
-                });
-
-                if (ignore) {
-                  close();
-                } else {
-                  close();
-
-                  _jsreportStudio2.default.reset().catch(function (e) {
-                    console.error(e);
-                  });
-                }
-
-              case 7:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function createSamples(_x) {
-        return _ref.apply(this, arguments);
+  close() {
+    const {
+      close
+    } = this.props;
+    close();
+  }
+  async createSamples(shouldIgnore) {
+    const {
+      close
+    } = this.props;
+    const ignore = shouldIgnore === true;
+    this.setState({
+      creating: true
+    });
+    await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/studio/create-samples', {
+      data: {
+        ignore
       }
-
-      return createSamples;
-    }()
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      var creating = this.state.creating;
-
-
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'h1',
-          null,
-          'Create samples'
-        ),
-        _react2.default.createElement(
-          'p',
-          null,
-          'Would you like that we create some default examples for you?'
-        ),
-        _react2.default.createElement(
-          'div',
-          null,
-          _react2.default.createElement(
-            'div',
-            { className: 'button-bar' },
-            _react2.default.createElement(
-              'button',
-              { disabled: creating, className: 'button confirmation', onClick: function onClick() {
-                  return _this2.createSamples(true);
-                } },
-              'No'
-            ),
-            _react2.default.createElement(
-              'button',
-              { disabled: creating, className: 'button danger', onClick: function onClick() {
-                  return _this2.createSamples();
-                } },
-              'Yes'
-            )
-          )
-        )
-      );
+    });
+    this.setState({
+      creating: false
+    });
+    if (ignore) {
+      close();
+    } else {
+      close();
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().reset().catch(e => {
+        console.error(e);
+      });
     }
-  }]);
-
-  return CreateSamplesModal;
-}(_react.Component);
-
-exports.default = CreateSamplesModal;
+  }
+  render() {
+    const {
+      creating
+    } = this.state;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, "Create samples"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "Would you like that we create some default examples for you?"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "button-bar"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      disabled: creating,
+      className: "button confirmation",
+      onClick: () => this.createSamples(true)
+    }, "No"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      disabled: creating,
+      className: "button danger",
+      onClick: () => this.createSamples()
+    }, "Yes"))));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (CreateSamplesModal);
 
 /***/ }),
 /* 3 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio.libraries['react'];
 
 /***/ })
-/******/ ]);
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _CreateSamplesModal__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+
+
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().readyListeners.push(() => {
+  const samplesCreated = jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().getSettingValueByKey('sample-created', false) === true;
+  if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().extensions)['sample-template'].options.createSamples != null || samplesCreated === true || (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().extensions)['sample-template'].options.skipCreateSamplesModal === true) {
+    return;
+  }
+  if (jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().getAllEntities().length === 0) {
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().openModal(_CreateSamplesModal__WEBPACK_IMPORTED_MODULE_1__["default"]);
+  }
+});
+})();
+
+/******/ })()
+;

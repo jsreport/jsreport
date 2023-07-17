@@ -13,11 +13,10 @@
   position: relative;
 }
 
-.searchTagsInputBox:before {
-  content: "\f02b";
+.searchTagsInputBoxIcon {
+  composes: fa fa-tag from global;
   margin-right: 0.3rem;
   color: $entityTree-collapseIcon-collapsed-color;
-  font-family: FontAwesome;
   position: absolute;
 }
 

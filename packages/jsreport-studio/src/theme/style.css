@@ -1,3 +1,9 @@
+@import "@fortawesome/fontawesome-free/css/fontawesome.css";
+@import "@fortawesome/fontawesome-free/css/brands.css";
+@import "@fortawesome/fontawesome-free/css/solid.css";
+@import "@fortawesome/fontawesome-free/css/regular.css";
+/* we import the shims to be able to have the v4 syntax that did not require adding extra fa-brands, fa-solid, fa-regular */
+@import "@fortawesome/fontawesome-free/css/v4-shims.css";
 @import "./controls.css";
 @import "./resizer.css";
 

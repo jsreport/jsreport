@@ -1,550 +1,220 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
-/******/ })
-/************************************************************************/
-/******/ ([
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio;
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio.libraries['react'];
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _NewComponentModal = __webpack_require__(3);
-
-var _NewComponentModal2 = _interopRequireDefault(_NewComponentModal);
-
-var _ComponentProperties = __webpack_require__(4);
-
-var _ComponentProperties2 = _interopRequireDefault(_ComponentProperties);
-
-var _ComponentPreview = __webpack_require__(5);
-
-var _ComponentPreview2 = _interopRequireDefault(_ComponentPreview);
-
-var _PreviewComponentToolbar = __webpack_require__(6);
-
-var _PreviewComponentToolbar2 = _interopRequireDefault(_PreviewComponentToolbar);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_jsreportStudio2.default.addEntitySet({
-  name: 'components',
-  faIcon: 'fa-puzzle-piece',
-  visibleName: 'component',
-  onNew: function onNew(options) {
-    return _jsreportStudio2.default.openModal(_NewComponentModal2.default, options);
-  },
-  entityTreePosition: 800
-});
-
-_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity) {
-  if (entity.__entitySet === 'components') {
-    return {
-      key: 'templates',
-      entity: entity
-    };
-  }
-});
-
-_jsreportStudio2.default.addPropertiesComponent(_ComponentProperties2.default.title, _ComponentProperties2.default, function (entity) {
-  return entity.__entitySet === 'components';
-});
-_jsreportStudio2.default.addToolbarComponent(_PreviewComponentToolbar2.default);
-
-_jsreportStudio2.default.addPreviewComponent('component', _ComponentPreview2.default);
-
-/***/ }),
+/* 2 */,
 /* 3 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /* import PropTypes from 'prop-types' */
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* import PropTypes from 'prop-types' */
 
 
 function getDefaultEngine() {
-  var found = _jsreportStudio2.default.engines.find(function (e) {
-    return e === 'handlebars';
-  });
-
+  const found = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().engines.find(e => e === 'handlebars');
   if (found) {
     return found;
   }
-
-  return _jsreportStudio2.default.engines[0];
+  return (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().engines)[0];
 }
-
-var NewComponentModal = function (_Component) {
-  _inherits(NewComponentModal, _Component);
-
-  function NewComponentModal(props) {
-    _classCallCheck(this, NewComponentModal);
-
-    var _this = _possibleConstructorReturn(this, (NewComponentModal.__proto__ || Object.getPrototypeOf(NewComponentModal)).call(this, props));
-
-    _this.nameInputRef = _react2.default.createRef();
-    _this.engineInputRef = _react2.default.createRef();
-
-    _this.state = {
+class NewComponentModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.nameInputRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.engineInputRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
+    this.state = {
       error: null,
       processing: false
     };
-    return _this;
   }
 
   // the modal component for some reason after open focuses the panel itself
-
-
-  _createClass(NewComponentModal, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      var _this2 = this;
-
-      setTimeout(function () {
-        return _this2.nameInputRef.current.focus();
-      }, 0);
+  componentDidMount() {
+    setTimeout(() => this.nameInputRef.current.focus(), 0);
+  }
+  handleKeyPress(e) {
+    if (e.key === 'Enter') {
+      this.submit(e.target.value);
     }
-  }, {
-    key: 'handleKeyPress',
-    value: function handleKeyPress(e) {
-      if (e.key === 'Enter') {
-        this.submit(e.target.value);
+  }
+  async submit(val) {
+    if (this.state.processing) {
+      return;
+    }
+    const name = val || this.nameInputRef.current.value;
+    const entity = {
+      ...this.props.options.defaults,
+      name,
+      engine: this.engineInputRef.current.value,
+      __entitySet: 'components'
+    };
+    this.setState({
+      processing: true
+    });
+    try {
+      await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('/studio/validate-entity-name', {
+        data: {
+          _id: this.props.options.cloning === true ? undefined : entity._id,
+          name: name,
+          entitySet: 'components',
+          folderShortid: entity.folder != null ? entity.folder.shortid : null
+        }
+      }, true);
+    } catch (e) {
+      this.setState({
+        error: e.message,
+        processing: false
+      });
+      return;
+    }
+    this.setState({
+      error: null,
+      processing: false
+    });
+    this.props.close();
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openNewTab({
+      entity,
+      entitySet: 'components',
+      name
+    });
+  }
+  render() {
+    const {
+      error,
+      processing
+    } = this.state;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "New component")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "name"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "name...",
+      ref: this.nameInputRef,
+      onKeyPress: e => this.handleKeyPress(e)
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "engine"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
+      defaultValue: getDefaultEngine(),
+      ref: this.engineInputRef
+    }, jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().engines.map(e => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: e,
+      value: e
+    }, e)))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      style: {
+        color: 'red',
+        display: error ? 'block' : 'none',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        maxWidth: '360px'
       }
-    }
-  }, {
-    key: 'submit',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(val) {
-        var name, entity;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                if (!this.state.processing) {
-                  _context.next = 2;
-                  break;
-                }
-
-                return _context.abrupt('return');
-
-              case 2:
-                name = val || this.nameInputRef.current.value;
-                entity = _extends({}, this.props.options.defaults, {
-                  name: name,
-                  engine: this.engineInputRef.current.value,
-                  __entitySet: 'components'
-                });
-
-
-                this.setState({ processing: true });
-
-                _context.prev = 5;
-                _context.next = 8;
-                return _jsreportStudio2.default.api.post('/studio/validate-entity-name', {
-                  data: {
-                    _id: this.props.options.cloning === true ? undefined : entity._id,
-                    name: name,
-                    entitySet: 'components',
-                    folderShortid: entity.folder != null ? entity.folder.shortid : null
-                  }
-                }, true);
-
-              case 8:
-                _context.next = 14;
-                break;
-
-              case 10:
-                _context.prev = 10;
-                _context.t0 = _context['catch'](5);
-
-                this.setState({
-                  error: _context.t0.message,
-                  processing: false
-                });
-
-                return _context.abrupt('return');
-
-              case 14:
-
-                this.setState({
-                  error: null,
-                  processing: false
-                });
-
-                this.props.close();
-                _jsreportStudio2.default.openNewTab({
-                  entity: entity,
-                  entitySet: 'components',
-                  name: name
-                });
-
-              case 17:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this, [[5, 10]]);
-      }));
-
-      function submit(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return submit;
-    }()
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this3 = this;
-
-      var _state = this.state,
-          error = _state.error,
-          processing = _state.processing;
-
-
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'New component'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'name'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: 'name...',
-            ref: this.nameInputRef,
-            onKeyPress: function onKeyPress(e) {
-              return _this3.handleKeyPress(e);
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'engine'
-          ),
-          _react2.default.createElement(
-            'select',
-            {
-              defaultValue: getDefaultEngine(),
-              ref: this.engineInputRef
-            },
-            _jsreportStudio2.default.engines.map(function (e) {
-              return _react2.default.createElement(
-                'option',
-                { key: e, value: e },
-                e
-              );
-            })
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'span',
-            {
-              style: {
-                color: 'red',
-                display: error ? 'block' : 'none',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                maxWidth: '360px'
-              }
-            },
-            error
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'button-bar' },
-          _react2.default.createElement(
-            'button',
-            { className: 'button confirmation', disabled: processing, onClick: function onClick() {
-                return _this3.submit();
-              } },
-            'Ok'
-          )
-        )
-      );
-    }
-  }]);
-
-  return NewComponentModal;
-}(_react.Component);
-
-exports.default = NewComponentModal;
+    }, error)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "button-bar"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      className: "button confirmation",
+      disabled: processing,
+      onClick: () => this.submit()
+    }, "Ok")));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (NewComponentModal);
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /* import PropTypes from 'prop-types' */
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ComponentProperties)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* import PropTypes from 'prop-types' */
 
 
-var ComponentProperties = function (_Component) {
-  _inherits(ComponentProperties, _Component);
-
-  function ComponentProperties() {
-    _classCallCheck(this, ComponentProperties);
-
-    return _possibleConstructorReturn(this, (ComponentProperties.__proto__ || Object.getPrototypeOf(ComponentProperties)).apply(this, arguments));
+class ComponentProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  renderEngines() {
+    const {
+      entity,
+      onChange
+    } = this.props;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
+      value: entity.engine,
+      onChange: v => onChange({
+        _id: entity._id,
+        engine: v.target.value
+      })
+    }, jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().engines.map(e => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: e,
+      value: e
+    }, e)));
   }
-
-  _createClass(ComponentProperties, [{
-    key: 'renderEngines',
-    value: function renderEngines() {
-      var _props = this.props,
-          entity = _props.entity,
-          _onChange = _props.onChange;
-
-
-      return _react2.default.createElement(
-        'select',
-        { value: entity.engine, onChange: function onChange(v) {
-            return _onChange({ _id: entity._id, engine: v.target.value });
-          } },
-        _jsreportStudio2.default.engines.map(function (e) {
-          return _react2.default.createElement(
-            'option',
-            { key: e, value: e },
-            e
-          );
-        })
-      );
+  static title(entity) {
+    return entity.engine;
+  }
+  render() {
+    if (this.props.entity.__entitySet !== 'components') {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null);
     }
-  }, {
-    key: 'render',
-    value: function render() {
-      if (this.props.entity.__entitySet !== 'components') {
-        return _react2.default.createElement('div', null);
-      }
-
-      return _react2.default.createElement(
-        'div',
-        { className: 'properties-section' },
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'engine'
-          ),
-          ' ',
-          this.renderEngines()
-        )
-      );
-    }
-  }], [{
-    key: 'title',
-    value: function title(entity) {
-      return entity.engine;
-    }
-  }]);
-
-  return ComponentProperties;
-}(_react.Component);
-
-exports.default = ComponentProperties;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "properties-section"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "engine"), " ", this.renderEngines()));
+  }
+}
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _react = __webpack_require__(1);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var FramePreview = _jsreportStudio2.default.sharedComponents.FramePreview;
-
-var ComponentPreview = function ComponentPreview(props) {
-  var data = props.data;
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-  var src = (0, _react.useMemo)(function () {
+const FramePreview = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().sharedComponents).FramePreview;
+const ComponentPreview = props => {
+  const {
+    data
+  } = props;
+  const src = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     if (data.type == null && data.content == null) {
       return null;
     }
-
-    var blob = new Blob([data.content], { type: data.type });
+    const blob = new Blob([data.content], {
+      type: data.type
+    });
     return window.URL.createObjectURL(blob);
   }, [data.type, data.content]);
-
-  var styles = (0, _react.useMemo)(function () {
+  const styles = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     if (data.type !== 'text/html') {
       return {};
     }
@@ -555,92 +225,65 @@ var ComponentPreview = function ComponentPreview(props) {
       color: '#000'
     };
   }, [data.type]);
-
-  return React.createElement(FramePreview, {
+  return /*#__PURE__*/React.createElement(FramePreview, {
     src: src,
     styles: styles
   });
 };
-
-exports.default = ComponentPreview;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ComponentPreview);
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _react = __webpack_require__(1);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
-  var _useState = (0, _react.useState)(false),
-      _useState2 = _slicedToArray(_useState, 2),
-      isRunning = _useState2[0],
-      setIsRunning = _useState2[1];
-
-  var stopPreviewRef = (0, _react.useRef)(null);
-  var entity = props.tab != null && props.tab.entity != null ? props.tab.entity : undefined;
-
-  var previewComponent = (0, _react.useCallback)(function previewComponent(componentShortid, componentName) {
+const PreviewComponentToolbar = props => {
+  const [isRunning, setIsRunning] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const stopPreviewRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const entity = props.tab != null && props.tab.entity != null ? props.tab.entity : undefined;
+  const previewComponent = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function previewComponent(componentShortid, componentName) {
     if (isRunning) {
       return;
     }
-
     setIsRunning(true);
-    _jsreportStudio2.default.startProgress();
-
-    var previewId = _jsreportStudio2.default.preview({
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().startProgress();
+    const previewId = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().preview({
       type: 'component',
       data: {}
     });
-
-    var componentPayload = {
+    const componentPayload = {
       component: {
         shortid: componentShortid,
         content: entity.content || ''
       }
     };
-
     if (entity.engine != null) {
       componentPayload.component.engine = entity.engine;
     }
-
     if (entity.helpers != null) {
       componentPayload.component.helpers = entity.helpers;
     }
-
     if (entity.data && entity.data.shortid) {
       // try to fill request.data from the active open tab with sample data
-      var dataDetails = _jsreportStudio2.default.getAllEntities().filter(function (d) {
-        return d.shortid === entity.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew);
-      });
-
+      const dataDetails = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getAllEntities().filter(d => d.shortid === entity.data.shortid && d.__entitySet === 'data' && (d.__isLoaded || d.__isDirty || d.__isNew));
       if (dataDetails.length > 0) {
         componentPayload.data = dataDetails[0].dataJson ? JSON.parse(dataDetails[0].dataJson) : {};
       }
     }
-
-    var componentUrl = _jsreportStudio2.default.resolveUrl('/api/component');
-
-    var previewController = new AbortController();
-
-    stopPreviewRef.current = function () {
+    const componentUrl = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().resolveUrl('/api/component');
+    const previewController = new AbortController();
+    stopPreviewRef.current = () => {
       previewController.abort();
     };
-
     window.fetch(componentUrl, {
       method: 'POST',
       cache: 'no-cache',
@@ -649,15 +292,12 @@ var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
       },
       body: JSON.stringify(componentPayload),
       signal: previewController.signal
-    }).then(function (response) {
-      var contentType = '';
-
+    }).then(response => {
+      let contentType = '';
       if (response.headers != null) {
         contentType = response.headers.get('Content-Type') || '';
       }
-
-      var contentPromise = void 0;
-
+      let contentPromise;
       if (response.status !== 200) {
         if (contentType.indexOf('application/json') === 0) {
           contentPromise = response.json();
@@ -667,108 +307,193 @@ var PreviewComponentToolbar = function PreviewComponentToolbar(props) {
       } else {
         contentPromise = response.text();
       }
-
-      return contentPromise.then(function (content) {
-        return {
-          status: response.status,
-          content: content
-        };
-      });
-    }).then(function (_ref) {
-      var status = _ref.status,
-          content = _ref.content;
-
+      return contentPromise.then(content => ({
+        status: response.status,
+        content
+      }));
+    }).then(_ref => {
+      let {
+        status,
+        content
+      } = _ref;
       if (status !== 200) {
-        var notOkError = void 0;
-
+        let notOkError;
         if (typeof content !== 'string' && content.message && content.stack) {
           notOkError = new Error(content.message);
           notOkError.stack = content.stack;
         } else {
-          notOkError = new Error('Got not ok response, status: ' + status + ', message: ' + content);
+          notOkError = new Error(`Got not ok response, status: ${status}, message: ${content}`);
         }
-
         throw notOkError;
       }
-
       setIsRunning(false);
-      _jsreportStudio2.default.stopProgress();
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().stopProgress();
       stopPreviewRef.current = null;
-
-      _jsreportStudio2.default.updatePreview(previewId, {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updatePreview(previewId, {
         data: {
           type: 'text/html',
-          content: content
+          content
         },
         completed: true
       });
-    }).catch(function (err) {
+    }).catch(err => {
       setIsRunning(false);
-      _jsreportStudio2.default.stopProgress();
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().stopProgress();
       stopPreviewRef.current = null;
-
-      _jsreportStudio2.default.updatePreview(previewId, {
+      jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().updatePreview(previewId, {
         data: {
           type: 'text/plain',
-          content: 'Component' + (componentName != null ? ' "' + componentName + '"' : '') + ' preview failed.\n\n' + err.message + '\n' + (err.stack || '')
+          content: `Component${componentName != null ? ` "${componentName}"` : ''} preview failed.\n\n${err.message}\n${err.stack || ''}`
         },
         completed: true
       });
     });
   }, [entity, isRunning]);
-
-  var stopPreviewComponent = (0, _react.useCallback)(function stopPreviewComponent() {
+  const stopPreviewComponent = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function stopPreviewComponent() {
     if (stopPreviewRef.current != null) {
       stopPreviewRef.current();
     }
   });
-
-  var handleEarlyShortcut = (0, _react.useCallback)(function handleEarlyShortcut(e) {
+  const handleEarlyShortcut = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(function handleEarlyShortcut(e) {
     if (e.which === 120 && entity && entity.__entitySet === 'components') {
       e.preventDefault();
       e.stopPropagation();
-
       if (isRunning) {
         stopPreviewComponent();
       } else {
         previewComponent(entity.shortid, entity.name);
       }
-
       return false;
     }
   }, [previewComponent, isRunning, entity]);
-
-  (0, _react.useEffect)(function () {
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     window.addEventListener('keydown', handleEarlyShortcut, true);
-
-    return function () {
+    return () => {
       window.removeEventListener('keydown', handleEarlyShortcut, true);
     };
   }, [handleEarlyShortcut]);
-
   if (!props.tab || !props.tab.entity || props.tab.entity.__entitySet !== 'components') {
-    return React.createElement('span', null);
+    return /*#__PURE__*/React.createElement("span", null);
   }
-
-  return React.createElement(
-    'div',
-    {
-      title: 'Run and preview component (F9)',
-      className: 'toolbar-button',
-      onClick: function onClick() {
-        if (isRunning) {
-          stopPreviewComponent();
-        } else {
-          previewComponent(props.tab.entity.shortid, props.tab.entity.name);
-        }
+  return /*#__PURE__*/React.createElement("div", {
+    title: "Run and preview component (F9)",
+    className: "toolbar-button",
+    onClick: () => {
+      if (isRunning) {
+        stopPreviewComponent();
+      } else {
+        previewComponent(props.tab.entity.shortid, props.tab.entity.name);
       }
-    },
-    React.createElement('i', { className: 'fa fa-' + (isRunning ? 'stop' : 'eye') }),
-    'Component'
-  );
+    }
+  }, /*#__PURE__*/React.createElement("i", {
+    className: `fa fa-${isRunning ? 'stop' : 'eye'}`
+  }), "Component");
 };
-
-exports.default = PreviewComponentToolbar;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PreviewComponentToolbar);
 
 /***/ })
-/******/ ]);
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _NewComponentModal__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _ComponentProperties__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var _ComponentPreview__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _PreviewComponentToolbar__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_4__);
+
+
+
+
+
+jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addEntitySet({
+  name: 'components',
+  faIcon: 'fa-puzzle-piece',
+  visibleName: 'component',
+  onNew: options => jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().openModal(_NewComponentModal__WEBPACK_IMPORTED_MODULE_0__["default"], options),
+  entityTreePosition: 800
+});
+jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().entityEditorComponentKeyResolvers.push(entity => {
+  if (entity.__entitySet === 'components') {
+    return {
+      key: 'templates',
+      entity
+    };
+  }
+});
+jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addPropertiesComponent(_ComponentProperties__WEBPACK_IMPORTED_MODULE_1__["default"].title, _ComponentProperties__WEBPACK_IMPORTED_MODULE_1__["default"], entity => entity.__entitySet === 'components');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addToolbarComponent(_PreviewComponentToolbar__WEBPACK_IMPORTED_MODULE_3__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_4___default().addPreviewComponent('component', _ComponentPreview__WEBPACK_IMPORTED_MODULE_2__["default"]);
+})();
+
+/******/ })()
+;

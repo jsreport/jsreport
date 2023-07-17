@@ -59,15 +59,14 @@
 }
 
 .tabClose {
+  composes: fa fa-times from global;
   display: inline-block;
   margin-left: 0.3rem;
 }
 
-.tabClose:after {
-  content: "\f00d";
+.tabClose:before {
   color: $tab-close-color;
   padding: 0.1rem;
-  font-family: FontAwesome;
   font-size: 0.9rem;
 }
 

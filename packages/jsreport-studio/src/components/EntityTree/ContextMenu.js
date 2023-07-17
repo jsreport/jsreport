@@ -207,10 +207,12 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
               )
             }
 
+            const hasNestedLevels = item.items != null && item.items.length > 0
+
             const itemClass = classNames(
               styles.contextButton,
               item.className,
-              { [styles.hasNestedLevels]: item.items != null && item.items.length > 0 }
+              { [styles.hasNestedLevels]: hasNestedLevels }
             )
 
             const itemContextMenuContainerClass = classNames(
@@ -245,6 +247,9 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
                       {item.items.map(processItem)}
                     </div>
                   </div>
+                )}
+                {hasNestedLevels && (
+                  <span className={styles.contextButtonNestedIcon} />
                 )}
               </div>
             )

@@ -1,16 +1,14 @@
 
 .runCaret {
-  font-family: FontAwesome;
+  composes: fa fa-caret-down from global;
+  display: inline !important;
+  vertical-align: middle;
   padding: 0.5rem;
   font-size: 0.7rem;
 }
 
 .runCaret:hover {
   color: $formPrimary-color;
-}
-
-.runCaret:after {
-  content: "\f0d7 "
 }
 
 .listContainer {

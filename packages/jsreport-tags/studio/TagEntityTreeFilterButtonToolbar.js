@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Studio, { Popover } from 'jsreport-studio'
-import * as organizeState from './organizeState'
+import { values as organizeState } from './organizeState'
 import emitter from './emitter'
 import TagEntityTreeFilterByTags from './TagEntityTreeFilterByTags'
 import styles from './TagEntityTreeButtonToolbar.css'

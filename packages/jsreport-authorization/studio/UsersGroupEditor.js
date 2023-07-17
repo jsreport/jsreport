@@ -23,9 +23,11 @@ const UsersGroupEditor = (props) => {
     )
   }
 
+  const groupIcon = Studio.resolveEntityTreeIconStyle(entity)
+
   return (
     <div className='custom-editor'>
-      <h1><i className='fa fa-users' /> {entity.name}</h1>
+      <h1><i className={`fa ${groupIcon}`} /> {entity.name}</h1>
       {entity.isAdmin && (
         <div>
           <b>Admin group</b>

@@ -21,7 +21,6 @@ import resolveUrl from './helpers/resolveUrl'
 import { findTextEditor } from './helpers/textEditorInstance'
 import resolveEntityTreeIconStyle from './helpers/resolveEntityTreeIconStyle'
 import babelRuntime from './lib/babelRuntime'
-import bluebird from 'bluebird'
 
 /**
  * Main facade and API for extensions. Exposed as global variable Studio. It can be also imported from jsreport-studio
@@ -587,7 +586,7 @@ class Studio {
     await this.store.dispatch({ type: 'RESET' })
     await this.store.dispatch(editor.actions.updateHistory())
     await this.store.dispatch(settings.actions.load())
-    await bluebird.all(Object.keys(this.entitySets).map((t) => this.store.dispatch(entities.actions.loadReferences(t))))
+    await Promise.all(Object.keys(this.entitySets).map((t) => this.store.dispatch(entities.actions.loadReferences(t))))
   }
 
   /**
@@ -849,7 +848,6 @@ class Studio {
       'react-list': ReactList,
       superagent: superagent,
       shortid: shortid,
-      bluebird: bluebird,
       'filesaver.js-npm': fileSaver
     }
   }

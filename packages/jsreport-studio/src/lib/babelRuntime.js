@@ -6,6 +6,7 @@ export default {
   'helpers/defineProperty': require('@babel/runtime-corejs3/helpers/defineProperty'),
   'helpers/classCallCheck': require('@babel/runtime-corejs3/helpers/classCallCheck'),
   'helpers/createClass': require('@babel/runtime-corejs3/helpers/createClass'),
+  'helpers/extends': require('@babel/runtime-corejs3/helpers/extends'),
   'helpers/possibleConstructorReturn': require('@babel/runtime-corejs3/helpers/possibleConstructorReturn'),
   'helpers/inherits': require('@babel/runtime-corejs3/helpers/inherits'),
   'regenerator/index': require('@babel/runtime-corejs3/regenerator/index'),

@@ -1,11 +1,20 @@
-require('@babel/register')();
+const jsreportStudioDev = require('@jsreport/studio-dev')
+const createBabelOptions = jsreportStudioDev.babelOptions
+
+const babelOptions = Object.assign(createBabelOptions({ withReact: true, withTransformRuntime: true }), {
+  // we don't want to take config from babelrc files
+  babelrc: false
+})
+
+require('@babel/register')(babelOptions);
 
 var JSDOM = require('jsdom').JSDOM;
 
 var exposedProperties = ['window', 'navigator', 'document'];
 
 var dom = new JSDOM('', {
-  url: "http://localhost"
+  url: "http://localhost",
+  pretendToBeVisual: true
 }).window;
 
 global.document = dom.document;

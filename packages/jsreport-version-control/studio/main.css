@@ -1,16 +1,13 @@
 
 .x-version-control-VersionControl-runCaret {
-  font-family: FontAwesome;
+  display: inline !important;
+  vertical-align: middle;
   padding: 0.5rem;
   font-size: 0.7rem;
 }
 
 .x-version-control-VersionControl-runCaret:hover {
   color: $formPrimary-color;
-}
-
-.x-version-control-VersionControl-runCaret:after {
-  content: "\f0d7 "
 }
 
 .x-version-control-VersionControl-listContainer {

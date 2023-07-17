@@ -1,133 +1,121 @@
-/******/ (function(modules) { // webpackBootstrap
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
+/* 0 */,
+/* 1 */
+/***/ ((module) => {
+
+module.exports = Studio;
+
+/***/ })
+/******/ 	]);
+/************************************************************************/
 /******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
-/******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
-/******/ })
+/******/ 	
 /************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
 
-"use strict";
-
-
-var _jsreportStudio = __webpack_require__(1);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_jsreportStudio2.default.textEditorInitializeListeners.push(function (_ref) {
-  var monaco = _ref.monaco,
-      theme = _ref.theme;
-
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().textEditorInitializeListeners.push(_ref => {
+  let {
+    monaco,
+    theme
+  } = _ref;
   registerPugLanguage(monaco);
 });
-
-_jsreportStudio2.default.templateEditorModeResolvers.push(function (template) {
-  return template.engine === 'pug' ? 'pug' : null;
-});
-
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().templateEditorModeResolvers.push(template => template.engine === 'pug' ? 'pug' : null);
 function registerPugLanguage(monaco) {
-  var languageId = 'pug';
-
-  var language = {
+  const languageId = 'pug';
+  const language = {
     defaultToken: '',
     tokenPostfix: '.pug',
-
     ignoreCase: true,
-
-    brackets: [{ token: 'delimiter.curly', open: '{', close: '}' }, { token: 'delimiter.array', open: '[', close: ']' }, { token: 'delimiter.parenthesis', open: '(', close: ')' }],
-
+    brackets: [{
+      token: 'delimiter.curly',
+      open: '{',
+      close: '}'
+    }, {
+      token: 'delimiter.array',
+      open: '[',
+      close: ']'
+    }, {
+      token: 'delimiter.parenthesis',
+      open: '(',
+      close: ')'
+    }],
     keywords: ['append', 'block', 'case', 'default', 'doctype', 'each', 'else', 'extends', 'for', 'if', 'in', 'include', 'mixin', 'typeof', 'unless', 'var', 'when'],
-
     tags: ['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'base', 'basefont', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'command', 'datalist', 'dd', 'del', 'details', 'dfn', 'div', 'dl', 'dt', 'em', 'embed', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'keygen', 'kbd', 'label', 'li', 'link', 'map', 'mark', 'menu', 'meta', 'meter', 'nav', 'noframes', 'noscript', 'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'small', 'source', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'tracks', 'tt', 'u', 'ul', 'video', 'wbr'],
-
     // we include these common regular expressions
     // eslint-disable-next-line no-useless-escape
     symbols: /[\+\-\*\%\&\|\!\=\/\.\,\:]+/,
     escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-
     tokenizer: {
       root: [
       // Tag or a keyword at start
@@ -136,73 +124,97 @@ function registerPugLanguage(monaco) {
           '$2@tags': {
             cases: {
               '@eos': ['', 'tag'],
-              '@default': ['', { token: 'tag', next: '@tag.$1' }]
+              '@default': ['', {
+                token: 'tag',
+                next: '@tag.$1'
+              }]
             }
           },
-          '$2@keywords': ['', { token: 'keyword.$2' }],
+          '$2@keywords': ['', {
+            token: 'keyword.$2'
+          }],
           '@default': ['', '']
         }
       }],
-
       // id
       [/^(\s*)(#[a-zA-Z_-][\w-]*)/, {
         cases: {
           '@eos': ['', 'tag.id'],
-          '@default': ['', { token: 'tag.id', next: '@tag.$1' }]
+          '@default': ['', {
+            token: 'tag.id',
+            next: '@tag.$1'
+          }]
         }
       }],
-
       // class
       [/^(\s*)(\.[a-zA-Z_-][\w-]*)/, {
         cases: {
           '@eos': ['', 'tag.class'],
-          '@default': ['', { token: 'tag.class', next: '@tag.$1' }]
+          '@default': ['', {
+            token: 'tag.class',
+            next: '@tag.$1'
+          }]
         }
       }],
-
       // plain text with pipe
-      [/^(\s*)(\|.*)$/, ''], { include: '@whitespace' },
-
+      [/^(\s*)(\|.*)$/, ''], {
+        include: '@whitespace'
+      },
       // keywords
       [/[a-zA-Z_$][\w$]*/, {
         cases: {
-          '@keywords': { token: 'keyword.$0' },
+          '@keywords': {
+            token: 'keyword.$0'
+          },
           '@default': ''
         }
       }],
-
       // delimiters and operators
       // eslint-disable-next-line no-useless-escape
       [/[{}()\[\]]/, '@brackets'], [/@symbols/, 'delimiter'],
-
       // numbers
       // eslint-disable-next-line no-useless-escape
       [/\d+\.\d+([eE][\-+]?\d+)?/, 'number.float'], [/\d+/, 'number'],
-
       // strings:
       [/"/, 'string', '@string."'], [/'/, 'string', "@string.'"]],
-
-      tag: [[/(\.)(\s*$)/, [{ token: 'delimiter', next: '@blockText.$S2.' }, '']], [/\s+/, { token: '', next: '@simpleText' }],
-
+      tag: [[/(\.)(\s*$)/, [{
+        token: 'delimiter',
+        next: '@blockText.$S2.'
+      }, '']], [/\s+/, {
+        token: '',
+        next: '@simpleText'
+      }],
       // id
       [/#[a-zA-Z_-][\w-]*/, {
         cases: {
-          '@eos': { token: 'tag.id', next: '@pop' },
+          '@eos': {
+            token: 'tag.id',
+            next: '@pop'
+          },
           '@default': 'tag.id'
         }
       }],
       // class
       [/\.[a-zA-Z_-][\w-]*/, {
         cases: {
-          '@eos': { token: 'tag.class', next: '@pop' },
+          '@eos': {
+            token: 'tag.class',
+            next: '@pop'
+          },
           '@default': 'tag.class'
         }
       }],
       // attributes
-      [/\(/, { token: 'delimiter.parenthesis', next: '@attributeList' }]],
-
-      simpleText: [[/[^#]+$/, { token: '', next: '@popall' }], [/[^#]+/, { token: '' }],
-
+      [/\(/, {
+        token: 'delimiter.parenthesis',
+        next: '@attributeList'
+      }]],
+      simpleText: [[/[^#]+$/, {
+        token: '',
+        next: '@popall'
+      }], [/[^#]+/, {
+        token: ''
+      }],
       // interpolation
       [/(#{)([^}]*)(})/, {
         cases: {
@@ -212,9 +224,14 @@ function registerPugLanguage(monaco) {
           }],
           '@default': ['interpolation.delimiter', 'interpolation', 'interpolation.delimiter']
         }
-      }], [/#$/, { token: '', next: '@popall' }], [/#/, '']],
-
-      attributeList: [[/\s+/, ''], [/(\w+)(\s*=\s*)("|')/, ['attribute.name', 'delimiter', { token: 'attribute.value', next: '@value.$3' }]], [/\w+/, 'attribute.name'], [/,/, {
+      }], [/#$/, {
+        token: '',
+        next: '@popall'
+      }], [/#/, '']],
+      attributeList: [[/\s+/, ''], [/(\w+)(\s*=\s*)("|')/, ['attribute.name', 'delimiter', {
+        token: 'attribute.value',
+        next: '@value.$3'
+      }]], [/\w+/, 'attribute.name'], [/,/, {
         cases: {
           '@eos': {
             token: 'attribute.delimiter',
@@ -222,31 +239,56 @@ function registerPugLanguage(monaco) {
           },
           '@default': 'attribute.delimiter'
         }
-      }], [/\)$/, { token: 'delimiter.parenthesis', next: '@popall' }], [/\)/, { token: 'delimiter.parenthesis', next: '@pop' }]],
-
-      whitespace: [[/^(\s*)(\/\/.*)$/, { token: 'comment', next: '@blockText.$1.comment' }], [/[ \t\r\n]+/, ''], [/<!--/, { token: 'comment', next: '@comment' }]],
-
+      }], [/\)$/, {
+        token: 'delimiter.parenthesis',
+        next: '@popall'
+      }], [/\)/, {
+        token: 'delimiter.parenthesis',
+        next: '@pop'
+      }]],
+      whitespace: [[/^(\s*)(\/\/.*)$/, {
+        token: 'comment',
+        next: '@blockText.$1.comment'
+      }], [/[ \t\r\n]+/, ''], [/<!--/, {
+        token: 'comment',
+        next: '@comment'
+      }]],
       blockText: [[/^\s+.*$/, {
         cases: {
-          '($S2\\s+.*$)': { token: '$S3' },
-          '@default': { token: '@rematch', next: '@popall' }
+          '($S2\\s+.*$)': {
+            token: '$S3'
+          },
+          '@default': {
+            token: '@rematch',
+            next: '@popall'
+          }
         }
-      }], [/./, { token: '@rematch', next: '@popall' }]],
-
+      }], [/./, {
+        token: '@rematch',
+        next: '@popall'
+      }]],
       comment: [
       // eslint-disable-next-line no-useless-escape
-      [/[^<\-]+/, 'comment.content'], [/-->/, { token: 'comment', next: '@pop' }], [/<!--/, 'comment.content.invalid'],
+      [/[^<\-]+/, 'comment.content'], [/-->/, {
+        token: 'comment',
+        next: '@pop'
+      }], [/<!--/, 'comment.content.invalid'],
       // eslint-disable-next-line no-useless-escape
       [/[<\-]/, 'comment.content']],
-
       string: [[/[^\\"'#]+/, {
         cases: {
-          '@eos': { token: 'string', next: '@popall' },
+          '@eos': {
+            token: 'string',
+            next: '@popall'
+          },
           '@default': 'string'
         }
       }], [/@escapes/, {
         cases: {
-          '@eos': { token: 'string.escape', next: '@popall' },
+          '@eos': {
+            token: 'string.escape',
+            next: '@popall'
+          },
           '@default': 'string.escape'
         }
       }], [/\\./, {
@@ -261,53 +303,84 @@ function registerPugLanguage(monaco) {
       // interpolation
       [/(#{)([^}]*)(})/, ['interpolation.delimiter', 'interpolation', 'interpolation.delimiter']], [/#/, 'string'], [/["']/, {
         cases: {
-          '$#==$S2': { token: 'string', next: '@pop' },
-          '@default': { token: 'string' }
+          '$#==$S2': {
+            token: 'string',
+            next: '@pop'
+          },
+          '@default': {
+            token: 'string'
+          }
         }
       }]],
-
       // Almost identical to above, except for escapes and the output token
       value: [[/[^\\"']+/, {
         cases: {
-          '@eos': { token: 'attribute.value', next: '@popall' },
+          '@eos': {
+            token: 'attribute.value',
+            next: '@popall'
+          },
           '@default': 'attribute.value'
         }
       }], [/\\./, {
         cases: {
-          '@eos': { token: 'attribute.value', next: '@popall' },
+          '@eos': {
+            token: 'attribute.value',
+            next: '@popall'
+          },
           '@default': 'attribute.value'
         }
       }], [/["']/, {
         cases: {
-          '$#==$S2': { token: 'attribute.value', next: '@pop' },
-          '@default': { token: 'attribute.value' }
+          '$#==$S2': {
+            token: 'attribute.value',
+            next: '@pop'
+          },
+          '@default': {
+            token: 'attribute.value'
+          }
         }
       }]]
     }
+  };
 
-    // took from https://github.com/microsoft/monaco-languages/blob/main/src/pug/pug.ts
-  };var conf = {
+  // took from https://github.com/microsoft/monaco-languages/blob/main/src/pug/pug.ts
+  const conf = {
     comments: {
       lineComment: '//'
     },
     brackets: [['{', '}'], ['[', ']'], ['(', ')']],
-    autoClosingPairs: [{ open: '"', close: '"', notIn: ['string', 'comment'] }, { open: "'", close: "'", notIn: ['string', 'comment'] }, { open: '{', close: '}', notIn: ['string', 'comment'] }, { open: '[', close: ']', notIn: ['string', 'comment'] }, { open: '(', close: ')', notIn: ['string', 'comment'] }],
+    autoClosingPairs: [{
+      open: '"',
+      close: '"',
+      notIn: ['string', 'comment']
+    }, {
+      open: "'",
+      close: "'",
+      notIn: ['string', 'comment']
+    }, {
+      open: '{',
+      close: '}',
+      notIn: ['string', 'comment']
+    }, {
+      open: '[',
+      close: ']',
+      notIn: ['string', 'comment']
+    }, {
+      open: '(',
+      close: ')',
+      notIn: ['string', 'comment']
+    }],
     folding: {
       offSide: true
     }
   };
-
-  monaco.languages.register({ id: languageId });
-
+  monaco.languages.register({
+    id: languageId
+  });
   monaco.languages.setMonarchTokensProvider(languageId, language);
   monaco.languages.setLanguageConfiguration(languageId, conf);
 }
+})();
 
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-module.exports = Studio;
-
-/***/ })
-/******/ ]);
+/******/ })()
+;

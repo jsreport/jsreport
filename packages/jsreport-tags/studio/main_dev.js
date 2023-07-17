@@ -9,7 +9,7 @@ import TagEntityTreeFilterButtonToolbar from './TagEntityTreeFilterButtonToolbar
 import TagEntityTreeItem from './TagEntityTreeItem'
 import TagEntityTreeTagGroupItem from './TagEntityTreeTagGroupItem'
 import emitter from './emitter'
-import * as organizeState from './organizeState'
+import { values as organizeState } from './organizeState'
 import filterItemWithTagsStrategy from './filterItemWithTagsStrategy'
 
 Studio.addEntitySet({

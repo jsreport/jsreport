@@ -1,9 +1,4 @@
-#!/usr/bin/env -S node --openssl-legacy-provider
-// NOTE: the --openssl-legacy-provider option from above was used because webpack@4
-// is not compatible with the openssl version that comes with node.js 18.
-// webpack 4 uses md4 hashes which are not supported in that version of openssl,
-// this is a problem that is fixed in webpack >=5, so we can remove the above when
-// updating webpack in the future
+#!/usr/bin/env node
 const path = require('path')
 const argsParser = require('yargs-parser')
 const webpack = require('webpack')
@@ -12,7 +7,7 @@ const extensionBuildConfig = require('../extensionBuildConfig')
 const argv = argsParser(process.argv.slice(2), {
   // additionally to config args, we expect any option passed to "stats." to be parsed
   string: ['config', 'name'],
-  boolean: ['verbose', 'analyze'],
+  boolean: ['verbose', 'analyze', 'errorDetails'],
   array: ['removeSourceMapUrl'],
   alias: {
     verbose: ['v']
@@ -79,18 +74,24 @@ webpack(config, (err, stats) => {
 
   const jsonStats = stats.toJson()
 
+  const defaultErrorDetails = argv.errorDetails != null ? Boolean(argv.errorDetails) : argv.errorDetails
   let statsOpts = argv.stats != null && typeof argv === 'object' ? argv.stats : {}
 
   statsOpts = {
     ...statsOpts,
+    hash: hasProp(statsOpts, 'hash') ? statsOpts.hash : true,
+    builtAt: hasProp(statsOpts, 'builtAt') ? statsOpts.builtAt : true,
     colors: hasProp(statsOpts, 'colors') ? statsOpts.colors : true,
     chunks: hasProp(statsOpts, 'chunks') ? statsOpts.chunks : false,
-    cached: hasProp(statsOpts, 'cached') ? statsOpts.cached : false,
+    cachedModules: hasProp(statsOpts, 'cachedModules') ? statsOpts.cachedModules : false,
     warnings: hasProp(statsOpts, 'warnings') ? statsOpts.warnings : true,
     errors: hasProp(statsOpts, 'errors') ? statsOpts.errors : true,
+    errorDetails: hasProp(statsOpts, 'errorDetails') ? statsOpts.errorDetails : defaultErrorDetails,
+    assetsSpace: hasProp(statsOpts, 'assetsSpace') ? statsOpts.assetsSpace : Infinity,
+    modulesSpace: hasProp(statsOpts, 'modulesSpace') ? statsOpts.modulesSpace : Infinity,
+    chunkModulesSpace: hasProp(statsOpts, 'chunkModulesSpace') ? statsOpts.chunkModulesSpace : Infinity,
     // by default we show all modules included except for the ones that are
     // from node_modules
-    maxModules: hasProp(statsOpts, 'maxModules') ? statsOpts.maxModules : Infinity,
     excludeModules: hasProp(statsOpts, 'excludeModules')
       ? statsOpts.excludeModules
       : (moduleSource) => {
@@ -112,6 +113,7 @@ webpack(config, (err, stats) => {
 
   if (jsonStats.errors.length > 0) {
     console.log('webpack build has ERRORS')
+    process.exit(1)
   } else if (jsonStats.warnings.length > 0) {
     console.log('webpack build OK but with WARNINGS')
   } else {

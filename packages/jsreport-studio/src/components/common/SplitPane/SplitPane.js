@@ -1,4 +1,3 @@
-import Promise from 'bluebird'
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Pane from './Pane'

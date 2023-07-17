@@ -84,13 +84,7 @@ module.exports = (reporter, definition) => {
     const textSearch = createTextSearch(reporter)
 
     if (process.env.NODE_ENV !== 'jsreport-development') {
-      let webpackJsWrap
-
-      if (fs.existsSync(path.join(distPath, 'extensions.client.js'))) {
-        webpackJsWrap = fs.readFileSync(path.join(distPath, 'extensions.client.js'), 'utf8')
-      } else {
-        webpackJsWrap = fs.readFileSync(path.join(distPath, extensionsJsChunkName), 'utf8')
-      }
+      const webpackJsWrap = fs.readFileSync(path.join(distPath, extensionsJsChunkName), 'utf8')
 
       const webpackExtensionsJs = webpackJsWrap.replace('$extensionsHere', () => {
         return reporter.extensionsManager.extensions.map((e) => {
@@ -158,9 +152,24 @@ module.exports = (reporter, definition) => {
       fs.writeFileSync(path.join(__dirname, '../src/extensions_dev.css'), reporter.extensionsManager.extensions.map((e) => {
         try {
           const extensionPath = path.join(e.directory, '/studio/main.css')
+
           fs.statSync(extensionPath)
 
-          return `@import '${path.relative(path.join(__dirname, '../src'), extensionPath).replace(/\\/g, '/')}';`
+          let cssImport = `@import '${path.relative(path.join(__dirname, '../src'), extensionPath).replace(/\\/g, '/')}';`
+
+          // we enable the static import when all extensions are in dev mode or when the
+          // specific extension is in dev mode, if it is not enabled then the studio/main.css
+          // of extension is not imported but there can be still .css files imported from the
+          // .js files of extension.
+          // we do this to avoid duplicating css when in dev mode
+          // (the css from studio/main.css and the css imported from .js files of extension)
+          const enabled = extsConfiguredInDevMode.length > 0 && !extsConfiguredInDevMode.includes(e.name)
+
+          if (!enabled) {
+            cssImport = `/* DISABLED BECAUSE ${e.name} EXTENSION IS IN DEV MODE */\n/* ${cssImport} */`
+          }
+
+          return cssImport
         } catch (e) {
           return ''
         }
@@ -211,19 +220,32 @@ module.exports = (reporter, definition) => {
         statsOpts.modules = false
       }
 
+      if (statsOpts.assetsSpace == null) {
+        statsOpts.assetsSpace = Infinity
+      }
+
+      if (statsOpts.modulesSpace == null) {
+        statsOpts.modulesSpace = Infinity
+      }
+
+      if (statsOpts.chunkModulesSpace == null) {
+        statsOpts.chunkModulesSpace = Infinity
+      }
+
       reporter.express.app.use(require('webpack-dev-middleware')(compiler, {
         publicPath: '/studio/assets/',
-        lazy: false,
         stats: statsOpts
       }))
 
       reporter.express.app.use(require('webpack-hot-middleware')(compiler))
     }
 
-    app.get(`/studio/assets/${extensionsJsChunkName}`, (req, res) => {
-      res.set('Content-Type', 'application/javascript')
-      res.send(clientStudioExtensionsJsContent)
-    })
+    if (extensionsJsChunkName != null) {
+      app.get(`/studio/assets/${extensionsJsChunkName}`, (req, res) => {
+        res.set('Content-Type', 'application/javascript')
+        res.send(clientStudioExtensionsJsContent)
+      })
+    }
 
     app.get('/studio/assets/alternativeTheme.css', async (req, res, next) => {
       const themeName = req.query.name
@@ -573,12 +595,12 @@ module.exports = (reporter, definition) => {
 
   function findExtensionsJsChunkName () {
     if (process.env.NODE_ENV === 'jsreport-development') {
-      return 'studio-extensions.client.dev.js'
-    } else {
-      const staticFiles = fs.readdirSync(distPath)
-
-      return staticFiles.find((fileName) => /studio-extensions\.client\.[^.]+.js/.test(fileName))
+      return
     }
+
+    const staticFiles = fs.readdirSync(distPath)
+
+    return staticFiles.find((fileName) => /studio-extensions\.client\.[^.]+.js/.test(fileName))
   }
 
   async function readMainCssContent () {

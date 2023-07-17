@@ -64,27 +64,28 @@
   user-select: none;
 }
 
-.nodeTitle:before {
+.nodeTitleIcon {
+  composes: fa fa-caret-right from global;
+}
+
+.nodeTitleIcon:before {
   font-size: 1rem;
-  font-family: FontAwesome;
   color: $entityTree-collapseIcon-collapsed-color;
 }
 
-.nodeTitle:not(.collapsed):before {
-  content: "\f0da";
+.nodeTitle:not(.collapsed) > .nodeTitleIcon:before {
   transform: rotateZ(45deg);
   display: inline-block;
   margin-right: 0.3rem;
   color: $entityTree-collapseIcon-color;
 }
 
-.nodeTitle.collapsed:before {
-  content: "\f0da";
+.nodeTitle.collapsed > .nodeTitleIcon:before {
   display: inline-block;
   margin-right: 0.3rem;
 }
 
-.nodeTitle:hover:before {
+.nodeTitle:hover > .nodeTitleIcon:before {
   color: $entityTree-collapseIcon-hover-color;
 }
 
@@ -132,46 +133,43 @@
   color: $entityIcon-color;
 }
 
-.entityDefaultIcon:after {
-  font-family: FontAwesome;
-  content: "\f15b";
+.entityDefaultIcon {
+  composes: fa fa-file from global;
 }
 
 .add {
+  composes: fa fa-plus from global;
   cursor: pointer;
 }
 
-.add:after {
-  content: "\f067";
-  font-family: FontAwesome;
+.add:before {
   color: $entityTree-icon-color;
   padding: 0.1rem;
   font-size: 1rem;
 }
 
-.add:hover:after {
+.add:hover:before {
   color: $entityTree-icon-hover-color;
 }
 
 .help {
+  composes: fa fa-question from global;
   cursor: pointer;
   text-decoration: none;
 }
 
-.help:after {
-  content: "\f128";
-  font-family: FontAwesome;
+.help:before {
   color: $entityTree-icon-color;
   padding: 0.1rem;
   font-size: 1rem;
   visibility: hidden;
 }
 
-.nodeBox:hover .help:after {
+.nodeBox:hover .help:before {
   visibility: visible;
 }
 
-.help:hover:after {
+.help:hover:before {
   color: $entityTree-icon-hover-color;
 }
 
@@ -220,11 +218,10 @@
   color: $contextMenu-button-disabled-color;
 }
 
-.contextButton.hasNestedLevels:after {
-  font-family: FontAwesome;
+.contextButtonNestedIcon {
+  composes: fa fa-caret-right from global;
   font-size: 0.9rem;
   padding-right: 0.5rem;
-  content: "\f0da";
   position: absolute;
   right: 0;
 }

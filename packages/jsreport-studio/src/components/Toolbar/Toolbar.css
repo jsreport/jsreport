@@ -27,19 +27,19 @@
   color: $toolbar-button-hover-color;
 }
 
-.run:before {
-  content: "\f04b";
-  font-family: FontAwesome;
+.run {
+  composes: fa fa-play from global;
+  display: inline !important;
 }
 
-.save:before {
-  content: "\f0c7";
-  font-family: FontAwesome;
+.save {
+  composes: fa fa-floppy-o from global;
+  display: inline !important;
 }
 
-.saveAll:before {
-  content: "\f0c7";
-  font-family: FontAwesome;
+.saveAll {
+  composes: fa fa-floppy-o from global;
+  display: inline !important;
 }
 
 .spinner {
@@ -48,12 +48,9 @@
   font-size: 1.5rem;
 }
 
-.spinner > i {
-}
-
-.delete:before {
-  content: "\f014";
-  font-family: FontAwesome;
+.delete {
+  composes: fa fa-trash from global;
+  display: inline !important;
 }
 
 .logo {
@@ -70,15 +67,13 @@
 }
 
 .runCaret {
-  font-family: FontAwesome;
+  composes: fa fa-caret-down from global;
+  display: inline !important;
+  vertical-align: middle;
   padding: 0.5rem;
   font-size: 0.7rem;
 }
 
 .runCaret:hover {
   color: $formPrimary-color;
-}
-
-.runCaret:after {
-  content: "\f0d7 "
 }

@@ -22,13 +22,13 @@ export default function createStore (history) {
     finalCreateStore = applyMiddleware(...middleware)(_createStore)
   }
 
-  const reducer = require('./reducer')(history)
+  const reducer = require('./reducer').default(history)
   const store = finalCreateStore(enableBatching(reducer))
 
   // eslint-disable-next-line no-undef
-  if (__DEVELOPMENT__ && module.hot) {
-    module.hot.accept('./reducer', () => {
-      store.replaceReducer(require('./reducer')(history))
+  if (__DEVELOPMENT__ && import.meta.webpackHot) {
+    import.meta.webpackHot.accept('./reducer', () => {
+      store.replaceReducer(require('./reducer').default(history))
     })
   }
 

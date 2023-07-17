@@ -24,7 +24,7 @@
   "dependencies": {
     "archiver": "5.3.0",
     "extract-zip": "2.0.1",
-    "shortid": "2.2.15"
+    "shortid": "2.2.16"
   },
   "devDependencies": {
     "@jsreport/jsreport-chrome-pdf": "3.4.0",

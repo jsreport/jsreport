@@ -1,4 +1,3 @@
-import Promise from 'bluebird'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { DndProvider } from 'react-dnd'

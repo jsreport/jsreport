@@ -1,22 +1,21 @@
 // Webpack config for creating the production bundle.
 const path = require('path')
-const _ = require('lodash')
 const jsreportStudioDev = require('@jsreport/studio-dev')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
-const CleanPlugin = require('clean-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const babelrc = require('../.babelrc')
 
-const sepRe = `\\${path.sep}` // path separator regex
+const createBabelOptions = jsreportStudioDev.babelOptions
+const { DefinePlugin, IgnorePlugin, ProgressPlugin } = jsreportStudioDev.deps.webpack
+const HtmlWebpackPlugin = jsreportStudioDev.deps['html-webpack-plugin']
+const CleanPlugin = jsreportStudioDev.deps['clean-webpack-plugin']
+const MiniCssExtractPlugin = jsreportStudioDev.deps['mini-css-extract-plugin']
 
-const babelrcObject = _.cloneDeep(babelrc)
-
-const webpack = jsreportStudioDev.deps.webpack
-
-const babelLoaderQuery = Object.assign({}, babelrcObject)
+const babelLoaderOptions = Object.assign(createBabelOptions({ withReact: true, withTransformRuntime: true }), {
+  // we don't want to take config from babelrc files
+  babelrc: false
+})
 
 const projectSrcAbsolutePath = path.join(__dirname, '../src')
+const projectSrcThemeAbsolutePath = path.join(projectSrcAbsolutePath, 'theme')
 const projectRootPath = path.resolve(__dirname, '../')
 const assetsPath = path.resolve(projectRootPath, './static/dist')
 
@@ -26,42 +25,25 @@ module.exports = {
   context: path.resolve(__dirname, '..'),
   entry: {
     main: [
-      './src/client.js',
-      'font-awesome-webpack-4!./src/theme/font-awesome.config.prod.js'
+      './src/client.js'
     ]
   },
   output: {
     path: assetsPath,
     filename: 'client.[contenthash].js',
     chunkFilename: '[name].client.[contenthash].js',
-    // this makes the worker-loader bundle to work fine at runtime, otherwise you
+    // this makes the worker bundle to work fine at runtime, otherwise you
     // will see error in the web worker
     globalObject: 'this'
   },
   module: {
     rules: [
       {
-        test: /\.worker\.js$/,
-        include: [path.resolve(__dirname, '../src/components/Editor/workers')],
-        use: [{
-          loader: 'worker-loader',
-          options: {
-            name: '[name].[contenthash].js'
-          }
-        }]
-      },
-      {
         test: /\.jsx?$/,
         exclude: (modulePath) => {
+          // we need to tell babel to exclude the processing of eslint-browser, babel-eslint-browser bundle
           if (modulePath.includes('eslint-browser.js') || modulePath.includes('babel-eslint-browser.js')) {
             return true
-          }
-
-          // we want to process monaco-editor files
-          if (
-            new RegExp(`node_modules${sepRe}monaco-editor${sepRe}`).test(modulePath)
-          ) {
-            return false
           }
 
           if (modulePath.replace(projectRootPath, '').includes('node_modules')) {
@@ -72,56 +54,35 @@ module.exports = {
         },
         use: [{
           loader: 'babel-loader',
-          options: babelLoaderQuery
+          options: babelLoaderOptions
         }]
       },
       {
-        test: /extensions\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader
-          },
-          'css-loader'
-        ]
-      },
-      {
+        // process css that are not inside studio src files (likely from deps in node_modules)
+        // we don't care about checking css from extensions here because
+        // studio src files does not add any reference to them that webpack can track
         test: /\.css$/,
-        exclude: [/.*theme.*\.css/, /extensions\.css$/, (input) => {
+        exclude: [(input) => {
           return input.startsWith(projectSrcAbsolutePath)
         }],
-        use: ['style-loader', 'css-loader']
-      },
-      {
-        test: /\.less$/,
         use: [
-          'style-loader',
           {
-            loader: 'css-loader',
+            loader: 'style-loader',
             options: {
-              modules: true,
-              importLoaders: 2,
-              sourceMap: true,
-              localIdentName: '[local]___[hash:base64:5]'
+              injectType: 'singletonStyleTag'
             }
           },
           {
-            loader: 'postcss-loader',
-            options: {
-              ident: 'postcss',
-              plugins: getPostcssPlugins
-            }
-          },
-          {
-            loader: 'less-loader',
-            options: {
-              outputStyle: 'expanded',
-              sourceMap: true
-            }
+            loader: 'css-loader'
           }
         ]
       },
       {
-        include: [/.*theme.*\.css/],
+        // process css from studio src/theme (global css)
+        test: /\.css$/,
+        include: [(input) => {
+          return input.startsWith(projectSrcThemeAbsolutePath)
+        }],
         use: [
           {
             loader: MiniCssExtractPlugin.loader
@@ -135,18 +96,23 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              ident: 'postcss',
-              plugins: getPostcssPlugins
+              postcssOptions: {
+                plugins: getPostcssPlugins()
+              }
             }
           }
         ]
       },
       {
+        // process css from studio src files (ignoring src/theme)
         test: /\.css$/,
         include: (input) => {
+          if (input.startsWith(projectSrcThemeAbsolutePath)) {
+            return false
+          }
+
           return input.startsWith(projectSrcAbsolutePath)
         },
-        exclude: [/.*theme.*/, /extensions\.css$/],
         use: [
           {
             loader: MiniCssExtractPlugin.loader
@@ -154,73 +120,75 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
-              modules: true,
               importLoaders: 1,
               sourceMap: true,
-              localIdentName: '[name]-[local]'
+              modules: {
+                localIdentName: '[name]-[local]'
+              }
             }
           },
           {
             loader: 'postcss-loader',
             options: {
-              ident: 'postcss',
-              plugins: getPostcssPlugins
+              postcssOptions: {
+                plugins: getPostcssPlugins()
+              }
             }
           }
         ]
       },
       {
         test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff'
+        type: 'asset',
+        mimetype: 'application/font-woff',
+        parser: {
+          dataUrlCondition: {
+            maxSize: 10000 // 10kb
           }
-        }]
+        }
       },
       {
         test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff'
+        type: 'asset',
+        mimetype: 'application/font-woff',
+        parser: {
+          dataUrlCondition: {
+            maxSize: 10000 // 10kb
           }
-        }]
+        }
       },
       {
         test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/octet-stream'
+        type: 'asset',
+        mimetype: 'application/octet-stream',
+        parser: {
+          dataUrlCondition: {
+            maxSize: 10000 // 10kb
           }
-        }]
+        }
       },
       {
         test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: ['file-loader']
+        type: 'asset/resource'
       },
       {
         test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'image/svg+xml'
+        type: 'asset',
+        mimetype: 'image/svg+xml',
+        parser: {
+          dataUrlCondition: {
+            maxSize: 10000 // 10kb
           }
-        }]
+        }
       },
       {
         test: /\.(png|jpg)$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 8192
+        type: 'asset',
+        parser: {
+          dataUrlCondition: {
+            maxSize: 8192 // 8kb
           }
-        }]
+        }
       }
     ],
     noParse: [/eslint-browser\.js$/, /babel-eslint-browser\.js$/]
@@ -247,15 +215,28 @@ module.exports = {
       'node_modules'
     ]
   },
+  performance: {
+    hints: false
+  },
   plugins: [
     new CleanPlugin({
       cleanOnceBeforeBuildPatterns: ['**/*', '!eslint-browser.js', '!babel-eslint-browser.js']
     }),
-    new webpack.DefinePlugin({
+    new DefinePlugin({
       __DEVELOPMENT__: false
     }),
     // ignore dev config
-    new webpack.IgnorePlugin(/\.\/dev/, /\/config$/),
+    new IgnorePlugin({
+      checkResource (resource) {
+        const isDev = /\.\/dev/.test(resource)
+        const isConfig = /\/config$/.test(resource)
+
+        return (
+          isDev ||
+          isConfig
+        )
+      }
+    }),
     new MiniCssExtractPlugin({
       // Options similar to the same options in webpackOptions.output
       // both options are optional
@@ -271,15 +252,20 @@ module.exports = {
       hash: false,
       inject: false,
       template: path.join(__dirname, '../static/index.html'),
-      chunksSortMode: 'none'
+      chunksSortMode: 'none',
+      // prevent html to be minified, because we want clear
+      // diffs what changed between builds
+      minify: false
     }),
-    new webpack.ProgressPlugin()
+    new ProgressPlugin()
   ]
 }
 
 function getPostcssPlugins () {
   return [
     jsreportStudioDev.deps['postcss-flexbugs-fixes'],
-    jsreportStudioDev.deps.autoprefixer
+    // this makes the autoprefixer not try to search for browserslist config and use
+    // the one we have defined
+    jsreportStudioDev.deps.autoprefixer({ overrideBrowserslist: jsreportStudioDev.browserTargets })
   ]
 }

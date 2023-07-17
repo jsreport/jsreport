@@ -1,1128 +1,678 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
-/******/ })
-/************************************************************************/
-/******/ ([
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio;
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 2 */,
+/* 3 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
 
-var _ChromePdfProperties = __webpack_require__(3);
+class ChromePdfProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.applyDefaultsToEntity = this.applyDefaultsToEntity.bind(this);
+    this.changeChrome = this.changeChrome.bind(this);
+  }
+  componentDidMount() {
+    this.applyDefaultsToEntity(this.props);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.entity._id !== this.props.entity._id) {
+      this.applyDefaultsToEntity(this.props);
+    }
+  }
+  inform() {
+    if (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getSettingValueByKey('chrome-header-informed', false) === true) {
+      return;
+    }
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().setSetting('chrome-header-informed', true);
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(() => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, "Here you can define chrome native headers/footers. Make sure \"display header/footer\" is selected and use margin to prepare the space for the header.", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), "Please note chrome currently prints headers with smaller font size and you need to style text explicitly to workaround it.", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("b", null, "The chrome native implementation is also very limited and we recommend to use jsreport", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
+      href: "https://jsreport.net/learn/pdf-utils",
+      target: "_blank",
+      rel: "noreferrer"
+    }, " pdf utils extension"), " in more complex use cases.")));
+  }
+  openHeaderFooter(type) {
+    this.inform();
+    jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openTab({
+      _id: this.props.entity._id,
+      docProp: `chrome.${type}Template`
+    });
+  }
+  applyDefaultsToEntity(props) {
+    const {
+      entity
+    } = props;
+    let entityNeedsDefault = false;
+    if (entity.__isNew && (entity.chrome == null || entity.chrome.printBackground == null)) {
+      entityNeedsDefault = true;
+    }
+    if (entityNeedsDefault) {
+      this.changeChrome(props, {
+        printBackground: true
+      });
+    }
+  }
+  changeChrome(props, change) {
+    const {
+      entity,
+      onChange
+    } = props;
+    const chrome = entity.chrome || {};
+    onChange({
+      ...entity,
+      chrome: {
+        ...chrome,
+        ...change
+      }
+    });
+  }
+  render() {
+    const {
+      entity
+    } = this.props;
+    const chrome = entity.chrome || {};
+    const changeChrome = this.changeChrome;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "properties-section"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "scale"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "1",
+      value: chrome.scale || '',
+      onChange: v => {
+        let scaleValue = v.target.value;
+        if (scaleValue.trim() === '') {
+          scaleValue = null;
+        }
+        changeChrome(this.props, {
+          scale: scaleValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "print background"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.printBackground === true,
+      onChange: v => changeChrome(this.props, {
+        printBackground: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "landscape"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.landscape === true,
+      onChange: v => changeChrome(this.props, {
+        landscape: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pageRanges"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "1-5, 8, 11-13",
+      value: chrome.pageRanges || '',
+      onChange: v => changeChrome(this.props, {
+        pageRanges: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "format"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "Letter",
+      value: chrome.format || '',
+      title: "Specifies a pre-defined size for the pdf",
+      onChange: v => changeChrome(this.props, {
+        format: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pdf width"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "10cm",
+      value: chrome.width || '',
+      title: "Specifies a custom width for the pdf",
+      onChange: v => changeChrome(this.props, {
+        width: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pdf height"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "10cm",
+      value: chrome.height || '',
+      title: "Specifies a custom height for the pdf",
+      onChange: v => changeChrome(this.props, {
+        height: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pdf margin top"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "10cm",
+      value: chrome.marginTop || '',
+      onChange: v => changeChrome(this.props, {
+        marginTop: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pdf margin right"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "10cm",
+      value: chrome.marginRight || '',
+      onChange: v => changeChrome(this.props, {
+        marginRight: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pdf margin bottom"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "10cm",
+      value: chrome.marginBottom || '',
+      onChange: v => changeChrome(this.props, {
+        marginBottom: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "pdf margin left"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "10cm",
+      value: chrome.marginLeft || '',
+      onChange: v => changeChrome(this.props, {
+        marginLeft: v.target.value
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "viewport width"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.viewportWidth != null ? chrome.viewportWidth : '',
+      title: "Specifies the target viewport width of the chrome page",
+      placeholder: "800",
+      onChange: v => {
+        let viewportWidthValue = v.target.value;
+        if (viewportWidthValue.trim() === '') {
+          viewportWidthValue = null;
+        }
+        changeChrome(this.props, {
+          viewportWidth: viewportWidthValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "viewport height"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.viewportHeight != null ? chrome.viewportHeight : '',
+      title: "Specifies the target viewport height of the chrome page",
+      placeholder: "600",
+      onChange: v => {
+        let viewportHeightValue = v.target.value;
+        if (viewportHeightValue.trim() === '') {
+          viewportHeightValue = null;
+        }
+        changeChrome(this.props, {
+          viewportHeight: viewportHeightValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "display header/footer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.displayHeaderFooter === true,
+      onChange: v => changeChrome(this.props, {
+        displayHeaderFooter: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "header"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      onClick: () => this.openHeaderFooter('header')
+    }, "open in tab...")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "footer"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("button", {
+      onClick: () => this.openHeaderFooter('footer')
+    }, "open in tab...")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "media type"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
+      value: chrome.mediaType || 'print',
+      onChange: v => changeChrome(this.props, {
+        mediaType: v.target.value
+      })
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: "print",
+      value: "print"
+    }, "print"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: "screen",
+      value: "screen"
+    }, "screen"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "wait for network idle"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.waitForNetworkIdle === true,
+      onChange: v => changeChrome(this.props, {
+        waitForNetworkIdle: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
+      title: "window.JSREPORT_READY_TO_START=true;"
+    }, "wait for printing trigger"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      title: "window.JSREPORT_READY_TO_START=true;",
+      checked: chrome.waitForJS === true,
+      onChange: v => changeChrome(this.props, {
+        waitForJS: v.target.checked
+      })
+    })));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ChromePdfProperties);
 
-var _ChromePdfProperties2 = _interopRequireDefault(_ChromePdfProperties);
+/***/ }),
+/* 4 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-var _ChromeImageProperties = __webpack_require__(4);
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ImageProperties)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 
-var _ChromeImageProperties2 = _interopRequireDefault(_ChromeImageProperties);
+class ImageProperties extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  constructor(props) {
+    super(props);
+    this.changeChrome = this.changeChrome.bind(this);
+  }
+  changeChrome(props, change) {
+    const {
+      entity,
+      onChange
+    } = props;
+    const chromeImage = entity.chromeImage || {};
+    onChange({
+      ...entity,
+      chromeImage: {
+        ...chromeImage,
+        ...change
+      }
+    });
+  }
+  render() {
+    const {
+      entity
+    } = this.props;
+    const chrome = entity.chromeImage || {};
+    const changeChrome = this.changeChrome;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "properties-section"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "format"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
+      value: chrome.type || 'png',
+      onChange: v => changeChrome(this.props, {
+        type: v.target.value
+      })
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: "png",
+      value: "png"
+    }, "png"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: "jpeg",
+      value: "jpeg"
+    }, "jpeg"))), chrome.type === 'jpeg' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "quality"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      placeholder: "0 - 100",
+      value: chrome.quality != null ? chrome.quality : '',
+      onChange: v => {
+        let qualityValue = v.target.value;
+        if (qualityValue.trim() === '') {
+          qualityValue = null;
+        }
+        changeChrome(this.props, {
+          quality: qualityValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "full page"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.fullPage === true,
+      title: "Specifies whether to take a screenshot of the full scrollable page or not",
+      onChange: v => changeChrome(this.props, {
+        fullPage: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "viewport width"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.viewportWidth != null ? chrome.viewportWidth : '',
+      title: "Specifies the target viewport width of the chrome page",
+      placeholder: "800",
+      onChange: v => {
+        let viewportWidthValue = v.target.value;
+        if (viewportWidthValue.trim() === '') {
+          viewportWidthValue = null;
+        }
+        changeChrome(this.props, {
+          viewportWidth: viewportWidthValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "viewport height"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.viewportHeight != null ? chrome.viewportHeight : '',
+      title: "Specifies the target viewport height of the chrome page",
+      placeholder: "600",
+      onChange: v => {
+        let viewportHeightValue = v.target.value;
+        if (viewportHeightValue.trim() === '') {
+          viewportHeightValue = null;
+        }
+        changeChrome(this.props, {
+          viewportHeight: viewportHeightValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "clip X"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.clipX != null ? chrome.clipX : '',
+      title: "Specifies the x-coordinate of top-left corner of clipping region of the page",
+      onChange: v => {
+        let clipXValue = v.target.value;
+        if (clipXValue.trim() === '') {
+          clipXValue = null;
+        }
+        changeChrome(this.props, {
+          clipX: clipXValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "clip Y"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.clipY != null ? chrome.clipY : '',
+      title: "Specifies the y-coordinate of top-left corner of clipping region of the page",
+      onChange: v => {
+        let clipYValue = v.target.value;
+        if (clipYValue.trim() === '') {
+          clipYValue = null;
+        }
+        changeChrome(this.props, {
+          clipY: clipYValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "clip width"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.clipWidth != null ? chrome.clipWidth : '',
+      title: "Specifies the width of clipping region of the page",
+      onChange: v => {
+        let clipWidthValue = v.target.value;
+        if (clipWidthValue.trim() === '') {
+          clipWidthValue = null;
+        }
+        changeChrome(this.props, {
+          clipWidth: clipWidthValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "clip height"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "text",
+      value: chrome.clipHeight != null ? chrome.clipHeight : '',
+      title: "Specifies the height of clipping region of the page",
+      onChange: v => {
+        let clipHeightValue = v.target.value;
+        if (clipHeightValue.trim() === '') {
+          clipHeightValue = null;
+        }
+        changeChrome(this.props, {
+          clipHeight: clipHeightValue
+        });
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "omit background"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.omitBackground === true,
+      title: "Specifies if the background should be hidden, therefore allowing capturing screenshots with transparency",
+      onChange: v => changeChrome(this.props, {
+        omitBackground: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "media type"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("select", {
+      value: chrome.mediaType || 'print',
+      onChange: v => changeChrome(this.props, {
+        mediaType: v.target.value
+      })
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: "print",
+      value: "print"
+    }, "print"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("option", {
+      key: "screen",
+      value: "screen"
+    }, "screen"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", null, "wait for network idle"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      checked: chrome.waitForNetworkIdle === true,
+      onChange: v => changeChrome(this.props, {
+        waitForNetworkIdle: v.target.checked
+      })
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("label", {
+      title: "window.JSREPORT_READY_TO_START=true;"
+    }, "wait for printing trigger"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("input", {
+      type: "checkbox",
+      title: "window.JSREPORT_READY_TO_START=true;",
+      checked: chrome.waitForJS === true,
+      onChange: v => changeChrome(this.props, {
+        waitForJS: v.target.checked
+      })
+    })));
+  }
+}
 
-var _jsreportStudio = __webpack_require__(1);
+/***/ }),
+/* 5 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
 
-var _ChromeEditor = __webpack_require__(5);
 
-var _ChromeEditor2 = _interopRequireDefault(_ChromeEditor);
+class ChromeEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
+  render() {
+    const {
+      entity,
+      onUpdate,
+      headerOrFooter,
+      tab
+    } = this.props;
+    const editorName = `${entity._id}_${tab.docProp.replace(/\./g, '_')}`;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.TextEditor, {
+      name: editorName,
+      mode: "handlebars",
+      value: entity.chrome ? entity.chrome[headerOrFooter + 'Template'] : '',
+      onUpdate: v => onUpdate(Object.assign({}, entity, {
+        chrome: Object.assign({}, entity.chrome, {
+          [headerOrFooter + 'Template']: v
+        })
+      }))
+    });
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ChromeEditor);
 
-var _constants = __webpack_require__(6);
+/***/ }),
+/* 6 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-var Constants = _interopRequireWildcard(_constants);
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CHROME_TAB_EDITOR: () => (/* binding */ CHROME_TAB_EDITOR),
+/* harmony export */   CHROME_TAB_TITLE: () => (/* binding */ CHROME_TAB_TITLE)
+/* harmony export */ });
+const CHROME_TAB_TITLE = 'CHROME_TAB_TITLE';
+const CHROME_TAB_EDITOR = 'CHROME_TAB_EDITOR';
 
-var _ChromeTitle = __webpack_require__(7);
+/***/ }),
+/* 7 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-var _ChromeTitle2 = _interopRequireDefault(_ChromeTitle);
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (props => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", null, props.entity.name + ' ' + props.headerOrFooter + (props.entity.__isDirty ? '*' : '')));
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+/***/ })
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _ChromePdfProperties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _ChromeImageProperties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _ChromeEditor_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6);
+/* harmony import */ var _ChromeTitle_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7);
 
-_jsreportStudio2.default.addPropertiesComponent('chrome pdf', _ChromePdfProperties2.default, function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'chrome-pdf';
-});
-_jsreportStudio2.default.addPropertiesComponent('chrome image', _ChromeImageProperties2.default, function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'chrome-image';
-});
 
-_jsreportStudio2.default.addEditorComponent(Constants.CHROME_TAB_EDITOR, _ChromeEditor2.default);
-_jsreportStudio2.default.addTabTitleComponent(Constants.CHROME_TAB_TITLE, _ChromeTitle2.default);
 
-var supportedDocProps = ['chrome.headerTemplate', 'chrome.footerTemplate'];
 
+
+
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addPropertiesComponent('chrome pdf', _ChromePdfProperties_js__WEBPACK_IMPORTED_MODULE_0__["default"], entity => entity.__entitySet === 'templates' && entity.recipe === 'chrome-pdf');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addPropertiesComponent('chrome image', _ChromeImageProperties_js__WEBPACK_IMPORTED_MODULE_1__["default"], entity => entity.__entitySet === 'templates' && entity.recipe === 'chrome-image');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addEditorComponent(_constants_js__WEBPACK_IMPORTED_MODULE_4__.CHROME_TAB_EDITOR, _ChromeEditor_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().addTabTitleComponent(_constants_js__WEBPACK_IMPORTED_MODULE_4__.CHROME_TAB_TITLE, _ChromeTitle_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+const supportedDocProps = ['chrome.headerTemplate', 'chrome.footerTemplate'];
 function componentKeyResolver(entity, docProp, key) {
   if (docProp == null) {
     return;
   }
-
-  var shortNameMap = {
+  const shortNameMap = {
     'chrome.headerTemplate': 'header',
     'chrome.footerTemplate': 'footer'
   };
-
   if (entity.__entitySet === 'templates' && supportedDocProps.includes(docProp)) {
     return {
-      key: key,
+      key,
       props: {
         headerOrFooter: shortNameMap[docProp]
       }
     };
   }
 }
-
-_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity, docProp) {
-  return componentKeyResolver(entity, docProp, Constants.CHROME_TAB_EDITOR);
-});
-_jsreportStudio2.default.tabTitleComponentKeyResolvers.push(function (entity, docProp) {
-  return componentKeyResolver(entity, docProp, Constants.CHROME_TAB_TITLE);
-});
-
-_jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'chrome-pdf' ? 'fa-file-pdf-o' : null;
-});
-_jsreportStudio2.default.entityTreeIconResolvers.push(function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'chrome-image' ? 'fa-file-image-o' : null;
-});
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(1);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ChromePdfProperties = function (_Component) {
-  _inherits(ChromePdfProperties, _Component);
-
-  function ChromePdfProperties(props) {
-    _classCallCheck(this, ChromePdfProperties);
-
-    var _this = _possibleConstructorReturn(this, (ChromePdfProperties.__proto__ || Object.getPrototypeOf(ChromePdfProperties)).call(this, props));
-
-    _this.applyDefaultsToEntity = _this.applyDefaultsToEntity.bind(_this);
-    _this.changeChrome = _this.changeChrome.bind(_this);
-    return _this;
-  }
-
-  _createClass(ChromePdfProperties, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      this.applyDefaultsToEntity(this.props);
-    }
-  }, {
-    key: 'componentDidUpdate',
-    value: function componentDidUpdate(prevProps, prevState) {
-      if (prevProps.entity._id !== this.props.entity._id) {
-        this.applyDefaultsToEntity(this.props);
-      }
-    }
-  }, {
-    key: 'inform',
-    value: function inform() {
-      if (_jsreportStudio2.default.getSettingValueByKey('chrome-header-informed', false) === true) {
-        return;
-      }
-
-      _jsreportStudio2.default.setSetting('chrome-header-informed', true);
-
-      _jsreportStudio2.default.openModal(function () {
-        return _react2.default.createElement(
-          'div',
-          null,
-          'Here you can define chrome native headers/footers. Make sure "display header/footer" is selected and use margin to prepare the space for the header.',
-          _react2.default.createElement('br', null),
-          'Please note chrome currently prints headers with smaller font size and you need to style text explicitly to workaround it.',
-          _react2.default.createElement('br', null),
-          _react2.default.createElement('br', null),
-          _react2.default.createElement(
-            'b',
-            null,
-            'The chrome native implementation is also very limited and we recommend to use jsreport',
-            _react2.default.createElement(
-              'a',
-              { href: 'https://jsreport.net/learn/pdf-utils', target: '_blank', rel: 'noreferrer' },
-              ' pdf utils extension'
-            ),
-            ' in more complex use cases.'
-          )
-        );
-      });
-    }
-  }, {
-    key: 'openHeaderFooter',
-    value: function openHeaderFooter(type) {
-      this.inform();
-
-      _jsreportStudio2.default.openTab({
-        _id: this.props.entity._id,
-        docProp: 'chrome.' + type + 'Template'
-      });
-    }
-  }, {
-    key: 'applyDefaultsToEntity',
-    value: function applyDefaultsToEntity(props) {
-      var entity = props.entity;
-
-      var entityNeedsDefault = false;
-
-      if (entity.__isNew && (entity.chrome == null || entity.chrome.printBackground == null)) {
-        entityNeedsDefault = true;
-      }
-
-      if (entityNeedsDefault) {
-        this.changeChrome(props, {
-          printBackground: true
-        });
-      }
-    }
-  }, {
-    key: 'changeChrome',
-    value: function changeChrome(props, change) {
-      var entity = props.entity,
-          onChange = props.onChange;
-
-      var chrome = entity.chrome || {};
-
-      onChange(_extends({}, entity, {
-        chrome: _extends({}, chrome, change)
-      }));
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      var entity = this.props.entity;
-
-      var chrome = entity.chrome || {};
-      var changeChrome = this.changeChrome;
-
-      return _react2.default.createElement(
-        'div',
-        { className: 'properties-section' },
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'scale'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '1',
-            value: chrome.scale || '',
-            onChange: function onChange(v) {
-              var scaleValue = v.target.value;
-
-              if (scaleValue.trim() === '') {
-                scaleValue = null;
-              }
-
-              changeChrome(_this2.props, { scale: scaleValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'print background'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox',
-            checked: chrome.printBackground === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { printBackground: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'landscape'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox',
-            checked: chrome.landscape === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { landscape: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pageRanges'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '1-5, 8, 11-13',
-            value: chrome.pageRanges || '',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { pageRanges: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'format'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: 'Letter',
-            value: chrome.format || '',
-            title: 'Specifies a pre-defined size for the pdf',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { format: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pdf width'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '10cm',
-            value: chrome.width || '',
-            title: 'Specifies a custom width for the pdf',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { width: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pdf height'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '10cm',
-            value: chrome.height || '',
-            title: 'Specifies a custom height for the pdf',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { height: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pdf margin top'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '10cm',
-            value: chrome.marginTop || '',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { marginTop: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pdf margin right'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '10cm',
-            value: chrome.marginRight || '',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { marginRight: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pdf margin bottom'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '10cm',
-            value: chrome.marginBottom || '',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { marginBottom: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'pdf margin left'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '10cm',
-            value: chrome.marginLeft || '',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { marginLeft: v.target.value });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'viewport width'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.viewportWidth != null ? chrome.viewportWidth : '',
-            title: 'Specifies the target viewport width of the chrome page',
-            placeholder: '800',
-            onChange: function onChange(v) {
-              var viewportWidthValue = v.target.value;
-
-              if (viewportWidthValue.trim() === '') {
-                viewportWidthValue = null;
-              }
-
-              changeChrome(_this2.props, { viewportWidth: viewportWidthValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'viewport height'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.viewportHeight != null ? chrome.viewportHeight : '',
-            title: 'Specifies the target viewport height of the chrome page',
-            placeholder: '600',
-            onChange: function onChange(v) {
-              var viewportHeightValue = v.target.value;
-
-              if (viewportHeightValue.trim() === '') {
-                viewportHeightValue = null;
-              }
-
-              changeChrome(_this2.props, { viewportHeight: viewportHeightValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'display header/footer'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox',
-            checked: chrome.displayHeaderFooter === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { displayHeaderFooter: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'header'
-          ),
-          _react2.default.createElement(
-            'button',
-            { onClick: function onClick() {
-                return _this2.openHeaderFooter('header');
-              } },
-            'open in tab...'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'footer'
-          ),
-          _react2.default.createElement(
-            'button',
-            { onClick: function onClick() {
-                return _this2.openHeaderFooter('footer');
-              } },
-            'open in tab...'
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'media type'
-          ),
-          _react2.default.createElement(
-            'select',
-            { value: chrome.mediaType || 'print', onChange: function onChange(v) {
-                return changeChrome(_this2.props, { mediaType: v.target.value });
-              } },
-            _react2.default.createElement(
-              'option',
-              { key: 'print', value: 'print' },
-              'print'
-            ),
-            _react2.default.createElement(
-              'option',
-              { key: 'screen', value: 'screen' },
-              'screen'
-            )
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'wait for network idle'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox',
-            checked: chrome.waitForNetworkIdle === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { waitForNetworkIdle: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            { title: 'window.JSREPORT_READY_TO_START=true;' },
-            'wait for printing trigger'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox',
-            title: 'window.JSREPORT_READY_TO_START=true;', checked: chrome.waitForJS === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { waitForJS: v.target.checked });
-            }
-          })
-        )
-      );
-    }
-  }]);
-
-  return ChromePdfProperties;
-}(_react.Component);
-
-exports.default = ChromePdfProperties;
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ImageProperties = function (_Component) {
-  _inherits(ImageProperties, _Component);
-
-  function ImageProperties(props) {
-    _classCallCheck(this, ImageProperties);
-
-    var _this = _possibleConstructorReturn(this, (ImageProperties.__proto__ || Object.getPrototypeOf(ImageProperties)).call(this, props));
-
-    _this.changeChrome = _this.changeChrome.bind(_this);
-    return _this;
-  }
-
-  _createClass(ImageProperties, [{
-    key: 'changeChrome',
-    value: function changeChrome(props, change) {
-      var entity = props.entity,
-          onChange = props.onChange;
-
-      var chromeImage = entity.chromeImage || {};
-
-      onChange(_extends({}, entity, {
-        chromeImage: _extends({}, chromeImage, change)
-      }));
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _this2 = this;
-
-      var entity = this.props.entity;
-
-      var chrome = entity.chromeImage || {};
-      var changeChrome = this.changeChrome;
-
-      return _react2.default.createElement(
-        'div',
-        { className: 'properties-section' },
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'format'
-          ),
-          _react2.default.createElement(
-            'select',
-            { value: chrome.type || 'png', onChange: function onChange(v) {
-                return changeChrome(_this2.props, { type: v.target.value });
-              } },
-            _react2.default.createElement(
-              'option',
-              { key: 'png', value: 'png' },
-              'png'
-            ),
-            _react2.default.createElement(
-              'option',
-              { key: 'jpeg', value: 'jpeg' },
-              'jpeg'
-            )
-          )
-        ),
-        chrome.type === 'jpeg' && _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'quality'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            placeholder: '0 - 100',
-            value: chrome.quality != null ? chrome.quality : '',
-            onChange: function onChange(v) {
-              var qualityValue = v.target.value;
-
-              if (qualityValue.trim() === '') {
-                qualityValue = null;
-              }
-
-              changeChrome(_this2.props, { quality: qualityValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'full page'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox',
-            checked: chrome.fullPage === true,
-            title: 'Specifies whether to take a screenshot of the full scrollable page or not',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { fullPage: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'viewport width'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.viewportWidth != null ? chrome.viewportWidth : '',
-            title: 'Specifies the target viewport width of the chrome page',
-            placeholder: '800',
-            onChange: function onChange(v) {
-              var viewportWidthValue = v.target.value;
-
-              if (viewportWidthValue.trim() === '') {
-                viewportWidthValue = null;
-              }
-
-              changeChrome(_this2.props, { viewportWidth: viewportWidthValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'viewport height'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.viewportHeight != null ? chrome.viewportHeight : '',
-            title: 'Specifies the target viewport height of the chrome page',
-            placeholder: '600',
-            onChange: function onChange(v) {
-              var viewportHeightValue = v.target.value;
-
-              if (viewportHeightValue.trim() === '') {
-                viewportHeightValue = null;
-              }
-
-              changeChrome(_this2.props, { viewportHeight: viewportHeightValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'clip X'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.clipX != null ? chrome.clipX : '',
-            title: 'Specifies the x-coordinate of top-left corner of clipping region of the page',
-            onChange: function onChange(v) {
-              var clipXValue = v.target.value;
-
-              if (clipXValue.trim() === '') {
-                clipXValue = null;
-              }
-
-              changeChrome(_this2.props, { clipX: clipXValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'clip Y'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.clipY != null ? chrome.clipY : '',
-            title: 'Specifies the y-coordinate of top-left corner of clipping region of the page',
-            onChange: function onChange(v) {
-              var clipYValue = v.target.value;
-
-              if (clipYValue.trim() === '') {
-                clipYValue = null;
-              }
-
-              changeChrome(_this2.props, { clipY: clipYValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'clip width'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text',
-            value: chrome.clipWidth != null ? chrome.clipWidth : '',
-            title: 'Specifies the width of clipping region of the page',
-            onChange: function onChange(v) {
-              var clipWidthValue = v.target.value;
-
-              if (clipWidthValue.trim() === '') {
-                clipWidthValue = null;
-              }
-
-              changeChrome(_this2.props, { clipWidth: clipWidthValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'clip height'
-          ),
-          _react2.default.createElement('input', {
-            type: 'text', value: chrome.clipHeight != null ? chrome.clipHeight : '',
-            title: 'Specifies the height of clipping region of the page',
-            onChange: function onChange(v) {
-              var clipHeightValue = v.target.value;
-
-              if (clipHeightValue.trim() === '') {
-                clipHeightValue = null;
-              }
-
-              changeChrome(_this2.props, { clipHeight: clipHeightValue });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'omit background'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.omitBackground === true,
-            title: 'Specifies if the background should be hidden, therefore allowing capturing screenshots with transparency',
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { omitBackground: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'media type'
-          ),
-          _react2.default.createElement(
-            'select',
-            { value: chrome.mediaType || 'print', onChange: function onChange(v) {
-                return changeChrome(_this2.props, { mediaType: v.target.value });
-              } },
-            _react2.default.createElement(
-              'option',
-              { key: 'print', value: 'print' },
-              'print'
-            ),
-            _react2.default.createElement(
-              'option',
-              { key: 'screen', value: 'screen' },
-              'screen'
-            )
-          )
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            null,
-            'wait for network idle'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox', checked: chrome.waitForNetworkIdle === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { waitForNetworkIdle: v.target.checked });
-            }
-          })
-        ),
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(
-            'label',
-            { title: 'window.JSREPORT_READY_TO_START=true;' },
-            'wait for printing trigger'
-          ),
-          _react2.default.createElement('input', {
-            type: 'checkbox', title: 'window.JSREPORT_READY_TO_START=true;', checked: chrome.waitForJS === true,
-            onChange: function onChange(v) {
-              return changeChrome(_this2.props, { waitForJS: v.target.checked });
-            }
-          })
-        )
-      );
-    }
-  }]);
-
-  return ImageProperties;
-}(_react.Component);
-
-exports.default = ImageProperties;
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(1);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ChromeEditor = function (_Component) {
-  _inherits(ChromeEditor, _Component);
-
-  function ChromeEditor() {
-    _classCallCheck(this, ChromeEditor);
-
-    return _possibleConstructorReturn(this, (ChromeEditor.__proto__ || Object.getPrototypeOf(ChromeEditor)).apply(this, arguments));
-  }
-
-  _createClass(ChromeEditor, [{
-    key: 'render',
-    value: function render() {
-      var _props = this.props,
-          entity = _props.entity,
-          _onUpdate = _props.onUpdate,
-          headerOrFooter = _props.headerOrFooter,
-          tab = _props.tab;
-
-      var editorName = entity._id + '_' + tab.docProp.replace(/\./g, '_');
-
-      return _react2.default.createElement(_jsreportStudio.TextEditor, {
-        name: editorName,
-        mode: 'handlebars',
-        value: entity.chrome ? entity.chrome[headerOrFooter + 'Template'] : '',
-        onUpdate: function onUpdate(v) {
-          return _onUpdate(Object.assign({}, entity, { chrome: Object.assign({}, entity.chrome, _defineProperty({}, headerOrFooter + 'Template', v)) }));
-        }
-      });
-    }
-  }]);
-
-  return ChromeEditor;
-}(_react.Component);
-
-exports.default = ChromeEditor;
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var CHROME_TAB_TITLE = exports.CHROME_TAB_TITLE = 'CHROME_TAB_TITLE';
-var CHROME_TAB_EDITOR = exports.CHROME_TAB_EDITOR = 'CHROME_TAB_EDITOR';
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-exports.default = function (props) {
-  return _react2.default.createElement(
-    'span',
-    null,
-    props.entity.name + ' ' + props.headerOrFooter + (props.entity.__isDirty ? '*' : '')
-  );
-};
-
-/***/ })
-/******/ ]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().entityEditorComponentKeyResolvers.push((entity, docProp) => componentKeyResolver(entity, docProp, _constants_js__WEBPACK_IMPORTED_MODULE_4__.CHROME_TAB_EDITOR));
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().tabTitleComponentKeyResolvers.push((entity, docProp) => componentKeyResolver(entity, docProp, _constants_js__WEBPACK_IMPORTED_MODULE_4__.CHROME_TAB_TITLE));
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().entityTreeIconResolvers.push(entity => entity.__entitySet === 'templates' && entity.recipe === 'chrome-pdf' ? 'fa-file-pdf-o' : null);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().entityTreeIconResolvers.push(entity => entity.__entitySet === 'templates' && entity.recipe === 'chrome-image' ? 'fa-file-image-o' : null);
+})();
+
+/******/ })()
+;

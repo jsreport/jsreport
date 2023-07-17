@@ -1,5 +1,4 @@
 import superagent from 'superagent'
-import Promise from 'bluebird'
 import parse from './parseJSON.js'
 import resolveUrl from './resolveUrl'
 import { values as configuration } from '../lib/configuration'

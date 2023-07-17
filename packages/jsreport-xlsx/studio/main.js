@@ -1,137 +1,229 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
-/******/ })
-/************************************************************************/
-/******/ ([
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ ((module) => {
 
 module.exports = Studio;
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 1 */,
+/* 2 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_2__);
 
 
-var _XlsxTemplateProperties = __webpack_require__(2);
 
-var _XlsxTemplateProperties2 = _interopRequireDefault(_XlsxTemplateProperties);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_jsreportStudio2.default.addPropertiesComponent(_XlsxTemplateProperties2.default.title, _XlsxTemplateProperties2.default, function (entity) {
-  return entity.__entitySet === 'templates' && entity.recipe === 'xlsx';
-});
-
-_jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity) {
-  if (entity.__entitySet === 'templates' && entity.recipe === 'xlsx') {
-    var officeAsset = void 0;
-
-    if (entity.xlsx != null && entity.xlsx.templateAssetShortid != null) {
-      officeAsset = _jsreportStudio2.default.getEntityByShortid(entity.xlsx.templateAssetShortid, false);
+const EntityRefSelect = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().EntityRefSelect);
+const sharedComponents = (jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().sharedComponents);
+class XlsxTemplateProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
+  static selectAssets(entities) {
+    return Object.keys(entities).filter(k => entities[k].__entitySet === 'assets').map(k => entities[k]);
+  }
+  static title(entity, entities) {
+    if (!entity.xlsx || !entity.xlsx.templateAssetShortid) {
+      return 'xlsx';
     }
+    const foundAssets = XlsxTemplateProperties.selectAssets(entities).filter(e => entity.xlsx != null && entity.xlsx.templateAssetShortid === e.shortid);
+    if (!foundAssets.length) {
+      return 'xlsx';
+    }
+    const name = foundAssets[0].name;
+    return 'xlsx asset: ' + name;
+  }
+  componentDidMount() {
+    this.removeInvalidXlsxTemplateReferences();
+  }
+  componentDidUpdate() {
+    this.removeInvalidXlsxTemplateReferences();
+  }
+  removeInvalidXlsxTemplateReferences() {
+    const {
+      entity,
+      entities,
+      onChange
+    } = this.props;
+    if (!entity.xlsx) {
+      return;
+    }
+    const updatedXlsxAssets = Object.keys(entities).filter(k => entities[k].__entitySet === 'assets' && entity.xlsx != null && entities[k].shortid === entity.xlsx.templateAssetShortid);
+    if (entity.xlsx && entity.xlsx.templateAssetShortid && updatedXlsxAssets.length === 0) {
+      onChange({
+        _id: entity._id,
+        xlsx: null
+      });
+    }
+  }
+  changeXlsxTemplate(oldXlsxTemplate, prop, value) {
+    let newValue;
+    if (value == null) {
+      newValue = {
+        ...oldXlsxTemplate
+      };
+      newValue[prop] = null;
+    } else {
+      return {
+        ...oldXlsxTemplate,
+        [prop]: value
+      };
+    }
+    newValue = Object.keys(newValue).length ? newValue : null;
+    return newValue;
+  }
+  render() {
+    const {
+      entity,
+      onChange
+    } = this.props;
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: "properties-section"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(EntityRefSelect, {
+      headingLabel: "Select xlsx template",
+      newLabel: "New xlsx asset for template",
+      value: entity.xlsx ? entity.xlsx.templateAssetShortid : '',
+      onChange: selected => onChange({
+        _id: entity._id,
+        xlsx: selected != null && selected.length > 0 ? {
+          templateAssetShortid: selected[0].shortid
+        } : null
+      }),
+      filter: references => ({
+        assets: references.assets
+      }),
+      renderNew: modalProps => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement(sharedComponents.NewAssetModal, _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default()({}, modalProps, {
+        options: {
+          ...modalProps.options,
+          defaults: {
+            folder: entity.folder
+          },
+          activateNewTab: false
+        }
+      }))
+    })));
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (XlsxTemplateProperties);
 
-    var initialCodeActive = true;
+/***/ }),
+/* 3 */
+/***/ ((module) => {
 
+module.exports = Studio.runtime['helpers/extends'];
+
+/***/ }),
+/* 4 */
+/***/ ((module) => {
+
+module.exports = Studio.libraries['react'];
+
+/***/ })
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _XlsxTemplateProperties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+
+
+jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().addPropertiesComponent(_XlsxTemplateProperties_js__WEBPACK_IMPORTED_MODULE_0__["default"].title, _XlsxTemplateProperties_js__WEBPACK_IMPORTED_MODULE_0__["default"], entity => entity.__entitySet === 'templates' && entity.recipe === 'xlsx');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().entityEditorComponentKeyResolvers.push(entity => {
+  if (entity.__entitySet === 'templates' && entity.recipe === 'xlsx') {
+    let officeAsset;
+    if (entity.xlsx != null && entity.xlsx.templateAssetShortid != null) {
+      officeAsset = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getEntityByShortid(entity.xlsx.templateAssetShortid, false);
+    }
+    let initialCodeActive = true;
     if (officeAsset != null && (entity.content == null || entity.content === '')) {
       initialCodeActive = false;
     }
-
     return {
       key: 'assets',
       entity: officeAsset,
       props: {
         icon: 'fa-link',
         embeddingCode: '',
-        initialCodeActive: initialCodeActive,
+        initialCodeActive,
         codeEntity: {
           _id: entity._id,
           shortid: entity.shortid,
@@ -139,213 +231,33 @@ _jsreportStudio2.default.entityEditorComponentKeyResolvers.push(function (entity
           content: entity.content,
           helpers: entity.helpers
         },
-        displayName: 'xlsx asset: ' + (officeAsset != null ? officeAsset.name : '<none>'),
+        displayName: `xlsx asset: ${officeAsset != null ? officeAsset.name : '<none>'}`,
         emptyMessage: 'No xlsx asset assigned, please add a reference to a xlsx asset in the properties'
       }
     };
   }
 });
-
-_jsreportStudio2.default.runListeners.push(function (request, entities) {
+jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().runListeners.push((request, entities) => {
   if (request.template.recipe !== 'xlsx') {
     return;
   }
-
-  if (_jsreportStudio2.default.extensions.xlsx.options.preview.enabled === false) {
+  if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions).xlsx.options.preview.enabled === false) {
     return;
   }
-
-  if (_jsreportStudio2.default.extensions.xlsx.options.preview.showWarning === false) {
+  if ((jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions).xlsx.options.preview.showWarning === false) {
     return;
   }
-
-  if (_jsreportStudio2.default.getSettingValueByKey('office-preview-informed', false) === true) {
+  if (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getSettingValueByKey('office-preview-informed', false) === true) {
     return;
   }
-
-  _jsreportStudio2.default.setSetting('office-preview-informed', true);
-
-  _jsreportStudio2.default.openModal(function () {
-    return React.createElement(
-      'div',
-      null,
-      'We need to upload your office report to our publicly hosted server to be able to use Excel Online Service for previewing here in the studio. You can disable it in the configuration, see ',
-      React.createElement(
-        'a',
-        { href: 'https://jsreport.net/learn/xlsx', rel: 'noopener noreferrer', target: '_blank' },
-        'https://jsreport.net/learn/xlsx'
-      ),
-      ' for details.'
-    );
-  });
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().setSetting('office-preview-informed', true);
+  jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().openModal(() => /*#__PURE__*/React.createElement("div", null, "We need to upload your office report to our publicly hosted server to be able to use Excel Online Service for previewing here in the studio. You can disable it in the configuration, see ", /*#__PURE__*/React.createElement("a", {
+    href: "https://jsreport.net/learn/xlsx",
+    rel: "noopener noreferrer",
+    target: "_blank"
+  }, "https://jsreport.net/learn/xlsx"), " for details."));
 });
+})();
 
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(3);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _jsreportStudio = __webpack_require__(0);
-
-var _jsreportStudio2 = _interopRequireDefault(_jsreportStudio);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var EntityRefSelect = _jsreportStudio2.default.EntityRefSelect;
-var sharedComponents = _jsreportStudio2.default.sharedComponents;
-
-var XlsxTemplateProperties = function (_Component) {
-  _inherits(XlsxTemplateProperties, _Component);
-
-  function XlsxTemplateProperties() {
-    _classCallCheck(this, XlsxTemplateProperties);
-
-    return _possibleConstructorReturn(this, (XlsxTemplateProperties.__proto__ || Object.getPrototypeOf(XlsxTemplateProperties)).apply(this, arguments));
-  }
-
-  _createClass(XlsxTemplateProperties, [{
-    key: 'componentDidMount',
-    value: function componentDidMount() {
-      this.removeInvalidXlsxTemplateReferences();
-    }
-  }, {
-    key: 'componentDidUpdate',
-    value: function componentDidUpdate() {
-      this.removeInvalidXlsxTemplateReferences();
-    }
-  }, {
-    key: 'removeInvalidXlsxTemplateReferences',
-    value: function removeInvalidXlsxTemplateReferences() {
-      var _props = this.props,
-          entity = _props.entity,
-          entities = _props.entities,
-          onChange = _props.onChange;
-
-
-      if (!entity.xlsx) {
-        return;
-      }
-
-      var updatedXlsxAssets = Object.keys(entities).filter(function (k) {
-        return entities[k].__entitySet === 'assets' && entity.xlsx != null && entities[k].shortid === entity.xlsx.templateAssetShortid;
-      });
-
-      if (entity.xlsx && entity.xlsx.templateAssetShortid && updatedXlsxAssets.length === 0) {
-        onChange({ _id: entity._id, xlsx: null });
-      }
-    }
-  }, {
-    key: 'changeXlsxTemplate',
-    value: function changeXlsxTemplate(oldXlsxTemplate, prop, value) {
-      var newValue = void 0;
-
-      if (value == null) {
-        newValue = _extends({}, oldXlsxTemplate);
-        newValue[prop] = null;
-      } else {
-        return _extends({}, oldXlsxTemplate, _defineProperty({}, prop, value));
-      }
-
-      newValue = Object.keys(newValue).length ? newValue : null;
-
-      return newValue;
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var _props2 = this.props,
-          entity = _props2.entity,
-          _onChange = _props2.onChange;
-
-
-      return _react2.default.createElement(
-        'div',
-        { className: 'properties-section' },
-        _react2.default.createElement(
-          'div',
-          { className: 'form-group' },
-          _react2.default.createElement(EntityRefSelect, {
-            headingLabel: 'Select xlsx template',
-            newLabel: 'New xlsx asset for template',
-            value: entity.xlsx ? entity.xlsx.templateAssetShortid : '',
-            onChange: function onChange(selected) {
-              return _onChange({
-                _id: entity._id,
-                xlsx: selected != null && selected.length > 0 ? { templateAssetShortid: selected[0].shortid } : null
-              });
-            },
-            filter: function filter(references) {
-              return { assets: references.assets };
-            },
-            renderNew: function renderNew(modalProps) {
-              return _react2.default.createElement(sharedComponents.NewAssetModal, _extends({}, modalProps, { options: _extends({}, modalProps.options, { defaults: { folder: entity.folder }, activateNewTab: false }) }));
-            }
-          })
-        )
-      );
-    }
-  }], [{
-    key: 'selectAssets',
-    value: function selectAssets(entities) {
-      return Object.keys(entities).filter(function (k) {
-        return entities[k].__entitySet === 'assets';
-      }).map(function (k) {
-        return entities[k];
-      });
-    }
-  }, {
-    key: 'title',
-    value: function title(entity, entities) {
-      if (!entity.xlsx || !entity.xlsx.templateAssetShortid) {
-        return 'xlsx';
-      }
-
-      var foundAssets = XlsxTemplateProperties.selectAssets(entities).filter(function (e) {
-        return entity.xlsx != null && entity.xlsx.templateAssetShortid === e.shortid;
-      });
-
-      if (!foundAssets.length) {
-        return 'xlsx';
-      }
-
-      var name = foundAssets[0].name;
-
-      return 'xlsx asset: ' + name;
-    }
-  }]);
-
-  return XlsxTemplateProperties;
-}(_react.Component);
-
-exports.default = XlsxTemplateProperties;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-module.exports = Studio.libraries['react'];
-
-/***/ })
-/******/ ]);
+/******/ })()
+;

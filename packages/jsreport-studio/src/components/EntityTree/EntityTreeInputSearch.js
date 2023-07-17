@@ -12,6 +12,7 @@ const InputSearch = ({ value, onChange, onKeyDown }) => {
 
   return (
     <div className={styles.search}>
+      <i className={styles.searchIcon} />
       <input
         ref={inputFilterRef}
         type='text'

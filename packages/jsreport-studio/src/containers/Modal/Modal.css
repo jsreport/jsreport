@@ -27,18 +27,14 @@
 
 
 .close {
+  composes: fa fa-times from global;
+  color: $modal-close-color;
   position: absolute;
   right: 1rem;
   top: 0.5rem;
 }
 
-.close:after {
-  color: $modal-close-color;
-  font-family: FontAwesome;
-  content: '\f00d'
-}
-
-.close:hover:after {
+.close:hover {
   color: $modal-close-hover-color;
   cursor: pointer;
 }

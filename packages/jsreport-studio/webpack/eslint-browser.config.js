@@ -1,26 +1,15 @@
 const path = require('path')
+const jsreportStudioDev = require('@jsreport/studio-dev')
 
-const babelLoaderOptions = {
-  sourceType: 'unambiguous',
-  presets: [
-    [
-      require.resolve('@babel/preset-env'),
-      {
-        // we don't specify targets intentionally, because we want babel to transform
-        // all ES2015-ES2020 code to be ES5 compatible
-        // (we may change that in the future when we find the time to discuss what is the
-        // minimum browser features we want to support)
-        // https://babeljs.io/docs/options#no-targets
-        // we don't use browserslist: because we don't want our compilation to be modified
-        // by some definition of browserslist somewhere
-        ignoreBrowserslistConfig: true
-      }
-    ]
-  ],
-  plugins: [
-    require.resolve('@babel/plugin-transform-runtime')
-  ]
-}
+const createBabelOptions = jsreportStudioDev.babelOptions
+const { ProvidePlugin } = jsreportStudioDev.deps.webpack
+
+const babelLoaderOptions = Object.assign(createBabelOptions(), {
+  // we don't want to take config from babelrc files
+  babelrc: false
+})
+
+babelLoaderOptions.plugins.push(jsreportStudioDev.paths['@babel/plugin-transform-runtime'])
 
 const assetsPath = path.resolve(__dirname, '../static/dist')
 
@@ -37,7 +26,7 @@ module.exports = {
     filename: 'eslint-browser.js',
     library: 'eslint-browser',
     libraryTarget: 'umd',
-    // this makes the worker-loader bundle to work fine at runtime, otherwise you
+    // this makes the worker bundle to work fine at runtime, otherwise you
     // will see error in the web worker
     globalObject: 'this'
   },
@@ -75,6 +64,11 @@ module.exports = {
     ]
   },
   resolve: {
+    // node.js polyfills required by eslint source code
+    fallback: {
+      assert: require.resolve('webpack-fallback-assert/'),
+      path: require.resolve('webpack-fallback-path/')
+    },
     extensions: ['.json', '.js'],
     mainFields: ['browser', 'main'],
     modules: [
@@ -91,5 +85,14 @@ module.exports = {
       path.join(__dirname, '../../studio-dev/node_modules'),
       'node_modules'
     ]
-  }
+  },
+  plugins: [
+    new ProvidePlugin({
+      // provide global variable to modules (dependencies of eslint),
+      // Make a global `process` variable that points to the `process` package,
+      // because the `util` package (dep of webpack-fallback-assert) expects there to be a global variable named `process`.
+      // Thanks to https://stackoverflow.com/a/65018686/14239942
+      process: 'webpack-fallback-process/browser'
+    })
+  ]
 }

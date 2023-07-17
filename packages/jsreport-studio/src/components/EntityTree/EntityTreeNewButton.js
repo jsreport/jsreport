@@ -4,7 +4,7 @@ import NewFolderModal from '../Modals/NewFolderModal'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { openModal } from '../../helpers/openModal'
 import { values as configuration } from '../../lib/configuration'
-import style from './EntityTree.css'
+import styles from './EntityTree.css'
 
 class EntityTreeNewButton extends Component {
   constructor (props) {
@@ -56,7 +56,7 @@ class EntityTreeNewButton extends Component {
 
       // handle quirk in firefox that fires and additional click event during
       // contextmenu event, this code prevents the context menu to
-      // inmediatly be closed after being shown in firefox
+      // immediately be closed after being shown in firefox
       if (button === LEFT_CLICK) {
         this.tryHide()
       }
@@ -74,7 +74,7 @@ class EntityTreeNewButton extends Component {
     const entitySetsMenuItems = getVisibleEntitySetsInTree(configuration.entitySets).map((entitySet) => (
       <div
         key={entitySet.name}
-        className={style.contextButton}
+        className={styles.contextButton}
         onClick={() => {
           this.props.onNewEntity(entitySet.name)
           this.tryHide()
@@ -87,22 +87,23 @@ class EntityTreeNewButton extends Component {
     menuItems.push(
       <div
         key='New Entity'
-        className={`${style.contextButton} ${style.hasNestedLevels}`}
+        className={`${styles.contextButton} ${styles.hasNestedLevels}`}
         onClick={(e) => { e.stopPropagation() }}
       >
         <i className='fa fa-file' /> New Entity
-        <div key='entity-contextmenu' className={`${style.contextMenuContainer} ${style.nestedLevel}`}>
-          <div className={style.contextMenu}>
+        <div key='entity-contextmenu' className={`${styles.contextMenuContainer} ${styles.nestedLevel}`}>
+          <div className={styles.contextMenu}>
             {entitySetsMenuItems}
           </div>
         </div>
+        <span className={styles.contextButtonNestedIcon} />
       </div>
     )
 
     menuItems.push(
       <div
         key='New Folder'
-        className={style.contextButton}
+        className={styles.contextButton}
         onClick={(e) => {
           e.stopPropagation()
 
@@ -115,8 +116,8 @@ class EntityTreeNewButton extends Component {
     )
 
     return (
-      <div key='entity-contextmenu' ref={this.setMenuNode} className={style.contextMenuContainer}>
-        <div className={style.contextMenu}>
+      <div key='entity-contextmenu' ref={this.setMenuNode} className={styles.contextMenuContainer}>
+        <div className={styles.contextMenu}>
           {menuItems}
         </div>
       </div>

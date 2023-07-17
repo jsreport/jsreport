@@ -1,3 +1,6 @@
+const values = {
+  current: undefined,
+  filterTags: undefined
+}
 
-export let current
-export let filterTags
+export { values }
