@@ -19,6 +19,35 @@ module.exports = (files, headerFooterRefs) => {
     return serializeXml(doc).replace('<docxXml>', '').replace('</docxXml>', '')
   })
 
+  // Changing background color in cells
+  documentFile.data = documentFile.data.replace(/<w:tc>(?:(?!<w:tc>).)*<w:pPr><w:shd[^>]*>(?:(?!<w:tc>).)*<\/w:tc>/g, (val) => {
+    const doc = new DOMParser().parseFromString(val)
+    const wtc = doc.getElementsByTagName('w:tc')[0]
+    // Get the old shade element that was out inside paaragraph element
+    const old_wshd = wtc.getElementsByTagName('w:p')[0].getElementsByTagName('w:pPr')[0].getElementsByTagName('w:shd')[0]
+    // Get the background color
+    const backgroundColor = old_wshd.getAttribute("w:fill")
+    
+    let wshd = wtc.getElementsByTagName('w:tcPr')[0].getElementsByTagName('w:shd')[0]
+    if (!wshd) {
+      wshd = doc.createElement('w:shd')
+      const wtcpr = wtc.getElementsByTagName('w:tcPr')[0]
+      wtcpr.insertBefore(wshd, wtcpr.firstChild)
+    }
+    
+    wshd.setAttribute('w:val', 'clear')
+    wshd.setAttribute('w:color', 'auto')
+    wshd.setAttribute('w:fill', backgroundColor)
+    wshd.removeAttribute('w:themeColor')
+    wshd.removeAttribute('w:themeTint')
+    wshd.removeAttribute('w:themeShade')
+    wshd.removeAttribute('w:themeFill')
+    wshd.removeAttribute('w:themeFillTint')
+    wshd.removeAttribute('w:themeFillShade')
+
+    return serializeXml(doc)
+  })
+
   for (const { doc: headerFooterDoc } of headerFooterRefs) {
     const docxStylesEls = nodeListToArray(headerFooterDoc.getElementsByTagName('docxStyles'))
 
