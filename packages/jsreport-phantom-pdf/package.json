@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-phantom-pdf",
-  "version": "3.3.0",
+  "version": "3.3.2",
   "description": "jsreport recipe which is rendering pdf from html using phantomjs",
   "scripts": {
     "start": "jsreport-studio-start --httpPort 5488",
@@ -20,7 +20,7 @@
   ],
   "license": "LGPL",
   "dependencies": {
-    "phantom-html-to-pdf": "0.8.1",
+    "phantom-html-to-pdf": "0.8.3",
     "stream-to-array": "2.3.0"
   },
   "author": "Jan Blaha",
