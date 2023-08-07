@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-phantom-image",
-  "version": "3.2.0",
+  "version": "3.2.2",
   "description": "jsreport recipe which is rendering images from html using phantomjs",
   "scripts": {
     "test": "mocha test --timeout 7000 && standard",
@@ -30,7 +30,7 @@
   },
   "license": "LGPL",
   "dependencies": {
-    "phantom-html-to-pdf": "0.8.1",
+    "phantom-html-to-pdf": "0.8.3",
     "stream-to-array": "2.3.0"
   },
   "author": "Jan Blaha",
