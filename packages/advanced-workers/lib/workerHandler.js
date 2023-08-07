@@ -2,8 +2,6 @@ const { parentPort, workerData } = require('worker_threads')
 const callbackQueue = require('./callbacksQueue')()
 const convertUint8ArrayToBuffer = require('./convertUint8ArrayToBuffer')
 const serializator = require('serializator')
-// eslint-disable-next-line
-const domain = require('domain')
 
 function asyncAwaiter () {
   const awaiter = {}
@@ -90,7 +88,7 @@ function init () {
 }
 
 function execute (m) {
-  return runInDomain(() => workerModule.execute(m.userData))
+  return workerModule.execute(m.userData)
 }
 
 parentPort.on('message', (m) => {
@@ -122,27 +120,3 @@ parentPort.on('message', (m) => {
     }
   }
 })
-
-async function runInDomain (fn) {
-  // NOTE: we're using domains here intentionally,
-  // we have tried to avoid its usage but unfortunately there is no other way to
-  // ensure that we are handling all kind of errors that can occur in an external script,
-  // but everything is ok because node.js will only remove domains when they found an alternative
-  // and when that time comes, we just need to migrate to that alternative.
-  const d = domain.create()
-
-  return new Promise((resolve, reject) => {
-    d.on('error', (err) => {
-      reject(err)
-    })
-
-    d.run(async () => {
-      try {
-        const r = await fn()
-        resolve(r)
-      } catch (e) {
-        reject(e)
-      }
-    })
-  })
-}
