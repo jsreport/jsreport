@@ -39,6 +39,7 @@ import ReportPreviewType from './components/Preview/TypeComponents/ReportPreview
 import ProfilePreviewType from './components/Preview/TypeComponents/ProfilePreviewType/ProfilePreviewType'
 import ReportProfilePreviewType from './components/Preview/TypeComponents/ReportProfilePreviewType'
 import { openModal } from './helpers/openModal'
+import createGroupEntitiesByFolders from './helpers/groupEntitiesByFolders'
 import { openTab } from './redux/editor/actions'
 import storeMethods from './redux/methods'
 
@@ -100,6 +101,11 @@ export default () => {
 
   configuration.sharedComponents.NewEntityModal = NewEntityModal
   configuration.sharedComponents.NewFolderModal = NewFolderModal
+
+  // default grouping mode
+  configuration.entityTreeGroupModes.folders = {
+    createGrouper: createGroupEntitiesByFolders
+  }
 
   // default filter by name strategy
   configuration.entityTreeFilterItemResolvers.push((entity, entitySets, filterInfo) => {

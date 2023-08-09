@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import EntityTreeContext from './EntityTreeContext'
-import { checkIsGroupNode } from './utils'
+import { checkIsGroupNode } from '../../helpers/checkEntityTreeNodes'
 
 const NodeSelect = ({ id, node }) => {
   const { selectable, selectionMode, onNodeSelect, isNodeSelected } = useContext(EntityTreeContext)

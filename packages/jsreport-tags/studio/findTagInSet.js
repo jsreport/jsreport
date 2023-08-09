@@ -1,15 +1,12 @@
 
 export default (tagSet, tagShortId) => {
-  let tag
+  if (typeof tagSet.has === 'function') {
+    return tagSet.get(tagShortId)
+  }
 
-  const found = tagSet.some((tagInSet) => {
-    tag = tagInSet
+  const found = tagSet.find((tagInSet) => {
     return tagInSet.shortid === tagShortId
   })
 
-  if (found) {
-    return tag
-  }
-
-  return undefined
+  return found
 }

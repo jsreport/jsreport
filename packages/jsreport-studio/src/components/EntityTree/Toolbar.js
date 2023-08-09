@@ -4,7 +4,7 @@ import { values as configuration } from '../../lib/configuration'
 import styles from './EntityTree.css'
 
 const Toolbar = (props) => {
-  const { setFilter, onNewEntity } = props
+  const { groupMode, setFilter, setGroupMode, onNewEntity } = props
 
   if (configuration.entityTreeToolbarComponents.single.length === 0 && configuration.entityTreeToolbarComponents.group.length === 0) {
     return null
@@ -14,7 +14,9 @@ const Toolbar = (props) => {
   const groupComponents = configuration.entityTreeToolbarComponents.group
 
   const commonProps = {
+    groupMode,
     setFilter,
+    setGroupMode,
     onNewEntity
   }
 
@@ -42,7 +44,7 @@ const Toolbar = (props) => {
   )
 }
 
-const ToolbarGroup = ({ items, setFilter, onNewEntity }) => {
+const ToolbarGroup = ({ items, groupMode, setFilter, setGroupMode, onNewEntity }) => {
   const [isActive, setActive] = useState(false)
   const itemsContainerRef = useRef(null)
 
@@ -70,7 +72,7 @@ const ToolbarGroup = ({ items, setFilter, onNewEntity }) => {
 
         // handle quirk in firefox that fires and additional click event during
         // contextmenu event, this code prevents the context menu to
-        // inmediatly be closed after being shown in firefox
+        // immediately be closed after being shown in firefox
         if (button === LEFT_CLICK) {
           closeMenu()
         }
@@ -105,7 +107,9 @@ const ToolbarGroup = ({ items, setFilter, onNewEntity }) => {
                 className={`${styles.contextButton}`}
               >
                 {React.createElement(p, {
+                  groupMode,
                   setFilter,
+                  setGroupMode,
                   onNewEntity,
                   closeMenu
                 })}

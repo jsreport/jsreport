@@ -8,11 +8,12 @@ module.exports = {
   },
   optionsSchema: {
     extensions: {
-      tags: {
+      studio: {
         type: 'object',
         properties: {
-          organizeByDefault: {
-            type: 'boolean'
+          entityTreeGroupMode: {
+            type: 'string',
+            enum: ['tags']
           }
         }
       }

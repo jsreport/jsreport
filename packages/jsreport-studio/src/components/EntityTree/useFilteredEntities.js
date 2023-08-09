@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { values as configuration } from '../../lib/configuration'
 
 const initialFilterState = {}
@@ -6,16 +6,23 @@ const initialFilterState = {}
 function useFilteredEntities (entities) {
   const [filter, setFilter] = useState(initialFilterState)
 
-  const setNewFilter = (newFilterState) => {
+  const setNewFilter = useCallback((newFilterState) => {
     setFilter((prev) => {
       return {
         ...prev,
         ...newFilterState
       }
     })
-  }
+  }, [])
 
-  return [filterEntities(entities, filter), setNewFilter]
+  const filteredEntities = useMemo(() => (
+    filterEntities(entities, filter)
+  ), [entities, filter])
+
+  useEffect(() => {
+  }, [filteredEntities])
+
+  return [filteredEntities, setNewFilter]
 }
 
 function filterEntities (entities, filter) {

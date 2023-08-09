@@ -1,6 +1,4 @@
 import React, { Component } from 'react'
-import { values as organizeState } from './organizeState'
-import emitter from './emitter'
 import styles from './TagEntityTreeButtonToolbar.css'
 
 class TagEntityTreeOrganizeButtonToolbar extends Component {
@@ -13,12 +11,18 @@ class TagEntityTreeOrganizeButtonToolbar extends Component {
   handleOrganizationModeChange (ev) {
     ev.stopPropagation()
 
-    // notify parent that the organization mode has changed
-    emitter.emit('organizationModeByTagsChanged', !organizeState.current)
+    const { setGroupMode } = this.props
+
+    setGroupMode((currentGroupMode) => {
+      return currentGroupMode === 'tags' ? null : 'tags'
+    })
+
     this.props.closeMenu()
   }
 
   render () {
+    const { groupMode } = this.props
+
     return (
       <div
         title='Group and organize entities tree by tag'
@@ -27,7 +31,7 @@ class TagEntityTreeOrganizeButtonToolbar extends Component {
       >
         <span
           style={{ display: 'inline-block', marginRight: '0.3rem' }}
-          className={organizeState.current ? styles.active : ''}
+          className={groupMode === 'tags' ? styles.active : ''}
         >
           <span className='fa fa-tags' />
         </span>

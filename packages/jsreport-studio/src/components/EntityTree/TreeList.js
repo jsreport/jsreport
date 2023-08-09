@@ -1,22 +1,37 @@
-import React, { useRef, useCallback, useImperativeHandle } from 'react'
+import React, { useRef, useEffect, useCallback, useImperativeHandle, useMemo } from 'react'
 import ReactList from 'react-list'
+import memoizeOne from 'memoize-one'
 import TreeNode from './TreeNode'
-import {
-  getNodeId,
-  groupEntitiesByType,
-  groupEntitiesByHierarchy,
-  getSetsToRender,
-  checkIsGroupNode,
-  checkIsGroupEntityNode
-} from './utils'
+
+import { getNodeId, getSetsToRender } from './utils'
+import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import { values as configuration } from '../../lib/configuration'
 
-const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref) {
+const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, collapsedInfo }, ref) {
   const containerRef = useRef(null)
   const allNodesByNodeIdRef = useRef({})
   const rootEntityNodesRef = useRef([])
   const parentNodesByIdRef = useRef({})
   const entityNodesByIdRef = useRef({})
+
+  const createGrouper = useMemo(() => (
+    configuration.entityTreeGroupModes[groupMode]?.createGrouper
+  ), [groupMode])
+
+  if (createGrouper == null) {
+    throw new Error(`groupMode "${groupMode}" is not a valid group mode`)
+  }
+
+  const memoizedGroupEntities = useMemo(() => {
+    return memoizeOne(createGrouper())
+  }, [createGrouper])
+
+  const groupHelpers = useMemo(() => ({
+    getNodeId,
+    getSetsToRender,
+    checkIsGroupNode,
+    checkIsGroupEntityNode
+  }), [])
 
   const getRelativeEntitiesById = useCallback(function getRelativeEntitiesById (id) {
     const parentNode = parentNodesByIdRef.current[id]
@@ -48,7 +63,7 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
     wants to control how entity tree is rendered and we should pass all useful
     information to the callback
   */
-  const renderTreeNode = (node = {}, depth, treeIsDraggable) => {
+  const renderTreeNode = useCallback(function renderTreeNode (node = {}, depth, treeIsDraggable) {
     const treeDepth = depth || 0
     let isDraggable
 
@@ -75,9 +90,9 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
         renderTree={renderTree}
       />
     )
-  }
+  }, [])
 
-  const renderTree = (nodeList, depth = 0, parentId, treeIsDraggable) => {
+  const renderTree = useCallback(function renderTree (nodeList, depth = 0, parentId, treeIsDraggable) {
     if (depth === 0) {
       allNodesByNodeIdRef.current = {}
       rootEntityNodesRef.current = []
@@ -85,21 +100,14 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
       entityNodesByIdRef.current = {}
     }
 
-    const nodeListToRender = nodeList.map((node) => {
+    for (const node of nodeList) {
       const isGroupEntityNode = checkIsGroupEntityNode(node)
       const isGroupNode = checkIsGroupNode(node)
-      const isOnlyGroupNode = isGroupNode && !isGroupEntityNode
-      const nodeId = getNodeId(node.name, isOnlyGroupNode ? null : node.data, parentId, depth)
 
-      const newNode = {
-        id: nodeId,
-        ...node
-      }
-
-      allNodesByNodeIdRef.current[nodeId] = newNode
+      allNodesByNodeIdRef.current[node.id] = node
 
       if (isGroupEntityNode || !isGroupNode) {
-        entityNodesByIdRef.current[node.data._id] = newNode
+        entityNodesByIdRef.current[node.data._id] = node
 
         if (
           parentId != null &&
@@ -107,52 +115,30 @@ const TreeList = React.forwardRef(function TreeList ({ entities, children }, ref
         ) {
           parentNodesByIdRef.current[node.data._id] = allNodesByNodeIdRef.current[parentId]
         } else {
-          rootEntityNodesRef.current.push(newNode)
+          rootEntityNodesRef.current.push(node)
         }
       }
-
-      return newNode
-    })
+    }
 
     return (
       <ReactList
         itemRenderer={(index) => renderTreeNode(
-          nodeListToRender[index],
+          nodeList[index],
           depth,
           treeIsDraggable
         )}
-        length={nodeListToRender.length}
+        length={nodeList.length}
       />
     )
-  }
+  }, [renderTreeNode])
 
-  const renderDefaultTree = () => (
+  return (
     <div ref={containerRef}>
       {renderTree(
-        groupEntitiesByHierarchy(configuration.entitySets, entities)
+        memoizedGroupEntities(configuration.entitySets, entities, collapsedInfo, groupHelpers)
       )}
     </div>
   )
-
-  if (typeof children === 'function') {
-    return children({
-      // we render the root tree with a wrapper div to be able to
-      // calculate some things for the drag and drop interactions
-      renderDefaultTree,
-      renderTree: (...args) => (
-        <div ref={containerRef}>
-          {renderTree(...args)}
-        </div>
-      ),
-      getSetsToRender: getSetsToRender,
-      groupEntitiesByType: groupEntitiesByType,
-      groupEntitiesByHierarchy: groupEntitiesByHierarchy,
-      entitySets: configuration.entitySets,
-      entities
-    })
-  }
-
-  return renderDefaultTree()
 })
 
 export default React.memo(TreeList)

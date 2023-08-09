@@ -574,6 +574,7 @@ module.exports = (reporter, definition) => {
         serverStartupHash,
         startupPage: definition.options.startupPage,
         entityTreeOrder: definition.options.entityTreeOrder,
+        entityTreeGroupMode: definition.options.entityTreeGroupMode,
         linkButtonVisibility: definition.options.linkButtonVisibility,
         profiler: {
           defaultMode: reporter.options.profiler.defaultMode,

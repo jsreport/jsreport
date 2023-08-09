@@ -121,12 +121,14 @@ class Studio {
   }
 
   /**
-   * Add React component which will be displayed as a wrapper/container for entity tree
-   *
-   * @param {ReactComponent|Function} entityTreeWrapperComponent
+   * Add custom grouping logic for display entities in EntityTree component
    */
-  addEntityTreeWrapperComponent (entityTreeWrapperComponent) {
-    configuration.entityTreeWrapperComponents.push(entityTreeWrapperComponent)
+  addEntityTreeGroupMode (modeName, info = {}) {
+    if (info.createGrouper == null) {
+      throw new Error('createGrouper param is required')
+    }
+
+    configuration.entityTreeGroupModes[modeName] = info
   }
 
   /**

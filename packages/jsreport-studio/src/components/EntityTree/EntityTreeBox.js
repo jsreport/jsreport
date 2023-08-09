@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import EntityTree from './EntityTree'
 import NewFolderModal from '../Modals/NewFolderModal'
@@ -6,7 +6,6 @@ import NewEntityModal from '../Modals/NewEntityModal'
 import DeleteConfirmationModal from '../Modals/DeleteConfirmationModal'
 import RenameModal from '../Modals/RenameModal'
 import { createGetReferencesSelector } from '../../redux/entities/selectors'
-import { createGetActiveEntitySelector } from '../../redux/editor/selectors'
 import { openModal } from '../../helpers/openModal'
 import getCloneName from '../../../shared/getCloneName'
 import { values as configuration } from '../../lib/configuration'
@@ -14,9 +13,7 @@ import styles from './EntityTreeBox.css'
 
 const EntityTreeBox = () => {
   const getReferences = useMemo(createGetReferencesSelector, [])
-  const getActiveEntity = useMemo(createGetActiveEntitySelector, [])
   const references = useSelector(getReferences)
-  const activeEntity = useSelector(getActiveEntity)
   const editSelection = useSelector(state => state.editor.editSelection)
   const editSelectionRefs = useSelector(state => state.editor.editSelectionRefs)
   const lastEditSelectionFocused = useSelector(state => state.editor.lastEditSelectionFocused)
@@ -56,17 +53,6 @@ const EntityTreeBox = () => {
     openModal(DeleteConfirmationModal, { toRemove })
   }, [])
 
-  let entityTreeEl = null
-
-  const containerStyles = {
-    display: 'flex',
-    flex: 1,
-    flexDirection: 'column',
-    // firefox needs min-height and min-width explicitly declared to allow descendants flex items to be scrollable (overflow)
-    minWidth: 0,
-    minHeight: 0
-  }
-
   const entityTreeProps = {
     main: true,
     toolbar: true,
@@ -74,48 +60,17 @@ const EntityTreeBox = () => {
     onRename: executeRenameHandling,
     onClone: executeCloneHandling,
     onRemove: executeRemoveHandling,
-    activeEntity,
     editSelection,
     editSelectionRefs,
     lastEditSelectionFocused,
     entities: references
   }
 
-  // if there are no components registered, defaults to rendering the EntityTree alone
-  if (!configuration.entityTreeWrapperComponents.length) {
-    entityTreeEl = React.createElement(EntityTree, entityTreeProps)
-  } else {
-    // composing components
-    const wrappedEntityTree = configuration.entityTreeWrapperComponents.reduce((prevElement, component) => {
-      const propsToWrapper = {
-        entities: references,
-        entitySets: configuration.entitySets,
-        containerStyles
-      }
-
-      if (prevElement == null) {
-        return React.createElement(
-          component,
-          propsToWrapper,
-          React.createElement(EntityTree, entityTreeProps)
-        )
-      }
-
-      return React.createElement(
-        component,
-        propsToWrapper,
-        prevElement
-      )
-    }, null)
-
-    if (wrappedEntityTree != null) {
-      entityTreeEl = wrappedEntityTree
-    }
-  }
-
   return (
     <div className={styles.boxContainer}>
-      {entityTreeEl}
+      <EntityTree
+        {...entityTreeProps}
+      />
     </div>
   )
 }

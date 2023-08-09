@@ -1,33 +1,39 @@
-import { useContext, useRef, useCallback } from 'react'
+import React, { useRef, useCallback } from 'react'
 import classNames from 'classnames'
-import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
-import { renderEntityTreeItemComponents, checkIsGroupEntityNode } from './utils'
+import { renderEntityTreeItemComponents } from './utils'
 import { values as configuration } from '../../lib/configuration'
+import { checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
 import styles from './EntityTree.css'
 
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
-const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDragging, renderTree }) => {
-  const {
-    main,
-    paddingByLevel,
-    selectable,
-    contextMenu,
-    contextMenuRef,
-    getContextMenuItems,
-    isNodeCollapsed,
-    hasEditSelection,
-    isNodeEditSelected,
-    isNodeActive,
-    onNewEntity,
-    onNodeEditSelect,
-    onNodeClick,
-    onContextMenu
-  } = useContext(EntityTreeContext)
-
+const GroupNode = React.memo(({
+  main,
+  selectable,
+  paddingByLevel,
+  id,
+  titleId,
+  node,
+  depth,
+  draggable,
+  isDragging,
+  connectDragging,
+  renderTree,
+  isActive,
+  isCollapsed,
+  contextMenu,
+  contextMenuRef,
+  getContextMenuItems,
+  hasEditSelection,
+  isNodeEditSelected,
+  onNewEntity,
+  onNodeEditSelect,
+  onNodeClick,
+  onContextMenu
+}) => {
   const titleRef = useRef(null)
 
   const getCoordinates = useCallback(() => {
@@ -42,8 +48,6 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
   const nodeId = node.id
   const name = node.name
   const items = node.items
-  const isCollapsed = isNodeCollapsed(node)
-  const isActive = isNodeActive(node)
 
   const groupStyle = node.data != null
     ? resolveEntityTreeIconStyle(node.data, {
@@ -176,6 +180,6 @@ const GroupNode = ({ id, titleId, node, depth, draggable, isDragging, connectDra
       </div>
     </div>
   )
-}
+})
 
 export default GroupNode

@@ -1,5 +1,6 @@
 import React from 'react'
-import groupEntitiesByHierarchyHelper from '../../helpers/groupEntitiesByHierarchy'
+import EntityTreeItems from './EntityTreeItems'
+import { checkIsGroupEntityNode, checkIsGroupNode } from '../../helpers/checkEntityTreeNodes'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { values as configuration } from '../../lib/configuration'
 
@@ -8,23 +9,6 @@ export function pointIsInsideContainer (containerDimensions, point) {
   const insideY = point.y >= containerDimensions.top && point.y <= (containerDimensions.top + containerDimensions.height)
 
   return insideX && insideY
-}
-
-export function groupEntitiesByType (entitySets, entitiesByType) {
-  const setsToRender = getSetsToRender(entitySets)
-
-  return setsToRender.map((entitiesType) => ({
-    name: entitiesType,
-    isEntitySet: true,
-    items: entitiesByType[entitiesType].map((entity) => ({
-      name: entity.name,
-      data: entity
-    }))
-  }))
-}
-
-export function groupEntitiesByHierarchy (entitySets, entitiesByType) {
-  return groupEntitiesByHierarchyHelper(Object.keys(entitySets), entitiesByType)
 }
 
 export function getSetsToRender (entitySets) {
@@ -60,18 +44,6 @@ export function getSetsToRender (entitySets) {
   }).map((setInfo) => setInfo.name)
 
   return [...setsInOrderSpecification, ...setsNotInOrderSpecification]
-}
-
-export function checkIsGroupNode (node) {
-  return node.isEntitySet === true || node.isGroup === true
-}
-
-export function checkIsGroupEntityNode (node) {
-  if (checkIsGroupNode(node)) {
-    return node.isEntity === true
-  }
-
-  return false
 }
 
 export function getNodeId (name, entity, parentId, depth) {
@@ -153,32 +125,14 @@ export function getAllEntitiesInHierarchy (node, includeRoot, onlyDirectChildren
 }
 
 export function renderEntityTreeItemComponents (position, propsToItem, originalChildren) {
-  if (position === 'container') {
-    // if there are no components registered, defaults to original children
-    if (!configuration.entityTreeItemComponents[position].length) {
-      return originalChildren
-    }
-
-    // composing components when position is container
-    const wrappedItemElement = configuration.entityTreeItemComponents[position].reduce((prevElement, b) => {
-      if (prevElement == null) {
-        return React.createElement(b, propsToItem, originalChildren)
-      }
-
-      return React.createElement(b, propsToItem, prevElement)
-    }, null)
-
-    if (!wrappedItemElement) {
-      return null
-    }
-
-    return wrappedItemElement
+  if (position === 'container' && !configuration.entityTreeItemComponents[position].length) {
+    return originalChildren
   }
 
-  return configuration.entityTreeItemComponents[position].map((p, i) => (
-    React.createElement(p, {
-      key: i,
-      ...propsToItem
-    }))
-  )
+  return React.createElement(EntityTreeItems, {
+    position,
+    components: configuration.entityTreeItemComponents[position],
+    propsToItem,
+    originalChildren
+  })
 }

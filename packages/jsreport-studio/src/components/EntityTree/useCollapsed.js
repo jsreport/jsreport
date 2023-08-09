@@ -1,19 +1,19 @@
 import { useState, useCallback } from 'react'
 import storeMethods from '../../redux/methods'
-import { checkIsGroupNode, checkIsGroupEntityNode } from './utils'
+import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 
 export default function useCollapsed ({
   listRef
 }) {
   const [collapsedNodes, setCollapsed] = useState({})
 
-  const isNodeCollapsed = useCallback((node) => {
+  const collapsedDefaultValue = useCallback((node) => {
     if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
-      return collapsedNodes[node.id] == null ? false : collapsedNodes[node.id] === true
+      return false
     }
 
-    return collapsedNodes[node.id] == null ? true : collapsedNodes[node.id] === true
-  }, [collapsedNodes])
+    return true
+  }, [])
 
   const toggleNodeCollapse = useCallback((node, forceState) => {
     const nodesToProcess = Array.isArray(node) ? node : [node]
@@ -22,25 +22,28 @@ export default function useCollapsed ({
       return
     }
 
-    const newState = nodesToProcess.reduce((acu, nodeObj) => {
-      let newCollapseState
+    setCollapsed((prev) => {
+      const newState = nodesToProcess.reduce((acu, nodeObj) => {
+        let newCollapseState
 
-      if (forceState != null) {
-        newCollapseState = forceState === true
-      } else {
-        newCollapseState = !isNodeCollapsed(nodeObj)
+        if (forceState != null) {
+          newCollapseState = forceState === true
+        } else {
+          const currentCollapsed = prev[node.id] == null ? collapsedDefaultValue(node) : prev[node.id]
+          newCollapseState = !currentCollapsed
+        }
+
+        acu[nodeObj.id] = newCollapseState
+
+        return acu
+      }, {})
+
+      return {
+        ...prev,
+        ...newState
       }
-
-      acu[nodeObj.id] = newCollapseState
-
-      return acu
-    }, {})
-
-    setCollapsed((prev) => ({
-      ...prev,
-      ...newState
-    }))
-  }, [isNodeCollapsed])
+    })
+  }, [collapsedDefaultValue])
 
   const collapseHandler = useCallback((idOrShortid, state, options = {}) => {
     const { parents, self = true } = options
@@ -83,8 +86,9 @@ export default function useCollapsed ({
   }, [listRef, toggleNodeCollapse])
 
   return {
-    isNodeCollapsed,
+    collapsedNodes,
     toggleNodeCollapse,
-    collapseHandler
+    collapseHandler,
+    collapsedDefaultValue
   }
 }

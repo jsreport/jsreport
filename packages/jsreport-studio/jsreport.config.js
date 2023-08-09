@@ -84,6 +84,11 @@ module.exports = {
             type: 'array',
             items: { type: 'string' }
           },
+          entityTreeGroupMode: {
+            type: 'string',
+            enum: ['folders'],
+            default: 'folders'
+          },
           linkButtonVisibility: {
             type: 'boolean',
             default: true

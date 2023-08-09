@@ -8,13 +8,8 @@ import useConstructor from '../../hooks/useConstructor'
 import HierarchyReplaceEntityModal from '../Modals/HierarchyReplaceEntityModal'
 import storeMethods from '../../redux/methods'
 import ENTITY_NODE_DRAG_TYPE from './nodeDragType'
-import {
-  checkIsGroupNode,
-  checkIsGroupEntityNode,
-  getAllEntitiesInHierarchy,
-  getNodeDOMId,
-  getNodeTitleDOMId
-} from './utils'
+import { getAllEntitiesInHierarchy, getNodeDOMId, getNodeTitleDOMId } from './utils'
+import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import { openModal } from '../../helpers/openModal'
 import { values as configuration } from '../../lib/configuration'
 
@@ -32,7 +27,6 @@ export default function useEntityTree (main, {
   editSelectionRefs,
   lastEditSelectionFocused,
   selected,
-  activeEntity,
   getContextMenuItems,
   openTab,
   editSelect,
@@ -46,12 +40,29 @@ export default function useEntityTree (main, {
   listRef,
   contextMenuRef
 }) {
+  const defaultGroupMode = configuration.extensions.studio.options.entityTreeGroupMode
   const dragOverContextRef = useRef(null)
+  const [groupMode, setGroupMode] = useState(defaultGroupMode)
   const [clipboard, setClipboard] = useState(null)
   const [highlightedArea, setHighlightedArea] = useState(null)
   const [currentEntities, setFilter] = useFilteredEntities(entities)
 
-  const { isNodeCollapsed, toggleNodeCollapse, collapseHandler } = useCollapsed({
+  const handleSetGroupMode = useCallback((modeOrFn) => {
+    const getMode = (_mode) => {
+      return _mode != null ? _mode : defaultGroupMode
+    }
+
+    if (typeof modeOrFn === 'function') {
+      setGroupMode((prevMode) => {
+        const newMode = modeOrFn(prevMode)
+        return getMode(newMode)
+      })
+    } else {
+      setGroupMode(getMode(modeOrFn))
+    }
+  }, [defaultGroupMode, groupMode])
+
+  const { collapsedNodes, toggleNodeCollapse, collapseHandler, collapsedDefaultValue } = useCollapsed({
     listRef
   })
 
@@ -419,7 +430,7 @@ export default function useEntityTree (main, {
           containerTargetHasEntities = true
         }
 
-        if (isNodeCollapsed(nodeObj)) {
+        if (nodeObj.collapsed === true) {
           containerTargetIsCollapsed = true
         }
       }
@@ -451,7 +462,7 @@ export default function useEntityTree (main, {
         return newHighlightedArea
       })
     }
-  }, [paddingByLevelInTree, clearHighlightedArea, isNodeCollapsed, isValidHierarchyTarget, listRef])
+  }, [paddingByLevelInTree, clearHighlightedArea, isValidHierarchyTarget, listRef])
 
   const { draggedNode, dragOverNode, connectDropTarget } = useDropHandler({
     listRef,
@@ -463,10 +474,165 @@ export default function useEntityTree (main, {
 
   const connectDropping = !selectable ? connectDropTarget : undefined
 
+  const sharedOnNewEntity = useCallback(function sharedOnNewEntity (node, ...params) {
+    if (node && node.isEntitySet !== true) {
+      toggleNodeCollapse(node, false)
+    }
+
+    onNewEntity(...params)
+  }, [toggleNodeCollapse, onNewEntity])
+
+  const onOpen = useCallback(function onOpen (entity) {
+    openTab({ _id: entity._id })
+  }, [openTab])
+
+  const onNodeSelect = useCallback(function onNodeSelect (node, value, mode) {
+    if (!selectable) {
+      return
+    }
+
+    const isGroupEntityNode = checkIsGroupEntityNode(node)
+
+    const toProcess = isGroupEntityNode ? getAllEntitiesInHierarchy(node, true) : [node.data._id]
+
+    if (toProcess.length === 0) {
+      return
+    }
+
+    const updates = {
+      ...(mode !== 'single' ? selected : undefined),
+      ...toProcess.reduce((acu, currentEntityId) => {
+        acu[currentEntityId] = value != null ? value : !selected[currentEntityId]
+        return acu
+      }, {})
+    }
+
+    const newSelected = {}
+
+    // eslint-disable-next-line
+    for (const entityId of Object.keys(updates)) {
+      if (updates[entityId] === true) {
+        newSelected[entityId] = true
+      }
+    }
+
+    onSelectionChanged(newSelected)
+  }, [onSelectionChanged])
+
+  const onNodeEditSelect = useCallback(function onNodeEditSelect (node, createRange = false) {
+    const isGroupEntity = checkIsGroupEntityNode(node)
+    const isEntity = !isGroupEntity && !checkIsGroupNode(node)
+
+    if (isEntity || isGroupEntity) {
+      const originalTargetEntityId = node.data._id
+      const selectReference = [originalTargetEntityId]
+      let targetEntityId = originalTargetEntityId
+
+      if (createRange) {
+        const activeEntity = storeMethods.getEditorActiveEntity()
+        let startEntityId
+
+        if (editSelectionRefs != null && editSelectionRefs.length > 0) {
+          startEntityId = editSelectionRefs[editSelectionRefs.length - 1]
+        } else if (activeEntity != null) {
+          // start the range with active entity if there was no previous selection
+          startEntityId = activeEntity._id
+
+          if (!selectReference.includes(startEntityId)) {
+            selectReference.push(startEntityId)
+          }
+        }
+
+        const startRelativeEntitiesNodes = startEntityId != null ? listRef.current.getRelativeEntitiesById(startEntityId) : []
+        const endExistsInRelativesOfStart = startRelativeEntitiesNodes.find((n) => n.data._id === targetEntityId) != null
+
+        if (startEntityId != null && startEntityId !== targetEntityId && endExistsInRelativesOfStart) {
+          const startIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === startEntityId)
+          const endIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === targetEntityId)
+          const step = endIndex > startIndex ? 1 : -1
+          const limit = endIndex + step
+
+          targetEntityId = []
+
+          let currentIndex = startIndex
+
+          do {
+            targetEntityId.push(startRelativeEntitiesNodes[currentIndex].data._id)
+            currentIndex = currentIndex + step
+          } while (currentIndex !== limit)
+        }
+      }
+
+      const selectOpts = { initializeWithActive: true, reference: selectReference }
+
+      if (createRange) {
+        selectOpts.value = true
+      }
+
+      editSelect(targetEntityId, selectOpts)
+    }
+
+    clearContextMenu()
+  }, [editSelectionRefs, listRef, editSelect, clearContextMenu])
+
+  const onNodeClick = useCallback(function onNodeClick (node) {
+    const isGroup = checkIsGroupNode(node)
+    const isGroupEntity = checkIsGroupEntityNode(node)
+    const isEntity = !isGroupEntity && !checkIsGroupNode(node)
+
+    if (isEntity) {
+      openTab({ _id: node.data._id })
+    } else if (isGroup || isGroupEntity) {
+      toggleNodeCollapse(node)
+    }
+
+    clearContextMenu()
+  }, [openTab, toggleNodeCollapse, clearContextMenu])
+
+  const onSetClipboard = useCallback(function onSetClipboard (newClipboard) {
+    setClipboard(newClipboard)
+  }, [setClipboard])
+
+  const onReleaseClipboardTo = useCallback(function onReleaseClipboardTo (destination) {
+    if (clipboard == null) {
+      return
+    }
+
+    copyOrMoveEntity(clipboard.source, {
+      shortid: destination.shortid,
+      children: destination.children
+    }, clipboard.action === 'copy')
+
+    setClipboard(null)
+  }, [clipboard, copyOrMoveEntity, setClipboard])
+
+  const hasEditSelection = useCallback(function hasEditSelection () {
+    return editSelection != null
+  }, [editSelection])
+
+  const isNodeSelected = useCallback(function isNodeSelected (node) {
+    return selected[node.data._id] === true
+  }, [selected])
+
+  const isNodeEditSelected = useCallback(function isNodeEditSelected (node) {
+    if (editSelection == null) {
+      return false
+    }
+
+    if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
+      return false
+    }
+
+    return editSelection.find((id) => node.data._id === id) != null
+  }, [editSelection])
+
+  const getEntityNodeById = useCallback(function getEntityNodeById (id) {
+    return listRef.current.entityNodesById[id]
+  }, [])
+
   const sharedValues = useMemo(() => {
     return {
       main,
-      allEntities: entities,
       paddingByLevel: paddingByLevelInTree,
       editSelection,
       selectable,
@@ -477,175 +643,26 @@ export default function useEntityTree (main, {
       onRemove,
       onClone,
       onRename,
-      onNewEntity: (node, ...params) => {
-        if (node && node.isEntitySet !== true) {
-          toggleNodeCollapse(node, false)
-        }
-
-        onNewEntity(...params)
-      },
-      onOpen: (entity) => {
-        openTab({ _id: entity._id })
-      },
-      onNodeSelect: (node, value, mode) => {
-        if (!selectable) {
-          return
-        }
-
-        const isGroupEntityNode = checkIsGroupEntityNode(node)
-
-        const toProcess = isGroupEntityNode ? getAllEntitiesInHierarchy(node, true) : [node.data._id]
-
-        if (toProcess.length === 0) {
-          return
-        }
-
-        const updates = {
-          ...(mode !== 'single' ? selected : undefined),
-          ...toProcess.reduce((acu, currentEntityId) => {
-            acu[currentEntityId] = value != null ? value : !selected[currentEntityId]
-            return acu
-          }, {})
-        }
-
-        const newSelected = {}
-
-        // eslint-disable-next-line
-        for (const entityId of Object.keys(updates)) {
-          if (updates[entityId] === true) {
-            newSelected[entityId] = true
-          }
-        }
-
-        onSelectionChanged(newSelected)
-      },
-      onNodeEditSelect: (node, createRange = false) => {
-        const isGroupEntity = checkIsGroupEntityNode(node)
-        const isEntity = !isGroupEntity && !checkIsGroupNode(node)
-
-        if (isEntity || isGroupEntity) {
-          const originalTargetEntityId = node.data._id
-          const selectReference = [originalTargetEntityId]
-          let targetEntityId = originalTargetEntityId
-
-          if (createRange) {
-            const activeEntity = storeMethods.getEditorActiveEntity()
-            let startEntityId
-
-            if (editSelectionRefs != null && editSelectionRefs.length > 0) {
-              startEntityId = editSelectionRefs[editSelectionRefs.length - 1]
-            } else if (activeEntity != null) {
-              // start the range with active entity if there was no previous selection
-              startEntityId = activeEntity._id
-
-              if (!selectReference.includes(startEntityId)) {
-                selectReference.push(startEntityId)
-              }
-            }
-
-            const startRelativeEntitiesNodes = startEntityId != null ? listRef.current.getRelativeEntitiesById(startEntityId) : []
-            const endExistsInRelativesOfStart = startRelativeEntitiesNodes.find((n) => n.data._id === targetEntityId) != null
-
-            if (startEntityId != null && startEntityId !== targetEntityId && endExistsInRelativesOfStart) {
-              const startIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === startEntityId)
-              const endIndex = startRelativeEntitiesNodes.findIndex((node) => node.data._id === targetEntityId)
-              const step = endIndex > startIndex ? 1 : -1
-              const limit = endIndex + step
-
-              targetEntityId = []
-
-              let currentIndex = startIndex
-
-              do {
-                targetEntityId.push(startRelativeEntitiesNodes[currentIndex].data._id)
-                currentIndex = currentIndex + step
-              } while (currentIndex !== limit)
-            }
-          }
-
-          const selectOpts = { initializeWithActive: true, reference: selectReference }
-
-          if (createRange) {
-            selectOpts.value = true
-          }
-
-          editSelect(targetEntityId, selectOpts)
-        }
-
-        clearContextMenu()
-      },
-      onNodeClick: (node) => {
-        const isGroup = checkIsGroupNode(node)
-        const isGroupEntity = checkIsGroupEntityNode(node)
-        const isEntity = !isGroupEntity && !checkIsGroupNode(node)
-
-        if (isEntity) {
-          openTab({ _id: node.data._id })
-        } else if (isGroup || isGroupEntity) {
-          toggleNodeCollapse(node)
-        }
-
-        clearContextMenu()
-      },
+      onNewEntity: sharedOnNewEntity,
+      onOpen,
+      onNodeSelect,
+      onNodeEditSelect,
+      onNodeClick,
       onNodeDragOver: dragOverNode,
       onNodeCollapse: toggleNodeCollapse,
       onContextMenu: showContextMenu,
       onClearContextMenu: clearContextMenu,
       onClearEditSelect: clearEditSelect,
-      onSetClipboard: (newClipboard) => {
-        setClipboard(newClipboard)
-      },
-      onReleaseClipboardTo: (destination) => {
-        if (clipboard == null) {
-          return
-        }
-
-        copyOrMoveEntity(clipboard.source, {
-          shortid: destination.shortid,
-          children: destination.children
-        }, clipboard.action === 'copy')
-
-        setClipboard(null)
-      },
-      hasEditSelection: () => {
-        return editSelection != null
-      },
-      isNodeCollapsed,
-      isNodeSelected: (node) => {
-        return selected[node.data._id] === true
-      },
-      isNodeEditSelected: (node) => {
-        if (editSelection == null) {
-          return false
-        }
-
-        if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
-          return false
-        }
-
-        return editSelection.find((id) => node.data._id === id) != null
-      },
-      isNodeActive: (node) => {
-        let active = false
-
-        if (
-          activeEntity != null &&
-          (checkIsGroupEntityNode(node) || !checkIsGroupNode(node)) &&
-          node.data != null && node.data._id === activeEntity._id
-        ) {
-          active = true
-        }
-
-        return active
-      },
-      getEntityNodeById: (id) => {
-        return listRef.current.entityNodesById[id]
-      },
+      onSetClipboard,
+      onReleaseClipboardTo,
+      hasEditSelection,
+      isNodeSelected,
+      isNodeEditSelected,
+      getEntityNodeById,
       getContextMenuItems
     }
   }, [
     main,
-    entities,
     editSelection,
     editSelectionRefs,
     paddingByLevelInTree,
@@ -654,17 +671,22 @@ export default function useEntityTree (main, {
     contextMenu,
     clipboard,
     selected,
-    activeEntity,
-    onNewEntity,
+    sharedOnNewEntity,
+    onOpen,
     onClone,
     onRename,
     onRemove,
-    onSelectionChanged,
-    openTab,
-    editSelect,
+    onNodeSelect,
+    onNodeEditSelect,
+    onNodeClick,
     clearEditSelect,
+    getEntityNodeById,
     getContextMenuItems,
-    isNodeCollapsed,
+    onSetClipboard,
+    onReleaseClipboardTo,
+    hasEditSelection,
+    isNodeSelected,
+    isNodeEditSelected,
     toggleNodeCollapse,
     dragOverNode,
     showContextMenu,
@@ -675,11 +697,15 @@ export default function useEntityTree (main, {
   ])
 
   return {
+    groupMode,
     currentEntities,
+    collapsedNodes,
+    collapsedDefaultValue,
     highlightedArea,
     draggedNode,
     connectDropping,
     setFilter,
+    setGroupMode: handleSetGroupMode,
     context: sharedValues
   }
 }

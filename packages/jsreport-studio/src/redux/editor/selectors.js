@@ -129,3 +129,5 @@ export const createGetCanSaveAllSelector = () => {
     getCanSaveAll
   )
 }
+
+export { createSelector }

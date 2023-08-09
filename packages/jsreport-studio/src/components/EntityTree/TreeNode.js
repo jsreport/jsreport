@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useContext, useMemo } from 'react'
+import { useSelector } from 'react-redux'
 import classNames from 'classnames'
 import composeRefs from '@seznam/compose-react-refs'
 import { useDrag, useDrop } from 'react-dnd'
@@ -8,15 +9,84 @@ import usePrevious from '../../hooks/usePrevious'
 import GroupNode from './GroupNode'
 import EntityNode from './EntityNode'
 import ENTITY_NODE_DRAG_TYPE from './nodeDragType'
-import { checkIsGroupNode, checkIsGroupEntityNode, getNodeDOMId, getNodeTitleDOMId } from './utils'
+import { getNodeDOMId, getNodeTitleDOMId } from './utils'
+import { createSelector, createGetActiveEntitySelector } from '../../redux/editor/selectors'
+import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import styles from './EntityTree.css'
 
-const TreeNode = ({ node, depth, draggable, renderTree }) => {
-  const { selectable, isNodeCollapsed, onNodeDragOver, onNodeCollapse } = useContext(EntityTreeContext)
+const TreeNode = React.memo(({ node, depth, draggable, renderTree }) => {
+  const {
+    main,
+    selectable,
+    paddingByLevel,
+    contextMenu,
+    contextMenuRef,
+    getContextMenuItems,
+    hasEditSelection,
+    isNodeEditSelected,
+    onNewEntity,
+    onNodeDragOver,
+    onNodeCollapse,
+    onNodeEditSelect,
+    onNodeClick,
+    onContextMenu
+  } = useContext(EntityTreeContext)
+
+  const props = {
+    node,
+    depth,
+    draggable,
+    main,
+    selectable,
+    paddingByLevel,
+    contextMenu,
+    contextMenuRef,
+    getContextMenuItems,
+    hasEditSelection,
+    isNodeEditSelected,
+    renderTree,
+    onNewEntity,
+    onNodeDragOver,
+    onNodeCollapse,
+    onNodeEditSelect,
+    onNodeClick,
+    onContextMenu
+  }
+
+  const TreeNodeItem = main ? ConnectedTreeNodeItem : RawTreeNodeItem
+
+  return (
+    <TreeNodeItem
+      {...props}
+    />
+  )
+})
+
+const RawTreeNodeItem = React.memo(({
+  node,
+  depth,
+  draggable,
+  renderTree,
+  main,
+  selectable,
+  paddingByLevel,
+  contextMenu,
+  contextMenuRef,
+  getContextMenuItems,
+  hasEditSelection,
+  isNodeEditSelected,
+  isActive = false,
+  onNewEntity,
+  onNodeDragOver,
+  onNodeCollapse,
+  onNodeEditSelect,
+  onNodeClick,
+  onContextMenu
+}) => {
   const isGroupNode = checkIsGroupNode(node)
   const isGroupEntityNode = checkIsGroupEntityNode(node)
   const isEntityNode = checkIsGroupNode(node) ? checkIsGroupEntityNode(node) : true
-  const isCollapsed = isNodeCollapsed(node)
+  const isCollapsed = node.collapsed === true
 
   const dragPreviewOptions = useMemo(() => ({
     captureDraggingState: true
@@ -53,7 +123,7 @@ const TreeNode = ({ node, depth, draggable, renderTree }) => {
       return {
         entitySet: node.data.__entitySet,
         isGroupEntity: checkIsGroupEntityNode(node),
-        isCollapsed: isNodeCollapsed(node),
+        isCollapsed,
         node
       }
     }
@@ -106,13 +176,34 @@ const TreeNode = ({ node, depth, draggable, renderTree }) => {
   }
 
   const commonProps = {
+    main,
+    selectable,
+    paddingByLevel,
     id,
     titleId,
     node,
     depth,
     isDragging,
-    connectDragging
+    connectDragging,
+    isActive,
+    contextMenu,
+    contextMenuRef,
+    getContextMenuItems,
+    hasEditSelection,
+    isNodeEditSelected,
+    onNodeEditSelect,
+    onNodeClick,
+    onContextMenu
   }
+
+  const groupProps = {
+    isCollapsed,
+    draggable,
+    renderTree,
+    onNewEntity
+  }
+
+  const entityProps = {}
 
   return (
     <div
@@ -123,16 +214,48 @@ const TreeNode = ({ node, depth, draggable, renderTree }) => {
         ? (
           <GroupNode
             {...commonProps}
-            draggable={draggable}
-            renderTree={renderTree}
+            {...groupProps}
           />
           )
         : (
           <EntityNode
             {...commonProps}
+            {...entityProps}
           />
           )}
     </div>
+  )
+})
+
+const createIsNodeActiveSelector = () => createSelector(
+  createGetActiveEntitySelector(),
+  (_, node) => node,
+  (activeEntity, node) => {
+    let active = false
+
+    if (
+      activeEntity != null &&
+      (checkIsGroupEntityNode(node) || !checkIsGroupNode(node)) &&
+      node.data != null && node.data._id === activeEntity._id
+    ) {
+      active = true
+    }
+
+    return active
+  }
+)
+
+const ConnectedTreeNodeItem = (props) => {
+  const { node } = props
+
+  const isNodeActive = useMemo(createIsNodeActiveSelector, [])
+  const isActive = useSelector((state) => isNodeActive(state, node))
+
+  return (
+    <RawTreeNodeItem
+      {...props}
+      isActive={isActive}
+    />
   )
 }
 

@@ -1,7 +1,6 @@
-import { useContext, useRef, useCallback } from 'react'
+import React, { useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import composeRefs from '@seznam/compose-react-refs'
-import EntityTreeContext from './EntityTreeContext'
 import NodeSelect from './NodeSelect'
 import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents } from './utils'
@@ -11,23 +10,26 @@ import styles from './EntityTree.css'
 
 const isMac = () => window.navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
-const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) => {
-  const {
-    main,
-    paddingByLevel,
-    selectable,
-    allEntities,
-    contextMenu,
-    contextMenuRef,
-    hasEditSelection,
-    isNodeEditSelected,
-    isNodeActive,
-    getContextMenuItems,
-    onNodeEditSelect,
-    onNodeClick,
-    onContextMenu
-  } = useContext(EntityTreeContext)
-
+const EntityNode = React.memo(({
+  main,
+  selectable,
+  paddingByLevel,
+  id,
+  titleId,
+  node,
+  depth,
+  isDragging,
+  connectDragging,
+  isActive,
+  contextMenu,
+  contextMenuRef,
+  getContextMenuItems,
+  hasEditSelection,
+  isNodeEditSelected,
+  onNodeEditSelect,
+  onNodeClick,
+  onContextMenu
+}) => {
   const titleRef = useRef(null)
 
   const getCoordinates = useCallback(() => {
@@ -42,7 +44,6 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
   const name = node.name
   const entity = node.data
   const entityStyle = resolveEntityTreeIconStyle(entity, {})
-  const isActive = isNodeActive(node)
   const isContextMenuActive = contextMenu != null && contextMenu.id === entity._id
 
   const containerClass = classNames(styles.link, {
@@ -96,7 +97,7 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
       }}
       onContextMenu={(ev) => onContextMenu(ev, entity)}
     >
-      {renderEntityTreeItemComponents('container', { entity, entities: allEntities }, [
+      {renderEntityTreeItemComponents('container', { entity }, [
         <div
           ref={composeRefs(titleRef, connectDragging)}
           key={`container-entity-${name}`}
@@ -118,6 +119,6 @@ const EntityNode = ({ id, titleId, node, depth, isDragging, connectDragging }) =
       ])}
     </label>
   )
-}
+})
 
 export default EntityNode
