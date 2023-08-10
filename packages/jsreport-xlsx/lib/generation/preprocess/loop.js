@@ -1,6 +1,6 @@
 const path = require('path')
 const { num2col } = require('xlsx-coordinates')
-const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getClosestEl } = require('../../utils')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getClosestEl, getSheetInfo } = require('../../utils')
 const { parseCellRef, evaluateCellRefsFromExpression } = require('../../cellUtils')
 const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
 
@@ -711,14 +711,22 @@ module.exports = (files) => {
       formulaEl.textContent += '}}'
 
       for (const cellRefInfo of cellRefsInFormula) {
-        // we only want to put formulaPart call once per cell
-        // it does not matter that multiple formulas references the same cell
-        // we just want one helper call here
-        if (formulaPartsHandled.has(cellRefInfo.ref)) {
+        // we don't process formulas with references to other sheets
+        if (cellRefInfo.parsed.sheetName != null) {
           continue
         }
 
-        const targetCellEl = cellsElsByRefMap.get(cellRefInfo.ref)
+        // we need to normalize to ignored the possible locked symbols ($)
+        const normalizedCellRef = `${cellRefInfo.parsed.letter}${cellRefInfo.parsed.rowNumber}`
+
+        // we only want to put formulaPart call once per cell
+        // it does not matter that multiple formulas references the same cell
+        // we just want one helper call here
+        if (formulaPartsHandled.has(normalizedCellRef)) {
+          continue
+        }
+
+        const targetCellEl = cellsElsByRefMap.get(normalizedCellRef)
 
         // we get here when a formula references a cell which
         // does not have any content (so it does not have a corresponding cell element)
@@ -727,10 +735,10 @@ module.exports = (files) => {
         }
 
         const newFormulaPartCallEl = sheetDoc.createElement('xlsxRemove')
-        newFormulaPartCallEl.textContent = `{{xlsxSData type='formulaPart' originalCellRef='${cellRefInfo.ref}'}}`
+        newFormulaPartCallEl.textContent = `{{xlsxSData type='formulaPart' originalCellRef='${normalizedCellRef}'}}`
 
         targetCellEl.appendChild(newFormulaPartCallEl)
-        formulaPartsHandled.add(cellRefInfo.ref)
+        formulaPartsHandled.add(normalizedCellRef)
       }
     }
   }
@@ -830,32 +838,6 @@ function getCellElsAndWrappersFrom (referenceCellEl, type = 'previous') {
   }
 
   return els
-}
-
-function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {
-  const sheetPath = _sheetPath.startsWith('xl/') ? _sheetPath.replace(/^xl\//, '') : _sheetPath
-
-  const sheetRefEl = workbookRelsEls.find((el) => (
-    el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet' &&
-    el.getAttribute('Target') === sheetPath
-  ))
-
-  if (sheetRefEl == null) {
-    return
-  }
-
-  const sheetEl = workbookSheetsEls.find((el) => el.getAttribute('r:id') === sheetRefEl.getAttribute('Id'))
-
-  if (sheetEl == null) {
-    return
-  }
-
-  return {
-    id: sheetEl.getAttribute('sheetId'),
-    name: sheetEl.getAttribute('name'),
-    rId: sheetRefEl.getAttribute('Id'),
-    path: sheetPath
-  }
 }
 
 function getCellInfo (cellEl, sharedStringsEls, sheetFilepath) {

@@ -868,7 +868,7 @@ function xlsxSData (data, options) {
       const originCellIsFromLoop = optionsToUse.data.currentLoopId != null
 
       const { newValue } = evaluateCellRefsFromExpression(originalFormula, (cellRefInfo) => {
-        const cellRefIsFromLoop = trackedLoopCells[cellRefInfo.ref]?.count != null
+        const cellRefIsFromLoop = trackedLoopCells[cellRefInfo.localRef]?.count != null
         let newRowNumber
 
         if (
@@ -876,17 +876,55 @@ function xlsxSData (data, options) {
           (cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd') &&
           cellRefIsFromLoop
         ) {
-          newRowNumber = cellRefInfo.type === 'rangeStart' ? cellRefInfo.parsed.rowNumber : parseCellRef(trackedLoopCells[cellRefInfo.ref].last).rowNumber
+          newRowNumber = cellRefInfo.type === 'rangeStart' ? cellRefInfo.parsed.rowNumber : parseCellRef(trackedLoopCells[cellRefInfo.localRef].last).rowNumber
         } else {
-          const originRowNumber = originCellIsFromLoop ? parsedNewOriginCellRef.rowNumber : parsedOriginCellRef.rowNumber
-          const targetRowNumber = cellRefIsFromLoop ? parseCellRef(trackedLoopCells[cellRefInfo.ref].last).rowNumber : cellRefInfo.parsed.rowNumber
-          const diff = originRowNumber - targetRowNumber
+          let originMetadata
+          let targetMetadata
+          let originRowNumber
+          let targetRowNumber
 
-          if (diff < 0) {
-            throw new Error(`xlsxSData type="formula" helper only support cell refs that are above the current cell ref. cell ref: "${originalCellRef}", formula: "${originalFormula}"`)
+          if (originCellIsFromLoop) {
+            originRowNumber = parsedNewOriginCellRef.rowNumber
+            originMetadata = { workbookName: parsedNewOriginCellRef.workbookName, sheetName: parsedNewOriginCellRef.sheetName }
+          } else {
+            originRowNumber = parsedOriginCellRef.rowNumber
+            originMetadata = { workbookName: parsedOriginCellRef.workbookName, sheetName: parsedOriginCellRef.sheetName }
           }
 
-          newRowNumber = parsedNewOriginCellRef.rowNumber - diff
+          if (cellRefIsFromLoop) {
+            // TODO: support not increasing the formula when locked row
+            // when locked row we don't want to increase based on the loop, we take the first instance of the loop
+            // as the value to use
+            const newCellRef = cellRefInfo.parsed.lockedRow ? parseCellRef(trackedLoopCells[cellRefInfo.localRef].first) : parseCellRef(trackedLoopCells[cellRefInfo.localRef].last)
+            // const newCellRef = parseCellRef(trackedLoopCells[cellRefInfo.localRef].last)
+            targetRowNumber = newCellRef.rowNumber
+            targetMetadata = { workbookName: newCellRef.workbookName, sheetName: newCellRef.sheetName }
+          } else {
+            targetRowNumber = cellRefInfo.parsed.rowNumber
+            targetMetadata = { workbookName: cellRefInfo.parsed.workbookName, sheetName: cellRefInfo.parsed.sheetName }
+          }
+
+          // if cell ref in formula comes from different workbook or sheet than the origin
+          // then we don't increment as normal, we increment based on the difference between
+          // new origin cell and original origin cell
+          if (
+            originMetadata.workbookName !== targetMetadata.workbookName ||
+            originMetadata.sheetName !== targetMetadata.sheetName
+          ) {
+            newRowNumber = cellRefInfo.parsed.rowNumber
+
+            if (!cellRefInfo.parsed.lockedRow) {
+              newRowNumber += parsedNewOriginCellRef.rowNumber - parsedOriginCellRef.rowNumber
+            }
+          } else {
+            const diff = originRowNumber - targetRowNumber
+
+            if (diff < 0) {
+              throw new Error(`xlsxSData type="formula" helper only support cell refs that are above the current cell ref. cell ref: "${originalCellRef}", formula: "${originalFormula}"`)
+            }
+
+            newRowNumber = parsedNewOriginCellRef.rowNumber - diff
+          }
         }
 
         const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, newRowNumber)

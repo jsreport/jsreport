@@ -2,12 +2,23 @@ const { DOMParser } = require('@xmldom/xmldom')
 const { col2num } = require('xlsx-coordinates')
 const recursiveStringReplaceAsync = require('../../recursiveStringReplaceAsync')
 const stringReplaceAsync = require('../../stringReplaceAsync')
-const { nodeListToArray, isWorksheetFile, serializeXml } = require('../../utils')
+const { nodeListToArray, isWorksheetFile, serializeXml, getSheetInfo } = require('../../utils')
 
 module.exports = async (files) => {
+  const workbookPath = 'xl/workbook.xml'
+  const workbookDoc = files.find((f) => f.path === workbookPath).doc
+  const workbookRelsDoc = files.find((file) => file.path === 'xl/_rels/workbook.xml.rels').doc
   const calcChainDoc = files.find((f) => f.path === 'xl/calcChain.xml')?.doc
+  const workbookSheetsEls = nodeListToArray(workbookDoc.getElementsByTagName('sheet'))
+  const workbookRelsEls = nodeListToArray(workbookRelsDoc.getElementsByTagName('Relationship'))
 
   for (const sheetFile of files.filter((f) => isWorksheetFile(f.path))) {
+    const sheetInfo = getSheetInfo(sheetFile.path, workbookSheetsEls, workbookRelsEls)
+
+    if (sheetInfo == null) {
+      throw new Error(`Could not find sheet info for sheet at ${sheetFile.path}`)
+    }
+
     const outOfLoopItems = new Map()
 
     sheetFile.data = await recursiveStringReplaceAsync(
@@ -110,7 +121,12 @@ module.exports = async (files) => {
         const doc = new DOMParser().parseFromString(val)
         const calcChainCellRefUpdatedEl = doc.documentElement.firstChild
         const calcChainEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
-        const matches = calcChainEls.filter((c) => c.getAttribute('oldR') === calcChainCellRefUpdatedEl.getAttribute('oldR'))
+
+        const matches = calcChainEls.filter((c) => (
+          c.getAttribute('i') === sheetInfo.id &&
+          c.getAttribute('oldR') === calcChainCellRefUpdatedEl.getAttribute('oldR')
+        ))
+
         const calcChainCellRefEl = matches[matches.length - 1]
 
         if (calcChainCellRefEl != null) {
@@ -136,7 +152,7 @@ module.exports = async (files) => {
     )
 
     if (calcChainDoc != null) {
-      const newCalcChainEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
+      const newCalcChainEls = nodeListToArray(calcChainDoc.getElementsByTagName('c')).filter((c) => c.getAttribute('i') === sheetInfo.id)
 
       // we clean the oldR attribute that we used for the conditions
       for (const calcChainEl of newCalcChainEls) {

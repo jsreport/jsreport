@@ -361,4 +361,31 @@ describe('xlsx generation - base', () => {
     should(sheet.F3.t).be.eql('b')
     should(sheet.F3.v).be.True()
   })
+
+  it('existing formulas that reference cells from other sheets should be preserved', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'existing-formula-cross-sheet-reference.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A2.v).be.eql(20)
+    should(sheet.B2.f).be.eql('A2+B!A1')
+    should(sheet.A3.v).be.eql(30)
+    should(sheet.B3.f).be.eql('A3+B!A3')
+    should(sheet.A4.v).be.eql(40)
+    should(sheet.B4.f).be.eql('A4+B!A5')
+  })
 })

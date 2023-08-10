@@ -182,6 +182,32 @@ function getChartEl (drawingEl) {
   return chartDrawingEl
 }
 
+function getSheetInfo (_sheetPath, workbookSheetsEls, workbookRelsEls) {
+  const sheetPath = _sheetPath.startsWith('xl/') ? _sheetPath.replace(/^xl\//, '') : _sheetPath
+
+  const sheetRefEl = workbookRelsEls.find((el) => (
+    el.getAttribute('Type') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet' &&
+    el.getAttribute('Target') === sheetPath
+  ))
+
+  if (sheetRefEl == null) {
+    return
+  }
+
+  const sheetEl = workbookSheetsEls.find((el) => el.getAttribute('r:id') === sheetRefEl.getAttribute('Id'))
+
+  if (sheetEl == null) {
+    return
+  }
+
+  return {
+    id: sheetEl.getAttribute('sheetId'),
+    name: sheetEl.getAttribute('name'),
+    rId: sheetRefEl.getAttribute('Id'),
+    path: sheetPath
+  }
+}
+
 function isWorksheetFile (filePath) {
   return path.posix.dirname(filePath) === 'xl/worksheets' && filePath.endsWith('.xml')
 }
@@ -218,6 +244,7 @@ module.exports.getNewRelIdFromBaseId = getNewRelIdFromBaseId
 module.exports.getNewIdFromBaseId = getNewIdFromBaseId
 module.exports.getChartEl = getChartEl
 module.exports.getClosestEl = getClosestEl
+module.exports.getSheetInfo = getSheetInfo
 module.exports.findOrCreateChildNode = findOrCreateChildNode
 module.exports.findChildNode = findChildNode
 module.exports.nodeListToArray = nodeListToArray
