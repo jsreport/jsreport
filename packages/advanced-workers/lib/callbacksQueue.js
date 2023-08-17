@@ -11,7 +11,19 @@ module.exports = (callbackTimeout = 10000) => {
     const item = items[0]
     item.busy = true
 
-    Promise.resolve(item.fn()).then((res) => {
+    let r
+    try {
+      // properly handle also sync errors
+      r = item.fn()
+    } catch (e) {
+      item.reject(e)
+      items.shift()
+      busy = false
+      execute()
+      return null
+    }
+
+    Promise.resolve(r).then((res) => {
       item.resolve(res)
       items.shift()
       busy = false
