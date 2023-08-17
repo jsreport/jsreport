@@ -3,7 +3,7 @@
 /* *global __rootDirectory */
 const __xlsx = (function () {
   const contextMap = new Map()
-  const fsproxy = this.fsproxy || require('fsproxy.js')
+  const fsproxy = globalThis.fsproxy || require('fsproxy.js')
   const jsreport = require('jsreport-proxy')
 
   // we need to serialize into string, to ensure all the async helpers results in the output are properly extracted

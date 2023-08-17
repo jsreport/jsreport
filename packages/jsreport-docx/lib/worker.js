@@ -1,5 +1,6 @@
 const fs = require('fs').promises
 const path = require('path')
+require('@xmldom/xmldom')
 
 module.exports = (reporter, definition) => {
   let helpersScript

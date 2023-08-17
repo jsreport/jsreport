@@ -47,10 +47,14 @@ module.exports = function createSandbox (_sandbox, options = {}) {
 
   propsManager.applyPropertiesConfigTo(sandbox)
 
-  let safeVM
   // with standard vm this variable is the same as context, with vm2 it is a proxy of context
   // (which is not the real internal context)
-  let vmSandbox
+  const vmSandbox = {
+    // todo, they use harden function to freeze objects passed to the Compartment
+    // however I don't see it is needed, the objects are still freezed
+    Buffer,
+    Date
+  }
 
   const doSandboxRequire = createSandboxRequire(safeExecution, isolateModules, modulesCache, {
     rootDirectory,
@@ -66,40 +70,8 @@ module.exports = function createSandbox (_sandbox, options = {}) {
     require (m) { return doSandboxRequire(m, { context: vmSandbox }) }
   })
 
-  if (safeExecution) {
-    safeVM = new VM()
-
-    // delete the vm.sandbox.global because it introduces json stringify issues
-    // and we don't need such global in context
-    delete safeVM.sandbox.global
-
-    for (const name in sandbox) {
-      safeVM.setGlobal(name, sandbox[name])
-    }
-
-    // so far we don't have the need to have access to real vm context inside vm2,
-    // but if we need it, we should use the code bellow to get it.
-    // NOTE: if we need to upgrade vm2 we will need to check the source of this function
-    // in vm2 repo and see if we need to change this,
-    // we just execute this to get access to the internal context, so we can use it later
-    // with the our require function, in newer versions of vm2 we may need to change how to
-    // get access to it
-    // https://github.com/patriksimek/vm2/blob/3.9.17/lib/vm.js#L281
-    // safeVM._runScript({
-    //   runInContext: (_context) => {
-    //     vmContext = _context
-    //     return ''
-    //   }
-    // })
-
-    vmSandbox = safeVM.sandbox
-  } else {
-    vmSandbox = originalVM.createContext(undefined)
-    vmSandbox.Buffer = Buffer
-
-    for (const name in sandbox) {
-      vmSandbox[name] = sandbox[name]
-    }
+  for (const name in sandbox) {
+    vmSandbox[name] = sandbox[name]
   }
 
   // processing top level props here because getter/setter descriptors
@@ -113,13 +85,15 @@ module.exports = function createSandbox (_sandbox, options = {}) {
   }
 
   const sourceFilesInfo = new Map()
+  const compartment = new Compartment(vmSandbox)
 
   return {
     sandbox: vmSandbox,
     console: _console,
     sourceFilesInfo,
     compileScript (code, filename) {
-      return doCompileScript(code, filename, safeExecution)
+      return code
+      // return doCompileScript(code, filename, safeExecution)
     },
     restore () {
       return propsManager.restorePropertiesFrom(vmSandbox)
@@ -128,13 +102,11 @@ module.exports = function createSandbox (_sandbox, options = {}) {
       return doSandboxRequire(modulePath, { context: vmSandbox, allowAllModules: true })
     },
     async run (codeOrScript, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) {
-      let runScript
-
       if (filename != null && source != null) {
         sourceFilesInfo.set(filename, { filename, source, entity, entitySet, errorLineNumberOffset })
       }
 
-      const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
+      /* const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
 
       if (safeExecution) {
         runScript = async function runScript () {
@@ -146,11 +118,10 @@ module.exports = function createSandbox (_sandbox, options = {}) {
             displayErrors: true
           })
         }
-      }
+      } */
 
       try {
-        const result = await runScript()
-        return result
+        return compartment.evaluate(codeOrScript) // runScript()
       } catch (e) {
         decorateErrorMessage(e, sourceFilesInfo)
 

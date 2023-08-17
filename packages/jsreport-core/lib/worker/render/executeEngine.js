@@ -259,13 +259,28 @@ module.exports = (reporter) => {
       templatesCache.reset()
     }
 
+    const registerResults = await reporter.registerHelpersListeners.fire()
+    const systemHelpers = []
+
+    for (const result of registerResults) {
+      if (result == null) {
+        continue
+      }
+
+      if (typeof result === 'string') {
+        systemHelpers.push(result)
+      }
+    }
+
+    const systemHelpersStr = systemHelpers.join('\n')
+
     try {
       return await reporter.runInSandbox({
         context: {
           ...(engine.createContext ? engine.createContext(req) : {})
         },
-        userCode: normalizedHelpers,
-        initFn,
+        userCode: systemHelpersStr + '\n' + normalizedHelpers,
+        // initFn,
         executionFn,
         currentPath: entityPath,
         onRequire: (moduleName, { context }) => {

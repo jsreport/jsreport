@@ -149,6 +149,19 @@ class WorkerReporter extends Reporter {
     // want to ensure that the batched messages are flushed before trying to execute the code
     await this.profiler.flush(req.context.rootId)
 
+    if (!this.lockedDown) {
+      await import('ses')
+      lockdown({
+      /* errorTaming: 'unsafe', */
+        stackFiltering: 'verbose'
+      /* overrideTaming: 'severe',
+        consoleTaming: 'unsafe',
+        evalTaming: 'unsafeEval',
+        __hardenTaming__: 'unsafe' */
+      })
+      this.lockedDown = true
+    }
+
     return this._runInSandbox({
       manager,
       context,

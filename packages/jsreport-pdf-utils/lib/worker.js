@@ -4,6 +4,8 @@ const { customAlphabet } = require('nanoid')
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 24)
 const proxyExtend = require('./proxyExtend')
 
+require('pdfjs-dist/legacy/build/pdf.js').getDocument(Buffer.from([])).promise.catch(() => {})
+
 const missingSecretMessage = 'pdf-sign extension uses encryption to store sensitive data and needs secret key to be defined. Please fill "encryption.secretKey" at the root of the config or disable encryption using "encryption.enabled=false".'
 
 module.exports = (reporter, definition) => {

@@ -1,4 +1,5 @@
 const LazyRecipe = require('./lazyRecipe')
+require('puppeteer')
 module.exports = function (reporter, definition) {
   const lazyRecipe = LazyRecipe(reporter, definition)
 

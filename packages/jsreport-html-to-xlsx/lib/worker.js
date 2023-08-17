@@ -1,5 +1,6 @@
 const fs = require('fs').promises
 const path = require('path')
+require('unzipper')
 
 module.exports = (reporter, definition) => {
   definition.options.tmpDir = reporter.options.tempAutoCleanupDirectory

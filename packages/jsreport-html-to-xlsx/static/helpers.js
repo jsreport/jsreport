@@ -2,7 +2,7 @@
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
 ;(function (global) {
-  const tmpHandler = this.tmpHandler || require('tmpHandler.js')
+  const tmpHandler = globalThis.tmpHandler || require('tmpHandler.js')
 
   function jsrenderHandlebarsCompatibility (fn) {
     return function () {

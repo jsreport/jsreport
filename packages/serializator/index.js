@@ -5,39 +5,51 @@ const typeKeys = {
   buffer: '$$$buffer$$$'
 }
 
-module.exports.serialize = (obj, { prettify = false, prettifySpace = 2 } = {}) => {
-  let res
+let serializing = false
 
-  const originalDateToJSON = Date.prototype.toJSON
-  const originalBufferToJSON = Buffer.prototype.toJSON
+const originalDateToJSON = Date.prototype.toJSON
+const originalBufferToJSON = Buffer.prototype.toJSON
 
-  // Keep track of the fact that this is a Date object
-  Date.prototype.toJSON = function () { // eslint-disable-line
+Date.prototype.toJSON = function () { // eslint-disable-line
+  if (serializing) {
     return { [typeKeys.date]: this.getTime() }
+  } else {
+    originalDateToJSON.call(this)
   }
+}
 
-  Buffer.prototype.toJSON = function (...args) { // eslint-disable-line
+Buffer.prototype.toJSON = function (...args) { // eslint-disable-line
+  if (serializing) {
     return { [typeKeys.buffer]: this.toString('base64') }
+  } else {
+    return originalBufferToJSON.call(this)
   }
+}
 
-  res = JSON.stringify(obj, (key, value) => {
-    if (typeof value === 'undefined') {
-      return null
-    }
+module.exports.serialize = (obj, { prettify = false, prettifySpace = 2 } = {}) => {
+  serializing = true
 
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value === null) {
+  try {
+    let res
+
+    // Keep track of the fact that this is a Date object
+
+    res = JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'undefined') {
+        return null
+      }
+
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value === null) {
+        return value
+      }
+
       return value
-    }
+    }, prettify ? prettifySpace : null)
 
-    return value
-  }, prettify ? prettifySpace : null)
-
-  // Return Date to its original state
-  Date.prototype.toJSON = originalDateToJSON // eslint-disable-line
-  // Return Buffer to its original state
-  Buffer.prototype.toJSON = originalBufferToJSON // eslint-disable-line
-
-  return res
+    return res
+  } finally {
+    serializing = false
+  }
 }
 
 module.exports.parse = (json) => {
