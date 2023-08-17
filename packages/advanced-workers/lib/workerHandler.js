@@ -1,7 +1,7 @@
 const { parentPort, workerData } = require('worker_threads')
 const callbackQueue = require('./callbacksQueue')()
 const convertUint8ArrayToBuffer = require('./convertUint8ArrayToBuffer')
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 
 function asyncAwaiter () {
   const awaiter = {}

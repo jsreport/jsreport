@@ -1,0 +1,43 @@
+{
+  "name": "@jsreport/serializator",
+  "version": "0.1.0",
+  "description": "Serialize javascript objects to JSON with support for rich data structures",
+  "main": "index.js",
+  "homepage": "https://github.com/jsreport/jsreport",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jsreport/serializator.git"
+  },
+  "keywords": [
+    "serialize",
+    "json",
+    "serializator"
+  ],
+  "author": "BJR Matos <bjrmatos@gmail.com>",
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+    "Jan Blaha <jan.blaha@hotmail.com> (https://github.com/pofider)"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=8.9"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  },
+  "scripts": {
+    "test": "mocha --timeout 5000 test/test.js && standard"
+  },
+  "devDependencies": {
+    "babel-eslint": "8.2.6",
+    "eslint": "5.4.0",
+    "eslint-plugin-babel": "5.1.0",
+    "mocha": "5.2.0",
+    "should": "13.2.3",
+    "standard": "11.0.1"
+  }
+}

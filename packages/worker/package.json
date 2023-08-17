@@ -46,7 +46,7 @@
     "nconf": "0.12.0",
     "node.extend": "2.0.2",
     "puppeteer": "20.7.1",
-    "serializator": "1.0.2",
+    "@jsreport/serializator": "0.1.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {

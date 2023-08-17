@@ -3,7 +3,7 @@ const Worker = require('../')
 require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const axios = require('axios')
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 
 const workerTempDirectory = path.join(require('os').tmpdir(), 'test-jsreport-worker')
 const workerTempCoreDirectory = path.join(workerTempDirectory, 'core')

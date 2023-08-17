@@ -1,4 +1,4 @@
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 const _sendToWorker = require('./sendToWorker')
 const createDockerManager = require('./dockerManager')
 const express = require('express')

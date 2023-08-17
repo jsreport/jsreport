@@ -2,7 +2,7 @@ const jsreport = require('@jsreport/jsreport-core')
 const os = require('os')
 const path = require('path')
 const Koa = require('koa')
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 const should = require('should')
 
 function createPool ({

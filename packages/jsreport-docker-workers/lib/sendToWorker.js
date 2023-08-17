@@ -1,5 +1,5 @@
 const axios = require('axios')
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 const { setTimeout } = require('timers/promises')
 
 module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } = {}) => {

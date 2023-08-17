@@ -1,7 +1,7 @@
 const util = require('util')
 const axios = require('axios')
 const execAsync = util.promisify(require('child_process').exec)
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 
 module.exports = class Container {
   constructor ({

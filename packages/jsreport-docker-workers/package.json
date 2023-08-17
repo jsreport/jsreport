@@ -23,7 +23,7 @@
     "lodash.get": "4.4.2",
     "lodash.omit": "4.5.0",
     "node.extend": "2.0.2",
-    "serializator": "1.0.2",
+    "@jsreport/serializator": "0.1.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {
