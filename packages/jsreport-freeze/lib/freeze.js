@@ -26,10 +26,15 @@ function hookListeners (colName, col, rejectIfAppropriate) {
 
 module.exports = (reporter, definition) => {
   function rejectIfAppropriate (req) {
+    const freeze = req?.context?._cachedFreeze != null ? req.context._cachedFreeze : reporter.settings.findValue('freeze')
     return Promise.all([
-      reporter.settings.findValue('freeze'),
+      freeze,
       isAdminUserAuthenticated(reporter, req)
     ]).then(function ([freeze, isAdmin]) {
+      if (req?.context) {
+        req.context._cachedFreeze = freeze != null && freeze
+      }
+
       if (isAdmin && !definition.options.hardFreeze && !freeze) {
         return
       }
