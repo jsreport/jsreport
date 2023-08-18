@@ -362,6 +362,41 @@ describe('xlsx generation - base', () => {
     should(sheet.F3.v).be.True()
   })
 
+  it('existing formulas that reference to cells above, same or bellow level should work', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'existing-formula-cell-reference-for-different-levels.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
+    const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
+
+    should(sheet.B2.v).be.eql(10)
+    should(sheet.B3.v).be.eql(20)
+    should(sheet.B4.f).be.eql('SUM(B2,B3)')
+
+    should(sheet2.B2.f).be.eql('SUM(C2,D2)')
+    should(sheet2.C2.v).be.eql(10)
+    should(sheet2.D2.v).be.eql(20)
+
+    should(sheet3.B2.f).be.eql('SUM(B3,B4)')
+    should(sheet3.B3.v).be.eql(10)
+    should(sheet3.B4.v).be.eql(20)
+  })
+
   it('existing formulas that reference cells from other sheets should be preserved', async () => {
     const result = await reporter.render({
       template: {

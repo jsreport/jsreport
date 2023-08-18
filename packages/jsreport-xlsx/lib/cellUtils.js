@@ -100,9 +100,10 @@ function evaluateCellRefsFromExpression (valueExpr, replacer) {
 
     const cellsRefsUpdated = []
 
-    for (const cellRefToUpdate of cellsRefsToUpdate) {
+    for (let cellRefPosition = 0; cellRefPosition < cellsRefsToUpdate.length; cellRefPosition++) {
+      const cellRefToUpdate = cellsRefsToUpdate[cellRefPosition]
       cellRefToUpdate.localRef = `${cellRefToUpdate.parsed.letter}${cellRefToUpdate.parsed.rowNumber}`
-      const newCellRef = replacer != null ? replacer(cellRefToUpdate) : cellRefToUpdate.ref
+      const newCellRef = replacer != null ? replacer(cellRefToUpdate, cellRefPosition) : cellRefToUpdate.ref
       cellsRefsUpdated.push(newCellRef)
       cellRefs.push({ ...cellRefToUpdate, newRef: newCellRef })
     }
@@ -114,6 +115,149 @@ function evaluateCellRefsFromExpression (valueExpr, replacer) {
     cellRefs,
     newValue: newValueExpr
   }
+}
+
+function getNewFormula (helperType, originalFormula, parsedOriginCellRef, meta) {
+  let newFormula
+  const result = {}
+
+  if (meta.type === 'normal') {
+    result.lazyCellRefs = {}
+  }
+
+  if (meta.type !== 'normal' && meta.type !== 'lazy') {
+    throw new Error('meta parameter must be either "normal" or "lazy"')
+  }
+
+  const { originCellIsFromLoop, previousLoopIncrement, currentLoopIncrement, trackedCells } = meta
+
+  const { newValue } = evaluateCellRefsFromExpression(originalFormula, (cellRefInfo, cellRefPosition) => {
+    const originMetadata = { workbookName: parsedOriginCellRef.workbookName, sheetName: parsedOriginCellRef.sheetName }
+    const targetMetadata = { workbookName: cellRefInfo.parsed.workbookName, sheetName: cellRefInfo.parsed.sheetName }
+    const lazyCellRefId = `${cellRefInfo.localRef}@${cellRefPosition}`
+
+    if (meta.type === 'lazy') {
+      const { lazyCellRefs } = meta
+      const shouldEvaluate = lazyCellRefs[lazyCellRefId] != null
+
+      // reuse already calculated cell refs
+      if (!shouldEvaluate) {
+        return generateNewCellRefFromRow(cellRefInfo.parsed, cellRefInfo.parsed.rowNumber)
+      }
+    }
+
+    let isLocalRef = true
+
+    if (
+      originMetadata.workbookName !== targetMetadata.workbookName ||
+      originMetadata.sheetName !== targetMetadata.sheetName
+    ) {
+      isLocalRef = false
+    }
+
+    let cellRefIsFromLoop = false
+
+    if (isLocalRef && trackedCells[cellRefInfo.localRef] != null) {
+      cellRefIsFromLoop = trackedCells[cellRefInfo.localRef].inLoop
+    }
+
+    let includeLoopIncrement
+
+    if (meta.type === 'normal') {
+      const { includeLoopIncrementResolver } = meta
+      includeLoopIncrement = includeLoopIncrementResolver(cellRefIsFromLoop, cellRefInfo)
+    } else {
+      const { lazyCellRefs } = meta
+      const found = lazyCellRefs[lazyCellRefId]
+      includeLoopIncrement = found != null ? found.includeLoopIncrement : false
+    }
+
+    let newRowNumber
+
+    if (!isLocalRef) {
+      // cell references to other sheets
+      newRowNumber = cellRefInfo.parsed.rowNumber
+
+      if (!cellRefInfo.parsed.lockedRow) {
+        newRowNumber += currentLoopIncrement
+      }
+
+      // else if (parsedNewOriginCellRef.rowNumber === parsedOriginCellRef.rowNumber) {
+      //   // if cells were not changed then we don't need to do anything and let
+      //   // the normal cell reference of the formula as it is
+      //   newRowNumber = cellRefInfo.parsed.rowNumber
+      // }
+    } else if (meta.type === 'normal' && parsedOriginCellRef.rowNumber < cellRefInfo.parsed.rowNumber) {
+      // if formula has a cell reference that is greater than origin then we
+      // mark it as lazy
+      result.lazyCellRefs[lazyCellRefId] = {
+        cellRef: cellRefInfo.localRef,
+        position: cellRefPosition,
+        includeLoopIncrement
+      }
+
+      // left the cell as it is
+      // (the final row number will be calculated later in other helper)
+      newRowNumber = cellRefInfo.parsed.rowNumber
+    } else {
+      let increment
+
+      if (trackedCells[cellRefInfo.localRef] != null && trackedCells[cellRefInfo.localRef].count > 0) {
+        const tracked = trackedCells[cellRefInfo.localRef]
+
+        const shouldUseFirst = (
+          cellRefInfo.parsed.lockedRow ||
+          (!originCellIsFromLoop && cellRefIsFromLoop && cellRefInfo.type === 'rangeStart')
+        )
+
+        const parsedLastCellRef = shouldUseFirst ? parseCellRef(tracked.first) : parseCellRef(tracked.last)
+        increment = parsedLastCellRef.rowNumber - cellRefInfo.parsed.rowNumber
+      } else {
+        // cell reference points to cell which does not exists as content of the template
+        increment = previousLoopIncrement
+
+        if (includeLoopIncrement) {
+          increment += currentLoopIncrement
+        }
+      }
+
+      newRowNumber = cellRefInfo.parsed.rowNumber + increment
+    }
+
+    const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, newRowNumber)
+
+    return newCellRef
+  })
+
+  const lazyCellRefsCount = result.lazyCellRefs != null ? Object.keys(result.lazyCellRefs).length : 0
+
+  if (meta.type === 'normal' && lazyCellRefsCount > 0) {
+    const { lazyFormulas, currentCellRef } = meta
+    lazyFormulas.count = lazyFormulas.count || 0
+    lazyFormulas.count += 1
+    lazyFormulas.data = lazyFormulas.data || {}
+
+    const lazyFormulaRefId = `$lazyFormulaRef${lazyFormulas.count}`
+
+    lazyFormulas.data[lazyFormulaRefId] = {
+      // the formulaCellRef here is just added for easy debugging
+      formulaCellRef: currentCellRef,
+      formula: newValue,
+      parsedOriginCellRef,
+      originCellIsFromLoop,
+      previousLoopIncrement,
+      currentLoopIncrement,
+      cellRefs: result.lazyCellRefs
+    }
+
+    newFormula = lazyFormulaRefId
+  } else {
+    newFormula = newValue
+  }
+
+  result.formula = newFormula
+
+  return result
 }
 
 function generateNewCellRefFromRow (parsedCellRef, rowNumber, fullMetadata = false) {
@@ -146,4 +290,5 @@ function generateNewCellRefFromRow (parsedCellRef, rowNumber, fullMetadata = fal
 
 module.exports.parseCellRef = parseCellRef
 module.exports.evaluateCellRefsFromExpression = evaluateCellRefsFromExpression
+module.exports.getNewFormula = getNewFormula
 module.exports.generateNewCellRefFromRow = generateNewCellRefFromRow

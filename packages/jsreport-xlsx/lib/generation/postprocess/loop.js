@@ -300,5 +300,46 @@ module.exports = async (files) => {
         }
       )
     }
+
+    const allLazyFormulaEls = {}
+
+    // lazy formulas
+    sheetFile.data = await recursiveStringReplaceAsync(
+      sheetFile.data.toString(),
+      '<lazyFormulas>',
+      '</lazyFormulas>',
+      'g',
+      async (val, content, hasNestedMatch) => {
+        if (hasNestedMatch) {
+          return val
+        }
+
+        const doc = new DOMParser().parseFromString(val)
+        const lazyFormulasEl = doc.documentElement
+        const itemEls = nodeListToArray(lazyFormulasEl.getElementsByTagName('item'))
+
+        for (const itemEl of itemEls) {
+          allLazyFormulaEls[itemEl.getAttribute('id')] = itemEl.textContent
+        }
+
+        return ''
+      }
+    )
+
+    if (Object.keys(allLazyFormulaEls).length > 0) {
+      sheetFile.data = await stringReplaceAsync(
+        sheetFile.data.toString(),
+        /\$lazyFormulaRef[\d]+/g,
+        async (lazyFormulaId) => {
+          const newFormula = allLazyFormulaEls[lazyFormulaId]
+
+          if (newFormula == null) {
+            throw new Error(`Could not find lazyFormula internal data with id "${lazyFormulaId}"`)
+          }
+
+          return newFormula
+        }
+      )
+    }
   }
 }

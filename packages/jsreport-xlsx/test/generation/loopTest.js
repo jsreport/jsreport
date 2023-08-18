@@ -35,6 +35,7 @@ describe('xlsx generation - loops', () => {
   })
 
   const modes = ['row', 'block']
+
   it('inner loop', async () => {
     const items = [{
       name: 'Alexander'
@@ -3582,6 +3583,189 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop create new formula cells from loop but without incrementing cell references with locked row #2`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('A$1*F3*G3')
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.F4.v).be.eql(items[1].rate)
+        should(sheet.G4.v).be.eql(items[1].hours)
+        should(sheet.H4.f).be.eql('A$1*F4*G4')
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.F5.v).be.eql(items[2].rate)
+        should(sheet.G5.v).be.eql(items[2].hours)
+        should(sheet.H5.f).be.eql('A$1*F5*G5')
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('A$1*F4*G4')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(sheet.F9.v).be.eql(items[1].rate)
+        should(sheet.G9.v).be.eql(items[1].hours)
+        should(sheet.H9.f).be.eql('A$1*F9*G9')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(sheet.F14.v).be.eql(items[2].rate)
+        should(sheet.G14.v).be.eql(items[2].hours)
+        should(sheet.H14.f).be.eql('A$1*F14*G14')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop (cell references using locked row) if array have 0 items`, async () => {
+      const items = []
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql('')
+        should(sheet.D3.v).be.eql('')
+        should(sheet.E3.v).be.eql('')
+        should(sheet.F3.v).be.eql('')
+        should(sheet.G3.v).be.eql('')
+        should(sheet.H3.f).be.eql('A$1*F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else {
+        should(sheet.C4.v).be.eql('')
+        should(sheet.D4.v).be.eql('')
+        should(sheet.E4.v).be.eql('')
+        should(sheet.F4.v).be.eql('')
+        should(sheet.G4.v).be.eql('')
+        should(sheet.H4.f).be.eql('A$1*F4*G4')
+      }
+    })
+
+    it(`${mode} loop not create new formula cells from loop (cell references using locked row) if array have 1 items`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.F3.v).be.eql(items[0].rate)
+        should(sheet.G3.v).be.eql(items[0].hours)
+        should(sheet.H3.f).be.eql('A$1*F3*G3')
+        should(sheet.C4).not.be.ok()
+        should(sheet.D4).not.be.ok()
+        should(sheet.E4).not.be.ok()
+        should(sheet.F4).not.be.ok()
+        should(sheet.G4).not.be.ok()
+        should(sheet.H4).not.be.ok()
+      } else {
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.F4.v).be.eql(items[0].rate)
+        should(sheet.G4.v).be.eql(items[0].hours)
+        should(sheet.H4.f).be.eql('A$1*F4*G4')
+      }
+    })
+
     it(`${mode} loop update calcChain info of formulas after loop (formula cells from loop but without incrementing cell references with locked row)`, async () => {
       const items = [{
         name: 'Alexander',
@@ -3662,6 +3846,80 @@ describe('xlsx generation - loops', () => {
         should(cellExists('H14', '2', cellEls)).be.True()
         should(cellExists('H19', '2', cellEls)).be.True()
         should(cellEls).have.length(6)
+      }
+    })
+
+    it(`${mode} loop update calcChain info of formulas after loop created new formula cells from loop but without incrementing cell references with locked row #2`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32,
+        rate: 22,
+        hours: 122
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29,
+        rate: 16,
+        hours: 189
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23,
+        rate: 20,
+        hours: 144
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+
+      const files = await decompress()(result.content)
+
+      const normalizePath = (filePath) => {
+        if (filePath.startsWith('/')) {
+          return filePath.slice(1)
+        }
+
+        return filePath
+      }
+
+      const calcChainDoc = new DOMParser().parseFromString(
+        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
+      )
+
+      const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
+
+      const cellExists = (cellRef, cellEls) => {
+        return cellEls.find((el) => el.getAttribute('r') === cellRef) != null
+      }
+
+      if (mode === 'row') {
+        should(cellExists('H3', cellEls)).be.True()
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('H5', cellEls)).be.True()
+        should(cellEls).have.length(3)
+      } else {
+        should(cellExists('H4', cellEls)).be.True()
+        should(cellExists('H9', cellEls)).be.True()
+        should(cellExists('H14', cellEls)).be.True()
+        should(cellEls).have.length(3)
       }
     })
 
@@ -4327,9 +4585,6 @@ describe('xlsx generation - loops', () => {
       }
     })
 
-    // TODO: add test for "loop create new formula cells from loop (increment range)" but
-    // with the formula cell before the evaluated cells (Total | Rate | Hours)
-
     it(`${mode} loop not create new formula cells from loop (increment range) if array have 0 items`, async () => {
       const items = []
 
@@ -4459,265 +4714,6 @@ describe('xlsx generation - loops', () => {
             templateAsset: {
               content: fs.readFileSync(
                 path.join(xlsxDirPath, `new-formula-cells-(range)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
-            }
-          }
-        },
-        data: {
-          items
-        }
-      })
-
-      fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-
-      const files = await decompress()(result.content)
-
-      const normalizePath = (filePath) => {
-        if (filePath.startsWith('/')) {
-          return filePath.slice(1)
-        }
-
-        return filePath
-      }
-
-      const calcChainDoc = new DOMParser().parseFromString(
-        files.find(f => f.path === normalizePath(workbook.Directory.calcchain)).data.toString()
-      )
-
-      const cellEls = nodeListToArray(calcChainDoc.getElementsByTagName('c'))
-
-      const cellExists = (cellRef, cellEls) => {
-        return cellEls.find((el) => el.getAttribute('r') === cellRef) != null
-      }
-
-      if (mode === 'row') {
-        should(cellExists('H3', cellEls)).be.True()
-        should(cellExists('H4', cellEls)).be.True()
-        should(cellExists('H5', cellEls)).be.True()
-        should(cellEls).have.length(3)
-      } else {
-        should(cellExists('H4', cellEls)).be.True()
-        should(cellExists('H9', cellEls)).be.True()
-        should(cellExists('H14', cellEls)).be.True()
-        should(cellEls).have.length(3)
-      }
-    })
-
-    it(`${mode} loop create new formula cells from loop (increment standard cells but don't do it for cell using absolute reference for row $)`, async () => {
-      const items = [{
-        name: 'Alexander',
-        lastname: 'Smith',
-        age: 32,
-        rate: 22,
-        hours: 122
-      }, {
-        name: 'John',
-        lastname: 'Doe',
-        age: 29,
-        rate: 16,
-        hours: 189
-      }, {
-        name: 'Jane',
-        lastname: 'Montana',
-        age: 23,
-        rate: 20,
-        hours: 144
-      }]
-
-      const result = await reporter.render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
-            }
-          }
-        },
-        data: {
-          items
-        }
-      })
-
-      fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-      if (mode === 'row') {
-        should(sheet.C3.v).be.eql(items[0].name)
-        should(sheet.D3.v).be.eql(items[0].lastname)
-        should(sheet.E3.v).be.eql(items[0].age)
-        should(sheet.F3.v).be.eql(items[0].rate)
-        should(sheet.G3.v).be.eql(items[0].hours)
-        should(sheet.H3.f).be.eql('A$1*F3*G3')
-        should(sheet.C4.v).be.eql(items[1].name)
-        should(sheet.D4.v).be.eql(items[1].lastname)
-        should(sheet.E4.v).be.eql(items[1].age)
-        should(sheet.F4.v).be.eql(items[1].rate)
-        should(sheet.G4.v).be.eql(items[1].hours)
-        should(sheet.H4.f).be.eql('A$1*F4*G4')
-        should(sheet.C5.v).be.eql(items[2].name)
-        should(sheet.D5.v).be.eql(items[2].lastname)
-        should(sheet.E5.v).be.eql(items[2].age)
-        should(sheet.F5.v).be.eql(items[2].rate)
-        should(sheet.G5.v).be.eql(items[2].hours)
-        should(sheet.H5.f).be.eql('A$1*F5*G5')
-      } else {
-        should(sheet.C4.v).be.eql(items[0].name)
-        should(sheet.D4.v).be.eql(items[0].lastname)
-        should(sheet.E4.v).be.eql(items[0].age)
-        should(sheet.F4.v).be.eql(items[0].rate)
-        should(sheet.G4.v).be.eql(items[0].hours)
-        should(sheet.H4.f).be.eql('A$1*F4*G4')
-        should(sheet.C9.v).be.eql(items[1].name)
-        should(sheet.D9.v).be.eql(items[1].lastname)
-        should(sheet.E9.v).be.eql(items[1].age)
-        should(sheet.F9.v).be.eql(items[1].rate)
-        should(sheet.G9.v).be.eql(items[1].hours)
-        should(sheet.H9.f).be.eql('A$1*F9*G9')
-        should(sheet.C14.v).be.eql(items[2].name)
-        should(sheet.D14.v).be.eql(items[2].lastname)
-        should(sheet.E14.v).be.eql(items[2].age)
-        should(sheet.F14.v).be.eql(items[2].rate)
-        should(sheet.G14.v).be.eql(items[2].hours)
-        should(sheet.H14.f).be.eql('A$1*F14*G14')
-      }
-    })
-
-    it(`${mode} loop not create new formula cells from loop (increment standard cells but don't do it for cell using absolute reference for row $) if array have 0 items`, async () => {
-      const items = []
-
-      const result = await reporter.render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
-            }
-          }
-        },
-        data: {
-          items
-        }
-      })
-
-      fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-      if (mode === 'row') {
-        should(sheet.C3.v).be.eql('')
-        should(sheet.D3.v).be.eql('')
-        should(sheet.E3.v).be.eql('')
-        should(sheet.F3.v).be.eql('')
-        should(sheet.G3.v).be.eql('')
-        should(sheet.H3.f).be.eql('A$1*F3*G3')
-        should(sheet.C4).not.be.ok()
-        should(sheet.D4).not.be.ok()
-        should(sheet.E4).not.be.ok()
-        should(sheet.F4).not.be.ok()
-        should(sheet.G4).not.be.ok()
-        should(sheet.H4).not.be.ok()
-      } else {
-        should(sheet.C4.v).be.eql('')
-        should(sheet.D4.v).be.eql('')
-        should(sheet.E4.v).be.eql('')
-        should(sheet.F4.v).be.eql('')
-        should(sheet.G4.v).be.eql('')
-        should(sheet.H4.f).be.eql('A$1*F4*G4')
-      }
-    })
-
-    it(`${mode} loop not create new formula cells from loop (increment standard cells but don't do it for cell using absolute reference for row $) if array have 1 item`, async () => {
-      const items = [{
-        name: 'Alexander',
-        lastname: 'Smith',
-        age: 32,
-        rate: 22,
-        hours: 122
-      }]
-
-      const result = await reporter.render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
-              )
-            }
-          }
-        },
-        data: {
-          items
-        }
-      })
-
-      fs.writeFileSync(outputPath, result.content)
-      const workbook = xlsx.read(result.content)
-      const sheet = workbook.Sheets[workbook.SheetNames[0]]
-
-      if (mode === 'row') {
-        should(sheet.C3.v).be.eql(items[0].name)
-        should(sheet.D3.v).be.eql(items[0].lastname)
-        should(sheet.E3.v).be.eql(items[0].age)
-        should(sheet.F3.v).be.eql(items[0].rate)
-        should(sheet.G3.v).be.eql(items[0].hours)
-        should(sheet.H3.f).be.eql('A$1*F3*G3')
-        should(sheet.C4).not.be.ok()
-        should(sheet.D4).not.be.ok()
-        should(sheet.E4).not.be.ok()
-        should(sheet.F4).not.be.ok()
-        should(sheet.G4).not.be.ok()
-        should(sheet.H4).not.be.ok()
-      } else {
-        should(sheet.C4.v).be.eql(items[0].name)
-        should(sheet.D4.v).be.eql(items[0].lastname)
-        should(sheet.E4.v).be.eql(items[0].age)
-        should(sheet.F4.v).be.eql(items[0].rate)
-        should(sheet.G4.v).be.eql(items[0].hours)
-        should(sheet.H4.f).be.eql('A$1*F4*G4')
-      }
-    })
-
-    // TODO: add more tests for formulas using absolute references (test formula that references a cell after loop, and also inside a loop)
-
-    it(`${mode} loop update calcChain info of formulas after loop created new formula cells (increment standard cells but don't do it for cell using absolute reference $)`, async () => {
-      const items = [{
-        name: 'Alexander',
-        lastname: 'Smith',
-        age: 32,
-        rate: 22,
-        hours: 122
-      }, {
-        name: 'John',
-        lastname: 'Doe',
-        age: 29,
-        rate: 16,
-        hours: 189
-      }, {
-        name: 'Jane',
-        lastname: 'Montana',
-        age: 23,
-        rate: 20,
-        hours: 144
-      }]
-
-      const result = await reporter.render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'xlsx',
-          xlsx: {
-            templateAsset: {
-              content: fs.readFileSync(
-                path.join(xlsxDirPath, `new-formula-cells-(row-absolute-reference)-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
               )
             }
           }
@@ -5293,6 +5289,526 @@ describe('xlsx generation - loops', () => {
       }
     })
 
+    it(`${mode} loop should update the content of formula cells if origin is after loop but the reference is inside`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-origin-after-reference-inside-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.C2.v).be.eql('Name')
+        should(sheet.D2.v).be.eql('Lastname')
+        should(sheet.E2.v).be.eql('Age')
+        should(sheet.C3.v).be.eql(items[0].name)
+        should(sheet.D3.v).be.eql(items[0].lastname)
+        should(sheet.E3.v).be.eql(items[0].age)
+        should(sheet.C4.v).be.eql(items[1].name)
+        should(sheet.D4.v).be.eql(items[1].lastname)
+        should(sheet.E4.v).be.eql(items[1].age)
+        should(sheet.C5.v).be.eql(items[2].name)
+        should(sheet.D5.v).be.eql(items[2].lastname)
+        should(sheet.E5.v).be.eql(items[2].age)
+        should(sheet.E7.f).be.eql('10+E5')
+      } else {
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.C8.v).be.eql('Name')
+        should(sheet.D8.v).be.eql('Lastname')
+        should(sheet.E8.v).be.eql('Age')
+        should(sheet.C9.v).be.eql(items[1].name)
+        should(sheet.D9.v).be.eql(items[1].lastname)
+        should(sheet.E9.v).be.eql(items[1].age)
+        should(sheet.C13.v).be.eql('Name')
+        should(sheet.D13.v).be.eql('Lastname')
+        should(sheet.E13.v).be.eql('Age')
+        should(sheet.C14.v).be.eql(items[2].name)
+        should(sheet.D14.v).be.eql(items[2].lastname)
+        should(sheet.E14.v).be.eql(items[2].age)
+        should(sheet.E18.f).be.eql('10+E14')
+      }
+    })
+
+    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is inside`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-inside-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E2.f).be.eql('10+E7')
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(items[0].name)
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[0].age)
+        should(sheet.C6.v).be.eql(items[1].name)
+        should(sheet.D6.v).be.eql(items[1].lastname)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.C7.v).be.eql(items[2].name)
+        should(sheet.D7.v).be.eql(items[2].lastname)
+        should(sheet.E7.v).be.eql(items[2].age)
+      } else {
+        should(sheet.E2.f).be.eql('10+E16')
+        should(sheet.C5.v).be.eql('Name')
+        should(sheet.D5.v).be.eql('Lastname')
+        should(sheet.E5.v).be.eql('Age')
+        should(sheet.C6.v).be.eql(items[0].name)
+        should(sheet.D6.v).be.eql(items[0].lastname)
+        should(sheet.E6.v).be.eql(items[0].age)
+        should(sheet.C10.v).be.eql('Name')
+        should(sheet.D10.v).be.eql('Lastname')
+        should(sheet.E10.v).be.eql('Age')
+        should(sheet.C11.v).be.eql(items[1].name)
+        should(sheet.D11.v).be.eql(items[1].lastname)
+        should(sheet.E11.v).be.eql(items[1].age)
+        should(sheet.C15.v).be.eql('Name')
+        should(sheet.D15.v).be.eql('Lastname')
+        should(sheet.E15.v).be.eql('Age')
+        should(sheet.C16.v).be.eql(items[2].name)
+        should(sheet.D16.v).be.eql(items[2].lastname)
+        should(sheet.E16.v).be.eql(items[2].age)
+      }
+    })
+
+    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is after`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-after-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E2.f).be.eql('10+E9')
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(items[0].name)
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[0].age)
+        should(sheet.C6.v).be.eql(items[1].name)
+        should(sheet.D6.v).be.eql(items[1].lastname)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.C7.v).be.eql(items[2].name)
+        should(sheet.D7.v).be.eql(items[2].lastname)
+        should(sheet.E7.v).be.eql(items[2].age)
+        should(sheet.E9.v).be.eql(30)
+      } else {
+        should(sheet.E2.f).be.eql('10+E20')
+        should(sheet.C5.v).be.eql('Name')
+        should(sheet.D5.v).be.eql('Lastname')
+        should(sheet.E5.v).be.eql('Age')
+        should(sheet.C6.v).be.eql(items[0].name)
+        should(sheet.D6.v).be.eql(items[0].lastname)
+        should(sheet.E6.v).be.eql(items[0].age)
+        should(sheet.C10.v).be.eql('Name')
+        should(sheet.D10.v).be.eql('Lastname')
+        should(sheet.E10.v).be.eql('Age')
+        should(sheet.C11.v).be.eql(items[1].name)
+        should(sheet.D11.v).be.eql(items[1].lastname)
+        should(sheet.E11.v).be.eql(items[1].age)
+        should(sheet.C15.v).be.eql('Name')
+        should(sheet.D15.v).be.eql('Lastname')
+        should(sheet.E15.v).be.eql('Age')
+        should(sheet.C16.v).be.eql(items[2].name)
+        should(sheet.D16.v).be.eql(items[2].lastname)
+        should(sheet.E16.v).be.eql(items[2].age)
+        should(sheet.E20.v).be.eql(30)
+      }
+    })
+
+    // TODO: make this test pass, it is not passing because we need to keep track of cell references in formulas
+    // that are not defined in xlsx content, to support this the easiest will be to create fake helper calls
+    // at the position of the non existing cell reference in formula
+    // (make sure to account that we may need to create a helper call for row, cell or both)
+    // this way our logic will be able to track the cells transparently. when looking at
+    // this we should considerate how this will work with outOfLoop
+    // tags/calls, also make sure to modify the getNewFormula function to not depend on previousLoopIncrement,
+    // basically there should not be a branch there which leads to not finding a cell in trackedCells,
+    // when updating the trackedCells make sure to keep the count: 0 to be able to differentiate that we are tracking
+    // a cell which was not defined in document
+    it.skip(`${mode} loop should update the content of formula cells if origin is before loop but the reference is after and does not exists`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-after-non-existing-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E2.f).be.eql('10+E10')
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(items[0].name)
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[0].age)
+        should(sheet.C6.v).be.eql(items[1].name)
+        should(sheet.D6.v).be.eql(items[1].lastname)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.C7.v).be.eql(items[2].name)
+        should(sheet.D7.v).be.eql(items[2].lastname)
+        should(sheet.E7.v).be.eql(items[2].age)
+        should(sheet.E9.v).be.eql(30)
+      } else {
+        should(sheet.E2.f).be.eql('10+E21')
+        should(sheet.C5.v).be.eql('Name')
+        should(sheet.D5.v).be.eql('Lastname')
+        should(sheet.E5.v).be.eql('Age')
+        should(sheet.C6.v).be.eql(items[0].name)
+        should(sheet.D6.v).be.eql(items[0].lastname)
+        should(sheet.E6.v).be.eql(items[0].age)
+        should(sheet.C10.v).be.eql('Name')
+        should(sheet.D10.v).be.eql('Lastname')
+        should(sheet.E10.v).be.eql('Age')
+        should(sheet.C11.v).be.eql(items[1].name)
+        should(sheet.D11.v).be.eql(items[1].lastname)
+        should(sheet.E11.v).be.eql(items[1].age)
+        should(sheet.C15.v).be.eql('Name')
+        should(sheet.D15.v).be.eql('Lastname')
+        should(sheet.E15.v).be.eql('Age')
+        should(sheet.C16.v).be.eql(items[2].name)
+        should(sheet.D16.v).be.eql(items[2].lastname)
+        should(sheet.E16.v).be.eql(items[2].age)
+        should(sheet.E20.v).be.eql(30)
+      }
+    })
+
+    it(`${mode} loop should update the content of formula cells if origin is before loop but the reference is before and another reference after`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-origin-before-reference-before-and-after-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E2.f).be.eql('10+E1+E9')
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(items[0].name)
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[0].age)
+        should(sheet.C6.v).be.eql(items[1].name)
+        should(sheet.D6.v).be.eql(items[1].lastname)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.C7.v).be.eql(items[2].name)
+        should(sheet.D7.v).be.eql(items[2].lastname)
+        should(sheet.E7.v).be.eql(items[2].age)
+        should(sheet.E9.v).be.eql(30)
+      } else {
+        should(sheet.E2.f).be.eql('10+E1+E20')
+        should(sheet.C5.v).be.eql('Name')
+        should(sheet.D5.v).be.eql('Lastname')
+        should(sheet.E5.v).be.eql('Age')
+        should(sheet.C6.v).be.eql(items[0].name)
+        should(sheet.D6.v).be.eql(items[0].lastname)
+        should(sheet.E6.v).be.eql(items[0].age)
+        should(sheet.C10.v).be.eql('Name')
+        should(sheet.D10.v).be.eql('Lastname')
+        should(sheet.E10.v).be.eql('Age')
+        should(sheet.C11.v).be.eql(items[1].name)
+        should(sheet.D11.v).be.eql(items[1].lastname)
+        should(sheet.E11.v).be.eql(items[1].age)
+        should(sheet.C15.v).be.eql('Name')
+        should(sheet.D15.v).be.eql('Lastname')
+        should(sheet.E15.v).be.eql('Age')
+        should(sheet.C16.v).be.eql(items[2].name)
+        should(sheet.D16.v).be.eql(items[2].lastname)
+        should(sheet.E16.v).be.eql(items[2].age)
+        should(sheet.E20.v).be.eql(30)
+      }
+    })
+
+    it(`${mode} loop should not update the content of formula cells if origin is after loop but the reference is not and also not affected by previous loop`, async () => {
+      const items = [{
+        name: 'Alexander',
+        lastname: 'Smith',
+        age: 32
+      }, {
+        name: 'John',
+        lastname: 'Doe',
+        age: 29
+      }, {
+        name: 'Jane',
+        lastname: 'Montana',
+        age: 23
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `update-formula-cells-origin-after-reference-not-inside-and-previous-${mode === 'row' ? 'loop' : 'loop-multiple-rows'}.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+      if (mode === 'row') {
+        should(sheet.E2.v).be.eql(10)
+        should(sheet.C4.v).be.eql('Name')
+        should(sheet.D4.v).be.eql('Lastname')
+        should(sheet.E4.v).be.eql('Age')
+        should(sheet.C5.v).be.eql(items[0].name)
+        should(sheet.D5.v).be.eql(items[0].lastname)
+        should(sheet.E5.v).be.eql(items[0].age)
+        should(sheet.C6.v).be.eql(items[1].name)
+        should(sheet.D6.v).be.eql(items[1].lastname)
+        should(sheet.E6.v).be.eql(items[1].age)
+        should(sheet.C7.v).be.eql(items[2].name)
+        should(sheet.D7.v).be.eql(items[2].lastname)
+        should(sheet.E7.v).be.eql(items[2].age)
+        should(sheet.E9.f).be.eql('10+E2')
+      } else {
+        should(sheet.E2.v).be.eql(10)
+        should(sheet.C5.v).be.eql('Name')
+        should(sheet.D5.v).be.eql('Lastname')
+        should(sheet.E5.v).be.eql('Age')
+        should(sheet.C6.v).be.eql(items[0].name)
+        should(sheet.D6.v).be.eql(items[0].lastname)
+        should(sheet.E6.v).be.eql(items[0].age)
+        should(sheet.C10.v).be.eql('Name')
+        should(sheet.D10.v).be.eql('Lastname')
+        should(sheet.E10.v).be.eql('Age')
+        should(sheet.C11.v).be.eql(items[1].name)
+        should(sheet.D11.v).be.eql(items[1].lastname)
+        should(sheet.E11.v).be.eql(items[1].age)
+        should(sheet.C15.v).be.eql('Name')
+        should(sheet.D15.v).be.eql('Lastname')
+        should(sheet.E15.v).be.eql('Age')
+        should(sheet.C16.v).be.eql(items[2].name)
+        should(sheet.D16.v).be.eql(items[2].lastname)
+        should(sheet.E16.v).be.eql(items[2].age)
+        should(sheet.E20.f).be.eql('10+E2')
+      }
+    })
+
+    if (mode === 'block') {
+      it(`${mode} loop should update the content of formula cells if origin is inside loop and the reference is also inside`, async () => {
+        const items = [{
+          name: 'Alexander',
+          lastname: 'Smith',
+          age: 32
+        }, {
+          name: 'John',
+          lastname: 'Doe',
+          age: 29
+        }, {
+          name: 'Jane',
+          lastname: 'Montana',
+          age: 23
+        }]
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'xlsx',
+            xlsx: {
+              templateAsset: {
+                content: fs.readFileSync(
+                  path.join(xlsxDirPath, 'update-formula-cells-origin-inside-reference-inside-loop-multiple-rows.xlsx')
+                )
+              }
+            }
+          },
+          data: {
+            items
+          }
+        })
+
+        fs.writeFileSync(outputPath, result.content)
+        const workbook = xlsx.read(result.content)
+        const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+        should(sheet.C3.v).be.eql('Name')
+        should(sheet.D3.v).be.eql('Lastname')
+        should(sheet.E3.v).be.eql('Age')
+        should(sheet.C4.v).be.eql(items[0].name)
+        should(sheet.D4.v).be.eql(items[0].lastname)
+        should(sheet.E4.v).be.eql(items[0].age)
+        should(sheet.D6.v).be.eql('Total')
+        should(sheet.E6.f).be.eql('SUM(E4,E5)')
+        should(sheet.C9.v).be.eql('Name')
+        should(sheet.D9.v).be.eql('Lastname')
+        should(sheet.E9.v).be.eql('Age')
+        should(sheet.C10.v).be.eql(items[1].name)
+        should(sheet.D10.v).be.eql(items[1].lastname)
+        should(sheet.E10.v).be.eql(items[1].age)
+        should(sheet.D12.v).be.eql('Total')
+        should(sheet.E12.f).be.eql('SUM(E10,E11)')
+        should(sheet.C15.v).be.eql('Name')
+        should(sheet.D15.v).be.eql('Lastname')
+        should(sheet.E15.v).be.eql('Age')
+        should(sheet.C16.v).be.eql(items[2].name)
+        should(sheet.D16.v).be.eql(items[2].lastname)
+        should(sheet.E16.v).be.eql(items[2].age)
+        should(sheet.D18.v).be.eql('Total')
+        should(sheet.E18.f).be.eql('SUM(E16,E17)')
+      })
+    }
+
     it(`${mode} loop should work with formula that reference cell from other sheet`, async () => {
       const items = [{
         value: 10
@@ -5324,6 +5840,7 @@ describe('xlsx generation - loops', () => {
       const sheet = workbook.Sheets[workbook.SheetNames[0]]
       const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
       const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
+      const sheet4 = workbook.Sheets[workbook.SheetNames[3]]
 
       if (mode === 'row') {
         should(sheet.A2.v).be.eql(items[0].value)
@@ -5346,6 +5863,22 @@ describe('xlsx generation - loops', () => {
         should(sheet3.B3.f).be.eql('A3+DATA!C4')
         should(sheet3.A4.v).be.eql(items[2].value)
         should(sheet3.B4.f).be.eql('A4+DATA!C5')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.A3.v).be.eql(items[1].value)
+        should(sheet4.A4.v).be.eql(items[2].value)
+        should(sheet4.A6.v).be.eql(items[0].value)
+        should(sheet4.B6.f).be.eql('A6+DATA!A1')
+        should(sheet4.C6.f).be.eql('A6+DATA!B2')
+        should(sheet4.D6.f).be.eql('A6+DATA!C3')
+        should(sheet4.A7.v).be.eql(items[1].value)
+        should(sheet4.B7.f).be.eql('A7+DATA!A2')
+        should(sheet4.C7.f).be.eql('A7+DATA!B3')
+        should(sheet4.D7.f).be.eql('A7+DATA!C4')
+        should(sheet4.A8.v).be.eql(items[2].value)
+        should(sheet4.B8.f).be.eql('A8+DATA!A3')
+        should(sheet4.C8.f).be.eql('A8+DATA!B4')
+        should(sheet4.D8.f).be.eql('A8+DATA!C5')
       } else {
         should(sheet.C3.v).be.eql('Value')
         should(sheet.D3.v).be.eql('Calculated')
@@ -5385,11 +5918,173 @@ describe('xlsx generation - loops', () => {
         should(sheet3.D13.v).be.eql('Calculated')
         should(sheet3.C14.v).be.eql(items[2].value)
         should(sheet3.D14.f).be.eql('C14+DATA!C17')
+
+        should(sheet4.C7.v).be.eql('Value')
+        should(sheet4.D7.v).be.eql('Calculated')
+        should(sheet4.E7.v).be.eql('Calculated2')
+        should(sheet4.F7.v).be.eql('Calculated3')
+        should(sheet4.C8.v).be.eql(items[0].value)
+        should(sheet4.D8.f).be.eql('C8+DATA!A1')
+        should(sheet4.E8.f).be.eql('C8+DATA!B4')
+        should(sheet4.F8.f).be.eql('C8+DATA!C7')
+        should(sheet4.C12.v).be.eql('Value')
+        should(sheet4.D12.v).be.eql('Calculated')
+        should(sheet4.E12.v).be.eql('Calculated2')
+        should(sheet4.F12.v).be.eql('Calculated3')
+        should(sheet4.C13.v).be.eql(items[1].value)
+        should(sheet4.D13.f).be.eql('C13+DATA!A6')
+        should(sheet4.E13.f).be.eql('C13+DATA!B9')
+        should(sheet4.F13.f).be.eql('C13+DATA!C12')
+        should(sheet4.C17.v).be.eql('Value')
+        should(sheet4.D17.v).be.eql('Calculated')
+        should(sheet4.E17.v).be.eql('Calculated2')
+        should(sheet4.F17.v).be.eql('Calculated3')
+        should(sheet4.C18.v).be.eql(items[2].value)
+        should(sheet4.D18.f).be.eql('C18+DATA!A11')
+        should(sheet4.E18.f).be.eql('C18+DATA!B14')
+        should(sheet4.F18.f).be.eql('C18+DATA!C17')
       }
     })
 
-    // TODO: implement this test (it should work already)
-    // it(`${mode} loop should work with formula cells that reference cell with locked row from other sheet`)
+    it(`${mode} loop should work with formula cells that reference cell with locked row from other sheet`, async () => {
+      const items = [{
+        value: 10
+      }, {
+        value: 20
+      }, {
+        value: 30
+      }]
+
+      const result = await reporter.render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'xlsx',
+          xlsx: {
+            templateAsset: {
+              content: fs.readFileSync(
+                path.join(xlsxDirPath, `${mode === 'row' ? 'loop' : 'loop-multiple-rows'}-existing-formula-cross-sheet-reference-locked-row.xlsx`)
+              )
+            }
+          }
+        },
+        data: {
+          items
+        }
+      })
+
+      fs.writeFileSync(outputPath, result.content)
+      const workbook = xlsx.read(result.content)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      const sheet2 = workbook.Sheets[workbook.SheetNames[1]]
+      const sheet3 = workbook.Sheets[workbook.SheetNames[2]]
+      const sheet4 = workbook.Sheets[workbook.SheetNames[3]]
+
+      if (mode === 'row') {
+        should(sheet.A2.v).be.eql(items[0].value)
+        should(sheet.B2.f).be.eql('A2+DATA!A$1')
+        should(sheet.A3.v).be.eql(items[1].value)
+        should(sheet.B3.f).be.eql('A3+DATA!A$1')
+        should(sheet.A4.v).be.eql(items[2].value)
+        should(sheet.B4.f).be.eql('A4+DATA!A$1')
+
+        should(sheet2.A2.v).be.eql(items[0].value)
+        should(sheet2.B2.f).be.eql('A2+DATA!B$2')
+        should(sheet2.A3.v).be.eql(items[1].value)
+        should(sheet2.B3.f).be.eql('A3+DATA!B$2')
+        should(sheet2.A4.v).be.eql(items[2].value)
+        should(sheet2.B4.f).be.eql('A4+DATA!B$2')
+
+        should(sheet3.A2.v).be.eql(items[0].value)
+        should(sheet3.B2.f).be.eql('A2+DATA!C$3')
+        should(sheet3.A3.v).be.eql(items[1].value)
+        should(sheet3.B3.f).be.eql('A3+DATA!C$3')
+        should(sheet3.A4.v).be.eql(items[2].value)
+        should(sheet3.B4.f).be.eql('A4+DATA!C$3')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.A3.v).be.eql(items[1].value)
+        should(sheet4.A4.v).be.eql(items[2].value)
+        should(sheet4.A6.v).be.eql(items[0].value)
+        should(sheet4.B6.f).be.eql('A6+DATA!A$1')
+        should(sheet4.C6.f).be.eql('A6+DATA!B$2')
+        should(sheet4.D6.f).be.eql('A6+DATA!C$3')
+        should(sheet4.A7.v).be.eql(items[1].value)
+        should(sheet4.B7.f).be.eql('A7+DATA!A$1')
+        should(sheet4.C7.f).be.eql('A7+DATA!B$2')
+        should(sheet4.D7.f).be.eql('A7+DATA!C$3')
+        should(sheet4.A8.v).be.eql(items[2].value)
+        should(sheet4.B8.f).be.eql('A8+DATA!A$1')
+        should(sheet4.C8.f).be.eql('A8+DATA!B$2')
+        should(sheet4.D8.f).be.eql('A8+DATA!C$3')
+      } else {
+        should(sheet.C3.v).be.eql('Value')
+        should(sheet.D3.v).be.eql('Calculated')
+        should(sheet.C4.v).be.eql(items[0].value)
+        should(sheet.D4.f).be.eql('C4+DATA!A$1')
+        should(sheet.C8.v).be.eql('Value')
+        should(sheet.D8.v).be.eql('Calculated')
+        should(sheet.C9.v).be.eql(items[1].value)
+        should(sheet.D9.f).be.eql('C9+DATA!A$1')
+        should(sheet.C13.v).be.eql('Value')
+        should(sheet.D13.v).be.eql('Calculated')
+        should(sheet.C14.v).be.eql(items[2].value)
+        should(sheet.D14.f).be.eql('C14+DATA!A$1')
+
+        should(sheet2.C3.v).be.eql('Value')
+        should(sheet2.D3.v).be.eql('Calculated')
+        should(sheet2.C4.v).be.eql(items[0].value)
+        should(sheet2.D4.f).be.eql('C4+DATA!B$4')
+        should(sheet2.C8.v).be.eql('Value')
+        should(sheet2.D8.v).be.eql('Calculated')
+        should(sheet2.C9.v).be.eql(items[1].value)
+        should(sheet2.D9.f).be.eql('C9+DATA!B$4')
+        should(sheet2.C13.v).be.eql('Value')
+        should(sheet2.D13.v).be.eql('Calculated')
+        should(sheet2.C14.v).be.eql(items[2].value)
+        should(sheet2.D14.f).be.eql('C14+DATA!B$4')
+
+        should(sheet3.C3.v).be.eql('Value')
+        should(sheet3.D3.v).be.eql('Calculated')
+        should(sheet3.C4.v).be.eql(items[0].value)
+        should(sheet3.D4.f).be.eql('C4+DATA!C$7')
+        should(sheet3.C8.v).be.eql('Value')
+        should(sheet3.D8.v).be.eql('Calculated')
+        should(sheet3.C9.v).be.eql(items[1].value)
+        should(sheet3.D9.f).be.eql('C9+DATA!C$7')
+        should(sheet3.C13.v).be.eql('Value')
+        should(sheet3.D13.v).be.eql('Calculated')
+        should(sheet3.C14.v).be.eql(items[2].value)
+        should(sheet3.D14.f).be.eql('C14+DATA!C$7')
+
+        should(sheet4.A2.v).be.eql(items[0].value)
+        should(sheet4.A3.v).be.eql(items[1].value)
+        should(sheet4.A4.v).be.eql(items[2].value)
+        should(sheet4.C7.v).be.eql('Value')
+        should(sheet4.D7.v).be.eql('Calculated')
+        should(sheet4.E7.v).be.eql('Calculated2')
+        should(sheet4.F7.v).be.eql('Calculated3')
+        should(sheet4.C8.v).be.eql(items[0].value)
+        should(sheet4.D8.f).be.eql('C8+DATA!A$1')
+        should(sheet4.E8.f).be.eql('C8+DATA!B$4')
+        should(sheet4.F8.f).be.eql('C8+DATA!C$7')
+        should(sheet4.C12.v).be.eql('Value')
+        should(sheet4.D12.v).be.eql('Calculated')
+        should(sheet4.E12.v).be.eql('Calculated2')
+        should(sheet4.F12.v).be.eql('Calculated3')
+        should(sheet4.C13.v).be.eql(items[1].value)
+        should(sheet4.D13.f).be.eql('C13+DATA!A$1')
+        should(sheet4.E13.f).be.eql('C13+DATA!B$4')
+        should(sheet4.F13.f).be.eql('C13+DATA!C$7')
+        should(sheet4.C17.v).be.eql('Value')
+        should(sheet4.D17.v).be.eql('Calculated')
+        should(sheet4.E17.v).be.eql('Calculated2')
+        should(sheet4.F17.v).be.eql('Calculated3')
+        should(sheet4.C18.v).be.eql(items[2].value)
+        should(sheet4.D18.f).be.eql('C18+DATA!A$1')
+        should(sheet4.E18.f).be.eql('C18+DATA!B$4')
+        should(sheet4.F18.f).be.eql('C18+DATA!C$7')
+      }
+    })
 
     it(`${mode} loop should not break shared formulas`, async () => {
       const items = [
@@ -8329,6 +9024,268 @@ describe('xlsx generation - loops', () => {
 
     should(sheet.D18.f).be.eql('SUM(D16:D17)')
     should(sheet.D19.f).be.eql('AVERAGE(D16:D17)')
+  })
+
+  it('block loop and row loop nested on one sheet and block loop nested on another sheet - work with formula that reference cell from other sheet', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-cross-sheet-reference.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('C3*D3')
+    should(sheet.F3.f).be.eql('E3*DATA!A2')
+    should(sheet.G3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('C4*D4')
+    should(sheet.F4.f).be.eql('E4*DATA!A3')
+    should(sheet.G4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('C5*D5')
+    should(sheet.F5.f).be.eql('E5*DATA!A4')
+    should(sheet.G5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('C8*D8')
+    should(sheet.F8.f).be.eql('E8*DATA!A7')
+    should(sheet.G8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('C9*D9')
+    should(sheet.F9.f).be.eql('E9*DATA!A8')
+    should(sheet.G9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('C12*D12')
+    should(sheet.F12.f).be.eql('E12*DATA!A11')
+    should(sheet.G12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('C13*D13')
+    should(sheet.F13.f).be.eql('E13*DATA!A12')
+    should(sheet.G13.v).be.eql(categories[2].posts[1].author)
+  })
+
+  it('block loop and row loop nested on one sheet and block loop nested on another sheet - work with formula that reference cell with locked row from other sheet', async () => {
+    const categories = [
+      {
+        name: 'In',
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            timePerWord: 0.4,
+            author: 'Collins'
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            timePerWord: 0.2,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            timePerWord: 0.6,
+            author: 'Cecelia'
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            timePerWord: 0.7,
+            author: 'Wood'
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            timePerWord: 0.9,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            timePerWord: 0.5,
+            author: 'Jeannine'
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            timePerWord: 0.6,
+            author: 'Katy'
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-single-row-loop-cross-sheet-reference-locked-row.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.B2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].timePerWord)
+    should(sheet.E3.f).be.eql('C3*D3')
+    should(sheet.F3.f).be.eql('E3*DATA!A$2')
+    should(sheet.G3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B4.v).be.eql(categories[0].posts[1].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.D4.v).be.eql(categories[0].posts[1].timePerWord)
+    should(sheet.E4.f).be.eql('C4*D4')
+    should(sheet.F4.f).be.eql('E4*DATA!A$2')
+    should(sheet.G4.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B5.v).be.eql(categories[0].posts[2].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.D5.v).be.eql(categories[0].posts[2].timePerWord)
+    should(sheet.E5.f).be.eql('C5*D5')
+    should(sheet.F5.f).be.eql('E5*DATA!A$2')
+    should(sheet.G5.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B7.v).be.eql(categories[1].name)
+    should(sheet.B8.v).be.eql(categories[1].posts[0].name)
+    should(sheet.C8.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.D8.v).be.eql(categories[1].posts[0].timePerWord)
+    should(sheet.E8.f).be.eql('C8*D8')
+    should(sheet.F8.f).be.eql('E8*DATA!A$2')
+    should(sheet.G8.v).be.eql(categories[1].posts[0].author)
+    should(sheet.B9.v).be.eql(categories[1].posts[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.D9.v).be.eql(categories[1].posts[1].timePerWord)
+    should(sheet.E9.f).be.eql('C9*D9')
+    should(sheet.F9.f).be.eql('E9*DATA!A$2')
+    should(sheet.G9.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.B12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].timePerWord)
+    should(sheet.E12.f).be.eql('C12*D12')
+    should(sheet.F12.f).be.eql('E12*DATA!A$2')
+    should(sheet.G12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.B13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].timePerWord)
+    should(sheet.E13.f).be.eql('C13*D13')
+    should(sheet.F13.f).be.eql('E13*DATA!A$2')
+    should(sheet.G13.v).be.eql(categories[2].posts[1].author)
   })
 
   it('table generated with loop', async () => {

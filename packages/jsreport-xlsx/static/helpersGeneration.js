@@ -60,15 +60,50 @@ function xlsxSData (data, options) {
     type === 'root'
   ) {
     const newData = Handlebars.createFrame({})
+    let nonExistingCellRefs = optionsToUse.hash.nonExistingCellRefs != null ? optionsToUse.hash.nonExistingCellRefs.split(',') : []
+    const autofit = optionsToUse.hash.autofit != null ? optionsToUse.hash.autofit.split(',') : []
+    const trackedCells = {}
+
+    if (nonExistingCellRefs.length > 0) {
+      nonExistingCellRefs = nonExistingCellRefs.map((cellRef) => {
+        const parts = cellRef.split('|')
+        const result = {
+          ref: parts[0]
+        }
+
+        if (parts.length === 2) {
+          result.inLoop = true
+          result.loopHierarchyId = parts[1]
+        }
+
+        return result
+      })
+
+      for (const cellRefEntry of nonExistingCellRefs) {
+        trackedCells[cellRefEntry.ref] = {
+          first: cellRefEntry.ref,
+          last: cellRefEntry.ref,
+          count: 0
+        }
+
+        if (cellRefEntry.inLoop) {
+          trackedCells[cellRefEntry.ref].inLoop = cellRefEntry.inLoop
+          trackedCells[cellRefEntry.ref].loopHierarchyId = cellRefEntry.loopHierarchyId
+        } else {
+          trackedCells[cellRefEntry.ref].inLoop = false
+        }
+      }
+    }
 
     newData.meta = {
       autofit: {
         cols: {},
-        enabledFor: optionsToUse.hash.autofit != null ? optionsToUse.hash.autofit.split(',') : []
+        enabledFor: autofit
       },
       mergeCells: [],
-      trackedLoopCells: {},
+      trackedCells,
       updatedOriginalCells: {},
+      lazyFormulas: {},
       lastCellRef: null
     }
 
@@ -304,7 +339,7 @@ function xlsxSData (data, options) {
     return new Handlebars.SafeString(output.join(''))
   }
 
-  const { parseCellRef, evaluateCellRefsFromExpression, generateNewCellRefFromRow } = require('cellUtils')
+  const { parseCellRef, evaluateCellRefsFromExpression, getNewFormula, generateNewCellRefFromRow } = require('cellUtils')
 
   const getCurrentLoopItem = (loopId, loopItems) => {
     if (!Array.isArray(loopItems)) {
@@ -467,25 +502,43 @@ function xlsxSData (data, options) {
     const newData = Handlebars.createFrame(optionsToUse.data)
 
     const currentLoopItem = getCurrentLoopItem(newData.currentLoopId, newData.loopItems)
+    // this gets the previous loops (loops defined before a cell) and also on the case of nested loops
+    // all the previous executions of the current loop
     const previousLoopItems = getPreviousLoopItems(newData.currentLoopId, newData.evaluatedLoopsIds, newData.loopItems)
-    let increment
 
-    const prevRowMatchedLoopItems = []
+    const previousMeta = {
+      prev: {
+        total: 0,
+        rowLoopLength: 0
+      },
+      rest: {
+        total: 0,
+        rowLoopLength: 0
+      }
+    }
 
-    let totalPrev = previousLoopItems.reduce((acu, item) => {
-      let totalAcu = acu
+    const currentRootLoopIdNum = newData.currentLoopId != null ? parseInt(newData.currentLoopId.split('#')[0], 10) : -1
+
+    let currentLoopIncrement = 0
+
+    for (const item of previousLoopItems) {
+      const previousRootLoopIdNum = parseInt(item.id.split('#')[0], 10)
+      const isPrev = currentRootLoopIdNum === -1 ? true : previousRootLoopIdNum < currentRootLoopIdNum
+      let loopItemsLength = 0
+      const target = isPrev ? previousMeta.prev : previousMeta.rest
 
       if (item.type === 'block') {
-        totalAcu += getLoopItemTemplateLength(item) * (item.length - 1)
+        loopItemsLength += getLoopItemTemplateLength(item) * (item.length - 1)
       } else {
-        prevRowMatchedLoopItems.push(item)
-        totalAcu += item.length
+        loopItemsLength += item.length
+        target.rowLoopLength += 1
       }
 
-      return totalAcu
-    }, 0)
+      target.total += loopItemsLength
+    }
 
-    totalPrev += prevRowMatchedLoopItems.length > 0 ? (prevRowMatchedLoopItems.length * -1) : 0
+    const previousRootLoopIncrement = previousMeta.prev.total + (previousMeta.prev.rowLoopLength > 0 ? previousMeta.prev.rowLoopLength * -1 : 0)
+    const previousLoopIncrement = previousRootLoopIncrement + previousMeta.rest.total + (previousMeta.rest.rowLoopLength > 0 ? previousMeta.rest.rowLoopLength * -1 : 0)
 
     if (currentLoopItem) {
       const loopIndex = optionsToUse.data.index
@@ -500,18 +553,22 @@ function xlsxSData (data, options) {
       parents.reverse()
 
       for (const parentLoopItem of parents) {
-        totalPrev += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
+        currentLoopIncrement += getLoopItemTemplateLength(parentLoopItem) * parentLoopIndex
         parentLoopIndex = parentLoopItem.parentLoopIndex
       }
 
       const templateLength = getLoopItemTemplateLength(currentLoopItem)
 
-      increment = totalPrev + (templateLength * loopIndex)
-    } else {
-      increment = totalPrev
+      currentLoopIncrement = currentLoopIncrement + (templateLength * loopIndex)
     }
 
+    const increment = previousLoopIncrement + currentLoopIncrement
+
     newData.rowNumber = originalRowNumber + increment
+    // only a value that represents the increment of previous loops defined before the cell
+    newData.previousLoopIncrement = previousRootLoopIncrement
+    // this is a value that represents all the executions of the current loop (considering nested loops too)
+    newData.currentLoopIncrement = currentLoopIncrement + (previousLoopIncrement - previousRootLoopIncrement)
 
     newData.columnLetter = null
     newData.currentCellRef = null
@@ -531,7 +588,17 @@ function xlsxSData (data, options) {
     type === 'cellRef'
   ) {
     const rowNumber = optionsToUse.data.rowNumber
+    const trackedCells = optionsToUse.data.meta.trackedCells
     const originalCellRef = optionsToUse.hash.originalCellRef
+    const isShadowCall = optionsToUse.hash.shadow === true
+
+    if (rowNumber == null) {
+      throw new Error(`xlsxSData type="${type}" invalid usage, rowNumber needs to exists on internal data`)
+    }
+
+    if (trackedCells == null) {
+      throw new Error(`xlsxSData type="${type}" invalid usage, trackedCells needs to exists on internal data`)
+    }
 
     if (originalCellRef == null) {
       throw new Error('xlsxSData type="cellRef" helper originalCellRef arg is required')
@@ -568,6 +635,21 @@ function xlsxSData (data, options) {
     if (shouldUpdateOriginalCell) {
       // keeping a registry of the original cells that were updated
       optionsToUse.data.meta.updatedOriginalCells[originalCellRef] = updatedCellRef
+    }
+
+    if (!isShadowCall) {
+      trackedCells[originalCellRef] = trackedCells[originalCellRef] || { first: null, last: null, count: 0 }
+
+      if (trackedCells[originalCellRef].inLoop == null) {
+        trackedCells[originalCellRef].inLoop = optionsToUse.data.currentLoopId != null
+      }
+
+      if (trackedCells[originalCellRef].first == null) {
+        trackedCells[originalCellRef].first = updatedCellRef
+      }
+
+      trackedCells[originalCellRef].last = updatedCellRef
+      trackedCells[originalCellRef].count += 1
     }
 
     optionsToUse.data.columnLetter = parsedOriginalCellRef.letter
@@ -849,8 +931,25 @@ function xlsxSData (data, options) {
 
       optionsToUse.data.meta.mergeCells.push(mergeCell)
     } else {
+      const currentCellRef = optionsToUse.data.currentCellRef
+      const trackedCells = optionsToUse.data.meta.trackedCells
+      const lazyFormulas = optionsToUse.data.meta.lazyFormulas
       const originalCellRef = optionsToUse.hash.originalCellRef
       const originalFormula = optionsToUse.hash.originalFormula
+      const previousLoopIncrement = optionsToUse.data.previousLoopIncrement
+      const currentLoopIncrement = optionsToUse.data.currentLoopIncrement
+
+      if (currentCellRef == null) {
+        throw new Error(`xlsxSData type="${type}" invalid usage, currentCellRef needs to exists on internal data`)
+      }
+
+      if (trackedCells == null) {
+        throw new Error(`xlsxSData type="${type}" invalid usage, trackedCells needs to exists on internal data`)
+      }
+
+      if (lazyFormulas == null) {
+        throw new Error(`xlsxSData type="${type}" invalid usage, lazyFormulas needs to exists on internal data`)
+      }
 
       if (originalCellRef == null) {
         throw new Error('xlsxSData type="formula" helper originalCellRef arg is required')
@@ -860,79 +959,31 @@ function xlsxSData (data, options) {
         throw new Error('xlsxSData type="formula" helper originalFormula arg is required')
       }
 
-      const parsedOriginCellRef = parseCellRef(originalCellRef)
-      const newOriginCellRef = generateNewCellRefFromRow(parsedOriginCellRef, rowNumber)
-      const parsedNewOriginCellRef = parseCellRef(newOriginCellRef)
+      if (currentLoopIncrement == null) {
+        throw new Error(`xlsxSData type="${type}" invalid usage, currentLoopIncrement needs to exists on internal data`)
+      }
 
-      const trackedLoopCells = optionsToUse.data.meta.trackedLoopCells
+      const parsedOriginCellRef = parseCellRef(originalCellRef)
       const originCellIsFromLoop = optionsToUse.data.currentLoopId != null
 
-      const { newValue } = evaluateCellRefsFromExpression(originalFormula, (cellRefInfo) => {
-        const cellRefIsFromLoop = trackedLoopCells[cellRefInfo.localRef]?.count != null
-        let newRowNumber
-
-        if (
-          !originCellIsFromLoop &&
-          (cellRefInfo.type === 'rangeStart' || cellRefInfo.type === 'rangeEnd') &&
-          cellRefIsFromLoop
-        ) {
-          newRowNumber = cellRefInfo.type === 'rangeStart' ? cellRefInfo.parsed.rowNumber : parseCellRef(trackedLoopCells[cellRefInfo.localRef].last).rowNumber
-        } else {
-          let originMetadata
-          let targetMetadata
-          let originRowNumber
-          let targetRowNumber
-
-          if (originCellIsFromLoop) {
-            originRowNumber = parsedNewOriginCellRef.rowNumber
-            originMetadata = { workbookName: parsedNewOriginCellRef.workbookName, sheetName: parsedNewOriginCellRef.sheetName }
-          } else {
-            originRowNumber = parsedOriginCellRef.rowNumber
-            originMetadata = { workbookName: parsedOriginCellRef.workbookName, sheetName: parsedOriginCellRef.sheetName }
-          }
-
-          if (cellRefIsFromLoop) {
-            // TODO: support not increasing the formula when locked row
-            // when locked row we don't want to increase based on the loop, we take the first instance of the loop
-            // as the value to use
-            const newCellRef = cellRefInfo.parsed.lockedRow ? parseCellRef(trackedLoopCells[cellRefInfo.localRef].first) : parseCellRef(trackedLoopCells[cellRefInfo.localRef].last)
-            // const newCellRef = parseCellRef(trackedLoopCells[cellRefInfo.localRef].last)
-            targetRowNumber = newCellRef.rowNumber
-            targetMetadata = { workbookName: newCellRef.workbookName, sheetName: newCellRef.sheetName }
-          } else {
-            targetRowNumber = cellRefInfo.parsed.rowNumber
-            targetMetadata = { workbookName: cellRefInfo.parsed.workbookName, sheetName: cellRefInfo.parsed.sheetName }
-          }
-
-          // if cell ref in formula comes from different workbook or sheet than the origin
-          // then we don't increment as normal, we increment based on the difference between
-          // new origin cell and original origin cell
-          if (
-            originMetadata.workbookName !== targetMetadata.workbookName ||
-            originMetadata.sheetName !== targetMetadata.sheetName
-          ) {
-            newRowNumber = cellRefInfo.parsed.rowNumber
-
-            if (!cellRefInfo.parsed.lockedRow) {
-              newRowNumber += parsedNewOriginCellRef.rowNumber - parsedOriginCellRef.rowNumber
-            }
-          } else {
-            const diff = originRowNumber - targetRowNumber
-
-            if (diff < 0) {
-              throw new Error(`xlsxSData type="formula" helper only support cell refs that are above the current cell ref. cell ref: "${originalCellRef}", formula: "${originalFormula}"`)
-            }
-
-            newRowNumber = parsedNewOriginCellRef.rowNumber - diff
-          }
-        }
-
-        const newCellRef = generateNewCellRefFromRow(cellRefInfo.parsed, newRowNumber)
-
-        return newCellRef
+      const { formula: newFormula } = getNewFormula(type, originalFormula, parsedOriginCellRef, {
+        type: 'normal',
+        originCellIsFromLoop,
+        previousLoopIncrement,
+        currentLoopIncrement,
+        trackedCells,
+        includeLoopIncrementResolver: (cellRefIsFromLoop, cellRefInfo) => {
+          return (
+            cellRefIsFromLoop &&
+            trackedCells[cellRefInfo.localRef] != null &&
+            trackedCells[cellRefInfo.localRef].loopHierarchyId === getCurrentLoopItem(optionsToUse.data.currentLoopId, optionsToUse.data.loopItems)?.hierarchyId
+          )
+        },
+        lazyFormulas,
+        currentCellRef
       })
 
-      output = newValue
+      output = newFormula
     }
 
     return output
@@ -990,39 +1041,6 @@ function xlsxSData (data, options) {
 
   if (
     arguments.length === 1 &&
-    type === 'formulaPart'
-  ) {
-    const currentCellRef = optionsToUse.data.currentCellRef
-
-    if (currentCellRef == null) {
-      throw new Error('xlsxSData type="formulaPart" invalid usage, currentCellRef needs to exists on internal data')
-    }
-
-    const originalCellRef = optionsToUse.hash.originalCellRef
-
-    if (originalCellRef == null) {
-      throw new Error('xlsxSData type="formulaPart" helper originalCellRef arg is required')
-    }
-
-    // we only track the cell if it is from loop
-    if (optionsToUse.data.currentLoopId != null) {
-      const trackedLoopCells = optionsToUse.data.meta.trackedLoopCells
-
-      trackedLoopCells[originalCellRef] = trackedLoopCells[originalCellRef] || { first: null, last: null, count: 0 }
-
-      if (trackedLoopCells[originalCellRef].first == null) {
-        trackedLoopCells[originalCellRef].first = currentCellRef
-      }
-
-      trackedLoopCells[originalCellRef].last = currentCellRef
-      trackedLoopCells[originalCellRef].count += 1
-    }
-
-    return ''
-  }
-
-  if (
-    arguments.length === 1 &&
     type === 'formulaSharedRefRange'
   ) {
     const rowNumber = optionsToUse.data.rowNumber
@@ -1043,6 +1061,56 @@ function xlsxSData (data, options) {
     })
 
     return newValue
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'lazyFormulas'
+  ) {
+    const trackedCells = optionsToUse.data.meta.trackedCells
+    const lazyFormulas = optionsToUse.data.meta.lazyFormulas
+
+    if (trackedCells == null) {
+      throw new Error(`xlsxSData type="${type}" invalid usage, trackedCells needs to exists on internal data`)
+    }
+
+    if (lazyFormulas == null) {
+      throw new Error(`xlsxSData type="${type}" invalid usage, lazyFormulas needs to exists on internal data`)
+    }
+
+    if (lazyFormulas.count == null || lazyFormulas.count === 0) {
+      return new Handlebars.SafeString('')
+    }
+
+    const result = []
+
+    const lazyFormulaIds = Object.keys(lazyFormulas.data)
+
+    for (const lazyFormulaId of lazyFormulaIds) {
+      const lazyFormulaInfo = lazyFormulas.data[lazyFormulaId]
+
+      const {
+        formula,
+        parsedOriginCellRef,
+        originCellIsFromLoop,
+        previousLoopIncrement,
+        currentLoopIncrement,
+        cellRefs
+      } = lazyFormulaInfo
+
+      const { formula: newFormula } = getNewFormula(type, formula, parsedOriginCellRef, {
+        type: 'lazy',
+        originCellIsFromLoop,
+        previousLoopIncrement,
+        currentLoopIncrement,
+        trackedCells,
+        lazyCellRefs: cellRefs
+      })
+
+      result.push(`<item id="${lazyFormulaId}">${newFormula}</item>`)
+    }
+
+    return new Handlebars.SafeString(`<lazyFormulas>${result.join('\n')}</lazyFormulas>`)
   }
 
   // TODO: this should be refactored at some point to be more generic

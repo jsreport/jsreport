@@ -87,7 +87,7 @@ module.exports = (files) => {
     const autoFitColLettersStr = resultAutofitConfigured.map((r) => num2col(r.column)).join(',')
 
     // wrap the <sheetData> into wrapper so we can store data during helper calls
-    processOpeningTag(sheetDoc, sheetDataEl, `{{#xlsxSData type='root'${isAutofitConfigured ? ` autofit="${autoFitColLettersStr}"` : ''}}}`)
+    const rootBlockStartEl = processOpeningTag(sheetDoc, sheetDataEl, `{{#xlsxSData type='root'${isAutofitConfigured ? ` autofit="${autoFitColLettersStr}"` : ''}}}`)
 
     let rootEdgeEl = sheetDataEl
 
@@ -519,7 +519,7 @@ module.exports = (files) => {
         // to be able to update the ref by the handlebars
         const newCalcCellEl = calcCellEl.cloneNode(true)
 
-        newCalcCellEl.setAttribute('r', `{{xlsxSData type='cellRef' originalCellRef='${cellRef}'}}`)
+        newCalcCellEl.setAttribute('r', `{{xlsxSData type='cellRef' originalCellRef='${cellRef}' shadow=true}}`)
         newCalcCellEl.setAttribute('oldR', cellRef)
 
         const wrapperElement = sheetDoc.createElement('calcChainCellUpdated')
@@ -621,8 +621,6 @@ module.exports = (files) => {
     for (const [idx, { ref, rowEl }] of mergeCellElsToHandle.entries()) {
       const isLast = idx === mergeCellElsToHandle.length - 1
       const newMergeCellCallEl = sheetDoc.createElement('xlsxRemove')
-      let insideLoop = false
-      let stayAt = 'first'
 
       newMergeCellCallEl.textContent = `{{xlsxSData type='mergeCell' originalCellRefRange='${ref}'}}`
 
@@ -631,40 +629,21 @@ module.exports = (files) => {
 
       // we check here if there is a loop that start/end in the same row of merged cell
       // (this does not necessarily mean that merged cell is part of the loop)
-      const loopDetected = inverseLoopsDetected.find((l) => {
-        if (l.type === 'block') {
-          return (
-            parsedMergeStart.rowNumber >= l.start.originalRowNumber &&
-            parsedMergeStart.rowNumber <= l.end.originalRowNumber
-          )
-        }
+      const loopDetectionResult = getParentLoop(inverseLoopsDetected, parsedMergeStart)
+      const loopDetected = loopDetectionResult?.loopDetected
+      const parsedLoopEnd = loopDetectionResult != null ? loopDetectionResult.parsedLoopEnd : null
+      const insideLoop = loopDetectionResult != null ? loopDetectionResult.isInside : false
+      let stayAt = 'first'
 
-        return l.start.originalRowNumber === parsedMergeStart.rowNumber
-      })
-
-      if (loopDetected != null) {
-        const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
-        const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
-
-        // here we check if the merged cell is really part of the loop or not
-        if (loopDetected.type === 'block') {
-          if (parsedLoopStart.rowNumber === parsedMergeStart.rowNumber) {
-            insideLoop = parsedMergeStart.columnNumber >= parsedLoopStart.columnNumber
-          } else if (parsedLoopEnd.rowNumber === parsedMergeStart.rowNumber) {
-            insideLoop = parsedMergeStart.columnNumber <= parsedLoopEnd.columnNumber
-
-            if (!insideLoop) {
-              stayAt = 'last'
-            }
-          } else {
-            insideLoop = true
-          }
-        } else {
-          insideLoop = (
-            parsedMergeStart.columnNumber >= parsedLoopStart.columnNumber &&
-            parsedMergeStart.columnNumber <= parsedLoopEnd.columnNumber
-          )
-        }
+      if (
+        loopDetected != null &&
+        !insideLoop &&
+        loopDetected.type === 'block' &&
+        parsedLoopEnd != null &&
+        parsedLoopEnd.rowNumber === parsedMergeStart.rowNumber &&
+        parsedMergeStart.columnNumber > parsedLoopEnd.columnNumber
+      ) {
+        stayAt = 'last'
       }
 
       rowEl.appendChild(newMergeCellCallEl)
@@ -695,7 +674,7 @@ module.exports = (files) => {
       processClosingTag(sheetDoc, mergeCellsEl.lastChild, '{{/xlsxSData}}')
     }
 
-    const formulaPartsHandled = new Set()
+    const formulaNotExistingCellRefs = new Set()
 
     for (const { cellRef, formula, formulaEl, sharedFormula, cellRefsInFormula } of formulaCellElsToHandle) {
       if (sharedFormula?.type === 'reference') {
@@ -716,31 +695,53 @@ module.exports = (files) => {
           continue
         }
 
-        // we need to normalize to ignored the possible locked symbols ($)
-        const normalizedCellRef = `${cellRefInfo.parsed.letter}${cellRefInfo.parsed.rowNumber}`
-
-        // we only want to put formulaPart call once per cell
-        // it does not matter that multiple formulas references the same cell
-        // we just want one helper call here
-        if (formulaPartsHandled.has(normalizedCellRef)) {
-          continue
-        }
-
+        // we need to normalize to ignore the possible locked symbols ($)
+        const normalizedCellRef = cellRefInfo.localRef
         const targetCellEl = cellsElsByRefMap.get(normalizedCellRef)
 
-        // we get here when a formula references a cell which
-        // does not have any content (so it does not have a corresponding cell element)
-        if (targetCellEl == null) {
+        if (targetCellEl != null) {
           continue
         }
 
-        const newFormulaPartCallEl = sheetDoc.createElement('xlsxRemove')
-        newFormulaPartCallEl.textContent = `{{xlsxSData type='formulaPart' originalCellRef='${normalizedCellRef}'}}`
+        const parsedNormalizedCellRef = parseCellRef(normalizedCellRef)
+        // we check here if there is a loop that start/end in the same row of merged cell
+        // (this does not necessarily mean that merged cell is part of the loop)
+        const loopDetectionResult = getParentLoop(inverseLoopsDetected, parsedNormalizedCellRef)
+        let value = normalizedCellRef
 
-        targetCellEl.appendChild(newFormulaPartCallEl)
-        formulaPartsHandled.add(normalizedCellRef)
+        if (loopDetectionResult != null) {
+          value += `|${loopDetectionResult.loopDetected.hierarchyId}`
+        }
+
+        // we get here when a formula references a cell which
+        // does not have any content (so it does not have a corresponding cell element).
+        // using a Set also guarantees that we only process the cel ref once,
+        // it does not matter that multiple formulas references the same cell
+        // we just want one entry for it.
+        formulaNotExistingCellRefs.add(value)
       }
     }
+
+    if (formulaNotExistingCellRefs.size > 0) {
+      rootBlockStartEl.textContent = rootBlockStartEl.textContent.replace('}}', ` nonExistingCellRefs='${[...formulaNotExistingCellRefs].join(',')}'}}`)
+    }
+
+    // handle possible lazy formulas (formulas that reference other cells that are not yet processed)
+    // example case:
+    // E2 cell = formula (10+E7)
+    // there is loop on row 5
+    // E7 cell = 30
+    // the final output of E2 should be 10+<newCellRefAfterLoop>
+    // NOTE: if we find this approach is slow because the regexp requirement we can
+    // switch to a different approach based on Defined names, which we can set on different place
+    // either Workbook or Sheet level, use dynamic calculated names when processing Sheets, and then
+    // on single last step declared the Defined names.
+    // with this we can avoid the extra regexp step which
+    // is for sure slow if you create many of the formulas that will require the final references
+    // to be evaluated at final step
+    const newLazyFormulasCallEl = sheetDoc.createElement('xlsxRemove')
+    newLazyFormulasCallEl.textContent = '{{xlsxSData type="lazyFormulas"}}'
+    sheetDataEl.appendChild(newLazyFormulasCallEl)
   }
 
   // normalize the shared string values used across the sheets that can contain handlebars code
@@ -772,6 +773,50 @@ function getLatestNotClosedLoop (loopsDetected) {
   }
 
   return loopFound
+}
+
+function getParentLoop (inverseLoopsDetected, parsedCellRef) {
+  const loopDetected = inverseLoopsDetected.find((l) => {
+    if (l.type === 'block') {
+      return (
+        parsedCellRef.rowNumber >= l.start.originalRowNumber &&
+        parsedCellRef.rowNumber <= l.end.originalRowNumber
+      )
+    }
+
+    return l.start.originalRowNumber === parsedCellRef.rowNumber
+  })
+
+  if (loopDetected == null) {
+    return
+  }
+
+  const parsedLoopStart = parseCellRef(loopDetected.start.cellRef)
+  const parsedLoopEnd = parseCellRef(loopDetected.end.cellRef)
+  let insideLoop = false
+
+  // here we check if the merged cell is really part of the loop or not
+  if (loopDetected.type === 'block') {
+    if (parsedLoopStart.rowNumber === parsedCellRef.rowNumber) {
+      insideLoop = parsedCellRef.columnNumber >= parsedLoopStart.columnNumber
+    } else if (parsedLoopEnd.rowNumber === parsedCellRef.rowNumber) {
+      insideLoop = parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
+    } else {
+      insideLoop = true
+    }
+  } else {
+    insideLoop = (
+      parsedCellRef.columnNumber >= parsedLoopStart.columnNumber &&
+      parsedCellRef.columnNumber <= parsedLoopEnd.columnNumber
+    )
+  }
+
+  return {
+    loopDetected,
+    parsedLoopStart,
+    parsedLoopEnd,
+    isInside: insideLoop
+  }
 }
 
 function getCellElAndWrappers (referenceCellEl) {
