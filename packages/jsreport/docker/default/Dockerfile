@@ -36,9 +36,9 @@ RUN addgroup -S jsreport && adduser --shell /bin/bash -S -G jsreport jsreport
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="114.0.5735.133-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="115.0.5790.170-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="114.0.5735.133-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="115.0.5790.170-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
@@ -51,11 +51,9 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     nss \
     freetype \
     harfbuzz \
-    ttf-freefont@edge \
-    # just for now as we npm install from git
-    git \
-    # so user can docker exec -it test /bin/bash
-    bash
+    ttf-freefont@edge \   
+    # for docker workers extension
+    docker-cli
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 
@@ -78,6 +76,7 @@ ENV PUPPETEER_SKIP_DOWNLOAD true
 
 RUN npm i -g @jsreport/jsreport-cli
 RUN jsreport init
+RUN npm i @jsreport/jsreport-docker-workers
 
 RUN npm cache clean -f && rm -rf /tmp/*
 
@@ -90,5 +89,6 @@ RUN chown -R jsreport:jsreport /app
 ENV chrome_launchOptions_executablePath /usr/lib/chromium/chrome
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
+RUN apk add bash
 
 CMD ["bash", "run.sh"]
