@@ -53,7 +53,8 @@ module.exports = function createSandbox (_sandbox, options = {}) {
     // todo, they use harden function to freeze objects passed to the Compartment
     // however I don't see it is needed, the objects are still freezed
     Buffer,
-    Date
+    Date,
+    fetch
   }
 
   const doSandboxRequire = createSandboxRequire(safeExecution, isolateModules, modulesCache, {
