@@ -71,8 +71,20 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
       }
 
       const ext = new External(currentBuffer)
+      function collectPages (pagesObj, pages) {
+        for (const page of pagesObj.properties.get('Kids').map(k => k.object)) {
+          if (page.properties.get('Type').name === 'Pages') {
+            collectPages(page, pages)
+          } else {
+            pages.push(page)
+          }
+        }
+      }
+      const pages = []
+      collectPages(ext.catalog.properties.get('Pages').object, pages)
+
       const pageIndexesToAppend = []
-      for (let i = 0; i < ext.catalog.properties.get('Pages').object.properties.get('Kids').length; i++) {
+      for (let i = 0; i < pages.length; i++) {
         if (!pageNumbersToRemove.includes(i + 1)) {
           pageIndexesToAppend.push(i)
         }

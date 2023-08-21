@@ -17,7 +17,8 @@ describe('pdf utils', () => {
       encryption: {
         secretKey: '1111111811111118'
       },
-      rootDirectory: path.join(__dirname, '../../../')
+      rootDirectory: path.join(__dirname, '../../../'),
+      trustUserCode: true
     })
 
     jsreport.use(require('@jsreport/jsreport-chrome-pdf')({
@@ -1415,7 +1416,7 @@ describe('pdf utils', () => {
     parsedPdf.pages[1].text.includes('Second').should.be.ok()
   })
 
-  it('should expose jsreport-proxy pdfUtils (.remove)', async () => {
+  it('should expose jsreport-proxy pdfUtils (.removePages)', async () => {
     const result = await jsreport.render({
       template: {
         content: `<h1>Hello from Page 1</h1>
@@ -1441,6 +1442,30 @@ describe('pdf utils', () => {
 
     parsedPdf.pages.should.have.length(1)
     parsedPdf.pages[0].text.includes('Hello from Page 1').should.be.ok()
+  })
+
+  it('should expose jsreport-proxy pdfUtils (.remove) with support for nested pages', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'placeholder',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        scripts: [{
+          content: `
+            const jsreport = require('jsreport-proxy')
+
+            async function afterRender (req, res) {
+              const path = require('path')
+              const buf = require('fs').readFileSync(path.join('${__dirname.replaceAll('\\', '\\\\')}', 'nested-pdf-pages.pdf'))
+              res.content = await jsreport.pdfUtils.removePages(buf, 10)
+            }
+          `
+        }]
+      }
+    })
+
+    const parsedPdf = await parsePdf(result.content, {})
+    parsedPdf.pages.length.should.be.eql(9)
   })
 
   it('should use jsreport-proxy pdfUtils append and merge and still have hidden marks map on the same context', async () => {
