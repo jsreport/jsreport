@@ -33,7 +33,7 @@ module.exports = function createRunInSandbox (reporter) {
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
-    const { sourceFilesInfo, run, compileScript, restore, sandbox, sandboxRequire } = createSandbox(context, {
+    const { sourceFilesInfo, run, compileScript, restore, sandbox, sandboxRequire } = await createSandbox(context, {
       rootDirectory: reporter.options.rootDirectory,
       onLog: (log) => {
         // we mark any log done in sandbox as userLevel: true, this allows us to detect which logs belongs to user

@@ -1,17 +1,20 @@
-problems: 
-
+problems (somehow solved): 
 - SES_HTML_COMMENT_REJECTED when running docx recipe with students showcase, had to disable the line in the SES
 - docx doesnt work because of some hacky code in xmldom => need to require xmldom upfront before lockdown
 - html-to-xlsx needs to require unzipper before the lockdown
-- chrome needs to require puppeteer at the beginning and work just with dedicated-process so far
+- chrome needs to require puppeteer at the beginning
 - jsrender needs lockdown option overrideTaming: 'severe'
 - xlsx, html-to-xlsx needs to use in helpers globalThis instead of  this
 - pdfjs parser doesnt work in lockdown so parsing pdf returns empty results => preload pdfjs in worker before lockdown with require('pdfjs-dist/legacy/build/pdf.js').getDocument(Buffer.from([])).promise.catch(() => {})
-- SES is writing something to console what should be disabled, anyway we likely need to fork because of first problem
 
-todo:
-- error line numbers
-- system helpers compilation
-- shape the split for unsafe/safe execution with node vm/SES
-- fix tests
+todo (top down order):
+- all tests should be green
 - add all node global objects to Compartment globals
+- replace Buffer.allocUnsafe  with Buffer.alloc
+- check the compiled exe version
+- move the lockdown to the reporter init likely, so it is consistent, now some errors can occur after first render and not before because of lockdown
+- EJS doesnt work in lockdown, at least an explanation error should be thrown
+- bluebird doesnt work in locdown, we need to write it down to release notes and blog
+- SES doesnt write an error that throws from background timer (scripts test) - we can live with it
+- perhaps try to "analyze" the errors from SES and write to exception some explanation for developers and what can be done
+- system helpers compilation? not must for now
