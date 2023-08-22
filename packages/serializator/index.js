@@ -10,6 +10,7 @@ let serializing = false
 const originalDateToJSON = Date.prototype.toJSON
 const originalBufferToJSON = Buffer.prototype.toJSON
 
+// Keep track of the fact that "this" is a Date object
 Date.prototype.toJSON = function () { // eslint-disable-line
   if (serializing) {
     return { [typeKeys.date]: this.getTime() }
@@ -31,8 +32,6 @@ module.exports.serialize = (obj, { prettify = false, prettifySpace = 2 } = {}) =
 
   try {
     let res
-
-    // Keep track of the fact that this is a Date object
 
     res = JSON.stringify(obj, (key, value) => {
       if (typeof value === 'undefined') {

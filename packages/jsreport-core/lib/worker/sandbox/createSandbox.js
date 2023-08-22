@@ -47,15 +47,9 @@ module.exports = function createSandbox (_sandbox, options = {}) {
 
   propsManager.applyPropertiesConfigTo(sandbox)
 
-  // with standard vm this variable is the same as context, with vm2 it is a proxy of context
-  // (which is not the real internal context)
-  const vmSandbox = {
-    // todo, they use harden function to freeze objects passed to the Compartment
-    // however I don't see it is needed, the objects are still freezed
-    Buffer,
-    Date,
-    fetch
-  }
+  // with standard vm this variable is the same as context, with SES
+  // it is the globalThis
+  let vmSandbox
 
   const doSandboxRequire = createSandboxRequire(safeExecution, isolateModules, modulesCache, {
     rootDirectory,
@@ -71,6 +65,18 @@ module.exports = function createSandbox (_sandbox, options = {}) {
     require (m) { return doSandboxRequire(m, { context: vmSandbox }) }
   })
 
+  const compartment = new Compartment()
+
+  vmSandbox = compartment.globalThis
+
+  vmSandbox = Object.assign(vmSandbox, {
+    // TODO: they use harden function to freeze objects passed to the Compartment
+    // however I don't see it is needed, the objects are still freezed
+    Buffer,
+    Date,
+    fetch
+  })
+
   for (const name in sandbox) {
     vmSandbox[name] = sandbox[name]
   }
@@ -80,13 +86,12 @@ module.exports = function createSandbox (_sandbox, options = {}) {
   propsManager.applyRootPropertiesConfigTo(vmSandbox)
 
   for (const info of globalModules) {
-    // it is important to use _sandboxRequire function with allowAllModules: true here to avoid
+    // it is important to use doSandboxRequire function with allowAllModules: true here to avoid
     // getting hit by the allowed modules restriction
     vmSandbox[info.globalVariableName] = doSandboxRequire(info.module, { context: vmSandbox, useMap: false, allowAllModules: true })
   }
 
   const sourceFilesInfo = new Map()
-  const compartment = new Compartment(vmSandbox)
 
   return {
     sandbox: vmSandbox,
