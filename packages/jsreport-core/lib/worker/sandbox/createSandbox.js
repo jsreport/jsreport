@@ -52,10 +52,12 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
   const sourceFilesInfo = new Map()
   // eslint-disable-next-line
   let compartment
+
   if (safeExecution) {
     if (lockDownPromise) {
       await lockDownPromise
     }
+
     if (!lockedDown) {
       // avoiding parallel lockdown (needed for child templates), however I would like to move the lockdown to the reporter init, after extensions are initialized
       let _resolve, _reject
@@ -68,6 +70,7 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
 
         // hiding initial warns from the SES to stdout
         const originalWarn = console.warn
+
         console.warn = function (...args) {
           if (typeof args[0] === 'string' && (args[0].startsWith('Removing intrinsics') || args[0].startsWith('Tolerating undeletabl'))) {
             return
@@ -101,6 +104,7 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
         throw e
       }
     }
+
     // eslint-disable-next-line
     compartment = new Compartment()
   }
@@ -173,6 +177,7 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
         }
 
         const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
+
         return await script.runInContext(vmSandbox, {
           displayErrors: true
         })
