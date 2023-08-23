@@ -14,7 +14,7 @@ todo (top down order):
 - add all node global objects to Compartment globals
 - replace Buffer.allocUnsafe  with Buffer.alloc
 - check the compiled exe version
-- move the lockdown to the reporter init likely, so it is consistent, now some errors can occur after first render and not before because of lockdown
+- [x] move the lockdown to the reporter init likely, so it is consistent, now some errors can occur after first render and not before because of lockdown
 - EJS doesnt work in lockdown, at least an explanation error should be thrown
 - bluebird doesnt work in lockdown, we need to write it down to release notes and blog
 - SES doesn't write an error that throws from background timer (scripts test) - we can live with it
