@@ -4120,7 +4120,7 @@ function                whitelistIntrinsics(
           // a debugging attempt. See the comment at top of file for an
           // explanation.
           // eslint-disable-next-line @endo/no-polymorphic-call
-          console.warn( `Removing ${subPath}`);
+          // console.warn( `Removing ${subPath}`);
          }
         try {
           delete obj[prop];
@@ -4130,7 +4130,7 @@ function                whitelistIntrinsics(
               obj.prototype=  undefined;
               if( obj.prototype===  undefined) {
                 // eslint-disable-next-line @endo/no-polymorphic-call
-                console.warn( `Tolerating undeletable ${subPath} === undefined`);
+                // console.warn( `Tolerating undeletable ${subPath} === undefined`);
                 // eslint-disable-next-line no-continue
                 continue;
                }
@@ -5362,9 +5362,9 @@ const scopeProxyHandlerProperties=  {
     // Coerce with `String` in case prop is a symbol.
     const quotedProp=  q(String(prop));
     // eslint-disable-next-line @endo/no-polymorphic-call
-    console.warn(
-       `getOwnPropertyDescriptor trap on scopeTerminatorHandler for ${quotedProp}`,
-      TypeError().stack);
+    // console.warn(
+    //    `getOwnPropertyDescriptor trap on scopeTerminatorHandler for ${quotedProp}`,
+    //   TypeError().stack);
 
     return undefined;
    },
@@ -5661,14 +5661,15 @@ const htmlCommentPattern=  new FERAL_REG_EXP( `(?:${'<'}!--|--${'>'})`,'g');
  * @returns {string}
  */
 const        rejectHtmlComments=  (src)=>{
-  const lineNumber=  getLineNumber(src, htmlCommentPattern);
-  if( lineNumber<  0) {
-    return src;
-   }
-  const name=  getSourceURL(src);
-  // See https://github.com/endojs/endo/blob/master/packages/ses/error-codes/SES_HTML_COMMENT_REJECTED.md
-  throw SyntaxError(
-     `Possible HTML comment rejected at ${name}:${lineNumber}. (SES_HTML_COMMENT_REJECTED)`);
+  return src;
+  // const lineNumber=  getLineNumber(src, htmlCommentPattern);
+  // if( lineNumber<  0) {
+  //   return src;
+  //  }
+  // const name=  getSourceURL(src);
+  // // See https://github.com/endojs/endo/blob/master/packages/ses/error-codes/SES_HTML_COMMENT_REJECTED.md
+  // throw SyntaxError(
+  //    `Possible HTML comment rejected at ${name}:${lineNumber}. (SES_HTML_COMMENT_REJECTED)`);
 
  };
 
