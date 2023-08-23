@@ -1,11 +1,12 @@
 'use strict'
 
-const typeKeys = {
+const defaultTypeKeys = {
   date: '$$$date$$$',
   buffer: '$$$buffer$$$'
 }
 
 let serializing = false
+let serializingTypeKeys = defaultTypeKeys
 
 const originalDateToJSON = Date.prototype.toJSON
 const originalBufferToJSON = Buffer.prototype.toJSON
@@ -13,7 +14,7 @@ const originalBufferToJSON = Buffer.prototype.toJSON
 // Keep track of the fact that "this" is a Date object
 Date.prototype.toJSON = function () { // eslint-disable-line
   if (serializing) {
-    return { [typeKeys.date]: this.getTime() }
+    return { [serializingTypeKeys.date]: this.getTime() }
   } else {
     originalDateToJSON.call(this)
   }
@@ -21,14 +22,15 @@ Date.prototype.toJSON = function () { // eslint-disable-line
 
 Buffer.prototype.toJSON = function (...args) { // eslint-disable-line
   if (serializing) {
-    return { [typeKeys.buffer]: this.toString('base64') }
+    return { [serializingTypeKeys.buffer]: this.toString('base64') }
   } else {
     return originalBufferToJSON.call(this)
   }
 }
 
-module.exports.serialize = (obj, { prettify = false, prettifySpace = 2 } = {}) => {
+module.exports.serialize = (obj, { prettify = false, prettifySpace = 2, typeKeys = defaultTypeKeys } = {}) => {
   serializing = true
+  serializingTypeKeys = typeKeys
 
   try {
     let res
@@ -48,10 +50,11 @@ module.exports.serialize = (obj, { prettify = false, prettifySpace = 2 } = {}) =
     return res
   } finally {
     serializing = false
+    serializingTypeKeys = defaultTypeKeys
   }
 }
 
-module.exports.parse = (json) => {
+module.exports.parse = (json, { typeKeys = defaultTypeKeys } = {}) => {
   return JSON.parse(json, (key, value) => {
     if (key === typeKeys.date) {
       return new Date(value)

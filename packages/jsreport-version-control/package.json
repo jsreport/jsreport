@@ -37,7 +37,8 @@
     "nanoid": "3.2.0",
     "node.extend.without.arrays": "1.1.6",
     "p-each-series": "2.2.0",
-    "p-reduce": "2.1.0"
+    "p-reduce": "2.1.0",
+    "@jsreport/serializator": "0.1.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.6.1",
