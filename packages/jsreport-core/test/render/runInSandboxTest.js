@@ -408,7 +408,7 @@ describe('sandbox', () => {
           context: {
             a: { b: { c: 'foo' } }
           },
-          userCode: 'b = typeof a.b.c',
+          userCode: 'globalThis.b = typeof a.b.c',
           executionFn: ({ context }) => {
             return context.b
           },
@@ -469,7 +469,7 @@ describe('sandbox', () => {
           context: {
             a: { b: { c: 'foo' } }
           },
-          userCode: 'b = typeof a.b.c',
+          userCode: 'globalThis.b = typeof a.b.c',
           executionFn: ({ context }) => {
             return context.b
           },
@@ -648,7 +648,7 @@ describe('sandbox', () => {
             content: ' ',
             recipe: 'html'
           }
-        }).should.be.rejectedWith(/process is not defined/)
+        }).should.be.rejectedWith(/(process is not defined)|(is not a valid constructor)/)
       })
 
       it('should prevent constructor hacks #2', async () => {
@@ -680,7 +680,7 @@ describe('sandbox', () => {
             content: ' ',
             recipe: 'html'
           }
-        }).should.be.rejectedWith(/process is not defined/)
+        }).should.be.rejectedWith(/(process is not defined)|(is not a valid constructor)/)
       })
 
       it('should prevent constructor hacks #3', async () => {
@@ -711,7 +711,7 @@ describe('sandbox', () => {
             content: ' ',
             recipe: 'html'
           }
-        }).should.be.rejectedWith(/called on incompatible receiver/)
+        }).should.be.rejectedWith(/(process is not defined)|(is not a valid constructor)/)
       })
     }
 
@@ -719,7 +719,7 @@ describe('sandbox', () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
           context: {},
-          userCode: 'await new Promise((resolve) => resolve()); a = "foo"',
+          userCode: 'await new Promise((resolve) => resolve()); globalThis.a = "foo"',
           executionFn: ({ context }) => {
             return context.a
           }
@@ -818,7 +818,7 @@ describe('sandbox', () => {
 
       const result = JSON.parse(res.content).result
 
-      should(result).be.False()
+      should(result).be.eql(safe)
     })
 
     it('error from builtin module', async () => {

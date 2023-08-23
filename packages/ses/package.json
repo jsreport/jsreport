@@ -1,0 +1,49 @@
+{
+  "name": "@jsreport/ses",
+  "version": "0.0.0",
+  "description": "Hardened JavaScript for Fearless Cooperation",
+  "keywords": [
+    "ses",
+    "lockdown",
+    "harden",
+    "Compartment"
+  ],
+  "homepage": "https://github.com/jsreport/jsreport",
+  "bugs": {
+    "url": "https://github.com/jsreport/jsreport/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Agoric",
+  "contributors": [
+    "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+    "Jan Blaha <jan.blaha@hotmail.com> (https://github.com/pofider)"
+  ],
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha --timeout 5000 test/test.js && standard test/test.js"
+  },
+  "dependencies": {
+    "ses": "0.18.7"
+  },
+  "devDependencies": {
+    "mocha": "10.1.0",
+    "should": "13.2.3",
+    "standard": "16.0.4"
+  },
+  "engines": {
+    "node": ">=16.11"
+  },
+  "standard": {
+    "env": {
+      "node": true,
+      "mocha": true
+    }
+  }
+}
