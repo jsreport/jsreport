@@ -54,17 +54,7 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
 
   if (safeExecution) {
     if (!lockedDown) {
-      require('ses/lockdown')
-
-      // hiding initial warns from the SES to stdout
-      const originalWarn = console.warn
-
-      console.warn = function (...args) {
-        if (typeof args[0] === 'string' && (args[0].startsWith('Removing intrinsics') || args[0].startsWith('Tolerating undeletabl'))) {
-          return
-        }
-        originalWarn.call(this, ...args)
-      }
+      require('@jsreport/ses')
 
       // eslint-disable-next-line
       lockdown({
