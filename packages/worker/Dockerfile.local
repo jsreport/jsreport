@@ -34,7 +34,7 @@ RUN chown -R jsreport:jsreport /tmp/yarn-cache
 USER jsreport:jsreport
 
 ENV NVM_DIR /home/jsreport/.nvm
-ENV NODE_VERSION 16.11.1
+ENV NODE_VERSION 18.16.1
 
 # node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && \

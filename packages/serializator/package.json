@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=8.9"
+    "node": ">=18.15"
   },
   "standard": {
     "parser": "babel-eslint",

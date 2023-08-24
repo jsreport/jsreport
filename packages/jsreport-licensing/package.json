@@ -37,7 +37,7 @@
     "uuid": "8.3.2"
   },
   "engines": {
-    "node": ">=16.11"
+    "node": ">=18.15"
   },
   "standard": {
     "ignore": [

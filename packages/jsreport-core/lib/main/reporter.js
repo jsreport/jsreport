@@ -6,6 +6,7 @@
 const path = require('path')
 const { Readable } = require('stream')
 const Reaper = require('@jsreport/reap')
+const pkg = require('../../package.json')
 const optionsLoad = require('./optionsLoad')
 const { createLogger, configureLogger, silentLogs } = require('./logger')
 const checkEntityName = require('./validateEntityName')
@@ -37,8 +38,8 @@ class MainReporter extends Reporter {
   constructor (options, defaults) {
     super(options)
 
-    if (!semver.satisfies(process.versions.node, '>=16.11.0')) {
-      throw this.createError('jsreport needs at least node 16.11.0 to run.')
+    if (!semver.satisfies(process.versions.node, pkg.engines.node)) {
+      throw this.createError(`jsreport needs at least node ${pkg.engines.node} to run.`)
     }
 
     this.defaults = defaults || {}
