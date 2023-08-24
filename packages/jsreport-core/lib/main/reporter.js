@@ -172,14 +172,6 @@ class MainReporter extends Reporter {
 
     this._initializing = true
 
-    if (this.compilation) {
-      this.compilation.resource('vm2-events.js', require.resolve('vm2/lib/events.js'))
-      this.compilation.resource('vm2-resolver-compat.js', require.resolve('vm2/lib/resolver-compat.js'))
-      this.compilation.resource('vm2-resolver.js', require.resolve('vm2/lib/resolver.js'))
-      this.compilation.resource('vm2-setup-node-sandbox.js', require.resolve('vm2/lib/setup-node-sandbox.js'))
-      this.compilation.resource('vm2-setup-sandbox.js', require.resolve('vm2/lib/setup-sandbox.js'))
-    }
-
     try {
       this._registerLogMainAction()
 

@@ -20,7 +20,7 @@ todo (top down order):
   (we decided to not add any new global now,
   and also it is not needed that we expose all globals to user code because it was never done before)
 - [x] replace Buffer.allocUnsafe  with Buffer.alloc
-- check the compiled exe version
+- [x] check the compiled exe version
 - [x] move the lockdown to the reporter init likely, so it is consistent, now some errors can occur after first render and not before because of lockdown
 - EJS doesnt work in lockdown, at least an explanation error should be thrown
 - bluebird doesnt work in lockdown, we need to write it down to release notes and blog

@@ -21,7 +21,7 @@ module.exports = function createRunInSandbox (reporter) {
   }, req) {
     let jsreportProxy = null
 
-    // we use dynamic name because of the potential nested vm2 execution in the jsreportProxy.assets.require
+    // we use dynamic name because of the potential nested vm execution in the jsreportProxy.assets.require
     // it may turn out it is a bad approach in assets so we gonna delete it here
     const executionFnName = `${nanoid()}_executionFn`
 
