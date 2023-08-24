@@ -11,8 +11,6 @@ const BlobStorage = require('./blobStorage.js')
 const Render = require('./render/render')
 const Profiler = require('./render/profiler.js')
 
-let lockedDown = false
-
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
     const { options, documentStore, extensionsDefs } = workerData
@@ -21,6 +19,7 @@ class WorkerReporter extends Reporter {
 
     this._executeMain = executeMain
     this._initialized = false
+    this._lockedDown = false
     this._documentStoreData = documentStore
     this._requestContextMetaConfigCollection = new Map()
     this._proxyRegistrationFns = []
@@ -82,11 +81,13 @@ class WorkerReporter extends Reporter {
 
     await this.initializeListeners.fire()
 
-    if (!lockedDown && this.options.trustUserCode === false) {
+    if (!this._lockedDown && this.options.trustUserCode === false) {
       require('@jsreport/ses')
 
       // eslint-disable-next-line
       lockdown({
+        // don't change locale based methods which users may be using in their templates
+        localeTaming: 'unsafe',
         errorTaming: 'unsafe',
         stackFiltering: 'verbose',
         /*
@@ -104,7 +105,24 @@ class WorkerReporter extends Reporter {
         overrideTaming: 'severe'
       })
 
-      lockedDown = true
+      // in this mode we alias the unsafe methods to safe ones
+      Buffer.allocUnsafe = function allocUnsafe (size) {
+        return Buffer.alloc(size)
+      }
+
+      Buffer.allocUnsafeSlow = function allocUnsafeSlow (size) {
+        return Buffer.alloc(size)
+      }
+
+      // we also harden Buffer because we expose it to sandbox
+      // eslint-disable-next-line
+      harden(Buffer)
+
+      // we need to expose Intl to sandbox
+      // eslint-disable-next-line
+      harden(Intl)
+
+      this._lockedDown = true
     }
 
     this._initialized = true

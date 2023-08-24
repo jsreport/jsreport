@@ -56,16 +56,19 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
   }
 
   let vmSandbox
+
   if (safeExecution) {
     vmSandbox = compartment.globalThis
 
     vmSandbox = Object.assign(vmSandbox, {
-      // todo, they use harden function to freeze objects passed to the Compartment
-      // however I don't see it is needed, the objects are still freezed
+      // SES does not expose the Buffer, Intl by default, we expose it because it is handy for users,
+      // it is exposed as it is, because we already harden() it on reporter init
       Buffer,
+      Intl,
+      // we need to expose Date, and Math to allow Date.now(), Math.random()
+      // these objects are already hardened by lockdown()
       Date,
-      // eslint-disable-next-line
-      fetch
+      Math
     })
   } else {
     vmSandbox = vm.createContext(undefined)
@@ -83,7 +86,13 @@ module.exports = async function createSandbox (_sandbox, options = {}) {
 
   Object.assign(sandbox, {
     console: _console,
-    require (m) { return doSandboxRequire(m, { context: vmSandbox }) }
+    require: (m) => { return doSandboxRequire(m, { context: vmSandbox }) },
+    setTimeout: (...args) => {
+      return setTimeout(...args)
+    },
+    clearTimeout: (...args) => {
+      return clearTimeout(...args)
+    }
   })
 
   for (const name in sandbox) {

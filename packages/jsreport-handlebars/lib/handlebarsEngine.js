@@ -8,7 +8,7 @@ module.exports = (opts = {}) => {
   const asyncHelpers = require('../async-helpers')
 
   return {
-    compile: (html, { require, context }) => {
+    compile: (html, { require }) => {
       const handlebarsInstance = require('handlebars')
       const results = matchRecursiveRegExp(html, '{', '}', 'g')
       let changed = 0

@@ -29,7 +29,6 @@ module.exports = function createRunInSandbox (reporter) {
     context.__appDirectory = reporter.options.appDirectory
     context.__rootDirectory = reporter.options.rootDirectory
     context.__parentModuleDirectory = reporter.options.parentModuleDirectory
-    context.setTimeout = setTimeout
     context.__topLevelFunctions = {}
     context.__handleError = (err) => handleError(reporter, err)
 
@@ -159,9 +158,23 @@ module.exports = function createRunInSandbox (reporter) {
     }
 
     const functionNames = getTopLevelFunctions(functionsCache, userCode)
-    const functionsCode = `return {${functionNames.map(h => `"${h}": ${h}`).join(',')}}`
-    const executionCode = `;(async () => { ${userCode} \n\n;${functionsCode} })()
-        .then((topLevelFunctions) => {
+
+    // it is better we remove our internal functions so we avoid user having the chance
+    // to call them, as long as we force the execution to be truly async (with the await 1)
+    // then it is safe to delete __handleError from context, when the execution is truly
+    // async then it means the __handleError was already passed to catch handler,
+    // therefore safe to delete
+    const contextNormalizeCode = [
+      'await 1;',
+      `const ${executionFnName}_expose = ${executionFnName};`,
+      'delete this.__handleError;',
+      `delete this['${executionFnName}'];`
+    ].join('')
+
+    const functionsCode = `return {topLevelFunctions: {${functionNames.map(h => `"${h}": ${h}`).join(',')}}, fnToExecute: ${executionFnName}_expose}`
+
+    const executionCode = `;(async () => { ${contextNormalizeCode}${userCode} \n\n;${functionsCode} })()
+        .then(({ topLevelFunctions, fnToExecute }) => {
           const mergedTopLevelFunctions = { ...topLevelFunctions, ...__topLevelFunctions }
 
           // expose top level functions to the sandbox context
@@ -170,7 +183,7 @@ module.exports = function createRunInSandbox (reporter) {
             this[topLevelFnName] = topLevelFn
           }
 
-          return ${executionFnName}({
+          return fnToExecute({
               topLevelFunctions: mergedTopLevelFunctions,
               require,
               console,

@@ -10,9 +10,16 @@ problems (somehow solved):
 todo (top down order):
 - [x] all tests should be green
 - [x] fork SES and remove the rejectHtmlComments a no-op, also alias the logging done there to a no-op so we don't end with logs that we don't care
-- see if we need to harden() the values send to the context in the sandbox
-- add all node global objects to Compartment globals
-- replace Buffer.allocUnsafe  with Buffer.alloc
+- [x] see if we need to harden() the values send to the context in the sandbox
+  (we are not going to use it, it is harmless for our case, because we create new compartment per render and the
+  values shared are short-lived only per render. the values that are long-lived are cached templates,
+  however this is never exposed as a direct callable thing to the user.
+  when the system helpers compilation is back it is not going to be a problem because the compiled code is what is cached
+  which is different to the execution, which is still unique per render)
+- [x] add all node global objects to Compartment globals
+  (we decided to not add any new global now,
+  and also it is not needed that we expose all globals to user code because it was never done before)
+- [x] replace Buffer.allocUnsafe  with Buffer.alloc
 - check the compiled exe version
 - [x] move the lockdown to the reporter init likely, so it is consistent, now some errors can occur after first render and not before because of lockdown
 - EJS doesnt work in lockdown, at least an explanation error should be thrown
