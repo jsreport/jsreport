@@ -44,6 +44,7 @@
     "@jsreport/mingo": "2.4.1",
     "@jsreport/reap": "0.1.0",
     "@jsreport/serializator": "0.1.0",
+    "@jsreport/ses": "0.0.0",
     "ajv": "6.12.6",
     "app-root-path": "3.0.0",
     "bytes": "3.1.2",
