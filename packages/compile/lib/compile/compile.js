@@ -201,7 +201,16 @@ async function compileExe (label, config, options) {
   execArgs.push('--target')
   execArgs.push(`node${options.nodeVersion}`)
 
-  const scripts = []
+  // we start with the worker part of core, because it is not required from source code
+  // explicitly, it needs to be done this way
+  // to tell pkg that these files should be analyzable and inspect its require calls, etc
+  const coreWorkerEntryPath = path.join(process.cwd(), 'packages/jsreport-core/lib/worker/workerHandler.js')
+
+  if (!fs.existsSync(coreWorkerEntryPath)) {
+    throw new Error(`Unable to find @jsreport/jsreport-core worker entry point at ${coreWorkerEntryPath}. was this path changed? if yes, make sure to update it in the compile source`)
+  }
+
+  const scripts = [path.relative(process.cwd(), coreWorkerEntryPath)]
   const assets = []
 
   // add the main and worker entry points of extensions, it needs to be done this way
@@ -301,6 +310,7 @@ async function compileExe (label, config, options) {
     'tslint.json'
   ]
 
+  filesToIgnore.push('packages/**/.DS_Store')
   filesToIgnore.push(`**/node_modules/**/{${ignoredConfigFiles.join(',')}}`)
   filesToIgnore.push('**/node_modules/**/*.{markdown,md,mkd,ts,d.ts,js.flow,coffee,swp,tgz,sh}')
   filesToIgnore.push('**/*.{map,css.map,js.map,min.js.map}')

@@ -16,6 +16,7 @@ async function main () {
   console.log('===============')
   await detectDuplicatedModules()
   console.log('===============')
+  console.log(`Check details stored at the ${path.resolve('compileDetection')} folder`)
 }
 
 main().catch((err) => {
@@ -29,7 +30,7 @@ async function detectNotJsOrJsonFiles () {
 
   for (const [idx, file] of vfs.files.entries()) {
     const detail = vfs.details[idx]
-    const getVRootRegExpr = () => /^\/snapshot\/new-arch/
+    const getVRootRegExpr = () => /^\/snapshot\/jsreport/
 
     if (file === '/snapshot') {
       continue
@@ -85,7 +86,7 @@ async function detectDuplicatedModules () {
   const foundMap = new Map()
 
   const getModuleInfo = (filePath) => {
-    const normalizedPath = filePath.replace(/^\/snapshot\/new-arch\//, '')
+    const normalizedPath = filePath.replace(/^\/snapshot\/jsreport\//, '')
     const parts = normalizedPath.split('/')
     let level = 0
     let modulePath

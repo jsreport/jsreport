@@ -37,7 +37,8 @@
     "nanoid": "3.2.0",
     "node.extend.without.arrays": "1.1.6",
     "p-each-series": "2.2.0",
-    "p-reduce": "2.1.0"
+    "p-reduce": "2.1.0",
+    "@jsreport/serializator": "0.1.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "3.6.1",
@@ -48,14 +49,14 @@
     "@jsreport/jsreport-express": "3.7.1",
     "@jsreport/studio-dev": "3.2.1",
     "mocha": "5.2.0",
-    "puppeteer": "20.7.1",
+    "puppeteer": "20.8.3",
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "standard": "16.0.4",
     "supertest": "3.4.2"
   },
   "engines": {
-    "node": ">=16.11"
+    "node": ">=18.15"
   },
   "standard": {
     "ignore": [

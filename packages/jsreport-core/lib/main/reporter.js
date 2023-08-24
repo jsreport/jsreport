@@ -6,6 +6,7 @@
 const path = require('path')
 const { Readable } = require('stream')
 const Reaper = require('@jsreport/reap')
+const pkg = require('../../package.json')
 const optionsLoad = require('./optionsLoad')
 const { createLogger, configureLogger, silentLogs } = require('./logger')
 const checkEntityName = require('./validateEntityName')
@@ -37,8 +38,8 @@ class MainReporter extends Reporter {
   constructor (options, defaults) {
     super(options)
 
-    if (!semver.satisfies(process.versions.node, '>=16.11.0')) {
-      throw this.createError('jsreport needs at least node 16.11.0 to run.')
+    if (!semver.satisfies(process.versions.node, pkg.engines.node)) {
+      throw this.createError(`jsreport needs at least node ${pkg.engines.node} to run.`)
     }
 
     this.defaults = defaults || {}
@@ -171,14 +172,6 @@ class MainReporter extends Reporter {
     super.init()
 
     this._initializing = true
-
-    if (this.compilation) {
-      this.compilation.resource('vm2-events.js', require.resolve('vm2/lib/events.js'))
-      this.compilation.resource('vm2-resolver-compat.js', require.resolve('vm2/lib/resolver-compat.js'))
-      this.compilation.resource('vm2-resolver.js', require.resolve('vm2/lib/resolver.js'))
-      this.compilation.resource('vm2-setup-node-sandbox.js', require.resolve('vm2/lib/setup-node-sandbox.js'))
-      this.compilation.resource('vm2-setup-sandbox.js', require.resolve('vm2/lib/setup-sandbox.js'))
-    }
 
     try {
       this._registerLogMainAction()

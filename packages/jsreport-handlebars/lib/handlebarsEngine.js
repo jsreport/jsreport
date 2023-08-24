@@ -8,7 +8,7 @@ module.exports = (opts = {}) => {
   const asyncHelpers = require('../async-helpers')
 
   return {
-    compile: (html, { require, context }) => {
+    compile: (html, { require }) => {
       const handlebarsInstance = require('handlebars')
       const results = matchRecursiveRegExp(html, '{', '}', 'g')
       let changed = 0
@@ -65,7 +65,7 @@ module.exports = (opts = {}) => {
       }
 
       if (handlebarsInstance.asyncHelpers === true) {
-        // if the promise in async mode isn't resolved, for backcompatibility we use the backcompatible hack with {#asyncResult}
+        // if the promise in async mode isn't resolved, for back-compatibility we use the back-compatible hack with {#asyncResult}
         handlebarsInstance.wrapHelperResult = (p) => {
           if (p != null && typeof p.then === 'function') {
             p.toString = () => {

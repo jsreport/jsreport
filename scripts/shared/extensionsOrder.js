@@ -84,6 +84,7 @@ function getPriorityOrder () {
     'html-to-xlsx',
     '@jsreport/mingo',
     '@jsreport/advanced-workers',
+    '@jsreport/ses',
     '@jsreport/jsreport-core',
     '@jsreport/office',
     '@jsreport/studio-dev',

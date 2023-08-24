@@ -26,7 +26,7 @@ const argv = require('yargs')
   .options('n', {
     alias: 'nodeVersion',
     desc: 'The node version to compile against with',
-    default: '16'
+    default: '18'
   })
   .help()
   .example('$0')

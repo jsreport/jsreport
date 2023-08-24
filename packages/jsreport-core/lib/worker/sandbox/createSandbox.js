@@ -1,12 +1,11 @@
 const util = require('util')
-const { VM, VMScript } = require('vm2')
-const originalVM = require('vm')
+const vm = require('vm')
 const stackTrace = require('stack-trace')
 const { codeFrameColumns } = require('@babel/code-frame')
 const createPropertiesManager = require('./propertiesSandbox')
 const createSandboxRequire = require('./requireSandbox')
 
-module.exports = function createSandbox (_sandbox, options = {}) {
+module.exports = async function createSandbox (_sandbox, options = {}) {
   const {
     rootDirectory,
     onLog,
@@ -47,10 +46,34 @@ module.exports = function createSandbox (_sandbox, options = {}) {
 
   propsManager.applyPropertiesConfigTo(sandbox)
 
-  let safeVM
-  // with standard vm this variable is the same as context, with vm2 it is a proxy of context
-  // (which is not the real internal context)
+  const sourceFilesInfo = new Map()
+  // eslint-disable-next-line
+  let compartment
+
+  if (safeExecution) {
+    // eslint-disable-next-line
+    compartment = new Compartment()
+  }
+
   let vmSandbox
+
+  if (safeExecution) {
+    vmSandbox = compartment.globalThis
+
+    vmSandbox = Object.assign(vmSandbox, {
+      // SES does not expose the Buffer, Intl by default, we expose it because it is handy for users,
+      // it is exposed as it is, because we already harden() it on reporter init
+      Buffer,
+      Intl,
+      // we need to expose Date, and Math to allow Date.now(), Math.random()
+      // these objects are already hardened by lockdown()
+      Date,
+      Math
+    })
+  } else {
+    vmSandbox = vm.createContext(undefined)
+    vmSandbox.Buffer = Buffer
+  }
 
   const doSandboxRequire = createSandboxRequire(safeExecution, isolateModules, modulesCache, {
     rootDirectory,
@@ -63,43 +86,17 @@ module.exports = function createSandbox (_sandbox, options = {}) {
 
   Object.assign(sandbox, {
     console: _console,
-    require (m) { return doSandboxRequire(m, { context: vmSandbox }) }
+    require: (m) => { return doSandboxRequire(m, { context: vmSandbox }) },
+    setTimeout: (...args) => {
+      return setTimeout(...args)
+    },
+    clearTimeout: (...args) => {
+      return clearTimeout(...args)
+    }
   })
 
-  if (safeExecution) {
-    safeVM = new VM()
-
-    // delete the vm.sandbox.global because it introduces json stringify issues
-    // and we don't need such global in context
-    delete safeVM.sandbox.global
-
-    for (const name in sandbox) {
-      safeVM.setGlobal(name, sandbox[name])
-    }
-
-    // so far we don't have the need to have access to real vm context inside vm2,
-    // but if we need it, we should use the code bellow to get it.
-    // NOTE: if we need to upgrade vm2 we will need to check the source of this function
-    // in vm2 repo and see if we need to change this,
-    // we just execute this to get access to the internal context, so we can use it later
-    // with the our require function, in newer versions of vm2 we may need to change how to
-    // get access to it
-    // https://github.com/patriksimek/vm2/blob/3.9.17/lib/vm.js#L281
-    // safeVM._runScript({
-    //   runInContext: (_context) => {
-    //     vmContext = _context
-    //     return ''
-    //   }
-    // })
-
-    vmSandbox = safeVM.sandbox
-  } else {
-    vmSandbox = originalVM.createContext(undefined)
-    vmSandbox.Buffer = Buffer
-
-    for (const name in sandbox) {
-      vmSandbox[name] = sandbox[name]
-    }
+  for (const name in sandbox) {
+    vmSandbox[name] = sandbox[name]
   }
 
   // processing top level props here because getter/setter descriptors
@@ -111,8 +108,6 @@ module.exports = function createSandbox (_sandbox, options = {}) {
     // getting hit by the allowed modules restriction
     vmSandbox[info.globalVariableName] = doSandboxRequire(info.module, { context: vmSandbox, useMap: false, allowAllModules: true })
   }
-
-  const sourceFilesInfo = new Map()
 
   return {
     sandbox: vmSandbox,
@@ -128,29 +123,20 @@ module.exports = function createSandbox (_sandbox, options = {}) {
       return doSandboxRequire(modulePath, { context: vmSandbox, allowAllModules: true })
     },
     async run (codeOrScript, { filename, errorLineNumberOffset = 0, source, entity, entitySet } = {}) {
-      let runScript
-
       if (filename != null && source != null) {
         sourceFilesInfo.set(filename, { filename, source, entity, entitySet, errorLineNumberOffset })
       }
 
-      const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
-
-      if (safeExecution) {
-        runScript = async function runScript () {
-          return safeVM.run(script)
-        }
-      } else {
-        runScript = async function runScript () {
-          return script.runInContext(vmSandbox, {
-            displayErrors: true
-          })
-        }
-      }
-
       try {
-        const result = await runScript()
-        return result
+        if (safeExecution) {
+          return await compartment.evaluate(codeOrScript + `\n//# sourceURL=${filename}`)
+        }
+
+        const script = typeof codeOrScript !== 'string' ? codeOrScript : doCompileScript(codeOrScript, filename, safeExecution)
+
+        return await script.runInContext(vmSandbox, {
+          displayErrors: true
+        })
       } catch (e) {
         decorateErrorMessage(e, sourceFilesInfo)
 
@@ -161,47 +147,19 @@ module.exports = function createSandbox (_sandbox, options = {}) {
 }
 
 function doCompileScript (code, filename, safeExecution) {
-  let script
-
   if (safeExecution) {
-    script = new VMScript(code, filename)
-
-    // NOTE: if we need to upgrade vm2 we will need to check the source of this function
-    // in vm2 repo and see if we need to change this,
-    // we needed to override this method because we want "displayErrors" to be true in order
-    // to show nice error when the compile of a script fails
-    // https://github.com/patriksimek/vm2/blob/3.9.17/lib/script.js#L329
-    script._compile = function (prefix, suffix) {
-      return new originalVM.Script(prefix + this.getCompiledCode() + suffix, {
-        __proto__: null,
-        filename: this.filename,
-        displayErrors: true,
-        lineOffset: this.lineOffset,
-        columnOffset: this.columnOffset,
-        // THIS FN WAS TAKEN FROM vm2 source, nothing special here
-        importModuleDynamically: () => {
-          // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
-          // eslint-disable-next-line no-throw-literal
-          throw 'Dynamic imports are not allowed.'
-        }
-      })
-    }
-
-    // do the compilation
-    script._compileVM()
-  } else {
-    script = new originalVM.Script(code, {
-      filename,
-      displayErrors: true,
-      importModuleDynamically: () => {
-        // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
-        // eslint-disable-next-line no-throw-literal
-        throw 'Dynamic imports are not allowed.'
-      }
-    })
+    return code
   }
 
-  return script
+  return new vm.Script(code, {
+    filename,
+    displayErrors: true,
+    importModuleDynamically: () => {
+      // We can't throw an error object here because since vm.Script doesn't store a context, we can't properly contextify that error object.
+      // eslint-disable-next-line no-throw-literal
+      throw 'Dynamic imports are not allowed.'
+    }
+  })
 }
 
 function decorateErrorMessage (e, sourceFilesInfo) {

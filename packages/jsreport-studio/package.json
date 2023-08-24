@@ -114,7 +114,7 @@
     "webpack-hot-middleware": "2.25.4"
   },
   "engines": {
-    "node": ">=16.11"
+    "node": ">=18.15"
   },
   "standard": {
     "ignore": [

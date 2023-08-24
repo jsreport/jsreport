@@ -25,7 +25,7 @@
     "test": "mocha test/test.js --timeout 480000 && standard"
   },
   "dependencies": {
-    "@bjrmatos/pkg": "5.4.1",
+    "@bjrmatos/pkg": "5.4.3",
     "acorn": "5.5.0",
     "bubleify": "0.7.0",
     "debug": "4.3.2",

@@ -64,7 +64,7 @@ module.exports = (reporter, definition) => {
 
         if (!reporter.options.trustUserCode && definition.options.allowedModules !== '*') {
           if (!definition.options.allowedModules || !definition.options.allowedModules.includes(moduleName)) {
-            throw reporter.createError(`require of npm module ${moduleName} was rejected. Either set trustUserCode=true or extensions.npm.allowLocalModules='*' or extensions.npm.allowLocalModules=['${moduleName}'] `, { status: 400 })
+            throw reporter.createError(`require of npm module ${moduleName} was rejected. Either set trustUserCode=true or extensions.npm.allowedModules='*' or extensions.npm.allowedModules=['${moduleName}'] `, { status: 400 })
           }
         }
 

@@ -471,7 +471,10 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('is not defined')
+      should(
+        e.message.includes('is not defined') ||
+        e.message.includes('is not a valid constructor')
+      ).be.True()
     }
   })
 
@@ -496,7 +499,10 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('is not defined')
+      should(
+        e.message.includes('is not defined') ||
+        e.message.includes('is not a valid constructor')
+      ).be.True()
     }
   })
 
@@ -521,7 +527,10 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('is not defined')
+      should(
+        e.message.includes('is not defined') ||
+        e.message.includes('is not a valid constructor')
+      ).be.True()
     }
   })
 
@@ -546,7 +555,10 @@ describe('engine', () => {
       })
       throw new Error('It should have failed')
     } catch (e) {
-      e.message.should.containEql('is not defined')
+      should(
+        e.message.includes('is not defined') ||
+        e.message.includes('is not a valid constructor')
+      ).be.True()
     }
   })
 

@@ -12359,8 +12359,9 @@ describe('<img> tag', () => {
     })
 
     const templateStr = `<img src="${imageDataSrc}" />`
+    const displayTemplateStr = `<img src="${imageDataSrc.slice(0, 20)}" />`
 
-    it(`${mode} mode - <img> ${templateStr.slice(0, 35)}...`, async () => {
+    it(`${mode} mode - <img> ${displayTemplateStr}...`, async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
@@ -12415,8 +12416,9 @@ describe('<img> tag', () => {
     })
 
     const templateMultipleStr = `<img src="${imageDataSrc}" /><img src="${image2DataSrc}" />`
+    const displayTemplateMultipleStr = `<img src="${imageDataSrc.slice(0, 20)}" /><img src="${image2DataSrc.slice(0, 20)}" />`
 
-    it(`${mode} mode - <img> ${templateMultipleStr}`, async () => {
+    it(`${mode} mode - <img> ${displayTemplateMultipleStr}`, async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
@@ -12465,8 +12467,9 @@ describe('<img> tag', () => {
     })
 
     const templateTextStr = `...<img src="${imageDataSrc}" />...`
+    const displayTemplateTextStr = `...<img src="${imageDataSrc.slice(0, 20)}" />...`
 
-    it(`${mode} mode - <img> ${templateTextStr}`, async () => {
+    it(`${mode} mode - <img> ${displayTemplateTextStr}`, async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
@@ -12523,8 +12526,9 @@ describe('<img> tag', () => {
         const targetSizeForHeight = unit === 'cm' ? 2 : 50
 
         const templateCustomSizeStr = `<img src="${imageDataSrc}" style="width: ${targetSize}${unit}; height: ${targetSize}${unit}" />`
+        const displayTemplateCustomSizeStr = `<img src="${imageDataSrc.slice(0, 20)}" style="width: ${targetSize}${unit}; height: ${targetSize}${unit}" />`
 
-        it(`${mode} mode - <img> custom size (width, height) ${templateCustomSizeStr.slice(0, 35)}`, async () => {
+        it(`${mode} mode - <img> custom size (width, height) ${displayTemplateCustomSizeStr}`, async () => {
           const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const targetCustomImageSize = {
@@ -12574,8 +12578,9 @@ describe('<img> tag', () => {
         })
 
         const templateCustomWidthStr = `<img src="${imageDataSrc}" style="width: ${targetSizeForWidth}${unit}" />`
+        const displayTemplateCustomWidthStr = `<img src="${imageDataSrc.slice(0, 20)}" style="width: ${targetSizeForWidth}${unit}" />`
 
-        it(`${mode} mode - <img> custom size (width set and height automatic - keep aspect ratio) ${templateCustomWidthStr.slice(0, 35)}`, async () => {
+        it(`${mode} mode - <img> custom size (width set and height automatic - keep aspect ratio) ${displayTemplateCustomWidthStr}`, async () => {
           const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const targetCustomImageSize = {
@@ -12626,8 +12631,9 @@ describe('<img> tag', () => {
         })
 
         const templateCustomHeightStr = `<img src="${imageDataSrc}" style="height: ${targetSizeForHeight}${unit}" />`
+        const displayTemplateCustomHeightStr = `<img src="${imageDataSrc.slice(0, 20)}" style="height: ${targetSizeForHeight}${unit}" />`
 
-        it(`${mode} mode - <img> custom size (height set and width automatic - keep aspect ratio) ${templateCustomHeightStr.slice(0, 35)}`, async () => {
+        it(`${mode} mode - <img> custom size (height set and width automatic - keep aspect ratio) ${displayTemplateCustomHeightStr}`, async () => {
           const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const targetCustomImageSize = {
@@ -12737,8 +12743,9 @@ describe('<img> tag', () => {
 
     const customAlt = 'custom alt set'
     const templateAltStr = `<img alt="${customAlt}" src="${imageDataSrc}" />`
+    const displayTemplateAltStr = `<img alt="${customAlt}" src="${imageDataSrc.slice(0, 20)}" />`
 
-    it(`${mode} mode - <img> ${templateAltStr.slice(0, 60)}`, async () => {
+    it(`${mode} mode - <img> ${displayTemplateAltStr}`, async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
@@ -12790,8 +12797,9 @@ describe('<img> tag', () => {
 
     const customLink = 'https://jsreport.net/'
     const templateLinkStr = `<a href="${customLink}"><img src="${imageDataSrc}"</a>`
+    const displayTemplateLinkStr = `<a href="${customLink}"><img src="${imageDataSrc.slice(0, 20)}"</a>`
 
-    it(`${mode} mode - <img> ${templateLinkStr.slice(0, 50)}`, async () => {
+    it(`${mode} mode - <img> ${displayTemplateLinkStr}`, async () => {
       const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({

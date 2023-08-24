@@ -37,12 +37,12 @@
     "@jsreport/jsreport-express": "3.7.1",
     "@jsreport/jsreport-handlebars": "3.2.1",
     "mocha": "9.1.2",
-    "puppeteer": "20.7.1",
+    "puppeteer": "20.8.3",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=16.11"
+    "node": ">=18.15"
   },
   "maintainers": [
     {

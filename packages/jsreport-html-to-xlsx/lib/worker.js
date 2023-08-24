@@ -2,6 +2,20 @@ const fs = require('fs').promises
 const path = require('path')
 
 module.exports = (reporter, definition) => {
+  // warm up of deps to make it work in trustUserCode: false (SES),
+  // this also allows to not require early when it is not needed. (trustUserCode: true)
+  // usage of try catch was done to prevent the app to fail here, instead it will fail
+  // at the same later time in which the dep is used
+  if (reporter.options.trustUserCode === false) {
+    try {
+      require('unzipper')
+    } catch {}
+
+    try {
+      require('puppeteer')
+    } catch {}
+  }
+
   definition.options.tmpDir = reporter.options.tempAutoCleanupDirectory
 
   reporter.extensionsManager.recipes.push({

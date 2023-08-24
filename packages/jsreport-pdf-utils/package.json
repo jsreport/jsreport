@@ -52,13 +52,13 @@
     "@jsreport/studio-dev": "3.2.1",
     "handlebars": "4.7.7",
     "mocha": "8.2.1",
-    "puppeteer": "20.7.1",
+    "puppeteer": "20.8.3",
     "rimraf": "2.6.3",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=16.11"
+    "node": ">=18.15"
   },
   "standard": {
     "ignore": [

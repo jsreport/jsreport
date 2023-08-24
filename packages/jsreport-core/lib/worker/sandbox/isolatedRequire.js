@@ -6,8 +6,6 @@ const REQUIRE_RESOLVE_CACHE = new Map()
 const REQUIRE_SCRIPT_CACHE = new Map()
 const PACKAGE_JSON_CACHE = new Map()
 
-let ALL_BUILTIN_MODULES
-
 // The isolated require is a function that replicates the node.js require but that does not
 // cache the modules with the standard node.js cache, instead its uses its own cache in order
 // to bring isolated modules across renders and without memory leaks.
@@ -24,7 +22,7 @@ function isolatedRequire (_moduleId, requireFromRootDirectory, isolatedModulesMe
     throw createInvalidArgValueError('id', moduleId, 'must be a non-empty string')
   }
 
-  if (isBuiltinModule(moduleId)) {
+  if (Module.isBuiltin(moduleId)) {
     // built-in modules can not be require from other part than the node.js require
     // perhaps in the future it can be possible:
     // https://github.com/nodejs/node/issues/31852
@@ -172,24 +170,6 @@ function IsolatedModule (id = '', parent) {
   Object.defineProperty(this, 'isPreloading', {
     get () { return false }
   })
-}
-
-// NOTE: we can not use Module.isBuiltin because it is not available on node 16
-// we can upgrade our implementation to just use Module.isBuiltin when we drop support for node 16
-// https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L252
-function isBuiltinModule (moduleId) {
-  // use the standard function when available
-  if (Module.isBuiltin) {
-    return Module.isBuiltin(moduleId)
-  }
-
-  // the only version in which this code would run is node 16 and early versions of node 18
-  // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L252
-  if (!ALL_BUILTIN_MODULES) {
-    ALL_BUILTIN_MODULES = new Set(Module.builtinModules.flatMap((bm) => [bm, `node:${bm}`]))
-  }
-
-  return ALL_BUILTIN_MODULES.has(moduleId)
 }
 
 // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/helpers.js#L65

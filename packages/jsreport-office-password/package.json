@@ -44,12 +44,12 @@
     "@jsreport/jsreport-html-to-xlsx": "3.3.2",
     "@jsreport/studio-dev": "3.2.1",
     "mocha": "7.0.0",
-    "puppeteer": "20.7.1",
+    "puppeteer": "20.8.3",
     "should": "13.2.3",
     "standard": "16.0.4"
   },
   "engines": {
-    "node": ">=16.11"
+    "node": ">=18.15"
   },
   "standard": {
     "ignore": [

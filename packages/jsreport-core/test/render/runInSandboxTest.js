@@ -408,7 +408,7 @@ describe('sandbox', () => {
           context: {
             a: { b: { c: 'foo' } }
           },
-          userCode: 'b = typeof a.b.c',
+          userCode: 'globalThis.b = typeof a.b.c',
           executionFn: ({ context }) => {
             return context.b
           },
@@ -469,7 +469,7 @@ describe('sandbox', () => {
           context: {
             a: { b: { c: 'foo' } }
           },
-          userCode: 'b = typeof a.b.c',
+          userCode: 'globalThis.b = typeof a.b.c',
           executionFn: ({ context }) => {
             return context.b
           },
@@ -621,6 +621,126 @@ describe('sandbox', () => {
       should(res.content.toString()).be.eql('xxx')
     })
 
+    it('should be able to use Date', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: `this.result = { now: Date.now(), customDateStr: new Date('${req.data.dateInputStr}').toString() }`,
+          executionFn: ({ context }) => {
+            return context.result
+          }
+        }, req)
+
+        res.content = Buffer.from(JSON.stringify(r))
+      })
+
+      const dateInputStr = '2023-08-23'
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        },
+        data: {
+          dateInputStr
+        }
+      })
+
+      const output = JSON.parse(res.content.toString())
+
+      should(output.now).be.Number()
+      should(output.customDateStr).be.eql(new Date(dateInputStr).toString())
+    })
+
+    it('should be able to use Math', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: 'this.result = { min: Math.min(1, 2), random: Math.random() }',
+          executionFn: ({ context }) => {
+            return context.result
+          }
+        }, req)
+
+        res.content = Buffer.from(JSON.stringify(r))
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const output = JSON.parse(res.content.toString())
+
+      should(output.min).be.eql(1)
+      should(output.random).be.Number()
+    })
+
+    it('should be able to use Intl', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: `
+            const numberFormatter = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' })
+            const dateFormatter = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })
+            this.result = { penAmountStr: numberFormatter.format(1125.50), shortDateStr: dateFormatter.format(new Date('2023-08-23T00:00:00.000-05:00')) }
+          `,
+          executionFn: ({ context }) => {
+            return context.result
+          }
+        }, req)
+
+        res.content = Buffer.from(JSON.stringify(r))
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const output = JSON.parse(res.content.toString())
+
+      should(output.penAmountStr).be.eql('S/\u00A01,125.50')
+      should(output.shortDateStr).be.eql('23 de agosto de 2023')
+    })
+
+    it('should be able to use setTimeout/clearTimeout', async () => {
+      reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
+        const r = await reporter.runInSandbox({
+          context: {},
+          userCode: `
+            const value = await new Promise((resolve) => setTimeout(() => resolve(1), 300))
+            this.result = { value, clearExists: typeof clearTimeout === 'function' }
+          `,
+          executionFn: ({ context }) => {
+            return context.result
+          }
+        }, req)
+
+        res.content = Buffer.from(JSON.stringify(r))
+      })
+
+      const res = await reporter.render({
+        template: {
+          engine: 'none',
+          content: ' ',
+          recipe: 'html'
+        }
+      })
+
+      const output = JSON.parse(res.content.toString())
+
+      should(output.value).be.eql(1)
+      should(output.clearExists).be.True()
+    })
+
     if (safe) {
       it('should prevent constructor hacks', async () => {
         reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
@@ -648,7 +768,7 @@ describe('sandbox', () => {
             content: ' ',
             recipe: 'html'
           }
-        }).should.be.rejectedWith(/process is not defined/)
+        }).should.be.rejectedWith(/(process is not defined)|(is not a valid constructor)/)
       })
 
       it('should prevent constructor hacks #2', async () => {
@@ -680,7 +800,7 @@ describe('sandbox', () => {
             content: ' ',
             recipe: 'html'
           }
-        }).should.be.rejectedWith(/process is not defined/)
+        }).should.be.rejectedWith(/(process is not defined)|(is not a valid constructor)/)
       })
 
       it('should prevent constructor hacks #3', async () => {
@@ -711,7 +831,7 @@ describe('sandbox', () => {
             content: ' ',
             recipe: 'html'
           }
-        }).should.be.rejectedWith(/called on incompatible receiver/)
+        }).should.be.rejectedWith(/(process is not defined)|(is not a valid constructor)/)
       })
     }
 
@@ -719,7 +839,7 @@ describe('sandbox', () => {
       reporter.tests.afterRenderEval(async (req, res, { reporter }) => {
         const r = await reporter.runInSandbox({
           context: {},
-          userCode: 'await new Promise((resolve) => resolve()); a = "foo"',
+          userCode: 'await new Promise((resolve) => resolve()); globalThis.a = "foo"',
           executionFn: ({ context }) => {
             return context.a
           }
@@ -818,7 +938,7 @@ describe('sandbox', () => {
 
       const result = JSON.parse(res.content).result
 
-      should(result).be.False()
+      should(result).be.eql(safe)
     })
 
     it('error from builtin module', async () => {

@@ -75,7 +75,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/compile.js",
+            "program": "${workspaceFolder}/scripts/compile.js",
             "autoAttachChildProcesses": true,
             "console": "integratedTerminal"
         },
