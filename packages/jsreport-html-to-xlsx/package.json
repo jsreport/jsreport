@@ -48,7 +48,7 @@
     "@jsreport/studio-dev": "3.2.1",
     "handlebars": "4.7.7",
     "mocha": "5.2.0",
-    "puppeteer": "20.8.3",
+    "puppeteer": "21.1.0",
     "should": "13.2.3",
     "standard": "16.0.4",
     "xlsx-populate": "1.20.1"
