@@ -2,7 +2,7 @@ import React, { useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import { useDispatch } from 'react-redux'
 import useEntityTree from './useEntityTree'
-import EntityTreeContext, { EntityTreeAllEntitiesContext } from './EntityTreeContext'
+import EntityTreeContext from './EntityTreeContext'
 import Toolbar from './Toolbar'
 import TreeList from './TreeList'
 import HighlightedArea from './HighlightedArea'
@@ -114,38 +114,36 @@ const EntityTree = ({
 
   return (
     <EntityTreeContext.Provider value={context}>
-      <EntityTreeAllEntitiesContext.Provider value={entities}>
-        <div
-          ref={connectDropping}
-          className={treeListContainerClass}
-          onContextMenu={(e) => context.onContextMenu(e, null)}
-        >
-          {toolbar && (
-            <Toolbar
-              groupMode={groupMode}
-              setFilter={setFilter}
-              setGroupMode={setGroupMode}
-              onNewEntity={onNewEntity}
-            />
-          )}
-          <div ref={listContainerRef} className={styles.nodesBox}>
-            <TreeList
-              ref={listRef}
-              groupMode={groupMode}
-              entities={currentEntities}
-              collapsedInfo={collapsedInfo}
-            />
-            <HighlightedArea
-              highlightedArea={highlightedArea}
-              getContainerDimensions={getListContainerDimensions}
-            />
-          </div>
-          <RootContextMenu
-            ref={contextMenuRef}
-            getContextMenuItems={getContextMenuItems}
+      <div
+        ref={connectDropping}
+        className={treeListContainerClass}
+        onContextMenu={(e) => context.onContextMenu(e, null)}
+      >
+        {toolbar && (
+          <Toolbar
+            groupMode={groupMode}
+            setFilter={setFilter}
+            setGroupMode={setGroupMode}
+            onNewEntity={onNewEntity}
+          />
+        )}
+        <div ref={listContainerRef} className={styles.nodesBox}>
+          <TreeList
+            ref={listRef}
+            groupMode={groupMode}
+            entities={currentEntities}
+            collapsedInfo={collapsedInfo}
+          />
+          <HighlightedArea
+            highlightedArea={highlightedArea}
+            getContainerDimensions={getListContainerDimensions}
           />
         </div>
-      </EntityTreeAllEntitiesContext.Provider>
+        <RootContextMenu
+          ref={contextMenuRef}
+          getContextMenuItems={getContextMenuItems}
+        />
+      </div>
     </EntityTreeContext.Provider>
   )
 }

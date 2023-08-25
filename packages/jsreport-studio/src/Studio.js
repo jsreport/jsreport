@@ -144,7 +144,7 @@ class Studio {
    * Add React component which will be displayed when rendering an item of entity tree
    *
    * @param {ReactComponent|Function} entityTreeItemComponent
-   * @param {String} position right, groupRight or container
+   * @param {String} position right, groupRight
    */
   addEntityTreeItemComponent (entityTreeItemComponent, position = 'right') {
     configuration.entityTreeItemComponents[position].push(entityTreeItemComponent)

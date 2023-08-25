@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 export default function useContextMenu (contextMenuRef) {
   const [contextMenu, setContextMenu] = useState(null)
 
-  const showContextMenu = useCallback((ev, entity) => {
+  const showContextMenu = useCallback((ev, entity, nodeId) => {
     ev.preventDefault()
     ev.stopPropagation()
 
@@ -16,6 +16,7 @@ export default function useContextMenu (contextMenuRef) {
 
     if (entity) {
       newContextMenu.id = entity._id
+      newContextMenu.nodeId = nodeId
       newContextMenu.pointCoordinates = null
     } else {
       newContextMenu.id = '__ROOT__'

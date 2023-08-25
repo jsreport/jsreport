@@ -124,15 +124,14 @@ export function getAllEntitiesInHierarchy (node, includeRoot, onlyDirectChildren
   return entities
 }
 
-export function renderEntityTreeItemComponents (position, propsToItem, originalChildren) {
-  if (position === 'container' && !configuration.entityTreeItemComponents[position].length) {
-    return originalChildren
+export function renderEntityTreeItemComponents (position, propsToItem) {
+  if (!configuration.entityTreeItemComponents[position].length) {
+    return null
   }
 
   return React.createElement(EntityTreeItems, {
     position,
     components: configuration.entityTreeItemComponents[position],
-    propsToItem,
-    originalChildren
+    propsToItem
   })
 }

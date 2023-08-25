@@ -308,7 +308,9 @@ export const NodeContextMenu = React.forwardRef(function NodeContextMenu ({ node
   const { contextMenu } = useContext(EntityTreeContext)
   const entity = node.data
 
-  if (!contextMenu || contextMenu.id !== entity._id) {
+  const isCurrent = contextMenu != null ? (contextMenu.id === entity._id && contextMenu.nodeId === node.id) : false
+
+  if (!isCurrent) {
     return null
   }
 

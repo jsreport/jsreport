@@ -44,7 +44,7 @@ const EntityNode = React.memo(({
   const name = node.name
   const entity = node.data
   const entityStyle = resolveEntityTreeIconStyle(entity, {})
-  const isContextMenuActive = contextMenu != null && contextMenu.id === entity._id
+  const isContextMenuActive = contextMenu != null && contextMenu.id === entity._id && contextMenu.nodeId === node.id
 
   const containerClass = classNames(styles.link, {
     [styles.focused]: isContextMenuActive,
@@ -95,28 +95,26 @@ const EntityNode = React.memo(({
           onNodeClick(node)
         }
       }}
-      onContextMenu={(ev) => onContextMenu(ev, entity)}
+      onContextMenu={(ev) => onContextMenu(ev, entity, node.id)}
     >
-      {renderEntityTreeItemComponents('container', { entity }, [
-        <div
-          ref={composeRefs(titleRef, connectDragging)}
-          key={`container-entity-${name}`}
-          id={titleId}
-          className={displayContainerClass}
-        >
-          <NodeSelect id={selectId} node={node} />
-          <i key='entity-icon' className={iconClass} />
-          <a key='entity-name'>{entity.name + (entity.__isDirty ? '*' : '')}</a>
-          {renderEntityTreeItemComponents('right', { entity })}
-        </div>,
-        <NodeContextMenu
-          ref={contextMenuRef}
-          key={`context-menu-${name}`}
-          node={node}
-          getContextMenuItems={getContextMenuItems}
-          getCoordinates={getCoordinates}
-        />
-      ])}
+      <div
+        ref={composeRefs(titleRef, connectDragging)}
+        key={`container-entity-${name}`}
+        id={titleId}
+        className={displayContainerClass}
+      >
+        <NodeSelect id={selectId} node={node} />
+        <i key='entity-icon' className={iconClass} />
+        <a key='entity-name'>{entity.name + (entity.__isDirty ? '*' : '')}</a>
+        {renderEntityTreeItemComponents('right', { entity })}
+      </div>
+      <NodeContextMenu
+        ref={contextMenuRef}
+        key={`context-menu-${name}`}
+        node={node}
+        getContextMenuItems={getContextMenuItems}
+        getCoordinates={getCoordinates}
+      />
     </label>
   )
 })

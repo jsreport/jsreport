@@ -56,7 +56,7 @@ const GroupNode = React.memo(({
     : null
 
   const groupIsEntity = checkIsGroupEntityNode(node)
-  const isContextMenuActive = contextMenu != null && groupIsEntity && contextMenu.id === node.data._id
+  const isContextMenuActive = contextMenu != null && groupIsEntity && contextMenu.id === node.data._id && contextMenu.nodeId === node.id
 
   const containerClass = classNames(styles.link, {
     [styles.focused]: isContextMenuActive,
@@ -121,7 +121,7 @@ const GroupNode = React.memo(({
             ev.preventDefault()
             ev.stopPropagation()
           } else {
-            onContextMenu(ev, node.data)
+            onContextMenu(ev, node.data, node.id)
           }
         }}
       >
@@ -148,7 +148,7 @@ const GroupNode = React.memo(({
             {name + (groupIsEntity && node.data.__isDirty ? '*' : '')}
           </div>
         </span>
-        {renderEntityTreeItemComponents('groupRight', node.data, undefined)}
+        {renderEntityTreeItemComponents('groupRight', node.data)}
         {node.isEntitySet && !selectable && (
           <a
             className={styles.add}

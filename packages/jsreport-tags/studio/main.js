@@ -1190,7 +1190,7 @@ class EntityTagProperties extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, "tags:\xA0", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", null, EntityTagProperties.getSelectedTags(entity, entities).map((t, tIndex, allSelectTags) => {
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("span", {
-        key: t.name,
+        key: t.shortid,
         style: {
           display: 'inline-block',
           marginRight: '2px'
@@ -1788,25 +1788,25 @@ class TagEntityTreeItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   render() {
     const {
       entity,
-      entities
+      tags
     } = this.props;
-    let tags = entity.tags || [];
+    let entityTags = entity.tags || [];
 
     // for tags, display the color right in the entity tree
     if (entity.__entitySet === 'tags') {
-      tags = [entity];
+      entityTags = [entity];
     }
-    const tagsLength = tags.length;
+    const tagsLength = entityTags.length;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       style: {
         display: 'inline-block',
         marginLeft: '0.2rem',
         marginRight: '0.2rem'
       }
-    }, tags.map((tag, tagIndex) => {
-      const tagFound = (0,_findTagInSet__WEBPACK_IMPORTED_MODULE_2__["default"])(entities.tags, tag.shortid) || {};
+    }, entityTags.map((entityTag, tagIndex) => {
+      const tagFound = (0,_findTagInSet__WEBPACK_IMPORTED_MODULE_2__["default"])(tags, entityTag.shortid) || {};
       return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-        key: tag.shortid,
+        key: entityTag.shortid,
         title: tagFound.name
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
         color: tagFound.color,
@@ -2007,16 +2007,15 @@ function setOrGetFromCache(cache, _keys, initFn, cacheCheck) {
 }
 function groupEntityByTagAndType(collection, tagsByShortidMap, entity) {
   if (entity.__entitySet === 'tags') {
-    const name = entity.name;
-    collection[name] = collection[name] || {};
+    collection[entity.shortid] = collection[entity.shortid] || {};
   } else if (entity.tags != null) {
     for (const tag of entity.tags) {
       const tagFound = (0,_findTagInSet__WEBPACK_IMPORTED_MODULE_0__["default"])(tagsByShortidMap, tag.shortid);
       if (tagFound) {
-        const name = tagFound.name;
-        collection[name] = collection[name] || {};
-        collection[name][entity.__entitySet] = collection[name][entity.__entitySet] || [];
-        collection[name][entity.__entitySet].push(entity);
+        const shortid = tagFound.shortid;
+        collection[shortid] = collection[shortid] || {};
+        collection[shortid][entity.__entitySet] = collection[shortid][entity.__entitySet] || [];
+        collection[shortid][entity.__entitySet].push(entity);
       }
     }
   }
@@ -2035,7 +2034,7 @@ function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEnti
   for (const t of allTagEntities) {
     const tag = tagsByShortidMap.get(t.shortid);
     const tagName = tag.name;
-    const entitiesByType = entitiesByTagAndType[tagName];
+    const entitiesByType = entitiesByTagAndType[tag.shortid];
     const typesInTag = Object.keys(entitiesByType);
     if (typesInTag.length === 0 || typesInTag.every(type => entitiesByType[type].length > 0) === false) {
       tagsWithNoEntities.push(tag);
@@ -2095,8 +2094,8 @@ function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEnti
         isEntitySet: true,
         items: []
       });
-      newItems.push(tagItem);
     }
+    newItems.push(tagItem);
   }
   const noTagsItem = {
     name: noTagGroupName,
@@ -2151,10 +2150,13 @@ function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEnti
       items
     } = toProcess.shift();
     for (const item of items) {
+      var _item$data;
       const isGroupEntityNode = checkIsGroupEntityNode(item);
       const isGroupNode = checkIsGroupNode(item);
       const isOnlyGroupNode = isGroupNode && !isGroupEntityNode;
-      item.id = getNodeId(item.name, isOnlyGroupNode ? null : item.data, parentId, depth);
+
+      // this will make tag groups with same name different
+      item.id = getNodeId(item.name, isOnlyGroupNode && ((_item$data = item.data) === null || _item$data === void 0 ? void 0 : _item$data.shortid) == null ? null : item.data, parentId, depth);
       if (isOnlyGroupNode) {
         item.collapsed = collapsedInfo.nodes[item.id] != null ? collapsedInfo.nodes[item.id] : collapsedInfo.defaultValue(item);
       }
@@ -2332,7 +2334,13 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_T
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__["default"].title, _EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__["default"], entity => entity.__entitySet !== 'tags');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__["default"], 'group');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_5__["default"], 'group');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent({
+  component: _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__["default"],
+  entitiesSelector: entities => ({
+    prop: 'tags',
+    value: entities.tags
+  })
+});
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__["default"], 'groupRight');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().entityTreeFilterItemResolvers.push(_filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__["default"]);
 })();

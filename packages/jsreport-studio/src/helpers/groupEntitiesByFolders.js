@@ -106,7 +106,7 @@ function setOrGetFromCache (cache, _keys, initFn, cacheCheck) {
 }
 
 function addItemsByHierarchy (newItems, entitiesByFolderLevelMap, collapsedInfo, context, level = 0, parentMeta) {
-  const entitiesInLevel = entitiesByFolderLevelMap.get(level).entities
+  const entitiesInLevel = entitiesByFolderLevelMap.get(level)?.entities
   const foldersInLevel = []
   const otherEntitiesInLevel = []
 

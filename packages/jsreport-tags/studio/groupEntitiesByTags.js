@@ -117,17 +117,16 @@ function setOrGetFromCache (cache, _keys, initFn, cacheCheck) {
 
 function groupEntityByTagAndType (collection, tagsByShortidMap, entity) {
   if (entity.__entitySet === 'tags') {
-    const name = entity.name
-    collection[name] = collection[name] || {}
+    collection[entity.shortid] = collection[entity.shortid] || {}
   } else if (entity.tags != null) {
     for (const tag of entity.tags) {
       const tagFound = findTagInSet(tagsByShortidMap, tag.shortid)
 
       if (tagFound) {
-        const name = tagFound.name
-        collection[name] = collection[name] || {}
-        collection[name][entity.__entitySet] = collection[name][entity.__entitySet] || []
-        collection[name][entity.__entitySet].push(entity)
+        const shortid = tagFound.shortid
+        collection[shortid] = collection[shortid] || {}
+        collection[shortid][entity.__entitySet] = collection[shortid][entity.__entitySet] || []
+        collection[shortid][entity.__entitySet].push(entity)
       }
     }
   }
@@ -149,7 +148,7 @@ function addItemsByTag (
   for (const t of allTagEntities) {
     const tag = tagsByShortidMap.get(t.shortid)
     const tagName = tag.name
-    const entitiesByType = entitiesByTagAndType[tagName]
+    const entitiesByType = entitiesByTagAndType[tag.shortid]
     const typesInTag = Object.keys(entitiesByType)
 
     if (
@@ -227,9 +226,9 @@ function addItemsByTag (
         isEntitySet: true,
         items: []
       })
-
-      newItems.push(tagItem)
     }
+
+    newItems.push(tagItem)
   }
 
   const noTagsItem = {
@@ -294,7 +293,8 @@ function addItemsByTag (
       const isGroupNode = checkIsGroupNode(item)
       const isOnlyGroupNode = isGroupNode && !isGroupEntityNode
 
-      item.id = getNodeId(item.name, isOnlyGroupNode ? null : item.data, parentId, depth)
+      // this will make tag groups with same name different
+      item.id = getNodeId(item.name, isOnlyGroupNode && item.data?.shortid == null ? null : item.data, parentId, depth)
 
       if (isOnlyGroupNode) {
         item.collapsed = collapsedInfo.nodes[item.id] != null ? collapsedInfo.nodes[item.id] : collapsedInfo.defaultValue(item)

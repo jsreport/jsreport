@@ -1,60 +1,55 @@
-import React, { Fragment, useContext } from 'react'
-import { EntityTreeAllEntitiesContext } from './EntityTreeContext'
+import React, { Fragment, useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import { createGetReferencesSelector } from '../../redux/entities/selectors'
+import { createSelector } from 'reselect'
 
 function EntityTreeItems (props) {
-  const { position } = props
-  const needsToBeConnected = position === 'container' || position === 'right'
-  const TargetEntityTreeItems = needsToBeConnected ? ConnectedEntityTreeItems : RawEntityTreeItems
-
-  return (
-    <TargetEntityTreeItems
-      {...props}
-    />
-  )
-}
-
-function ConnectedEntityTreeItems (props) {
-  const entities = useContext(EntityTreeAllEntitiesContext)
-
-  return (
-    <RawEntityTreeItems
-      {...props}
-      entities={entities}
-    />
-  )
-}
-
-function RawEntityTreeItems (props) {
-  const { position, components, entities, propsToItem, originalChildren } = props
-  const targetPropsToItem = entities != null ? { ...propsToItem, entities } : propsToItem
-
-  if (position === 'container') {
-    // composing components when position is container
-    const wrappedItemElement = components.reduce((prevElement, b) => {
-      if (prevElement == null) {
-        return React.createElement(b, targetPropsToItem, originalChildren)
-      }
-
-      return React.createElement(b, targetPropsToItem, prevElement)
-    }, null)
-
-    if (!wrappedItemElement) {
-      return null
-    }
-
-    return wrappedItemElement
-  }
+  const { position, components, propsToItem } = props
 
   return (
     // eslint-disable-next-line
     <Fragment>
-      {components.map((p, i) => (
-        React.createElement(p, {
+      {components.map((p, i) => {
+        const componentMeta = typeof p.entitiesSelector === 'function' ? p : { component: p }
+        const { component, entitiesSelector } = componentMeta
+        const needsToBeConnected = position === 'right' && entitiesSelector != null
+        const EntityTreeItemComponent = needsToBeConnected ? ConnectedEntityTreeItem : component
+        const itemProps = needsToBeConnected ? { ...propsToItem, component, entitiesSelector: entitiesSelector } : propsToItem
+
+        return React.createElement(EntityTreeItemComponent, {
           key: i,
-          ...targetPropsToItem
-        }))
-      )}
+          ...itemProps
+        })
+      })}
     </Fragment>
+  )
+}
+
+function makeEntitiesMapperSelector (entitiesMapperSelector) {
+  const getReferences = createGetReferencesSelector()
+
+  return createSelector(getReferences, (entities) => {
+    const { prop, value } = entitiesMapperSelector(entities)
+    return { prop, value }
+  })
+}
+
+function ConnectedEntityTreeItem (props) {
+  const { component: EntityTreeItemCustomComponent, entitiesSelector, ...restProps } = props
+  // we don't care about the chance of customSelector prop to be different
+  // because this selector are expected to come from configuration
+  // and it is not dynamic
+  const getEntitiesMapper = useMemo(() => (
+    makeEntitiesMapperSelector(entitiesSelector)
+  ), [entitiesSelector])
+
+  const entitiesMapInfo = useSelector(getEntitiesMapper)
+  const itemProps = { ...restProps, [entitiesMapInfo.prop]: entitiesMapInfo.value }
+
+  return (
+    <EntityTreeItemCustomComponent
+      {...itemProps}
+    />
   )
 }
 

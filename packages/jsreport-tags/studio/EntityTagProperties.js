@@ -39,7 +39,7 @@ class EntityTagProperties extends Component {
           {
             EntityTagProperties.getSelectedTags(entity, entities).map((t, tIndex, allSelectTags) => {
               return (
-                <span key={t.name} style={{ display: 'inline-block', marginRight: '2px' }}>
+                <span key={t.shortid} style={{ display: 'inline-block', marginRight: '2px' }}>
                   <ShowColor color={t.color} width={12} height={15} />
                   &nbsp;
                   {t.name}

@@ -31,7 +31,6 @@ values.entityTreeToolbarComponents = {
 }
 
 values.entityTreeItemComponents = {
-  container: [],
   right: [],
   groupRight: []
 }

@@ -55,7 +55,14 @@ Studio.addPropertiesComponent(EntityTagProperties.title, EntityTagProperties, (e
 Studio.addEntityTreeToolbarComponent(TagEntityTreeFilterButtonToolbar, 'group')
 Studio.addEntityTreeToolbarComponent(TagEntityTreeOrganizeButtonToolbar, 'group')
 
-Studio.addEntityTreeItemComponent(TagEntityTreeItem)
+Studio.addEntityTreeItemComponent({
+  component: TagEntityTreeItem,
+  entitiesSelector: (entities) => ({
+    prop: 'tags',
+    value: entities.tags
+  })
+})
+
 Studio.addEntityTreeItemComponent(TagEntityTreeTagGroupItem, 'groupRight')
 
 Studio.entityTreeFilterItemResolvers.push(filterItemWithTagsStrategy)
