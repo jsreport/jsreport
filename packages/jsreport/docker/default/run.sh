@@ -25,7 +25,8 @@ if [ "$(ls -A /jsreport)" ]; then
 fi
 
 if [ "$(id -u)" = '0' ]; then
-  # If we are root, run the app as the lower-privilege `jsreport` user
+  chown jsreport /var/run/docker.sock &> /dev/null
+  # If we are root, run the app as the lower-privilege `jsreport` user  
   exec gosu jsreport node "server.js"  
 else
   # If we're not root, we can't use `gosu` (and don't need to)

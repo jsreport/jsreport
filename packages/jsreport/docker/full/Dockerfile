@@ -69,6 +69,7 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.1 \
     @jsreport/jsreport-fs-store-aws-s3-persistence@3.1.0 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0 \
     @jsreport/jsreport-unoconv@3.0.1 \
+    @jsreport/jsreport-docker-workers \
     cheerio-page-eval@1.0.0
 
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
@@ -79,9 +80,13 @@ RUN node install-or-build-oracledb-for-store.js --target=$TARGETPLATFORM --store
 
 RUN npm cache clean -f && rm -rf /tmp/*
 
+RUN apt-get install -y --no-install-recommends docker.io
+
 COPY ./packages/jsreport/docker/default/editConfig.js editConfig.js
 COPY ./packages/jsreport/docker/full/run.sh run.sh
 RUN node editConfig.js
+
+RUN usermod -aG docker jsreport
 
 RUN chown -R jsreport:jsreport /app
 
