@@ -15,6 +15,7 @@
     "test": "set DEBUG=jsreport&&mocha --recursive test --exit --timeout=50000 && standard"
   },
   "dependencies": {
+    "@jsreport/serializator": "0.1.0",
     "axios": "0.21.1",
     "express": "4.18.2",
     "fs-extra": "9.1.0",
@@ -23,7 +24,6 @@
     "lodash.get": "4.4.2",
     "lodash.omit": "4.5.0",
     "node.extend": "2.0.2",
-    "@jsreport/serializator": "0.1.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {

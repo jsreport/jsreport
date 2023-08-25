@@ -1,4 +1,4 @@
-const serializator = require('serializator')
+const serializator = require('@jsreport/serializator')
 
 function asyncAwaiter (id) {
   const awaiter = {

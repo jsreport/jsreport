@@ -35,6 +35,7 @@
     "@jsreport/jsreport-text": "3.0.0",
     "@jsreport/jsreport-version-control": "3.1.2",
     "@jsreport/jsreport-xlsx": "3.5.0",
+    "@jsreport/serializator": "0.1.0",
     "bluebird": "3.7.2",
     "camelcase": "6.2.0",
     "debug": "4.3.4",
@@ -46,11 +47,10 @@
     "nconf": "0.12.0",
     "node.extend": "2.0.2",
     "puppeteer": "21.1.0",
-    "@jsreport/serializator": "0.1.0",
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-docker-workers": "3.7.0",
+    "@jsreport/jsreport-docker-workers": "3.8.0",
     "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4",
