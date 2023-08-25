@@ -25,7 +25,7 @@ module.exports.parseForESLint = __webpack_require__(2)
 
 const visitorKeys = __webpack_require__(3);
 const analyzeScope = __webpack_require__(91);
-const parse = __webpack_require__(148);
+const parse = __webpack_require__(147);
 module.exports = function (code, options) {
   const ast = parse(code, options);
   const scopeManager = analyzeScope(ast, options);
@@ -15429,7 +15429,7 @@ module.exports = JSON.parse('{"AssignmentExpression":["left","right"],"Assignmen
 const t = __webpack_require__(4);
 const escope = __webpack_require__(92);
 const Definition = (__webpack_require__(141).Definition);
-const OriginalPatternVisitor = __webpack_require__(146);
+const OriginalPatternVisitor = __webpack_require__(145);
 const OriginalReferencer = __webpack_require__(142);
 const fallback = (__webpack_require__(89).getKeys);
 const childVisitorKeys = __webpack_require__(3);
@@ -15797,7 +15797,7 @@ const Referencer = __webpack_require__(142);
 const Reference = __webpack_require__(139);
 const Variable = __webpack_require__(140);
 const Scope = (__webpack_require__(136).Scope);
-const version = (__webpack_require__(147).version);
+const version = (__webpack_require__(146).version);
 
 /**
  * Set the default options
@@ -18152,48 +18152,81 @@ var hasToStringTag = __webpack_require__(98)();
 var g = typeof globalThis === 'undefined' ? __webpack_require__.g : globalThis;
 var typedArrays = availableTypedArrays();
 var $slice = callBound('String.prototype.slice');
-var toStrTags = {
+var getPrototypeOf = Object.getPrototypeOf; // require('getprototypeof');
+
+var $indexOf = callBound('Array.prototype.indexOf', true) || function indexOf(array, value) {
+  for (var i = 0; i < array.length; i += 1) {
+    if (array[i] === value) {
+      return i;
+    }
+  }
+  return -1;
+};
+var cache = {
   __proto__: null
 };
-var getPrototypeOf = Object.getPrototypeOf; // require('getprototypeof');
 if (hasToStringTag && gOPD && getPrototypeOf) {
   forEach(typedArrays, function (typedArray) {
-    if (typeof g[typedArray] === 'function') {
-      var arr = new g[typedArray]();
-      if (Symbol.toStringTag in arr) {
-        var proto = getPrototypeOf(arr);
-        var descriptor = gOPD(proto, Symbol.toStringTag);
-        if (!descriptor) {
-          var superProto = getPrototypeOf(proto);
-          descriptor = gOPD(superProto, Symbol.toStringTag);
-        }
-        toStrTags[typedArray] = callBind(descriptor.get);
+    var arr = new g[typedArray]();
+    if (Symbol.toStringTag in arr) {
+      var proto = getPrototypeOf(arr);
+      var descriptor = gOPD(proto, Symbol.toStringTag);
+      if (!descriptor) {
+        var superProto = getPrototypeOf(proto);
+        descriptor = gOPD(superProto, Symbol.toStringTag);
       }
+      cache['$' + typedArray] = callBind(descriptor.get);
     }
+  });
+} else {
+  forEach(typedArrays, function (typedArray) {
+    var arr = new g[typedArray]();
+    cache['$' + typedArray] = callBind(arr.slice);
   });
 }
 var tryTypedArrays = function tryAllTypedArrays(value) {
-  var foundName = false;
-  forEach(toStrTags, function (getter, typedArray) {
-    if (!foundName) {
+  var found = false;
+  forEach(cache, function (getter, typedArray) {
+    if (!found) {
       try {
-        var name = getter(value);
-        if (name === typedArray) {
-          foundName = name;
+        if ('$' + getter(value) === typedArray) {
+          found = $slice(typedArray, 1);
         }
-      } catch (e) {}
+      } catch (e) {/**/}
     }
   });
-  return foundName;
+  return found;
 };
-var isTypedArray = __webpack_require__(115);
+var trySlices = function tryAllSlices(value) {
+  var found = false;
+  forEach(cache, function (getter, name) {
+    if (!found) {
+      try {
+        getter(value);
+        found = $slice(name, 1);
+      } catch (e) {/**/}
+    }
+  });
+  return found;
+};
 module.exports = function whichTypedArray(value) {
-  if (!isTypedArray(value)) {
+  if (!value || typeof value !== 'object') {
     return false;
   }
-  if (!hasToStringTag || !(Symbol.toStringTag in value)) {
-    return $slice($toString(value), 8, -1);
+  if (!hasToStringTag) {
+    var tag = $slice($toString(value), 8, -1);
+    if ($indexOf(typedArrays, tag) > -1) {
+      return tag;
+    }
+    if (tag !== 'Object') {
+      return false;
+    }
+    // node < 0.6 hits here on real Typed Arrays
+    return trySlices(value);
   }
+  if (!gOPD) {
+    return null;
+  } // unknown engine
   return tryTypedArrays(value);
 };
 
@@ -18772,62 +18805,9 @@ module.exports = function hasProto() {
 "use strict";
 
 
-var forEach = __webpack_require__(109);
-var availableTypedArrays = __webpack_require__(111);
-var callBound = __webpack_require__(100);
-var $toString = callBound('Object.prototype.toString');
-var hasToStringTag = __webpack_require__(98)();
-var gOPD = __webpack_require__(112);
-var g = typeof globalThis === 'undefined' ? __webpack_require__.g : globalThis;
-var typedArrays = availableTypedArrays();
-var $indexOf = callBound('Array.prototype.indexOf', true) || function indexOf(array, value) {
-  for (var i = 0; i < array.length; i += 1) {
-    if (array[i] === value) {
-      return i;
-    }
-  }
-  return -1;
-};
-var $slice = callBound('String.prototype.slice');
-var toStrTags = {};
-var getPrototypeOf = Object.getPrototypeOf; // require('getprototypeof');
-if (hasToStringTag && gOPD && getPrototypeOf) {
-  forEach(typedArrays, function (typedArray) {
-    var arr = new g[typedArray]();
-    if (Symbol.toStringTag in arr) {
-      var proto = getPrototypeOf(arr);
-      var descriptor = gOPD(proto, Symbol.toStringTag);
-      if (!descriptor) {
-        var superProto = getPrototypeOf(proto);
-        descriptor = gOPD(superProto, Symbol.toStringTag);
-      }
-      toStrTags[typedArray] = descriptor.get;
-    }
-  });
-}
-var tryTypedArrays = function tryAllTypedArrays(value) {
-  var anyTrue = false;
-  forEach(toStrTags, function (getter, typedArray) {
-    if (!anyTrue) {
-      try {
-        anyTrue = getter.call(value) === typedArray;
-      } catch (e) {/**/}
-    }
-  });
-  return anyTrue;
-};
+var whichTypedArray = __webpack_require__(108);
 module.exports = function isTypedArray(value) {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  if (!hasToStringTag || !(Symbol.toStringTag in value)) {
-    var tag = $slice($toString(value), 8, -1);
-    return $indexOf(typedArrays, tag) > -1;
-  }
-  if (!gOPD) {
-    return false;
-  }
-  return tryTypedArrays(value);
+  return !!whichTypedArray(value);
 };
 
 /***/ }),
@@ -22745,7 +22725,7 @@ const Syntax = (__webpack_require__(137).Syntax);
 const esrecurse = __webpack_require__(143);
 const Reference = __webpack_require__(139);
 const Variable = __webpack_require__(140);
-const PatternVisitor = __webpack_require__(146);
+const PatternVisitor = __webpack_require__(145);
 const definition = __webpack_require__(141);
 const assert = __webpack_require__(93);
 const ParameterDefinition = definition.ParameterDefinition;
@@ -23228,7 +23208,7 @@ module.exports = Referencer;
 (function () {
   'use strict';
 
-  var estraverse = __webpack_require__(144);
+  var estraverse = __webpack_require__(137);
   function isNode(node) {
     if (node == null) {
       return false;
@@ -23298,7 +23278,7 @@ module.exports = Referencer;
     }
     this.visitChildren(node);
   };
-  exports.version = __webpack_require__(145).version;
+  exports.version = __webpack_require__(144).version;
   exports.Visitor = Visitor;
   exports.visit = function (node, visitor, options) {
     var v = new Visitor(visitor, options);
@@ -23309,728 +23289,13 @@ module.exports = Referencer;
 
 /***/ }),
 /* 144 */
-/***/ ((__unused_webpack_module, exports) => {
-
-/*
-  Copyright (C) 2012-2013 Yusuke Suzuki <utatane.tea@gmail.com>
-  Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-/*jslint vars:false, bitwise:true*/
-/*jshint indent:4*/
-/*global exports:true*/
-(function clone(exports) {
-  'use strict';
-
-  var Syntax, VisitorOption, VisitorKeys, BREAK, SKIP, REMOVE;
-  function deepCopy(obj) {
-    var ret = {},
-      key,
-      val;
-    for (key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        val = obj[key];
-        if (typeof val === 'object' && val !== null) {
-          ret[key] = deepCopy(val);
-        } else {
-          ret[key] = val;
-        }
-      }
-    }
-    return ret;
-  }
-
-  // based on LLVM libc++ upper_bound / lower_bound
-  // MIT License
-
-  function upperBound(array, func) {
-    var diff, len, i, current;
-    len = array.length;
-    i = 0;
-    while (len) {
-      diff = len >>> 1;
-      current = i + diff;
-      if (func(array[current])) {
-        len = diff;
-      } else {
-        i = current + 1;
-        len -= diff + 1;
-      }
-    }
-    return i;
-  }
-  Syntax = {
-    AssignmentExpression: 'AssignmentExpression',
-    AssignmentPattern: 'AssignmentPattern',
-    ArrayExpression: 'ArrayExpression',
-    ArrayPattern: 'ArrayPattern',
-    ArrowFunctionExpression: 'ArrowFunctionExpression',
-    AwaitExpression: 'AwaitExpression',
-    // CAUTION: It's deferred to ES7.
-    BlockStatement: 'BlockStatement',
-    BinaryExpression: 'BinaryExpression',
-    BreakStatement: 'BreakStatement',
-    CallExpression: 'CallExpression',
-    CatchClause: 'CatchClause',
-    ChainExpression: 'ChainExpression',
-    ClassBody: 'ClassBody',
-    ClassDeclaration: 'ClassDeclaration',
-    ClassExpression: 'ClassExpression',
-    ComprehensionBlock: 'ComprehensionBlock',
-    // CAUTION: It's deferred to ES7.
-    ComprehensionExpression: 'ComprehensionExpression',
-    // CAUTION: It's deferred to ES7.
-    ConditionalExpression: 'ConditionalExpression',
-    ContinueStatement: 'ContinueStatement',
-    DebuggerStatement: 'DebuggerStatement',
-    DirectiveStatement: 'DirectiveStatement',
-    DoWhileStatement: 'DoWhileStatement',
-    EmptyStatement: 'EmptyStatement',
-    ExportAllDeclaration: 'ExportAllDeclaration',
-    ExportDefaultDeclaration: 'ExportDefaultDeclaration',
-    ExportNamedDeclaration: 'ExportNamedDeclaration',
-    ExportSpecifier: 'ExportSpecifier',
-    ExpressionStatement: 'ExpressionStatement',
-    ForStatement: 'ForStatement',
-    ForInStatement: 'ForInStatement',
-    ForOfStatement: 'ForOfStatement',
-    FunctionDeclaration: 'FunctionDeclaration',
-    FunctionExpression: 'FunctionExpression',
-    GeneratorExpression: 'GeneratorExpression',
-    // CAUTION: It's deferred to ES7.
-    Identifier: 'Identifier',
-    IfStatement: 'IfStatement',
-    ImportExpression: 'ImportExpression',
-    ImportDeclaration: 'ImportDeclaration',
-    ImportDefaultSpecifier: 'ImportDefaultSpecifier',
-    ImportNamespaceSpecifier: 'ImportNamespaceSpecifier',
-    ImportSpecifier: 'ImportSpecifier',
-    Literal: 'Literal',
-    LabeledStatement: 'LabeledStatement',
-    LogicalExpression: 'LogicalExpression',
-    MemberExpression: 'MemberExpression',
-    MetaProperty: 'MetaProperty',
-    MethodDefinition: 'MethodDefinition',
-    ModuleSpecifier: 'ModuleSpecifier',
-    NewExpression: 'NewExpression',
-    ObjectExpression: 'ObjectExpression',
-    ObjectPattern: 'ObjectPattern',
-    PrivateIdentifier: 'PrivateIdentifier',
-    Program: 'Program',
-    Property: 'Property',
-    PropertyDefinition: 'PropertyDefinition',
-    RestElement: 'RestElement',
-    ReturnStatement: 'ReturnStatement',
-    SequenceExpression: 'SequenceExpression',
-    SpreadElement: 'SpreadElement',
-    Super: 'Super',
-    SwitchStatement: 'SwitchStatement',
-    SwitchCase: 'SwitchCase',
-    TaggedTemplateExpression: 'TaggedTemplateExpression',
-    TemplateElement: 'TemplateElement',
-    TemplateLiteral: 'TemplateLiteral',
-    ThisExpression: 'ThisExpression',
-    ThrowStatement: 'ThrowStatement',
-    TryStatement: 'TryStatement',
-    UnaryExpression: 'UnaryExpression',
-    UpdateExpression: 'UpdateExpression',
-    VariableDeclaration: 'VariableDeclaration',
-    VariableDeclarator: 'VariableDeclarator',
-    WhileStatement: 'WhileStatement',
-    WithStatement: 'WithStatement',
-    YieldExpression: 'YieldExpression'
-  };
-  VisitorKeys = {
-    AssignmentExpression: ['left', 'right'],
-    AssignmentPattern: ['left', 'right'],
-    ArrayExpression: ['elements'],
-    ArrayPattern: ['elements'],
-    ArrowFunctionExpression: ['params', 'body'],
-    AwaitExpression: ['argument'],
-    // CAUTION: It's deferred to ES7.
-    BlockStatement: ['body'],
-    BinaryExpression: ['left', 'right'],
-    BreakStatement: ['label'],
-    CallExpression: ['callee', 'arguments'],
-    CatchClause: ['param', 'body'],
-    ChainExpression: ['expression'],
-    ClassBody: ['body'],
-    ClassDeclaration: ['id', 'superClass', 'body'],
-    ClassExpression: ['id', 'superClass', 'body'],
-    ComprehensionBlock: ['left', 'right'],
-    // CAUTION: It's deferred to ES7.
-    ComprehensionExpression: ['blocks', 'filter', 'body'],
-    // CAUTION: It's deferred to ES7.
-    ConditionalExpression: ['test', 'consequent', 'alternate'],
-    ContinueStatement: ['label'],
-    DebuggerStatement: [],
-    DirectiveStatement: [],
-    DoWhileStatement: ['body', 'test'],
-    EmptyStatement: [],
-    ExportAllDeclaration: ['source'],
-    ExportDefaultDeclaration: ['declaration'],
-    ExportNamedDeclaration: ['declaration', 'specifiers', 'source'],
-    ExportSpecifier: ['exported', 'local'],
-    ExpressionStatement: ['expression'],
-    ForStatement: ['init', 'test', 'update', 'body'],
-    ForInStatement: ['left', 'right', 'body'],
-    ForOfStatement: ['left', 'right', 'body'],
-    FunctionDeclaration: ['id', 'params', 'body'],
-    FunctionExpression: ['id', 'params', 'body'],
-    GeneratorExpression: ['blocks', 'filter', 'body'],
-    // CAUTION: It's deferred to ES7.
-    Identifier: [],
-    IfStatement: ['test', 'consequent', 'alternate'],
-    ImportExpression: ['source'],
-    ImportDeclaration: ['specifiers', 'source'],
-    ImportDefaultSpecifier: ['local'],
-    ImportNamespaceSpecifier: ['local'],
-    ImportSpecifier: ['imported', 'local'],
-    Literal: [],
-    LabeledStatement: ['label', 'body'],
-    LogicalExpression: ['left', 'right'],
-    MemberExpression: ['object', 'property'],
-    MetaProperty: ['meta', 'property'],
-    MethodDefinition: ['key', 'value'],
-    ModuleSpecifier: [],
-    NewExpression: ['callee', 'arguments'],
-    ObjectExpression: ['properties'],
-    ObjectPattern: ['properties'],
-    PrivateIdentifier: [],
-    Program: ['body'],
-    Property: ['key', 'value'],
-    PropertyDefinition: ['key', 'value'],
-    RestElement: ['argument'],
-    ReturnStatement: ['argument'],
-    SequenceExpression: ['expressions'],
-    SpreadElement: ['argument'],
-    Super: [],
-    SwitchStatement: ['discriminant', 'cases'],
-    SwitchCase: ['test', 'consequent'],
-    TaggedTemplateExpression: ['tag', 'quasi'],
-    TemplateElement: [],
-    TemplateLiteral: ['quasis', 'expressions'],
-    ThisExpression: [],
-    ThrowStatement: ['argument'],
-    TryStatement: ['block', 'handler', 'finalizer'],
-    UnaryExpression: ['argument'],
-    UpdateExpression: ['argument'],
-    VariableDeclaration: ['declarations'],
-    VariableDeclarator: ['id', 'init'],
-    WhileStatement: ['test', 'body'],
-    WithStatement: ['object', 'body'],
-    YieldExpression: ['argument']
-  };
-
-  // unique id
-  BREAK = {};
-  SKIP = {};
-  REMOVE = {};
-  VisitorOption = {
-    Break: BREAK,
-    Skip: SKIP,
-    Remove: REMOVE
-  };
-  function Reference(parent, key) {
-    this.parent = parent;
-    this.key = key;
-  }
-  Reference.prototype.replace = function replace(node) {
-    this.parent[this.key] = node;
-  };
-  Reference.prototype.remove = function remove() {
-    if (Array.isArray(this.parent)) {
-      this.parent.splice(this.key, 1);
-      return true;
-    } else {
-      this.replace(null);
-      return false;
-    }
-  };
-  function Element(node, path, wrap, ref) {
-    this.node = node;
-    this.path = path;
-    this.wrap = wrap;
-    this.ref = ref;
-  }
-  function Controller() {}
-
-  // API:
-  // return property path array from root to current node
-  Controller.prototype.path = function path() {
-    var i, iz, j, jz, result, element;
-    function addToPath(result, path) {
-      if (Array.isArray(path)) {
-        for (j = 0, jz = path.length; j < jz; ++j) {
-          result.push(path[j]);
-        }
-      } else {
-        result.push(path);
-      }
-    }
-
-    // root node
-    if (!this.__current.path) {
-      return null;
-    }
-
-    // first node is sentinel, second node is root element
-    result = [];
-    for (i = 2, iz = this.__leavelist.length; i < iz; ++i) {
-      element = this.__leavelist[i];
-      addToPath(result, element.path);
-    }
-    addToPath(result, this.__current.path);
-    return result;
-  };
-
-  // API:
-  // return type of current node
-  Controller.prototype.type = function () {
-    var node = this.current();
-    return node.type || this.__current.wrap;
-  };
-
-  // API:
-  // return array of parent elements
-  Controller.prototype.parents = function parents() {
-    var i, iz, result;
-
-    // first node is sentinel
-    result = [];
-    for (i = 1, iz = this.__leavelist.length; i < iz; ++i) {
-      result.push(this.__leavelist[i].node);
-    }
-    return result;
-  };
-
-  // API:
-  // return current node
-  Controller.prototype.current = function current() {
-    return this.__current.node;
-  };
-  Controller.prototype.__execute = function __execute(callback, element) {
-    var previous, result;
-    result = undefined;
-    previous = this.__current;
-    this.__current = element;
-    this.__state = null;
-    if (callback) {
-      result = callback.call(this, element.node, this.__leavelist[this.__leavelist.length - 1].node);
-    }
-    this.__current = previous;
-    return result;
-  };
-
-  // API:
-  // notify control skip / break
-  Controller.prototype.notify = function notify(flag) {
-    this.__state = flag;
-  };
-
-  // API:
-  // skip child nodes of current node
-  Controller.prototype.skip = function () {
-    this.notify(SKIP);
-  };
-
-  // API:
-  // break traversals
-  Controller.prototype['break'] = function () {
-    this.notify(BREAK);
-  };
-
-  // API:
-  // remove node
-  Controller.prototype.remove = function () {
-    this.notify(REMOVE);
-  };
-  Controller.prototype.__initialize = function (root, visitor) {
-    this.visitor = visitor;
-    this.root = root;
-    this.__worklist = [];
-    this.__leavelist = [];
-    this.__current = null;
-    this.__state = null;
-    this.__fallback = null;
-    if (visitor.fallback === 'iteration') {
-      this.__fallback = Object.keys;
-    } else if (typeof visitor.fallback === 'function') {
-      this.__fallback = visitor.fallback;
-    }
-    this.__keys = VisitorKeys;
-    if (visitor.keys) {
-      this.__keys = Object.assign(Object.create(this.__keys), visitor.keys);
-    }
-  };
-  function isNode(node) {
-    if (node == null) {
-      return false;
-    }
-    return typeof node === 'object' && typeof node.type === 'string';
-  }
-  function isProperty(nodeType, key) {
-    return (nodeType === Syntax.ObjectExpression || nodeType === Syntax.ObjectPattern) && 'properties' === key;
-  }
-  function candidateExistsInLeaveList(leavelist, candidate) {
-    for (var i = leavelist.length - 1; i >= 0; --i) {
-      if (leavelist[i].node === candidate) {
-        return true;
-      }
-    }
-    return false;
-  }
-  Controller.prototype.traverse = function traverse(root, visitor) {
-    var worklist, leavelist, element, node, nodeType, ret, key, current, current2, candidates, candidate, sentinel;
-    this.__initialize(root, visitor);
-    sentinel = {};
-
-    // reference
-    worklist = this.__worklist;
-    leavelist = this.__leavelist;
-
-    // initialize
-    worklist.push(new Element(root, null, null, null));
-    leavelist.push(new Element(null, null, null, null));
-    while (worklist.length) {
-      element = worklist.pop();
-      if (element === sentinel) {
-        element = leavelist.pop();
-        ret = this.__execute(visitor.leave, element);
-        if (this.__state === BREAK || ret === BREAK) {
-          return;
-        }
-        continue;
-      }
-      if (element.node) {
-        ret = this.__execute(visitor.enter, element);
-        if (this.__state === BREAK || ret === BREAK) {
-          return;
-        }
-        worklist.push(sentinel);
-        leavelist.push(element);
-        if (this.__state === SKIP || ret === SKIP) {
-          continue;
-        }
-        node = element.node;
-        nodeType = node.type || element.wrap;
-        candidates = this.__keys[nodeType];
-        if (!candidates) {
-          if (this.__fallback) {
-            candidates = this.__fallback(node);
-          } else {
-            throw new Error('Unknown node type ' + nodeType + '.');
-          }
-        }
-        current = candidates.length;
-        while ((current -= 1) >= 0) {
-          key = candidates[current];
-          candidate = node[key];
-          if (!candidate) {
-            continue;
-          }
-          if (Array.isArray(candidate)) {
-            current2 = candidate.length;
-            while ((current2 -= 1) >= 0) {
-              if (!candidate[current2]) {
-                continue;
-              }
-              if (candidateExistsInLeaveList(leavelist, candidate[current2])) {
-                continue;
-              }
-              if (isProperty(nodeType, candidates[current])) {
-                element = new Element(candidate[current2], [key, current2], 'Property', null);
-              } else if (isNode(candidate[current2])) {
-                element = new Element(candidate[current2], [key, current2], null, null);
-              } else {
-                continue;
-              }
-              worklist.push(element);
-            }
-          } else if (isNode(candidate)) {
-            if (candidateExistsInLeaveList(leavelist, candidate)) {
-              continue;
-            }
-            worklist.push(new Element(candidate, key, null, null));
-          }
-        }
-      }
-    }
-  };
-  Controller.prototype.replace = function replace(root, visitor) {
-    var worklist, leavelist, node, nodeType, target, element, current, current2, candidates, candidate, sentinel, outer, key;
-    function removeElem(element) {
-      var i, key, nextElem, parent;
-      if (element.ref.remove()) {
-        // When the reference is an element of an array.
-        key = element.ref.key;
-        parent = element.ref.parent;
-
-        // If removed from array, then decrease following items' keys.
-        i = worklist.length;
-        while (i--) {
-          nextElem = worklist[i];
-          if (nextElem.ref && nextElem.ref.parent === parent) {
-            if (nextElem.ref.key < key) {
-              break;
-            }
-            --nextElem.ref.key;
-          }
-        }
-      }
-    }
-    this.__initialize(root, visitor);
-    sentinel = {};
-
-    // reference
-    worklist = this.__worklist;
-    leavelist = this.__leavelist;
-
-    // initialize
-    outer = {
-      root: root
-    };
-    element = new Element(root, null, null, new Reference(outer, 'root'));
-    worklist.push(element);
-    leavelist.push(element);
-    while (worklist.length) {
-      element = worklist.pop();
-      if (element === sentinel) {
-        element = leavelist.pop();
-        target = this.__execute(visitor.leave, element);
-
-        // node may be replaced with null,
-        // so distinguish between undefined and null in this place
-        if (target !== undefined && target !== BREAK && target !== SKIP && target !== REMOVE) {
-          // replace
-          element.ref.replace(target);
-        }
-        if (this.__state === REMOVE || target === REMOVE) {
-          removeElem(element);
-        }
-        if (this.__state === BREAK || target === BREAK) {
-          return outer.root;
-        }
-        continue;
-      }
-      target = this.__execute(visitor.enter, element);
-
-      // node may be replaced with null,
-      // so distinguish between undefined and null in this place
-      if (target !== undefined && target !== BREAK && target !== SKIP && target !== REMOVE) {
-        // replace
-        element.ref.replace(target);
-        element.node = target;
-      }
-      if (this.__state === REMOVE || target === REMOVE) {
-        removeElem(element);
-        element.node = null;
-      }
-      if (this.__state === BREAK || target === BREAK) {
-        return outer.root;
-      }
-
-      // node may be null
-      node = element.node;
-      if (!node) {
-        continue;
-      }
-      worklist.push(sentinel);
-      leavelist.push(element);
-      if (this.__state === SKIP || target === SKIP) {
-        continue;
-      }
-      nodeType = node.type || element.wrap;
-      candidates = this.__keys[nodeType];
-      if (!candidates) {
-        if (this.__fallback) {
-          candidates = this.__fallback(node);
-        } else {
-          throw new Error('Unknown node type ' + nodeType + '.');
-        }
-      }
-      current = candidates.length;
-      while ((current -= 1) >= 0) {
-        key = candidates[current];
-        candidate = node[key];
-        if (!candidate) {
-          continue;
-        }
-        if (Array.isArray(candidate)) {
-          current2 = candidate.length;
-          while ((current2 -= 1) >= 0) {
-            if (!candidate[current2]) {
-              continue;
-            }
-            if (isProperty(nodeType, candidates[current])) {
-              element = new Element(candidate[current2], [key, current2], 'Property', new Reference(candidate, current2));
-            } else if (isNode(candidate[current2])) {
-              element = new Element(candidate[current2], [key, current2], null, new Reference(candidate, current2));
-            } else {
-              continue;
-            }
-            worklist.push(element);
-          }
-        } else if (isNode(candidate)) {
-          worklist.push(new Element(candidate, key, null, new Reference(node, key)));
-        }
-      }
-    }
-    return outer.root;
-  };
-  function traverse(root, visitor) {
-    var controller = new Controller();
-    return controller.traverse(root, visitor);
-  }
-  function replace(root, visitor) {
-    var controller = new Controller();
-    return controller.replace(root, visitor);
-  }
-  function extendCommentRange(comment, tokens) {
-    var target;
-    target = upperBound(tokens, function search(token) {
-      return token.range[0] > comment.range[0];
-    });
-    comment.extendedRange = [comment.range[0], comment.range[1]];
-    if (target !== tokens.length) {
-      comment.extendedRange[1] = tokens[target].range[0];
-    }
-    target -= 1;
-    if (target >= 0) {
-      comment.extendedRange[0] = tokens[target].range[1];
-    }
-    return comment;
-  }
-  function attachComments(tree, providedComments, tokens) {
-    // At first, we should calculate extended comment ranges.
-    var comments = [],
-      comment,
-      len,
-      i,
-      cursor;
-    if (!tree.range) {
-      throw new Error('attachComments needs range information');
-    }
-
-    // tokens array is empty, we attach comments to tree as 'leadingComments'
-    if (!tokens.length) {
-      if (providedComments.length) {
-        for (i = 0, len = providedComments.length; i < len; i += 1) {
-          comment = deepCopy(providedComments[i]);
-          comment.extendedRange = [0, tree.range[0]];
-          comments.push(comment);
-        }
-        tree.leadingComments = comments;
-      }
-      return tree;
-    }
-    for (i = 0, len = providedComments.length; i < len; i += 1) {
-      comments.push(extendCommentRange(deepCopy(providedComments[i]), tokens));
-    }
-
-    // This is based on John Freeman's implementation.
-    cursor = 0;
-    traverse(tree, {
-      enter: function (node) {
-        var comment;
-        while (cursor < comments.length) {
-          comment = comments[cursor];
-          if (comment.extendedRange[1] > node.range[0]) {
-            break;
-          }
-          if (comment.extendedRange[1] === node.range[0]) {
-            if (!node.leadingComments) {
-              node.leadingComments = [];
-            }
-            node.leadingComments.push(comment);
-            comments.splice(cursor, 1);
-          } else {
-            cursor += 1;
-          }
-        }
-
-        // already out of owned node
-        if (cursor === comments.length) {
-          return VisitorOption.Break;
-        }
-        if (comments[cursor].extendedRange[0] > node.range[1]) {
-          return VisitorOption.Skip;
-        }
-      }
-    });
-    cursor = 0;
-    traverse(tree, {
-      leave: function (node) {
-        var comment;
-        while (cursor < comments.length) {
-          comment = comments[cursor];
-          if (node.range[1] < comment.extendedRange[0]) {
-            break;
-          }
-          if (node.range[1] === comment.extendedRange[0]) {
-            if (!node.trailingComments) {
-              node.trailingComments = [];
-            }
-            node.trailingComments.push(comment);
-            comments.splice(cursor, 1);
-          } else {
-            cursor += 1;
-          }
-        }
-
-        // already out of owned node
-        if (cursor === comments.length) {
-          return VisitorOption.Break;
-        }
-        if (comments[cursor].extendedRange[0] > node.range[1]) {
-          return VisitorOption.Skip;
-        }
-      }
-    });
-    return tree;
-  }
-  exports.Syntax = Syntax;
-  exports.traverse = traverse;
-  exports.replace = replace;
-  exports.attachComments = attachComments;
-  exports.VisitorKeys = VisitorKeys;
-  exports.VisitorOption = VisitorOption;
-  exports.Controller = Controller;
-  exports.cloneEnvironment = function () {
-    return clone({});
-  };
-  return exports;
-})(exports);
-/* vim: set sw=4 ts=4 et tw=80 : */
-
-/***/ }),
-/* 145 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"name":"esrecurse","description":"ECMAScript AST recursive visitor","homepage":"https://github.com/estools/esrecurse","main":"esrecurse.js","version":"4.3.0","engines":{"node":">=4.0"},"maintainers":[{"name":"Yusuke Suzuki","email":"utatane.tea@gmail.com","web":"https://github.com/Constellation"}],"repository":{"type":"git","url":"https://github.com/estools/esrecurse.git"},"dependencies":{"estraverse":"^5.2.0"},"devDependencies":{"babel-cli":"^6.24.1","babel-eslint":"^7.2.3","babel-preset-es2015":"^6.24.1","babel-register":"^6.24.1","chai":"^4.0.2","esprima":"^4.0.0","gulp":"^3.9.0","gulp-bump":"^2.7.0","gulp-eslint":"^4.0.0","gulp-filter":"^5.0.0","gulp-git":"^2.4.1","gulp-mocha":"^4.3.1","gulp-tag-version":"^1.2.1","jsdoc":"^3.3.0-alpha10","minimist":"^1.1.0"},"license":"BSD-2-Clause","scripts":{"test":"gulp travis","unit-test":"gulp test","lint":"gulp lint"},"babel":{"presets":["es2015"]}}');
 
 /***/ }),
-/* 146 */
+/* 145 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -24162,24 +23427,24 @@ module.exports = PatternVisitor;
 /* vim: set sw=4 ts=4 et tw=80 : */
 
 /***/ }),
-/* 147 */
+/* 146 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"name":"eslint-scope","description":"ECMAScript scope analyzer for ESLint","homepage":"http://github.com/eslint/eslint-scope","main":"lib/index.js","version":"3.7.1","engines":{"node":">=4.0.0"},"repository":"eslint/eslint-scope","bugs":{"url":"https://github.com/eslint/eslint-scope/issues"},"license":"BSD-2-Clause","scripts":{"test":"node Makefile.js test","lint":"node Makefile.js lint","release":"eslint-release","ci-release":"eslint-ci-release","gh-release":"eslint-gh-release","alpharelease":"eslint-prerelease alpha","betarelease":"eslint-prerelease beta"},"files":["LICENSE","README.md","lib"],"dependencies":{"esrecurse":"^4.1.0","estraverse":"^4.1.1"},"devDependencies":{"chai":"^3.4.1","eslint":"^3.15.0","eslint-config-eslint":"^4.0.0","eslint-release":"^0.10.1","espree":"^3.1.1","istanbul":"^0.4.5","mocha":"^3.2.0","npm-license":"^0.3.3","shelljs":"^0.7.6","typescript":"~2.0.10","typescript-eslint-parser":"^1.0.0"}}');
 
 /***/ }),
-/* 148 */
+/* 147 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var babylonToEspree = __webpack_require__(149);
-var parse = (__webpack_require__(156).parse);
-var tt = (__webpack_require__(156).tokTypes);
-var traverse = (__webpack_require__(157)["default"]);
-var codeFrameColumns = (__webpack_require__(207).codeFrameColumns);
+var babylonToEspree = __webpack_require__(148);
+var parse = (__webpack_require__(155).parse);
+var tt = (__webpack_require__(155).tokTypes);
+var traverse = (__webpack_require__(156)["default"]);
+var codeFrameColumns = (__webpack_require__(206).codeFrameColumns);
 module.exports = function (code, options) {
   const legacyDecorators = options.ecmaFeatures && options.ecmaFeatures.legacyDecorators;
   var opts = {
@@ -24230,16 +23495,16 @@ module.exports = function (code, options) {
 };
 
 /***/ }),
-/* 149 */
+/* 148 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var attachComments = __webpack_require__(150);
-var convertComments = __webpack_require__(151);
-var toTokens = __webpack_require__(152);
-var toAST = __webpack_require__(155);
+var attachComments = __webpack_require__(149);
+var convertComments = __webpack_require__(150);
+var toTokens = __webpack_require__(151);
+var toAST = __webpack_require__(154);
 module.exports = function (ast, traverse, tt, code) {
   // convert tokens
   ast.tokens = toTokens(ast.tokens, tt, code);
@@ -24264,7 +23529,7 @@ module.exports = function (ast, traverse, tt, code) {
 };
 
 /***/ }),
-/* 150 */
+/* 149 */
 /***/ ((module) => {
 
 "use strict";
@@ -24328,7 +23593,7 @@ module.exports = function (ast, comments, tokens) {
 };
 
 /***/ }),
-/* 151 */
+/* 150 */
 /***/ ((module) => {
 
 "use strict";
@@ -24351,20 +23616,20 @@ module.exports = function (comments) {
 };
 
 /***/ }),
-/* 152 */
+/* 151 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var convertTemplateType = __webpack_require__(153);
-var toToken = __webpack_require__(154);
+var convertTemplateType = __webpack_require__(152);
+var toToken = __webpack_require__(153);
 module.exports = function (tokens, tt, code) {
   return convertTemplateType(tokens, tt).filter(t => t.type !== "CommentLine" && t.type !== "CommentBlock").map(t => toToken(t, tt, code));
 };
 
 /***/ }),
-/* 153 */
+/* 152 */
 /***/ ((module) => {
 
 "use strict";
@@ -24443,7 +23708,7 @@ module.exports = function (tokens, tt) {
 };
 
 /***/ }),
-/* 154 */
+/* 153 */
 /***/ ((module) => {
 
 "use strict";
@@ -24492,14 +23757,14 @@ module.exports = function (token, tt, source) {
 };
 
 /***/ }),
-/* 155 */
+/* 154 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var t = __webpack_require__(4);
-var convertComments = __webpack_require__(151);
+var convertComments = __webpack_require__(150);
 module.exports = function (ast, traverse, code) {
   var state = {
     source: code
@@ -24593,7 +23858,7 @@ var astTransformVisitor = {
 };
 
 /***/ }),
-/* 156 */
+/* 155 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -38695,7 +37960,7 @@ exports.parseExpression = parseExpression;
 exports.tokTypes = tokTypes;
 
 /***/ }),
-/* 157 */
+/* 156 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -38723,14 +37988,14 @@ Object.defineProperty(exports, "Scope", ({
   }
 }));
 exports.visitors = exports["default"] = void 0;
-var visitors = __webpack_require__(158);
+var visitors = __webpack_require__(157);
 exports.visitors = visitors;
 var _t = __webpack_require__(4);
-var cache = __webpack_require__(160);
-var _traverseNode = __webpack_require__(161);
-var _path = __webpack_require__(163);
-var _scope = __webpack_require__(167);
-var _hub = __webpack_require__(239);
+var cache = __webpack_require__(159);
+var _traverseNode = __webpack_require__(160);
+var _path = __webpack_require__(162);
+var _scope = __webpack_require__(166);
+var _hub = __webpack_require__(238);
 const {
   VISITOR_KEYS,
   removeProperties,
@@ -38795,7 +38060,7 @@ traverse.hasType = function (tree, type, denylistTypes) {
 traverse.cache = cache;
 
 /***/ }),
-/* 158 */
+/* 157 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -38807,7 +38072,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.explode = explode;
 exports.merge = merge;
 exports.verify = verify;
-var virtualTypes = __webpack_require__(159);
+var virtualTypes = __webpack_require__(158);
 var _t = __webpack_require__(4);
 const {
   DEPRECATED_KEYS,
@@ -38994,7 +38259,7 @@ function mergePair(dest, src) {
 }
 
 /***/ }),
-/* 159 */
+/* 158 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -39202,7 +38467,7 @@ const ForAwaitStatement = {
 exports.ForAwaitStatement = ForAwaitStatement;
 
 /***/ }),
-/* 160 */
+/* 159 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -39231,7 +38496,7 @@ function clearScope() {
 }
 
 /***/ }),
-/* 161 */
+/* 160 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -39241,7 +38506,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.traverseNode = traverseNode;
-var _context = __webpack_require__(162);
+var _context = __webpack_require__(161);
 var _t = __webpack_require__(4);
 const {
   VISITOR_KEYS
@@ -39260,7 +38525,7 @@ function traverseNode(node, opts, scope, state, path, skipKeys) {
 }
 
 /***/ }),
-/* 162 */
+/* 161 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -39270,7 +38535,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-var _path = __webpack_require__(163);
+var _path = __webpack_require__(162);
 var _t = __webpack_require__(4);
 const {
   VISITOR_KEYS
@@ -39377,7 +38642,7 @@ class TraversalContext {
 exports["default"] = TraversalContext;
 
 /***/ }),
-/* 163 */
+/* 162 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -39387,25 +38652,25 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = exports.SHOULD_STOP = exports.SHOULD_SKIP = exports.REMOVED = void 0;
-var virtualTypes = __webpack_require__(159);
-var _debug = __webpack_require__(164);
-var _index = __webpack_require__(157);
-var _scope = __webpack_require__(167);
+var virtualTypes = __webpack_require__(158);
+var _debug = __webpack_require__(163);
+var _index = __webpack_require__(156);
+var _scope = __webpack_require__(166);
 var _t = __webpack_require__(4);
 var t = _t;
-var _cache = __webpack_require__(160);
-var _generator = __webpack_require__(174);
-var NodePath_ancestry = __webpack_require__(202);
-var NodePath_inference = __webpack_require__(203);
-var NodePath_replacement = __webpack_require__(206);
-var NodePath_evaluation = __webpack_require__(220);
-var NodePath_conversion = __webpack_require__(221);
-var NodePath_introspection = __webpack_require__(231);
-var NodePath_context = __webpack_require__(232);
-var NodePath_removal = __webpack_require__(233);
-var NodePath_modification = __webpack_require__(235);
-var NodePath_family = __webpack_require__(237);
-var NodePath_comments = __webpack_require__(238);
+var _cache = __webpack_require__(159);
+var _generator = __webpack_require__(173);
+var NodePath_ancestry = __webpack_require__(201);
+var NodePath_inference = __webpack_require__(202);
+var NodePath_replacement = __webpack_require__(205);
+var NodePath_evaluation = __webpack_require__(219);
+var NodePath_conversion = __webpack_require__(220);
+var NodePath_introspection = __webpack_require__(230);
+var NodePath_context = __webpack_require__(231);
+var NodePath_removal = __webpack_require__(232);
+var NodePath_modification = __webpack_require__(234);
+var NodePath_family = __webpack_require__(236);
+var NodePath_comments = __webpack_require__(237);
 const {
   validate
 } = _t;
@@ -39582,7 +38847,7 @@ var _default = NodePath;
 exports["default"] = _default;
 
 /***/ }),
-/* 164 */
+/* 163 */
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -39752,7 +39017,7 @@ function localstorage() {
     // XXX (@Qix-) should we be logging these?
   }
 }
-module.exports = __webpack_require__(165)(exports);
+module.exports = __webpack_require__(164)(exports);
 var formatters = module.exports.formatters;
 /**
  * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
@@ -39767,7 +39032,7 @@ formatters.j = function (v) {
 };
 
 /***/ }),
-/* 165 */
+/* 164 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -39784,7 +39049,7 @@ function setup(env) {
   createDebug.disable = disable;
   createDebug.enable = enable;
   createDebug.enabled = enabled;
-  createDebug.humanize = __webpack_require__(166);
+  createDebug.humanize = __webpack_require__(165);
   Object.keys(env).forEach(function (key) {
     createDebug[key] = env[key];
   });
@@ -39990,7 +39255,7 @@ function setup(env) {
 module.exports = setup;
 
 /***/ }),
-/* 166 */
+/* 165 */
 /***/ ((module) => {
 
 /**
@@ -40152,7 +39417,7 @@ function plural(ms, msAbs, n, name) {
 }
 
 /***/ }),
-/* 167 */
+/* 166 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -40162,12 +39427,12 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-var _renamer = __webpack_require__(168);
-var _index = __webpack_require__(157);
-var _binding = __webpack_require__(169);
-var _globals = __webpack_require__(172);
+var _renamer = __webpack_require__(167);
+var _index = __webpack_require__(156);
+var _binding = __webpack_require__(168);
+var _globals = __webpack_require__(171);
 var _t = __webpack_require__(4);
-var _cache = __webpack_require__(160);
+var _cache = __webpack_require__(159);
 const {
   NOT_LOCAL_BINDING,
   callExpression,
@@ -41019,7 +40284,7 @@ Scope.globals = Object.keys(_globals.builtin);
 Scope.contextVariables = ["arguments", "undefined", "Infinity", "NaN"];
 
 /***/ }),
-/* 168 */
+/* 167 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -41029,10 +40294,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-var _binding = __webpack_require__(169);
-var _helperSplitExportDeclaration = __webpack_require__(170);
+var _binding = __webpack_require__(168);
+var _helperSplitExportDeclaration = __webpack_require__(169);
 var _t = __webpack_require__(4);
-var _helperEnvironmentVisitor = __webpack_require__(171);
+var _helperEnvironmentVisitor = __webpack_require__(170);
 const {
   assignmentExpression,
   identifier,
@@ -41138,7 +40403,7 @@ class Renamer {
 exports["default"] = Renamer;
 
 /***/ }),
-/* 169 */
+/* 168 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -41208,7 +40473,7 @@ class Binding {
 exports["default"] = Binding;
 
 /***/ }),
-/* 170 */
+/* 169 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -41269,7 +40534,7 @@ function splitExportDeclaration(exportDeclaration) {
 }
 
 /***/ }),
-/* 171 */
+/* 170 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -41324,23 +40589,23 @@ var _default = visitor;
 exports["default"] = _default;
 
 /***/ }),
-/* 172 */
+/* 171 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-module.exports = __webpack_require__(173);
+module.exports = __webpack_require__(172);
 
 /***/ }),
-/* 173 */
+/* 172 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"builtin":{"Array":false,"ArrayBuffer":false,"Atomics":false,"BigInt":false,"BigInt64Array":false,"BigUint64Array":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"globalThis":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"SharedArrayBuffer":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"es5":{"Array":false,"Boolean":false,"constructor":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"propertyIsEnumerable":false,"RangeError":false,"ReferenceError":false,"RegExp":false,"String":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false},"es2015":{"Array":false,"ArrayBuffer":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"es2017":{"Array":false,"ArrayBuffer":false,"Atomics":false,"Boolean":false,"constructor":false,"DataView":false,"Date":false,"decodeURI":false,"decodeURIComponent":false,"encodeURI":false,"encodeURIComponent":false,"Error":false,"escape":false,"eval":false,"EvalError":false,"Float32Array":false,"Float64Array":false,"Function":false,"hasOwnProperty":false,"Infinity":false,"Int16Array":false,"Int32Array":false,"Int8Array":false,"isFinite":false,"isNaN":false,"isPrototypeOf":false,"JSON":false,"Map":false,"Math":false,"NaN":false,"Number":false,"Object":false,"parseFloat":false,"parseInt":false,"Promise":false,"propertyIsEnumerable":false,"Proxy":false,"RangeError":false,"ReferenceError":false,"Reflect":false,"RegExp":false,"Set":false,"SharedArrayBuffer":false,"String":false,"Symbol":false,"SyntaxError":false,"toLocaleString":false,"toString":false,"TypeError":false,"Uint16Array":false,"Uint32Array":false,"Uint8Array":false,"Uint8ClampedArray":false,"undefined":false,"unescape":false,"URIError":false,"valueOf":false,"WeakMap":false,"WeakSet":false},"browser":{"AbortController":false,"AbortSignal":false,"addEventListener":false,"alert":false,"AnalyserNode":false,"Animation":false,"AnimationEffectReadOnly":false,"AnimationEffectTiming":false,"AnimationEffectTimingReadOnly":false,"AnimationEvent":false,"AnimationPlaybackEvent":false,"AnimationTimeline":false,"applicationCache":false,"ApplicationCache":false,"ApplicationCacheErrorEvent":false,"atob":false,"Attr":false,"Audio":false,"AudioBuffer":false,"AudioBufferSourceNode":false,"AudioContext":false,"AudioDestinationNode":false,"AudioListener":false,"AudioNode":false,"AudioParam":false,"AudioProcessingEvent":false,"AudioScheduledSourceNode":false,"AudioWorkletGlobalScope ":false,"AudioWorkletNode":false,"AudioWorkletProcessor":false,"BarProp":false,"BaseAudioContext":false,"BatteryManager":false,"BeforeUnloadEvent":false,"BiquadFilterNode":false,"Blob":false,"BlobEvent":false,"blur":false,"BroadcastChannel":false,"btoa":false,"BudgetService":false,"ByteLengthQueuingStrategy":false,"Cache":false,"caches":false,"CacheStorage":false,"cancelAnimationFrame":false,"cancelIdleCallback":false,"CanvasCaptureMediaStreamTrack":false,"CanvasGradient":false,"CanvasPattern":false,"CanvasRenderingContext2D":false,"ChannelMergerNode":false,"ChannelSplitterNode":false,"CharacterData":false,"clearInterval":false,"clearTimeout":false,"clientInformation":false,"ClipboardEvent":false,"close":false,"closed":false,"CloseEvent":false,"Comment":false,"CompositionEvent":false,"confirm":false,"console":false,"ConstantSourceNode":false,"ConvolverNode":false,"CountQueuingStrategy":false,"createImageBitmap":false,"Credential":false,"CredentialsContainer":false,"crypto":false,"Crypto":false,"CryptoKey":false,"CSS":false,"CSSConditionRule":false,"CSSFontFaceRule":false,"CSSGroupingRule":false,"CSSImportRule":false,"CSSKeyframeRule":false,"CSSKeyframesRule":false,"CSSMediaRule":false,"CSSNamespaceRule":false,"CSSPageRule":false,"CSSRule":false,"CSSRuleList":false,"CSSStyleDeclaration":false,"CSSStyleRule":false,"CSSStyleSheet":false,"CSSSupportsRule":false,"CustomElementRegistry":false,"customElements":false,"CustomEvent":false,"DataTransfer":false,"DataTransferItem":false,"DataTransferItemList":false,"defaultstatus":false,"defaultStatus":false,"DelayNode":false,"DeviceMotionEvent":false,"DeviceOrientationEvent":false,"devicePixelRatio":false,"dispatchEvent":false,"document":false,"Document":false,"DocumentFragment":false,"DocumentType":false,"DOMError":false,"DOMException":false,"DOMImplementation":false,"DOMMatrix":false,"DOMMatrixReadOnly":false,"DOMParser":false,"DOMPoint":false,"DOMPointReadOnly":false,"DOMQuad":false,"DOMRect":false,"DOMRectReadOnly":false,"DOMStringList":false,"DOMStringMap":false,"DOMTokenList":false,"DragEvent":false,"DynamicsCompressorNode":false,"Element":false,"ErrorEvent":false,"event":false,"Event":false,"EventSource":false,"EventTarget":false,"external":false,"fetch":false,"File":false,"FileList":false,"FileReader":false,"find":false,"focus":false,"FocusEvent":false,"FontFace":false,"FontFaceSetLoadEvent":false,"FormData":false,"frameElement":false,"frames":false,"GainNode":false,"Gamepad":false,"GamepadButton":false,"GamepadEvent":false,"getComputedStyle":false,"getSelection":false,"HashChangeEvent":false,"Headers":false,"history":false,"History":false,"HTMLAllCollection":false,"HTMLAnchorElement":false,"HTMLAreaElement":false,"HTMLAudioElement":false,"HTMLBaseElement":false,"HTMLBodyElement":false,"HTMLBRElement":false,"HTMLButtonElement":false,"HTMLCanvasElement":false,"HTMLCollection":false,"HTMLContentElement":false,"HTMLDataElement":false,"HTMLDataListElement":false,"HTMLDetailsElement":false,"HTMLDialogElement":false,"HTMLDirectoryElement":false,"HTMLDivElement":false,"HTMLDListElement":false,"HTMLDocument":false,"HTMLElement":false,"HTMLEmbedElement":false,"HTMLFieldSetElement":false,"HTMLFontElement":false,"HTMLFormControlsCollection":false,"HTMLFormElement":false,"HTMLFrameElement":false,"HTMLFrameSetElement":false,"HTMLHeadElement":false,"HTMLHeadingElement":false,"HTMLHRElement":false,"HTMLHtmlElement":false,"HTMLIFrameElement":false,"HTMLImageElement":false,"HTMLInputElement":false,"HTMLLabelElement":false,"HTMLLegendElement":false,"HTMLLIElement":false,"HTMLLinkElement":false,"HTMLMapElement":false,"HTMLMarqueeElement":false,"HTMLMediaElement":false,"HTMLMenuElement":false,"HTMLMetaElement":false,"HTMLMeterElement":false,"HTMLModElement":false,"HTMLObjectElement":false,"HTMLOListElement":false,"HTMLOptGroupElement":false,"HTMLOptionElement":false,"HTMLOptionsCollection":false,"HTMLOutputElement":false,"HTMLParagraphElement":false,"HTMLParamElement":false,"HTMLPictureElement":false,"HTMLPreElement":false,"HTMLProgressElement":false,"HTMLQuoteElement":false,"HTMLScriptElement":false,"HTMLSelectElement":false,"HTMLShadowElement":false,"HTMLSlotElement":false,"HTMLSourceElement":false,"HTMLSpanElement":false,"HTMLStyleElement":false,"HTMLTableCaptionElement":false,"HTMLTableCellElement":false,"HTMLTableColElement":false,"HTMLTableElement":false,"HTMLTableRowElement":false,"HTMLTableSectionElement":false,"HTMLTemplateElement":false,"HTMLTextAreaElement":false,"HTMLTimeElement":false,"HTMLTitleElement":false,"HTMLTrackElement":false,"HTMLUListElement":false,"HTMLUnknownElement":false,"HTMLVideoElement":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"IdleDeadline":false,"IIRFilterNode":false,"Image":false,"ImageBitmap":false,"ImageBitmapRenderingContext":false,"ImageCapture":false,"ImageData":false,"indexedDB":false,"innerHeight":false,"innerWidth":false,"InputEvent":false,"IntersectionObserver":false,"IntersectionObserverEntry":false,"Intl":false,"isSecureContext":false,"KeyboardEvent":false,"KeyframeEffect":false,"KeyframeEffectReadOnly":false,"length":false,"localStorage":false,"location":true,"Location":false,"locationbar":false,"matchMedia":false,"MediaDeviceInfo":false,"MediaDevices":false,"MediaElementAudioSourceNode":false,"MediaEncryptedEvent":false,"MediaError":false,"MediaKeyMessageEvent":false,"MediaKeySession":false,"MediaKeyStatusMap":false,"MediaKeySystemAccess":false,"MediaList":false,"MediaQueryList":false,"MediaQueryListEvent":false,"MediaRecorder":false,"MediaSettingsRange":false,"MediaSource":false,"MediaStream":false,"MediaStreamAudioDestinationNode":false,"MediaStreamAudioSourceNode":false,"MediaStreamEvent":false,"MediaStreamTrack":false,"MediaStreamTrackEvent":false,"menubar":false,"MessageChannel":false,"MessageEvent":false,"MessagePort":false,"MIDIAccess":false,"MIDIConnectionEvent":false,"MIDIInput":false,"MIDIInputMap":false,"MIDIMessageEvent":false,"MIDIOutput":false,"MIDIOutputMap":false,"MIDIPort":false,"MimeType":false,"MimeTypeArray":false,"MouseEvent":false,"moveBy":false,"moveTo":false,"MutationEvent":false,"MutationObserver":false,"MutationRecord":false,"name":false,"NamedNodeMap":false,"NavigationPreloadManager":false,"navigator":false,"Navigator":false,"NetworkInformation":false,"Node":false,"NodeFilter":false,"NodeIterator":false,"NodeList":false,"Notification":false,"OfflineAudioCompletionEvent":false,"OfflineAudioContext":false,"offscreenBuffering":false,"OffscreenCanvas":true,"onabort":true,"onafterprint":true,"onanimationend":true,"onanimationiteration":true,"onanimationstart":true,"onappinstalled":true,"onauxclick":true,"onbeforeinstallprompt":true,"onbeforeprint":true,"onbeforeunload":true,"onblur":true,"oncancel":true,"oncanplay":true,"oncanplaythrough":true,"onchange":true,"onclick":true,"onclose":true,"oncontextmenu":true,"oncuechange":true,"ondblclick":true,"ondevicemotion":true,"ondeviceorientation":true,"ondeviceorientationabsolute":true,"ondrag":true,"ondragend":true,"ondragenter":true,"ondragleave":true,"ondragover":true,"ondragstart":true,"ondrop":true,"ondurationchange":true,"onemptied":true,"onended":true,"onerror":true,"onfocus":true,"ongotpointercapture":true,"onhashchange":true,"oninput":true,"oninvalid":true,"onkeydown":true,"onkeypress":true,"onkeyup":true,"onlanguagechange":true,"onload":true,"onloadeddata":true,"onloadedmetadata":true,"onloadstart":true,"onlostpointercapture":true,"onmessage":true,"onmessageerror":true,"onmousedown":true,"onmouseenter":true,"onmouseleave":true,"onmousemove":true,"onmouseout":true,"onmouseover":true,"onmouseup":true,"onmousewheel":true,"onoffline":true,"ononline":true,"onpagehide":true,"onpageshow":true,"onpause":true,"onplay":true,"onplaying":true,"onpointercancel":true,"onpointerdown":true,"onpointerenter":true,"onpointerleave":true,"onpointermove":true,"onpointerout":true,"onpointerover":true,"onpointerup":true,"onpopstate":true,"onprogress":true,"onratechange":true,"onrejectionhandled":true,"onreset":true,"onresize":true,"onscroll":true,"onsearch":true,"onseeked":true,"onseeking":true,"onselect":true,"onstalled":true,"onstorage":true,"onsubmit":true,"onsuspend":true,"ontimeupdate":true,"ontoggle":true,"ontransitionend":true,"onunhandledrejection":true,"onunload":true,"onvolumechange":true,"onwaiting":true,"onwheel":true,"open":false,"openDatabase":false,"opener":false,"Option":false,"origin":false,"OscillatorNode":false,"outerHeight":false,"outerWidth":false,"PageTransitionEvent":false,"pageXOffset":false,"pageYOffset":false,"PannerNode":false,"parent":false,"Path2D":false,"PaymentAddress":false,"PaymentRequest":false,"PaymentRequestUpdateEvent":false,"PaymentResponse":false,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceLongTaskTiming":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceNavigationTiming":false,"PerformanceObserver":false,"PerformanceObserverEntryList":false,"PerformancePaintTiming":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"PeriodicWave":false,"Permissions":false,"PermissionStatus":false,"personalbar":false,"PhotoCapabilities":false,"Plugin":false,"PluginArray":false,"PointerEvent":false,"PopStateEvent":false,"postMessage":false,"Presentation":false,"PresentationAvailability":false,"PresentationConnection":false,"PresentationConnectionAvailableEvent":false,"PresentationConnectionCloseEvent":false,"PresentationConnectionList":false,"PresentationReceiver":false,"PresentationRequest":false,"print":false,"ProcessingInstruction":false,"ProgressEvent":false,"PromiseRejectionEvent":false,"prompt":false,"PushManager":false,"PushSubscription":false,"PushSubscriptionOptions":false,"queueMicrotask":false,"RadioNodeList":false,"Range":false,"ReadableStream":false,"registerProcessor":false,"RemotePlayback":false,"removeEventListener":false,"Request":false,"requestAnimationFrame":false,"requestIdleCallback":false,"resizeBy":false,"ResizeObserver":false,"ResizeObserverEntry":false,"resizeTo":false,"Response":false,"RTCCertificate":false,"RTCDataChannel":false,"RTCDataChannelEvent":false,"RTCDtlsTransport":false,"RTCIceCandidate":false,"RTCIceGatherer":false,"RTCIceTransport":false,"RTCPeerConnection":false,"RTCPeerConnectionIceEvent":false,"RTCRtpContributingSource":false,"RTCRtpReceiver":false,"RTCRtpSender":false,"RTCSctpTransport":false,"RTCSessionDescription":false,"RTCStatsReport":false,"RTCTrackEvent":false,"screen":false,"Screen":false,"screenLeft":false,"ScreenOrientation":false,"screenTop":false,"screenX":false,"screenY":false,"ScriptProcessorNode":false,"scroll":false,"scrollbars":false,"scrollBy":false,"scrollTo":false,"scrollX":false,"scrollY":false,"SecurityPolicyViolationEvent":false,"Selection":false,"self":false,"ServiceWorker":false,"ServiceWorkerContainer":false,"ServiceWorkerRegistration":false,"sessionStorage":false,"setInterval":false,"setTimeout":false,"ShadowRoot":false,"SharedWorker":false,"SourceBuffer":false,"SourceBufferList":false,"speechSynthesis":false,"SpeechSynthesisEvent":false,"SpeechSynthesisUtterance":false,"StaticRange":false,"status":false,"statusbar":false,"StereoPannerNode":false,"stop":false,"Storage":false,"StorageEvent":false,"StorageManager":false,"styleMedia":false,"StyleSheet":false,"StyleSheetList":false,"SubtleCrypto":false,"SVGAElement":false,"SVGAngle":false,"SVGAnimatedAngle":false,"SVGAnimatedBoolean":false,"SVGAnimatedEnumeration":false,"SVGAnimatedInteger":false,"SVGAnimatedLength":false,"SVGAnimatedLengthList":false,"SVGAnimatedNumber":false,"SVGAnimatedNumberList":false,"SVGAnimatedPreserveAspectRatio":false,"SVGAnimatedRect":false,"SVGAnimatedString":false,"SVGAnimatedTransformList":false,"SVGAnimateElement":false,"SVGAnimateMotionElement":false,"SVGAnimateTransformElement":false,"SVGAnimationElement":false,"SVGCircleElement":false,"SVGClipPathElement":false,"SVGComponentTransferFunctionElement":false,"SVGDefsElement":false,"SVGDescElement":false,"SVGDiscardElement":false,"SVGElement":false,"SVGEllipseElement":false,"SVGFEBlendElement":false,"SVGFEColorMatrixElement":false,"SVGFEComponentTransferElement":false,"SVGFECompositeElement":false,"SVGFEConvolveMatrixElement":false,"SVGFEDiffuseLightingElement":false,"SVGFEDisplacementMapElement":false,"SVGFEDistantLightElement":false,"SVGFEDropShadowElement":false,"SVGFEFloodElement":false,"SVGFEFuncAElement":false,"SVGFEFuncBElement":false,"SVGFEFuncGElement":false,"SVGFEFuncRElement":false,"SVGFEGaussianBlurElement":false,"SVGFEImageElement":false,"SVGFEMergeElement":false,"SVGFEMergeNodeElement":false,"SVGFEMorphologyElement":false,"SVGFEOffsetElement":false,"SVGFEPointLightElement":false,"SVGFESpecularLightingElement":false,"SVGFESpotLightElement":false,"SVGFETileElement":false,"SVGFETurbulenceElement":false,"SVGFilterElement":false,"SVGForeignObjectElement":false,"SVGGElement":false,"SVGGeometryElement":false,"SVGGradientElement":false,"SVGGraphicsElement":false,"SVGImageElement":false,"SVGLength":false,"SVGLengthList":false,"SVGLinearGradientElement":false,"SVGLineElement":false,"SVGMarkerElement":false,"SVGMaskElement":false,"SVGMatrix":false,"SVGMetadataElement":false,"SVGMPathElement":false,"SVGNumber":false,"SVGNumberList":false,"SVGPathElement":false,"SVGPatternElement":false,"SVGPoint":false,"SVGPointList":false,"SVGPolygonElement":false,"SVGPolylineElement":false,"SVGPreserveAspectRatio":false,"SVGRadialGradientElement":false,"SVGRect":false,"SVGRectElement":false,"SVGScriptElement":false,"SVGSetElement":false,"SVGStopElement":false,"SVGStringList":false,"SVGStyleElement":false,"SVGSVGElement":false,"SVGSwitchElement":false,"SVGSymbolElement":false,"SVGTextContentElement":false,"SVGTextElement":false,"SVGTextPathElement":false,"SVGTextPositioningElement":false,"SVGTitleElement":false,"SVGTransform":false,"SVGTransformList":false,"SVGTSpanElement":false,"SVGUnitTypes":false,"SVGUseElement":false,"SVGViewElement":false,"TaskAttributionTiming":false,"Text":false,"TextDecoder":false,"TextEncoder":false,"TextEvent":false,"TextMetrics":false,"TextTrack":false,"TextTrackCue":false,"TextTrackCueList":false,"TextTrackList":false,"TimeRanges":false,"toolbar":false,"top":false,"Touch":false,"TouchEvent":false,"TouchList":false,"TrackEvent":false,"TransitionEvent":false,"TreeWalker":false,"UIEvent":false,"URL":false,"URLSearchParams":false,"ValidityState":false,"visualViewport":false,"VisualViewport":false,"VTTCue":false,"WaveShaperNode":false,"WebAssembly":false,"WebGL2RenderingContext":false,"WebGLActiveInfo":false,"WebGLBuffer":false,"WebGLContextEvent":false,"WebGLFramebuffer":false,"WebGLProgram":false,"WebGLQuery":false,"WebGLRenderbuffer":false,"WebGLRenderingContext":false,"WebGLSampler":false,"WebGLShader":false,"WebGLShaderPrecisionFormat":false,"WebGLSync":false,"WebGLTexture":false,"WebGLTransformFeedback":false,"WebGLUniformLocation":false,"WebGLVertexArrayObject":false,"WebSocket":false,"WheelEvent":false,"window":false,"Window":false,"Worker":false,"WritableStream":false,"XMLDocument":false,"XMLHttpRequest":false,"XMLHttpRequestEventTarget":false,"XMLHttpRequestUpload":false,"XMLSerializer":false,"XPathEvaluator":false,"XPathExpression":false,"XPathResult":false,"XSLTProcessor":false},"worker":{"addEventListener":false,"applicationCache":false,"atob":false,"Blob":false,"BroadcastChannel":false,"btoa":false,"Cache":false,"caches":false,"clearInterval":false,"clearTimeout":false,"close":true,"console":false,"fetch":false,"FileReaderSync":false,"FormData":false,"Headers":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"ImageData":false,"importScripts":true,"indexedDB":false,"location":false,"MessageChannel":false,"MessagePort":false,"name":false,"navigator":false,"Notification":false,"onclose":true,"onconnect":true,"onerror":true,"onlanguagechange":true,"onmessage":true,"onoffline":true,"ononline":true,"onrejectionhandled":true,"onunhandledrejection":true,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"postMessage":true,"Promise":false,"queueMicrotask":false,"removeEventListener":false,"Request":false,"Response":false,"self":true,"ServiceWorkerRegistration":false,"setInterval":false,"setTimeout":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false,"WebSocket":false,"Worker":false,"WorkerGlobalScope":false,"XMLHttpRequest":false},"node":{"__dirname":false,"__filename":false,"Buffer":false,"clearImmediate":false,"clearInterval":false,"clearTimeout":false,"console":false,"exports":true,"global":false,"Intl":false,"module":false,"process":false,"queueMicrotask":false,"require":false,"setImmediate":false,"setInterval":false,"setTimeout":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false},"commonjs":{"exports":true,"global":false,"module":false,"require":false},"amd":{"define":false,"require":false},"mocha":{"after":false,"afterEach":false,"before":false,"beforeEach":false,"context":false,"describe":false,"it":false,"mocha":false,"run":false,"setup":false,"specify":false,"suite":false,"suiteSetup":false,"suiteTeardown":false,"teardown":false,"test":false,"xcontext":false,"xdescribe":false,"xit":false,"xspecify":false},"jasmine":{"afterAll":false,"afterEach":false,"beforeAll":false,"beforeEach":false,"describe":false,"expect":false,"fail":false,"fdescribe":false,"fit":false,"it":false,"jasmine":false,"pending":false,"runs":false,"spyOn":false,"spyOnProperty":false,"waits":false,"waitsFor":false,"xdescribe":false,"xit":false},"jest":{"afterAll":false,"afterEach":false,"beforeAll":false,"beforeEach":false,"describe":false,"expect":false,"fdescribe":false,"fit":false,"it":false,"jest":false,"pit":false,"require":false,"test":false,"xdescribe":false,"xit":false,"xtest":false},"qunit":{"asyncTest":false,"deepEqual":false,"equal":false,"expect":false,"module":false,"notDeepEqual":false,"notEqual":false,"notOk":false,"notPropEqual":false,"notStrictEqual":false,"ok":false,"propEqual":false,"QUnit":false,"raises":false,"start":false,"stop":false,"strictEqual":false,"test":false,"throws":false},"phantomjs":{"console":true,"exports":true,"phantom":true,"require":true,"WebPage":true},"couch":{"emit":false,"exports":false,"getRow":false,"log":false,"module":false,"provides":false,"require":false,"respond":false,"send":false,"start":false,"sum":false},"rhino":{"defineClass":false,"deserialize":false,"gc":false,"help":false,"importClass":false,"importPackage":false,"java":false,"load":false,"loadClass":false,"Packages":false,"print":false,"quit":false,"readFile":false,"readUrl":false,"runCommand":false,"seal":false,"serialize":false,"spawn":false,"sync":false,"toint32":false,"version":false},"nashorn":{"__DIR__":false,"__FILE__":false,"__LINE__":false,"com":false,"edu":false,"exit":false,"java":false,"Java":false,"javafx":false,"JavaImporter":false,"javax":false,"JSAdapter":false,"load":false,"loadWithNewGlobal":false,"org":false,"Packages":false,"print":false,"quit":false},"wsh":{"ActiveXObject":true,"Enumerator":true,"GetObject":true,"ScriptEngine":true,"ScriptEngineBuildVersion":true,"ScriptEngineMajorVersion":true,"ScriptEngineMinorVersion":true,"VBArray":true,"WScript":true,"WSH":true,"XDomainRequest":true},"jquery":{"$":false,"jQuery":false},"yui":{"YAHOO":false,"YAHOO_config":false,"YUI":false,"YUI_config":false},"shelljs":{"cat":false,"cd":false,"chmod":false,"config":false,"cp":false,"dirs":false,"echo":false,"env":false,"error":false,"exec":false,"exit":false,"find":false,"grep":false,"ln":false,"ls":false,"mkdir":false,"mv":false,"popd":false,"pushd":false,"pwd":false,"rm":false,"sed":false,"set":false,"target":false,"tempdir":false,"test":false,"touch":false,"which":false},"prototypejs":{"$":false,"$$":false,"$A":false,"$break":false,"$continue":false,"$F":false,"$H":false,"$R":false,"$w":false,"Abstract":false,"Ajax":false,"Autocompleter":false,"Builder":false,"Class":false,"Control":false,"Draggable":false,"Draggables":false,"Droppables":false,"Effect":false,"Element":false,"Enumerable":false,"Event":false,"Field":false,"Form":false,"Hash":false,"Insertion":false,"ObjectRange":false,"PeriodicalExecuter":false,"Position":false,"Prototype":false,"Scriptaculous":false,"Selector":false,"Sortable":false,"SortableObserver":false,"Sound":false,"Template":false,"Toggle":false,"Try":false},"meteor":{"_":false,"$":false,"Accounts":false,"AccountsClient":false,"AccountsCommon":false,"AccountsServer":false,"App":false,"Assets":false,"Blaze":false,"check":false,"Cordova":false,"DDP":false,"DDPRateLimiter":false,"DDPServer":false,"Deps":false,"EJSON":false,"Email":false,"HTTP":false,"Log":false,"Match":false,"Meteor":false,"Mongo":false,"MongoInternals":false,"Npm":false,"Package":false,"Plugin":false,"process":false,"Random":false,"ReactiveDict":false,"ReactiveVar":false,"Router":false,"ServiceConfiguration":false,"Session":false,"share":false,"Spacebars":false,"Template":false,"Tinytest":false,"Tracker":false,"UI":false,"Utils":false,"WebApp":false,"WebAppInternals":false},"mongo":{"_isWindows":false,"_rand":false,"BulkWriteResult":false,"cat":false,"cd":false,"connect":false,"db":false,"getHostName":false,"getMemInfo":false,"hostname":false,"ISODate":false,"listFiles":false,"load":false,"ls":false,"md5sumFile":false,"mkdir":false,"Mongo":false,"NumberInt":false,"NumberLong":false,"ObjectId":false,"PlanCache":false,"print":false,"printjson":false,"pwd":false,"quit":false,"removeFile":false,"rs":false,"sh":false,"UUID":false,"version":false,"WriteResult":false},"applescript":{"$":false,"Application":false,"Automation":false,"console":false,"delay":false,"Library":false,"ObjC":false,"ObjectSpecifier":false,"Path":false,"Progress":false,"Ref":false},"serviceworker":{"addEventListener":false,"applicationCache":false,"atob":false,"Blob":false,"BroadcastChannel":false,"btoa":false,"Cache":false,"caches":false,"CacheStorage":false,"clearInterval":false,"clearTimeout":false,"Client":false,"clients":false,"Clients":false,"close":true,"console":false,"ExtendableEvent":false,"ExtendableMessageEvent":false,"fetch":false,"FetchEvent":false,"FileReaderSync":false,"FormData":false,"Headers":false,"IDBCursor":false,"IDBCursorWithValue":false,"IDBDatabase":false,"IDBFactory":false,"IDBIndex":false,"IDBKeyRange":false,"IDBObjectStore":false,"IDBOpenDBRequest":false,"IDBRequest":false,"IDBTransaction":false,"IDBVersionChangeEvent":false,"ImageData":false,"importScripts":false,"indexedDB":false,"location":false,"MessageChannel":false,"MessagePort":false,"name":false,"navigator":false,"Notification":false,"onclose":true,"onconnect":true,"onerror":true,"onfetch":true,"oninstall":true,"onlanguagechange":true,"onmessage":true,"onmessageerror":true,"onnotificationclick":true,"onnotificationclose":true,"onoffline":true,"ononline":true,"onpush":true,"onpushsubscriptionchange":true,"onrejectionhandled":true,"onsync":true,"onunhandledrejection":true,"performance":false,"Performance":false,"PerformanceEntry":false,"PerformanceMark":false,"PerformanceMeasure":false,"PerformanceNavigation":false,"PerformanceResourceTiming":false,"PerformanceTiming":false,"postMessage":true,"Promise":false,"queueMicrotask":false,"registration":false,"removeEventListener":false,"Request":false,"Response":false,"self":false,"ServiceWorker":false,"ServiceWorkerContainer":false,"ServiceWorkerGlobalScope":false,"ServiceWorkerMessageEvent":false,"ServiceWorkerRegistration":false,"setInterval":false,"setTimeout":false,"skipWaiting":false,"TextDecoder":false,"TextEncoder":false,"URL":false,"URLSearchParams":false,"WebSocket":false,"WindowClient":false,"Worker":false,"WorkerGlobalScope":false,"XMLHttpRequest":false},"atomtest":{"advanceClock":false,"fakeClearInterval":false,"fakeClearTimeout":false,"fakeSetInterval":false,"fakeSetTimeout":false,"resetTimeouts":false,"waitsForPromise":false},"embertest":{"andThen":false,"click":false,"currentPath":false,"currentRouteName":false,"currentURL":false,"fillIn":false,"find":false,"findAll":false,"findWithAssert":false,"keyEvent":false,"pauseTest":false,"resumeTest":false,"triggerEvent":false,"visit":false,"wait":false},"protractor":{"$":false,"$$":false,"browser":false,"by":false,"By":false,"DartObject":false,"element":false,"protractor":false},"shared-node-browser":{"clearInterval":false,"clearTimeout":false,"console":false,"setInterval":false,"setTimeout":false,"URL":false,"URLSearchParams":false},"webextensions":{"browser":false,"chrome":false,"opr":false},"greasemonkey":{"cloneInto":false,"createObjectIn":false,"exportFunction":false,"GM":false,"GM_addStyle":false,"GM_deleteValue":false,"GM_getResourceText":false,"GM_getResourceURL":false,"GM_getValue":false,"GM_info":false,"GM_listValues":false,"GM_log":false,"GM_openInTab":false,"GM_registerMenuCommand":false,"GM_setClipboard":false,"GM_setValue":false,"GM_xmlhttpRequest":false,"unsafeWindow":false},"devtools":{"$":false,"$_":false,"$$":false,"$0":false,"$1":false,"$2":false,"$3":false,"$4":false,"$x":false,"chrome":false,"clear":false,"copy":false,"debug":false,"dir":false,"dirxml":false,"getEventListeners":false,"inspect":false,"keys":false,"monitor":false,"monitorEvents":false,"profile":false,"profileEnd":false,"queryObjects":false,"table":false,"undebug":false,"unmonitor":false,"unmonitorEvents":false,"values":false}}');
 
 /***/ }),
-/* 174 */
+/* 173 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -41351,8 +40616,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.CodeGenerator = void 0;
 exports["default"] = generate;
-var _sourceMap = __webpack_require__(175);
-var _printer = __webpack_require__(184);
+var _sourceMap = __webpack_require__(174);
+var _printer = __webpack_require__(183);
 class Generator extends _printer.default {
   constructor(ast) {
     let opts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -41428,7 +40693,7 @@ function generate(ast, opts, code) {
 }
 
 /***/ }),
-/* 175 */
+/* 174 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -41438,7 +40703,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-var _genMapping = __webpack_require__(176);
+var _genMapping = __webpack_require__(175);
 class SourceMap {
   constructor(opts, code) {
     var _opts$sourceFileName;
@@ -41486,11 +40751,11 @@ class SourceMap {
 exports["default"] = SourceMap;
 
 /***/ }),
-/* 176 */
+/* 175 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 (function (global, factory) {
-   true ? factory(exports, __webpack_require__(177), __webpack_require__(178), __webpack_require__(182)) : 0;
+   true ? factory(exports, __webpack_require__(176), __webpack_require__(177), __webpack_require__(181)) : 0;
 })(this, function (exports, setArray, sourcemapCodec, traceMapping) {
   'use strict';
 
@@ -41755,7 +41020,7 @@ exports["default"] = SourceMap;
 });
 
 /***/ }),
-/* 177 */
+/* 176 */
 /***/ (function(__unused_webpack_module, exports) {
 
 (function (global, factory) {
@@ -41821,10 +41086,10 @@ exports["default"] = SourceMap;
 });
 
 /***/ }),
-/* 178 */
+/* 177 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
-/* provided dependency */ var Buffer = __webpack_require__(179);
+/* provided dependency */ var Buffer = __webpack_require__(178);
 (function (global, factory) {
    true ? factory(exports) : 0;
 })(this, function (exports) {
@@ -41986,7 +41251,7 @@ exports["default"] = SourceMap;
 });
 
 /***/ }),
-/* 179 */
+/* 178 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -42000,8 +41265,8 @@ exports["default"] = SourceMap;
 
 
 
-const base64 = __webpack_require__(180);
-const ieee754 = __webpack_require__(181);
+const base64 = __webpack_require__(179);
+const ieee754 = __webpack_require__(180);
 const customInspectSymbol = typeof Symbol === 'function' && typeof Symbol['for'] === 'function' // eslint-disable-line dot-notation
 ? Symbol['for']('nodejs.util.inspect.custom') // eslint-disable-line dot-notation
 : null;
@@ -43732,7 +42997,7 @@ function BufferBigIntNotDefined() {
 }
 
 /***/ }),
-/* 180 */
+/* 179 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -43842,7 +43107,7 @@ function fromByteArray(uint8) {
 }
 
 /***/ }),
-/* 181 */
+/* 180 */
 /***/ ((__unused_webpack_module, exports) => {
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
@@ -43921,11 +43186,11 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 };
 
 /***/ }),
-/* 182 */
+/* 181 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 (function (global, factory) {
-   true ? factory(exports, __webpack_require__(178), __webpack_require__(183)) : 0;
+   true ? factory(exports, __webpack_require__(177), __webpack_require__(182)) : 0;
 })(this, function (exports, sourcemapCodec, resolveUri) {
   'use strict';
 
@@ -44463,7 +43728,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 });
 
 /***/ }),
-/* 183 */
+/* 182 */
 /***/ (function(module) {
 
 (function (global, factory) {
@@ -44661,7 +43926,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 });
 
 /***/ }),
-/* 184 */
+/* 183 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -44671,10 +43936,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = void 0;
-var _buffer = __webpack_require__(185);
-var n = __webpack_require__(186);
+var _buffer = __webpack_require__(184);
+var n = __webpack_require__(185);
 var _t = __webpack_require__(4);
-var generatorFunctions = __webpack_require__(189);
+var generatorFunctions = __webpack_require__(188);
 const {
   isProgram,
   isFile,
@@ -45087,7 +44352,7 @@ function commaSeparator() {
 }
 
 /***/ }),
-/* 185 */
+/* 184 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -45295,7 +44560,7 @@ class Buffer {
 exports["default"] = Buffer;
 
 /***/ }),
-/* 186 */
+/* 185 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45308,8 +44573,8 @@ exports.needsParens = needsParens;
 exports.needsWhitespace = needsWhitespace;
 exports.needsWhitespaceAfter = needsWhitespaceAfter;
 exports.needsWhitespaceBefore = needsWhitespaceBefore;
-var whitespace = __webpack_require__(187);
-var parens = __webpack_require__(188);
+var whitespace = __webpack_require__(186);
+var parens = __webpack_require__(187);
 var _t = __webpack_require__(4);
 const {
   FLIPPED_ALIAS_KEYS,
@@ -45387,7 +44652,7 @@ function needsParens(node, parent, printStack) {
 }
 
 /***/ }),
-/* 187 */
+/* 186 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45579,7 +44844,7 @@ exports.list = list;
 });
 
 /***/ }),
-/* 188 */
+/* 187 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45900,7 +45165,7 @@ function isFirstInContext(printStack, _ref) {
 }
 
 /***/ }),
-/* 189 */
+/* 188 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -45909,7 +45174,7 @@ function isFirstInContext(printStack, _ref) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-var _templateLiterals = __webpack_require__(190);
+var _templateLiterals = __webpack_require__(189);
 Object.keys(_templateLiterals).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _templateLiterals[key]) return;
@@ -45920,7 +45185,7 @@ Object.keys(_templateLiterals).forEach(function (key) {
     }
   });
 });
-var _expressions = __webpack_require__(191);
+var _expressions = __webpack_require__(190);
 Object.keys(_expressions).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _expressions[key]) return;
@@ -45931,7 +45196,7 @@ Object.keys(_expressions).forEach(function (key) {
     }
   });
 });
-var _statements = __webpack_require__(192);
+var _statements = __webpack_require__(191);
 Object.keys(_statements).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _statements[key]) return;
@@ -45942,7 +45207,7 @@ Object.keys(_statements).forEach(function (key) {
     }
   });
 });
-var _classes = __webpack_require__(193);
+var _classes = __webpack_require__(192);
 Object.keys(_classes).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _classes[key]) return;
@@ -45953,7 +45218,7 @@ Object.keys(_classes).forEach(function (key) {
     }
   });
 });
-var _methods = __webpack_require__(194);
+var _methods = __webpack_require__(193);
 Object.keys(_methods).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _methods[key]) return;
@@ -45964,7 +45229,7 @@ Object.keys(_methods).forEach(function (key) {
     }
   });
 });
-var _modules = __webpack_require__(195);
+var _modules = __webpack_require__(194);
 Object.keys(_modules).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _modules[key]) return;
@@ -45975,7 +45240,7 @@ Object.keys(_modules).forEach(function (key) {
     }
   });
 });
-var _types = __webpack_require__(196);
+var _types = __webpack_require__(195);
 Object.keys(_types).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _types[key]) return;
@@ -45986,7 +45251,7 @@ Object.keys(_types).forEach(function (key) {
     }
   });
 });
-var _flow = __webpack_require__(198);
+var _flow = __webpack_require__(197);
 Object.keys(_flow).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _flow[key]) return;
@@ -45997,7 +45262,7 @@ Object.keys(_flow).forEach(function (key) {
     }
   });
 });
-var _base = __webpack_require__(199);
+var _base = __webpack_require__(198);
 Object.keys(_base).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _base[key]) return;
@@ -46008,7 +45273,7 @@ Object.keys(_base).forEach(function (key) {
     }
   });
 });
-var _jsx = __webpack_require__(200);
+var _jsx = __webpack_require__(199);
 Object.keys(_jsx).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _jsx[key]) return;
@@ -46019,7 +45284,7 @@ Object.keys(_jsx).forEach(function (key) {
     }
   });
 });
-var _typescript = __webpack_require__(201);
+var _typescript = __webpack_require__(200);
 Object.keys(_typescript).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
   if (key in exports && exports[key] === _typescript[key]) return;
@@ -46032,7 +45297,7 @@ Object.keys(_typescript).forEach(function (key) {
 });
 
 /***/ }),
-/* 190 */
+/* 189 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -46066,7 +45331,7 @@ function TemplateLiteral(node) {
 }
 
 /***/ }),
-/* 191 */
+/* 190 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46102,7 +45367,7 @@ exports.UpdateExpression = UpdateExpression;
 exports.V8IntrinsicIdentifier = V8IntrinsicIdentifier;
 exports.YieldExpression = void 0;
 var _t = __webpack_require__(4);
-var n = __webpack_require__(186);
+var n = __webpack_require__(185);
 const {
   isCallExpression,
   isLiteral,
@@ -46363,7 +45628,7 @@ function ModuleExpression(node) {
 }
 
 /***/ }),
-/* 192 */
+/* 191 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46650,7 +45915,7 @@ function VariableDeclarator(node) {
 }
 
 /***/ }),
-/* 193 */
+/* 192 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46827,7 +46092,7 @@ function StaticBlock(node) {
 }
 
 /***/ }),
-/* 194 */
+/* 193 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46951,7 +46216,7 @@ function hasTypesOrComments(node, param) {
 }
 
 /***/ }),
-/* 195 */
+/* 194 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -47161,7 +46426,7 @@ function ImportNamespaceSpecifier(node) {
 }
 
 /***/ }),
-/* 196 */
+/* 195 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -47191,7 +46456,7 @@ exports.StringLiteral = StringLiteral;
 exports.TopicReference = TopicReference;
 exports.TupleExpression = TupleExpression;
 var _t = __webpack_require__(4);
-var _jsesc = __webpack_require__(197);
+var _jsesc = __webpack_require__(196);
 const {
   isAssignmentPattern,
   isIdentifier
@@ -47390,11 +46655,11 @@ function PipelinePrimaryTopicReference() {
 }
 
 /***/ }),
-/* 197 */
+/* 196 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-/* provided dependency */ var Buffer = __webpack_require__(179);
+/* provided dependency */ var Buffer = __webpack_require__(178);
 
 
 const object = {};
@@ -47693,7 +46958,7 @@ jsesc.version = '2.5.2';
 module.exports = jsesc;
 
 /***/ }),
-/* 198 */
+/* 197 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -47777,8 +47042,8 @@ exports.VoidTypeAnnotation = VoidTypeAnnotation;
 exports._interfaceish = _interfaceish;
 exports._variance = _variance;
 var _t = __webpack_require__(4);
-var _modules = __webpack_require__(195);
-var _types2 = __webpack_require__(196);
+var _modules = __webpack_require__(194);
+var _types2 = __webpack_require__(195);
 const {
   isDeclareExportDeclaration,
   isStatement
@@ -48357,7 +47622,7 @@ function OptionalIndexedAccessType(node) {
 }
 
 /***/ }),
-/* 199 */
+/* 198 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -48444,7 +47709,7 @@ function Placeholder(node) {
 }
 
 /***/ }),
-/* 200 */
+/* 199 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -48571,7 +47836,7 @@ function JSXClosingFragment() {
 }
 
 /***/ }),
-/* 201 */
+/* 200 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -49269,7 +48534,7 @@ function tsPrintClassMemberModifiers(node, isField) {
 }
 
 /***/ }),
-/* 202 */
+/* 201 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49289,7 +48554,7 @@ exports.inType = inType;
 exports.isAncestor = isAncestor;
 exports.isDescendant = isDescendant;
 var _t = __webpack_require__(4);
-var _index = __webpack_require__(163);
+var _index = __webpack_require__(162);
 const {
   VISITOR_KEYS
 } = _t;
@@ -49418,7 +48683,7 @@ function inType() {
 }
 
 /***/ }),
-/* 203 */
+/* 202 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49433,7 +48698,7 @@ exports.couldBeBaseType = couldBeBaseType;
 exports.getTypeAnnotation = getTypeAnnotation;
 exports.isBaseType = isBaseType;
 exports.isGenericType = isGenericType;
-var inferers = __webpack_require__(204);
+var inferers = __webpack_require__(203);
 var _t = __webpack_require__(4);
 const {
   anyTypeAnnotation,
@@ -49557,7 +48822,7 @@ function isGenericType(genericName) {
 }
 
 /***/ }),
-/* 204 */
+/* 203 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49596,7 +48861,7 @@ exports.UnaryExpression = UnaryExpression;
 exports.UpdateExpression = UpdateExpression;
 exports.VariableDeclarator = VariableDeclarator;
 var _t = __webpack_require__(4);
-var _infererReference = __webpack_require__(205);
+var _infererReference = __webpack_require__(204);
 const {
   BOOLEAN_BINARY_OPERATORS,
   BOOLEAN_UNARY_OPERATORS,
@@ -49777,7 +49042,7 @@ function resolveCall(callee) {
 }
 
 /***/ }),
-/* 205 */
+/* 204 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49953,7 +49218,7 @@ function getConditionalAnnotation(binding, path, name) {
 }
 
 /***/ }),
-/* 206 */
+/* 205 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -49968,13 +49233,13 @@ exports.replaceInline = replaceInline;
 exports.replaceWith = replaceWith;
 exports.replaceWithMultiple = replaceWithMultiple;
 exports.replaceWithSourceString = replaceWithSourceString;
-var _codeFrame = __webpack_require__(207);
-var _index = __webpack_require__(157);
-var _index2 = __webpack_require__(163);
-var _cache = __webpack_require__(160);
-var _parser = __webpack_require__(156);
+var _codeFrame = __webpack_require__(206);
+var _index = __webpack_require__(156);
+var _index2 = __webpack_require__(162);
+var _cache = __webpack_require__(159);
+var _parser = __webpack_require__(155);
 var _t = __webpack_require__(4);
-var _helperHoistVariables = __webpack_require__(219);
+var _helperHoistVariables = __webpack_require__(218);
 const {
   FUNCTION_TYPES,
   arrowFunctionExpression,
@@ -50163,7 +49428,7 @@ function replaceInline(nodes) {
 }
 
 /***/ }),
-/* 207 */
+/* 206 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -50175,7 +49440,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.codeFrameColumns = codeFrameColumns;
 exports["default"] = _default;
-var _highlight = __webpack_require__(208);
+var _highlight = __webpack_require__(207);
 let deprecationWarningShown = false;
 function getDefs(chalk) {
   return {
@@ -50312,7 +49577,7 @@ function _default(rawLines, lineNumber, colNumber) {
 }
 
 /***/ }),
-/* 208 */
+/* 207 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -50324,9 +49589,9 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = highlight;
 exports.getChalk = getChalk;
 exports.shouldHighlight = shouldHighlight;
-var _jsTokens = __webpack_require__(209);
+var _jsTokens = __webpack_require__(208);
 var _helperValidatorIdentifier = __webpack_require__(23);
-var _chalk = __webpack_require__(210);
+var _chalk = __webpack_require__(209);
 const sometimesKeywords = new Set(["as", "async", "from", "get", "of", "set"]);
 function getDefs(chalk) {
   return {
@@ -50413,7 +49678,7 @@ function highlight(code) {
 }
 
 /***/ }),
-/* 209 */
+/* 208 */
 /***/ ((__unused_webpack_module, exports) => {
 
 // Copyright 2014, 2015, 2016, 2017, 2018 Simon Lydell
@@ -50437,17 +49702,17 @@ exports.matchToToken = function (match) {
 };
 
 /***/ }),
-/* 210 */
+/* 209 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 /* provided dependency */ var process = __webpack_require__(28);
 
 
-const escapeStringRegexp = __webpack_require__(211);
-const ansiStyles = __webpack_require__(212);
-const stdoutColor = (__webpack_require__(217).stdout);
-const template = __webpack_require__(218);
+const escapeStringRegexp = __webpack_require__(210);
+const ansiStyles = __webpack_require__(211);
+const stdoutColor = (__webpack_require__(216).stdout);
+const template = __webpack_require__(217);
 const isSimpleWindowsTerm = process.platform === 'win32' && !(process.env.TERM || '').toLowerCase().startsWith('xterm');
 
 // `supportsColor.level` → `ansiStyles.color[name]` mapping
@@ -50638,7 +49903,7 @@ module.exports.supportsColor = stdoutColor;
 module.exports["default"] = module.exports; // For TypeScript
 
 /***/ }),
-/* 211 */
+/* 210 */
 /***/ ((module) => {
 
 "use strict";
@@ -50653,14 +49918,14 @@ module.exports = function (str) {
 };
 
 /***/ }),
-/* 212 */
+/* 211 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 /* module decorator */ module = __webpack_require__.nmd(module);
 
 
-const colorConvert = __webpack_require__(213);
+const colorConvert = __webpack_require__(212);
 const wrapAnsi16 = (fn, offset) => function () {
   const code = fn.apply(colorConvert, arguments);
   return `\u001B[${code + offset}m`;
@@ -50802,11 +50067,11 @@ Object.defineProperty(module, 'exports', {
 });
 
 /***/ }),
-/* 213 */
+/* 212 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var conversions = __webpack_require__(214);
-var route = __webpack_require__(216);
+var conversions = __webpack_require__(213);
+var route = __webpack_require__(215);
 var convert = {};
 var models = Object.keys(conversions);
 function wrapRaw(fn) {
@@ -50872,11 +50137,11 @@ models.forEach(function (fromModel) {
 module.exports = convert;
 
 /***/ }),
-/* 214 */
+/* 213 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /* MIT license */
-var cssKeywords = __webpack_require__(215);
+var cssKeywords = __webpack_require__(214);
 
 // NOTE: conversions should only return primitive values (i.e. arrays, or
 //       values that give correct `typeof` results).
@@ -51655,7 +50920,7 @@ convert.rgb.gray = function (rgb) {
 };
 
 /***/ }),
-/* 215 */
+/* 214 */
 /***/ ((module) => {
 
 "use strict";
@@ -51813,10 +51078,10 @@ module.exports = {
 };
 
 /***/ }),
-/* 216 */
+/* 215 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var conversions = __webpack_require__(214);
+var conversions = __webpack_require__(213);
 
 /*
 	this function routes a model to all other models.
@@ -51899,7 +51164,7 @@ module.exports = function (fromModel) {
 };
 
 /***/ }),
-/* 217 */
+/* 216 */
 /***/ ((module) => {
 
 "use strict";
@@ -51911,7 +51176,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 218 */
+/* 217 */
 /***/ ((module) => {
 
 "use strict";
@@ -52017,7 +51282,7 @@ module.exports = (chalk, tmp) => {
 };
 
 /***/ }),
-/* 219 */
+/* 218 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52072,7 +51337,7 @@ function hoistVariables(path, emit) {
 }
 
 /***/ }),
-/* 220 */
+/* 219 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52394,7 +51659,7 @@ function evaluate() {
 }
 
 /***/ }),
-/* 221 */
+/* 220 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52409,9 +51674,9 @@ exports.ensureBlock = ensureBlock;
 exports.toComputedKey = toComputedKey;
 exports.unwrapFunctionEnvironment = unwrapFunctionEnvironment;
 var _t = __webpack_require__(4);
-var _helperEnvironmentVisitor = __webpack_require__(171);
-var _helperFunctionName = __webpack_require__(222);
-var _visitors = __webpack_require__(158);
+var _helperEnvironmentVisitor = __webpack_require__(170);
+var _helperFunctionName = __webpack_require__(221);
+var _visitors = __webpack_require__(157);
 const {
   arrowFunctionExpression,
   assignmentExpression,
@@ -52861,7 +52126,7 @@ function getScopeInformation(fnPath) {
 }
 
 /***/ }),
-/* 222 */
+/* 221 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -52871,7 +52136,7 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = _default;
-var _template = __webpack_require__(223);
+var _template = __webpack_require__(222);
 var _t = __webpack_require__(4);
 const {
   NOT_LOCAL_BINDING,
@@ -53039,7 +52304,7 @@ function _default(_ref) {
 }
 
 /***/ }),
-/* 223 */
+/* 222 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53049,8 +52314,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.statements = exports.statement = exports.smart = exports.program = exports.expression = exports["default"] = void 0;
-var formatters = __webpack_require__(224);
-var _builder = __webpack_require__(225);
+var formatters = __webpack_require__(223);
+var _builder = __webpack_require__(224);
 const smart = (0, _builder.default)(formatters.smart);
 exports.smart = smart;
 const statement = (0, _builder.default)(formatters.statement);
@@ -53072,7 +52337,7 @@ var _default = Object.assign(smart.bind(undefined), {
 exports["default"] = _default;
 
 /***/ }),
-/* 224 */
+/* 223 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53143,7 +52408,7 @@ const program = {
 exports.program = program;
 
 /***/ }),
-/* 225 */
+/* 224 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53153,9 +52418,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = createTemplateBuilder;
-var _options = __webpack_require__(226);
-var _string = __webpack_require__(227);
-var _literal = __webpack_require__(230);
+var _options = __webpack_require__(225);
+var _string = __webpack_require__(226);
+var _literal = __webpack_require__(229);
 const NO_PLACEHOLDER = (0, _options.validate)({
   placeholderPattern: false
 });
@@ -53222,7 +52487,7 @@ function extendedTrace(fn) {
 }
 
 /***/ }),
-/* 226 */
+/* 225 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -53310,7 +52575,7 @@ function normalizeReplacements(replacements) {
 }
 
 /***/ }),
-/* 227 */
+/* 226 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53320,9 +52585,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = stringTemplate;
-var _options = __webpack_require__(226);
-var _parse = __webpack_require__(228);
-var _populate = __webpack_require__(229);
+var _options = __webpack_require__(225);
+var _parse = __webpack_require__(227);
+var _populate = __webpack_require__(228);
 function stringTemplate(formatter, code, opts) {
   code = formatter.code(code);
   let metadata;
@@ -53334,7 +52599,7 @@ function stringTemplate(formatter, code, opts) {
 }
 
 /***/ }),
-/* 228 */
+/* 227 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53345,8 +52610,8 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = parseAndBuildMetadata;
 var _t = __webpack_require__(4);
-var _parser = __webpack_require__(156);
-var _codeFrame = __webpack_require__(207);
+var _parser = __webpack_require__(155);
+var _codeFrame = __webpack_require__(206);
 const {
   isCallExpression,
   isExpressionStatement,
@@ -53505,7 +52770,7 @@ function parseWithCodeFrame(code, parserOpts, syntacticPlaceholders) {
 }
 
 /***/ }),
-/* 229 */
+/* 228 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53631,7 +52896,7 @@ function applyReplacement(placeholder, ast, replacement) {
 }
 
 /***/ }),
-/* 230 */
+/* 229 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53641,9 +52906,9 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = literalTemplate;
-var _options = __webpack_require__(226);
-var _parse = __webpack_require__(228);
-var _populate = __webpack_require__(229);
+var _options = __webpack_require__(225);
+var _parse = __webpack_require__(227);
+var _populate = __webpack_require__(228);
 function literalTemplate(formatter, tpl, opts) {
   const {
     metadata,
@@ -53705,7 +52970,7 @@ function buildTemplateCode(tpl, prefix) {
 }
 
 /***/ }),
-/* 231 */
+/* 230 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54081,7 +53346,7 @@ function isInStrictMode() {
 }
 
 /***/ }),
-/* 232 */
+/* 231 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54110,8 +53375,8 @@ exports.skip = skip;
 exports.skipKey = skipKey;
 exports.stop = stop;
 exports.visit = visit;
-var _traverseNode = __webpack_require__(161);
-var _index = __webpack_require__(163);
+var _traverseNode = __webpack_require__(160);
+var _index = __webpack_require__(162);
 function call(key) {
   const opts = this.opts;
   this.debug(key);
@@ -54300,7 +53565,7 @@ function _getQueueContexts() {
 }
 
 /***/ }),
-/* 233 */
+/* 232 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54315,9 +53580,9 @@ exports._markRemoved = _markRemoved;
 exports._remove = _remove;
 exports._removeFromScope = _removeFromScope;
 exports.remove = remove;
-var _removalHooks = __webpack_require__(234);
-var _cache = __webpack_require__(160);
-var _index = __webpack_require__(163);
+var _removalHooks = __webpack_require__(233);
+var _cache = __webpack_require__(159);
+var _index = __webpack_require__(162);
 function remove() {
   var _this$opts;
   this._assertUnremoved();
@@ -54362,7 +53627,7 @@ function _assertUnremoved() {
 }
 
 /***/ }),
-/* 234 */
+/* 233 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -54404,7 +53669,7 @@ const hooks = [function (self, parent) {
 exports.hooks = hooks;
 
 /***/ }),
-/* 235 */
+/* 234 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54423,9 +53688,9 @@ exports.insertBefore = insertBefore;
 exports.pushContainer = pushContainer;
 exports.unshiftContainer = unshiftContainer;
 exports.updateSiblingKeys = updateSiblingKeys;
-var _cache = __webpack_require__(160);
-var _hoister = __webpack_require__(236);
-var _index = __webpack_require__(163);
+var _cache = __webpack_require__(159);
+var _hoister = __webpack_require__(235);
+var _index = __webpack_require__(162);
 var _t = __webpack_require__(4);
 const {
   arrowFunctionExpression,
@@ -54630,7 +53895,7 @@ function hoist() {
 }
 
 /***/ }),
-/* 236 */
+/* 235 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54805,7 +54070,7 @@ class PathHoister {
 exports["default"] = PathHoister;
 
 /***/ }),
-/* 237 */
+/* 236 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -54828,7 +54093,7 @@ exports.getOuterBindingIdentifierPaths = getOuterBindingIdentifierPaths;
 exports.getOuterBindingIdentifiers = getOuterBindingIdentifiers;
 exports.getPrevSibling = getPrevSibling;
 exports.getSibling = getSibling;
-var _index = __webpack_require__(163);
+var _index = __webpack_require__(162);
 var _t = __webpack_require__(4);
 const {
   getBindingIdentifiers: _getBindingIdentifiers,
@@ -55148,7 +54413,7 @@ function getOuterBindingIdentifierPaths(duplicates) {
 }
 
 /***/ }),
-/* 238 */
+/* 237 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -55190,7 +54455,7 @@ function addComments(type, comments) {
 }
 
 /***/ }),
-/* 239 */
+/* 238 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";

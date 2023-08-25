@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import EntityTree from './EntityTree'
 import NewFolderModal from '../Modals/NewFolderModal'

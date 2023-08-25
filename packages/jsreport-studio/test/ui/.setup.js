@@ -17,8 +17,9 @@ var dom = new JSDOM('', {
   pretendToBeVisual: true
 }).window;
 
-global.document = dom.document;
+global.document = dom.document
 global.window = document.defaultView
+global.__DEVELOPMENT__ = false
 
 Object.keys(document.defaultView).forEach((property) => {
   if (typeof global[property] === 'undefined') {

@@ -107,7 +107,7 @@ const EntityNode = React.memo(({
           <NodeSelect id={selectId} node={node} />
           <i key='entity-icon' className={iconClass} />
           <a key='entity-name'>{entity.name + (entity.__isDirty ? '*' : '')}</a>
-          {renderEntityTreeItemComponents('right', { entity, entities: allEntities })}
+          {renderEntityTreeItemComponents('right', { entity })}
         </div>,
         <NodeContextMenu
           ref={contextMenuRef}

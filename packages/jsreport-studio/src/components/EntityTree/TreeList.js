@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useImperativeHandle, useMemo } from 'react'
+import React, { useRef, useCallback, useImperativeHandle, useMemo } from 'react'
 import ReactList from 'react-list'
 import memoizeOne from 'memoize-one'
 import TreeNode from './TreeNode'

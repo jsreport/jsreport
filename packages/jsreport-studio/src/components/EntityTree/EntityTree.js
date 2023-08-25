@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useMemo } from 'react'
+import React, { useRef, useCallback, useMemo } from 'react'
 import classNames from 'classnames'
 import { useDispatch } from 'react-redux'
 import useEntityTree from './useEntityTree'

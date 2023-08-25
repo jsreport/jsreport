@@ -8,13 +8,6 @@ module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 1 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = Studio;
-
-/***/ }),
-/* 2 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -24,8 +17,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
+/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
 
 
 
@@ -59,7 +52,21 @@ const ShowColor = props => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ShowColor);
 
 /***/ }),
+/* 2 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = Studio;
+
+/***/ }),
 /* 3 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = Studio.runtime['helpers/extends'];
+
+/***/ }),
+/* 4 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -67,17 +74,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var mitt__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(23);
-
-const emitter = (0,mitt__WEBPACK_IMPORTED_MODULE_0__["default"])();
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (emitter);
-
-/***/ }),
-/* 4 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = Studio.runtime['helpers/extends'];
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((tagSet, tagShortId) => {
+  if (typeof tagSet.has === 'function') {
+    return tagSet.get(tagShortId);
+  }
+  const found = tagSet.find(tagInSet => {
+    return tagInSet.shortid === tagShortId;
+  });
+  return found;
+});
 
 /***/ }),
 /* 5 */
@@ -88,47 +93,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((tagSet, tagShortId) => {
-  let tag;
-  const found = tagSet.some(tagInSet => {
-    tag = tagInSet;
-    return tagInSet.shortid === tagShortId;
-  });
-  if (found) {
-    return tag;
-  }
-  return undefined;
-});
-
-/***/ }),
-/* 6 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   values: () => (/* binding */ values)
-/* harmony export */ });
-const values = {
-  current: undefined,
-  filterTags: undefined
-};
-
-
-/***/ }),
-/* 7 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
 /* harmony import */ var _ColorPicker__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
 
 
@@ -201,7 +170,7 @@ const ColorPicketTrigger = props => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ColorPicketTrigger);
 
 /***/ }),
-/* 8 */
+/* 6 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -216,7 +185,7 @@ const simpleCheckForValidColor = color => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (simpleCheckForValidColor);
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -245,7 +214,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -628,7 +597,7 @@ module.exports = debounce;
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -638,6 +607,34 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 // extracted by mini-css-extract-plugin
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"active":"x-tags-TagEntityTreeButtonToolbar-active"});
+
+/***/ }),
+/* 10 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   values: () => (/* binding */ values)
+/* harmony export */ });
+const values = {
+  filterTags: undefined
+};
+
+
+/***/ }),
+/* 11 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var mitt__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(24);
+
+const emitter = (0,mitt__WEBPACK_IMPORTED_MODULE_0__["default"])();
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (emitter);
 
 /***/ }),
 /* 12 */,
@@ -651,9 +648,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 
 
 
@@ -810,13 +807,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
+/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
 
 
 
@@ -956,7 +953,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
@@ -1037,7 +1034,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 
 
 class TagEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1073,8 +1070,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
-/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 
 
 
@@ -1149,12 +1146,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
 
 
@@ -1274,324 +1271,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
-/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
-
-
-
-
-const {
-  noTagGroupName,
-  tagsGroupName
-} = __webpack_require__(24);
-class EntityTreeTagOrganizer extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor() {
-    super();
-    let organizeByDefault = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions).tags.options.organizeByDefault;
-    if (organizeByDefault == null) {
-      organizeByDefault = false;
-    }
-    this.state = {
-      organizeByTags: organizeByDefault
-    };
-    this.onOrganizationModeChange = this.onOrganizationModeChange.bind(this);
-  }
-  componentDidMount() {
-    _emitter__WEBPACK_IMPORTED_MODULE_2__["default"].on('organizationModeByTagsChanged', this.onOrganizationModeChange);
-  }
-  componentWillUnmount() {
-    _emitter__WEBPACK_IMPORTED_MODULE_2__["default"].off('organizationModeByTagsChanged', this.onOrganizationModeChange);
-  }
-  onOrganizationModeChange(organizeByTag) {
-    this.setState({
-      organizeByTags: organizeByTag
-    });
-  }
-  addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEntities, entitiesByTagAndType, entitiesByTypeWithoutTag) {
-    const tagsWithNoEntities = [];
-    allTagEntities.forEach(tag => {
-      const tagName = tag.name;
-      const entitiesByType = entitiesByTagAndType[tagName];
-      const typesInTag = Object.keys(entitiesByType);
-      if (typesInTag.length === 0 || typesInTag.every(type => entitiesByType[type].length > 0) === false) {
-        tagsWithNoEntities.push(tag);
-        return;
-      }
-      let tagItem;
-      entitySetsNames.forEach(type => {
-        if (type === 'tags') {
-          return;
-        }
-        const entities = entitiesByType[type];
-        if (!tagItem) {
-          tagItem = {
-            name: tagName,
-            isGroup: true,
-            data: tag,
-            items: []
-          };
-          newItems.push(tagItem);
-        }
-        if (!entities || entities.length === 0) {
-          tagItem.items.push({
-            name: type,
-            isEntitySet: true,
-            items: []
-          });
-          return;
-        }
-        const typeItem = {
-          name: type,
-          isEntitySet: true,
-          items: []
-        };
-        entities.forEach(entity => {
-          typeItem.items.push({
-            name: entity.name,
-            data: entity
-          });
-        });
-        tagItem.items.push(typeItem);
-      });
-    });
-    tagsWithNoEntities.forEach(tag => {
-      const tagItem = {
-        name: tag.name,
-        isGroup: true,
-        data: tag,
-        items: []
-      };
-      entitySetsNames.forEach(type => {
-        if (type === 'tags') {
-          return;
-        }
-        tagItem.items.push({
-          name: type,
-          isEntitySet: true,
-          items: []
-        });
-      });
-      newItems.push(tagItem);
-    });
-    const noTagsItem = {
-      name: noTagGroupName,
-      isGroup: true,
-      items: []
-    };
-    entitySetsNames.forEach(type => {
-      if (type === 'tags') {
-        return;
-      }
-      const item = {
-        name: type,
-        isEntitySet: true,
-        items: []
-      };
-      const entities = entitiesByTypeWithoutTag[type];
-      if (entities) {
-        entities.forEach(entity => {
-          item.items.push({
-            name: entity.name,
-            data: entity
-          });
-        });
-      }
-      noTagsItem.items.push(item);
-    });
-    newItems.push(noTagsItem);
-    const tagsItem = {
-      name: tagsGroupName,
-      isEntitySet: true,
-      items: []
-    };
-    if (currentTagEntities) {
-      currentTagEntities.forEach(tag => {
-        tagsItem.items.push({
-          name: tag.name,
-          data: tag
-        });
-      });
-    }
-    newItems.push(tagsItem);
-  }
-  groupEntityByTagAndType(collection, allTagEntities, entity) {
-    if (entity.__entitySet === 'tags') {
-      const name = entity.name;
-      collection[name] = collection[name] || {};
-    } else if (entity.tags != null) {
-      entity.tags.forEach(tag => {
-        const tagFound = (0,_findTagInSet__WEBPACK_IMPORTED_MODULE_3__["default"])(allTagEntities, tag.shortid);
-        if (tagFound) {
-          const name = tagFound.name;
-          collection[name] = collection[name] || [];
-          collection[name][entity.__entitySet] = collection[name][entity.__entitySet] || [];
-          collection[name][entity.__entitySet].push(entity);
-        }
-      });
-    }
-  }
-  groupEntitiesByTag(entitySetsNames, entities) {
-    const newItems = [];
-    const allTagEntities = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences().tags || [];
-    const entitiesByTagAndType = {};
-    const entitiesByTypeWithoutTag = {};
-
-    // initialize all tag groups based on all tag entities
-    allTagEntities.forEach(entityTag => {
-      this.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entityTag);
-    });
-    entitySetsNames.forEach(entitySetName => {
-      if (entitySetName === 'tags') {
-        return;
-      }
-      const entitiesInSet = entities[entitySetName];
-      if (!entitiesInSet) {
-        return;
-      }
-      const entitiesInSetCount = entitiesInSet.length;
-      for (let j = 0; j < entitiesInSetCount; j++) {
-        const entity = entitiesInSet[j];
-        if (entity.tags != null) {
-          this.groupEntityByTagAndType(entitiesByTagAndType, allTagEntities, entity);
-        } else {
-          entitiesByTypeWithoutTag[entity.__entitySet] = entitiesByTypeWithoutTag[entity.__entitySet] || [];
-          entitiesByTypeWithoutTag[entity.__entitySet].push(entity);
-        }
-      }
-    });
-    this.addItemsByTag(newItems, entitySetsNames, allTagEntities, entities.tags, entitiesByTagAndType, entitiesByTypeWithoutTag);
-    return newItems;
-  }
-  render() {
-    const {
-      containerStyles
-    } = this.props;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      style: containerStyles
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(this.props.children, {}, _ref => {
-      let {
-        renderDefaultTree,
-        renderTree,
-        getSetsToRender,
-        entitySets,
-        entities
-      } = _ref;
-      const {
-        organizeByTags
-      } = this.state;
-      if (!organizeByTags) {
-        return renderDefaultTree(entitySets, entities);
-      }
-      return renderTree(this.groupEntitiesByTag(getSetsToRender(entitySets), entities));
-    }));
-  }
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (EntityTreeTagOrganizer);
-
-/***/ }),
-/* 23 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-//      
-// An event handler can take an optional event argument
-// and should not return a value
-                                          
-                                                               
-
-// An array of all currently registered event handlers for a type
-                                            
-                                                            
-// A map of event types and their corresponding event handlers.
-                        
-                                 
-                                   
-  
-
-/** Mitt: Tiny (~200b) functional event emitter / pubsub.
- *  @name mitt
- *  @returns {Mitt}
- */
-function mitt(all                 ) {
-	all = all || Object.create(null);
-
-	return {
-		/**
-		 * Register an event handler for the given type.
-		 *
-		 * @param  {String} type	Type of event to listen for, or `"*"` for all events
-		 * @param  {Function} handler Function to call in response to given event
-		 * @memberOf mitt
-		 */
-		on: function on(type        , handler              ) {
-			(all[type] || (all[type] = [])).push(handler);
-		},
-
-		/**
-		 * Remove an event handler for the given type.
-		 *
-		 * @param  {String} type	Type of event to unregister `handler` from, or `"*"`
-		 * @param  {Function} handler Handler function to remove
-		 * @memberOf mitt
-		 */
-		off: function off(type        , handler              ) {
-			if (all[type]) {
-				all[type].splice(all[type].indexOf(handler) >>> 0, 1);
-			}
-		},
-
-		/**
-		 * Invoke all handlers for the given type.
-		 * If present, `"*"` handlers are invoked after type-matched handlers.
-		 *
-		 * @param {String} type  The event type to invoke
-		 * @param {Any} [evt]  Any value (object is recommended and powerful), passed to each handler
-		 * @memberOf mitt
-		 */
-		emit: function emit(type        , evt     ) {
-			(all[type] || []).slice().map(function (handler) { handler(evt); });
-			(all['*'] || []).slice().map(function (handler) { handler(type, evt); });
-		}
-	};
-}
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (mitt);
-//# mitt.es.js.map
-
-
-/***/ }),
-/* 24 */
-/***/ ((module) => {
-
-const noTagGroupName = '(objects without tag)';
-const tagsGroupName = 'tags';
-const reservedTagNames = [noTagGroupName, tagsGroupName];
-module.exports["default"] = reservedTagNames;
-module.exports.noTagGroupName = noTagGroupName;
-module.exports.tagsGroupName = tagsGroupName;
-
-/***/ }),
-/* 25 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3);
-/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
-
-
+/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
 
 
 class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1601,12 +1281,18 @@ class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_
   }
   handleOrganizationModeChange(ev) {
     ev.stopPropagation();
-
-    // notify parent that the organization mode has changed
-    _emitter__WEBPACK_IMPORTED_MODULE_2__["default"].emit('organizationModeByTagsChanged', !_organizeState__WEBPACK_IMPORTED_MODULE_1__.values.current);
+    const {
+      setGroupMode
+    } = this.props;
+    setGroupMode(currentGroupMode => {
+      return currentGroupMode === 'tags' ? null : 'tags';
+    });
     this.props.closeMenu();
   }
   render() {
+    const {
+      groupMode
+    } = this.props;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       title: "Group and organize entities tree by tag",
       style: {
@@ -1618,7 +1304,7 @@ class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_
         display: 'inline-block',
         marginRight: '0.3rem'
       },
-      className: _organizeState__WEBPACK_IMPORTED_MODULE_1__.values.current ? _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_3__["default"].active : ''
+      className: groupMode === 'tags' ? _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__["default"].active : ''
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
       className: "fa fa-tags"
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
@@ -1631,7 +1317,7 @@ class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeOrganizeButtonToolbar);
 
 /***/ }),
-/* 26 */
+/* 23 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1641,12 +1327,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3);
-/* harmony import */ var _TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(27);
-/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
+/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var _TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(25);
+/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(9);
 
 
 
@@ -1734,7 +1420,82 @@ class TagEntityTreeFilterButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_0_
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeFilterButtonToolbar);
 
 /***/ }),
-/* 27 */
+/* 24 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+//      
+// An event handler can take an optional event argument
+// and should not return a value
+                                          
+                                                               
+
+// An array of all currently registered event handlers for a type
+                                            
+                                                            
+// A map of event types and their corresponding event handlers.
+                        
+                                 
+                                   
+  
+
+/** Mitt: Tiny (~200b) functional event emitter / pubsub.
+ *  @name mitt
+ *  @returns {Mitt}
+ */
+function mitt(all                 ) {
+	all = all || Object.create(null);
+
+	return {
+		/**
+		 * Register an event handler for the given type.
+		 *
+		 * @param  {String} type	Type of event to listen for, or `"*"` for all events
+		 * @param  {Function} handler Function to call in response to given event
+		 * @memberOf mitt
+		 */
+		on: function on(type        , handler              ) {
+			(all[type] || (all[type] = [])).push(handler);
+		},
+
+		/**
+		 * Remove an event handler for the given type.
+		 *
+		 * @param  {String} type	Type of event to unregister `handler` from, or `"*"`
+		 * @param  {Function} handler Handler function to remove
+		 * @memberOf mitt
+		 */
+		off: function off(type        , handler              ) {
+			if (all[type]) {
+				all[type].splice(all[type].indexOf(handler) >>> 0, 1);
+			}
+		},
+
+		/**
+		 * Invoke all handlers for the given type.
+		 * If present, `"*"` handlers are invoked after type-matched handlers.
+		 *
+		 * @param {String} type  The event type to invoke
+		 * @param {Any} [evt]  Any value (object is recommended and powerful), passed to each handler
+		 * @memberOf mitt
+		 */
+		emit: function emit(type        , evt     ) {
+			(all[type] || []).slice().map(function (handler) { handler(evt); });
+			(all['*'] || []).slice().map(function (handler) { handler(type, evt); });
+		}
+	};
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (mitt);
+//# mitt.es.js.map
+
+
+/***/ }),
+/* 25 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1744,12 +1505,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(28);
+/* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
 /* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_list__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
-/* harmony import */ var _getColorLuminance__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(29);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
-/* harmony import */ var _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(31);
+/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _getColorLuminance__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(27);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1);
+/* harmony import */ var _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(29);
 
 
 
@@ -1931,14 +1692,14 @@ TagEntityTreeFilterByTags.defaultProps = {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeFilterByTags);
 
 /***/ }),
-/* 28 */
+/* 26 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = Studio.libraries['react-list'];
 
 /***/ }),
-/* 29 */
+/* 27 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1946,7 +1707,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _hexToRgb__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(30);
+/* harmony import */ var _hexToRgb__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(28);
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (hex => {
   const rgb = (0,_hexToRgb__WEBPACK_IMPORTED_MODULE_0__["default"])(hex);
@@ -1973,7 +1734,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 30 */
+/* 28 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1996,7 +1757,7 @@ const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
 });
 
 /***/ }),
-/* 31 */
+/* 29 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2008,7 +1769,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"searchTagsContainer":"x-tags-TagEntityTreeFilterByTags-searchTagsContainer","searchTagsInputBox":"x-tags-TagEntityTreeFilterByTags-searchTagsInputBox","searchTagsInputBoxIcon":"x-tags-TagEntityTreeFilterByTags-searchTagsInputBoxIcon fa fa-tag","searchTags":"x-tags-TagEntityTreeFilterByTags-searchTags","tagsListContainer":"x-tags-TagEntityTreeFilterByTags-tagsListContainer","tagsList":"x-tags-TagEntityTreeFilterByTags-tagsList","tagsListEmpty":"x-tags-TagEntityTreeFilterByTags-tagsListEmpty","tagsListItem":"x-tags-TagEntityTreeFilterByTags-tagsListItem","tagsSelect":"x-tags-TagEntityTreeFilterByTags-tagsSelect","tagsSelectItem":"x-tags-TagEntityTreeFilterByTags-tagsSelectItem","tagsSelectItemRemove":"x-tags-TagEntityTreeFilterByTags-tagsSelectItemRemove"});
 
 /***/ }),
-/* 32 */
+/* 30 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2018,8 +1779,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
-/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
 
 
 
@@ -2058,7 +1819,7 @@ class TagEntityTreeItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeItem);
 
 /***/ }),
-/* 33 */
+/* 31 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2068,10 +1829,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
-/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
 
 
 
@@ -2122,7 +1883,7 @@ class TagEntityTreeTagGroupItem extends react__WEBPACK_IMPORTED_MODULE_0__.Compo
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeTagGroupItem);
 
 /***/ }),
-/* 34 */
+/* 32 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -2145,6 +1906,279 @@ __webpack_require__.r(__webpack_exports__);
   }
   return true;
 });
+
+/***/ }),
+/* 33 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ createGroupEntitiesByTags)
+/* harmony export */ });
+/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+
+const {
+  noTagGroupName,
+  tagsGroupName
+} = __webpack_require__(34);
+function createGroupEntitiesByTags() {
+  const tagsCache = new WeakMap();
+  return (entitySets, entities, collapsedInfo, helpers) => {
+    const entitySetsNames = helpers.getSetsToRender(entitySets);
+    const result = groupEntitiesByTags(entitySetsNames, entities, collapsedInfo, helpers, {
+      tagsCache
+    });
+    return result;
+  };
+}
+function groupEntitiesByTags(entitySetsNames, entities, collapsedInfo, helpers, _ref) {
+  let {
+    tagsCache
+  } = _ref;
+  const newItems = [];
+  // eslint-disable-next-line
+  const allTagsEntities = [...(Studio.getReferences().tags || [])];
+  const tagsByShortidMap = new Map();
+  if (entities.tags != null) {
+    for (const currentTagFromAll of allTagsEntities) {
+      const foundIndex = entities.tags.findIndex(f => f._id === currentTagFromAll._id);
+      const foundEntity = foundIndex !== -1 ? entities.tags[foundIndex] : undefined;
+      let tagEntity = foundEntity;
+      if (foundIndex !== -1 && currentTagFromAll !== foundEntity) {
+        tagEntity = setOrGetFromCache(tagsCache, [allTagsEntities[foundIndex], foundEntity], (t1, t2) => {
+          return {
+            ...t1,
+            ...t2
+          };
+        });
+      }
+      if (tagEntity != null) {
+        tagsByShortidMap.set(tagEntity.shortid, tagEntity);
+      }
+    }
+  }
+  const entitiesByTagAndType = {};
+  const entitiesByTypeWithoutTag = {};
+
+  // initialize all tag groups based on all tag entities
+  for (const entityTag of allTagsEntities) {
+    groupEntityByTagAndType(entitiesByTagAndType, tagsByShortidMap, entityTag);
+  }
+  for (const entitySetName of entitySetsNames) {
+    if (entitySetName === 'tags') {
+      continue;
+    }
+    const entitiesInSet = entities[entitySetName];
+    if (!entitiesInSet) {
+      continue;
+    }
+    const entitiesInSetCount = entitiesInSet.length;
+    for (let j = 0; j < entitiesInSetCount; j++) {
+      const entity = entitiesInSet[j];
+      if (entity.tags != null) {
+        groupEntityByTagAndType(entitiesByTagAndType, tagsByShortidMap, entity);
+      } else {
+        entitiesByTypeWithoutTag[entity.__entitySet] = entitiesByTypeWithoutTag[entity.__entitySet] || [];
+        entitiesByTypeWithoutTag[entity.__entitySet].push(entity);
+      }
+    }
+  }
+  const context = {
+    tagsCache,
+    collapsedInfo,
+    tagsByShortidMap,
+    helpers
+  };
+  addItemsByTag(newItems, entitySetsNames, allTagsEntities, entities.tags, entitiesByTagAndType, entitiesByTypeWithoutTag, context);
+  return newItems;
+}
+function setOrGetFromCache(cache, _keys, initFn, cacheCheck) {
+  const keys = Array.isArray(_keys) ? _keys : [_keys];
+  const shouldInit = cacheCheck == null ? keys.some(k => !cache.has(k)) : cacheCheck(...keys);
+  if (shouldInit) {
+    const newItem = initFn(...keys);
+    for (const key of keys) {
+      cache.set(key, newItem);
+    }
+    return newItem;
+  }
+  return cache.get(keys[0]);
+}
+function groupEntityByTagAndType(collection, tagsByShortidMap, entity) {
+  if (entity.__entitySet === 'tags') {
+    const name = entity.name;
+    collection[name] = collection[name] || {};
+  } else if (entity.tags != null) {
+    for (const tag of entity.tags) {
+      const tagFound = (0,_findTagInSet__WEBPACK_IMPORTED_MODULE_0__["default"])(tagsByShortidMap, tag.shortid);
+      if (tagFound) {
+        const name = tagFound.name;
+        collection[name] = collection[name] || {};
+        collection[name][entity.__entitySet] = collection[name][entity.__entitySet] || [];
+        collection[name][entity.__entitySet].push(entity);
+      }
+    }
+  }
+}
+function addItemsByTag(newItems, entitySetsNames, allTagEntities, currentTagEntities, entitiesByTagAndType, entitiesByTypeWithoutTag, context) {
+  const tagsWithNoEntities = [];
+  const {
+    tagsByShortidMap,
+    collapsedInfo
+  } = context;
+  const {
+    getNodeId,
+    checkIsGroupNode,
+    checkIsGroupEntityNode
+  } = context.helpers;
+  for (const t of allTagEntities) {
+    const tag = tagsByShortidMap.get(t.shortid);
+    const tagName = tag.name;
+    const entitiesByType = entitiesByTagAndType[tagName];
+    const typesInTag = Object.keys(entitiesByType);
+    if (typesInTag.length === 0 || typesInTag.every(type => entitiesByType[type].length > 0) === false) {
+      tagsWithNoEntities.push(tag);
+      continue;
+    }
+    let tagItem;
+    for (const type of entitySetsNames) {
+      if (type === 'tags') {
+        continue;
+      }
+      const entities = entitiesByType[type];
+      if (!tagItem) {
+        tagItem = {
+          name: tagName,
+          isGroup: true,
+          data: tag,
+          items: []
+        };
+        newItems.push(tagItem);
+      }
+      if (!entities || entities.length === 0) {
+        tagItem.items.push({
+          name: type,
+          isEntitySet: true,
+          items: []
+        });
+        continue;
+      }
+      const typeItem = {
+        name: type,
+        isEntitySet: true,
+        items: []
+      };
+      for (const entity of entities) {
+        typeItem.items.push({
+          name: entity.name,
+          data: entity
+        });
+      }
+      tagItem.items.push(typeItem);
+    }
+  }
+  for (const t of tagsWithNoEntities) {
+    const tag = tagsByShortidMap.get(t.shortid);
+    const tagItem = {
+      name: tag.name,
+      isGroup: true,
+      data: tag,
+      items: []
+    };
+    for (const type of entitySetsNames) {
+      if (type === 'tags') {
+        continue;
+      }
+      tagItem.items.push({
+        name: type,
+        isEntitySet: true,
+        items: []
+      });
+      newItems.push(tagItem);
+    }
+  }
+  const noTagsItem = {
+    name: noTagGroupName,
+    isGroup: true,
+    items: []
+  };
+  for (const type of entitySetsNames) {
+    if (type === 'tags') {
+      continue;
+    }
+    const item = {
+      name: type,
+      isEntitySet: true,
+      items: []
+    };
+    const entities = entitiesByTypeWithoutTag[type];
+    if (entities) {
+      for (const entity of entities) {
+        item.items.push({
+          name: entity.name,
+          data: entity
+        });
+      }
+    }
+    noTagsItem.items.push(item);
+  }
+  newItems.push(noTagsItem);
+  const tagsItem = {
+    name: tagsGroupName,
+    isEntitySet: true,
+    items: []
+  };
+  if (currentTagEntities) {
+    for (const t of currentTagEntities) {
+      const tag = tagsByShortidMap.get(t.shortid);
+      tagsItem.items.push({
+        name: tag.name,
+        data: tag
+      });
+    }
+  }
+  newItems.push(tagsItem);
+  const toProcess = [{
+    parentId: null,
+    items: newItems,
+    depth: 0
+  }];
+  while (toProcess.length > 0) {
+    const {
+      parentId,
+      depth,
+      items
+    } = toProcess.shift();
+    for (const item of items) {
+      const isGroupEntityNode = checkIsGroupEntityNode(item);
+      const isGroupNode = checkIsGroupNode(item);
+      const isOnlyGroupNode = isGroupNode && !isGroupEntityNode;
+      item.id = getNodeId(item.name, isOnlyGroupNode ? null : item.data, parentId, depth);
+      if (isOnlyGroupNode) {
+        item.collapsed = collapsedInfo.nodes[item.id] != null ? collapsedInfo.nodes[item.id] : collapsedInfo.defaultValue(item);
+      }
+      if (item.items != null && item.items.length > 0) {
+        toProcess.push({
+          parentId: item.id,
+          items: item.items,
+          depth: depth + 1
+        });
+      }
+    }
+  }
+}
+
+/***/ }),
+/* 34 */
+/***/ ((module) => {
+
+const noTagGroupName = '(objects without tag)';
+const tagsGroupName = 'tags';
+const reservedTagNames = [noTagGroupName, tagsGroupName];
+module.exports["default"] = reservedTagNames;
+module.exports.noTagGroupName = noTagGroupName;
+module.exports.tagsGroupName = tagsGroupName;
 
 /***/ })
 /******/ 	]);
@@ -2232,20 +2266,20 @@ var __webpack_exports__ = {};
 (() => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _NewTagModal__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
 /* harmony import */ var _TagEditor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(19);
 /* harmony import */ var _TagProperties__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(20);
 /* harmony import */ var _EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(21);
-/* harmony import */ var _EntityTreeTagOrganizer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(22);
-/* harmony import */ var _TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(25);
-/* harmony import */ var _TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(26);
-/* harmony import */ var _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(32);
-/* harmony import */ var _TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(33);
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(3);
-/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(6);
-/* harmony import */ var _filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(34);
+/* harmony import */ var _TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(22);
+/* harmony import */ var _TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(23);
+/* harmony import */ var _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(30);
+/* harmony import */ var _TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(31);
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(11);
+/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(10);
+/* harmony import */ var _filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(32);
+/* harmony import */ var _groupEntitiesByTags__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(33);
 
 
 
@@ -2287,22 +2321,20 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().initializeListeners.push(
 });
 
 // eslint-disable-next-line no-import-assign
-_emitter__WEBPACK_IMPORTED_MODULE_10__["default"].on('organizationModeByTagsChanged', organizationMode => {
-  _organizeState__WEBPACK_IMPORTED_MODULE_11__.values.current = organizationMode;
+_emitter__WEBPACK_IMPORTED_MODULE_9__["default"].on('filterByTagsChanged', selectedTags => {
+  _organizeState__WEBPACK_IMPORTED_MODULE_10__.values.filterTags = selectedTags;
 });
-// eslint-disable-next-line no-import-assign
-_emitter__WEBPACK_IMPORTED_MODULE_10__["default"].on('filterByTagsChanged', selectedTags => {
-  _organizeState__WEBPACK_IMPORTED_MODULE_11__.values.filterTags = selectedTags;
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeGroupMode('tags', {
+  createGrouper: _groupEntitiesByTags__WEBPACK_IMPORTED_MODULE_12__["default"]
 });
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEditorComponent('tags', _TagEditor__WEBPACK_IMPORTED_MODULE_2__["default"]);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_TagProperties__WEBPACK_IMPORTED_MODULE_3__["default"].title, _TagProperties__WEBPACK_IMPORTED_MODULE_3__["default"], entity => entity.__entitySet === 'tags');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__["default"].title, _EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__["default"], entity => entity.__entitySet !== 'tags');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeWrapperComponent(_EntityTreeTagOrganizer__WEBPACK_IMPORTED_MODULE_5__["default"]);
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_7__["default"], 'group');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_6__["default"], 'group');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_8__["default"]);
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_9__["default"], 'groupRight');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().entityTreeFilterItemResolvers.push(_filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_12__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__["default"], 'group');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_5__["default"], 'group');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__["default"]);
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__["default"], 'groupRight');
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().entityTreeFilterItemResolvers.push(_filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__["default"]);
 })();
 
 /******/ })()
