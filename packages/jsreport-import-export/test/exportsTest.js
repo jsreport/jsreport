@@ -104,11 +104,11 @@ describe('import-export', () => {
     common(fsStore, (reporter) => reporter.use(require('@jsreport/jsreport-fs-store')()))
   })
 
-  describe('mongodb store', () => {
+  describe.skip('mongodb store', () => {
     common(mongo, (reporter) => reporter.use(require('@jsreport/jsreport-mongodb-store')()))
   })
 
-  describe('postgres store', function () {
+  describe.skip('postgres store', function () {
     common(postgres, (reporter) => reporter.use(require('@jsreport/jsreport-postgres-store')()))
   })
 

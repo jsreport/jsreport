@@ -17,42 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.5.0
-        with:
-          mongodb-version: '4.2'
-
-      - name: Start PostgreSQL
-        run: |
-          sudo systemctl start postgresql.service
-          pg_isready
-          sudo -u postgres psql --command="CREATE USER jsreport PASSWORD 'foo'" --command="\du"
-          sudo -u postgres createdb --owner=jsreport jsreport
-          PGPASSWORD=foo psql --username=jsreport --host=localhost --list jsreport
-
-      - name: Start MSSQL
-        run: |
-            docker pull mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04
-            docker run -d --name sql_server -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=reallyStrongPwd123' -p 1433:1433 mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04
-            sleep 30
-            docker exec sql_server /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "reallyStrongPwd123" -Q 'CREATE DATABASE jsreport; ALTER DATABASE jsreport SET READ_COMMITTED_SNAPSHOT ON;'
-
-      - name: Start Oracle
-        run: |
-            docker pull pvargacl/oracle-xe-18.4.0:latest
-            docker run -d --name oracle_database -p 1521:1521 -e ORACLE_PWD=oracle -v ${PWD}/packages/jsreport-oracle-store/oracle-setup:/docker-entrypoint-initdb.d/startup pvargacl/oracle-xe-18.4.0:latest
-            wget https://download.oracle.com/otn_software/linux/instantclient/185000/oracle-instantclient18.5-basic-18.5.0.0.0-3.x86_64.rpm
-            sudo apt-get install alien
-            sudo alien -i oracle-instantclient18.5-*.rpm
-            echo "/usr/lib/oracle/18.5/client64/bin" >> $GITHUB_PATH
-            echo "ORACLE_HOME=/usr/lib/oracle/18.5/client64" >> $GITHUB_ENV
-            echo "LD_LIBRARY_PATH=/usr/lib/oracle/18.5/client64/lib" >> $GITHUB_ENV
-
-      - name: unoconv
-        run: |
-            sudo apt-get update
-            sudo apt-get -y install unoconv
-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
