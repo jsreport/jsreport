@@ -1,4 +1,4 @@
-const should = require('should')
+require('should')
 const path = require('path')
 const childProcess = require('child_process')
 const jsreport = require('../')
