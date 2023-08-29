@@ -26,7 +26,7 @@ reporter.use(handlebars())
 reporter.use(chromePdf())
 reporter.use(fsStore({ dataDirectory: path.join(__dirname, '../samples') }))
 
-const entitySets = ['folders', 'data', 'templates', 'assets', 'scripts', 'xlsxTemplates']
+const entitySets = ['folders', 'data', 'templates', 'assets', 'scripts']
 
 async function run () {
   try {

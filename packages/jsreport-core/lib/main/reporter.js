@@ -29,8 +29,6 @@ const Reporter = require('../shared/reporter')
 const Request = require('./request')
 const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
-const migrateXlsxTemplatesToAssets = require('./migration/xlsxTemplatesToAssets')
-const migrateResourcesToAssets = require('./migration/resourcesToAssets')
 const semver = require('semver')
 let reportCounter = 0
 
@@ -263,9 +261,6 @@ class MainReporter extends Reporter {
       // adding the validation of shortid after extensions has been loaded
       setupValidateId(this)
       setupValidateShortid(this)
-
-      this.initializeListeners.insert(0, 'core-resources-migration', () => migrateResourcesToAssets(this))
-      this.initializeListeners.insert(0, 'core-xlsxTemplates-migration', () => migrateXlsxTemplatesToAssets(this))
 
       await this.initializeListeners.fire()
 

@@ -4,12 +4,6 @@ module.exports = function createTextSearch (reporter) {
   const entitySetsForTextSearch = []
 
   for (const [entitySetName, entitySetInfo] of Object.entries(reporter.documentStore.model.entitySets)) {
-    // we ignore xlsxTemplates for the search, when it gets the time to finally remove
-    // the entitySet the bellow lines won't be needed anymore
-    if (entitySetName === 'xlsxTemplates') {
-      continue
-    }
-
     const documentProps = []
     const pendingTypes = [{ typeDef: entitySetInfo.entityTypeDef }]
 

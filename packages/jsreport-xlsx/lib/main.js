@@ -1,5 +1,4 @@
 const extend = require('node.extend.without.arrays')
-const serialize = require('./transformation/serialize')
 
 module.exports = (reporter, definition) => {
   if (reporter.options.xlsx) {
@@ -28,20 +27,6 @@ module.exports = (reporter, definition) => {
     name: 'xlsx'
   })
 
-  reporter.documentStore.registerEntityType('XlsxTemplateType', {
-    name: { type: 'Edm.String' },
-    contentRaw: { type: 'Edm.Binary', document: { extension: 'xlsx' } },
-    content: { type: 'Edm.String', document: { main: true, extension: 'txt' } }
-  })
-
-  // NOTE: xlsxTemplates are deprecated, we will remove it in jsreport v4
-  reporter.documentStore.registerEntitySet('xlsxTemplates', {
-    entityType: 'jsreport.XlsxTemplateType',
-    splitIntoDirectories: true,
-    // since it is deprecated we don't want that imports process xlsxTemplates
-    exportable: false
-  })
-
   reporter.documentStore.registerComplexType('XlsxRefType', {
     templateAssetShortid: { type: 'Edm.String', referenceTo: 'assets', schema: { type: 'null' } }
   })
@@ -49,18 +34,6 @@ module.exports = (reporter, definition) => {
   if (reporter.documentStore.model.entityTypes.TemplateType) {
     reporter.documentStore.model.entityTypes.TemplateType.xlsx = { type: 'jsreport.XlsxRefType', schema: { type: 'null' } }
   }
-
-  reporter.documentStore.on('after-init', () => {
-    reporter.documentStore.collection('xlsxTemplates').beforeInsertListeners.add('xlsxTemplates', (doc) => {
-      return serialize(doc.contentRaw).then((serialized) => (doc.content = serialized))
-    })
-
-    reporter.documentStore.collection('xlsxTemplates').beforeUpdateListeners.add('xlsxTemplates', (query, update, req) => {
-      if (update.$set && update.$set.contentRaw) {
-        return serialize(update.$set.contentRaw).then((serialized) => (update.$set.content = serialized))
-      }
-    })
-  })
 
   reporter.initializeListeners.add('xlsx', () => {
     if (reporter.express) {
