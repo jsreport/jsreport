@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const extend = require('node.extend.without.arrays')
+const { serialize: _serialize, parse: _parse } = require('@jsreport/serializator')
 
 /**
 * Return a random alphanumerical string of length len
@@ -48,60 +49,22 @@ function deepSet (doc, path, val) {
 }
 
 function serialize (obj, prettify = true) {
-  const originalDateToJSON = Date.prototype.toJSON
-  const originalBufferToJSON = Buffer.prototype.toJSON
-
-  // Keep track of the fact that this is a Date object
-  Date.prototype.toJSON = function () { // eslint-disable-line
-    return { $$date: this.getTime() }
-  }
-
-  Buffer.prototype.toJSON = function (...args) { // eslint-disable-line
-    return { $$buffer: this.toString('base64') }
-  }
-
-  const res = JSON.stringify(obj, function (k, v) {
-    if (typeof v === 'undefined') {
-      return null
+  return _serialize(obj, {
+    prettify,
+    prettifySpace: prettify ? 4 : null,
+    typeKeys: {
+      date: '$$date',
+      buffer: '$$buffer'
     }
-    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v === null) {
-      return v
-    }
-
-    return v
-  }, prettify ? 4 : null)
-
-  // Return Date to its original state
-  Date.prototype.toJSON = originalDateToJSON // eslint-disable-line
-  // Return Buffer to its original state
-  Buffer.prototype.toJSON = originalBufferToJSON // eslint-disable-line
-
-  return res
+  })
 }
 
 function parse (rawData) {
-  return JSON.parse(rawData, function (k, v) {
-    if (k === '$$buffer') {
-      return Buffer.from(v, 'base64')
+  return _parse(rawData, {
+    typeKeys: {
+      date: '$$date',
+      buffer: '$$buffer'
     }
-
-    if (k === '$$date') {
-      return new Date(v)
-    }
-
-    if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean' || v === null) {
-      return v
-    }
-
-    if (v && v.$$date) {
-      return v.$$date
-    }
-
-    if (v && v.$$buffer) {
-      return v.$$buffer
-    }
-
-    return v
   })
 }
 

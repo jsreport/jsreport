@@ -16,7 +16,7 @@ Date.prototype.toJSON = function () { // eslint-disable-line
   if (serializing) {
     return { [serializingTypeKeys.date]: this.getTime() }
   } else {
-    originalDateToJSON.call(this)
+    return originalDateToJSON.call(this)
   }
 }
 
