@@ -2,6 +2,8 @@ FROM node:18.16-alpine3.16
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM
+ARG UID=2500
+ARG GID=2500
 
 ENV GOSU_VERSION 1.12
 RUN set -eux; \
@@ -31,7 +33,7 @@ RUN set -eux; \
     gosu --version; \
     gosu nobody true
 
-RUN addgroup -S jsreport && adduser --shell /bin/bash -S -G jsreport jsreport
+RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S -G jsreport jsreport
 
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
@@ -86,9 +88,9 @@ COPY ./packages/jsreport/docker/default/run.sh run.sh
 RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
+USER jsreport:jsreport
 
 ENV chrome_launchOptions_executablePath /usr/lib/chromium/chrome
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
-
 
 CMD ["bash", "run.sh"]

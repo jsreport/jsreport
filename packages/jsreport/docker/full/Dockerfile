@@ -2,6 +2,8 @@ FROM ubuntu:focal
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM
+ARG UID=2500
+ARG GID=2500
 
 RUN set -eux; \
     apt-get update; \
@@ -10,7 +12,7 @@ RUN set -eux; \
     # verify that the binary works
     gosu nobody true
 
-RUN adduser --disabled-password --gecos "" jsreport
+RUN groupadd -g "${GID}" jsreport && adduser --disabled-password --uid "${UID}" --gid "${GID}" --gecos "" jsreport
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -84,6 +86,7 @@ COPY ./packages/jsreport/docker/full/run.sh run.sh
 RUN node editConfig.js
 
 RUN chown -R jsreport:jsreport /app
+USER jsreport:jsreport
 
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
 
