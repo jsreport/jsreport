@@ -7,6 +7,12 @@ See https://jsreport.net/learn/localization
 
 ## Changelog
 
+### 4.0.0
+
+- cache localization calls to improve performance
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.2.2
 
 - use old `req.options.language` when `req.template.localization` is empty

@@ -7,6 +7,10 @@ See https://jsreport.net/learn/base
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+
 ### 3.0.1
 
 - fix typo in log

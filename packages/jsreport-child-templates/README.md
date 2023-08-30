@@ -7,6 +7,10 @@ See https://jsreport.net/learn/child-templates
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+
 ### 3.1.0
 
 - improve logging and errors

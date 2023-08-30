@@ -8,6 +8,11 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.6.1
 
 - fix resolving assets as links

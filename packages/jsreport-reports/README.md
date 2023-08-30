@@ -7,6 +7,11 @@ See https://jsreport.net/learn/reports
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.1.1
 
 - reports cleanup should still clean all old reports found in the current interval, but it does in batches configured by `extensions.reports.cleanLimit`

@@ -29,6 +29,12 @@ chrome-image
 
 ## Changelog
 
+### 4.0.0
+
+- update puppeteer to work with chrome 116
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.4.0
 
 - empty values `''` for pdf width, height and other options throw errors on recent versions of puppeteer, we now normalize options and don't pass empty values

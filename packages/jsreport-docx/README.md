@@ -7,6 +7,12 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+- fix docxHtml should not normalize space of elements that have siblings in the content
+
 ### 3.7.2
 
 - fix table cells not being well-formed when user uses conditions (#if) across table rows and cells

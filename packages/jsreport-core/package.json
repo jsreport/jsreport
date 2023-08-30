@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-core",
-  "version": "3.12.0",
+  "version": "4.0.0",
   "description": "javascript based business reporting",
   "keywords": [
     "report",
@@ -40,11 +40,11 @@
     "@babel/parser": "7.14.4",
     "@babel/traverse": "7.12.9",
     "@colors/colors": "1.5.0",
-    "@jsreport/advanced-workers": "1.3.0",
+    "@jsreport/advanced-workers": "2.0.0",
     "@jsreport/mingo": "2.4.1",
     "@jsreport/reap": "0.1.0",
-    "@jsreport/serializator": "0.1.0",
-    "@jsreport/ses": "0.0.0",
+    "@jsreport/serializator": "1.0.0",
+    "@jsreport/ses": "1.0.0",
     "ajv": "6.12.6",
     "app-root-path": "3.0.0",
     "bytes": "3.1.2",

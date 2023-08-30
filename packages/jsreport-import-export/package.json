@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-import-export",
-  "version": "3.2.0",
+  "version": "4.0.0",
   "description": "jsreport extension adding templates exporting and importing API",
   "keywords": [
     "jsreport",
@@ -40,14 +40,14 @@
     "yauzl": "2.10.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.6.1",
-    "@jsreport/jsreport-authentication": "3.4.0",
-    "@jsreport/jsreport-authorization": "3.3.0",
-    "@jsreport/jsreport-cli": "3.2.3",
-    "@jsreport/jsreport-core": "3.12.0",
-    "@jsreport/jsreport-data": "3.1.0",
-    "@jsreport/jsreport-express": "3.7.1",
-    "@jsreport/jsreport-fs-store": "3.2.5",
+    "@jsreport/jsreport-assets": "4.0.0",
+    "@jsreport/jsreport-authentication": "4.0.0",
+    "@jsreport/jsreport-authorization": "4.0.0",
+    "@jsreport/jsreport-cli": "4.0.0",
+    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-data": "4.0.0",
+    "@jsreport/jsreport-express": "4.0.0",
+    "@jsreport/jsreport-fs-store": "4.0.0",
     "@jsreport/jsreport-mongodb-store": "3.1.1",
     "@jsreport/jsreport-postgres-store": "3.1.1",
     "@jsreport/studio-dev": "3.2.1",

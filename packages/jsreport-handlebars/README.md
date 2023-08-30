@@ -7,6 +7,11 @@ See the docs https://jsreport.net/learn/handlebars
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- internal changes to support running with new sandbox
+
 ### 3.2.1
 
 - fix missing `async-helpers` folder in npm release

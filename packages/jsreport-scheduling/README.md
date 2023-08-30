@@ -7,6 +7,12 @@ See https://jsreport.net/learn/scheduling
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+- internal changes to support multi admin users
+
 ### 3.0.3
 
 - update deps to fix npm audit

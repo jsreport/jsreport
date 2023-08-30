@@ -7,6 +7,12 @@ See https://jsreport.net/learn/authorization
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+- add support for multi admin users
+
 ### 3.3.0
 
 - refactor to use new methods collection.findAdmin, collection.findOneAdmin, reporter.adminRequest

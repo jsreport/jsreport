@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-chrome-pdf",
-  "version": "3.4.0",
+  "version": "4.0.0",
   "description": "jsreport recipe which is rendering pdf from html using headless chrome",
   "keywords": [
     "jsreport",
@@ -31,8 +31,8 @@
     "lodash.get": "4.4.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "3.12.0",
-    "@jsreport/jsreport-handlebars": "3.2.1",
+    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-handlebars": "4.0.0",
     "@jsreport/studio-dev": "3.2.1",
     "handlebars": "4.7.7",
     "mocha": "6.1.4",

@@ -7,6 +7,15 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.0.0
+
+- remove deprecated xlsxTemplates entity set
+- xlsx generation improvements when working with formulas
+- xlsx generation should not throw error when formula's cell ref point to different sheet
+- fix for calcChain generation when using loops and formulas in more than one sheet
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.5.0
 
 - add support for nested loops (row/block loops nested)

@@ -7,6 +7,11 @@ See https://jsreport.net/learn/scripts
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.4.1
 
 - fix issue with `beforeRender`/`afterRender` scripts not being able to merge/replace existing buffers

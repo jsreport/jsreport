@@ -7,6 +7,12 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- avoid http basic authentication error dialog when authorization errors happen from studio actions
+- internal changes to support multi admin users
+
 ### 3.7.1
 
 - postpone setting http response timeout until the `req.options.timeout` is parsed

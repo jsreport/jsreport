@@ -282,6 +282,13 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- remove old migration options `migrateXlsxTemplatesToAssets`, `migrateResourcesToAssets`
+- sandbox now uses SES instead of vm2 for evaluating user code
+- internal changes to support multi admin users
+
 ### 3.12.0
 
 - update vm2 to fix security issues

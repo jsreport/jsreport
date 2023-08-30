@@ -7,6 +7,11 @@ See http://jsreport.net/learn/public-templates
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs

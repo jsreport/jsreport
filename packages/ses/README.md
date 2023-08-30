@@ -4,3 +4,7 @@
 [SES](https://github.com/endojs/endo/tree/master/packages/ses) with a few changes to make it work for jsreport sandbox
 
 ## Changelog
+
+### 1.0.0
+
+- initial release

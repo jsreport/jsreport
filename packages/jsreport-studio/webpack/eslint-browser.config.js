@@ -66,8 +66,8 @@ module.exports = {
   resolve: {
     // node.js polyfills required by eslint source code
     fallback: {
-      assert: require.resolve('webpack-fallback-assert/'),
-      path: require.resolve('webpack-fallback-path/')
+      assert: require.resolve('assert/'),
+      path: require.resolve('path-browserify/')
     },
     extensions: ['.json', '.js'],
     mainFields: ['browser', 'main'],
@@ -90,9 +90,9 @@ module.exports = {
     new ProvidePlugin({
       // provide global variable to modules (dependencies of eslint),
       // Make a global `process` variable that points to the `process` package,
-      // because the `util` package (dep of webpack-fallback-assert) expects there to be a global variable named `process`.
+      // because the `util` package (dep of assert) expects there to be a global variable named `process`.
       // Thanks to https://stackoverflow.com/a/65018686/14239942
-      process: 'webpack-fallback-process/browser'
+      process: 'process/browser'
     })
   ]
 }

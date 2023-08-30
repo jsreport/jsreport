@@ -18,6 +18,14 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- initial optimizations when working with a large number of entities
+- update build dependencies (monaco-editor, babel, webpack)
+- avoid http basic authentication error dialog when authorization errors happen from studio actions
+- internal changes to support multi admin users
+
 ### 3.9.3
 
 - remove title (the one that appears when you put mouse over it for some seconds) of log messages, to prevent them showing when trying to read the log and scrolling

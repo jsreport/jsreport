@@ -7,6 +7,11 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.2.0
 
 - refactor to use new methods `collection.findAdmin`, `collection.findOneAdmin`, `reporter.adminRequest`

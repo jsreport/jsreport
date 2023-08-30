@@ -7,6 +7,11 @@ See https://jsreport.net/learn/inline-data
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.1.0
 
 - add support for specifying what are the main document properties of data entitySet

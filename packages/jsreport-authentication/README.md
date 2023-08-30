@@ -7,6 +7,13 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+- avoid http basic authentication error dialog when authorization errors happen from studio actions
+- add support for multi admin users
+
 ### 3.4.0
 
 - update deps to fix npm audit

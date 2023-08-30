@@ -9,6 +9,11 @@ See https://jsreport.net/learn/version-control
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.1.2
 
 - fix and improve of the version control blog storage write

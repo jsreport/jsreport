@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-components",
-  "version": "3.3.1",
+  "version": "4.0.0",
   "description": "jsreport extension for dynamic creating dynamic templating engine components",
   "keywords": [
     "jsreport",
@@ -34,10 +34,10 @@
     "react-copy-to-clipboard": "5.0.2"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "3.6.1",
-    "@jsreport/jsreport-core": "3.12.0",
-    "@jsreport/jsreport-handlebars": "3.2.1",
-    "@jsreport/jsreport-jsrender": "3.0.0",
+    "@jsreport/jsreport-assets": "4.0.0",
+    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-handlebars": "4.0.0",
+    "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/studio-dev": "3.2.1",
     "mocha": "9.0.3",
     "should": "13.2.3",
