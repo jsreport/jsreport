@@ -14,6 +14,7 @@ if (targetPkg == null || targetPkg === '') {
 }
 
 const targetVersion = args[1]
+const npmAccess = args[2]
 
 const restArgs = args.slice(2)
 
@@ -234,7 +235,34 @@ if (extraneousDeps.length > 0) {
       return process.exit(1)
     }
 
+    const {
+      stdout: getNpmVersionStdout
+    } = spawnSync('npm', ['view', targetPkg, 'version'], {
+      stdio: 'pipe',
+      shell: true
+    })
+
+    let npmVersionInRegistry
+
+    const npmVersionStdout = getNpmVersionStdout?.toString() ?? ''
+
+    if (npmVersionStdout !== '') {
+      npmVersionInRegistry = npmVersionStdout.replaceAll('\n', '')
+    }
+
+    const isFirstRelease = npmVersionInRegistry == null
+
+    if (npmAccess != null) {
+      if (npmAccess !== 'public') {
+        throw new Error(`npmAccess should be "public". Value: ${npmAccess}. Third positional argument`)
+      }
+    }
+
     const publishCommand = ['npm', 'publish', '--workspaces=false']
+
+    if (npmAccess != null) {
+      publishCommand.push(`--access=${npmAccess}`)
+    }
 
     console.log(`\nrunning ${publishCommand.join(' ')}`)
 
@@ -246,6 +274,11 @@ if (extraneousDeps.length > 0) {
 
     if (publishError || publishStatus === 1) {
       console.error('Command failed to run')
+
+      if (isFirstRelease && targetPkg.startsWith('@')) {
+        console.log('\n!!It looks like this is a first release of a scoped package.\nFirst release of a scoped package must include explicit public access, because scoped packages are private by default.')
+        console.log(`\nYou can run "node scripts/publish.js ${targetPkg} ${targetVersion} public" to release with public access`)
+      }
 
       if (publishError) {
         throw publishError
