@@ -10,6 +10,7 @@ describe('localization', () => {
       .use(require('@jsreport/jsreport-handlebars')())
       .use(require('@jsreport/jsreport-components')())
       .use(require('@jsreport/jsreport-child-templates')())
+      .use(jsreport.tests.listeners())
       .use(require('../')())
 
     return reporter.init()
@@ -469,5 +470,41 @@ describe('localization', () => {
       }
     })
     res.content.toString().should.be.eql('Hello')
+  })
+
+  it('should provide localize helper with cache enabled', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        message: 'Hello'
+      })),
+      folder: {
+        shortid: 'localization'
+      }
+    })
+
+    reporter.tests.afterTemplatingEnginesExecutedEval(async (req, res, { reporter }) => {
+      const data = await (reporter.localization.cacheRequestsMap.get(req.context.rootId))['/localization/en.json']
+      res.content = Buffer.from(JSON.stringify(data))
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: "{{localize 'message' 'localization'}}{{localize 'message' 'localization'}}",
+        engine: 'handlebars',
+        recipe: 'html'
+      },
+      options: {
+        language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql(JSON.stringify({
+      message: 'Hello'
+    }))
   })
 })

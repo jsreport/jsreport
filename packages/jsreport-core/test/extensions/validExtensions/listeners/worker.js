@@ -70,5 +70,12 @@ module.exports = (reporter, definition) => {
         return evalInWorker(code, req, res)
       }
     })
+
+    reporter.afterTemplatingEnginesExecutedListeners.add('eval-listeners', async (req, res) => {
+      const code = await reporter.executeMainAction('test-afterTemplatingEnginesExecutedEval', {}, req)
+      if (code) {
+        return evalInWorker(code, req, res)
+      }
+    })
   })
 }

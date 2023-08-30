@@ -48,4 +48,15 @@ module.exports = (reporter, definition) => {
     }
     return afterRenderEval.toString()
   })
+
+  let afterTemplatingEnginesExecutedEval
+  reporter.tests.afterTemplatingEnginesExecutedEval = (fn) => {
+    afterTemplatingEnginesExecutedEval = fn
+  }
+  reporter.registerMainAction('test-afterTemplatingEnginesExecutedEval', async (data, req) => {
+    if (afterTemplatingEnginesExecutedEval == null) {
+      return
+    }
+    return afterTemplatingEnginesExecutedEval.toString()
+  })
 }

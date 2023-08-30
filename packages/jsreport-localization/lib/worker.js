@@ -4,6 +4,10 @@ const path = require('path')
 module.exports = async (reporter, definition) => {
   let helpers
 
+  reporter.localization = {
+    cacheRequestsMap: new Map()
+  }
+
   reporter.initializeListeners.add('assets', async () => {
     helpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
   })
@@ -16,6 +20,14 @@ module.exports = async (reporter, definition) => {
     if (req.template.localization?.language != null && req.options.localization?.language == null && req.options.language == null) {
       req.options.localization = Object.assign({}, req.options.localization, { language: req.template.localization.language })
     }
+  })
+
+  reporter.afterRenderListeners.add(definition.name, (req) => {
+    reporter.localization.cacheRequestsMap.delete(req.context.rootId)
+  })
+
+  reporter.renderErrorListeners.add(definition.name, (req) => {
+    reporter.localization.cacheRequestsMap.delete(req.context.rootId)
   })
 
   reporter.extendProxy((proxy, req) => {
@@ -48,16 +60,31 @@ module.exports = async (reporter, definition) => {
           throw new Error('Can\'t call localize without specified language')
         }
 
+        if (!reporter.localization.cacheRequestsMap.has(req.context.rootId)) {
+          reporter.localization.cacheRequestsMap.set(req.context.rootId, {})
+        }
+        const cache = reporter.localization.cacheRequestsMap.get(req.context.rootId)
+
         const localizationDataPath = path.posix.join(folder, `${language || 'en'}.json`)
         const resolvedCurrentDirectoryPath = await proxy.currentDirectoryPath()
-        const resolvedValue = await proxy.folders.resolveEntityFromPath(localizationDataPath, 'assets', { currentPath: resolvedCurrentDirectoryPath })
 
-        if (!resolvedValue) {
-          throw new Error('localize helper couldn\'t find asset with data at ' + localizationDataPath)
+        const localizationCacheKey = path.posix.join(resolvedCurrentDirectoryPath || '/', localizationDataPath)
+
+        if (cache[localizationCacheKey] == null) {
+          cache[localizationCacheKey] = (async () => {
+            const resolvedValue = await proxy.folders.resolveEntityFromPath(localizationDataPath, 'assets', { currentPath: resolvedCurrentDirectoryPath })
+
+            if (!resolvedValue) {
+              throw new Error('localize helper couldn\'t find asset with data at ' + localizationDataPath)
+            }
+
+            return JSON.parse(resolvedValue.entity.content.toString())
+          })()
         }
 
-        const localizedData = JSON.parse(resolvedValue.entity.content.toString())
-        return localizedData[key]
+        const localizationData = await cache[localizationCacheKey]
+
+        return localizationData[key]
       }
     }
   })
