@@ -82,7 +82,7 @@ if (firstCommit === 'inspect') {
     console.log(`- node scripts/changed.js inspect ${targetCommit} (to show all files changed in this commit)`)
   }
 
-  console.log(`- git difftool ${targetCommit}^ ${targetCommit} -- <path to file> (to show the diff for specific file in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
+  console.log(`- git difftool ${targetCommit}^ ${targetCommit} -- <path to file> (to show the diff of specific file in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
   console.log(`- git difftool ${targetCommit}^ ${targetCommit} (to show the full diff of the commit in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
 
   process.exit(0)
@@ -234,8 +234,9 @@ if (targetPkg != null && targetPkg !== '') {
     }
 
     console.log('\nAfter deciding the target version update, you can continue by running:')
-    console.log(`- git difftool ${firstCommit}${firstCommit === lastCommit ? '^' : ''} ${lastCommit} -- packages/${targetPkgFoldername} (to show the diff for specific range of commits for this package in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
-    console.log(`- git difftool ${firstCommit}${firstCommit === lastCommit ? '^' : ''} ${lastCommit} (to show the full diff for specific range of commits in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
+    console.log(`- git difftool ${firstCommit}${firstCommit === lastCommit ? '^' : ''} ${lastCommit} -- packages/${targetPkgFoldername} (to show the diff of specific range of commits for this package in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
+    console.log(`- git difftool ${firstCommit}${firstCommit === lastCommit ? '^' : ''} ${lastCommit} (to show the full diff of specific range of commits in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
+    console.log(`- git difftool <commit>^ <commit> -- packages/${targetPkgFoldername} (to show the full diff of specific commit for this package in external diff tool, you can replace "difftool" with "diff" if prefer to see the dif in the command line`)
     console.log(`- node scripts/changed.js inspect <commit> ${targetPkg} (to inspect changed files of ${targetPkg} in specific commit)`)
     console.log(`- node scripts/audit.js ${targetPkg}`)
     console.log(`- node scripts/publish.js ${targetPkg} <version>`)
