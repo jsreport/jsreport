@@ -29,6 +29,7 @@ jobs:
           path: |
             node_modules
             **/node_modules
+            ~/.cache/puppeteer
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
