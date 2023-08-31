@@ -48,6 +48,11 @@ You can also pass connection uri like this
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update `mongodb` client to v6
+
 ### 3.2.0
 
 - updated mongodb driver

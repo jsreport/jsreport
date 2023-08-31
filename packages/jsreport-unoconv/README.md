@@ -11,6 +11,11 @@ See https://jsreport.net/learn/unoconv
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.0.1
 
 - run unoconv before script so the afterRender script runs as the last

@@ -43,7 +43,7 @@
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-scripts": "4.0.0",
-    "@jsreport/studio-dev": "3.2.1",
+    "@jsreport/studio-dev": "4.0.0",
     "axios": "0.23.0",
     "cross-env": "5.2.0",
     "mocha": "5.2.0",

@@ -37,6 +37,10 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+
 ### 3.1.1
 
 - add support for odata ne operator

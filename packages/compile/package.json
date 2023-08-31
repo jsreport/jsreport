@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/compile",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "description": "Compile jsreport into single executable",
   "keywords": [
     "jsreport"
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@bjrmatos/pkg": "5.4.3",
-    "acorn": "5.5.0",
+    "acorn": "5.7.4",
     "bubleify": "0.7.0",
     "debug": "4.3.2",
     "lockfile": "1.0.4",

@@ -4,7 +4,7 @@
 **Make jsreport [fs store](https://jsreport.net/learn/fs-store) persisting entities into azure blob storage.**
 
 ## Installation
-  
+
 > npm install @jsreport/jsreport-fs-store-azure-storage-persistence
 
 Create an azure storage account and copy account name and access key.  Then alter jsreport configuration:
@@ -33,6 +33,10 @@ Create an azure storage account and copy account name and access key.  Then alte
 ```
 
 ## Changelog
+
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
 
 ### 3.0.0-beta.1
 

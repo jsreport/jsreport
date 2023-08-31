@@ -33,6 +33,13 @@ jsreport.use(require('jsreport-phantom-image')({ strategy: 'phantom-server' }))
 - blockJavaScript - block running js on the page
 - waitForJS - see [phantom-html-to-pdf](https://github.com/pofider/phantom-html-to-pdf) - the window variable to set in this case is `JSREPORT_READY_TO_START`
 
+## Changelogs
+
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.3.0
 
-update phantom-html-to-pdf with phantomjs ssl issues workaround
+- update phantom-html-to-pdf with phantomjs ssl issues workaround

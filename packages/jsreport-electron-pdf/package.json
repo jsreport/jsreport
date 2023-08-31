@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-electron-pdf",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "description": "jsreport recipe which renders pdf from html using electron",
   "keywords": [
     "jsreport",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.0.0",
-    "@jsreport/studio-dev": "3.2.1",
+    "@jsreport/studio-dev": "4.0.0",
     "in-publish": "2.0.1",
     "mocha": "8.3.2",
     "should": "13.2.3",

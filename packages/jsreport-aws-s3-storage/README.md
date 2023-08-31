@@ -21,14 +21,14 @@ https://jsreport.net/learn/reports
 Required options is:
 - `bucket`
 
-In case you want to use IAM role, don't pass accessKey and secretAccessKey.    
+In case you want to use IAM role, don't pass accessKey and secretAccessKey.
 
 Optionally you can set
 - `s3Options`: azure blob storage container, this defaults to jsreport
 
 ```js
 {
-	"blobStorage": {  
+	"blobStorage": {
 		"provider": "aws-s3-storage"
 	},
 	"extensions": {
@@ -49,6 +49,10 @@ jsreport.use(require('@jsreport/jsreport-aws-s3-storage')({...}))
 ```
 
 ## Changelog
+
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
 
 ### 3.0.0-beta.1
 

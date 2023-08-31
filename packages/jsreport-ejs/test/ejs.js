@@ -5,7 +5,9 @@ describe('ejs', function () {
   let jsreport
 
   beforeEach(() => {
-    jsreport = JsReport()
+    // NOTE: ejs is expected to only work when user code is trusted,
+    // it does not work in SES based sandbox
+    jsreport = JsReport({ trustUserCode: true })
     jsreport.use(require('../')())
     return jsreport.init()
   })

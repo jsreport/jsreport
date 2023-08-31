@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-office-password",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "jsreport extension adding password protection to office reports",
   "keywords": [
     "jsreport",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-html-to-xlsx": "4.0.0",
-    "@jsreport/studio-dev": "3.2.1",
+    "@jsreport/studio-dev": "4.0.0",
     "mocha": "7.0.0",
     "puppeteer": "21.1.0",
     "should": "13.2.3",

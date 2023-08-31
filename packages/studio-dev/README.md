@@ -19,6 +19,11 @@
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update webpack, babel and other related build deps
+
 ### 3.2.1
 
 - fix jsreport-studio-start, jsreport-studio-build commands not working with node 18

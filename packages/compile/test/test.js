@@ -44,7 +44,7 @@ describe('compilation', function () {
 
     return unlinkAsync(path.join(__dirname, 'exe')).catch(function (e) {}).then(function () {
       return compile({
-        nodeVersion: '16',
+        nodeVersion: '18',
         input,
         output,
         debug: true,

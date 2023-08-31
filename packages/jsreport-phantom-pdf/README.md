@@ -33,6 +33,11 @@ jsreport.use(require('jsreport-phantom-pdf')({ strategy: 'phantom-server' }))
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.3.0
 
 update phantom-html-to-pdf with phantomjs ssl issues workaround

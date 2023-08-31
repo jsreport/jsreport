@@ -15,6 +15,11 @@ jsreport.exe start
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- updates to make it work with SES
+
 ### 3.1.0
 
 - support store simple values

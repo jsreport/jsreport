@@ -34,7 +34,7 @@
     "@jsreport/jsreport-authorization": "4.0.0",
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-express": "4.0.0",
-    "@jsreport/studio-dev": "3.2.1",
+    "@jsreport/studio-dev": "4.0.0",
     "mocha": "5.2.0",
     "should": "13.2.3",
     "standard": "16.0.4",

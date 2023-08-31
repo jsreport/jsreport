@@ -3,7 +3,7 @@ module.exports = {
   main: './lib/main.js',
   dependencies: [],
   requires: {
-    core: '3.x.x'
+    core: '4.x.x'
   },
   optionsSchema: {
     store: {

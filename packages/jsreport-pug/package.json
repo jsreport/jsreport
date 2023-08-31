@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pug",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Use pug templating engine in jsreport",
   "keywords": [
     "jsreport",
@@ -28,7 +28,7 @@
     "pug": "3.0.2"
   },
   "devDependencies": {
-    "@jsreport/studio-dev": "3.2.1",
+    "@jsreport/studio-dev": "4.0.0",
     "mocha": "6.1.4",
     "should": "13.2.3",
     "standard": "16.0.4"

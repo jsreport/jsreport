@@ -44,6 +44,10 @@ If you do changes to the database schema by enabling additional extensions you n
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+
 ### 3.3.2
 
 - moved oracledb to optionalDependencies to be able to build docker ARM image correctly

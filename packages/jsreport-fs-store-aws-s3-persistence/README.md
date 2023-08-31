@@ -46,6 +46,10 @@ This persistence implementation also guarantees consistency for parallel access 
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+
 ### 3.1.0
 
 Add prefix config to allow storing in specific folder inside bucket

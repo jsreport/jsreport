@@ -13,6 +13,11 @@ npm i @jsreport/jsreport-office-password
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update webpack, babel and other related build deps
+
 ### 3.0.1
 
 - clear office password in studio

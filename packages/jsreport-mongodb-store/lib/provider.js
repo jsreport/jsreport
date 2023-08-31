@@ -182,6 +182,10 @@ module.exports = (client, options, db) => {
         res.forEach(_convertBufferAndIds)
         return res
       }
+      cursor.count = async () => {
+        const { projection, ...countOptions } = queryOpts
+        return db.collection(getCollectionName(options.prefix, entitySet)).countDocuments(query, countOptions)
+      }
       return cursor
     },
 

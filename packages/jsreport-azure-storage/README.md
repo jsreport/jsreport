@@ -54,6 +54,10 @@ jsreport.use(require('@jsreport/jsreport-azure-storage')({}))
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+
 ### 3.0.1
 
 - move some deps to dev deps
