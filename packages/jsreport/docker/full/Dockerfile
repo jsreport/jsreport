@@ -57,20 +57,20 @@ ENV PUPPETEER_CACHE_DIR /app/.puppeteer-cache
 RUN npm i -g @jsreport/jsreport-cli
 RUN jsreport init
 
-RUN npm install --save --save-exact @jsreport/jsreport-ejs@3.0.1 \
-    @jsreport/jsreport-pug@4.0.0 \
-    @jsreport/jsreport-aws-s3-storage@3.0.0 \
-    @jsreport/jsreport-azure-storage@3.0.2 \
-    @jsreport/jsreport-docxtemplater@3.2.0 \
-    @jsreport/jsreport-mssql-store@3.1.1 \
-    @jsreport/jsreport-postgres-store@3.1.1 \
-    @jsreport/jsreport-mongodb-store@3.2.0 \
-    @jsreport/jsreport-office-password@3.0.1 \
-    @jsreport/jsreport-html-to-text@3.0.0 \
-    @jsreport/jsreport-html-embedded-in-docx@3.1.0 \
-    @jsreport/jsreport-fs-store-aws-s3-persistence@3.1.0 \
-    @jsreport/jsreport-fs-store-azure-storage-persistence@3.0.0 \
-    @jsreport/jsreport-unoconv@3.0.1 \
+RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.0 \
+    @jsreport/jsreport-pug@5.0.0 \
+    @jsreport/jsreport-aws-s3-storage@4.0.0 \
+    @jsreport/jsreport-azure-storage@4.0.0 \
+    @jsreport/jsreport-docxtemplater@4.0.0 \
+    @jsreport/jsreport-mssql-store@4.0.0 \
+    @jsreport/jsreport-postgres-store@4.0.0 \
+    @jsreport/jsreport-mongodb-store@4.0.0 \
+    @jsreport/jsreport-office-password@4.0.0 \
+    @jsreport/jsreport-html-to-text@4.0.0 \
+    @jsreport/jsreport-html-embedded-in-docx@4.0.0 \
+    @jsreport/jsreport-fs-store-aws-s3-persistence@4.0.0 \
+    @jsreport/jsreport-fs-store-azure-storage-persistence@4.0.0 \
+    @jsreport/jsreport-unoconv@4.0.0 \
     cheerio-page-eval@1.0.0
 
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
