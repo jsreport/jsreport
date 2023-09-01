@@ -46,7 +46,7 @@
     "xml2js-preserve-spaces": "0.0.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.0.0",
+    "@jsreport/jsreport-assets": "4.0.1",
     "@jsreport/jsreport-components": "4.0.0",
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-data": "4.0.0",

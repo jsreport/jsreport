@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.0.1
+
+- fix `jsreport.config.json` requires metadata for v4
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

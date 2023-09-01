@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@jsreport/advanced-workers": "2.0.0",
-    "@jsreport/jsreport-assets": "4.0.0",
+    "@jsreport/jsreport-assets": "4.0.1",
     "@jsreport/jsreport-base": "4.0.0",
-    "@jsreport/jsreport-browser-client": "3.1.2",
+    "@jsreport/jsreport-browser-client": "4.0.0",
     "@jsreport/jsreport-child-templates": "4.0.0",
     "@jsreport/jsreport-chrome-pdf": "4.0.0",
     "@jsreport/jsreport-components": "4.0.0",

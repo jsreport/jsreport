@@ -33,7 +33,7 @@
     "moment": "2.29.4"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.0.0",
+    "@jsreport/jsreport-authentication": "4.0.1",
     "@jsreport/jsreport-authorization": "4.0.0",
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-reports": "4.0.0",

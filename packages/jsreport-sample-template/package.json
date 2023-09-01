@@ -31,7 +31,7 @@
     "lodash.omit": "4.5.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.0.0",
+    "@jsreport/jsreport-assets": "4.0.1",
     "@jsreport/jsreport-chrome-pdf": "4.0.0",
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-data": "4.0.0",

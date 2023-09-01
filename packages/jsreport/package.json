@@ -40,11 +40,11 @@
     "test": "mocha test/specs.js --timeout 35000 && standard"
   },
   "dependencies": {
-    "@jsreport/jsreport-assets": "4.0.0",
-    "@jsreport/jsreport-authentication": "4.0.0",
+    "@jsreport/jsreport-assets": "4.0.1",
+    "@jsreport/jsreport-authentication": "4.0.1",
     "@jsreport/jsreport-authorization": "4.0.0",
     "@jsreport/jsreport-base": "4.0.0",
-    "@jsreport/jsreport-browser-client": "3.1.2",
+    "@jsreport/jsreport-browser-client": "4.0.0",
     "@jsreport/jsreport-child-templates": "4.0.0",
     "@jsreport/jsreport-chrome-pdf": "4.0.0",
     "@jsreport/jsreport-cli": "4.0.1",

@@ -30,7 +30,7 @@
     "watch": "microbundle watch"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.0.0",
+    "@jsreport/jsreport-authentication": "4.0.1",
     "@jsreport/jsreport-chrome-pdf": "4.0.0",
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-express": "4.0.0",

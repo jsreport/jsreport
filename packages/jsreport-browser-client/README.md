@@ -123,6 +123,11 @@ The last example shows how to use the [jsreport borwser client](http://jsreport.
 
 ## Changelog
 
+### 4.0.0
+
+- minimum node.js version is now `18.15.0`
+- update studio build against new webpack and babel
+
 ### 3.1.2
 
 - fix url normalization. it was breaking playground serverUrl
