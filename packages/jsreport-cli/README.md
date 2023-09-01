@@ -7,6 +7,11 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.0.1
+
+- fix cli .launch does not exists
+- fix `jsreport.config.json` requires metadata for v4
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
