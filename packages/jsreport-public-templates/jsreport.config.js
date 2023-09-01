@@ -4,7 +4,7 @@ module.exports = {
   main: 'lib/main.js',
   dependencies: ['authentication', 'authorization'],
   requires: {
-    core: '3.x.x'
+    core: '4.x.x'
   },
   embeddedSupport: true,
   skipInExeRender: true

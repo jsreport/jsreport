@@ -3,6 +3,6 @@ module.exports = {
   main: 'main.js',
   dependencies: [],
   requires: {
-    core: '3.x.x'
+    core: '4.x.x'
   }
 }

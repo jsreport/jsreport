@@ -4,9 +4,9 @@ module.exports = {
   worker: 'lib/worker.js',
   dependencies: ['authentication'],
   requires: {
-    core: '3.x.x',
-    studio: '3.x.x',
-    authentication: '3.x.x'
+    core: '4.x.x',
+    studio: '4.x.x',
+    authentication: '4.x.x'
   },
   skipInExeRender: true
 }

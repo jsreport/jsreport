@@ -5,6 +5,6 @@ module.exports = {
   worker: 'lib/worker.js',
   dependencies: ['assets'],
   requires: {
-    core: '3.x.x'
+    core: '4.x.x'
   }
 }

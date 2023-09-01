@@ -7,8 +7,8 @@ module.exports = {
   optionsSchema: office.extendSchema('docxtemplater', {}),
   dependencies: ['assets'],
   requires: {
-    core: '3.x.x',
-    studio: '3.x.x',
-    assets: '3.x.x'
+    core: '4.x.x',
+    studio: '4.x.x',
+    assets: '4.x.x'
   }
 }
