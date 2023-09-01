@@ -32,7 +32,9 @@ const cli = new Liftoff({
   configName: '.jsreport'
 })
 
-cli.launch({}, initCLI)
+cli.prepare({}, (env) => {
+  cli.execute(env, initCLI)
+})
 
 function initCLI (env) {
   const isCLIDev = process.env.JSREPORT_CLI_DEV === 'enabled'
