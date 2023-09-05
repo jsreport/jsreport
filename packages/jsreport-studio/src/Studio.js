@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDom from 'react-dom'
+import { useSelector } from 'react-redux'
 import { NativeTypes } from 'react-dnd-html5-backend'
 import ReactList from 'react-list'
 import superagent from 'superagent'
@@ -14,6 +15,7 @@ import * as editor from './redux/editor'
 import * as entities from './redux/entities'
 import * as progress from './redux/progress'
 import * as settings from './redux/settings'
+import { createGetReferencesSelector } from './redux/entities/selectors'
 import { values as configuration } from './lib/configuration'
 import rootUrl from './helpers/rootUrl'
 import { openModal, isModalOpen } from './helpers/openModal'
@@ -705,6 +707,22 @@ class Studio {
    */
   resolveEntityPath (entity) {
     return storeMethods.resolveEntityPath(entity)
+  }
+
+  /**
+   * Creates a hook that will retrieve entities from store with selector,
+   * useful when you need to subscribe to store changes in a component
+  */
+  createUseEntitiesSelector () {
+    const getReferences = createGetReferencesSelector()
+
+    return function useEntitiesSelector (selectorFn) {
+      return useSelector((state) => {
+        const entities = getReferences(state)
+        const result = selectorFn(entities)
+        return result
+      })
+    }
   }
 
   /**

@@ -27,7 +27,6 @@ export default function useEntityTree (main, {
   editSelectionRefs,
   lastEditSelectionFocused,
   selected,
-  getContextMenuItems,
   openTab,
   editSelect,
   clearEditSelect,
@@ -637,9 +636,7 @@ export default function useEntityTree (main, {
       editSelection,
       selectable,
       selectionMode,
-      contextMenu,
       clipboard,
-      contextMenuRef,
       onRemove,
       onClone,
       onRename,
@@ -658,8 +655,7 @@ export default function useEntityTree (main, {
       hasEditSelection,
       isNodeSelected,
       isNodeEditSelected,
-      getEntityNodeById,
-      getContextMenuItems
+      getEntityNodeById
     }
   }, [
     main,
@@ -668,7 +664,6 @@ export default function useEntityTree (main, {
     paddingByLevelInTree,
     selectable,
     selectionMode,
-    contextMenu,
     clipboard,
     selected,
     sharedOnNewEntity,
@@ -681,7 +676,6 @@ export default function useEntityTree (main, {
     onNodeClick,
     clearEditSelect,
     getEntityNodeById,
-    getContextMenuItems,
     onSetClipboard,
     onReleaseClipboardTo,
     hasEditSelection,
@@ -699,6 +693,7 @@ export default function useEntityTree (main, {
   return {
     groupMode,
     currentEntities,
+    contextMenu,
     collapsedNodes,
     collapsedDefaultValue,
     highlightedArea,

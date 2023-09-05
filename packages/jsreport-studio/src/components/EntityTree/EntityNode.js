@@ -2,7 +2,6 @@ import React, { useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import composeRefs from '@seznam/compose-react-refs'
 import NodeSelect from './NodeSelect'
-import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents } from './utils'
 import { values as configuration } from '../../lib/configuration'
 import resolveEntityTreeIconStyle from '../../helpers/resolveEntityTreeIconStyle'
@@ -21,16 +20,30 @@ const EntityNode = React.memo(({
   isDragging,
   connectDragging,
   isActive,
-  contextMenu,
-  contextMenuRef,
-  getContextMenuItems,
   hasEditSelection,
   isNodeEditSelected,
   onNodeEditSelect,
   onNodeClick,
   onContextMenu
 }) => {
+  const containerRef = useRef(null)
   const titleRef = useRef(null)
+
+  const onContextShow = useCallback(() => {
+    if (containerRef.current == null) {
+      return
+    }
+
+    containerRef.current.classList.add(styles.focused)
+  }, [])
+
+  const onContextHide = useCallback(() => {
+    if (containerRef.current == null) {
+      return
+    }
+
+    containerRef.current.classList.remove(styles.focused)
+  }, [])
 
   const getCoordinates = useCallback(() => {
     const dimensions = titleRef.current.getBoundingClientRect()
@@ -44,10 +57,8 @@ const EntityNode = React.memo(({
   const name = node.name
   const entity = node.data
   const entityStyle = resolveEntityTreeIconStyle(entity, {})
-  const isContextMenuActive = contextMenu != null && contextMenu.id === entity._id && contextMenu.nodeId === node.id
 
   const containerClass = classNames(styles.link, {
-    [styles.focused]: isContextMenuActive,
     [styles.active]: hasEditSelection() ? isNodeEditSelected(node) && !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })
@@ -74,6 +85,7 @@ const EntityNode = React.memo(({
 
   return (
     <label
+      ref={containerRef}
       key={entity._id}
       id={id}
       className={containerClass}
@@ -95,7 +107,12 @@ const EntityNode = React.memo(({
           onNodeClick(node)
         }
       }}
-      onContextMenu={(ev) => onContextMenu(ev, entity, node.id)}
+      onContextMenu={(ev) => onContextMenu(ev, {
+        node,
+        getCoordinates,
+        onShow: onContextShow,
+        onHide: onContextHide
+      })}
     >
       <div
         ref={composeRefs(titleRef, connectDragging)}
@@ -108,13 +125,6 @@ const EntityNode = React.memo(({
         <a key='entity-name'>{entity.name + (entity.__isDirty ? '*' : '')}</a>
         {renderEntityTreeItemComponents('right', { entity })}
       </div>
-      <NodeContextMenu
-        ref={contextMenuRef}
-        key={`context-menu-${name}`}
-        node={node}
-        getContextMenuItems={getContextMenuItems}
-        getCoordinates={getCoordinates}
-      />
     </label>
   )
 })

@@ -288,39 +288,4 @@ const ContextMenuContainer = ({ children }) => {
   )
 }
 
-export const RootContextMenu = React.forwardRef(function RootContextMenu ({ getContextMenuItems }, ref) {
-  const { contextMenu } = useContext(EntityTreeContext)
-
-  if (!contextMenu || contextMenu.id !== '__ROOT__') {
-    return null
-  }
-
-  return (
-    <ContextMenu
-      ref={ref}
-      getContextMenuItems={getContextMenuItems}
-      getCoordinates={() => contextMenu.pointCoordinates}
-    />
-  )
-})
-
-export const NodeContextMenu = React.forwardRef(function NodeContextMenu ({ node, getContextMenuItems, getCoordinates }, ref) {
-  const { contextMenu } = useContext(EntityTreeContext)
-  const entity = node.data
-
-  const isCurrent = contextMenu != null ? (contextMenu.id === entity._id && contextMenu.nodeId === node.id) : false
-
-  if (!isCurrent) {
-    return null
-  }
-
-  return (
-    <ContextMenu
-      ref={ref}
-      node={node}
-      entity={entity}
-      getContextMenuItems={getContextMenuItems}
-      getCoordinates={getCoordinates}
-    />
-  )
-})
+export default ContextMenu

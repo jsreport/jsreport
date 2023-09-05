@@ -58,6 +58,7 @@
     "@jsreport/jsreport-core": "4.0.0",
     "@jsreport/jsreport-express": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
+    "@redux-devtools/extension": "3.2.5",
     "@seznam/compose-react-refs": "1.0.6",
     "assert": "2.0.0",
     "babel-eslint": "10.0.2",

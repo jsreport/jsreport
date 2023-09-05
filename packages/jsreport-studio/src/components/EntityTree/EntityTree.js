@@ -6,7 +6,7 @@ import EntityTreeContext from './EntityTreeContext'
 import Toolbar from './Toolbar'
 import TreeList from './TreeList'
 import HighlightedArea from './HighlightedArea'
-import { RootContextMenu } from './ContextMenu'
+import ContextMenu from './ContextMenu'
 import { actions as editorActions } from '../../redux/editor'
 import styles from './EntityTree.css'
 
@@ -54,6 +54,7 @@ const EntityTree = ({
   const {
     groupMode,
     currentEntities,
+    contextMenu,
     collapsedNodes,
     collapsedDefaultValue,
     highlightedArea,
@@ -71,7 +72,6 @@ const EntityTree = ({
     editSelectionRefs,
     lastEditSelectionFocused,
     selected,
-    getContextMenuItems,
     openTab,
     editSelect,
     clearEditSelect,
@@ -139,12 +139,46 @@ const EntityTree = ({
             getContainerDimensions={getListContainerDimensions}
           />
         </div>
-        <RootContextMenu
-          ref={contextMenuRef}
-          getContextMenuItems={getContextMenuItems}
-        />
+        {renderContextMenu(contextMenu, contextMenuRef, getContextMenuItems)}
       </div>
     </EntityTreeContext.Provider>
+  )
+}
+
+function renderContextMenu (contextMenu, contextMenuRef, getContextMenuItems) {
+  if (
+    !contextMenu
+  ) {
+    return null
+  }
+
+  let type
+
+  if (contextMenu.id === '__ROOT__') {
+    type = 'root'
+  } else if (contextMenu.node != null) {
+    type = 'node'
+  }
+
+  if (type == null) {
+    return null
+  }
+
+  const props = {
+    ref: contextMenuRef,
+    getContextMenuItems,
+    getCoordinates: contextMenu.getCoordinates
+  }
+
+  if (type === 'node') {
+    props.node = contextMenu.node
+    props.entity = contextMenu.node.data
+  }
+
+  return (
+    <ContextMenu
+      {...props}
+    />
   )
 }
 

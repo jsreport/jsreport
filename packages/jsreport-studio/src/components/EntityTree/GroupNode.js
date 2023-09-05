@@ -1,7 +1,6 @@
 import React, { useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import NodeSelect from './NodeSelect'
-import { NodeContextMenu } from './ContextMenu'
 import { renderEntityTreeItemComponents } from './utils'
 import { values as configuration } from '../../lib/configuration'
 import { checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
@@ -24,9 +23,6 @@ const GroupNode = React.memo(({
   renderTree,
   isActive,
   isCollapsed,
-  contextMenu,
-  contextMenuRef,
-  getContextMenuItems,
   hasEditSelection,
   isNodeEditSelected,
   onNewEntity,
@@ -34,7 +30,34 @@ const GroupNode = React.memo(({
   onNodeClick,
   onContextMenu
 }) => {
+  const containerRef = useRef(null)
   const titleRef = useRef(null)
+
+  const groupIsEntity = checkIsGroupEntityNode(node)
+
+  const onContextShow = useCallback(() => {
+    if (!groupIsEntity) {
+      return
+    }
+
+    if (containerRef.current == null) {
+      return
+    }
+
+    containerRef.current.classList.add(styles.focused)
+  }, [groupIsEntity])
+
+  const onContextHide = useCallback(() => {
+    if (!groupIsEntity) {
+      return
+    }
+
+    if (containerRef.current == null) {
+      return
+    }
+
+    containerRef.current.classList.remove(styles.focused)
+  }, [groupIsEntity])
 
   const getCoordinates = useCallback(() => {
     const dimensions = titleRef.current.getBoundingClientRect()
@@ -55,11 +78,7 @@ const GroupNode = React.memo(({
       })
     : null
 
-  const groupIsEntity = checkIsGroupEntityNode(node)
-  const isContextMenuActive = contextMenu != null && groupIsEntity && contextMenu.id === node.data._id && contextMenu.nodeId === node.id
-
   const containerClass = classNames(styles.link, {
-    [styles.focused]: isContextMenuActive,
     [styles.active]: hasEditSelection() ? isNodeEditSelected(node) && !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })
@@ -94,6 +113,7 @@ const GroupNode = React.memo(({
   return (
     <div id={id}>
       <div
+        ref={containerRef}
         className={containerClass}
         {...editSelectionEnabledProps}
         style={{ paddingLeft: `${(depth + 1) * paddingByLevel}rem` }}
@@ -121,7 +141,12 @@ const GroupNode = React.memo(({
             ev.preventDefault()
             ev.stopPropagation()
           } else {
-            onContextMenu(ev, node.data, node.id)
+            onContextMenu(ev, {
+              node,
+              getCoordinates,
+              onShow: onContextShow,
+              onHide: onContextHide
+            })
           }
         }}
       >
@@ -164,14 +189,6 @@ const GroupNode = React.memo(({
               ev.stopPropagation()
               onNewEntity(undefined, name)
             }}
-          />
-        )}
-        {groupIsEntity && (
-          <NodeContextMenu
-            ref={contextMenuRef}
-            node={node}
-            getContextMenuItems={getContextMenuItems}
-            getCoordinates={getCoordinates}
           />
         )}
       </div>

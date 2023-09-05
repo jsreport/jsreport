@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 export default function useContextMenu (contextMenuRef) {
   const [contextMenu, setContextMenu] = useState(null)
 
-  const showContextMenu = useCallback((ev, entity, nodeId) => {
+  const showContextMenu = useCallback((ev, nodeMeta) => {
     ev.preventDefault()
     ev.stopPropagation()
 
@@ -14,13 +14,16 @@ export default function useContextMenu (contextMenuRef) {
 
     const newContextMenu = {}
 
-    if (entity) {
-      newContextMenu.id = entity._id
-      newContextMenu.nodeId = nodeId
-      newContextMenu.pointCoordinates = null
+    if (nodeMeta) {
+      newContextMenu.id = nodeMeta.node.data._id
+      newContextMenu.node = nodeMeta.node
+      newContextMenu.getCoordinates = nodeMeta.getCoordinates
+      newContextMenu.onShow = nodeMeta.onShow
+      newContextMenu.onHide = nodeMeta.onHide
     } else {
+      const { clientX, clientY } = ev
       newContextMenu.id = '__ROOT__'
-      newContextMenu.pointCoordinates = { x: ev.clientX, y: ev.clientY }
+      newContextMenu.getCoordinates = () => ({ x: clientX, y: clientY })
     }
 
     setContextMenu(newContextMenu)
@@ -35,6 +38,18 @@ export default function useContextMenu (contextMenuRef) {
       return null
     })
   }, [])
+
+  useEffect(() => {
+    if (contextMenu?.onShow) {
+      contextMenu.onShow()
+    }
+
+    return () => {
+      if (contextMenu?.onHide) {
+        contextMenu.onHide()
+      }
+    }
+  }, [contextMenu])
 
   useEffect(() => {
     function tryClearFromClick (ev) {
