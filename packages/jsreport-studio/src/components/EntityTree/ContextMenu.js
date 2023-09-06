@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useContext, useRef, useEffect } from 'react'
-import classNames from 'classnames'
 import ReactDOM from 'react-dom'
+import { useSelector } from 'react-redux'
+import classNames from 'classnames'
 import EntityTreeContext from './EntityTreeContext'
 import getVisibleEntitySetsInTree from '../../helpers/getVisibleEntitySetsInTree'
 import { getAllEntitiesInHierarchy } from './utils'
-import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
+import { checkIsGroupNode, checkIsGroupEntityNode, checkIsNodeEditSelected } from '../../helpers/checkEntityTreeNodes'
 import storeMethods from '../../redux/methods'
 import { values as configuration } from '../../lib/configuration'
 import styles from './EntityTree.css'
@@ -16,7 +17,6 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
   getContextMenuItems
 }, ref) {
   const {
-    editSelection,
     selectable,
     clipboard,
     onNewEntity,
@@ -24,8 +24,6 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onRemove,
     onClone,
     onRename,
-    hasEditSelection,
-    isNodeEditSelected,
     onClearContextMenu,
     onClearEditSelect,
     onSetClipboard,
@@ -37,8 +35,11 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     return null
   }
 
-  const getNormalizedEditSelection = useCallback((_editSelection) => {
-    if (editSelection == null) {
+  const editSelection = useSelector((state) => state.editor.editSelection)
+  const isNodeEditSelected = checkIsNodeEditSelected(editSelection, node)
+
+  const getNormalizedEditSelection = useCallback((editSelectionParam) => {
+    if (editSelectionParam == null) {
       return null
     }
 
@@ -46,7 +47,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     const nodeCache = Object.create(null)
     const childrenCache = Object.create(null)
 
-    const allEntitiesSelected = editSelection.map((selectedId) => storeMethods.getEntityById(selectedId))
+    const allEntitiesSelected = editSelectionParam.map((selectedId) => storeMethods.getEntityById(selectedId))
     const foldersSelected = allEntitiesSelected.filter((entitySelected) => entitySelected.__entitySet === 'folders')
 
     for (const folderSelected of foldersSelected) {
@@ -80,7 +81,7 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
 
   const menuItems = []
 
-  const editSelectionContextMenu = node != null && hasEditSelection() && isNodeEditSelected(node) && editSelection.length > 1
+  const editSelectionContextMenu = node != null && isNodeEditSelected && editSelection.length > 1
 
   const resolverParam = {
     node,

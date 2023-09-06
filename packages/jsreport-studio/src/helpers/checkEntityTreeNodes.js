@@ -10,3 +10,15 @@ export function checkIsGroupEntityNode (node) {
 
   return false
 }
+
+export function checkIsNodeEditSelected (editSelection, node) {
+  if (editSelection == null) {
+    return false
+  }
+
+  if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
+    return false
+  }
+
+  return editSelection.find((id) => node.data._id === id) != null
+}

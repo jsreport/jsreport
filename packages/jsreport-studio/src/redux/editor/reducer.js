@@ -193,7 +193,7 @@ reducer.handleAction(ActionTypes.EDIT_SELECT_CLEAR, (state, action) => {
   return {
     ...state,
     editSelection: null,
-    editSelectionRefs: null,
+    editSelectionRefs: [],
     lastEditSelectionFocused: null
   }
 })

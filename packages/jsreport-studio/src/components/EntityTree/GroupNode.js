@@ -23,7 +23,6 @@ const GroupNode = React.memo(({
   renderTree,
   isActive,
   isCollapsed,
-  hasEditSelection,
   isNodeEditSelected,
   onNewEntity,
   onNodeEditSelect,
@@ -79,7 +78,7 @@ const GroupNode = React.memo(({
     : null
 
   const containerClass = classNames(styles.link, {
-    [styles.active]: hasEditSelection() ? isNodeEditSelected(node) && !isDragging : isActive && !isDragging,
+    [styles.active]: isNodeEditSelected ? !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })
 

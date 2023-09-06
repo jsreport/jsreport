@@ -14,9 +14,6 @@ import styles from './EntityTreeBox.css'
 const EntityTreeBox = () => {
   const getReferences = useMemo(createGetReferencesSelector, [])
   const references = useSelector(getReferences)
-  const editSelection = useSelector(state => state.editor.editSelection)
-  const editSelectionRefs = useSelector(state => state.editor.editSelectionRefs)
-  const lastEditSelectionFocused = useSelector(state => state.editor.lastEditSelectionFocused)
 
   const executeNewHandling = useCallback(function executeNewHandling (es, options) {
     if (configuration.entitySets[es].onNew) {
@@ -60,9 +57,6 @@ const EntityTreeBox = () => {
     onRename: executeRenameHandling,
     onClone: executeCloneHandling,
     onRemove: executeRemoveHandling,
-    editSelection,
-    editSelectionRefs,
-    lastEditSelectionFocused,
     entities: references
   }
 

@@ -11,7 +11,7 @@ import EntityNode from './EntityNode'
 import ENTITY_NODE_DRAG_TYPE from './nodeDragType'
 import { getNodeDOMId, getNodeTitleDOMId } from './utils'
 import { createSelector, createGetActiveEntitySelector } from '../../redux/editor/selectors'
-import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
+import { checkIsGroupNode, checkIsGroupEntityNode, checkIsNodeEditSelected } from '../../helpers/checkEntityTreeNodes'
 import styles from './EntityTree.css'
 
 const TreeNode = React.memo(({ node, depth, draggable, renderTree }) => {
@@ -19,7 +19,6 @@ const TreeNode = React.memo(({ node, depth, draggable, renderTree }) => {
     main,
     selectable,
     paddingByLevel,
-    hasEditSelection,
     isNodeEditSelected,
     onNewEntity,
     onNodeDragOver,
@@ -36,7 +35,6 @@ const TreeNode = React.memo(({ node, depth, draggable, renderTree }) => {
     main,
     selectable,
     paddingByLevel,
-    hasEditSelection,
     isNodeEditSelected,
     renderTree,
     onNewEntity,
@@ -64,9 +62,8 @@ const RawTreeNodeItem = React.memo(({
   main,
   selectable,
   paddingByLevel,
-  hasEditSelection,
-  isNodeEditSelected,
   isActive = false,
+  isNodeEditSelected = false,
   onNewEntity,
   onNodeDragOver,
   onNodeCollapse,
@@ -177,7 +174,6 @@ const RawTreeNodeItem = React.memo(({
     isDragging,
     connectDragging,
     isActive,
-    hasEditSelection,
     isNodeEditSelected,
     onNodeEditSelect,
     onNodeClick,
@@ -233,16 +229,27 @@ const createIsNodeActiveSelector = () => createSelector(
   }
 )
 
+const createIsNodeEditSelectedSelector = () => createSelector(
+  (state) => state.editor.editSelection,
+  (_, node) => node,
+  (editSelection, node) => {
+    return checkIsNodeEditSelected(editSelection, node)
+  }
+)
+
 const ConnectedTreeNodeItem = (props) => {
   const { node } = props
 
-  const isNodeActive = useMemo(createIsNodeActiveSelector, [])
-  const isActive = useSelector((state) => isNodeActive(state, node))
+  const isNodeActiveSelector = useMemo(createIsNodeActiveSelector, [])
+  const isNodeEditSelectedSelector = useMemo(createIsNodeEditSelectedSelector, [])
+  const isActive = useSelector((state) => isNodeActiveSelector(state, node))
+  const isNodeEditSelected = useSelector((state) => isNodeEditSelectedSelector(state, node))
 
   return (
     <RawTreeNodeItem
       {...props}
       isActive={isActive}
+      isNodeEditSelected={isNodeEditSelected}
     />
   )
 }

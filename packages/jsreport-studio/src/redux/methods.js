@@ -22,6 +22,12 @@ const methods = {
   getEditorEditSelection () {
     return store.getState().editor.editSelection
   },
+  getEditorEditSelectionRefs () {
+    return store.getState().editor.editSelectionRefs
+  },
+  getEditorLastEditSelectionFocused () {
+    return store.getState().editor.lastEditSelectionFocused
+  },
   getEditorRunning () {
     return store.getState().editor.running
   },

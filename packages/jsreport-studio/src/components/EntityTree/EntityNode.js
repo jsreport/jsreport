@@ -20,7 +20,6 @@ const EntityNode = React.memo(({
   isDragging,
   connectDragging,
   isActive,
-  hasEditSelection,
   isNodeEditSelected,
   onNodeEditSelect,
   onNodeClick,
@@ -59,7 +58,7 @@ const EntityNode = React.memo(({
   const entityStyle = resolveEntityTreeIconStyle(entity, {})
 
   const containerClass = classNames(styles.link, {
-    [styles.active]: hasEditSelection() ? isNodeEditSelected(node) && !isDragging : isActive && !isDragging,
+    [styles.active]: isNodeEditSelected ? !isDragging : isActive && !isDragging,
     [styles.dragging]: isDragging
   })
 

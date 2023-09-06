@@ -23,9 +23,6 @@ export default function useEntityTree (main, {
   selectable,
   selectionMode,
   entities,
-  editSelection,
-  editSelectionRefs,
-  lastEditSelectionFocused,
   selected,
   openTab,
   editSelect,
@@ -130,6 +127,8 @@ export default function useEntityTree (main, {
         return
       }
 
+      const editSelection = storeMethods.getEditorEditSelection()
+
       if (editSelection == null) {
         return
       }
@@ -164,6 +163,8 @@ export default function useEntityTree (main, {
         return
       }
 
+      const editSelection = storeMethods.getEditorEditSelection()
+
       if (editSelection == null) {
         return
       }
@@ -173,6 +174,8 @@ export default function useEntityTree (main, {
         clearEditSelect()
       }
 
+      const lastEditSelectionFocused = storeMethods.getEditorLastEditSelectionFocused()
+
       // if node that has edit selection enabled has focus then handle arrows keys
       if (
         lastEditSelectionFocused != null &&
@@ -180,6 +183,7 @@ export default function useEntityTree (main, {
         (ev.target.dataset.editSelectionEnabled === 'true' || ev.target.dataset.editSelectionEnabled === true) &&
         document.activeElement === ev.target
       ) {
+        const editSelectionRefs = storeMethods.getEditorEditSelectionRefs()
         const references = (editSelectionRefs || []).map((refId) => ({ id: refId, selected: editSelection.includes(refId) }))
 
         if (ev.shiftKey && ev.which === 38) {
@@ -197,7 +201,7 @@ export default function useEntityTree (main, {
       window.removeEventListener('click', tryClearFromClick, true)
       window.removeEventListener('keydown', trySelectOrClearFromKey)
     }
-  }, [main, listRef, contextMenuRef, editSelection, editSelectionRefs, lastEditSelectionFocused, editSelectEntityWithSequence, clearEditSelect])
+  }, [main, listRef, contextMenuRef, editSelectEntityWithSequence, clearEditSelect])
 
   const copyOrMoveEntity = useCallback((sourceInfo, targetInfo, shouldCopy = false) => {
     const isSingleSource = Array.isArray(sourceInfo) ? sourceInfo.length === 1 : true
@@ -529,6 +533,7 @@ export default function useEntityTree (main, {
 
       if (createRange) {
         const activeEntity = storeMethods.getEditorActiveEntity()
+        const editSelectionRefs = storeMethods.getEditorEditSelectionRefs()
         let startEntityId
 
         if (editSelectionRefs != null && editSelectionRefs.length > 0) {
@@ -572,7 +577,7 @@ export default function useEntityTree (main, {
     }
 
     clearContextMenu()
-  }, [editSelectionRefs, listRef, editSelect, clearContextMenu])
+  }, [listRef, editSelect, clearContextMenu])
 
   const onNodeClick = useCallback(function onNodeClick (node) {
     const isGroup = checkIsGroupNode(node)
@@ -605,25 +610,9 @@ export default function useEntityTree (main, {
     setClipboard(null)
   }, [clipboard, copyOrMoveEntity, setClipboard])
 
-  const hasEditSelection = useCallback(function hasEditSelection () {
-    return editSelection != null
-  }, [editSelection])
-
   const isNodeSelected = useCallback(function isNodeSelected (node) {
     return selected[node.data._id] === true
   }, [selected])
-
-  const isNodeEditSelected = useCallback(function isNodeEditSelected (node) {
-    if (editSelection == null) {
-      return false
-    }
-
-    if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
-      return false
-    }
-
-    return editSelection.find((id) => node.data._id === id) != null
-  }, [editSelection])
 
   const getEntityNodeById = useCallback(function getEntityNodeById (id) {
     return listRef.current.entityNodesById[id]
@@ -633,7 +622,6 @@ export default function useEntityTree (main, {
     return {
       main,
       paddingByLevel: paddingByLevelInTree,
-      editSelection,
       selectable,
       selectionMode,
       clipboard,
@@ -652,15 +640,11 @@ export default function useEntityTree (main, {
       onClearEditSelect: clearEditSelect,
       onSetClipboard,
       onReleaseClipboardTo,
-      hasEditSelection,
       isNodeSelected,
-      isNodeEditSelected,
       getEntityNodeById
     }
   }, [
     main,
-    editSelection,
-    editSelectionRefs,
     paddingByLevelInTree,
     selectable,
     selectionMode,
@@ -678,9 +662,7 @@ export default function useEntityTree (main, {
     getEntityNodeById,
     onSetClipboard,
     onReleaseClipboardTo,
-    hasEditSelection,
     isNodeSelected,
-    isNodeEditSelected,
     toggleNodeCollapse,
     dragOverNode,
     showContextMenu,
