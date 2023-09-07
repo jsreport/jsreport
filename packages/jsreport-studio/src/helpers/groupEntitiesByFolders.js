@@ -22,6 +22,7 @@ function groupEntitiesByFolders (entitySetsNames, entities, collapsedInfo, helpe
   const allFoldersEntities = [...(Studio.getReferences().folders || [])]
   const entitiesByFolderLevelMap = new Map()
   const foldersByShortidMap = new Map()
+  const foldersChildrenCountMap = new Map()
 
   if (entities.folders != null) {
     for (const currentFolderFromAll of allFoldersEntities) {
@@ -52,6 +53,7 @@ function groupEntitiesByFolders (entitySetsNames, entities, collapsedInfo, helpe
     collapsedInfo,
     cache: nodesCache,
     newestCheckMap,
+    foldersChildrenCountMap,
     foldersByShortidMap,
     helpers
   }
@@ -79,11 +81,17 @@ function groupEntitiesByFolders (entitySetsNames, entities, collapsedInfo, helpe
     }
   }
 
+  // group folders again to detect deletes (check to children count)
+  for (const entityFolder of entities.folders) {
+    groupEntityByFolderLevel(entitiesByFolderLevelMap, entityFolder, context, true)
+  }
+
   addItemsByHierarchy(newItems, entitiesByFolderLevelMap, collapsedInfo, context)
 
   entitiesByFolderLevelMap.clear()
   foldersByShortidMap.clear()
   newestCheckMap.clear()
+  foldersChildrenCountMap.clear()
 
   return newItems
 }
@@ -114,7 +122,7 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevelMap, collapsedInfo,
     return
   }
 
-  const { cache, newestCheckMap } = context
+  const { cache, newestCheckMap, foldersChildrenCountMap } = context
   const { getNodeId, checkIsGroupNode, checkIsGroupEntityNode } = context.helpers
   const optimizedFoldersMap = new Map()
 
@@ -162,7 +170,7 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevelMap, collapsedInfo,
       collection = otherEntitiesInLevel
     }
 
-    const node = setOrGetFromCache(
+    const { node } = setOrGetFromCache(
       cache,
       entity,
       (e) => {
@@ -180,7 +188,9 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevelMap, collapsedInfo,
           newNode.collapsed = collapsedInfo.nodes[nodeId] != null ? collapsedInfo.nodes[nodeId] : collapsedInfo.defaultValue(newNode)
         }
 
-        return newNode
+        const childrenCount = foldersChildrenCountMap.get(e._id)?.size || 0
+
+        return { node: newNode, childrenCount }
       },
       (e) => {
         let shouldCreate
@@ -238,7 +248,14 @@ function getLevel (foldersByShortidMap, entity) {
   return level
 }
 
-function groupEntityByFolderLevel (entitiesByFolderLevelMap, _entity, { collapsedInfo, cache, newestCheckMap, foldersByShortidMap }) {
+function groupEntityByFolderLevel (
+  entitiesByFolderLevelMap,
+  _entity,
+  context,
+  checkChildrenCount = false
+) {
+  const { collapsedInfo, cache, newestCheckMap, foldersChildrenCountMap, foldersByShortidMap } = context
+
   let level = 0
   let currentFolder
 
@@ -298,13 +315,25 @@ function groupEntityByFolderLevel (entitiesByFolderLevelMap, _entity, { collapse
     }
 
     if (!isNew && current.__entitySet === 'folders' && !currentIsNew) {
-      const oldNode = cache.get(current)
-      const currentCollapsed = collapsedInfo.nodes[oldNode.id] != null ? collapsedInfo.nodes[oldNode.id] : collapsedInfo.defaultValue(oldNode)
+      const { childrenCount: oldChildrenCount, node: oldNode } = cache.get(current)
 
-      isNew = oldNode.collapsed !== currentCollapsed
+      if (checkChildrenCount) {
+        // this detects deletes inside folders
+        const currentChildrenCount = foldersChildrenCountMap.get(current._id)?.size || 0
+        isNew = currentChildrenCount !== oldChildrenCount
+      }
+
+      if (!isNew) {
+        const currentCollapsed = collapsedInfo.nodes[oldNode.id] != null ? collapsedInfo.nodes[oldNode.id] : collapsedInfo.defaultValue(oldNode)
+        isNew = oldNode.collapsed !== currentCollapsed
+      }
     }
 
     newestCheckMap.set(current._id, isNew)
+
+    if (parent != null && parent.__entitySet === 'folders') {
+      updateChildrenCount(foldersChildrenCountMap, parent, current)
+    }
 
     if (
       parent != null &&
@@ -314,6 +343,15 @@ function groupEntityByFolderLevel (entitiesByFolderLevelMap, _entity, { collapse
       newestCheckMap.set(parent._id, isNew)
     }
   }
+}
+
+function updateChildrenCount (foldersChildrenCountMap, folder, entity) {
+  if (!foldersChildrenCountMap.has(folder._id)) {
+    foldersChildrenCountMap.set(folder._id, new Set())
+  }
+
+  const entitiesSet = foldersChildrenCountMap.get(folder._id)
+  entitiesSet.add(entity._id)
 }
 
 function addEntityToEntitiesLevelMap (entitiesByFolderLevelMap, level, entity) {
