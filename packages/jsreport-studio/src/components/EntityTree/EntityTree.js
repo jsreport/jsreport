@@ -54,11 +54,14 @@ const EntityTree = ({
     contextMenu,
     collapsedNodes,
     collapsedDefaultValue,
+    clipboard,
     highlightedArea,
     draggedNode,
     connectDropping,
     setFilter,
     setGroupMode,
+    onSetClipboard,
+    onReleaseClipboardTo,
     context
   } = useEntityTree(main, {
     paddingByLevelInTree,
@@ -133,13 +136,20 @@ const EntityTree = ({
             getContainerDimensions={getListContainerDimensions}
           />
         </div>
-        {renderContextMenu(contextMenu, contextMenuRef, getContextMenuItems)}
+        {renderContextMenu(
+          contextMenu,
+          contextMenuRef,
+          getContextMenuItems,
+          clipboard,
+          onSetClipboard,
+          onReleaseClipboardTo
+        )}
       </div>
     </EntityTreeContext.Provider>
   )
 }
 
-function renderContextMenu (contextMenu, contextMenuRef, getContextMenuItems) {
+function renderContextMenu (contextMenu, contextMenuRef, getContextMenuItems, clipboard, onSetClipboard, onReleaseClipboardTo) {
   if (
     !contextMenu
   ) {
@@ -160,10 +170,12 @@ function renderContextMenu (contextMenu, contextMenuRef, getContextMenuItems) {
 
   const props = {
     ref: contextMenuRef,
+    clipboard,
     getContextMenuItems,
-    getCoordinates: contextMenu.getCoordinates
+    getCoordinates: contextMenu.getCoordinates,
+    onSetClipboard,
+    onReleaseClipboardTo
   }
-
   if (type === 'node') {
     props.node = contextMenu.node
     props.entity = contextMenu.node.data

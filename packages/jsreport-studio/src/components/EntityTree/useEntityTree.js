@@ -624,7 +624,6 @@ export default function useEntityTree (main, {
       paddingByLevel: paddingByLevelInTree,
       selectable,
       selectionMode,
-      clipboard,
       onRemove,
       onClone,
       onRename,
@@ -638,8 +637,6 @@ export default function useEntityTree (main, {
       onContextMenu: showContextMenu,
       onClearContextMenu: clearContextMenu,
       onClearEditSelect: clearEditSelect,
-      onSetClipboard,
-      onReleaseClipboardTo,
       isNodeSelected,
       getEntityNodeById
     }
@@ -648,7 +645,6 @@ export default function useEntityTree (main, {
     paddingByLevelInTree,
     selectable,
     selectionMode,
-    clipboard,
     selected,
     sharedOnNewEntity,
     onOpen,
@@ -660,8 +656,6 @@ export default function useEntityTree (main, {
     onNodeClick,
     clearEditSelect,
     getEntityNodeById,
-    onSetClipboard,
-    onReleaseClipboardTo,
     isNodeSelected,
     toggleNodeCollapse,
     dragOverNode,
@@ -678,11 +672,14 @@ export default function useEntityTree (main, {
     contextMenu,
     collapsedNodes,
     collapsedDefaultValue,
+    clipboard,
     highlightedArea,
     draggedNode,
     connectDropping,
     setFilter,
     setGroupMode: handleSetGroupMode,
+    onSetClipboard,
+    onReleaseClipboardTo,
     context: sharedValues
   }
 }

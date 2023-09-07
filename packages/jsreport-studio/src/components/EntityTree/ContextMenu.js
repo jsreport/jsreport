@@ -13,12 +13,14 @@ import styles from './EntityTree.css'
 const ContextMenu = React.forwardRef(function ContextMenu ({
   entity,
   node,
+  clipboard,
   getCoordinates,
-  getContextMenuItems
+  getContextMenuItems,
+  onSetClipboard,
+  onReleaseClipboardTo
 }, ref) {
   const {
     selectable,
-    clipboard,
     onNewEntity,
     onOpen,
     onRemove,
@@ -26,8 +28,6 @@ const ContextMenu = React.forwardRef(function ContextMenu ({
     onRename,
     onClearContextMenu,
     onClearEditSelect,
-    onSetClipboard,
-    onReleaseClipboardTo,
     getEntityNodeById
   } = useContext(EntityTreeContext)
 
