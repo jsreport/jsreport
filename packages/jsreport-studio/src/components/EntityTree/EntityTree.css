@@ -89,15 +89,18 @@
   color: $entityTree-collapseIcon-hover-color;
 }
 
-.nodeContainer:not(.collapsed) {
+/* .nodeContainer:not(.collapsed) {
   max-height: 15999px;
   transition: 0.15s;
-}
+} */
 
 .nodeContainer.collapsed {
-  max-height: 0;
-  overflow: hidden;
-  transition: 0.15s;
+  /* we have removed the transition because it produces glitches when */
+  /* the entity tree has lot of entities (2k-3k) */
+  display: none;
+  /* max-height: 0; */
+  /* overflow: hidden; */
+  /* transition: 0.15s; */
 }
 
 .link {
