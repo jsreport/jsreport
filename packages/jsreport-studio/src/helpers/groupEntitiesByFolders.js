@@ -31,10 +31,10 @@ function groupEntitiesByFolders (entitySetsNames, entities, collapsedInfo, helpe
 
       let folderEntity = foundEntity
 
-      if (foundIndex !== -1 && currentFolderFromAll !== foundEntity) {
+      if (currentFolderFromAll !== foundEntity) {
         folderEntity = setOrGetFromCache(
           foldersCache,
-          [allFoldersEntities[foundIndex], foundEntity],
+          [currentFolderFromAll, foundEntity],
           (f1, f2) => {
             return { ...f1, ...f2 }
           }
@@ -104,6 +104,10 @@ function setOrGetFromCache (cache, _keys, initFn, cacheCheck) {
     const newItem = initFn(...keys)
 
     for (const key of keys) {
+      if (key == null) {
+        continue
+      }
+
       cache.set(key, newItem)
     }
 

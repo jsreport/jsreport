@@ -29,11 +29,12 @@ function groupEntitiesByTags (entitySetsNames, entities, collapsedInfo, helpers,
 
       let tagEntity = foundEntity
 
-      if (foundIndex !== -1 && currentTagFromAll !== foundEntity) {
+      if (currentTagFromAll !== foundEntity) {
         tagEntity = setOrGetFromCache(
           tagsCache,
-          [allTagsEntities[foundIndex], foundEntity],
+          [currentTagFromAll, foundEntity],
           (t1, t2) => {
+            console.log('creating new tag entity')
             return { ...t1, ...t2 }
           }
         )
@@ -79,7 +80,6 @@ function groupEntitiesByTags (entitySetsNames, entities, collapsedInfo, helpers,
   }
 
   const context = {
-    tagsCache,
     collapsedInfo,
     tagsByShortidMap,
     helpers
@@ -106,6 +106,10 @@ function setOrGetFromCache (cache, _keys, initFn, cacheCheck) {
     const newItem = initFn(...keys)
 
     for (const key of keys) {
+      if (key == null) {
+        continue
+      }
+
       cache.set(key, newItem)
     }
 
