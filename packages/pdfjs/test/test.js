@@ -766,6 +766,18 @@ describe('pdfjs', () => {
     pdfBuffer.toString().should.containEql('/Encrypt')
   })
 
+  it('encrypt should password protect nested dictionaries', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'nested-dictionary.pdf')))
+    document.append(external)
+    document.encrypt({
+      password: 'password',
+      ownerPassword: 'password'
+    })
+    const pdfBuffer = await document.asBuffer()
+    pdfBuffer.toString().should.not.containEql('https://jsreport.net')
+  })
+
   it('should sign', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))

@@ -45,7 +45,7 @@ class PDFDictionary {
       // pofider change
       // the toString call with encryptionFn fails on Numbers so we just do it for PDFStrings
       let val = this.dictionary[key]
-      if (val instanceof PDFString) {
+      if (val instanceof PDFString || val instanceof PDFDictionary) {
         val = val.toString(encryptionFn)
       }
       str += `${key} ${val === null ? 'null' : val}`.replace(/^/gm, '\t') + '\n'
