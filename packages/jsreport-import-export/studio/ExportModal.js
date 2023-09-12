@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import Studio, { EntityTree } from 'jsreport-studio'
 import fileSaver from 'filesaver.js-npm'
 
-export default class ExportModal extends Component {
+class ExportModal extends Component {
   constructor (props) {
     super(props)
 
@@ -32,9 +32,10 @@ export default class ExportModal extends Component {
 
     this.state = {}
     this.state.processing = false
-    this.state.selected = selections
 
-    this.handleSelectionChange = this.handleSelectionChange.bind(this)
+    this.initialSelected = selections
+
+    this.entityTreeRef = React.createRef()
   }
 
   getExportableReferences (references) {
@@ -59,9 +60,11 @@ export default class ExportModal extends Component {
     })
 
     try {
+      const selected = this.entityTreeRef.current.selected
+
       const response = await Studio.api.post('api/export', {
         data: {
-          selection: Object.keys(this.state.selected).filter((k) => this.state.selected[k] === true)
+          selection: Object.keys(selected).filter((k) => selected[k] === true)
         },
         responseType: 'blob'
       }, true)
@@ -80,15 +83,10 @@ export default class ExportModal extends Component {
     }
   }
 
-  handleSelectionChange (selected) {
-    this.setState({
-      selected
-    })
-  }
-
   render () {
     const references = this.getExportableReferences(Studio.getReferences())
-    const { selected, processing } = this.state
+    const initialSelected = this.initialSelected
+    const { processing } = this.state
 
     return (
       <div className='form-group'>
@@ -97,10 +95,10 @@ export default class ExportModal extends Component {
         </div>
         <div style={{ height: '30rem', overflow: 'auto' }}>
           <EntityTree
+            ref={this.entityTreeRef}
             entities={references}
             selectable
-            selected={selected}
-            onSelectionChanged={this.handleSelectionChange}
+            initialSelected={initialSelected}
           />
         </div>
         <div className='button-bar'>
@@ -113,3 +111,5 @@ export default class ExportModal extends Component {
     )
   }
 }
+
+export default ExportModal

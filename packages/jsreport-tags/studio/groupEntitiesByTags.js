@@ -99,24 +99,21 @@ function groupEntitiesByTags (entitySetsNames, entities, collapsedInfo, helpers,
 }
 
 function setOrGetFromCache (cache, _keys, initFn, cacheCheck) {
-  const keys = Array.isArray(_keys) ? _keys : [_keys]
-  const shouldInit = cacheCheck == null ? keys.some((k) => !cache.has(k)) : cacheCheck(...keys)
+  const keys = (Array.isArray(_keys) ? _keys : [_keys]).filter((_key) => _key != null)
+  const matchedIndex = keys.findIndex((k) => cache.has(k))
+  const shouldInit = cacheCheck == null ? matchedIndex === -1 : cacheCheck(...keys)
 
   if (shouldInit) {
     const newItem = initFn(...keys)
 
     for (const key of keys) {
-      if (key == null) {
-        continue
-      }
-
       cache.set(key, newItem)
     }
 
     return newItem
   }
 
-  return cache.get(keys[0])
+  return cache.get(keys[matchedIndex])
 }
 
 function groupEntityByTagAndType (collection, tagsByShortidMap, entity) {

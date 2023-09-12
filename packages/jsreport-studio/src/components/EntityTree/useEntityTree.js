@@ -23,7 +23,6 @@ export default function useEntityTree (main, {
   selectable,
   selectionMode,
   entities,
-  selected,
   openTab,
   editSelect,
   clearEditSelect,
@@ -32,7 +31,6 @@ export default function useEntityTree (main, {
   onRemove,
   onClone,
   onRename,
-  onSelectionChanged,
   listRef,
   contextMenuRef
 }) {
@@ -489,39 +487,6 @@ export default function useEntityTree (main, {
     openTab({ _id: entity._id })
   }, [openTab])
 
-  const onNodeSelect = useCallback(function onNodeSelect (node, value, mode) {
-    if (!selectable) {
-      return
-    }
-
-    const isGroupEntityNode = checkIsGroupEntityNode(node)
-
-    const toProcess = isGroupEntityNode ? getAllEntitiesInHierarchy(node, true) : [node.data._id]
-
-    if (toProcess.length === 0) {
-      return
-    }
-
-    const updates = {
-      ...(mode !== 'single' ? selected : undefined),
-      ...toProcess.reduce((acu, currentEntityId) => {
-        acu[currentEntityId] = value != null ? value : !selected[currentEntityId]
-        return acu
-      }, {})
-    }
-
-    const newSelected = {}
-
-    // eslint-disable-next-line
-    for (const entityId of Object.keys(updates)) {
-      if (updates[entityId] === true) {
-        newSelected[entityId] = true
-      }
-    }
-
-    onSelectionChanged(newSelected)
-  }, [onSelectionChanged])
-
   const onNodeEditSelect = useCallback(function onNodeEditSelect (node, createRange = false) {
     const isGroupEntity = checkIsGroupEntityNode(node)
     const isEntity = !isGroupEntity && !checkIsGroupNode(node)
@@ -610,10 +575,6 @@ export default function useEntityTree (main, {
     setClipboard(null)
   }, [clipboard, copyOrMoveEntity, setClipboard])
 
-  const isNodeSelected = useCallback(function isNodeSelected (node) {
-    return selected[node.data._id] === true
-  }, [selected])
-
   const getEntityNodeById = useCallback(function getEntityNodeById (id) {
     return listRef.current.entityNodesById[id]
   }, [])
@@ -629,7 +590,6 @@ export default function useEntityTree (main, {
       onRename,
       onNewEntity: sharedOnNewEntity,
       onOpen,
-      onNodeSelect,
       onNodeEditSelect,
       onNodeClick,
       onNodeDragOver: dragOverNode,
@@ -637,7 +597,6 @@ export default function useEntityTree (main, {
       onContextMenu: showContextMenu,
       onClearContextMenu: clearContextMenu,
       onClearEditSelect: clearEditSelect,
-      isNodeSelected,
       getEntityNodeById
     }
   }, [
@@ -645,25 +604,19 @@ export default function useEntityTree (main, {
     paddingByLevelInTree,
     selectable,
     selectionMode,
-    selected,
-    sharedOnNewEntity,
-    onOpen,
+    onRemove,
     onClone,
     onRename,
-    onRemove,
-    onNodeSelect,
+    sharedOnNewEntity,
+    onOpen,
     onNodeEditSelect,
     onNodeClick,
-    clearEditSelect,
-    getEntityNodeById,
-    isNodeSelected,
-    toggleNodeCollapse,
     dragOverNode,
+    toggleNodeCollapse,
     showContextMenu,
     clearContextMenu,
-    copyOrMoveEntity,
-    contextMenuRef,
-    listRef
+    clearEditSelect,
+    getEntityNodeById
   ])
 
   return {

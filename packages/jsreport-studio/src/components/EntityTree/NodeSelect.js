@@ -1,34 +1,42 @@
-import { useContext } from 'react'
-import EntityTreeContext from './EntityTreeContext'
+import { useCallback, useContext } from 'react'
+import { useContextSelector } from 'use-context-selector'
+import EntityTreeContext, { EntityTreeSelectedContext } from './EntityTreeContext'
 import { checkIsGroupNode } from '../../helpers/checkEntityTreeNodes'
 
 const NodeSelect = ({ id, node }) => {
-  const { selectable, selectionMode, onNodeSelect, isNodeSelected } = useContext(EntityTreeContext)
+  const { selectable, selectionMode } = useContext(EntityTreeContext)
+  const isSelected = useContextSelector(EntityTreeSelectedContext, (ctx) => ctx[0][node.data._id] === true)
+  const selectDispatch = useContextSelector(EntityTreeSelectedContext, (ctx) => ctx[1])
+  let currentSelectionModeInfo = selectionMode != null ? selectionMode : 'multiple'
+
+  if (typeof currentSelectionModeInfo === 'string') {
+    currentSelectionModeInfo = { mode: currentSelectionModeInfo }
+  }
+
+  const currentSelectionMode = currentSelectionModeInfo.mode
+
+  const handleSelectChange = useCallback((v) => {
+    const newValue = !!v.target.checked
+
+    selectDispatch({
+      type: 'set',
+      mode: currentSelectionMode,
+      node,
+      value: newValue
+    })
+  }, [selectDispatch, currentSelectionMode, node])
 
   if (!selectable) {
     return null
   }
 
-  let currentSelectionMode = selectionMode != null ? selectionMode : 'multiple'
-
-  if (typeof currentSelectionMode === 'string') {
-    currentSelectionMode = { mode: currentSelectionMode }
-  }
-
   const isGroup = checkIsGroupNode(node)
 
   if (
-    currentSelectionMode.isSelectable &&
-    !currentSelectionMode.isSelectable(isGroup, node.data)
+    currentSelectionModeInfo.isSelectable &&
+    !currentSelectionModeInfo.isSelectable(isGroup, node.data)
   ) {
     return null
-  }
-
-  const isSelected = isNodeSelected(node)
-
-  function handleSelectChange (v) {
-    const newValue = !!v.target.checked
-    onNodeSelect(node, newValue, currentSelectionMode.mode)
   }
 
   if (isGroup) {
@@ -37,7 +45,7 @@ const NodeSelect = ({ id, node }) => {
         id={id}
         key='select-group'
         style={{ marginRight: '5px' }}
-        type={currentSelectionMode.mode === 'single' ? 'radio' : 'checkbox'}
+        type={currentSelectionMode === 'single' ? 'radio' : 'checkbox'}
         checked={isSelected}
         onChange={handleSelectChange}
       />
@@ -49,7 +57,7 @@ const NodeSelect = ({ id, node }) => {
       id={id}
       key='select-entity'
       style={{ marginRight: '5px' }}
-      type={currentSelectionMode.mode === 'single' ? 'radio' : 'checkbox'}
+      type={currentSelectionMode === 'single' ? 'radio' : 'checkbox'}
       onChange={handleSelectChange}
       checked={isSelected}
     />

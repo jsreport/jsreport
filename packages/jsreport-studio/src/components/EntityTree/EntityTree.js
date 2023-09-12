@@ -1,31 +1,34 @@
-import React, { useRef, useCallback, useMemo } from 'react'
+import React, { useReducer, useRef, useCallback, useMemo, useImperativeHandle } from 'react'
 import classNames from 'classnames'
 import { useDispatch } from 'react-redux'
 import useEntityTree from './useEntityTree'
-import EntityTreeContext from './EntityTreeContext'
+import EntityTreeContext, { EntityTreeSelectedContext } from './EntityTreeContext'
 import Toolbar from './Toolbar'
 import TreeList from './TreeList'
 import HighlightedArea from './HighlightedArea'
 import ContextMenu from './ContextMenu'
+import { getAllEntitiesInHierarchy } from './utils'
+import { checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import { actions as editorActions } from '../../redux/editor'
 import styles from './EntityTree.css'
 
 const paddingByLevelInTree = 0.8
 
-const EntityTree = ({
+const EntityTree = React.forwardRef(({
   main,
   toolbar,
   selectable,
   selectionMode,
-  selected,
+  initialSelected,
   entities,
   getContextMenuItems,
   onNewEntity,
   onRemove,
   onClone,
-  onRename,
-  onSelectionChanged
-}) => {
+  onRename
+}, ref) => {
+  const selectedInfo = useReducer(selectedReducer, initialSelected, (selected) => selected != null ? selected : {})
+
   const dispatch = useDispatch()
 
   const openTab = useCallback((...params) => {
@@ -47,6 +50,15 @@ const EntityTree = ({
   const listContainerRef = useRef(null)
   const listRef = useRef(null)
   const contextMenuRef = useRef(null)
+  const selectedEntities = selectedInfo[0]
+  const selectDispatch = selectedInfo[1]
+
+  useImperativeHandle(ref, () => ({
+    selected: selectedEntities,
+    clearSelected: () => {
+      selectDispatch({ type: 'clear' })
+    }
+  }), [selectedEntities, selectDispatch])
 
   const {
     groupMode,
@@ -68,7 +80,6 @@ const EntityTree = ({
     selectable,
     selectionMode,
     entities,
-    selected,
     openTab,
     editSelect,
     clearEditSelect,
@@ -77,7 +88,6 @@ const EntityTree = ({
     onRemove,
     onClone,
     onRename,
-    onSelectionChanged,
     listRef,
     contextMenuRef
   })
@@ -111,42 +121,83 @@ const EntityTree = ({
 
   return (
     <EntityTreeContext.Provider value={context}>
-      <div
-        ref={connectDropping}
-        className={treeListContainerClass}
-        onContextMenu={(e) => context.onContextMenu(e, null)}
-      >
-        {toolbar && (
-          <Toolbar
-            groupMode={groupMode}
-            setFilter={setFilter}
-            setGroupMode={setGroupMode}
-            onNewEntity={onNewEntity}
-          />
-        )}
-        <div ref={listContainerRef} className={styles.nodesBox}>
-          <TreeList
-            ref={listRef}
-            groupMode={groupMode}
-            entities={currentEntities}
-            collapsedInfo={collapsedInfo}
-          />
-          <HighlightedArea
-            highlightedArea={highlightedArea}
-            getContainerDimensions={getListContainerDimensions}
-          />
+      <EntityTreeSelectedContext.Provider value={selectedInfo}>
+        <div
+          ref={connectDropping}
+          className={treeListContainerClass}
+          onContextMenu={(e) => context.onContextMenu(e, null)}
+        >
+          {toolbar && (
+            <Toolbar
+              groupMode={groupMode}
+              setFilter={setFilter}
+              setGroupMode={setGroupMode}
+              onNewEntity={onNewEntity}
+            />
+          )}
+          <div ref={listContainerRef} className={styles.nodesBox}>
+            <TreeList
+              ref={listRef}
+              groupMode={groupMode}
+              entities={currentEntities}
+              collapsedInfo={collapsedInfo}
+            />
+            <HighlightedArea
+              highlightedArea={highlightedArea}
+              getContainerDimensions={getListContainerDimensions}
+            />
+          </div>
+          {renderContextMenu(
+            contextMenu,
+            contextMenuRef,
+            getContextMenuItems,
+            clipboard,
+            onSetClipboard,
+            onReleaseClipboardTo
+          )}
         </div>
-        {renderContextMenu(
-          contextMenu,
-          contextMenuRef,
-          getContextMenuItems,
-          clipboard,
-          onSetClipboard,
-          onReleaseClipboardTo
-        )}
-      </div>
+      </EntityTreeSelectedContext.Provider>
     </EntityTreeContext.Provider>
   )
+})
+
+function selectedReducer (state, action) {
+  switch (action.type) {
+    case 'set': {
+      const selected = state
+      const { mode, node, value } = action
+      const isGroupEntityNode = checkIsGroupEntityNode(node)
+
+      const toProcess = isGroupEntityNode ? getAllEntitiesInHierarchy(node, true) : [node.data._id]
+
+      if (toProcess.length === 0) {
+        return
+      }
+
+      const updates = {
+        ...(mode !== 'single' ? selected : undefined),
+        ...toProcess.reduce((acu, currentEntityId) => {
+          acu[currentEntityId] = value != null ? value : !selected[currentEntityId]
+          return acu
+        }, {})
+      }
+
+      const newSelected = {}
+
+      // eslint-disable-next-line
+      for (const entityId of Object.keys(updates)) {
+        if (updates[entityId] === true) {
+          newSelected[entityId] = true
+        }
+      }
+
+      return newSelected
+    }
+
+    case 'clear': {
+      return {}
+    }
+  }
 }
 
 function renderContextMenu (contextMenu, contextMenuRef, getContextMenuItems, clipboard, onSetClipboard, onReleaseClipboardTo) {
