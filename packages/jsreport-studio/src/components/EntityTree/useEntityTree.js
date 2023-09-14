@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
 import isEqual from 'lodash/isEqual'
 import useFilteredEntities from './useFilteredEntities'
 import useCollapsed from './useCollapsed'
@@ -36,6 +36,7 @@ export default function useEntityTree (main, {
 }) {
   const defaultGroupMode = configuration.extensions.studio.options.entityTreeGroupMode
   const dragOverContextRef = useRef(null)
+  const dragCacheRef = useRef(null)
   const [groupMode, setGroupMode] = useState(defaultGroupMode)
   const [clipboard, setClipboard] = useState(null)
   const [highlightedArea, setHighlightedArea] = useState(null)
@@ -230,25 +231,45 @@ export default function useEntityTree (main, {
     })
   }, [hierarchyMove, toggleNodeCollapse, listRef])
 
+  const getEntityByShortidOptimizedForDrag = useCallback((shortid) => {
+    let result
+
+    if (dragCacheRef.current != null) {
+      result = dragCacheRef.current.entitiesByShortid.get(shortid)
+    }
+
+    if (result != null) {
+      return result
+    }
+
+    result = storeMethods.getEntityByShortid(shortid)
+
+    if (dragCacheRef.current != null) {
+      dragCacheRef.current.entitiesByShortid.set(shortid, result)
+    }
+
+    return result
+  }, [])
+
   const isValidHierarchyTarget = useCallback((sourceNode, targetNode) => {
     const containersInHierarchyForTarget = []
     let containerSourceEntity
     let containerTargetEntity
 
     if (sourceNode.data.__entitySet === 'folders') {
-      containerSourceEntity = storeMethods.getEntityByShortid(sourceNode.data.shortid)
+      containerSourceEntity = getEntityByShortidOptimizedForDrag(sourceNode.data.shortid)
     } else {
       return true
     }
 
     if (targetNode.data.__entitySet === 'folders') {
-      containerTargetEntity = storeMethods.getEntityByShortid(targetNode.data.shortid)
+      containerTargetEntity = getEntityByShortidOptimizedForDrag(targetNode.data.shortid)
     } else {
       if (targetNode.data.folder == null) {
         return true
       }
 
-      containerTargetEntity = storeMethods.getEntityByShortid(targetNode.data.folder.shortid)
+      containerTargetEntity = getEntityByShortidOptimizedForDrag(targetNode.data.folder.shortid)
     }
 
     let currentContainer = containerTargetEntity
@@ -263,7 +284,7 @@ export default function useEntityTree (main, {
       currentContainer.shortid !== containerSourceEntity.shortid &&
       currentContainer.folder != null
     ) {
-      const parentContainer = storeMethods.getEntityByShortid(currentContainer.folder.shortid)
+      const parentContainer = getEntityByShortidOptimizedForDrag(currentContainer.folder.shortid)
       containersInHierarchyForTarget.push(parentContainer.shortid)
       currentContainer = parentContainer
     }
@@ -275,7 +296,7 @@ export default function useEntityTree (main, {
     }
 
     return true
-  }, [])
+  }, [getEntityByShortidOptimizedForDrag])
 
   mainEntityDropResolver.handler = async ({ draggedItem, dragOverContext, dropComplete }) => {
     const sourceEntitySet = draggedItem.entitySet
@@ -385,10 +406,10 @@ export default function useEntityTree (main, {
       }
 
       if (targetEntityNode.data.__entitySet === 'folders') {
-        hierarchyEntity = storeMethods.getEntityByShortid(targetEntityNode.data.shortid)
+        hierarchyEntity = getEntityByShortidOptimizedForDrag(targetEntityNode.data.shortid)
         containerTargetInContext = hierarchyEntity
       } else {
-        hierarchyEntity = storeMethods.getEntityByShortid(targetEntityNode.data.folder.shortid)
+        hierarchyEntity = getEntityByShortidOptimizedForDrag(targetEntityNode.data.folder.shortid)
         containerTargetInContext = hierarchyEntity
       }
 
@@ -463,7 +484,7 @@ export default function useEntityTree (main, {
         return newHighlightedArea
       })
     }
-  }, [paddingByLevelInTree, clearHighlightedArea, isValidHierarchyTarget, listRef])
+  }, [paddingByLevelInTree, getEntityByShortidOptimizedForDrag, clearHighlightedArea, isValidHierarchyTarget, listRef])
 
   const { draggedNode, dragOverNode, connectDropTarget } = useDropHandler({
     listRef,
@@ -472,6 +493,17 @@ export default function useEntityTree (main, {
     onDragEnd: clearHighlightedArea,
     onDragOut: clearHighlightedArea
   })
+
+  const isDragging = draggedNode != null
+
+  // re-set dragCache
+  useLayoutEffect(() => {
+    if (isDragging) {
+      dragCacheRef.current = { entitiesByShortid: new Map() }
+    } else {
+      dragCacheRef.current = null
+    }
+  }, [isDragging])
 
   const connectDropping = !selectable ? connectDropTarget : undefined
 

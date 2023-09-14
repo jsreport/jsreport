@@ -116,7 +116,7 @@ export default function useDropHandler ({
   })
 
   const dragOverNode = useCallback((dragOverContext) => {
-    if (!isDraggingOver || !dragOverContext) {
+    if (!dragOverContext) {
       return
     }
 
@@ -128,7 +128,7 @@ export default function useDropHandler ({
     } else {
       dragOverContextRef.current = dragOverContext
     }
-  }, [isDraggingOver, dragOverContextRef])
+  }, [dragOverContextRef])
 
   const prevIsDraggingOver = usePrevious(isDraggingOver)
   const prevCanDrop = usePrevious(canDrop)
