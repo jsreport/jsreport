@@ -18,7 +18,7 @@ export default function createStore (history) {
   // eslint-disable-next-line no-undef
   if (__DEVELOPMENT__) {
     const invariant = require('redux-immutable-state-invariant').default()
-    finalCreateStore = applyMiddleware(/* invariant,  */...middleware, logger)
+    finalCreateStore = applyMiddleware(invariant, ...middleware, logger)
     finalCreateStore = composeWithDevTools(finalCreateStore)
   } else {
     finalCreateStore = applyMiddleware(...middleware)
