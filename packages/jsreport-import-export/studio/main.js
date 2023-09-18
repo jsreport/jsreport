@@ -19,7 +19,7 @@ module.exports = Studio.libraries['react'];
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ ExportModal)
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -56,8 +56,8 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     });
     this.state = {};
     this.state.processing = false;
-    this.state.selected = selections;
-    this.handleSelectionChange = this.handleSelectionChange.bind(this);
+    this.initialSelected = selections;
+    this.entityTreeRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
   }
   getExportableReferences(references) {
     const exportableEntitySets = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions)['import-export'].options.exportableEntitySets;
@@ -76,9 +76,10 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       processing: true
     });
     try {
+      const selected = this.entityTreeRef.current.selected;
       const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('api/export', {
         data: {
-          selection: Object.keys(this.state.selected).filter(k => this.state.selected[k] === true)
+          selection: Object.keys(selected).filter(k => selected[k] === true)
         },
         responseType: 'blob'
       }, true);
@@ -93,15 +94,10 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       alert('Unable to prepare export ' + e.message + ' ' + e.stack);
     }
   }
-  handleSelectionChange(selected) {
-    this.setState({
-      selected
-    });
-  }
   render() {
     const references = this.getExportableReferences(jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences());
+    const initialSelected = this.initialSelected;
     const {
-      selected,
       processing
     } = this.state;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
@@ -114,10 +110,10 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
         overflow: 'auto'
       }
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.EntityTree, {
+      ref: this.entityTreeRef,
       entities: references,
       selectable: true,
-      selected: selected,
-      onSelectionChanged: this.handleSelectionChange
+      initialSelected: initialSelected
     })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
       className: "button-bar"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
@@ -135,6 +131,7 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }, "Download"))));
   }
 }
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExportModal);
 
 /***/ }),
 /* 4 */

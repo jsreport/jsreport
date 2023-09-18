@@ -8,6 +8,13 @@ module.exports = Studio.libraries['react'];
 
 /***/ }),
 /* 1 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = Studio;
+
+/***/ }),
+/* 2 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -17,8 +24,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 
 
 
@@ -52,13 +59,6 @@ const ShowColor = props => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ShowColor);
 
 /***/ }),
-/* 2 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = Studio;
-
-/***/ }),
 /* 3 */
 /***/ ((module) => {
 
@@ -74,30 +74,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((tagSet, tagShortId) => {
-  if (typeof tagSet.has === 'function') {
-    return tagSet.get(tagShortId);
-  }
-  const found = tagSet.find(tagInSet => {
-    return tagInSet.shortid === tagShortId;
-  });
-  return found;
-});
-
-/***/ }),
-/* 5 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
 /* harmony import */ var _ColorPicker__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(14);
 
 
@@ -170,7 +151,7 @@ const ColorPicketTrigger = props => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ColorPicketTrigger);
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -185,7 +166,7 @@ const simpleCheckForValidColor = color => {
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (simpleCheckForValidColor);
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -214,7 +195,7 @@ __webpack_require__.r(__webpack_exports__);
 });
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -597,7 +578,7 @@ module.exports = debounce;
 
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -609,7 +590,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({"active":"x-tags-TagEntityTreeButtonToolbar-active"});
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -623,7 +604,7 @@ const values = {
 
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -637,6 +618,25 @@ const emitter = (0,mitt__WEBPACK_IMPORTED_MODULE_0__["default"])();
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (emitter);
 
 /***/ }),
+/* 11 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((tagSet, tagShortId) => {
+  if (typeof tagSet.has === 'function') {
+    return tagSet.get(tagShortId);
+  }
+  const found = tagSet.find(tagInSet => {
+    return tagInSet.shortid === tagShortId;
+  });
+  return found;
+});
+
+/***/ }),
 /* 12 */,
 /* 13 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
@@ -648,9 +648,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
 
 
 
@@ -811,9 +811,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
+/* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
 /* harmony import */ var lodash_debounce__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lodash_debounce__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
+/* harmony import */ var _simpleCheckForValidColor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
 
 
 
@@ -1034,7 +1034,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 
 
 class TagEditor extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1070,8 +1070,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var _ColorPickerTrigger__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
 
 
 
@@ -1150,8 +1150,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_extends__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_3__);
 
 
@@ -1271,7 +1271,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
+/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
 
 
 class TagEntityTreeOrganizeButtonToolbar extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
@@ -1327,12 +1327,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
 /* harmony import */ var _TagEntityTreeFilterByTags__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(25);
-/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(9);
+/* harmony import */ var _TagEntityTreeButtonToolbar_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
 
 
 
@@ -1507,9 +1507,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(26);
 /* harmony import */ var react_list__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_list__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7);
+/* harmony import */ var _colorLuminance__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var _getColorLuminance__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(27);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2);
 /* harmony import */ var _TagEntityTreeFilterByTags_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(29);
 
 
@@ -1779,16 +1779,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
-/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
 
 
 
+const useEntitiesSelector = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().createUseEntitiesSelector();
 class TagEntityTreeItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
   render() {
     const {
-      entity,
-      tags
+      entity
     } = this.props;
     let entityTags = entity.tags || [];
 
@@ -1804,18 +1805,30 @@ class TagEntityTreeItem extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
         marginRight: '0.2rem'
       }
     }, entityTags.map((entityTag, tagIndex) => {
-      const tagFound = (0,_findTagInSet__WEBPACK_IMPORTED_MODULE_2__["default"])(tags, entityTag.shortid) || {};
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(TagInfo, {
         key: entityTag.shortid,
-        title: tagFound.name
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_1__["default"], {
-        color: tagFound.color,
-        width: 8,
-        height: 15
-      }), tagIndex !== tagsLength - 1 ? ' ' : null);
+        shortid: entityTag.shortid
+      }, tagIndex !== tagsLength - 1 ? ' ' : null);
     }));
   }
 }
+const TagInfo = _ref => {
+  let {
+    shortid,
+    children
+  } = _ref;
+  const tag = useEntitiesSelector(entities => entities.tags.find(t => t.shortid === shortid));
+  if (tag == null) {
+    return null;
+  }
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+    title: tag.name
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_ShowColor__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    color: tag.color,
+    width: 8,
+    height: 15
+  }), children);
+};
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (TagEntityTreeItem);
 
 /***/ }),
@@ -1829,10 +1842,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1);
-/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4);
+/* harmony import */ var _ShowColor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2);
+/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 
 
 
@@ -1916,7 +1929,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ createGroupEntitiesByTags)
 /* harmony export */ });
-/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _findTagInSet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
 
 const {
   noTagGroupName,
@@ -1945,8 +1958,9 @@ function groupEntitiesByTags(entitySetsNames, entities, collapsedInfo, helpers, 
       const foundIndex = entities.tags.findIndex(f => f._id === currentTagFromAll._id);
       const foundEntity = foundIndex !== -1 ? entities.tags[foundIndex] : undefined;
       let tagEntity = foundEntity;
-      if (foundIndex !== -1 && currentTagFromAll !== foundEntity) {
-        tagEntity = setOrGetFromCache(tagsCache, [allTagsEntities[foundIndex], foundEntity], (t1, t2) => {
+      if (currentTagFromAll !== foundEntity) {
+        tagEntity = setOrGetFromCache(tagsCache, [currentTagFromAll, foundEntity], (t1, t2) => {
+          console.log('creating new tag entity');
           return {
             ...t1,
             ...t2
@@ -1985,7 +1999,6 @@ function groupEntitiesByTags(entitySetsNames, entities, collapsedInfo, helpers, 
     }
   }
   const context = {
-    tagsCache,
     collapsedInfo,
     tagsByShortidMap,
     helpers
@@ -1994,8 +2007,9 @@ function groupEntitiesByTags(entitySetsNames, entities, collapsedInfo, helpers, 
   return newItems;
 }
 function setOrGetFromCache(cache, _keys, initFn, cacheCheck) {
-  const keys = Array.isArray(_keys) ? _keys : [_keys];
-  const shouldInit = cacheCheck == null ? keys.some(k => !cache.has(k)) : cacheCheck(...keys);
+  const keys = (Array.isArray(_keys) ? _keys : [_keys]).filter(_key => _key != null);
+  const matchedIndex = keys.findIndex(k => cache.has(k));
+  const shouldInit = cacheCheck == null ? matchedIndex === -1 : cacheCheck(...keys);
   if (shouldInit) {
     const newItem = initFn(...keys);
     for (const key of keys) {
@@ -2003,7 +2017,7 @@ function setOrGetFromCache(cache, _keys, initFn, cacheCheck) {
     }
     return newItem;
   }
-  return cache.get(keys[0]);
+  return cache.get(keys[matchedIndex]);
 }
 function groupEntityByTagAndType(collection, tagsByShortidMap, entity) {
   if (entity.__entitySet === 'tags') {
@@ -2268,7 +2282,7 @@ var __webpack_exports__ = {};
 (() => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsreport_studio__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _NewTagModal__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
 /* harmony import */ var _TagEditor__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(19);
@@ -2278,8 +2292,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(23);
 /* harmony import */ var _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(30);
 /* harmony import */ var _TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(31);
-/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(11);
-/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(10);
+/* harmony import */ var _emitter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(10);
+/* harmony import */ var _organizeState__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(9);
 /* harmony import */ var _filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(32);
 /* harmony import */ var _groupEntitiesByTags__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(33);
 
@@ -2334,13 +2348,7 @@ jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_T
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addPropertiesComponent(_EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__["default"].title, _EntityTagProperties__WEBPACK_IMPORTED_MODULE_4__["default"], entity => entity.__entitySet !== 'tags');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeFilterButtonToolbar__WEBPACK_IMPORTED_MODULE_6__["default"], 'group');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeToolbarComponent(_TagEntityTreeOrganizeButtonToolbar__WEBPACK_IMPORTED_MODULE_5__["default"], 'group');
-jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent({
-  component: _TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__["default"],
-  entitiesSelector: entities => ({
-    prop: 'tags',
-    value: entities.tags
-  })
-});
+jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeItem__WEBPACK_IMPORTED_MODULE_7__["default"]);
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().addEntityTreeItemComponent(_TagEntityTreeTagGroupItem__WEBPACK_IMPORTED_MODULE_8__["default"], 'groupRight');
 jsreport_studio__WEBPACK_IMPORTED_MODULE_0___default().entityTreeFilterItemResolvers.push(_filterItemWithTagsStrategy__WEBPACK_IMPORTED_MODULE_11__["default"]);
 })();
