@@ -79,11 +79,17 @@ reducer.handleAction(ActionTypes.REPLACE, (state, action) => _omit({
 
 reducer.handleAction(ActionTypes.LOAD_REFERENCES, (state, action) => {
   const newStateRef = Object.assign({}, state)
-  action.entities.forEach((e) => {
-    e.__entitySet = action.entitySet
-    e.__name = e.name
-    newStateRef[e._id] = e
-  })
+
+  for (const item of action.data) {
+    const { entitySet, entities } = item
+
+    for (const e of entities) {
+      e.__entitySet = entitySet
+      e.__name = e.name
+      newStateRef[e._id] = e
+    }
+  }
+
   return newStateRef
 })
 

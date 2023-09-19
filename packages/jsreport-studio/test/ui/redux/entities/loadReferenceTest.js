@@ -6,7 +6,7 @@ describeAsyncStore('entities.actions.loadReference', ({ store, api, history }) =
   itAsync('should hash results by _id into the state', async () => {
     api.get((p) => ({ value: [{ _id: '1' }, { _id: '2' }] }))
 
-    await store.dispatch(actions.loadReferences('testEntity'))
+    await store.dispatch(actions.loadReferences())
     store.getState().entities['1']._id.should.be.eql('1')
     store.getState().entities['2']._id.should.be.eql('2')
   })
@@ -14,7 +14,7 @@ describeAsyncStore('entities.actions.loadReference', ({ store, api, history }) =
   itAsync('should add meta attributes to entity: __entitySet __isLoad=false __name', async () => {
     api.get((p) => ({ value: [{ _id: '1', name: 'foo' }] }))
 
-    await store.dispatch(actions.loadReferences('testEntity'))
+    await store.dispatch(actions.loadReferences())
     store.getState().entities['1'].__entitySet.should.be.eql('testEntity')
     store.getState().entities['1'].__name.should.be.eql('foo')
     should(store.getState().entities['1'].__isLoad).not.be.ok()
@@ -28,6 +28,6 @@ describeAsyncStore('entities.actions.loadReference', ({ store, api, history }) =
       return { value: [{ _id: '1' }] }
     })
 
-    await store.dispatch(actions.loadReferences('testEntity'))
+    await store.dispatch(actions.loadReferences())
   })
 })

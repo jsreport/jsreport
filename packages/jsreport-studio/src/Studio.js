@@ -590,7 +590,7 @@ class Studio {
     await this.store.dispatch({ type: 'RESET' })
     await this.store.dispatch(editor.actions.updateHistory())
     await this.store.dispatch(settings.actions.load())
-    await Promise.all(Object.keys(this.entitySets).map((t) => this.store.dispatch(entities.actions.loadReferences(t))))
+    await this.store.dispatch(entities.actions.loadReferences())
   }
 
   /**

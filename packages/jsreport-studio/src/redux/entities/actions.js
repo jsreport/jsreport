@@ -146,22 +146,31 @@ export function unloadAll () {
   }
 }
 
-export function loadReferences (entitySet) {
+export function loadReferences () {
   return async function (dispatch) {
-    let entities
+    const entitySetNames = Object.keys(configuration.entitySets)
+    const data = []
 
-    if (configuration.referencesLoader) {
-      entities = await configuration.referencesLoader(entitySet)
-    } else {
-      const referenceAttributes = configuration.entitySets[entitySet].referenceAttributes
-      const entitiesUrl = `/odata/${entitySet}?$select=${referenceAttributes}&$orderby=name`
-      entities = (await api.get(entitiesUrl)).value
+    for (const entitySet of entitySetNames) {
+      let entities
+
+      if (configuration.referencesLoader) {
+        entities = await configuration.referencesLoader(entitySet)
+      } else {
+        const referenceAttributes = configuration.entitySets[entitySet].referenceAttributes
+        const entitiesUrl = `/odata/${entitySet}?$select=${referenceAttributes}&$orderby=name`
+        entities = (await api.get(entitiesUrl)).value
+      }
+
+      data.push({
+        entitySet,
+        entities
+      })
     }
 
     dispatch({
       type: ActionTypes.LOAD_REFERENCES,
-      entities: entities,
-      entitySet: entitySet
+      data
     })
   }
 }

@@ -89,7 +89,7 @@ const start = async () => {
 
   await Promise.all(
     [
-      ...Object.keys(Studio.entitySets).map((t) => entities.actions.loadReferences(t)(store.dispatch)),
+      entities.actions.loadReferences()(store.dispatch),
       Studio.api.get('/studio/text-search-docProps').then((entitySets) => {
         // eslint-disable-next-line
         configuration.entitySetsDocProps = entitySets.reduce((acu, item) => {

@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect'
+import resolveEntityPath from '../../helpers/resolveEntityPath'
 import { values as configuration } from '../../lib/configuration'
 
 const getEntities = (state) => state.entities
@@ -62,11 +63,17 @@ export const createGetReferencesSelector = () => {
 }
 
 export const getNormalizedEntities = (entities) => {
+  const foldersByShortid = Object.keys(entities).reduce((acu, _id) => {
+    const entity = entities[_id]
+    acu[entity.shortid] = entity
+    return acu
+  }, {})
+
   return getAll(entities).map((entity) => {
     return {
       _id: entity._id,
       name: entity.name,
-      path: resolveEntityPath(entities, entity),
+      path: resolveEntityPath(entity, foldersByShortid),
       entity: entity
     }
   })
@@ -77,22 +84,4 @@ export const createGetNormalizedEntitiesSelector = () => {
     [getEntities],
     getNormalizedEntities
   )
-}
-
-export const resolveEntityPath = (entities, { _id }) => {
-  let entity = entities[_id]
-
-  if (!entity) {
-    return
-  }
-
-  const pathFragments = [entity.name]
-
-  while (entity.folder) {
-    const folder = getByShortid(entities, entity.folder.shortid)
-    pathFragments.push(folder.name)
-    entity = folder
-  }
-
-  return '/' + pathFragments.reverse().join('/')
 }
