@@ -83,41 +83,65 @@ async function retry (fn, maxCount = 10) {
   throw error
 }
 
+async function * getEntriesInPath (fs, dir, target) {
+  async function * _getEntriesInPath (fs, dir) {
+    const dirEntries = await fs.readdir(dir)
+
+    const stats = await Promise.all(dirEntries.map(async f => {
+      const s = await fs.stat(fs.path.join(dir, f))
+      return {
+        path: fs.path.join(dir, f),
+        stat: s
+      }
+    }))
+
+    yield {
+      path: dir,
+      entries: stats
+    }
+
+    const dirs = stats.filter(({ path, stat }) => stat.isDirectory() && (dir !== '' || path !== target))
+
+    for (const { path } of dirs) {
+      for await (const r of _getEntriesInPath(fs, path)) {
+        yield r
+      }
+    }
+  }
+
+  for await (const p of _getEntriesInPath(fs, dir)) {
+    yield p
+  }
+}
+
 async function copy (fs, psource, ptarget, ignore = [], replace = false) {
-  let dirEntries = await fs.readdir(psource)
-  await fs.mkdir(ptarget)
   // these are the files that we want to ignore always during copy and replace,
   // it is a bit different than the ignore option so that is why it is just a hard-coded list
   const filesIgnore = ['fs.lock', 'fs.journal', 'fs.version', '.tran'].concat(ignore)
 
-  const filesFilter = (f) => !filesIgnore.includes(f)
+  for await (const dir of getEntriesInPath(fs, psource, ptarget)) {
+    const targetPath = fs.path.join(ptarget, dir.path.replace(psource, ''))
 
-  if (psource === '' || ptarget === '') {
-    dirEntries = dirEntries.filter(filesFilter)
-  }
+    if (replace && (await fs.exists(targetPath))) {
+      let targetDirEntries = await fs.readdir(targetPath)
 
-  if (replace) {
-    let targetDirEntries = await fs.readdir(ptarget)
+      targetDirEntries = targetDirEntries.filter(f => !filesIgnore.includes(f))
 
-    targetDirEntries = targetDirEntries.filter(filesFilter)
-
-    // eslint-disable-next-line no-unused-vars
-    for (const f of targetDirEntries) {
-      await fs.remove(f)
-    }
-  }
-
-  return Promise.all(dirEntries.map(async f => {
-    const sourcePath = fs.path.join(psource, f)
-    const targetPath = fs.path.join(ptarget, f)
-    const stat = await fs.stat(sourcePath)
-
-    if (stat.isDirectory()) {
-      return copy(fs, sourcePath, targetPath)
+      // eslint-disable-next-line no-unused-vars
+      for (const f of targetDirEntries) {
+        await fs.remove(fs.path.join(targetPath, f))
+      }
     }
 
-    return fs.copyFile(sourcePath, targetPath)
-  }))
+    await fs.mkdir(targetPath)
+
+    const files = dir.entries.filter(f => !filesIgnore.includes(f.path) && !f.stat.isDirectory())
+
+    await Promise.all(files.map(async (f) => {
+      const targetPath = fs.path.join(ptarget, f.path.replace(psource, ''))
+      await fs.copyFile(f.path, targetPath)
+    }))
+  }
 }
 
 async function lock (fs, op) {
