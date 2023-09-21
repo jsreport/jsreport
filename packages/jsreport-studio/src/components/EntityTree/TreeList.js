@@ -9,6 +9,7 @@ import { values as configuration } from '../../lib/configuration'
 
 const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, collapsedInfo }, ref) {
   const containerRef = useRef(null)
+  const virtualListRef = useRef(null)
   const allNodesByNodeIdRef = useRef({})
   const rootEntityNodesRef = useRef([])
   const parentNodesByIdRef = useRef({})
@@ -23,7 +24,53 @@ const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, coll
   }
 
   const memoizedGroupEntities = useMemo(() => {
-    return memoizeOne(createGrouper())
+    const grouper = createGrouper()
+
+    const executeGroup = (...args) => {
+      const results = grouper(...args)
+
+      allNodesByNodeIdRef.current = {}
+      rootEntityNodesRef.current = []
+      parentNodesByIdRef.current = {}
+      entityNodesByIdRef.current = {}
+
+      const pending = [{ parentId: null, nodeList: results }]
+
+      while (pending.length > 0) {
+        const { parentId, nodeList } = pending.shift()
+
+        for (const node of nodeList) {
+          const isGroupEntityNode = checkIsGroupEntityNode(node)
+          const isGroupNode = checkIsGroupNode(node)
+
+          allNodesByNodeIdRef.current[node.id] = node
+
+          if (isGroupEntityNode || !isGroupNode) {
+            entityNodesByIdRef.current[node.data._id] = node
+
+            if (
+              parentId != null &&
+              allNodesByNodeIdRef.current[parentId] != null
+            ) {
+              parentNodesByIdRef.current[node.data._id] = allNodesByNodeIdRef.current[parentId]
+            } else {
+              rootEntityNodesRef.current.push(node)
+            }
+          }
+
+          if (isGroupNode && node.items.length > 0) {
+            pending.push({
+              parentId: node.id,
+              nodeList: node.items
+            })
+          }
+        }
+      }
+
+      return results
+    }
+
+    return memoizeOne(executeGroup)
   }, [createGrouper])
 
   const groupHelpers = useMemo(() => ({
@@ -55,7 +102,8 @@ const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, coll
   useImperativeHandle(ref, () => ({
     entityNodesById: entityNodesByIdRef.current,
     getRelativeEntitiesById,
-    node: containerRef.current
+    node: containerRef.current,
+    virtualList: virtualListRef.current
   }))
 
   /*
@@ -93,41 +141,22 @@ const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, coll
   }, [])
 
   const renderTree = useCallback(function renderTree (nodeList, depth = 0, parentId, treeIsDraggable) {
-    if (depth === 0) {
-      allNodesByNodeIdRef.current = {}
-      rootEntityNodesRef.current = []
-      parentNodesByIdRef.current = {}
-      entityNodesByIdRef.current = {}
+    const listProps = {
+      itemRenderer: (index) => renderTreeNode(
+        nodeList[index],
+        depth,
+        treeIsDraggable
+      ),
+      length: nodeList.length
     }
 
-    for (const node of nodeList) {
-      const isGroupEntityNode = checkIsGroupEntityNode(node)
-      const isGroupNode = checkIsGroupNode(node)
-
-      allNodesByNodeIdRef.current[node.id] = node
-
-      if (isGroupEntityNode || !isGroupNode) {
-        entityNodesByIdRef.current[node.data._id] = node
-
-        if (
-          parentId != null &&
-          allNodesByNodeIdRef.current[parentId] != null
-        ) {
-          parentNodesByIdRef.current[node.data._id] = allNodesByNodeIdRef.current[parentId]
-        } else {
-          rootEntityNodesRef.current.push(node)
-        }
-      }
+    if (depth === 0) {
+      listProps.ref = virtualListRef
     }
 
     return (
       <ReactList
-        itemRenderer={(index) => renderTreeNode(
-          nodeList[index],
-          depth,
-          treeIsDraggable
-        )}
-        length={nodeList.length}
+        {...listProps}
       />
     )
   }, [renderTreeNode])

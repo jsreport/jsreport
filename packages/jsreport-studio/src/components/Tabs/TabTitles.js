@@ -2,7 +2,6 @@ import { Component } from 'react'
 import { connect } from 'react-redux'
 import TabTitle from './TabTitle'
 import CloseConfirmationModal from '../Modals/CloseConfirmationModal'
-import { getNodeTitleDOMId } from '../EntityTree/utils'
 import { createGetTabWithEntitiesSelector } from '../../redux/editor/selectors'
 import { activateTab, closeTab } from '../../redux/editor/actions'
 import storeMethods from '../../redux/methods'
@@ -109,21 +108,11 @@ class TabTitles extends Component {
   }
 
   revealInTree (entity) {
-    configuration.collapseEntityHandler({ _id: entity._id }, false, { parents: true, self: false })
-
-    const entityNodeId = getNodeTitleDOMId(entity)
-
-    if (!entityNodeId) {
-      return
-    }
-
-    const entityNode = document.getElementById(entityNodeId)
-
-    if (!entityNode) {
-      return
-    }
-
-    entityNode.scrollIntoView({ block: 'center', inline: 'center' })
+    configuration.collapseEntityHandler({ _id: entity._id }, false, {
+      parents: true,
+      self: false,
+      revealEntityId: entity._id
+    })
   }
 
   handleTabClick (e, t) {

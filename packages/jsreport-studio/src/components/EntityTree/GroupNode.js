@@ -192,7 +192,7 @@ const GroupNode = React.memo(({
         )}
       </div>
       <div className={itemsContainerClass}>
-        {renderTree(items, depth + 1, nodeId, draggable)}
+        {!isCollapsed && renderTree(items, depth + 1, nodeId, draggable)}
       </div>
     </div>
   )

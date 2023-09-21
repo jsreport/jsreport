@@ -54,10 +54,11 @@ class App extends Component {
 
     if (this.props.match.params.shortid) {
       const { shortid, entitySet } = this.props.match.params
+      const revealEntityId = storeMethods.getEntityByShortid(shortid)?._id
 
       // delay the collapsing a bit to avoid showing ugly transition of collapsed -> uncollapsed
       setTimeout(() => {
-        configuration.collapseEntityHandler({ shortid }, false, { parents: true, self: false })
+        configuration.collapseEntityHandler({ shortid }, false, { parents: true, self: false, revealEntityId })
       }, 200)
 
       this.props.openTab({ shortid, entitySet })
