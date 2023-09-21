@@ -57,7 +57,7 @@ export default function useEntityTree (main, {
     }
   }, [defaultGroupMode, groupMode])
 
-  const { collapsedNodes, toggleNodeCollapse, collapseHandler, collapsedDefaultValue } = useCollapsed({
+  const { collapsedInfo, toggleNodeCollapse, collapseHandler } = useCollapsed({
     listRef
   })
 
@@ -452,7 +452,10 @@ export default function useEntityTree (main, {
           containerTargetHasEntities = true
         }
 
-        if (nodeObj.collapsed === true) {
+        const nodeObjDOMId = getNodeDOMId(nodeObj.data)
+        const nodeObjEl = nodeObjDOMId != null ? document.getElementById(nodeObjDOMId) : null
+
+        if (nodeObjEl?.dataset?.collapsed === 'true') {
           containerTargetIsCollapsed = true
         }
       }
@@ -655,8 +658,7 @@ export default function useEntityTree (main, {
     groupMode,
     currentEntities,
     contextMenu,
-    collapsedNodes,
-    collapsedDefaultValue,
+    collapsedInfo,
     clipboard,
     highlightedArea,
     draggedNode,

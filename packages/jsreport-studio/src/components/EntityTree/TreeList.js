@@ -7,7 +7,7 @@ import { getNodeId, getSetsToRender } from './utils'
 import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import { values as configuration } from '../../lib/configuration'
 
-const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, collapsedInfo }, ref) {
+const TreeList = React.forwardRef(function TreeList ({ groupMode, entities }, ref) {
   const containerRef = useRef(null)
   const virtualListRef = useRef(null)
   const allNodesByNodeIdRef = useRef({})
@@ -164,7 +164,7 @@ const TreeList = React.forwardRef(function TreeList ({ groupMode, entities, coll
   return (
     <div ref={containerRef}>
       {renderTree(
-        memoizedGroupEntities(configuration.entitySets, entities, collapsedInfo, groupHelpers)
+        memoizedGroupEntities(configuration.entitySets, entities, groupHelpers)
       )}
     </div>
   )

@@ -110,7 +110,7 @@ const GroupNode = React.memo(({
   }
 
   return (
-    <div id={id}>
+    <div id={id} data-collapsed={isCollapsed}>
       <div
         ref={containerRef}
         className={containerClass}

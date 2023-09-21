@@ -5,10 +5,10 @@ const { noTagGroupName, tagsGroupName } = require('../shared/reservedTagNames')
 export default function createGroupEntitiesByTags () {
   const tagsCache = new WeakMap()
 
-  return (entitySets, entities, collapsedInfo, helpers) => {
+  return (entitySets, entities, helpers) => {
     const entitySetsNames = helpers.getSetsToRender(entitySets)
 
-    const result = groupEntitiesByTags(entitySetsNames, entities, collapsedInfo, helpers, {
+    const result = groupEntitiesByTags(entitySetsNames, entities, helpers, {
       tagsCache
     })
 
@@ -16,7 +16,7 @@ export default function createGroupEntitiesByTags () {
   }
 }
 
-function groupEntitiesByTags (entitySetsNames, entities, collapsedInfo, helpers, { tagsCache }) {
+function groupEntitiesByTags (entitySetsNames, entities, helpers, { tagsCache }) {
   const newItems = []
   // eslint-disable-next-line
   const allTagsEntities = [...(Studio.getReferences().tags || [])]
@@ -80,7 +80,6 @@ function groupEntitiesByTags (entitySetsNames, entities, collapsedInfo, helpers,
   }
 
   const context = {
-    collapsedInfo,
     tagsByShortidMap,
     helpers
   }
@@ -143,7 +142,7 @@ function addItemsByTag (
   context
 ) {
   const tagsWithNoEntities = []
-  const { tagsByShortidMap, collapsedInfo } = context
+  const { tagsByShortidMap } = context
   const { getNodeId, checkIsGroupNode, checkIsGroupEntityNode } = context.helpers
 
   for (const t of allTagEntities) {
@@ -296,10 +295,6 @@ function addItemsByTag (
 
       // this will make tag groups with same name different
       item.id = getNodeId(item.name, isOnlyGroupNode && item.data?.shortid == null ? null : item.data, parentId, depth)
-
-      if (isOnlyGroupNode) {
-        item.collapsed = collapsedInfo.nodes[item.id] != null ? collapsedInfo.nodes[item.id] : collapsedInfo.defaultValue(item)
-      }
 
       if (item.items != null && item.items.length > 0) {
         toProcess.push({

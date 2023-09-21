@@ -2,7 +2,7 @@ import React, { useReducer, useRef, useCallback, useMemo, useImperativeHandle } 
 import classNames from 'classnames'
 import { useDispatch } from 'react-redux'
 import useEntityTree from './useEntityTree'
-import EntityTreeContext, { EntityTreeSelectedContext } from './EntityTreeContext'
+import EntityTreeContext, { EntityTreeCollapsedContext, EntityTreeSelectedContext } from './EntityTreeContext'
 import Toolbar from './Toolbar'
 import TreeList from './TreeList'
 import HighlightedArea from './HighlightedArea'
@@ -64,8 +64,7 @@ const EntityTree = React.forwardRef(({
     groupMode,
     currentEntities,
     contextMenu,
-    collapsedNodes,
-    collapsedDefaultValue,
+    collapsedInfo,
     clipboard,
     highlightedArea,
     draggedNode,
@@ -92,10 +91,6 @@ const EntityTree = React.forwardRef(({
     contextMenuRef
   })
 
-  const collapsedInfo = useMemo(() => ({
-    nodes: collapsedNodes,
-    defaultValue: collapsedDefaultValue
-  }), [collapsedNodes, collapsedDefaultValue])
 
   const getListContainerDimensions = useCallback(() => {
     const dimensions = listContainerRef.current.getBoundingClientRect()
@@ -121,42 +116,43 @@ const EntityTree = React.forwardRef(({
 
   return (
     <EntityTreeContext.Provider value={context}>
-      <EntityTreeSelectedContext.Provider value={selectedInfo}>
-        <div
-          ref={connectDropping}
-          className={treeListContainerClass}
-          onContextMenu={(e) => context.onContextMenu(e, null)}
-        >
-          {toolbar && (
-            <Toolbar
-              groupMode={groupMode}
-              setFilter={setFilter}
-              setGroupMode={setGroupMode}
-              onNewEntity={onNewEntity}
-            />
-          )}
-          <div ref={listContainerRef} className={styles.nodesBox}>
-            <TreeList
-              ref={listRef}
-              groupMode={groupMode}
-              entities={currentEntities}
-              collapsedInfo={collapsedInfo}
-            />
-            <HighlightedArea
-              highlightedArea={highlightedArea}
-              getContainerDimensions={getListContainerDimensions}
-            />
+      <EntityTreeCollapsedContext.Provider value={collapsedInfo}>
+        <EntityTreeSelectedContext.Provider value={selectedInfo}>
+          <div
+            ref={connectDropping}
+            className={treeListContainerClass}
+            onContextMenu={(e) => context.onContextMenu(e, null)}
+          >
+            {toolbar && (
+              <Toolbar
+                groupMode={groupMode}
+                setFilter={setFilter}
+                setGroupMode={setGroupMode}
+                onNewEntity={onNewEntity}
+              />
+            )}
+            <div ref={listContainerRef} className={styles.nodesBox}>
+              <TreeList
+                ref={listRef}
+                groupMode={groupMode}
+                entities={currentEntities}
+              />
+              <HighlightedArea
+                highlightedArea={highlightedArea}
+                getContainerDimensions={getListContainerDimensions}
+              />
+            </div>
+            {renderContextMenu(
+              contextMenu,
+              contextMenuRef,
+              getContextMenuItems,
+              clipboard,
+              onSetClipboard,
+              onReleaseClipboardTo
+            )}
           </div>
-          {renderContextMenu(
-            contextMenu,
-            contextMenuRef,
-            getContextMenuItems,
-            clipboard,
-            onSetClipboard,
-            onReleaseClipboardTo
-          )}
-        </div>
-      </EntityTreeSelectedContext.Provider>
+        </EntityTreeSelectedContext.Provider>
+      </EntityTreeCollapsedContext.Provider>
     </EntityTreeContext.Provider>
   )
 })

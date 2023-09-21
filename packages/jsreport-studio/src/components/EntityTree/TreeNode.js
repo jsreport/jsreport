@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useContext, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import classNames from 'classnames'
+import { useContextSelector } from 'use-context-selector'
 import composeRefs from '@seznam/compose-react-refs'
 import { useDrag, useDrop } from 'react-dnd'
-import EntityTreeContext from './EntityTreeContext'
+import EntityTreeContext, { EntityTreeCollapsedContext } from './EntityTreeContext'
 import acceptDrop from './acceptDrop'
 import usePrevious from '../../hooks/usePrevious'
 import GroupNode from './GroupNode'
@@ -12,6 +13,7 @@ import ENTITY_NODE_DRAG_TYPE from './nodeDragType'
 import { getNodeDOMId, getNodeTitleDOMId } from './utils'
 import { createSelector, createGetActiveEntitySelector } from '../../redux/editor/selectors'
 import { checkIsGroupNode, checkIsGroupEntityNode, checkIsNodeEditSelected } from '../../helpers/checkEntityTreeNodes'
+import getEntityTreeCollapsedDefaultValue from '../../helpers/getEntityTreeCollapsedDefaultValue'
 import styles from './EntityTree.css'
 
 const TreeNode = React.memo(({ node, depth, draggable, renderTree }) => {
@@ -74,7 +76,16 @@ const RawTreeNodeItem = React.memo(({
   const isGroupNode = checkIsGroupNode(node)
   const isGroupEntityNode = checkIsGroupEntityNode(node)
   const isEntityNode = checkIsGroupNode(node) ? checkIsGroupEntityNode(node) : true
-  const isCollapsed = node.collapsed === true
+
+  const isCollapsed = useContextSelector(EntityTreeCollapsedContext, (ctx) => {
+    const currentState = ctx[0][node.id]
+
+    if (currentState == null) {
+      return getEntityTreeCollapsedDefaultValue(node)
+    }
+
+    return currentState === true
+  })
 
   const dragPreviewOptions = useMemo(() => ({
     captureDraggingState: true

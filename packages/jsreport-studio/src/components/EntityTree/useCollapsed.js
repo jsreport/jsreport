@@ -1,21 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import storeMethods from '../../redux/methods'
 import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
+import getEntityTreeCollapsedDefaultValue from '../../helpers/getEntityTreeCollapsedDefaultValue'
 import { getNodeTitleDOMId } from './utils'
 
 export default function useCollapsed ({
   listRef
 }) {
-  const [collapsedNodes, setCollapsed] = useState({})
+  const collapsedInfo = useState({})
+  const [collapsedNodes, setCollapsed] = collapsedInfo
   const pendingAfterCollapsingRef = useRef([])
-
-  const collapsedDefaultValue = useCallback((node) => {
-    if (checkIsGroupNode(node) && !checkIsGroupEntityNode(node)) {
-      return false
-    }
-
-    return true
-  }, [])
 
   const toggleNodeCollapse = useCallback((node, forceState, revealEntityId) => {
     const nodesToProcess = Array.isArray(node) ? node : [node]
@@ -31,7 +25,7 @@ export default function useCollapsed ({
         if (forceState != null) {
           newCollapseState = forceState === true
         } else {
-          const currentCollapsed = prev[node.id] == null ? collapsedDefaultValue(node) : prev[node.id]
+          const currentCollapsed = prev[node.id] == null ? getEntityTreeCollapsedDefaultValue(node) : prev[node.id]
           newCollapseState = !currentCollapsed
         }
 
@@ -58,7 +52,7 @@ export default function useCollapsed ({
         ...newState
       }
     })
-  }, [collapsedDefaultValue])
+  }, [])
 
   const collapseHandler = useCallback((idOrShortid, state, options = {}) => {
     const { parents, self = true, revealEntityId } = options
@@ -135,6 +129,7 @@ export default function useCollapsed ({
   }, [])
 
   useEffect(() => {
+    // we want to trigger this effect anytime collapsedNodes is changed
     if (pendingAfterCollapsingRef.current.length === 0) {
       return
     }
@@ -160,9 +155,8 @@ export default function useCollapsed ({
   }, [collapsedNodes, tryToScrollToListEl])
 
   return {
-    collapsedNodes,
+    collapsedInfo,
     toggleNodeCollapse,
-    collapseHandler,
-    collapsedDefaultValue
+    collapseHandler
   }
 }
