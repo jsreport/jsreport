@@ -4,14 +4,16 @@ const Store = require('./store')
 const transactionDirectory = '~.tran'
 const transactionConsistencyFile = '.tran'
 
-module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs, logger }) => {
+module.exports = ({ dataDirectory, blobStorageDirectory, queue, persistence, fs, logger, documentsModel }) => {
   let blobStorageDirectoryName
 
   if (blobStorageDirectory && blobStorageDirectory.startsWith(dataDirectory)) {
     blobStorageDirectoryName = path.basename(blobStorageDirectory, '')
   }
 
-  let commitedStore = Store()
+  let commitedStore = Store({}, {
+    documentsModel
+  })
 
   const unsafePersistence = {
     insert: (doc, documents, rootDirectory) => persistence.insert(doc, documents, false, rootDirectory),

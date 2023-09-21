@@ -80,7 +80,15 @@ module.exports = ({
       })
 
       this.queue = Queue(persistenceQueueWaitingTimeout)
-      this.transaction = Transaction({ dataDirectory, blobStorageDirectory, queue: this.queue, persistence: this.persistence, fs: this.fs, logger })
+      this.transaction = Transaction({
+        dataDirectory,
+        blobStorageDirectory,
+        queue: this.queue,
+        persistence: this.persistence,
+        fs: this.fs,
+        logger,
+        documentsModel: this.documentsModel
+      })
 
       this.journal = Journal({
         fs: this.fs,
@@ -202,9 +210,7 @@ module.exports = ({
         for (const doc of toUpdate) {
           await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, store.documents, rootDirectory)
 
-          Object.assign(doc, u.$set || {})
-
-          doc.$$etag = Date.now()
+          store.update(entitySet, doc, u.$set || {})
 
           if (opts.transaction) {
             return
