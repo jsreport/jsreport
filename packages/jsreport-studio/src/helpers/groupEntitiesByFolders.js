@@ -184,7 +184,6 @@ function addItemsByHierarchy (newItems, entitiesByFolderLevelMap, context, level
         const nodeId = getNodeId(newNode.name, isOnlyGroupNode ? null : newNode.data, parentMeta != null ? parentMeta.nodeId : undefined, level)
         newNode.id = nodeId
 
-
         const childrenCount = foldersChildrenCountMap.get(e._id)?.size || 0
 
         return { node: newNode, childrenCount }
@@ -312,7 +311,7 @@ function groupEntityByFolderLevel (
     }
 
     if (!isNew && current.__entitySet === 'folders' && !currentIsNew) {
-      const { childrenCount: oldChildrenCount, node: oldNode } = cache.get(current)
+      const { childrenCount: oldChildrenCount } = cache.get(current)
 
       if (checkChildrenCount) {
         // this detects deletes inside folders

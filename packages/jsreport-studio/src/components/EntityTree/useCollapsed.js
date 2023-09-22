@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import storeMethods from '../../redux/methods'
 import { checkIsGroupNode, checkIsGroupEntityNode } from '../../helpers/checkEntityTreeNodes'
 import getEntityTreeCollapsedDefaultValue from '../../helpers/getEntityTreeCollapsedDefaultValue'
@@ -7,9 +7,11 @@ import { getNodeTitleDOMId } from './utils'
 export default function useCollapsed ({
   listRef
 }) {
-  const collapsedInfo = useState({})
-  const [collapsedNodes, setCollapsed] = collapsedInfo
+  const [collapsedNodes, setCollapsed] = useState({})
   const pendingAfterCollapsingRef = useRef([])
+  // using memo because we want to ensure stable reference to the exposed [collapsedNodes, setCollapsed]
+  // useState seems to not return stable array on each render
+  const collapsedInfo = useMemo(() => [collapsedNodes, setCollapsed], [collapsedNodes, setCollapsed])
 
   const toggleNodeCollapse = useCallback((node, forceState, revealEntityId) => {
     const nodesToProcess = Array.isArray(node) ? node : [node]

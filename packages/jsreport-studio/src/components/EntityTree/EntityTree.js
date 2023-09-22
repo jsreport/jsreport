@@ -27,7 +27,7 @@ const EntityTree = React.forwardRef(({
   onClone,
   onRename
 }, ref) => {
-  const selectedInfo = useReducer(selectedReducer, initialSelected, (selected) => selected != null ? selected : {})
+  const [selectedEntities, selectDispatch] = useReducer(selectedReducer, initialSelected, (selected) => selected != null ? selected : {})
 
   const dispatch = useDispatch()
 
@@ -50,8 +50,9 @@ const EntityTree = React.forwardRef(({
   const listContainerRef = useRef(null)
   const listRef = useRef(null)
   const contextMenuRef = useRef(null)
-  const selectedEntities = selectedInfo[0]
-  const selectDispatch = selectedInfo[1]
+  // using memo because we want to ensure stable reference to the exposed [selectedEntities, selectDispatch]
+  // useState seems to not return stable array on each render
+  const selectedInfo = useMemo(() => [selectedEntities, selectDispatch], [selectedEntities, selectDispatch])
 
   useImperativeHandle(ref, () => ({
     selected: selectedEntities,
@@ -90,7 +91,6 @@ const EntityTree = React.forwardRef(({
     listRef,
     contextMenuRef
   })
-
 
   const getListContainerDimensions = useCallback(() => {
     const dimensions = listContainerRef.current.getBoundingClientRect()
