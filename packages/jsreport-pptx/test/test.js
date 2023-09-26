@@ -128,6 +128,34 @@ describe('pptx', () => {
     text.should.containEql('Jan Blaha')
   })
 
+  it('handlebars partials', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        helpers: `
+          const h = require('handlebars')
+
+          h.registerPartial('test', '{{name}}')
+        `,
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'partial.pptx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = await textract('test.pptx', result.content)
+    text.should.containEql('Hello world John')
+  })
+
   it('work normally with NUL character (should remove it)', async () => {
     const result = await reporter.render({
       template: {

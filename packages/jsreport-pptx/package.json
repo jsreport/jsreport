@@ -36,7 +36,8 @@
     "@jsreport/office": "3.0.0",
     "@xmldom/xmldom": "0.8.6",
     "axios": "0.24.0",
-    "image-size": "0.7.4"
+    "image-size": "0.7.4",
+    "unescape": "1.0.1"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.0.1",

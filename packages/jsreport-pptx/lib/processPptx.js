@@ -1,4 +1,5 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
+const decodeXML = require('unescape')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const preprocess = require('./preprocess/preprocess.js')
 const postprocess = require('./postprocess/postprocess.js')
@@ -29,11 +30,29 @@ module.exports = (reporter) => async (inputs, req) => {
 
     const filesToRender = files.filter(f => contentIsXML(f.data))
 
-    const contentToRender = (
-      filesToRender
-        .map(f => new XMLSerializer().serializeToString(f.doc).replace(/<pptxRemove>/g, '').replace(/<\/pptxRemove>/g, ''))
-        .join('$$$pptxFile$$$')
-    )
+    const contentToRender = filesToRender.map(f => {
+      const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
+        // we need to decode the xml entities for the attributes for handlebars to work ok
+        if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
+          const str = new XMLSerializer().serializeToString(node)
+          return decodeXML(str)
+        } else if (
+          // we need to decode the xml entities in text nodes for handlebars to work ok with partials
+          node.nodeType === 3 && node.nodeValue &&
+          (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
+        ) {
+          const str = new XMLSerializer().serializeToString(node)
+
+          return str.replace(/{{#?&gt;/g, (m) => {
+            return decodeXML(m)
+          })
+        }
+
+        return node
+      })
+
+      return xmlStr.replace(/<pptxRemove>/g, '').replace(/<\/pptxRemove>/g, '')
+    }).join('$$$pptxFile$$$')
 
     reporter.logger.debug('Starting child request to render pptx dynamic parts', req)
 

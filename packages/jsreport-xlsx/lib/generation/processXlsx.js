@@ -33,9 +33,20 @@ module.exports = (reporter) => async (inputs, req) => {
 
     const contentToRender = filesToRender.map(f => {
       const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
+        // we need to decode the xml entities for the attributes for handlebars to work ok
         if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
           const str = new XMLSerializer().serializeToString(node)
           return decodeXML(str)
+        } else if (
+          // we need to decode the xml entities in text nodes for handlebars to work ok with partials
+          node.nodeType === 3 && node.nodeValue &&
+          (node.nodeValue.includes('{{>') || node.nodeValue.includes('{{#>'))
+        ) {
+          const str = new XMLSerializer().serializeToString(node)
+
+          return str.replace(/{{#?&gt;/g, (m) => {
+            return decodeXML(m)
+          })
         }
 
         return node

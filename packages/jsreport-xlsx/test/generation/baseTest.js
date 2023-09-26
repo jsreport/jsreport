@@ -221,6 +221,35 @@ describe('xlsx generation - base', () => {
     ])
   })
 
+  it('handlebars partials', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        helpers: `
+          const h = require('handlebars')
+
+          h.registerPartial('test', '{{name}}')
+        `,
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'partial.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world John')
+  })
+
   it('condition with helper call', async () => {
     const result = await reporter.render({
       template: {
