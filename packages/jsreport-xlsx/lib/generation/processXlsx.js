@@ -55,7 +55,8 @@ module.exports = (reporter) => async (inputs, req) => {
       }
     }, req)
 
-    // we remove NUL unicode characters, which is the only character that is illegal in XML
+    // we remove NUL, VERTICAL TAB unicode characters, which are characters that is illegal in XML.
+    // NOTE: we should likely find a way to remove illegal characters more generally, using some kind of unicode ranges
     // eslint-disable-next-line no-control-regex
     const contents = newContent.toString().replace(/\u0000|\u000b/g, '').split('$$$xlsxFile$$$')
 

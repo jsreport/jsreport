@@ -8,6 +8,8 @@ const { nodeListToArray } = require('../lib/utils')
 const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
 
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx', () => {
   let reporter
 
@@ -28,60 +30,6 @@ describe('docx', () => {
     if (reporter) {
       await reporter.close()
     }
-  })
-
-  it('condition-with-helper-call', async () => {
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(
-              path.join(__dirname, 'condition-with-helper-call.docx')
-            )
-          }
-        },
-        helpers: `
-          function moreThan2(users) {
-            return users.length > 2
-          }
-        `
-      },
-      data: {
-        users: [1, 2, 3]
-      }
-    })
-
-    fs.writeFileSync('out.docx', result.content)
-    const doc = await extractor.extract(result.content)
-    doc.getBody().should.containEql('More than 2 users')
-  })
-
-  it('condition with docProps/thumbnail.jpeg in docx', async () => {
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'condition.docx'))
-          }
-        },
-        helpers: `
-          function moreThan2(users) {
-            return users.length > 2
-          }
-        `
-      },
-      data: {
-        users: [1, 2, 3]
-      }
-    })
-
-    fs.writeFileSync('out.docx', result.content)
-    const doc = await extractor.extract(result.content)
-    doc.getBody().should.containEql('More than 2 users')
   })
 
   it('variable-replace', async () => {
@@ -182,6 +130,106 @@ describe('docx', () => {
     })
 
     fs.writeFileSync('out.docx', result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Hello world John')
+  })
+
+  it('condition-with-helper-call', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'condition-with-helper-call.docx')
+            )
+          }
+        },
+        helpers: `
+          function moreThan2(users) {
+            return users.length > 2
+          }
+        `
+      },
+      data: {
+        users: [1, 2, 3]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const doc = await extractor.extract(result.content)
+    doc.getBody().should.containEql('More than 2 users')
+  })
+
+  it('condition with docProps/thumbnail.jpeg in docx', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'condition.docx'))
+          }
+        },
+        helpers: `
+          function moreThan2(users) {
+            return users.length > 2
+          }
+        `
+      },
+      data: {
+        users: [1, 2, 3]
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+    const doc = await extractor.extract(result.content)
+    doc.getBody().should.containEql('More than 2 users')
+  })
+
+  it('work normally with NUL character (should remove it)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.docx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John\u0000'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Hello world John')
+  })
+
+  it('work normally with VERTICAL TAB character (should remove it)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable-replace.docx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'John\u000b'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
   })

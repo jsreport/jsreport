@@ -1,13 +1,15 @@
-require('should')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
+require('should')
 const sizeOf = require('image-size')
 const textract = util.promisify(require('textract').fromBufferWithName)
 const { DOMParser } = require('@xmldom/xmldom')
 const { decompress } = require('@jsreport/office')
 const jsreport = require('@jsreport/jsreport-core')
 const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
+
+const outputPath = path.join(__dirname, '../out.pptx')
 
 describe('pptx', () => {
   let reporter
@@ -124,6 +126,52 @@ describe('pptx', () => {
     fs.writeFileSync('out.pptx', result.content)
     const text = await textract('test.pptx', result.content)
     text.should.containEql('Jan Blaha')
+  })
+
+  it('work normally with NUL character (should remove it)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable.pptx')
+            )
+          }
+        }
+      },
+      data: {
+        hello: 'John\u0000'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = await textract('test.pptx', result.content)
+    text.should.containEql('John')
+  })
+
+  it('work normally with VERTICAL TAB character (should remove it)', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(__dirname, 'variable.pptx')
+            )
+          }
+        }
+      },
+      data: {
+        hello: 'John\u000b'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = await textract('test.pptx', result.content)
+    text.should.containEql('John')
   })
 
   it('list', async () => {

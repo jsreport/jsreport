@@ -1,6 +1,6 @@
 const fs = require('fs')
 const { response } = require('@jsreport/office')
-const pptxProcessing = require('./pptxProcessing')
+const processPptx = require('./processPptx')
 
 module.exports = async (reporter, definition, req, res) => {
   if (!req.template.pptx || (!req.template.pptx.templateAsset && !req.template.pptx.templateAssetShortid)) {
@@ -35,14 +35,10 @@ module.exports = async (reporter, definition, req, res) => {
 
   const { pathToFile: outputPath } = await reporter.writeTempFile((uuid) => `${uuid}.pptx`, '')
 
-  const result = await pptxProcessing(
-    {
-      pptxTemplateContent: templateAsset.content,
-      outputPath
-    },
-    reporter,
-    req
-  )
+  const result = await processPptx(reporter)({
+    pptxTemplateContent: templateAsset.content,
+    outputPath
+  }, req)
 
   reporter.logger.info('pptx generation was finished', req)
 

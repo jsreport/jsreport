@@ -2,9 +2,9 @@ const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const preprocess = require('./preprocess/preprocess.js')
 const postprocess = require('./postprocess/postprocess.js')
-const { contentIsXML } = require('./utils')
+const { contentIsXML } = require('./utils.js')
 
-module.exports = async function scriptPptxProcessing (inputs, reporter, req) {
+module.exports = (reporter) => async (inputs, req) => {
   const { pptxTemplateContent, outputPath } = inputs
 
   try {
@@ -32,7 +32,7 @@ module.exports = async function scriptPptxProcessing (inputs, reporter, req) {
     const contentToRender = (
       filesToRender
         .map(f => new XMLSerializer().serializeToString(f.doc).replace(/<pptxRemove>/g, '').replace(/<\/pptxRemove>/g, ''))
-        .join('$$$docxFile$$$')
+        .join('$$$pptxFile$$$')
     )
 
     reporter.logger.debug('Starting child request to render pptx dynamic parts', req)
@@ -46,7 +46,10 @@ module.exports = async function scriptPptxProcessing (inputs, reporter, req) {
       }
     }, req)
 
-    const contents = newContent.toString().split('$$$docxFile$$$')
+    // we remove NUL, VERTICAL TAB unicode characters, which are characters that is illegal in XML.
+    // NOTE: we should likely find a way to remove illegal characters more generally, using some kind of unicode ranges
+    // eslint-disable-next-line no-control-regex
+    const contents = newContent.toString().replace(/\u0000|\u000b/g, '').split('$$$pptxFile$$$')
 
     for (let i = 0; i < filesToRender.length; i++) {
       filesToRender[i].data = contents[i]
