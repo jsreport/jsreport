@@ -1,6 +1,11 @@
 const { nodeListToArray, getChartEl } = require('../utils')
 
 module.exports = function processChart (files, drawingEl, relsDoc) {
+  // drawing in docx is inline, this means that it seems not possible to
+  // have multiple charts in a single drawing,
+  // so we still assume to get a single chart from the drawing.
+  // this was also validated by verifying the output in Word by duplicating
+  // a chart, it always create two separate inline drawings with single chart on each
   const chartDrawingEl = getChartEl(drawingEl)
 
   if (!chartDrawingEl) {

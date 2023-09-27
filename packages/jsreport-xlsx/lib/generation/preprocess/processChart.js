@@ -20,160 +20,161 @@ module.exports = function processChart (files, sheetContent, drawingEl) {
     return
   }
 
-  const graphicDataEl = drawingDoc.getElementsByTagName('a:graphicData')[0]
+  // drawing in xlsx are in separate files (not inline), this means that it is possible to
+  // have multiple charts in a single drawing,
+  // so we assume there is going to be more than one chart from the drawing.
+  // this was also validated by verifying the output in Excel by duplicating
+  // a chart, it always create a drawing with multiple chart definitions.
+  const graphicDataEls = nodeListToArray(drawingDoc.getElementsByTagName('a:graphicData'))
 
-  if (
-    graphicDataEl == null
-  ) {
-    return
-  }
-
-  if (
-    graphicDataEl.getAttribute('uri') !== 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
-    graphicDataEl.getAttribute('uri') !== 'http://schemas.microsoft.com/office/drawing/2014/chartex'
-  ) {
-    return
-  }
-
-  const graphicDataChartEl = nodeListToArray(graphicDataEl.childNodes).find((el) => {
-    let found = false
-
-    found = (
-      el.nodeName === 'c:chart' &&
-      el.getAttribute('xmlns:c') === 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
-      el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
-    )
-
-    if (!found) {
-      found = (
-        el.nodeName === 'cx:chart' &&
-        el.getAttribute('xmlns:cx') === 'http://schemas.microsoft.com/office/drawing/2014/chartex' &&
-        el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
-      )
+  for (const graphicDataEl of graphicDataEls) {
+    if (
+      graphicDataEl.getAttribute('uri') !== 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
+      graphicDataEl.getAttribute('uri') !== 'http://schemas.microsoft.com/office/drawing/2014/chartex'
+    ) {
+      continue
     }
 
-    return found
-  })
+    const graphicDataChartEl = nodeListToArray(graphicDataEl.childNodes).find((el) => {
+      let found = false
 
-  if (graphicDataChartEl == null) {
-    return
-  }
+      found = (
+        el.nodeName === 'c:chart' &&
+        el.getAttribute('xmlns:c') === 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
+        el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+      )
 
-  const chartRelId = graphicDataChartEl.getAttribute('r:id')
+      if (!found) {
+        found = (
+          el.nodeName === 'cx:chart' &&
+          el.getAttribute('xmlns:cx') === 'http://schemas.microsoft.com/office/drawing/2014/chartex' &&
+          el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+        )
+      }
 
-  const drawingRelsPath = path.posix.join(path.posix.dirname(drawingPath), '_rels', `${path.posix.basename(drawingPath)}.rels`)
+      return found
+    })
 
-  const drawingRelsDoc = files.find((file) => file.path === drawingRelsPath)?.doc
+    if (graphicDataChartEl == null) {
+      continue
+    }
 
-  if (drawingRelsDoc == null) {
-    return
-  }
+    const chartRelId = graphicDataChartEl.getAttribute('r:id')
 
-  const drawingRelationshipEls = nodeListToArray(drawingRelsDoc.getElementsByTagName('Relationship'))
+    const drawingRelsPath = path.posix.join(path.posix.dirname(drawingPath), '_rels', `${path.posix.basename(drawingPath)}.rels`)
 
-  const chartRelationshipEl = drawingRelationshipEls.find((r) => r.getAttribute('Id') === chartRelId)
+    const drawingRelsDoc = files.find((file) => file.path === drawingRelsPath)?.doc
 
-  if (chartRelationshipEl == null) {
-    return
-  }
+    if (drawingRelsDoc == null) {
+      continue
+    }
 
-  if (
-    graphicDataChartEl.prefix === 'cx' &&
-    chartRelationshipEl.getAttribute('Type') !== 'http://schemas.microsoft.com/office/2014/relationships/chartEx'
-  ) {
-    return
-  }
+    const drawingRelationshipEls = nodeListToArray(drawingRelsDoc.getElementsByTagName('Relationship'))
 
-  if (
-    graphicDataChartEl.prefix === 'c' &&
-    chartRelationshipEl.getAttribute('Type') !== 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart'
-  ) {
-    return
-  }
+    const chartRelationshipEl = drawingRelationshipEls.find((r) => r.getAttribute('Id') === chartRelId)
 
-  const chartPath = path.posix.join(path.posix.dirname(sheetFilepath), chartRelationshipEl.getAttribute('Target'))
+    if (chartRelationshipEl == null) {
+      continue
+    }
 
-  const chartDoc = files.find((file) => file.path === chartPath)?.doc
+    if (
+      graphicDataChartEl.prefix === 'cx' &&
+      chartRelationshipEl.getAttribute('Type') !== 'http://schemas.microsoft.com/office/2014/relationships/chartEx'
+    ) {
+      continue
+    }
 
-  if (chartDoc == null) {
-    return
-  }
+    if (
+      graphicDataChartEl.prefix === 'c' &&
+      chartRelationshipEl.getAttribute('Type') !== 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart'
+    ) {
+      continue
+    }
 
-  let chartEl
+    const chartPath = path.posix.join(path.posix.dirname(sheetFilepath), chartRelationshipEl.getAttribute('Target'))
 
-  if (graphicDataChartEl.prefix === 'cx') {
-    chartEl = chartDoc.getElementsByTagName('cx:chart')[0]
-  } else {
-    chartEl = chartDoc.getElementsByTagName('c:chart')[0]
-  }
+    const chartDoc = files.find((file) => file.path === chartPath)?.doc
 
-  if (chartEl == null) {
-    return
-  }
+    if (chartDoc == null) {
+      continue
+    }
 
-  // ensuring the cached strings in xlsx are not processed by handlebars, because it will
-  // give errors otherwise
-  if (graphicDataChartEl.prefix === 'c') {
-    // it seems only the standard charts "c:" cache data in the chart definition,
-    // for the chartex it is not needed that we do something
-    const existingChartSeriesElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
+    let chartEl
 
-    for (const chartSerieEl of existingChartSeriesElements) {
-      const tagsToCheck = ['c:tx', 'c:cat', 'c:val', 'c:xVal', 'c:yVal', 'c:bubbleSize']
+    if (graphicDataChartEl.prefix === 'cx') {
+      chartEl = chartDoc.getElementsByTagName('cx:chart')[0]
+    } else {
+      chartEl = chartDoc.getElementsByTagName('c:chart')[0]
+    }
 
-      for (const targetTag of tagsToCheck) {
-        const existingTagEl = findChildNode(targetTag, chartSerieEl)
+    if (chartEl == null) {
+      continue
+    }
 
-        if (existingTagEl == null) {
-          continue
-        }
+    // ensuring the cached strings in xlsx are not processed by handlebars, because it will
+    // give errors otherwise
+    if (graphicDataChartEl.prefix === 'c') {
+      // it seems only the standard charts "c:" cache data in the chart definition,
+      // for the chartex it is not needed that we do something
+      const existingChartSeriesElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
 
-        const strRefEl = findChildNode('c:strRef', existingTagEl)
-        const numRefEl = findChildNode('c:numRef', existingTagEl)
+      for (const chartSerieEl of existingChartSeriesElements) {
+        const tagsToCheck = ['c:tx', 'c:cat', 'c:val', 'c:xVal', 'c:yVal', 'c:bubbleSize']
 
-        for (const targetInfo of [{ el: strRefEl, cacheTag: 'strCache' }, { el: numRefEl, cacheTag: 'numCache' }]) {
-          if (targetInfo.el == null) {
+        for (const targetTag of tagsToCheck) {
+          const existingTagEl = findChildNode(targetTag, chartSerieEl)
+
+          if (existingTagEl == null) {
             continue
           }
 
-          const cacheEl = findChildNode(`c:${targetInfo.cacheTag}`, targetInfo.el)
+          const strRefEl = findChildNode('c:strRef', existingTagEl)
+          const numRefEl = findChildNode('c:numRef', existingTagEl)
 
-          if (cacheEl == null) {
-            continue
-          }
-
-          const ptEls = findChildNode('c:pt', cacheEl, true)
-
-          for (const ptEl of ptEls) {
-            const ptValueEl = findChildNode('c:v', ptEl)
-
-            if (ptValueEl == null) {
+          for (const targetInfo of [{ el: strRefEl, cacheTag: 'strCache' }, { el: numRefEl, cacheTag: 'numCache' }]) {
+            if (targetInfo.el == null) {
               continue
             }
 
-            if (ptValueEl.textContent.includes('{{') && ptValueEl.textContent.includes('}}')) {
-              ptValueEl.textContent = `{{{{xlsxSData type='raw'}}}}${ptValueEl.textContent}{{{{/xlsxSData}}}}`
+            const cacheEl = findChildNode(`c:${targetInfo.cacheTag}`, targetInfo.el)
+
+            if (cacheEl == null) {
+              continue
+            }
+
+            const ptEls = findChildNode('c:pt', cacheEl, true)
+
+            for (const ptEl of ptEls) {
+              const ptValueEl = findChildNode('c:v', ptEl)
+
+              if (ptValueEl == null) {
+                continue
+              }
+
+              if (ptValueEl.textContent.includes('{{') && ptValueEl.textContent.includes('}}')) {
+                ptValueEl.textContent = `{{{{xlsxSData type='raw'}}}}${ptValueEl.textContent}{{{{/xlsxSData}}}}`
+              }
             }
           }
         }
       }
     }
-  }
 
-  const chartTitles = nodeListToArray(chartEl.getElementsByTagName(`${graphicDataChartEl.prefix}:title`))
-  const chartMainTitleEl = chartTitles[0]
+    const chartTitles = nodeListToArray(chartEl.getElementsByTagName(`${graphicDataChartEl.prefix}:title`))
+    const chartMainTitleEl = chartTitles[0]
 
-  if (chartMainTitleEl == null) {
-    return
-  }
+    if (chartMainTitleEl == null) {
+      continue
+    }
 
-  if (graphicDataChartEl.prefix === 'cx') {
-    const chartMainTitleTxEl = nodeListToArray(chartMainTitleEl.childNodes).find((el) => el.nodeName === 'cx:tx')
-    const chartMainTitleTxDataEl = chartMainTitleTxEl != null ? nodeListToArray(chartMainTitleTxEl.childNodes).find((el) => el.nodeName === 'cx:txData') : undefined
-    const chartMainTitleTxDataValueEl = chartMainTitleTxDataEl != null ? nodeListToArray(chartMainTitleTxDataEl.childNodes).find((el) => el.nodeName === 'cx:v') : undefined
+    if (graphicDataChartEl.prefix === 'cx') {
+      const chartMainTitleTxEl = nodeListToArray(chartMainTitleEl.childNodes).find((el) => el.nodeName === 'cx:tx')
+      const chartMainTitleTxDataEl = chartMainTitleTxEl != null ? nodeListToArray(chartMainTitleTxEl.childNodes).find((el) => el.nodeName === 'cx:txData') : undefined
+      const chartMainTitleTxDataValueEl = chartMainTitleTxDataEl != null ? nodeListToArray(chartMainTitleTxDataEl.childNodes).find((el) => el.nodeName === 'cx:v') : undefined
 
-    if (chartMainTitleTxDataValueEl?.textContent.startsWith('{{xlsxChart')) {
-      chartMainTitleTxDataValueEl.textContent = ''
+      if (chartMainTitleTxDataValueEl?.textContent.startsWith('{{xlsxChart')) {
+        chartMainTitleTxDataValueEl.textContent = ''
+      }
     }
   }
 }

@@ -1503,6 +1503,59 @@ describe('xlsx generation - charts', () => {
     })
   })
 
+  it('chart with multiple definition on single drawing', async () => {
+    const labels = ['Jan', 'Feb', 'March', 'Apr']
+
+    const datasets = [{
+      label: 'Ser1',
+      data: [4, 5, 1, 2]
+    }, {
+      label: 'Ser2',
+      data: [2, 3, 5, 6]
+    }]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            // the duplicated charts in this sample can be reproduced by copy and pasting the chart
+            content: fs.readFileSync(path.join(xlsxDirPath, 'chart-multiple-in-single-drawing.xlsx'))
+          }
+        }
+      },
+      data: {
+        chartData1: {
+          labels,
+          datasets
+        }
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const files = await decompress()(result.content)
+
+    const chart1Doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/charts/chart1.xml').data.toString()
+    )
+
+    const chart2Doc = new DOMParser().parseFromString(
+      files.find(f => f.path === 'xl/charts/chart2.xml').data.toString()
+    )
+
+    for (const doc of [chart1Doc, chart2Doc]) {
+      const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
+
+      dataElements.forEach((dataEl, idx) => {
+        dataEl.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0].textContent.should.be.eql(datasets[idx].label)
+        nodeListToArray(dataEl.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')).map((el) => el.textContent).should.be.eql(labels)
+        nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
+      })
+    }
+  })
+
   it('chart error message when no data', async () => {
     return reporter
       .render({

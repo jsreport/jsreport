@@ -27,328 +27,289 @@ module.exports = async function processChart (files, sheetContent, drawingEl) {
     return
   }
 
-  const graphicDataEl = drawingDoc.getElementsByTagName('a:graphicData')[0]
+  // drawing in xlsx are in separate files (not inline), this means that it is possible to
+  // have multiple charts in a single drawing,
+  // so we assume there is going to be more than one chart from the drawing.
+  // this was also validated by verifying the output in Excel by duplicating
+  // a chart, it always create a drawing with multiple chart definitions.
+  const graphicDataEls = nodeListToArray(drawingDoc.getElementsByTagName('a:graphicData'))
 
-  if (
-    graphicDataEl == null
-  ) {
-    return
-  }
-
-  if (
-    graphicDataEl.getAttribute('uri') !== 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
-    graphicDataEl.getAttribute('uri') !== 'http://schemas.microsoft.com/office/drawing/2014/chartex'
-  ) {
-    return
-  }
-
-  const graphicDataChartEl = nodeListToArray(graphicDataEl.childNodes).find((el) => {
-    let found = false
-
-    found = (
-      el.nodeName === 'c:chart' &&
-      el.getAttribute('xmlns:c') === 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
-      el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
-    )
-
-    if (!found) {
-      found = (
-        el.nodeName === 'cx:chart' &&
-        el.getAttribute('xmlns:cx') === 'http://schemas.microsoft.com/office/drawing/2014/chartex' &&
-        el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
-      )
-    }
-
-    return found
-  })
-
-  if (graphicDataChartEl == null) {
-    return
-  }
-
-  const chartRelId = graphicDataChartEl.getAttribute('r:id')
-
-  const drawingRelsPath = path.posix.join(path.posix.dirname(drawingPath), '_rels', `${path.posix.basename(drawingPath)}.rels`)
-
-  const drawingRelsDoc = files.find((file) => file.path === drawingRelsPath)?.doc
-
-  if (drawingRelsDoc == null) {
-    return
-  }
-
-  const drawingRelationshipEls = nodeListToArray(drawingRelsDoc.getElementsByTagName('Relationship'))
-
-  const chartRelationshipEl = drawingRelationshipEls.find((r) => r.getAttribute('Id') === chartRelId)
-
-  if (chartRelationshipEl == null) {
-    return
-  }
-
-  if (
-    graphicDataChartEl.prefix === 'cx' &&
-    chartRelationshipEl.getAttribute('Type') !== 'http://schemas.microsoft.com/office/2014/relationships/chartEx'
-  ) {
-    return
-  }
-
-  if (
-    graphicDataChartEl.prefix === 'c' &&
-    chartRelationshipEl.getAttribute('Type') !== 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart'
-  ) {
-    return
-  }
-
-  const chartPath = path.posix.join(path.posix.dirname(sheetFilepath), chartRelationshipEl.getAttribute('Target'))
-  const chartFile = files.find((file) => file.path === chartPath)
-  const chartDoc = chartFile?.doc
-
-  if (chartDoc == null) {
-    return
-  }
-
-  let chartEl
-
-  if (graphicDataChartEl.prefix === 'cx') {
-    chartEl = chartDoc.getElementsByTagName('cx:chart')[0]
-  } else {
-    chartEl = chartDoc.getElementsByTagName('c:chart')[0]
-  }
-
-  if (chartEl == null) {
-    return
-  }
-
-  const chartTitles = nodeListToArray(chartEl.getElementsByTagName(`${graphicDataChartEl.prefix}:title`))
-  const chartMainTitleEl = chartTitles[0]
-
-  if (chartMainTitleEl == null) {
-    return
-  }
-
-  const chartMainTitleTextElements = nodeListToArray(chartMainTitleEl.getElementsByTagName('a:t'))
-
-  for (const chartMainTitleTextEl of chartMainTitleTextElements) {
-    const textContent = chartMainTitleTextEl.textContent
-
-    if (!textContent.includes('$xlsxChart')) {
+  for (const graphicDataEl of graphicDataEls) {
+    if (
+      graphicDataEl.getAttribute('uri') !== 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
+      graphicDataEl.getAttribute('uri') !== 'http://schemas.microsoft.com/office/drawing/2014/chartex'
+    ) {
       continue
     }
 
-    const match = textContent.match(/\$xlsxChart([^$]*)\$/)
-    const chartConfig = JSON.parse(Buffer.from(match[1], 'base64').toString())
+    const graphicDataChartEl = nodeListToArray(graphicDataEl.childNodes).find((el) => {
+      let found = false
 
-    // remove chart helper text
-    chartMainTitleTextEl.textContent = chartMainTitleTextEl.textContent.replace(match[0], '')
+      found = (
+        el.nodeName === 'c:chart' &&
+        el.getAttribute('xmlns:c') === 'http://schemas.openxmlformats.org/drawingml/2006/chart' &&
+        el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+      )
+
+      if (!found) {
+        found = (
+          el.nodeName === 'cx:chart' &&
+          el.getAttribute('xmlns:cx') === 'http://schemas.microsoft.com/office/drawing/2014/chartex' &&
+          el.getAttribute('xmlns:r') === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+        )
+      }
+
+      return found
+    })
+
+    if (graphicDataChartEl == null) {
+      continue
+    }
+
+    const chartRelId = graphicDataChartEl.getAttribute('r:id')
+
+    const drawingRelsPath = path.posix.join(path.posix.dirname(drawingPath), '_rels', `${path.posix.basename(drawingPath)}.rels`)
+
+    const drawingRelsDoc = files.find((file) => file.path === drawingRelsPath)?.doc
+
+    if (drawingRelsDoc == null) {
+      continue
+    }
+
+    const drawingRelationshipEls = nodeListToArray(drawingRelsDoc.getElementsByTagName('Relationship'))
+
+    const chartRelationshipEl = drawingRelationshipEls.find((r) => r.getAttribute('Id') === chartRelId)
+
+    if (chartRelationshipEl == null) {
+      continue
+    }
+
+    if (
+      graphicDataChartEl.prefix === 'cx' &&
+      chartRelationshipEl.getAttribute('Type') !== 'http://schemas.microsoft.com/office/2014/relationships/chartEx'
+    ) {
+      continue
+    }
+
+    if (
+      graphicDataChartEl.prefix === 'c' &&
+      chartRelationshipEl.getAttribute('Type') !== 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart'
+    ) {
+      continue
+    }
+
+    const chartPath = path.posix.join(path.posix.dirname(sheetFilepath), chartRelationshipEl.getAttribute('Target'))
+    const chartFile = files.find((file) => file.path === chartPath)
+    const chartDoc = chartFile?.doc
+
+    if (chartDoc == null) {
+      continue
+    }
+
+    let chartEl
 
     if (graphicDataChartEl.prefix === 'cx') {
-      const chartSeriesEl = chartDoc.getElementsByTagName('cx:plotArea')[0].getElementsByTagName('cx:series')[0]
-      const chartType = chartSeriesEl.getAttribute('layoutId')
-      const supportedCharts = ['waterfall', 'treemap', 'sunburst', 'funnel', 'clusteredColumn']
-
-      if (!supportedCharts.includes(chartType)) {
-        throw new Error(`"${chartType}" type (chartEx) is not supported`)
-      }
-
-      const chartDataEl = chartDoc.getElementsByTagName('cx:chartData')[0]
-      const existingDataItemsElements = nodeListToArray(chartDataEl.getElementsByTagName('cx:data'))
-      const dataPlaceholderEl = chartDoc.createElement('xlsxChartexDataReplace')
-      const seriesPlaceholderEl = chartDoc.createElement('xlsxChartexSeriesReplace')
-
-      dataPlaceholderEl.textContent = 'sample'
-      seriesPlaceholderEl.textContent = 'sample'
-
-      chartDataEl.appendChild(dataPlaceholderEl)
-      chartSeriesEl.parentNode.insertBefore(seriesPlaceholderEl, chartSeriesEl.nextSibling)
-
-      existingDataItemsElements.forEach((dataItemEl) => {
-        dataItemEl.parentNode.removeChild(dataItemEl)
-      })
-
-      chartSeriesEl.parentNode.removeChild(chartSeriesEl)
-
-      chartFile.data = serializeXml(chartFile.doc)
-      chartFile.serializeFromDoc = false
-
-      let newDataItemElement = existingDataItemsElements[0].cloneNode(true)
-
-      newDataItemElement.setAttribute('id', 0)
-
-      addChartexItem(chartDoc, {
-        name: 'cx:strDim',
-        type: chartType,
-        data: Array.isArray(chartConfig.data.labels[0]) ? chartConfig.data.labels.map((subLabels) => ({ items: subLabels })) : [{ items: chartConfig.data.labels }]
-      }, newDataItemElement)
-
-      addChartexItem(chartDoc, { name: 'cx:numDim', type: chartType, data: [{ items: chartConfig.data.datasets[0].data || [] }] }, newDataItemElement)
-
-      let newChartSeriesElement = chartSeriesEl.cloneNode(true)
-
-      addChartexItem(chartDoc, { name: 'cx:tx', data: chartConfig.data.datasets[0].label || '' }, newChartSeriesElement)
-      addChartexItem(chartDoc, { name: 'cx:dataId', data: newDataItemElement.getAttribute('id') }, newChartSeriesElement)
-
-      newDataItemElement = serializeXml(newDataItemElement)
-      newChartSeriesElement = serializeXml(newChartSeriesElement)
-
-      chartFile.data = chartFile.data.replace(/<xlsxChartexDataReplace[^>]*>[^]*?(?=<\/xlsxChartexDataReplace>)<\/xlsxChartexDataReplace>/g, newDataItemElement)
-      chartFile.data = chartFile.data.replace(/<xlsxChartexSeriesReplace[^>]*>[^]*?(?=<\/xlsxChartexSeriesReplace>)<\/xlsxChartexSeriesReplace>/g, newChartSeriesElement)
+      chartEl = chartDoc.getElementsByTagName('cx:chart')[0]
     } else {
-      const chartPlotAreaEl = chartDoc.getElementsByTagName('c:plotArea')[0]
+      chartEl = chartDoc.getElementsByTagName('c:chart')[0]
+    }
 
-      const supportedCharts = [
-        'barChart', 'lineChart',
-        'stockChart', 'scatterChart', 'bubbleChart'
-        // 'areaChart', 'area3DChart', 'barChart', 'bar3DChart', 'lineChart', 'line3DChart',
-        // 'pieChart', 'pie3DChart', 'doughnutChart', 'stockChart', 'scatterChart', 'bubbleChart'
-      ]
+    if (chartEl == null) {
+      continue
+    }
 
-      const existingChartSeriesElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
+    const chartTitles = nodeListToArray(chartEl.getElementsByTagName(`${graphicDataChartEl.prefix}:title`))
+    const chartMainTitleEl = chartTitles[0]
 
-      if (existingChartSeriesElements.length === 0) {
-        throw new Error(`Base chart in xlsx must have at least one data serie defined, ref: "${chartPath}"`)
+    if (chartMainTitleEl == null) {
+      continue
+    }
+
+    const chartMainTitleTextElements = nodeListToArray(chartMainTitleEl.getElementsByTagName('a:t'))
+
+    for (const chartMainTitleTextEl of chartMainTitleTextElements) {
+      const textContent = chartMainTitleTextEl.textContent
+
+      if (!textContent.includes('$xlsxChart')) {
+        continue
       }
 
-      if (chartConfig.options != null) {
-        const existingAxesNodes = []
+      const match = textContent.match(/\$xlsxChart([^$]*)\$/)
+      const chartConfig = JSON.parse(Buffer.from(match[1], 'base64').toString())
 
-        for (let i = 0; i < chartPlotAreaEl.childNodes.length; i++) {
-          const currentNode = chartPlotAreaEl.childNodes[i]
+      // remove chart helper text
+      chartMainTitleTextEl.textContent = chartMainTitleTextEl.textContent.replace(match[0], '')
 
-          if (currentNode.nodeName === 'c:catAx' || currentNode.nodeName === 'c:valAx') {
-            existingAxesNodes.push(currentNode)
-          }
-        }
-
-        if (chartConfig.options.scales && Array.isArray(chartConfig.options.scales.xAxes) && chartConfig.options.scales.xAxes.length > 0) {
-          const primaryXAxisConfig = chartConfig.options.scales.xAxes[0]
-          const secondaryXAxisConfig = chartConfig.options.scales.xAxes[1]
-          const primaryXAxisEl = existingAxesNodes[0]
-          const secondaryXAxisEl = existingAxesNodes[3]
-
-          if (primaryXAxisConfig && primaryXAxisEl) {
-            configureAxis(chartDoc, primaryXAxisConfig, primaryXAxisEl)
-          }
-
-          if (secondaryXAxisConfig && secondaryXAxisEl) {
-            configureAxis(chartDoc, secondaryXAxisConfig, secondaryXAxisEl)
-          }
-        }
-
-        if (chartConfig.options.scales && Array.isArray(chartConfig.options.scales.yAxes) && chartConfig.options.scales.yAxes.length > 0) {
-          const primaryYAxisConfig = chartConfig.options.scales.yAxes[0]
-          const secondaryYAxisConfig = chartConfig.options.scales.yAxes[1]
-          const primaryYAxisEl = existingAxesNodes[1]
-          const secondaryYAxisEl = existingAxesNodes[2]
-
-          if (primaryYAxisConfig && primaryYAxisEl) {
-            configureAxis(chartDoc, primaryYAxisConfig, primaryYAxisEl)
-          }
-
-          if (secondaryYAxisConfig && secondaryYAxisEl) {
-            configureAxis(chartDoc, secondaryYAxisConfig, secondaryYAxisEl)
-          }
-        }
-
-        // NOTE: option "storeDataInSheet" not supported for now
-        // it requires to complete the implementation to put
-        // cell references in chart series data
-        delete chartConfig.options.storeDataInSheet
-
-        if (chartConfig.options.storeDataInSheet === true) {
-          // creating new sheet to store the data for the chart
-          const newSheetInfo = getNewSheet(files)
-
-          // transform the chart data to the order in which the sheet data
-          // expects to be
-          const sheetData = [
-            [null, ...chartConfig.data.datasets.map((d) => d.label)],
-            ...chartConfig.data.labels.map((label, idx) => {
-              const arr = [label]
-
-              for (const dataset of chartConfig.data.datasets) {
-                const datasetVal = dataset.data[idx]
-
-                if (datasetVal != null) {
-                  arr.push(datasetVal)
-                } else {
-                  arr.push(null)
-                }
-              }
-
-              return arr
-            })
-          ]
-
-          addDataToSheet(newSheetInfo, sheetData)
-          addNewSheetToWorkbook(newSheetInfo, files)
-        }
-      }
-
-      const lastExistingChartSerieEl = existingChartSeriesElements[existingChartSeriesElements.length - 1]
-      let lastChartTypeContentEl
-
-      for (const [serieIdx, serieEl] of existingChartSeriesElements.entries()) {
-        const chartTypeContentEl = serieEl.parentNode
-        const chartType = chartTypeContentEl.localName
-
-        lastChartTypeContentEl = chartTypeContentEl
+      if (graphicDataChartEl.prefix === 'cx') {
+        const chartSeriesEl = chartDoc.getElementsByTagName('cx:plotArea')[0].getElementsByTagName('cx:series')[0]
+        const chartType = chartSeriesEl.getAttribute('layoutId')
+        const supportedCharts = ['waterfall', 'treemap', 'sunburst', 'funnel', 'clusteredColumn']
 
         if (!supportedCharts.includes(chartType)) {
-          throw new Error(`Chart "${chartType}" type is not supported, ref: "${chartPath}"`)
+          throw new Error(`"${chartType}" type (chartEx) is not supported`)
         }
 
-        const refNode = serieEl.nextSibling
+        const chartDataEl = chartDoc.getElementsByTagName('cx:chartData')[0]
+        const existingDataItemsElements = nodeListToArray(chartDataEl.getElementsByTagName('cx:data'))
+        const dataPlaceholderEl = chartDoc.createElement('xlsxChartexDataReplace')
+        const seriesPlaceholderEl = chartDoc.createElement('xlsxChartexSeriesReplace')
 
-        serieEl.parentNode.removeChild(serieEl)
+        dataPlaceholderEl.textContent = 'sample'
+        seriesPlaceholderEl.textContent = 'sample'
 
-        const currentDataset = chartConfig.data.datasets[serieIdx]
+        chartDataEl.appendChild(dataPlaceholderEl)
+        chartSeriesEl.parentNode.insertBefore(seriesPlaceholderEl, chartSeriesEl.nextSibling)
 
-        if (!currentDataset) {
-          continue
-        }
-
-        const newChartSerieNode = serieEl.cloneNode(true)
-
-        prepareChartSerie(chartDoc, chartType, newChartSerieNode, {
-          serieIdx,
-          serieLabel: currentDataset.label,
-          generalLabels: chartConfig.data.labels,
-          dataErrors: currentDataset.dataErrors,
-          dataLabels: currentDataset.dataLabels,
-          dataValues: currentDataset.data
+        existingDataItemsElements.forEach((dataItemEl) => {
+          dataItemEl.parentNode.removeChild(dataItemEl)
         })
 
-        refNode.parentNode.insertBefore(newChartSerieNode, refNode)
-      }
+        chartSeriesEl.parentNode.removeChild(chartSeriesEl)
 
-      if (chartConfig.data.datasets.length > existingChartSeriesElements.length) {
-        const lastSerieIdx = existingChartSeriesElements.length - 1
-        const seriesInLastChartNodes = nodeListToArray(lastChartTypeContentEl.getElementsByTagName('c:ser'))
-        const chartType = lastChartTypeContentEl.localName
-        const remainingDatasets = chartConfig.data.datasets.slice(existingChartSeriesElements.length)
-        const refNode = seriesInLastChartNodes[seriesInLastChartNodes.length - 1].nextSibling
+        chartFile.data = serializeXml(chartFile.doc)
+        chartFile.serializeFromDoc = false
 
-        for (const [remainingIdx, currentDataset] of remainingDatasets.entries()) {
-          // create based on the last serie, but without predefined shape properties
-          const newChartSerieNode = lastExistingChartSerieEl.cloneNode(true)
+        let newDataItemElement = existingDataItemsElements[0].cloneNode(true)
 
-          const shapePropertiesEl = findChildNode('c:spPr', newChartSerieNode)
+        newDataItemElement.setAttribute('id', 0)
 
-          if (shapePropertiesEl) {
-            shapePropertiesEl.parentNode.removeChild(shapePropertiesEl)
-          }
+        addChartexItem(chartDoc, {
+          name: 'cx:strDim',
+          type: chartType,
+          data: Array.isArray(chartConfig.data.labels[0]) ? chartConfig.data.labels.map((subLabels) => ({ items: subLabels })) : [{ items: chartConfig.data.labels }]
+        }, newDataItemElement)
 
-          const markerEl = findChildNode('c:marker', newChartSerieNode)
+        addChartexItem(chartDoc, { name: 'cx:numDim', type: chartType, data: [{ items: chartConfig.data.datasets[0].data || [] }] }, newDataItemElement)
 
-          if (markerEl) {
-            const symbolEl = findChildNode('c:symbol', markerEl)
+        let newChartSeriesElement = chartSeriesEl.cloneNode(true)
 
-            if (symbolEl && symbolEl.getAttribute('val') !== 'none') {
-              symbolEl.setAttribute('val', 'none')
+        addChartexItem(chartDoc, { name: 'cx:tx', data: chartConfig.data.datasets[0].label || '' }, newChartSeriesElement)
+        addChartexItem(chartDoc, { name: 'cx:dataId', data: newDataItemElement.getAttribute('id') }, newChartSeriesElement)
+
+        newDataItemElement = serializeXml(newDataItemElement)
+        newChartSeriesElement = serializeXml(newChartSeriesElement)
+
+        chartFile.data = chartFile.data.replace(/<xlsxChartexDataReplace[^>]*>[^]*?(?=<\/xlsxChartexDataReplace>)<\/xlsxChartexDataReplace>/g, newDataItemElement)
+        chartFile.data = chartFile.data.replace(/<xlsxChartexSeriesReplace[^>]*>[^]*?(?=<\/xlsxChartexSeriesReplace>)<\/xlsxChartexSeriesReplace>/g, newChartSeriesElement)
+      } else {
+        const chartPlotAreaEl = chartDoc.getElementsByTagName('c:plotArea')[0]
+
+        const supportedCharts = [
+          'barChart', 'lineChart',
+          'stockChart', 'scatterChart', 'bubbleChart'
+          // 'areaChart', 'area3DChart', 'barChart', 'bar3DChart', 'lineChart', 'line3DChart',
+          // 'pieChart', 'pie3DChart', 'doughnutChart', 'stockChart', 'scatterChart', 'bubbleChart'
+        ]
+
+        const existingChartSeriesElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
+
+        if (existingChartSeriesElements.length === 0) {
+          throw new Error(`Base chart in xlsx must have at least one data serie defined, ref: "${chartPath}"`)
+        }
+
+        if (chartConfig.options != null) {
+          const existingAxesNodes = []
+
+          for (let i = 0; i < chartPlotAreaEl.childNodes.length; i++) {
+            const currentNode = chartPlotAreaEl.childNodes[i]
+
+            if (currentNode.nodeName === 'c:catAx' || currentNode.nodeName === 'c:valAx') {
+              existingAxesNodes.push(currentNode)
             }
           }
 
+          if (chartConfig.options.scales && Array.isArray(chartConfig.options.scales.xAxes) && chartConfig.options.scales.xAxes.length > 0) {
+            const primaryXAxisConfig = chartConfig.options.scales.xAxes[0]
+            const secondaryXAxisConfig = chartConfig.options.scales.xAxes[1]
+            const primaryXAxisEl = existingAxesNodes[0]
+            const secondaryXAxisEl = existingAxesNodes[3]
+
+            if (primaryXAxisConfig && primaryXAxisEl) {
+              configureAxis(chartDoc, primaryXAxisConfig, primaryXAxisEl)
+            }
+
+            if (secondaryXAxisConfig && secondaryXAxisEl) {
+              configureAxis(chartDoc, secondaryXAxisConfig, secondaryXAxisEl)
+            }
+          }
+
+          if (chartConfig.options.scales && Array.isArray(chartConfig.options.scales.yAxes) && chartConfig.options.scales.yAxes.length > 0) {
+            const primaryYAxisConfig = chartConfig.options.scales.yAxes[0]
+            const secondaryYAxisConfig = chartConfig.options.scales.yAxes[1]
+            const primaryYAxisEl = existingAxesNodes[1]
+            const secondaryYAxisEl = existingAxesNodes[2]
+
+            if (primaryYAxisConfig && primaryYAxisEl) {
+              configureAxis(chartDoc, primaryYAxisConfig, primaryYAxisEl)
+            }
+
+            if (secondaryYAxisConfig && secondaryYAxisEl) {
+              configureAxis(chartDoc, secondaryYAxisConfig, secondaryYAxisEl)
+            }
+          }
+
+          // NOTE: option "storeDataInSheet" not supported for now
+          // it requires to complete the implementation to put
+          // cell references in chart series data
+          delete chartConfig.options.storeDataInSheet
+
+          if (chartConfig.options.storeDataInSheet === true) {
+            // creating new sheet to store the data for the chart
+            const newSheetInfo = getNewSheet(files)
+
+            // transform the chart data to the order in which the sheet data
+            // expects to be
+            const sheetData = [
+              [null, ...chartConfig.data.datasets.map((d) => d.label)],
+              ...chartConfig.data.labels.map((label, idx) => {
+                const arr = [label]
+
+                for (const dataset of chartConfig.data.datasets) {
+                  const datasetVal = dataset.data[idx]
+
+                  if (datasetVal != null) {
+                    arr.push(datasetVal)
+                  } else {
+                    arr.push(null)
+                  }
+                }
+
+                return arr
+              })
+            ]
+
+            addDataToSheet(newSheetInfo, sheetData)
+            addNewSheetToWorkbook(newSheetInfo, files)
+          }
+        }
+
+        const lastExistingChartSerieEl = existingChartSeriesElements[existingChartSeriesElements.length - 1]
+        let lastChartTypeContentEl
+
+        for (const [serieIdx, serieEl] of existingChartSeriesElements.entries()) {
+          const chartTypeContentEl = serieEl.parentNode
+          const chartType = chartTypeContentEl.localName
+
+          lastChartTypeContentEl = chartTypeContentEl
+
+          if (!supportedCharts.includes(chartType)) {
+            throw new Error(`Chart "${chartType}" type is not supported, ref: "${chartPath}"`)
+          }
+
+          const refNode = serieEl.nextSibling
+
+          serieEl.parentNode.removeChild(serieEl)
+
+          const currentDataset = chartConfig.data.datasets[serieIdx]
+
+          if (!currentDataset) {
+            continue
+          }
+
+          const newChartSerieNode = serieEl.cloneNode(true)
+
           prepareChartSerie(chartDoc, chartType, newChartSerieNode, {
-            serieIdx: lastSerieIdx + remainingIdx + 1,
+            serieIdx,
             serieLabel: currentDataset.label,
             generalLabels: chartConfig.data.labels,
             dataErrors: currentDataset.dataErrors,
@@ -358,10 +319,50 @@ module.exports = async function processChart (files, sheetContent, drawingEl) {
 
           refNode.parentNode.insertBefore(newChartSerieNode, refNode)
         }
-      }
 
-      chartFile.data = serializeXml(chartFile.doc)
-      chartFile.serializeFromDoc = false
+        if (chartConfig.data.datasets.length > existingChartSeriesElements.length) {
+          const lastSerieIdx = existingChartSeriesElements.length - 1
+          const seriesInLastChartNodes = nodeListToArray(lastChartTypeContentEl.getElementsByTagName('c:ser'))
+          const chartType = lastChartTypeContentEl.localName
+          const remainingDatasets = chartConfig.data.datasets.slice(existingChartSeriesElements.length)
+          const refNode = seriesInLastChartNodes[seriesInLastChartNodes.length - 1].nextSibling
+
+          for (const [remainingIdx, currentDataset] of remainingDatasets.entries()) {
+            // create based on the last serie, but without predefined shape properties
+            const newChartSerieNode = lastExistingChartSerieEl.cloneNode(true)
+
+            const shapePropertiesEl = findChildNode('c:spPr', newChartSerieNode)
+
+            if (shapePropertiesEl) {
+              shapePropertiesEl.parentNode.removeChild(shapePropertiesEl)
+            }
+
+            const markerEl = findChildNode('c:marker', newChartSerieNode)
+
+            if (markerEl) {
+              const symbolEl = findChildNode('c:symbol', markerEl)
+
+              if (symbolEl && symbolEl.getAttribute('val') !== 'none') {
+                symbolEl.setAttribute('val', 'none')
+              }
+            }
+
+            prepareChartSerie(chartDoc, chartType, newChartSerieNode, {
+              serieIdx: lastSerieIdx + remainingIdx + 1,
+              serieLabel: currentDataset.label,
+              generalLabels: chartConfig.data.labels,
+              dataErrors: currentDataset.dataErrors,
+              dataLabels: currentDataset.dataLabels,
+              dataValues: currentDataset.data
+            })
+
+            refNode.parentNode.insertBefore(newChartSerieNode, refNode)
+          }
+        }
+
+        chartFile.data = serializeXml(chartFile.doc)
+        chartFile.serializeFromDoc = false
+      }
     }
   }
 }
