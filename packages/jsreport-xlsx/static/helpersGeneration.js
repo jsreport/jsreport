@@ -668,6 +668,20 @@ function xlsxSData (data, options) {
 
     if (Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'value')) {
       newData.currentCellValueInfo.value = optionsToUse.hash.value
+
+      let toEscape = false
+
+      // escape should be there when the original handlebars expression was intended
+      // to be escaped, we preserve that intend here and escape it, we need to do this
+      // because handlebars does not escape automatically the helper parameter hash,
+      // which we use as an implementation detail of our auto detect cell type logic
+      if (Object.prototype.hasOwnProperty.call(optionsToUse.hash, 'escape')) {
+        toEscape = optionsToUse.hash.escape === true && typeof newData.currentCellValueInfo.value === 'string'
+      }
+
+      if (toEscape) {
+        newData.currentCellValueInfo.value = Handlebars.escapeExpression(newData.currentCellValueInfo.value)
+      }
     }
 
     const result = optionsToUse.fn(this, { data: newData })

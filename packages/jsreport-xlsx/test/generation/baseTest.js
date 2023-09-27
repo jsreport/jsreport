@@ -3,6 +3,7 @@ const fs = require('fs')
 const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const xlsx = require('xlsx')
+const { getDocumentsFromXlsxBuf } = require('../utils')
 
 const xlsxDirPath = path.join(__dirname, '../xlsx')
 const outputPath = path.join(__dirname, '../../out.xlsx')
@@ -172,6 +173,41 @@ describe('xlsx generation - base', () => {
     should(sheet.A2.v).be.eql('Another lines John developer with Wick as lastname')
   })
 
+  it('variable replace multi should keep escaping cell values when there was intention to do it {{expr}}', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace-multi.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'Boris&Junior',
+        lastname: 'Matos&Morillo'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
+    const cellEls = sheetDoc.getElementsByTagName('c')
+
+    should(cellEls.length).be.eql(2)
+    should(cellEls[0].toString()).containEql('Boris&amp;Junior')
+    should(cellEls[1].toString()).containEql('Boris&amp;Junior')
+    should(cellEls[1].toString()).containEql('Matos&amp;Morillo')
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world Boris&Junior developer')
+    should(sheet.A2.v).be.eql('Another lines Boris&Junior developer with Matos&Morillo as lastname')
+  })
+
   it('variable replace styled', async () => {
     const result = await reporter.render({
       template: {
@@ -219,6 +255,37 @@ describe('xlsx generation - base', () => {
       // this text that error contains proper location of syntax error
       should(prom).be.rejectedWith(/<t>Hello world {{<\/t>/)
     ])
+  })
+
+  it('variable replace should keep escaping cell values when there was intention to do it {{expr}}', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'variable-replace.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        name: 'Boris&Junior'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [sheetDoc] = await getDocumentsFromXlsxBuf(result.content, ['xl/worksheets/sheet1.xml'])
+    const cellEls = sheetDoc.getElementsByTagName('c')
+
+    should(cellEls.length).be.eql(1)
+    should(cellEls[0].toString()).containEql('Boris&amp;Junior')
+
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.A1.v).be.eql('Hello world Boris&Junior')
   })
 
   it('handlebars partials', async () => {

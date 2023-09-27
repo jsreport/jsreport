@@ -487,9 +487,10 @@ module.exports = (files) => {
 
         if (isSingleMatch) {
           const match = matches[0]
+          const shouldEscape = !match[0].startsWith('{{{')
           const expressionValue = match[2]
 
-          cellValueWrapperEl.textContent = `{{#xlsxSData type='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}`
+          cellValueWrapperEl.textContent = `{{#xlsxSData type='cellValue' value=${expressionValue.includes(' ') ? `(${expressionValue})` : expressionValue}${shouldEscape ? ' escape=true' : ''}`
         } else {
           cellValueWrapperEl.textContent = "{{#xlsxSData type='cellValue'"
         }
