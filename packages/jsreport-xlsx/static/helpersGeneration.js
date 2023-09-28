@@ -109,7 +109,7 @@ function xlsxSData (data, options) {
 
     newData.loopItems = []
     newData.evaluatedLoopsIds = []
-    newData.outOfLoopItems = Object.create(null)
+    newData.outOfLoopTemplates = Object.create(null)
 
     return optionsToUse.fn(this, { data: newData })
   }
@@ -260,39 +260,6 @@ function xlsxSData (data, options) {
 
   if (
     arguments.length === 1 &&
-    type === 'outOfLoopPlaceholder'
-  ) {
-    const item = optionsToUse.hash.item
-
-    if (item == null) {
-      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper item arg is required')
-    }
-
-    const currentLoopId = optionsToUse.data.currentLoopId
-
-    if (currentLoopId == null) {
-      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper invalid usage, currentLoopId not found')
-    }
-
-    let metaItem
-
-    if (optionsToUse.data.outOfLoopItems[item] != null) {
-      metaItem = optionsToUse.data.outOfLoopItems[item]
-    } else {
-      metaItem = { pendingExecutions: [] }
-      optionsToUse.data.outOfLoopItems[item] = metaItem
-    }
-
-    metaItem.pendingExecutions.push({
-      loopId: currentLoopId,
-      index: optionsToUse.data.index
-    })
-
-    return optionsToUse.fn(this, { data: optionsToUse.data })
-  }
-
-  if (
-    arguments.length === 1 &&
     type === 'outOfLoop'
   ) {
     const item = optionsToUse.hash.item
@@ -301,28 +268,7 @@ function xlsxSData (data, options) {
       throw new Error('xlsxSData type="outOfLoop" helper item arg is required')
     }
 
-    const outOfLoopItem = optionsToUse.data.outOfLoopItems[item]
-
-    if (outOfLoopItem == null) {
-      throw new Error('xlsxSData type="outOfLoop" helper invalid usage, outOfLoopItem was not found')
-    }
-
-    const pendingExecutions = outOfLoopItem.pendingExecutions.splice(0, outOfLoopItem.pendingExecutions.length)
-
-    if (pendingExecutions == null || pendingExecutions.length === 0) {
-      throw new Error('xlsxSData type="outOfLoop" helper invalid usage, pendingExecution was not found')
-    }
-
-    const output = []
-
-    for (const pendingExecution of pendingExecutions) {
-      const currentLoopId = pendingExecution.loopId
-      const currentIdx = pendingExecution.index
-
-      if (currentLoopId == null) {
-        throw new Error('xlsxSData type="outOfLoop" helper invalid usage, loopId was not found')
-      }
-
+    optionsToUse.data.outOfLoopTemplates[item] = (currentLoopId, currentIdx) => {
       const newData = Handlebars.createFrame(optionsToUse.data)
 
       newData.currentLoopId = currentLoopId
@@ -331,12 +277,39 @@ function xlsxSData (data, options) {
         newData.index = currentIdx
       }
 
-      const content = optionsToUse.fn(this, { data: newData })
-
-      output.push(`<data>${content}</data>`)
+      return optionsToUse.fn(this, { data: newData })
     }
 
-    return new Handlebars.SafeString(output.join(''))
+    return new Handlebars.SafeString('')
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'outOfLoopPlaceholder'
+  ) {
+    const item = optionsToUse.hash.item
+
+    if (item == null) {
+      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper item arg is required')
+    }
+
+    const outOfLoopTemplate = optionsToUse.data.outOfLoopTemplates[item]
+
+    if (outOfLoopTemplate == null) {
+      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper invalid usage, outOfLoopItem was not found')
+    }
+
+    const currentLoopId = optionsToUse.data.currentLoopId
+
+    if (currentLoopId == null) {
+      throw new Error('xlsxSData type="outOfLoopPlaceholder" helper invalid usage, currentLoopId not found')
+    }
+
+    const currentIdx = optionsToUse.data.index
+
+    const output = outOfLoopTemplate(currentLoopId, currentIdx)
+
+    return new Handlebars.SafeString(output)
   }
 
   const { parseCellRef, evaluateCellRefsFromExpression, getNewFormula, generateNewCellRefFromRow } = require('cellUtils')

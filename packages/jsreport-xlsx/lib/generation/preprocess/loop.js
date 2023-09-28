@@ -1,6 +1,6 @@
 const path = require('path')
 const { num2col } = require('xlsx-coordinates')
-const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getClosestEl, getSheetInfo } = require('../../utils')
+const { nodeListToArray, isWorksheetFile, isWorksheetRelsFile, getSheetInfo } = require('../../utils')
 const { parseCellRef, evaluateCellRefsFromExpression } = require('../../cellUtils')
 const startLoopRegexp = /{{#each ([^{}]{0,500})}}/
 
@@ -535,18 +535,14 @@ module.exports = (files) => {
 
     let outLoopItemIndex = 0
 
-    for (const { loopDetected, startingRowEl, endingRowEl, types } of outOfLoopElsToHandle) {
+    const sortedOutOfLoopElsToHandle = getOutOfLoopElsSortedByHierarchy(outOfLoopElsToHandle)
+
+    for (const { loopDetected, startingRowEl, endingRowEl, types } of sortedOutOfLoopElsToHandle) {
       const loopLevel = loopDetected.hierarchyId.split('#').length
       const isOuterLevel = loopLevel === 1
 
-      if (loopDetected.type === 'row' && loopDetected.children.length !== 0) {
-        throw new Error('Multiple nested row loops are not supported')
-      }
-
       for (const type of types) {
-        const outOfLoopElement = sheetDoc.createElement('outOfLoop')
-        let itemEl = sheetDoc.createElement('item')
-        itemEl.textContent = outLoopItemIndex
+        const outOfLoopEl = sheetDoc.createElement('outOfLoop')
 
         const rowHandlebarsWrapperText = type === 'left' ? startingRowEl.previousSibling.textContent : endingRowEl.previousSibling.textContent
 
@@ -555,7 +551,6 @@ module.exports = (files) => {
 
         if (type === 'left') {
           toCloneEls.push(...getCellElsAndWrappersFrom(currentEl, 'previous'))
-
           toCloneEls.reverse()
         } else {
           toCloneEls.push(...getCellElsAndWrappersFrom(currentEl, 'next'))
@@ -563,57 +558,57 @@ module.exports = (files) => {
 
         for (const toCloneEl of toCloneEls) {
           const newEl = toCloneEl.cloneNode(true)
-          outOfLoopElement.appendChild(newEl)
+          outOfLoopEl.appendChild(newEl)
           toCloneEl.parentNode.removeChild(toCloneEl)
         }
 
-        processOpeningTag(sheetDoc, outOfLoopElement.firstChild, rowHandlebarsWrapperText)
-        processClosingTag(sheetDoc, outOfLoopElement.lastChild, '{{/xlsxSData}}')
+        processOpeningTag(sheetDoc, outOfLoopEl.firstChild, rowHandlebarsWrapperText)
+        processClosingTag(sheetDoc, outOfLoopEl.lastChild, '{{/xlsxSData}}')
 
-        outOfLoopElement.insertBefore(itemEl, outOfLoopElement.firstChild)
+        processOpeningTag(sheetDoc, outOfLoopEl.firstChild, `{{#xlsxSData type='outOfLoop' item='${outLoopItemIndex}' }}`)
+        processClosingTag(sheetDoc, outOfLoopEl.lastChild, '{{/xlsxSData}}')
 
-        processOpeningTag(sheetDoc, outOfLoopElement.firstChild.nextSibling, `{{#xlsxSData type='outOfLoop' item='${outLoopItemIndex}' }}`)
-        processClosingTag(sheetDoc, outOfLoopElement.lastChild, '{{/xlsxSData}}')
+        const loopEdgeEl = loopDetected.blockStartEl
 
-        const loopEdgeEl = loopDetected.blockEndEl
+        const outOfLoopItemContentEls = nodeListToArray(outOfLoopEl.childNodes)
 
-        // we get the last outOfLoop element
-        const lastOutOfLoopElOrNull = getClosestEl(loopEdgeEl, (n) => (
-          n.nodeName !== 'outOfLoop' ||
-          (n.nodeName === 'outOfLoop' && n.nextSibling?.nodeName !== 'outOfLoop')
-        ), 'next')
-
-        loopEdgeEl.parentNode.insertBefore(
-          outOfLoopElement,
-          lastOutOfLoopElOrNull?.nodeName === 'outOfLoop' ? lastOutOfLoopElOrNull?.nextSibling : lastOutOfLoopElOrNull
-        )
-
-        const outOfLoopPlaceholderElement = sheetDoc.createElement('outOfLoopPlaceholder')
-        itemEl = sheetDoc.createElement('item')
-        itemEl.textContent = outLoopItemIndex
-
-        outOfLoopPlaceholderElement.appendChild(itemEl)
-
-        processOpeningTag(sheetDoc, outOfLoopPlaceholderElement.firstChild, `{{#xlsxSData type='outOfLoopPlaceholder' item='${outLoopItemIndex}' }}`)
-        processClosingTag(sheetDoc, outOfLoopPlaceholderElement.lastChild, '{{/xlsxSData}}')
-
-        if (type === 'left') {
-          const cellAndWrappers = getCellElAndWrappers(loopDetected.start.el)
-          loopDetected.start.el.parentNode.insertBefore(outOfLoopPlaceholderElement, cellAndWrappers[0])
-        } else {
-          const cellAndWrappers = getCellElAndWrappers(loopDetected.end.el)
-          loopDetected.end.el.parentNode.insertBefore(outOfLoopPlaceholderElement, cellAndWrappers[cellAndWrappers.length - 1].nextSibling)
+        for (const contentEl of outOfLoopItemContentEls) {
+          loopEdgeEl.parentNode.insertBefore(
+            contentEl,
+            loopEdgeEl
+          )
         }
 
-        outLoopItemIndex++
+        const outOfLoopPlaceholderEl = sheetDoc.createElement('outOfLoopPlaceholder')
+
+        const contentEl = sheetDoc.createElement('xlsxRemove')
+        contentEl.textContent = `{{xlsxSData type='outOfLoopPlaceholder' item='${outLoopItemIndex}' }}`
+
+        outOfLoopPlaceholderEl.appendChild(contentEl)
 
         // we only want to conditionally render the outOfLoopPlaceholder items if the loop
         // is at the outer level
         if (isOuterLevel) {
           // we include a if condition to preserve the cells that are before/after the each
-          processOpeningTag(sheetDoc, outOfLoopPlaceholderElement, `{{#if ${loopDetected.type === 'block' && type === 'right' ? '@last' : '@first'}}}`)
-          processClosingTag(sheetDoc, outOfLoopPlaceholderElement, '{{/if}}')
+          processOpeningTag(sheetDoc, outOfLoopPlaceholderEl.firstChild, `{{#if ${loopDetected.type === 'block' && type === 'right' ? '@last' : '@first'}}}`)
+          processClosingTag(sheetDoc, outOfLoopPlaceholderEl.lastChild, '{{/if}}')
         }
+        const outOfLoopPlaceholderContentEls = nodeListToArray(outOfLoopPlaceholderEl.childNodes)
+        const cellAndWrappers = getCellElAndWrappers(type === 'left' ? loopDetected.start.el : loopDetected.end.el)
+
+        if (type === 'right') {
+          outOfLoopPlaceholderContentEls.reverse()
+        }
+
+        for (const contentEl of outOfLoopPlaceholderContentEls) {
+          if (type === 'left') {
+            loopDetected.start.el.parentNode.insertBefore(contentEl, cellAndWrappers[0])
+          } else {
+            loopDetected.end.el.parentNode.insertBefore(contentEl, cellAndWrappers[cellAndWrappers.length - 1].nextSibling)
+          }
+        }
+
+        outLoopItemIndex++
       }
     }
 
@@ -757,6 +752,71 @@ module.exports = (files) => {
       tEl.textContent = `{{{{xlsxSData type='raw'}}}}${tEl.textContent}{{{{/xlsxSData}}}}`
     }
   }
+}
+
+function getOutOfLoopElsSortedByHierarchy (outOfLoopElsToHandle) {
+  const hierarchy = new Map()
+  const hierarchyIdElMap = new Map()
+
+  for (let idx = 0; idx < outOfLoopElsToHandle.length; idx++) {
+    const outOfLoopElToHandle = outOfLoopElsToHandle[idx]
+    const hierarchyId = outOfLoopElToHandle.loopDetected.hierarchyId
+
+    hierarchyIdElMap.set(hierarchyId, outOfLoopElToHandle)
+
+    const parts = hierarchyId.split('#')
+    let currentHierarchy = hierarchy
+
+    for (let partIdx = 0; partIdx < parts.length; partIdx++) {
+      const occurrenceIdx = parseInt(parts[partIdx], 10)
+      const isLast = partIdx === parts.length - 1
+
+      if (!currentHierarchy.has(occurrenceIdx)) {
+        currentHierarchy.set(occurrenceIdx, {
+          children: new Map()
+        })
+      }
+
+      const currentItem = currentHierarchy.get(occurrenceIdx)
+
+      if (isLast) {
+        currentItem.match = hierarchyId
+      }
+
+      currentHierarchy = currentItem.children
+    }
+  }
+
+  const toArraySortedByOccurrence = (targetMap) => {
+    const sortedKeysByOccurrence = [...targetMap.keys()].sort((a, b) => a - b)
+    return sortedKeysByOccurrence.map((key) => targetMap.get(key))
+  }
+
+  const pending = toArraySortedByOccurrence(hierarchy)
+  const sortedHierarchyIds = []
+
+  while (pending.length > 0) {
+    const currentPending = pending.shift()
+
+    if (typeof currentPending === 'string') {
+      sortedHierarchyIds.push(currentPending)
+      continue
+    }
+
+    const item = currentPending
+
+    if (item.children.size > 0) {
+      pending.unshift(...toArraySortedByOccurrence(item.children))
+    }
+
+    if (item.match != null) {
+      pending.unshift(item.match)
+    }
+  }
+
+  const result = sortedHierarchyIds.map((hierarchyId) => hierarchyIdElMap.get(hierarchyId))
+
+  return result
 }
 
 function getLatestNotClosedLoop (loopsDetected) {

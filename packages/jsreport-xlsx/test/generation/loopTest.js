@@ -7318,37 +7318,254 @@ describe('xlsx generation - loops', () => {
     should(sheet.B138.v).be.eql(categories[2].maintainers[2])
   })
 
-  // TODO: the idea to support multiple row loop nesting will be to insert <outOfLoopPlaceholder>
-  // elements between loop start and row start and the <outOfLoopPlaceholder> inside <row> will
-  // combine results
-  // <xlsxRemove>{{#xlsxSData categories type='loop' hierarchyId='0' start=3 columnStart=2 columnEnd=12 }}</xlsxRemove>
-  // <outOfLoopPlaceholder>
-  //   ...NEW TYPE OF PLACEHOLDER...
-  //   HERE WILL COME THE "LEFT" part
-  // </outOfLoopPlaceholder>
-  // <outOfLoopPlaceholder>
-  //   ...NEW TYPE OF PLACEHOLDER...
-  //   HERE WILL COME THE "RIGHT" part
-  // </outOfLoopPlaceholder>
-  // <xlsxRemove>{{#xlsxSData type='row' originalRowNumber=3}}</xlsxRemove>
-  // <row r="{{xlsxSData type='rowNumber'}}" spans="2:12" x14ac:dyDescent="0.2">
-  //   <outOfLoopPlaceholder>
-  //     ...EXISTING TYPE OF PLACEHOLDER THAT WILL COMBINE RESULTS FROM OUTSIDE ROW (LEFT)...
-  //   </outOfLoopPlaceholder>
-  //   ...cells here...
-  //   <outOfLoopPlaceholder>
-  //     ...EXISTING TYPE OF PLACEHOLDER THAT WILL COMBINE RESULTS FROM OUTSIDE ROW (RIGHT)...
-  //   </outOfLoopPlaceholder>
-  // </row>
-  // <xlsxRemove>{{/xlsxSData}}</xlsxRemove>
-  // <xlsxRemove>{{/xlsxSData}}</xlsxRemove>
-  //
-  // Another approach a bit more radically can be to try to remove the usage of extra tags
-  // <outOfLoopPlaceholder>, <outOfLoop> and instead just prepare everything with helper calls
-  // the structure of calls will look very much the same as above but the difference will be
-  // that we will insert the tags directly during handlebars processing without the need to
-  // post-process, this will likely also improve performance with lot of rows
-  it.skip('row loop and multiple row loops nested', async () => {
+  it('block loop and multiple nested loops with end of loops on single line', async () => {
+    const categories = [
+      {
+        name: 'In',
+        tags: ['a', 'b', 'c'],
+        maintainers: ['Olivia', 'Jacob'],
+        posts: [
+          {
+            name: 'Anim cillum pariatur',
+            wordsCount: 73,
+            author: 'Collins',
+            reviews: [{ name: 'Bob', message: 'A good content', stars: [{ value: 4, time: '1 day ago' }, { value: 5, time: '1 week ago' }] }, { name: 'Alice', message: 'Nice way to put it together' }]
+          },
+          {
+            name: 'Dolor minim ea',
+            wordsCount: 56,
+            author: 'Wilda'
+          },
+          {
+            name: 'Ut culpa excepteur',
+            wordsCount: 75,
+            author: 'Cecelia',
+            reviews: [{ name: 'Sarah', message: 'Couldn\'t put it down! A must-read' }, { name: 'Christopher', message: 'Interesting perspective, but lacked depth' }]
+          }
+        ]
+      },
+      {
+        name: 'Consectetur',
+        tags: ['a', 'c'],
+        maintainers: ['Isabella'],
+        posts: [
+          {
+            name: 'Fugiat irure ea',
+            wordsCount: 69,
+            author: 'Wood',
+            reviews: [{ name: 'Emily', message: 'Enjoyed the characters and plot twists', stars: [{ value: 4, time: '2 weeks ago' }] }]
+          },
+          {
+            name: 'Irure ea ullamco',
+            wordsCount: 66,
+            author: 'Karin'
+          }
+        ]
+      },
+      {
+        name: 'Eu',
+        tags: ['b'],
+        maintainers: ['Alexander', 'Mia', 'James'],
+        posts: [
+          {
+            name: 'Cillum dolore aliqua',
+            wordsCount: 50,
+            author: 'Jeannine',
+            reviews: [{ name: 'David', message: 'Not my cup of tea, but may appeal to others' }, { name: 'Samantha', message: 'Too slow-paced for my taste' }]
+          },
+          {
+            name: 'Aliquip anim laboris',
+            wordsCount: 91,
+            author: 'Katy',
+            reviews: [{ name: 'William', message: 'Powerful and moving. Left a lasting impression' }]
+          }
+        ]
+      }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'loop-multiple-rows-and-nested-multiple-loops-and-end-of-loops-on-single-line.xlsx')
+            )
+          }
+        }
+      },
+      data: {
+        categories
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+
+    should(sheet.A2.v).be.eql(categories[0].name)
+    should(sheet.B3.v).be.eql('Tags:')
+    should(sheet.B4.v).be.eql(categories[0].tags[0])
+    should(sheet.B5.v).be.eql(categories[0].tags[1])
+    should(sheet.B6.v).be.eql(categories[0].tags[2])
+
+    should(sheet.B7.v).be.eql('Posts')
+
+    should(sheet.B8.v).be.eql('Name:')
+    should(sheet.E8.v).be.eql(categories[0].posts[0].name)
+    should(sheet.B9.v).be.eql('Words Count:')
+    should(sheet.E9.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.B10.v).be.eql('Author:')
+    should(sheet.E10.v).be.eql(categories[0].posts[0].author)
+
+    should(sheet.B11.v).be.eql('Reviews:')
+    should(sheet.C12.v).be.eql('Name:')
+    should(sheet.E12.v).be.eql(categories[0].posts[0].reviews[0].name)
+    should(sheet.C13.v).be.eql('Message:')
+    should(sheet.E13.v).be.eql(categories[0].posts[0].reviews[0].message)
+    should(sheet.C14.v).be.eql('Stars')
+    should(sheet.D15.v).be.eql(`${categories[0].posts[0].reviews[0].stars[0].value} - ${categories[0].posts[0].reviews[0].stars[0].time}`)
+    should(sheet.D16.v).be.eql(`${categories[0].posts[0].reviews[0].stars[1].value} - ${categories[0].posts[0].reviews[0].stars[1].time}`)
+
+    should(sheet.C17.v).be.eql('Name:')
+    should(sheet.E17.v).be.eql(categories[0].posts[0].reviews[1].name)
+    should(sheet.C18.v).be.eql('Message:')
+    should(sheet.E18.v).be.eql(categories[0].posts[0].reviews[1].message)
+    should(sheet.C19.v).be.eql('Stars')
+    should(sheet.D20.v).be.eql(' - ')
+
+    should(sheet.B21.v).be.eql('Name:')
+    should(sheet.E21.v).be.eql(categories[0].posts[1].name)
+    should(sheet.B22.v).be.eql('Words Count:')
+    should(sheet.E22.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.B23.v).be.eql('Author:')
+    should(sheet.E23.v).be.eql(categories[0].posts[1].author)
+
+    should(sheet.B24.v).be.eql('Reviews:')
+    should(sheet.C25.v).be.eql('Name:')
+    should(sheet.E25.v).be.eql('')
+    should(sheet.C26.v).be.eql('Message:')
+    should(sheet.E26.v).be.eql('')
+    should(sheet.C27.v).be.eql('Stars')
+    should(sheet.D28.v).be.eql(' - ')
+
+    should(sheet.B29.v).be.eql('Name:')
+    should(sheet.E29.v).be.eql(categories[0].posts[2].name)
+    should(sheet.B30.v).be.eql('Words Count:')
+    should(sheet.E30.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.B31.v).be.eql('Author:')
+    should(sheet.E31.v).be.eql(categories[0].posts[2].author)
+
+    should(sheet.B32.v).be.eql('Reviews:')
+    should(sheet.C33.v).be.eql('Name:')
+    should(sheet.E33.v).be.eql(categories[0].posts[2].reviews[0].name)
+    should(sheet.C34.v).be.eql('Message:')
+    should(sheet.E34.v).be.eql(categories[0].posts[2].reviews[0].message)
+    should(sheet.C35.v).be.eql('Stars')
+    should(sheet.D36.v).be.eql(' - ')
+
+    should(sheet.C37.v).be.eql('Name:')
+    should(sheet.E37.v).be.eql(categories[0].posts[2].reviews[1].name)
+    should(sheet.C38.v).be.eql('Message:')
+    should(sheet.E38.v).be.eql(categories[0].posts[2].reviews[1].message)
+    should(sheet.C39.v).be.eql('Stars')
+    should(sheet.D40.v).be.eql(' - ')
+
+    should(sheet.B41.v).be.eql('Maintainers:')
+    should(sheet.B42.v).be.eql(categories[0].maintainers[0])
+    should(sheet.B43.v).be.eql(categories[0].maintainers[1])
+
+    should(sheet.A46.v).be.eql(categories[1].name)
+    should(sheet.B47.v).be.eql('Tags:')
+    should(sheet.B48.v).be.eql(categories[1].tags[0])
+    should(sheet.B49.v).be.eql(categories[1].tags[1])
+
+    should(sheet.B50.v).be.eql('Posts')
+
+    should(sheet.B51.v).be.eql('Name:')
+    should(sheet.E51.v).be.eql(categories[1].posts[0].name)
+    should(sheet.B52.v).be.eql('Words Count:')
+    should(sheet.E52.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.B53.v).be.eql('Author:')
+    should(sheet.E53.v).be.eql(categories[1].posts[0].author)
+
+    should(sheet.B54.v).be.eql('Reviews:')
+    should(sheet.C55.v).be.eql('Name:')
+    should(sheet.E55.v).be.eql(categories[1].posts[0].reviews[0].name)
+    should(sheet.C56.v).be.eql('Message:')
+    should(sheet.E56.v).be.eql(categories[1].posts[0].reviews[0].message)
+    should(sheet.C57.v).be.eql('Stars')
+    should(sheet.D58.v).be.eql(`${categories[1].posts[0].reviews[0].stars[0].value} - ${categories[1].posts[0].reviews[0].stars[0].time}`)
+
+    should(sheet.B59.v).be.eql('Name:')
+    should(sheet.E59.v).be.eql(categories[1].posts[1].name)
+    should(sheet.B60.v).be.eql('Words Count:')
+    should(sheet.E60.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.B61.v).be.eql('Author:')
+    should(sheet.E61.v).be.eql(categories[1].posts[1].author)
+
+    should(sheet.B62.v).be.eql('Reviews:')
+    should(sheet.C63.v).be.eql('Name:')
+    should(sheet.E63.v).be.eql('')
+    should(sheet.C64.v).be.eql('Message:')
+    should(sheet.E64.v).be.eql('')
+    should(sheet.C65.v).be.eql('Stars')
+    should(sheet.D66.v).be.eql(' - ')
+
+    should(sheet.B67.v).be.eql('Maintainers:')
+    should(sheet.B68.v).be.eql(categories[1].maintainers[0])
+
+    should(sheet.A71.v).be.eql(categories[2].name)
+    should(sheet.B72.v).be.eql('Tags:')
+    should(sheet.B73.v).be.eql(categories[2].tags[0])
+
+    should(sheet.B74.v).be.eql('Posts')
+
+    should(sheet.B75.v).be.eql('Name:')
+    should(sheet.E75.v).be.eql(categories[2].posts[0].name)
+    should(sheet.B76.v).be.eql('Words Count:')
+    should(sheet.E76.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.B77.v).be.eql('Author:')
+    should(sheet.E77.v).be.eql(categories[2].posts[0].author)
+
+    should(sheet.B78.v).be.eql('Reviews:')
+    should(sheet.C79.v).be.eql('Name:')
+    should(sheet.E79.v).be.eql(categories[2].posts[0].reviews[0].name)
+    should(sheet.C80.v).be.eql('Message:')
+    should(sheet.E80.v).be.eql(categories[2].posts[0].reviews[0].message)
+    should(sheet.C81.v).be.eql('Stars')
+    should(sheet.D82.v).be.eql(' - ')
+
+    should(sheet.C83.v).be.eql('Name:')
+    should(sheet.E83.v).be.eql(categories[2].posts[0].reviews[1].name)
+    should(sheet.C84.v).be.eql('Message:')
+    should(sheet.E84.v).be.eql(categories[2].posts[0].reviews[1].message)
+    should(sheet.C85.v).be.eql('Stars')
+    should(sheet.D86.v).be.eql(' - ')
+
+    should(sheet.B87.v).be.eql('Name:')
+    should(sheet.E87.v).be.eql(categories[2].posts[1].name)
+    should(sheet.B88.v).be.eql('Words Count:')
+    should(sheet.E88.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.B89.v).be.eql('Author:')
+    should(sheet.E89.v).be.eql(categories[2].posts[1].author)
+
+    should(sheet.B90.v).be.eql('Reviews:')
+    should(sheet.C91.v).be.eql('Name:')
+    should(sheet.E91.v).be.eql(categories[2].posts[1].reviews[0].name)
+    should(sheet.C92.v).be.eql('Message:')
+    should(sheet.E92.v).be.eql(categories[2].posts[1].reviews[0].message)
+    should(sheet.C93.v).be.eql('Stars')
+    should(sheet.D94.v).be.eql(' - ')
+
+    should(sheet.B95.v).be.eql('Maintainers:')
+    should(sheet.B96.v).be.eql(categories[2].maintainers[0])
+    should(sheet.B97.v).be.eql(categories[2].maintainers[1])
+    should(sheet.B98.v).be.eql(categories[2].maintainers[2])
+  })
+
+  it('row loop and multiple row loops nested', async () => {
     const categories = [
       {
         name: 'In',
@@ -7425,168 +7642,107 @@ describe('xlsx generation - loops', () => {
     })
 
     fs.writeFileSync(outputPath, result.content)
-    // const workbook = xlsx.read(result.content)
-    // const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
 
-    // should(sheet.B2.v).be.eql(categories[0].name)
-    // should(sheet.B3.v).be.eql('Tags:')
-    // should(sheet.B4.v).be.eql(categories[0].tags[0])
-    // should(sheet.B5.v).be.eql(categories[0].tags[1])
-    // should(sheet.B6.v).be.eql(categories[0].tags[2])
+    should(sheet.B3.v).be.eql(categories[0].name)
+    should(sheet.C3.v).be.eql(categories[0].posts[0].name)
+    should(sheet.D3.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.E3.v).be.eql(categories[0].posts[0].author)
+    should(sheet.F3.v).be.eql(categories[0].posts[0].reviews[0].name)
+    should(sheet.G3.v).be.eql(categories[0].posts[0].reviews[0].message)
+    should(sheet.H3.v).be.eql(categories[0].posts[0].reviews[0].stars[0].value)
+    should(sheet.I3.v).be.eql(categories[0].posts[0].reviews[0].stars[0].time)
 
-    // should(sheet.B8.v).be.eql('Posts')
+    should(sheet.B4.v).be.eql(categories[0].name)
+    should(sheet.C4.v).be.eql(categories[0].posts[0].name)
+    should(sheet.D4.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.E4.v).be.eql(categories[0].posts[0].author)
+    should(sheet.F4.v).be.eql(categories[0].posts[0].reviews[0].name)
+    should(sheet.G4.v).be.eql(categories[0].posts[0].reviews[0].message)
+    should(sheet.H4.v).be.eql(categories[0].posts[0].reviews[0].stars[1].value)
+    should(sheet.I4.v).be.eql(categories[0].posts[0].reviews[0].stars[1].time)
 
-    // should(sheet.B10.v).be.eql('Name:')
-    // should(sheet.C10.v).be.eql(categories[0].posts[0].name)
-    // should(sheet.B11.v).be.eql('Words Count:')
-    // should(sheet.C11.v).be.eql(categories[0].posts[0].wordsCount)
-    // should(sheet.B12.v).be.eql('Author:')
-    // should(sheet.C12.v).be.eql(categories[0].posts[0].author)
+    should(sheet.B5.v).be.eql(categories[0].name)
+    should(sheet.C5.v).be.eql(categories[0].posts[0].name)
+    should(sheet.D5.v).be.eql(categories[0].posts[0].wordsCount)
+    should(sheet.E5.v).be.eql(categories[0].posts[0].author)
+    should(sheet.F5.v).be.eql(categories[0].posts[0].reviews[1].name)
+    should(sheet.G5.v).be.eql(categories[0].posts[0].reviews[1].message)
+    should(sheet.H5.v).be.eql('')
+    should(sheet.I5.v).be.eql('')
 
-    // should(sheet.B13.v).be.eql('Reviews:')
-    // should(sheet.B15.v).be.eql('Name:')
-    // should(sheet.C15.v).be.eql(categories[0].posts[0].reviews[0].name)
-    // should(sheet.B16.v).be.eql('Message:')
-    // should(sheet.C16.v).be.eql(categories[0].posts[0].reviews[0].message)
-    // should(sheet.B17.v).be.eql('Stars')
-    // should(sheet.B18.v).be.eql(`${categories[0].posts[0].reviews[0].stars[0].value} - ${categories[0].posts[0].reviews[0].stars[0].time}`)
-    // should(sheet.B19.v).be.eql(`${categories[0].posts[0].reviews[0].stars[1].value} - ${categories[0].posts[0].reviews[0].stars[1].time}`)
+    should(sheet.B6.v).be.eql(categories[0].name)
+    should(sheet.C6.v).be.eql(categories[0].posts[1].name)
+    should(sheet.D6.v).be.eql(categories[0].posts[1].wordsCount)
+    should(sheet.E6.v).be.eql(categories[0].posts[1].author)
+    should(sheet.F6.v).be.eql('')
+    should(sheet.G6.v).be.eql('')
+    should(sheet.H6.v).be.eql('')
+    should(sheet.I6.v).be.eql('')
 
-    // should(sheet.B22.v).be.eql('Name:')
-    // should(sheet.C22.v).be.eql(categories[0].posts[0].reviews[1].name)
-    // should(sheet.B23.v).be.eql('Message:')
-    // should(sheet.C23.v).be.eql(categories[0].posts[0].reviews[1].message)
-    // should(sheet.B24.v).be.eql('Stars')
-    // should(sheet.B25.v).be.eql(' - ')
+    should(sheet.B7.v).be.eql(categories[0].name)
+    should(sheet.C7.v).be.eql(categories[0].posts[2].name)
+    should(sheet.D7.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.E7.v).be.eql(categories[0].posts[2].author)
+    should(sheet.F7.v).be.eql(categories[0].posts[2].reviews[0].name)
+    should(sheet.G7.v).be.eql(categories[0].posts[2].reviews[0].message)
+    should(sheet.H7.v).be.eql('')
+    should(sheet.I7.v).be.eql('')
 
-    // should(sheet.B29.v).be.eql('Name:')
-    // should(sheet.C29.v).be.eql(categories[0].posts[1].name)
-    // should(sheet.B30.v).be.eql('Words Count:')
-    // should(sheet.C30.v).be.eql(categories[0].posts[1].wordsCount)
-    // should(sheet.B31.v).be.eql('Author:')
-    // should(sheet.C31.v).be.eql(categories[0].posts[1].author)
+    should(sheet.B8.v).be.eql(categories[0].name)
+    should(sheet.C8.v).be.eql(categories[0].posts[2].name)
+    should(sheet.D8.v).be.eql(categories[0].posts[2].wordsCount)
+    should(sheet.E8.v).be.eql(categories[0].posts[2].author)
+    should(sheet.F8.v).be.eql(categories[0].posts[2].reviews[1].name)
+    should(sheet.G8.v).be.eql(categories[0].posts[2].reviews[1].message)
+    should(sheet.H8.v).be.eql('')
+    should(sheet.I8.v).be.eql('')
 
-    // should(sheet.B32.v).be.eql('Reviews:')
-    // should(sheet.B34.v).be.eql('Name:')
-    // should(sheet.C34.v).be.eql('')
-    // should(sheet.B35.v).be.eql('Message:')
-    // should(sheet.C35.v).be.eql('')
-    // should(sheet.B36.v).be.eql('Stars')
-    // should(sheet.B37.v).be.eql(' - ')
+    should(sheet.B9.v).be.eql(categories[1].name)
+    should(sheet.C9.v).be.eql(categories[1].posts[0].name)
+    should(sheet.D9.v).be.eql(categories[1].posts[0].wordsCount)
+    should(sheet.E9.v).be.eql(categories[1].posts[0].author)
+    should(sheet.F9.v).be.eql(categories[1].posts[0].reviews[0].name)
+    should(sheet.G9.v).be.eql(categories[1].posts[0].reviews[0].message)
+    should(sheet.H9.v).be.eql(categories[1].posts[0].reviews[0].stars[0].value)
+    should(sheet.I9.v).be.eql(categories[1].posts[0].reviews[0].stars[0].time)
 
-    // should(sheet.B41.v).be.eql('Name:')
-    // should(sheet.C41.v).be.eql(categories[0].posts[2].name)
-    // should(sheet.B42.v).be.eql('Words Count:')
-    // should(sheet.C42.v).be.eql(categories[0].posts[2].wordsCount)
-    // should(sheet.B43.v).be.eql('Author:')
-    // should(sheet.C43.v).be.eql(categories[0].posts[2].author)
+    should(sheet.B10.v).be.eql(categories[1].name)
+    should(sheet.C10.v).be.eql(categories[1].posts[1].name)
+    should(sheet.D10.v).be.eql(categories[1].posts[1].wordsCount)
+    should(sheet.E10.v).be.eql(categories[1].posts[1].author)
+    should(sheet.F10.v).be.eql('')
+    should(sheet.G10.v).be.eql('')
+    should(sheet.H10.v).be.eql('')
+    should(sheet.I10.v).be.eql('')
 
-    // should(sheet.B44.v).be.eql('Reviews:')
-    // should(sheet.B46.v).be.eql('Name:')
-    // should(sheet.C46.v).be.eql(categories[0].posts[2].reviews[0].name)
-    // should(sheet.B47.v).be.eql('Message:')
-    // should(sheet.C47.v).be.eql(categories[0].posts[2].reviews[0].message)
-    // should(sheet.B48.v).be.eql('Stars')
-    // should(sheet.B49.v).be.eql(' - ')
+    should(sheet.B11.v).be.eql(categories[2].name)
+    should(sheet.C11.v).be.eql(categories[2].posts[0].name)
+    should(sheet.D11.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.E11.v).be.eql(categories[2].posts[0].author)
+    should(sheet.F11.v).be.eql(categories[2].posts[0].reviews[0].name)
+    should(sheet.G11.v).be.eql(categories[2].posts[0].reviews[0].message)
+    should(sheet.H11.v).be.eql('')
+    should(sheet.I11.v).be.eql('')
 
-    // should(sheet.B52.v).be.eql('Name:')
-    // should(sheet.C52.v).be.eql(categories[0].posts[2].reviews[1].name)
-    // should(sheet.B53.v).be.eql('Message:')
-    // should(sheet.C53.v).be.eql(categories[0].posts[2].reviews[1].message)
-    // should(sheet.B54.v).be.eql('Stars')
-    // should(sheet.B55.v).be.eql(' - ')
+    should(sheet.B12.v).be.eql(categories[2].name)
+    should(sheet.C12.v).be.eql(categories[2].posts[0].name)
+    should(sheet.D12.v).be.eql(categories[2].posts[0].wordsCount)
+    should(sheet.E12.v).be.eql(categories[2].posts[0].author)
+    should(sheet.F12.v).be.eql(categories[2].posts[0].reviews[1].name)
+    should(sheet.G12.v).be.eql(categories[2].posts[0].reviews[1].message)
+    should(sheet.H12.v).be.eql('')
+    should(sheet.I12.v).be.eql('')
 
-    // should(sheet.B59.v).be.eql('Maintainers:')
-    // should(sheet.B60.v).be.eql(categories[0].maintainers[0])
-    // should(sheet.B61.v).be.eql(categories[0].maintainers[1])
-
-    // should(sheet.B64.v).be.eql(categories[1].name)
-    // should(sheet.B65.v).be.eql('Tags:')
-    // should(sheet.B66.v).be.eql(categories[1].tags[0])
-    // should(sheet.B67.v).be.eql(categories[1].tags[1])
-
-    // should(sheet.B69.v).be.eql('Posts')
-
-    // should(sheet.B71.v).be.eql('Name:')
-    // should(sheet.C71.v).be.eql(categories[1].posts[0].name)
-    // should(sheet.B72.v).be.eql('Words Count:')
-    // should(sheet.C72.v).be.eql(categories[1].posts[0].wordsCount)
-    // should(sheet.B73.v).be.eql('Author:')
-    // should(sheet.C73.v).be.eql(categories[1].posts[0].author)
-
-    // should(sheet.B74.v).be.eql('Reviews:')
-    // should(sheet.B76.v).be.eql('Name:')
-    // should(sheet.C76.v).be.eql(categories[1].posts[0].reviews[0].name)
-    // should(sheet.B77.v).be.eql('Message:')
-    // should(sheet.C77.v).be.eql(categories[1].posts[0].reviews[0].message)
-    // should(sheet.B78.v).be.eql('Stars')
-    // should(sheet.B79.v).be.eql(`${categories[1].posts[0].reviews[0].stars[0].value} - ${categories[1].posts[0].reviews[0].stars[0].time}`)
-
-    // should(sheet.B83.v).be.eql('Name:')
-    // should(sheet.C83.v).be.eql(categories[1].posts[1].name)
-    // should(sheet.B84.v).be.eql('Words Count:')
-    // should(sheet.C84.v).be.eql(categories[1].posts[1].wordsCount)
-    // should(sheet.B85.v).be.eql('Author:')
-    // should(sheet.C85.v).be.eql(categories[1].posts[1].author)
-
-    // should(sheet.B86.v).be.eql('Reviews:')
-    // should(sheet.B88.v).be.eql('Name:')
-    // should(sheet.C88.v).be.eql('')
-    // should(sheet.B89.v).be.eql('Message:')
-    // should(sheet.C89.v).be.eql('')
-    // should(sheet.B90.v).be.eql('Stars')
-    // should(sheet.B91.v).be.eql(' - ')
-
-    // should(sheet.B95.v).be.eql('Maintainers:')
-    // should(sheet.B96.v).be.eql(categories[1].maintainers[0])
-
-    // should(sheet.B99.v).be.eql(categories[2].name)
-    // should(sheet.B100.v).be.eql('Tags:')
-    // should(sheet.B101.v).be.eql(categories[2].tags[0])
-
-    // should(sheet.B103.v).be.eql('Posts')
-
-    // should(sheet.B105.v).be.eql('Name:')
-    // should(sheet.C105.v).be.eql(categories[2].posts[0].name)
-    // should(sheet.B106.v).be.eql('Words Count:')
-    // should(sheet.C106.v).be.eql(categories[2].posts[0].wordsCount)
-    // should(sheet.B107.v).be.eql('Author:')
-    // should(sheet.C107.v).be.eql(categories[2].posts[0].author)
-
-    // should(sheet.B108.v).be.eql('Reviews:')
-    // should(sheet.B110.v).be.eql('Name:')
-    // should(sheet.C110.v).be.eql(categories[2].posts[0].reviews[0].name)
-    // should(sheet.B111.v).be.eql('Message:')
-    // should(sheet.C111.v).be.eql(categories[2].posts[0].reviews[0].message)
-    // should(sheet.B112.v).be.eql('Stars')
-    // should(sheet.B113.v).be.eql(' - ')
-
-    // should(sheet.B116.v).be.eql('Name:')
-    // should(sheet.C116.v).be.eql(categories[2].posts[0].reviews[1].name)
-    // should(sheet.B117.v).be.eql('Message:')
-    // should(sheet.C117.v).be.eql(categories[2].posts[0].reviews[1].message)
-    // should(sheet.B118.v).be.eql('Stars')
-    // should(sheet.B119.v).be.eql(' - ')
-
-    // should(sheet.B123.v).be.eql('Name:')
-    // should(sheet.C123.v).be.eql(categories[2].posts[1].name)
-    // should(sheet.B124.v).be.eql('Words Count:')
-    // should(sheet.C124.v).be.eql(categories[2].posts[1].wordsCount)
-    // should(sheet.B125.v).be.eql('Author:')
-    // should(sheet.C125.v).be.eql(categories[2].posts[1].author)
-
-    // should(sheet.B126.v).be.eql('Reviews:')
-    // should(sheet.B128.v).be.eql('Name:')
-    // should(sheet.C128.v).be.eql(categories[2].posts[1].reviews[0].name)
-    // should(sheet.B129.v).be.eql('Message:')
-    // should(sheet.C129.v).be.eql(categories[2].posts[1].reviews[0].message)
-    // should(sheet.B130.v).be.eql('Stars')
-    // should(sheet.B131.v).be.eql(' - ')
-
-    // should(sheet.B135.v).be.eql('Maintainers:')
-    // should(sheet.B136.v).be.eql(categories[2].maintainers[0])
-    // should(sheet.B137.v).be.eql(categories[2].maintainers[1])
-    // should(sheet.B138.v).be.eql(categories[2].maintainers[2])
+    should(sheet.B13.v).be.eql(categories[2].name)
+    should(sheet.C13.v).be.eql(categories[2].posts[1].name)
+    should(sheet.D13.v).be.eql(categories[2].posts[1].wordsCount)
+    should(sheet.E13.v).be.eql(categories[2].posts[1].author)
+    should(sheet.F13.v).be.eql(categories[2].posts[1].reviews[0].name)
+    should(sheet.G13.v).be.eql(categories[2].posts[1].reviews[0].message)
+    should(sheet.H13.v).be.eql('')
+    should(sheet.I13.v).be.eql('')
   })
 
   it('block loop and row loop nested - update existing merged cells after loop', async () => {
