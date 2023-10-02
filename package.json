@@ -24,6 +24,7 @@
     "@jsreport/studio-dev": "4.0.0",
     "extract-zip": "2.0.1",
     "ignore": "5.2.0",
+    "snyk": "1.1228.0",
     "xml-formatter": "2.6.1",
     "zfolder": "1.1.2"
   },
