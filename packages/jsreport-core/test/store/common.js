@@ -144,7 +144,7 @@ function collectionTests (store, isInternal, runTransactions) {
   it('update should use clones', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 
-    store().collection('folders').insert({
+    await store().collection('folders').insert({
       name: 'f1',
       shortid: 'f1'
     })
