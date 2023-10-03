@@ -141,6 +141,34 @@ function collectionTests (store, isInternal, runTransactions) {
     res[0].phantom.header.should.be.eql('original')
   })
 
+  it('update should use clones', async () => {
+    const colName = !isInternal ? 'templates' : 'internalTemplates'
+
+    store().collection('folders').insert({
+      name: 'f1',
+      shortid: 'f1'
+    })
+
+    await getCollection(colName).insert({
+      name: 'test',
+      engine: 'none',
+      recipe: 'html',
+      content: 'original'
+    })
+
+    const set = {
+      folder: {
+        shortid: 'f1'
+      }
+    }
+
+    await getCollection(colName).update({ name: 'test' }, { $set: set })
+    set.folder.shortid = 'changing'
+
+    const res = await getCollection(colName).findOne({})
+    res.folder.shortid.should.be.eql('f1')
+  })
+
   it('skip and limit', async () => {
     const colName = !isInternal ? 'templates' : 'internalTemplates'
 

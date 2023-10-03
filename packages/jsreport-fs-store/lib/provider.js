@@ -210,7 +210,7 @@ module.exports = ({
         for (const doc of toUpdate) {
           await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, store.documents, rootDirectory)
 
-          store.update(entitySet, doc, u.$set || {})
+          store.update(entitySet, doc, extend(true, {}, u.$set))
 
           if (opts.transaction) {
             return
