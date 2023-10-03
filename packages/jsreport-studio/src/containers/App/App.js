@@ -54,13 +54,15 @@ class App extends Component {
 
     if (this.props.match.params.shortid) {
       const { shortid, entitySet } = this.props.match.params
-      const revealEntityId = storeMethods.getEntityByShortid(shortid)?._id
+      const revealEntityId = storeMethods.getEntityByShortid(shortid, false)?._id
 
-      // delay the collapsing a bit to avoid showing ugly transition of collapsed -> uncollapsed
+      // delay the collapsing a bit to avoid showing ugly transition of collapsed -> uncollapsed,
       setTimeout(() => {
         configuration.collapseEntityHandler({ shortid }, false, { parents: true, self: false, revealEntityId })
       }, 200)
 
+      // we dont' short-circuit previously when the entity with the shortid does not exist
+      // because the openTab will rewrite the url to root "/" if the entity does not exist
       this.props.openTab({ shortid, entitySet })
       return
     }
