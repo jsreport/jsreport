@@ -471,6 +471,34 @@ function collectionTests (store, isInternal, runTransactions) {
         should(found != null).be.True()
       })
 
+      it('insert with transaction should use clones', async () => {
+        const colName = !isInternal ? 'templates' : 'internalTemplates'
+        const req = Request({})
+
+        await store().beginTransaction(req)
+
+        try {
+          const t1 = {
+            name: 't1',
+            engine: 'none',
+            recipe: 'html'
+          }
+
+          const newT1 = await getCollection(colName).insert(t1, req)
+
+          newT1.name = 'fake-t1'
+
+          await store().commitTransaction(req)
+        } catch (e) {
+          await store().rollbackTransaction(req)
+          throw e
+        }
+
+        const found = await getCollection(colName).findOne({ name: 't1' })
+
+        should(found != null).be.True()
+      })
+
       it('should be able to rollback (insert)', async () => {
         const colName = !isInternal ? 'templates' : 'internalTemplates'
         const req = Request({})
