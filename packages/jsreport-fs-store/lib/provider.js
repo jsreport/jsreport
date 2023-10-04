@@ -173,22 +173,27 @@ module.exports = ({
     },
 
     insert (entitySet, doc, opts = {}) {
+      doc._id = doc._id || uid(16)
+      doc.$entitySet = entitySet
+
+      // (comment for transaction)
+      // the operation function run twice, at the time called with "dummy" persistence and at the commit
+      // we need to clone doc before operation, so we use the same entity in closure and avoid mutating
+      // between operation and commit
+      const clonnedDoc = extend(true, {}, doc)
+
       return this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
-        doc._id = doc._id || uid(16)
-        doc.$entitySet = entitySet
+        await persistence.insert(clonnedDoc, store.documents, rootDirectory)
 
-        await persistence.insert(doc, store.documents, rootDirectory)
+        store.insert(entitySet, {
+          ...clonnedDoc,
+          $$etag: Date.now()
+        })
 
-        const clone = extend(true, {}, doc)
-        clone.$$etag = Date.now()
-
-        store.insert(entitySet, clone)
-
-        if (opts.transaction) {
-          return doc
+        if (!opts.transaction) {
+          await this.journal.insert(clonnedDoc, opts)
         }
 
-        await this.journal.insert(clone, opts)
         return doc
       })
     },
@@ -196,8 +201,11 @@ module.exports = ({
     async update (entitySet, q, u, opts = {}) {
       let count
 
+      const setClone = extend(true, {}, u.$set)
+      const qClone = extend(true, {}, q)
+
       const res = await this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
-        const toUpdate = store.find(entitySet, q).all()
+        const toUpdate = store.find(entitySet, qClone).all()
 
         count = toUpdate.length
 
@@ -208,20 +216,18 @@ module.exports = ({
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toUpdate) {
-          await persistence.update(extend(true, {}, omit(doc, '$$etag'), u.$set || {}), doc, store.documents, rootDirectory)
+          await persistence.update(extend(true, {}, omit(doc, '$$etag'), setClone), doc, store.documents, rootDirectory)
 
-          store.update(entitySet, doc, extend(true, {}, u.$set))
+          store.update(entitySet, doc, setClone)
 
-          if (opts.transaction) {
-            return
+          if (!opts.transaction) {
+            await this.journal.update(doc, opts)
           }
-
-          await this.journal.update(doc, opts)
         }
       })
 
       if (res === 'insert') {
-        await this.insert(entitySet, u.$set, opts)
+        await this.insert(entitySet, setClone, opts)
         return 1
       }
 
@@ -229,8 +235,10 @@ module.exports = ({
     },
 
     async remove (entitySet, q, opts = {}) {
+      const qClone = extend(true, {}, q)
+
       return this.transaction.operation(opts, async (store, persistence, rootDirectory) => {
-        const toRemove = store.find(entitySet, q).all()
+        const toRemove = store.find(entitySet, qClone).all()
 
         // eslint-disable-next-line no-unused-vars
         for (const doc of toRemove) {

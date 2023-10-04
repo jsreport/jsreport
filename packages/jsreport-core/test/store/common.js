@@ -495,8 +495,7 @@ function collectionTests (store, isInternal, runTransactions) {
         }
 
         const found = await getCollection(colName).findOne({ name: 't1' })
-
-        should(found != null).be.True()
+        should(found).not.be.null()
       })
 
       it('should be able to rollback (insert)', async () => {
