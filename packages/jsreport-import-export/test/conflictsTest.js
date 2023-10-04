@@ -1,3 +1,4 @@
+const should = require('should')
 const conflictsUtils = require('./conflictsUtils')
 
 module.exports = (getReporter) => {
@@ -12,6 +13,12 @@ module.exports = (getReporter) => {
     exportEntities = manager.exportEntities
     importEntities = manager.importEntities
     assertExists = manager.assertExists
+  })
+
+  afterEach(async () => {
+    if (reporter) {
+      await reporter.close()
+    }
   })
 
   describe('when no entity path conflict', () => {
@@ -530,6 +537,43 @@ module.exports = (getReporter) => {
         folders.should.matchAny((f) => f.name.should.be.eql('f2') && f.shortid.should.be.eql('f1'))
         folders.should.matchAny((f) => f.name.should.be.eql('f1') && f.shortid.should.be.not.eql('f1'))
         templates[0].folder.shortid.should.be.not.eql('f1')
+      })
+    })
+
+    it('should produce entity insert when importing folder inside the same folder (import on folder)', async () => {
+      await exportEntities('f1')
+
+      await importEntities(
+        { targetFolder: 'f1' },
+        'f1'
+      )
+
+      await assertExists('f1', 'f1/f1', (entities) => {
+        const folders = entities.folders
+        folders.should.have.length(2)
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.eql('f1') && f.shortid.should.eql('f1') && should(f.folder).be.not.ok())
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.not.eql('f1') && f.shortid.should.be.not.eql('f1') && f.folder.shortid.should.be.eql('f1'))
+      })
+    })
+
+    it('should produce entity insert and updated references when importing folder with entity inside the same folder (import on folder)', async () => {
+      await exportEntities('f1', 'f1/t1')
+
+      await importEntities(
+        { targetFolder: 'f1' },
+        'f1',
+        'f1/t1'
+      )
+
+      await assertExists('f1', 'f1/t1', 'f1/f1', 'f1/f1/t1', (entities) => {
+        const folders = entities.folders
+        const templates = entities.templates
+        folders.should.have.length(2)
+        templates.should.have.length(2)
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.eql('f1') && f.shortid.should.eql('f1') && should(f.folder).be.not.ok())
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.not.eql('f1') && f.shortid.should.be.not.eql('f1') && f.folder.shortid.should.be.eql('f1'))
+        templates.should.matchAny((t) => t.name.should.be.eql('t1') && t._id.should.be.eql('t1') && t.shortid.should.be.eql('t1') && t.folder.shortid.should.be.eql('f1'))
+        templates.should.matchAny((t) => t.name.should.be.eql('t1') && t._id.should.be.not.eql('t1') && t.shortid.should.be.not.eql('t1') && t.folder.shortid.should.be.not.eql('f1'))
       })
     })
   })
@@ -1443,6 +1487,55 @@ module.exports = (getReporter) => {
         folders.should.matchAny((f) => f.name.should.be.eql('f1') && f.shortid.should.be.not.eql('f1') && f.shortid.should.be.eql('custom'))
         templates[0].name.should.be.eql('t1')
         templates[0].folder.shortid.should.be.eql('custom')
+      })
+    })
+
+    it('should not produce entity update when importing folder into the same folder but with existing folder there (import on folder)', async () => {
+      await exportEntities(
+        'f1'
+      )
+
+      await importEntities(
+        { targetFolder: 'f1' },
+        'f1',
+        'f1/f1', { _id: 'cf1', shortid: 'cf1' }
+      )
+
+      await assertExists('f1', 'f1/f1', (entities) => {
+        const folders = entities.folders
+        folders.should.have.length(2)
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.eql('f1') && f.shortid.should.eql('f1') && should(f.folder).be.not.ok())
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.eql('cf1') && f.shortid.should.be.eql('cf1') && f.folder.shortid.should.be.eql('f1'))
+      })
+    })
+
+    it('should produce entity insert, update and updated references when importing folder with nested entities inside the same folder (import on folder)', async () => {
+      await exportEntities(
+        'f1',
+        'f1/t1',
+        'f1/f1', { _id: 'cf1', shortid: 'cf1' },
+        'f1/f1/t1', { _id: 'ct1', shortid: 'ct1' }
+      )
+
+      await importEntities(
+        { targetFolder: 'f1' },
+        'f1',
+        'f1/t1',
+        'f1/f1', { _id: 'cf1', shortid: 'cf1' },
+        'f1/f1/t1', { _id: 'ct1', shortid: 'ct1' }
+      )
+
+      await assertExists('f1', 'f1/t1', 'f1/f1', 'f1/f1/t1', 'f1/f1/f1', 'f1/f1/f1/t1', (entities) => {
+        const folders = entities.folders
+        const templates = entities.templates
+        folders.should.have.length(3)
+        templates.should.have.length(3)
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.eql('f1') && f.shortid.should.eql('f1') && should(f.folder).be.not.ok())
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.not.eql('f1') && f.shortid.should.be.eql('cf1') && f.folder.shortid.should.be.eql('f1'))
+        folders.should.matchAny((f) => f.name.should.be.eql('f1') && f._id.should.be.not.eql('f1') && f.shortid.should.be.not.oneOf(['f1', 'cf1']) && f.folder.shortid.should.be.eql('cf1'))
+        templates.should.matchAny((t) => t.name.should.be.eql('t1') && t._id.should.be.eql('t1') && t.shortid.should.be.eql('t1') && t.folder.shortid.should.be.eql('f1'))
+        templates.should.matchAny((t) => t.name.should.be.eql('t1') && t._id.should.be.not.eql('t1') && t.shortid.should.eql('ct1') && t.folder.shortid.should.be.eql('cf1'))
+        templates.should.matchAny((t) => t.name.should.be.eql('t1') && t._id.should.be.not.eql('t1') && t.shortid.should.be.not.oneOf(['t1', 'ct1']) && t.folder.shortid.should.be.not.oneOf(['f1', 'cf1']))
       })
     })
   })

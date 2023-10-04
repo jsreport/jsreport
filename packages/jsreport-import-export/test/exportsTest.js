@@ -1,4 +1,3 @@
-process.env.DEBUG = 'jsreport'
 const should = require('should')
 const request = require('supertest')
 const jsreport = require('@jsreport/jsreport-core')

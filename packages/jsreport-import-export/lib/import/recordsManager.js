@@ -13,6 +13,7 @@ module.exports = function createRecordManager (reporter, req, {
   const deletedByCollectionMap = new Map()
   const records = []
 
+  const pendingTopFolderReferenceUpdates = []
   const pendingReferencesUpdates = []
   const entityRecordCollectionMap = new WeakMap()
   const entityRecordNewValueMap = new WeakMap()
@@ -305,14 +306,12 @@ module.exports = function createRecordManager (reporter, req, {
             entity
           })
         } else {
-          entity.folder = parentEntitySetInfo.value
+          pendingTopFolderReferenceUpdates.push({ entity, newFolder: parentEntitySetInfo.value })
         }
       }
 
       if (entity.folder == null && targetFolder) {
-        entity.folder = {
-          shortid: targetFolder.shortid
-        }
+        pendingTopFolderReferenceUpdates.push({ entity, newFolder: { shortid: targetFolder.shortid } })
       }
 
       if (
@@ -330,8 +329,30 @@ module.exports = function createRecordManager (reporter, req, {
       await addRecord(record)
     },
     end: async () => {
-      for (const pendingReferenceUpdate of pendingReferencesUpdates) {
-        const { collectionName, referenceValue } = pendingReferenceUpdate
+      const sortedPendingReferencesUpdates = [...pendingReferencesUpdates]
+      const isLazy = (p) => !Object.prototype.hasOwnProperty.call(p, 'newReferenceValue')
+
+      // we want that lazy updates are processed first, and finally the others
+      sortedPendingReferencesUpdates.sort((a, b) => {
+        const aIsLazy = isLazy(a)
+        const bIsLazy = isLazy(b)
+
+        if (
+          (aIsLazy && bIsLazy) ||
+          (!aIsLazy && !bIsLazy)
+        ) {
+          return 0
+        }
+
+        if (aIsLazy) {
+          return -1
+        }
+
+        return 1
+      })
+
+      for (const sortedPendingReferenceUpdate of sortedPendingReferencesUpdates) {
+        const { collectionName, referenceValue } = sortedPendingReferenceUpdate
         const linkedEntities = reporter.documentStore.findLinkedEntitiesForReference(entitiesInRecords, collectionName, referenceValue)
 
         if (linkedEntities.length === 0) {
@@ -340,9 +361,9 @@ module.exports = function createRecordManager (reporter, req, {
 
         // if there is no new value set then it means we should queue
         // a lazy reference for the update to be executed later
-        if (!Object.prototype.hasOwnProperty.call(pendingReferenceUpdate, 'newReferenceValue')) {
+        if (isLazy(sortedPendingReferenceUpdate)) {
           for (const linkedRef of linkedEntities) {
-            addLazyReferenceBetween(pendingReferenceUpdate.baseEntity, {
+            addLazyReferenceBetween(sortedPendingReferenceUpdate.baseEntity, {
               properties: linkedRef.properties,
               entity: linkedRef.entity,
               referenceValue
@@ -353,8 +374,14 @@ module.exports = function createRecordManager (reporter, req, {
         }
 
         for (const { entity } of linkedEntities) {
-          reporter.documentStore.updateReference(entityRecordCollectionMap.get(entity), entity, collectionName, { referenceValue }, pendingReferenceUpdate.newReferenceValue)
+          reporter.documentStore.updateReference(entityRecordCollectionMap.get(entity), entity, collectionName, { referenceValue }, sortedPendingReferenceUpdate.newReferenceValue)
         }
+      }
+
+      // we need to update the top folder references as the last step to avoid getting
+      // false results searching/finding linked entities
+      for (const { entity, newFolder } of pendingTopFolderReferenceUpdates) {
+        entity.folder = newFolder
       }
 
       return {

@@ -13,6 +13,7 @@ async function processImport (reporter, exportFilePath, opts, req) {
   }
 
   let unzippingRes
+
   try {
     unzippingRes = await unzipEntities(exportFilePath)
   } catch (e) {
