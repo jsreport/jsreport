@@ -45,20 +45,23 @@ module.exports = () => {
     },
 
     insert (entitySet, doc, opts = {}) {
+      doc._id = doc._id || nanoid(16)
+      const clonnedDoc = extend(true, {}, doc)
+      clonnedDoc.$$etag = Date.now()
+
       return this.transaction.operation(opts, async (documents) => {
-        doc._id = doc._id || nanoid(16)
-        const newDoc = extend(true, {}, doc)
-        newDoc.$$etag = Date.now()
-        documents[entitySet].push(newDoc)
+        documents[entitySet].push(clonnedDoc)
         return doc
       })
     },
 
     async update (entitySet, q, u, opts = {}) {
       let count
+      const qClone = extend(true, {}, q)
+      const setClone = extend(true, {}, u.$set)
 
       const res = await this.transaction.operation(opts, async (documents) => {
-        const toUpdate = mingo.find(documents[entitySet], q).all()
+        const toUpdate = mingo.find(documents[entitySet], qClone).all()
 
         count = toUpdate.length
 
@@ -68,13 +71,13 @@ module.exports = () => {
         }
 
         for (const doc of toUpdate) {
-          Object.assign(doc, u.$set || {})
+          Object.assign(doc, setClone)
           doc.$$etag = Date.now()
         }
       })
 
       if (res === 'insert') {
-        await this.insert(entitySet, u.$set, opts)
+        await this.insert(entitySet, setClone, opts)
         return 1
       }
 
@@ -82,8 +85,10 @@ module.exports = () => {
     },
 
     remove (entitySet, q, opts = {}) {
+      const qClone = extend(true, {}, q)
+
       return this.transaction.operation(opts, async (documents) => {
-        const toRemove = mingo.find(documents[entitySet], q).all()
+        const toRemove = mingo.find(documents[entitySet], qClone).all()
         documents[entitySet] = documents[entitySet].filter(d => !toRemove.includes(d))
       })
     },
