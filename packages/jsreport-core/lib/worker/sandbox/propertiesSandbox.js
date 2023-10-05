@@ -1,7 +1,7 @@
 const extend = require('node.extend.without.arrays')
 const groupBy = require('lodash.groupby')
 const get = require('lodash.get')
-const set = require('lodash.set')
+const set = require('set-value')
 const hasOwn = require('has-own-deep')
 const unsetValue = require('unset-value')
 
@@ -420,7 +420,7 @@ function sortPropertiesByLevel (a, b) {
 }
 
 function omitProp (context, prop) {
-  // if property has value, then set it to undefined first,
+  // if property has value, then set it to some value first,
   // unsetValue expects that property has some non empty value to remove the property
   // so we set to "true" to ensure it works for all cases,
   // we use unsetValue instead of lodash.omit because

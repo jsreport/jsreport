@@ -1,5 +1,5 @@
 const extend = require('node.extend.without.arrays')
-const set = require('lodash.set')
+const set = require('set-value')
 const hasOwn = require('has-own-deep')
 const unsetValue = require('unset-value')
 const ms = require('ms')
