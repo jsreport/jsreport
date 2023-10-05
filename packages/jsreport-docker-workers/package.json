@@ -37,7 +37,7 @@
     "handlebars": "4.7.7",
     "mocha": "8.3.2",
     "parse-pdf": "1.0.0",
-    "puppeteer": "21.1.0",
+    "puppeteer": "21.3.7",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

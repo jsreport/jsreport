@@ -30,7 +30,7 @@
     "@jsreport/jsreport-chrome-pdf": "4.0.0",
     "@jsreport/jsreport-core": "4.0.1",
     "mocha": "5.0.5",
-    "puppeteer": "21.1.0",
+    "puppeteer": "21.3.7",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

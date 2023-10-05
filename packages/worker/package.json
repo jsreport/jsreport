@@ -46,7 +46,7 @@
     "lodash.omit": "4.5.0",
     "nconf": "0.12.0",
     "node.extend": "2.0.2",
-    "puppeteer": "21.1.0",
+    "puppeteer": "21.3.7",
     "uuid": "8.3.2"
   },
   "devDependencies": {
