@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.0.1
+
+- fix parameter mutations passed to store methods producing unexpected changes in store
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

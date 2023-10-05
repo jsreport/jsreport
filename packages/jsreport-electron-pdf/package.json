@@ -32,7 +32,7 @@
     "stream-to-array": "2.3.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-core": "4.0.1",
     "@jsreport/studio-dev": "4.0.0",
     "in-publish": "2.0.1",
     "mocha": "8.3.2",

@@ -7,6 +7,13 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.0.1
+
+- fix nested loops with closing tags on single line
+- fix xlsxChart not working when copy/paste charts found
+- fix xml/html entities encode
+- make handlebars partials to work
+
 ### 4.0.0
 
 - remove deprecated xlsxTemplates entity set

@@ -18,6 +18,12 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 4.0.1
+
+- fix parameter mutations passed to store methods producing unexpected changes in store
+- add indexes to fs store to improve big import performance
+- fix too many open files open error on windows with big import
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

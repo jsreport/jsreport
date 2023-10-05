@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.0.1",
-    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-core": "4.0.1",
     "@jsreport/jsreport-express": "4.0.0",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "mocha": "5.0.1",

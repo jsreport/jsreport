@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.0.1
+
+- fix hyperlinks not working when adding password to pdf
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

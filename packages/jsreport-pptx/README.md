@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.0.1
+
+- make handlebars partials to work
+- remove NUL, VERTICAL TAB characters
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

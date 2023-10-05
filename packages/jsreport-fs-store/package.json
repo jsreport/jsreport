@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-fs-store",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "File system based templates store",
   "keywords": [
     "jsreport",
@@ -42,7 +42,7 @@
     "@jsreport/serializator": "1.0.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-core": "4.0.1",
     "@jsreport/jsreport-express": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
     "del": "6.0.0",

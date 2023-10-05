@@ -18,6 +18,11 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.0.1
+
+- fix deleting entity inside a folder does not refresh EntityTree
+- multiple optimizations for studio when working with a large number of entities
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

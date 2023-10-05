@@ -30,36 +30,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    const {
-      options
-    } = props;
-    const selections = {};
-    const references = this.getExportableReferences(jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences());
-    Object.keys(references).forEach(k => {
-      Object.keys(references[k]).forEach(e => {
-        if (options.initialSelected != null) {
-          const selected = Array.isArray(options.initialSelected) ? options.initialSelected : [options.initialSelected];
-          selected.forEach(s => {
-            if (references[k][e]._id === s) {
-              selections[references[k][e]._id] = true;
-            } else if (selections[references[k][e]._id] == null) {
-              selections[references[k][e]._id] = false;
-            }
-          });
-        } else {
-          selections[references[k][e]._id] = true;
-        }
-      });
-    });
-    this.state = {};
-    this.state.processing = false;
-    this.initialSelected = selections;
-    this.entityTreeRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
-  }
-  getExportableReferences(references) {
+const useEntitiesSelector = jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().createUseEntitiesSelector();
+function ExportModal(props) {
+  const {
+    options
+  } = props;
+  const references = useEntitiesSelector(entities => entities);
+  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const entityTreeRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const exportableReferences = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     const exportableEntitySets = (jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().extensions)['import-export'].options.exportableEntitySets;
     return Object.keys(references).reduce((acu, entitySetName) => {
       if (exportableEntitySets.indexOf(entitySetName) !== -1) {
@@ -67,16 +46,34 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       }
       return acu;
     }, {});
-  }
-  async download() {
-    if (this.state.processing) {
+  }, [references]);
+  const initialSelected = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const selections = {};
+    Object.keys(exportableReferences).forEach(k => {
+      Object.keys(exportableReferences[k]).forEach(e => {
+        if (options.initialSelected != null) {
+          const selected = Array.isArray(options.initialSelected) ? options.initialSelected : [options.initialSelected];
+          selected.forEach(s => {
+            if (exportableReferences[k][e]._id === s) {
+              selections[exportableReferences[k][e]._id] = true;
+            } else if (selections[exportableReferences[k][e]._id] == null) {
+              selections[exportableReferences[k][e]._id] = false;
+            }
+          });
+        } else {
+          selections[exportableReferences[k][e]._id] = true;
+        }
+      });
+    });
+    return selections;
+  }, []);
+  const download = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
+    if (processing) {
       return;
     }
-    this.setState({
-      processing: true
-    });
+    setProcessing(true);
     try {
-      const selected = this.entityTreeRef.current.selected;
+      const selected = entityTreeRef.current.selected;
       const response = await jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().api.post('api/export', {
         data: {
           selection: Object.keys(selected).filter(k => selected[k] === true)
@@ -84,52 +81,41 @@ class ExportModal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
         responseType: 'blob'
       }, true);
       filesaver_js_npm__WEBPACK_IMPORTED_MODULE_2___default().saveAs(response, 'export.jsrexport');
-      this.setState({
-        processing: false
-      });
+      setProcessing(false);
     } catch (e) {
-      this.setState({
-        processing: false
-      });
+      setProcessing(false);
       alert('Unable to prepare export ' + e.message + ' ' + e.stack);
     }
-  }
-  render() {
-    const references = this.getExportableReferences(jsreport_studio__WEBPACK_IMPORTED_MODULE_1___default().getReferences());
-    const initialSelected = this.initialSelected;
-    const {
-      processing
-    } = this.state;
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "form-group"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-download"
-    }), " Export objects")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      style: {
-        height: '30rem',
-        overflow: 'auto'
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.EntityTree, {
-      ref: this.entityTreeRef,
-      entities: references,
-      selectable: true,
-      initialSelected: initialSelected
-    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
-      className: "button-bar"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
-      className: `button confirmation ${processing ? 'disabled' : ''}`,
-      onClick: () => this.download()
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
-      className: "fa fa-circle-o-notch fa-spin",
-      style: {
-        display: processing ? 'inline-block' : 'none'
-      }
-    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
-      style: {
-        display: processing ? 'none' : 'inline'
-      }
-    }, "Download"))));
-  }
+  }, [processing]);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h1", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+    className: "fa fa-download"
+  }), " Export objects")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    style: {
+      height: '30rem',
+      overflow: 'auto'
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement(jsreport_studio__WEBPACK_IMPORTED_MODULE_1__.EntityTree, {
+    ref: entityTreeRef,
+    entities: exportableReferences,
+    selectable: true,
+    initialSelected: initialSelected
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+    className: "button-bar"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", {
+    className: `button confirmation ${processing ? 'disabled' : ''}`,
+    onClick: () => download()
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("i", {
+    className: "fa fa-circle-o-notch fa-spin",
+    style: {
+      display: processing ? 'inline-block' : 'none'
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("span", {
+    style: {
+      display: processing ? 'none' : 'inline'
+    }
+  }, "Download"))));
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExportModal);
 

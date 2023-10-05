@@ -7,6 +7,10 @@ See http://jsreport.net/learn/tags
 
 ## Changelog
 
+### 4.0.1
+
+- updates to make possible the optimizations for studio
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

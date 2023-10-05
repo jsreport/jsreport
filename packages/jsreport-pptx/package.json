@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-pptx",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "jsreport recipe rendering pptx files",
   "keywords": [
     "jsreport",
@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.0.1",
-    "@jsreport/jsreport-core": "4.0.0",
+    "@jsreport/jsreport-core": "4.0.1",
     "@jsreport/jsreport-handlebars": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
     "handlebars": "4.7.7",
