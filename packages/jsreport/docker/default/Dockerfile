@@ -1,4 +1,4 @@
-FROM node:18.16-alpine3.17
+FROM node:18.16-alpine3.18
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM
@@ -38,13 +38,13 @@ RUN addgroup -g "${GID}" -S jsreport && adduser --shell /bin/bash -u "${UID}" -S
 # this condition is useful when the alpine registry contain different latest versions
 # per architecture, if the versions match then just use the same version number on both paths
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="116.0.5845.140-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="117.0.5938.62-r0"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    export CHROMIUM_TO_INSTALL_VERSION="116.0.5845.140-r0"; \
+    export CHROMIUM_TO_INSTALL_VERSION="117.0.5938.62-r0"; \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
-    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.17/community >> /etc/apk/repositories && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.18/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \

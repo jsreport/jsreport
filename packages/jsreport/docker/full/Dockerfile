@@ -71,7 +71,7 @@ RUN npm install --save --save-exact @jsreport/jsreport-ejs@4.0.0 \
     @jsreport/jsreport-fs-store-aws-s3-persistence@4.0.0 \
     @jsreport/jsreport-fs-store-azure-storage-persistence@4.0.0 \
     @jsreport/jsreport-unoconv@4.0.0 \
-    cheerio-page-eval@1.0.0
+    cheerio-page-eval@1.1.0
 
 COPY ./packages/jsreport/docker/full/install-or-build-oracledb-for-store.js install-or-build-oracledb-for-store.js
 COPY ./packages/jsreport/docker/full/build-oracledb-src.sh build-oracledb-src.sh
