@@ -14,6 +14,11 @@ module.exports = (reporter, definition) => {
 
   let helpersScript
 
+  reporter.options.sandbox.modules.push({
+    alias: 'docxProcessChildEmbed',
+    path: path.join(__dirname, './postprocess/child/processChildEmbed.js')
+  })
+
   reporter.extensionsManager.recipes.push({
     name: 'docx',
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)

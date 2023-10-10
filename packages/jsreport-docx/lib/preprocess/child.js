@@ -61,21 +61,35 @@ module.exports = (files, headerFooterRefs) => {
 
       firstDocxChildCall.tEl.textContent = ''
 
-      const newChildEmbedElement = targetDoc.createElement('docxChildEmbed')
+      // wrap the paragraph into the main wrapper so we can store data during helper calls
+      processOpeningTag(targetDoc, paragraphEl, `{{#docxSData ${firstDocxChildCall.match.rest[0]} type='child' }}`)
+      processClosingTag(targetDoc, paragraphEl, '{{/docxSData}}')
 
-      newChildEmbedElement.textContent = firstDocxChildCall.match.content
+      const newChildEmbedElement = targetDoc.createElement('docxRemove')
+      newChildEmbedElement.textContent = '{{> (docxContext type="childContentPartial") }}'
+      paragraphEl.parentNode.insertBefore(newChildEmbedElement, paragraphEl.nextSibling)
 
-      firstDocxChildCall.tEl.parentNode.insertBefore(newChildEmbedElement, firstDocxChildCall.tEl.nextSibling)
-
-      // insert attribute and comment as last child for easy replacement on postprocess step
-      paragraphEl.setAttribute('__child_embed_container__', true)
-
-      const commentNode = targetDoc.createComment('__child_embed_container__')
-      paragraphEl.appendChild(commentNode)
+      // wrap the paragraph into a wrapper so we can know the content of paragraph at runtime
+      processOpeningTag(targetDoc, paragraphEl, '{{#docxSData type="childCaller" }}')
+      processClosingTag(targetDoc, paragraphEl, '{{/docxSData}}')
     }
   }
 }
 
 function getDocxChildCallRegexp () {
-  return /{{docxChild [^{}]{0,500}}}/
+  return /{{docxChild ([^{}]{0,500})}}/
+}
+
+function processOpeningTag (doc, refElement, helperCall) {
+  const fakeElement = doc.createElement('docxRemove')
+  fakeElement.textContent = helperCall
+  refElement.parentNode.insertBefore(fakeElement, refElement)
+  return fakeElement
+}
+
+function processClosingTag (doc, refElement, closeCall) {
+  const fakeElement = doc.createElement('docxRemove')
+  fakeElement.textContent = closeCall
+  refElement.parentNode.insertBefore(fakeElement, refElement.nextSibling)
+  return fakeElement
 }

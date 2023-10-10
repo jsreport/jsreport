@@ -3,7 +3,7 @@ const { decompress } = require('@jsreport/office')
 const { getExtractMetadata } = require('./supportedElements')
 const { nodeListToArray } = require('../../utils')
 
-module.exports = async function extractElementsFromDocx (targetDocxBuffer, { doc, paragraphNode } = {}) {
+module.exports = async function extractNodesFromDocx (targetDocxBuffer) {
   const nodes = []
   let files
 

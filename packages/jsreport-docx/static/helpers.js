@@ -6,8 +6,12 @@ function docxContext (options) {
   const Handlebars = require('handlebars')
   let data
 
-  if (options.hash.type === 'document') {
+  if (options.hash.type === 'global') {
     data = Handlebars.createFrame({})
+    data.evalId = options.hash.evalId
+    data.childCache = new Map()
+  } else if (options.hash.type === 'document') {
+    data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
   } else if (options.hash.type === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
@@ -17,6 +21,8 @@ function docxContext (options) {
     }
 
     return idx
+  } else if (options.hash.type === 'childContentPartial') {
+    return options.data.childPartialId
   }
 
   const context = {}
@@ -25,7 +31,24 @@ function docxContext (options) {
     context.data = data
   }
 
-  return options.fn(this, context)
+  const output = options.fn(this, context)
+
+  // clear the child cache/partials after the global context is processed
+  if (options.hash.type === 'global') {
+    const jsreport = require('jsreport-proxy')
+
+    return jsreport.templatingEngines.waitForAsyncHelpers().then(() => output).finally(() => {
+      const childCache = data.childCache
+
+      for (const partialId of childCache.values()) {
+        Handlebars.unregisterPartial(partialId)
+      }
+
+      childCache.clear()
+    })
+  }
+
+  return output
 }
 
 function docxPageBreak () {
@@ -428,33 +451,97 @@ function docxTOCOptions (options) {
   return new Handlebars.SafeString('$docxTOCOptions' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
 
-async function docxChild (assetNamePathOrObject) {
+async function docxSData (data, options) {
   const Handlebars = require('handlebars')
+  const optionsToUse = options == null ? data : options
+  const type = optionsToUse.hash.type
 
-  if (assetNamePathOrObject == null) {
-    throw new Error('docxChild helper requires asset parameter to be set')
+  if (type == null) {
+    throw new Error('docxSData helper type arg is required')
   }
 
-  const docxChildInfo = {}
+  if (
+    arguments.length === 2 &&
+    type === 'child'
+  ) {
+    const evalId = optionsToUse.data.evalId
 
-  if (typeof assetNamePathOrObject === 'object' && assetNamePathOrObject.content != null) {
-    if (typeof assetNamePathOrObject.content !== 'string') {
-      throw new Error('docxChild helper requires when asset parameter is object, a .content property exists and it to be a string')
+    if (evalId == null) {
+      throw new Error('docxSData type="child" helper invalid usage, evalId was not found')
     }
 
-    docxChildInfo.content = assetNamePathOrObject.content
-    docxChildInfo.encoding = assetNamePathOrObject.encoding || 'base64'
-  } else {
-    if (typeof assetNamePathOrObject !== 'string') {
-      throw new Error('docxChild helper requires asset parameter to be a string or an object with .content property')
+    const assetNamePathOrObject = data
+
+    if (assetNamePathOrObject == null) {
+      throw new Error('docxSData type="child" helper needs assetNamePathOrObject arg is required')
     }
 
-    const jsreport = require('jsreport-proxy')
-    const assetBase64Content = await jsreport.assets.read(assetNamePathOrObject, 'base64')
+    const newData = Handlebars.createFrame(optionsToUse.data)
 
-    docxChildInfo.content = assetBase64Content
-    docxChildInfo.encoding = 'base64'
+    const docxChildInfo = {}
+
+    if (typeof assetNamePathOrObject === 'object' && assetNamePathOrObject.content != null) {
+      if (typeof assetNamePathOrObject.content !== 'string') {
+        throw new Error('docxChild helper requires when asset parameter is object, a .content property exists and it to be a string')
+      }
+
+      docxChildInfo.content = assetNamePathOrObject.content
+      docxChildInfo.encoding = assetNamePathOrObject.encoding || 'base64'
+    } else {
+      const jsreport = require('jsreport-proxy')
+
+      if (typeof assetNamePathOrObject !== 'string') {
+        throw new Error('docxChild helper requires asset parameter to be a string or an object with .content property')
+      }
+
+      const assetBase64Content = await jsreport.assets.read(assetNamePathOrObject, 'base64')
+
+      docxChildInfo.content = assetBase64Content
+      docxChildInfo.encoding = 'base64'
+    }
+
+    const childCacheKey = `${docxChildInfo.encoding}:${docxChildInfo.content}`
+
+    if (!newData.childCache.has(childCacheKey)) {
+      const childDocxAwaiter = {}
+
+      childDocxAwaiter.promise = new Promise((resolve, reject) => {
+        childDocxAwaiter.resolve = resolve
+        childDocxAwaiter.reject = reject
+      })
+
+      newData.childCache.set(childCacheKey, childDocxAwaiter)
+
+      try {
+        const childDocxBuf = Buffer.from(docxChildInfo.content, docxChildInfo.encoding)
+        const processChildEmbed = require('docxProcessChildEmbed')
+        const xmlOutput = await processChildEmbed(childDocxBuf)
+        const partialId = `docxChild${evalId}${newData.childCache.size}`
+        Handlebars.registerPartial(partialId, xmlOutput)
+        newData.childCache.set(childCacheKey, partialId)
+        childDocxAwaiter.resolve(partialId)
+      } catch (error) {
+        childDocxAwaiter.reject(error)
+      }
+    }
+
+    const childPartialResult = newData.childCache.get(childCacheKey)
+
+    if (typeof childPartialResult !== 'string') {
+      newData.childPartialId = await childPartialResult.promise
+    } else {
+      newData.childPartialId = childPartialResult
+    }
+
+    return optionsToUse.fn(this, { data: newData })
   }
 
-  return new Handlebars.SafeString(`$docxChild${Buffer.from(JSON.stringify(docxChildInfo)).toString('base64')}$`)
+  if (
+    arguments.length === 1 &&
+    type === 'childCaller'
+  ) {
+    return new Handlebars.SafeString('')
+  }
+
+  throw new Error(`invalid usage of docxSData helper${type != null ? ` (type: ${type})` : ''}`)
 }

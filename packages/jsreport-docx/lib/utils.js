@@ -585,7 +585,8 @@ module.exports.normalizeSingleContentInText = (textEl, getMatchRegexp, doc) => {
       }
 
       const matchInfo = {
-        content: match[0]
+        content: match[0],
+        rest: match.slice(1)
       }
 
       textParts.push(matchInfo)
