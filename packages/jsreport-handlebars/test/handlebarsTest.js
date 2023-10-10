@@ -6,6 +6,9 @@ describe('handlebars', () => {
 
   beforeEach(() => {
     jsreport = JsReport({
+      workers: {
+        numberOfWorkers: 1
+      }
     })
     jsreport.use(require('../')())
     return jsreport.init()
@@ -337,5 +340,24 @@ describe('handlebars', () => {
       context: { asyncHandlebars: true }
     })
     r.content.toString().trim().should.be.eql('3')
+  })
+
+  it('async and normal handlebars shouldnt use the same compiled cache', async () => {
+    await jsreport.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'html',
+        content: 'hello'
+      },
+      context: { asyncHandlebars: false }
+    })
+    await jsreport.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'html',
+        content: 'hello'
+      },
+      context: { asyncHandlebars: true }
+    })
   })
 })

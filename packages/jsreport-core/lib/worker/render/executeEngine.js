@@ -192,7 +192,9 @@ module.exports = (reporter) => {
       executionAsyncResultsMap.set(executionId, asyncResultMap)
       executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions, context })
 
-      const key = `template:${content}:${engine.name}`
+      const key = engine.buildTemplateCacheKey
+        ? engine.buildTemplateCacheKey({ content }, req)
+        : `template:${content}:${engine.name}`
 
       if (!templatesCache.has(key)) {
         try {

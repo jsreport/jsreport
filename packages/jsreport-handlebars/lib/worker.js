@@ -29,6 +29,7 @@ module.exports = (reporter, definition) => {
     onRequire: (...args) => lazyGetEngine().onRequire(...args),
     unescape: (...args) => lazyGetEngine().unescape(...args),
     getWrappingHelpersEnabled: (req) => req.context.asyncHandlebars !== true,
-    wrapHelper: (...args) => lazyGetEngine().wrapHelper(...args)
+    wrapHelper: (...args) => lazyGetEngine().wrapHelper(...args),
+    buildTemplateCacheKey: (...args) => lazyGetEngine().buildTemplateCacheKey(...args)
   })
 }

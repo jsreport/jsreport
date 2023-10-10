@@ -98,7 +98,8 @@ module.exports = (opts = {}) => {
           }
         })
       }
-    }
+    },
+    buildTemplateCacheKey: ({ content }, req) => `template:${content}:handlebars:${req.context.asyncHandlebars === true}`
   }
 }
 
