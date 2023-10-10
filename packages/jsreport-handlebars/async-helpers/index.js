@@ -58,9 +58,9 @@ function asyncHelpers (hbs) {
       }
 
       // here I've changed the last param from `depths` to `[context]`. This was needed to make the ../gotoparent working
-      const v = spec.main(container, context, container.helpers, container.partials, data, blockParams, [context])
+      const v = await spec.main(container, context, container.helpers, container.partials, data, blockParams, [context])
       // result can be actually SafeString
-      return v.then((r) => r.toString())
+      return v.toString()
     }
     return _template(spec, handlebars)
   }
