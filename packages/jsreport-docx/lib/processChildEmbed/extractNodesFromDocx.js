@@ -1,7 +1,8 @@
 const { DOMParser } = require('@xmldom/xmldom')
 const { decompress } = require('@jsreport/office')
 const { getExtractMetadata } = require('./supportedElements')
-const { nodeListToArray } = require('../../utils')
+const { nodeListToArray, contentIsXML } = require('../utils')
+const concatTags = require('../preprocess/concatTags')
 
 module.exports = async function extractNodesFromDocx (targetDocxBuffer) {
   const nodes = []
@@ -13,13 +14,25 @@ module.exports = async function extractNodesFromDocx (targetDocxBuffer) {
     throw new Error('Failed to parse docx input, unable to extract elements for child embed')
   }
 
+  for (const f of files) {
+    if (f.path === 'word/document.xml' && contentIsXML(f.data)) {
+      f.doc = new DOMParser().parseFromString(f.data.toString())
+      f.data = f.data.toString()
+    }
+  }
+
   const documentFile = files.find(f => f.path === 'word/document.xml')
 
   if (documentFile == null) {
     return nodes
   }
 
-  const documentDoc = parseDocxFile(documentFile)
+  const targetFiles = [documentFile]
+
+  // concat tags of document.xml because the child docx may have the handlebars tags spread in multiple nodes
+  concatTags(targetFiles)
+
+  const documentDoc = documentFile.doc
   const bodyEl = nodeListToArray(documentDoc.documentElement.childNodes).find((el) => el.nodeName === 'w:body')
 
   if (bodyEl == null) {
@@ -111,8 +124,4 @@ function keepAttributes (el, allowedAttrs) {
       el.removeAttribute(attr.nodeName)
     }
   }
-}
-
-function parseDocxFile (file) {
-  return new DOMParser().parseFromString(file.data.toString())
 }

@@ -1,4 +1,4 @@
-const { serializeXml } = require('../../utils')
+const { serializeXml } = require('../utils')
 const extractNodesFromDocx = require('./extractNodesFromDocx')
 
 module.exports = async function processChildEmbed (childDocxBuf) {

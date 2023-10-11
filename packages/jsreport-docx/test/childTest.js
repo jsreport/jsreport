@@ -235,7 +235,7 @@ describe('docx child', () => {
     should(textNodesInHeader[0].textContent).eql('Simple text from template')
   })
 
-  it('child and simple paragraph in document footer', async () => {
+  it('child and simple paragraph in document header and footer', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'header-template.docx',
       content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
@@ -288,5 +288,124 @@ describe('docx child', () => {
 
     should(textNodesInHeader.length).eql(1)
     should(textNodesInHeader[0].textContent).eql('Simple text from template')
+  })
+
+  it('child handlebars evaluation', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: fs.readFileSync(path.join(__dirname, 'child-handlebars-text-template.docx'))
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'child.docx'))
+          }
+        }
+      },
+      data: {
+        price: 50
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+    should(textNodes[0].textContent).eql('Texte en dur dans le subreport')
+    should(textNodes[1].textContent).eql(' 50')
+  })
+
+  it('child should concat tags for handlebars evaluation', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: fs.readFileSync(path.join(__dirname, 'child-handlebars-concat-text-template.docx'))
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'child.docx'))
+          }
+        }
+      },
+      data: {
+        message: 'Hello World'
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(1)
+    should(textNodes[0].textContent).eql('This is a custom message: Hello World')
+  })
+
+  it('child call from loop and handlebars evaluation', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: fs.readFileSync(path.join(__dirname, 'child-handlebars-text-template.docx'))
+    })
+
+    const dataItems = [
+      { price: 50 },
+      { price: 60 },
+      { price: 70 }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(__dirname, 'child-loop-call.docx'))
+          }
+        }
+      },
+      data: {
+        items: dataItems
+      }
+    })
+
+    fs.writeFileSync('out.docx', result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(5)
+
+    should(nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))[0].textContent).be.eql('Some previous content')
+
+    const loopNodes = paragraphNodes.slice(1, -1)
+
+    for (let idx = 0; idx < loopNodes.length; idx++) {
+      const loopNode = loopNodes[idx]
+      const textNodes = nodeListToArray(loopNode.getElementsByTagName('w:t'))
+      should(textNodes.length).eql(2)
+
+      should(textNodes[0].textContent).eql('Texte en dur dans le subreport')
+      should(textNodes[1].textContent).eql(` ${dataItems[idx].price}`)
+    }
+
+    should(nodeListToArray(paragraphNodes[paragraphNodes.length - 1].getElementsByTagName('w:t'))[0].textContent).be.eql('Some after content')
   })
 })
