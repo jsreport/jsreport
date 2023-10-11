@@ -4,6 +4,9 @@ const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx style', () => {
   let reporter
 
@@ -40,7 +43,7 @@ describe('docx style', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'style-textcolor.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor.docx'))
           }
         }
       },
@@ -49,7 +52,7 @@ describe('docx style', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
@@ -95,7 +98,7 @@ describe('docx style', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'style-backgroundcolor.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor.docx'))
           }
         }
       },
@@ -104,7 +107,7 @@ describe('docx style', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const wpEls = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -146,7 +149,7 @@ describe('docx style', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'style-header.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'style-header.docx'))
           }
         }
       },
@@ -155,7 +158,7 @@ describe('docx style', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const targetDocs = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -208,7 +211,7 @@ describe('docx style', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'style-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'style-footer.docx'))
           }
         }
       },
@@ -217,7 +220,7 @@ describe('docx style', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const targetDocs = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
 
@@ -270,7 +273,7 @@ describe('docx style', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'style-header-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'style-header-footer.docx'))
           }
         }
       },
@@ -279,7 +282,7 @@ describe('docx style', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const targetDocs = await getDocumentsFromDocxBuf(result.content, [
       'word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml',

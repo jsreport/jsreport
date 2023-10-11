@@ -4,6 +4,9 @@ const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx pageBreak', () => {
   let reporter
 
@@ -34,7 +37,7 @@ describe('docx pageBreak', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'page-break-single-paragraph.docx')
+              path.join(docxDirPath, 'page-break-single-paragraph.docx')
             )
           }
         }
@@ -42,7 +45,7 @@ describe('docx pageBreak', () => {
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -65,7 +68,7 @@ describe('docx pageBreak', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'page-break-single-paragraph-with-condition.docx')
+              path.join(docxDirPath, 'page-break-single-paragraph-with-condition.docx')
             )
           }
         }
@@ -73,7 +76,7 @@ describe('docx pageBreak', () => {
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -97,7 +100,7 @@ describe('docx pageBreak', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'page-break-single-paragraph-with-condition2.docx')
+              path.join(docxDirPath, 'page-break-single-paragraph-with-condition2.docx')
             )
           }
         }
@@ -105,7 +108,7 @@ describe('docx pageBreak', () => {
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -133,7 +136,7 @@ describe('docx pageBreak', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'page-break-single-paragraph2.docx')
+              path.join(docxDirPath, 'page-break-single-paragraph2.docx')
             )
           }
         }
@@ -141,7 +144,7 @@ describe('docx pageBreak', () => {
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -165,7 +168,7 @@ describe('docx pageBreak', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'page-break-between-paragraphs.docx')
+              path.join(docxDirPath, 'page-break-between-paragraphs.docx')
             )
           }
         }
@@ -173,7 +176,7 @@ describe('docx pageBreak', () => {
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 

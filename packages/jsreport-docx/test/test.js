@@ -8,6 +8,7 @@ const { nodeListToArray } = require('../lib/utils')
 const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
 
+const docxDirPath = path.join(__dirname, './docx')
 const outputPath = path.join(__dirname, '../out.docx')
 
 describe('docx', () => {
@@ -40,7 +41,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             )
           }
         }
@@ -50,7 +51,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
   })
@@ -63,7 +64,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace-multi.docx')
+              path.join(docxDirPath, 'variable-replace-multi.docx')
             )
           }
         }
@@ -74,7 +75,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const doc = await extractor.extract(result.content)
     doc.getBody().replace(/\n/g, ' ').should.containEql(
       'Hello world John developer Another lines John developer with Wick as lastname'
@@ -89,7 +90,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace-syntax-error.docx')
+              path.join(docxDirPath, 'variable-replace-syntax-error.docx')
             )
           }
         }
@@ -119,7 +120,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'partial.docx')
+              path.join(docxDirPath, 'partial.docx')
             )
           }
         }
@@ -129,7 +130,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
   })
@@ -142,7 +143,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'condition-with-helper-call.docx')
+              path.join(docxDirPath, 'condition-with-helper-call.docx')
             )
           }
         },
@@ -157,7 +158,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const doc = await extractor.extract(result.content)
     doc.getBody().should.containEql('More than 2 users')
   })
@@ -169,7 +170,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'condition.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'condition.docx'))
           }
         },
         helpers: `
@@ -183,7 +184,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const doc = await extractor.extract(result.content)
     doc.getBody().should.containEql('More than 2 users')
   })
@@ -196,7 +197,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             )
           }
         }
@@ -219,7 +220,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             )
           }
         }
@@ -241,7 +242,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'invoice.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'invoice.docx'))
           }
         }
       },
@@ -267,7 +268,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const doc = await extractor.extract(result.content)
     const text = doc.getBody()
     text.should.containEql('T-123')
@@ -282,7 +283,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'end-note.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'end-note.docx'))
           }
         }
       },
@@ -291,7 +292,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const doc = await extractor.extract(result.content)
     const text = doc.getEndnotes()
     text.should.containEql('endnotevalue')
@@ -304,7 +305,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'foot-note.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'foot-note.docx'))
           }
         }
       },
@@ -313,7 +314,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const doc = await extractor.extract(result.content)
     const text = doc.getFootnotes()
     text.should.containEql('footnotevalue')
@@ -326,7 +327,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'link.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'link.docx'))
           }
         }
       },
@@ -335,7 +336,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('website')
 
@@ -362,7 +363,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'link-header.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'link-header.docx'))
           }
         }
       },
@@ -372,7 +373,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getHeaders()
     text.should.containEql('jsreport')
 
@@ -401,7 +402,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'link-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'link-footer.docx'))
           }
         }
       },
@@ -411,7 +412,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getFooters()
     text.should.containEql('jsreport')
 
@@ -441,7 +442,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'link-header-footer.docx')
+              path.join(docxDirPath, 'link-header-footer.docx')
             )
           }
         }
@@ -454,7 +455,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getHeaders()
     text.should.containEql('jsreport')
 
@@ -501,7 +502,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'link-to-bookmark.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'link-to-bookmark.docx'))
           }
         }
       },
@@ -511,7 +512,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/\t/g, ' ')
 
     text.should.containEql('1 Preliminary 1')
@@ -528,7 +529,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'list.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'list.docx'))
           }
         }
       },
@@ -547,7 +548,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan')
     text.should.containEql('Boris')
@@ -561,7 +562,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'list-and-links.docx')
+              path.join(docxDirPath, 'list-and-links.docx')
             )
           }
         }
@@ -580,7 +581,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
 
     text.should.containEql('jsreport')
@@ -595,7 +596,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'list-and-endnotes.docx')
+              path.join(docxDirPath, 'list-and-endnotes.docx')
             )
           }
         }
@@ -614,7 +615,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getEndnotes()
 
     text.should.containEql('note 1n')
@@ -629,7 +630,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'list-and-footnotes.docx')
+              path.join(docxDirPath, 'list-and-footnotes.docx')
             )
           }
         }
@@ -648,7 +649,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getFootnotes()
 
     text.should.containEql('note 1n')
@@ -662,7 +663,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'list-nested.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'list-nested.docx'))
           }
         }
       },
@@ -692,7 +693,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const text = (await extractor.extract(result.content)).getBody()
 
@@ -715,7 +716,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace-and-list-after.docx')
+              path.join(docxDirPath, 'variable-replace-and-list-after.docx')
             )
           }
         }
@@ -725,7 +726,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/\n/g, ' ')
     text.should.containEql(
       'This is a test John here we go Test 1 Test 2 Test 3'
@@ -740,7 +741,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace-and-list-after2.docx')
+              path.join(docxDirPath, 'variable-replace-and-list-after2.docx')
             )
           }
         }
@@ -750,7 +751,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/\n/g, ' ')
     text.should.containEql(
       'This is a test John here we go Test 1 Test 2 Test 3 This is another test John can you see me here'
@@ -766,7 +767,7 @@ describe('docx', () => {
           templateAsset: {
             content: fs.readFileSync(
               path.join(
-                __dirname,
+                docxDirPath,
                 'variable-replace-and-list-after-syntax-error.docx'
               )
             )
@@ -792,7 +793,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'loop.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'loop.docx'))
           }
         }
       },
@@ -810,7 +811,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Chapter 1')
     text.should.containEql('This is the first chapter')
@@ -825,7 +826,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'complex.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'complex.docx'))
           }
         },
         helpers: `
@@ -867,7 +868,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan Blaha')
   })
@@ -880,7 +881,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'dw-object-loop-id.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'dw-object-loop-id.docx'))
           }
         }
       },
@@ -889,7 +890,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const files = await decompress()(result.content)
 
@@ -914,7 +915,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             ).toString('base64')
           }
         }
@@ -924,7 +925,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
   })
@@ -937,7 +938,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             ).toString('binary'),
             encoding: 'binary'
           }
@@ -948,7 +949,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Hello world John')
   })
@@ -961,7 +962,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             ).toString('utf8'),
             encoding: 'utf8'
           }
@@ -977,7 +978,7 @@ describe('docx', () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'variable-replace.docx',
       shortid: 'template',
-      content: fs.readFileSync(path.join(__dirname, 'variable-replace.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'variable-replace.docx'))
     })
     const result = await reporter.render({
       template: {
@@ -1004,7 +1005,7 @@ describe('docx', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             )
           }
         }
@@ -1027,7 +1028,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'preserve-space.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'preserve-space.docx'))
           }
         }
       },
@@ -1042,7 +1043,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('My Table - Name')
     text.should.containEql('My Table - Email')
@@ -1077,7 +1078,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'remove-block.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'remove-block.docx'))
           }
         }
       },
@@ -1092,7 +1093,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('My Table - Name')
     text.should.containEql('My Table - Email')
@@ -1160,7 +1161,7 @@ describe('docx', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'remove-block-end-start-on-same-line.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'remove-block-end-start-on-same-line.docx'))
           }
         }
       },
@@ -1174,7 +1175,7 @@ describe('docx', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Some attachments')
@@ -1212,7 +1213,7 @@ describe('docx with extensions.docx.previewInWordOnline === false', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable-replace.docx')
+              path.join(docxDirPath, 'variable-replace.docx')
             )
           }
         }

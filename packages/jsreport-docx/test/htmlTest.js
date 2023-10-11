@@ -10,6 +10,9 @@ const { getSectionDetail } = require('../lib/sectionUtils')
 const { SUPPORTED_ELEMENTS, BLOCK_ELEMENTS, ELEMENTS } = require('../lib/postprocess/html/supportedElements')
 const extractor = new WordExtractor()
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx html embed', () => {
   let reporter
 
@@ -34,7 +37,7 @@ describe('docx html embed', () => {
 
   describe('basic - text', () => {
     it('block mode - text as root', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
       const result = await reporter.render({
         template: {
@@ -52,7 +55,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html}}')
@@ -74,7 +77,7 @@ describe('docx html embed', () => {
     })
 
     it('block mode - unsupported element should fallback to inline element <unsupported>...<unsupported>', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
       const result = await reporter.render({
         template: {
@@ -92,7 +95,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html}}')
@@ -114,7 +117,7 @@ describe('docx html embed', () => {
     })
 
     it('inline mode - text as root', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline.docx'))
 
       const result = await reporter.render({
         template: {
@@ -132,7 +135,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
@@ -154,7 +157,7 @@ describe('docx html embed', () => {
     })
 
     it('inline mode - unsupported element should fallback to inline element <unsupported>...<unsupported>', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline.docx'))
 
       const result = await reporter.render({
         template: {
@@ -172,7 +175,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
@@ -276,7 +279,7 @@ describe('docx html embed', () => {
 
   describe('<b><i><u> tags', () => {
     it('block mode - combined <b><i><u>...</u></i></b>', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
       const result = await reporter.render({
         template: {
@@ -294,7 +297,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html}}')
@@ -320,7 +323,7 @@ describe('docx html embed', () => {
     })
 
     it('inline mode - combined <b><i><u>...</u></i></b>', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline.docx'))
 
       const result = await reporter.render({
         template: {
@@ -338,7 +341,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
@@ -369,7 +372,7 @@ describe('docx html embed', () => {
       const templateStr = '<br />'
 
       it(`${mode} mode - <br> ${templateStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -387,7 +390,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -412,7 +415,7 @@ describe('docx html embed', () => {
       const templateMultipleStr = '<br /><br />'
 
       it(`${mode} mode - <br> ${templateMultipleStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -430,7 +433,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -456,7 +459,7 @@ describe('docx html embed', () => {
       const templateTextStr = '...<br />...'
 
       it(`${mode} mode - <br> with text ${templateTextStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -474,7 +477,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -639,7 +642,7 @@ describe('docx html embed', () => {
       const templateStr = 'some <a href="https://jsreport.net">link</a>'
 
       it(`${mode} mode - <a> with href ${templateStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -657,7 +660,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -721,7 +724,7 @@ describe('docx html embed', () => {
       const templateStr = '<pre>\nText in a pre element\nis displayed in a fixed-width\nfont, and it preserves\nboth      spaces and\nline breaks\n</pre>'
 
       it(`${mode} mode - <pre> text with line breaks ${templateStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -739,7 +742,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -873,7 +876,7 @@ describe('docx html embed', () => {
 
   describe('<h1> - <h6> tags', () => {
     it('block mode - combined <h1>...</h1>...<h2>...</h2>...<h3>...</h3>...<h4>...</h4>...<h5>...</h5>...<h6>...</h6>...', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
       const result = await reporter.render({
         template: {
@@ -904,7 +907,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [doc, stylesDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/styles.xml'])
 
@@ -992,7 +995,7 @@ describe('docx html embed', () => {
     })
 
     it('inline mode - combined <h1>...</h1>...<h2>...</h2>...<h3>...</h3>...<h4>...</h4>...<h5>...</h5>...<h6>...</h6>...', async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline.docx'))
 
       const result = await reporter.render({
         template: {
@@ -1023,7 +1026,7 @@ describe('docx html embed', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -1119,7 +1122,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1137,7 +1140,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1207,7 +1210,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1225,7 +1228,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1295,7 +1298,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1313,7 +1316,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1383,7 +1386,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1401,7 +1404,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1471,7 +1474,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1489,7 +1492,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1559,7 +1562,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1577,7 +1580,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1647,7 +1650,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1665,7 +1668,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1737,7 +1740,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1755,7 +1758,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -1827,7 +1830,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header' : 'html-embed-inline-header'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-header' : 'html-embed-inline-header'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1846,7 +1849,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc, header1Doc, header2Doc, header3Doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -1942,7 +1945,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-footer' : 'html-embed-inline-footer'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-footer' : 'html-embed-inline-footer'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -1961,7 +1964,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc, footer1Doc, footer2Doc, footer3Doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
 
@@ -2057,7 +2060,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header-footer' : 'html-embed-inline-header-footer'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-header-footer' : 'html-embed-inline-header-footer'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2077,7 +2080,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc, header1Doc, header2Doc, header3Doc, footer1Doc, footer2Doc, footer3Doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
 
@@ -2177,7 +2180,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2195,7 +2198,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2274,7 +2277,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2292,7 +2295,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2356,7 +2359,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2374,7 +2377,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2433,7 +2436,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2451,7 +2454,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2471,7 +2474,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2489,7 +2492,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2519,7 +2522,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2537,7 +2540,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2615,7 +2618,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2633,7 +2636,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2723,7 +2726,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2741,7 +2744,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2833,7 +2836,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2851,7 +2854,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -2948,7 +2951,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -2966,7 +2969,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3062,7 +3065,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3080,7 +3083,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3180,7 +3183,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3198,7 +3201,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3307,7 +3310,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3325,7 +3328,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3426,7 +3429,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3444,7 +3447,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3540,7 +3543,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3558,7 +3561,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3667,7 +3670,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3685,7 +3688,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3794,7 +3797,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3812,7 +3815,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -3921,7 +3924,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -3939,7 +3942,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4048,7 +4051,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4066,7 +4069,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4181,7 +4184,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4199,7 +4202,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4318,7 +4321,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4336,7 +4339,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4455,7 +4458,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4473,7 +4476,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4584,7 +4587,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4602,7 +4605,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4710,7 +4713,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4728,7 +4731,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4847,7 +4850,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4865,7 +4868,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -4974,7 +4977,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -4992,7 +4995,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5100,7 +5103,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5118,7 +5121,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5210,7 +5213,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5228,7 +5231,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5324,7 +5327,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5342,7 +5345,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5447,7 +5450,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5465,7 +5468,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5575,7 +5578,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5593,7 +5596,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5710,7 +5713,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5728,7 +5731,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5831,7 +5834,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5849,7 +5852,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -5959,7 +5962,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -5977,7 +5980,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6092,7 +6095,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6110,7 +6113,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6225,7 +6228,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6243,7 +6246,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6358,7 +6361,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6376,7 +6379,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6491,7 +6494,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6509,7 +6512,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6617,7 +6620,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6635,7 +6638,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6754,7 +6757,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6772,7 +6775,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -6888,7 +6891,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -6906,7 +6909,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7028,7 +7031,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7046,7 +7049,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7159,7 +7162,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7177,7 +7180,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7292,7 +7295,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7310,7 +7313,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7425,7 +7428,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7443,7 +7446,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7622,7 +7625,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7640,7 +7643,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7797,7 +7800,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7815,7 +7818,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -7934,7 +7937,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -7952,7 +7955,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -8094,7 +8097,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -8112,7 +8115,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -8269,7 +8272,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -8287,7 +8290,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -8464,7 +8467,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -8482,7 +8485,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -8644,7 +8647,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -8662,7 +8665,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -8804,7 +8807,7 @@ describe('docx html embed', () => {
               '</table>'
             ].join('')
 
-            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+            const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
             const result = await reporter.render({
               template: {
@@ -8822,7 +8825,7 @@ describe('docx html embed', () => {
             })
 
             // Write document for easier debugging
-            fs.writeFileSync('out.docx', result.content)
+            fs.writeFileSync(outputPath, result.content)
 
             const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
             const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -8893,7 +8896,7 @@ describe('docx html embed', () => {
               '</table>'
             ].join('')
 
-            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+            const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
             const result = await reporter.render({
               template: {
@@ -8911,7 +8914,7 @@ describe('docx html embed', () => {
             })
 
             // Write document for easier debugging
-            fs.writeFileSync('out.docx', result.content)
+            fs.writeFileSync(outputPath, result.content)
 
             const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
             const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9004,7 +9007,7 @@ describe('docx html embed', () => {
                   '</table$>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9022,7 +9025,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9117,7 +9120,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9135,7 +9138,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9219,7 +9222,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9237,7 +9240,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9332,7 +9335,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9350,7 +9353,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9434,7 +9437,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9452,7 +9455,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9547,7 +9550,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9565,7 +9568,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9681,7 +9684,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9699,7 +9702,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9779,7 +9782,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9797,7 +9800,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9874,7 +9877,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9892,7 +9895,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -9978,7 +9981,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -9996,7 +9999,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -10082,7 +10085,7 @@ describe('docx html embed', () => {
                   '</table>'
                 ].join('')
 
-                const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-block.docx'))
+                const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-block.docx'))
 
                 const result = await reporter.render({
                   template: {
@@ -10100,7 +10103,7 @@ describe('docx html embed', () => {
                 })
 
                 // Write document for easier debugging
-                fs.writeFileSync('out.docx', result.content)
+                fs.writeFileSync(outputPath, result.content)
 
                 const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
                 const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -10180,7 +10183,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -10198,7 +10201,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -10324,7 +10327,7 @@ describe('docx html embed', () => {
           '</table>'
         ].join('')
 
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -10342,7 +10345,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
         const paragraphAtRootNodes = nodeListToArray(doc.getElementsByTagName('w:body')[0].childNodes).filter((el) => el.nodeName === 'w:p')
@@ -10590,7 +10593,7 @@ describe('docx html embed', () => {
         const templateStr = `<${listTag}><li>...</li><li>...</li><li>...</li></${listTag}>`
 
         it(`${mode} mode - <${listTag}> with multiple items ${templateStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -10608,7 +10611,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -10658,7 +10661,7 @@ describe('docx html embed', () => {
         const templateNestedStr = `<${listTag}><li>...</li><li>...<${listTag}><li>...</li><li>...</li></${listTag}></li><li>...</li></${listTag}>`
 
         it(`${mode} mode - <${listTag}> with nested same list ${templateNestedStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -10676,7 +10679,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -10746,7 +10749,7 @@ describe('docx html embed', () => {
         const templateNestedDifferentStr = `<${listTag}><li>...</li><li>...<${listTag === 'ol' ? 'ul' : 'ol'}><li>...</li><li>...</li></${listTag === 'ol' ? 'ul' : 'ol'}></li><li>...</li></${listTag}>`
 
         it(`${mode} mode - <${listTag}> with nested different list ${templateNestedDifferentStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -10764,7 +10767,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -10862,7 +10865,7 @@ describe('docx html embed', () => {
         const templateTextChildStr = `<${listTag}>...<li>...</li><li>...</li></${listTag}>`
 
         it(`${mode} mode - <${listTag}> with text child directly in <${listTag}> ${templateTextChildStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -10880,7 +10883,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -10930,7 +10933,7 @@ describe('docx html embed', () => {
         const templateSiblingAndMultipleItemsStr = `<${listTag}><li>...</li><li>...</li><li>...</li></${listTag}><${listTag}><li>...</li><li>...</li><li>...</li></${listTag}>`
 
         it(`${mode} mode - <${listTag}> with sibling list and multiple items <${listTag}> ${templateSiblingAndMultipleItemsStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -10948,7 +10951,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11023,7 +11026,7 @@ describe('docx html embed', () => {
       const templateSpaceStr = '<p>      ...      ...     </p>'
 
       it(`${mode} mode - ignore space ${templateSpaceStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11041,7 +11044,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11060,7 +11063,7 @@ describe('docx html embed', () => {
       const templateSpaceMultipleBlocksStr = '<div>  ...  </div>\n\n   <div>  ...  </div>\n'
 
       it(`${mode} mode - ignore space in multiple blocks ${templateSpaceMultipleBlocksStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11078,7 +11081,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11109,7 +11112,7 @@ describe('docx html embed', () => {
       const templateSpaceMultipleInlineStr = '<span>  ...  </span>\n\n   <span>  ...  </span>\n'
 
       it(`${mode} mode - ignore space in multiple inline ${templateSpaceMultipleInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11127,7 +11130,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11147,7 +11150,7 @@ describe('docx html embed', () => {
       const templateLineBreakStr = '\n<p>\n...</p>\n'
 
       it(`${mode} mode - ignore line break ${templateLineBreakStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11165,7 +11168,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11184,7 +11187,7 @@ describe('docx html embed', () => {
       const templateSpaceTabLineBreakWithInlineStr = '<p>   ... \n\t\t\t\t<span> ...</span>\t  </p>'
 
       it(`${mode} mode - ignore space with inline element ${templateSpaceTabLineBreakWithInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11202,7 +11205,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11222,7 +11225,7 @@ describe('docx html embed', () => {
       const templateLeadingSpaceInlineStr = '... <span>...</span>'
 
       it(`${mode} mode - preserve leading space with text and inline element ${templateLeadingSpaceInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11240,7 +11243,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11260,7 +11263,7 @@ describe('docx html embed', () => {
       const templateLeadingSpaceBlockStr = '... <p>...</p>'
 
       it(`${mode} mode - preserve leading space with text and block element ${templateLeadingSpaceBlockStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11278,7 +11281,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11309,7 +11312,7 @@ describe('docx html embed', () => {
       const templateTrailingSpaceInlineStr = '<span>...</span> ...'
 
       it(`${mode} mode - preserve trailing space with text and inline element ${templateTrailingSpaceInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11327,7 +11330,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11347,7 +11350,7 @@ describe('docx html embed', () => {
       const templateTrailingSpaceBlockStr = '<p>...</p> ...'
 
       it(`${mode} mode - preserve trailing space with text and block element ${templateTrailingSpaceBlockStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11365,7 +11368,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11396,7 +11399,7 @@ describe('docx html embed', () => {
       const templateLeadingTrailingSpaceInlineStr = '... <span>...</span> ...'
 
       it(`${mode} mode - preserve leading and trailing space with text and inline element ${templateLeadingTrailingSpaceInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11414,7 +11417,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11435,7 +11438,7 @@ describe('docx html embed', () => {
       const templateLeadingTrailingSpaceBlockStr = '... <p>...</p> ...'
 
       it(`${mode} mode - preserve leading and trailing space with text and block element ${templateLeadingTrailingSpaceBlockStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11453,7 +11456,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11489,7 +11492,7 @@ describe('docx html embed', () => {
       const templateTextWithSpaceInMiddleOfBlockStr = '<p><b>...</b>...<b>...</b></p>'
 
       it(`${mode} mode - preserve text with leading and trailing space in the middle of block element children ${templateTextWithSpaceInMiddleOfBlockStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11507,7 +11510,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11525,7 +11528,7 @@ describe('docx html embed', () => {
       const templateLeadingSpaceInInlineStr = '<p> ...<span> ...</span><span> ...</span><span> ...</span> ...</p>'
 
       it(`${mode} mode - preserve leading space in inline elements that have siblings ${templateLeadingSpaceInInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11543,7 +11546,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11566,7 +11569,7 @@ describe('docx html embed', () => {
       const templateTrailingSpaceInInlineStr = '<p>... <span>... </span><span>... </span><span>... </span>...</p>'
 
       it(`${mode} mode - preserve trailing space in inline elements that have siblings ${templateTrailingSpaceInInlineStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11584,7 +11587,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11607,7 +11610,7 @@ describe('docx html embed', () => {
       const templateWithSpaceEntityStr = '<p>&nbsp;...&nbsp;<span>&nbsp;...&nbsp;</span><span>&nbsp;...&nbsp;</span><span>&nbsp;...&nbsp;</span>&nbsp;...&nbsp;</p>'
 
       it(`${mode} mode - preserve &nbsp; space ${templateWithSpaceEntityStr}`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11625,7 +11628,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
         const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -11655,7 +11658,7 @@ describe('docx html embed', () => {
       const templateFontSizeStr = '<p style="font-size: 32px">...</p>'
 
       it(`${mode} mode - font size`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11673,7 +11676,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11701,7 +11704,7 @@ describe('docx html embed', () => {
       const templateFontFamilyStr = '<p style="font-family: Tahoma">...</p>'
 
       it(`${mode} mode - font family`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11719,7 +11722,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11743,7 +11746,7 @@ describe('docx html embed', () => {
       const templateFontFamily2Str = '<p style=\'font-family: "Times New Roman"\'>...</p>'
 
       it(`${mode} mode - font family with ""`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11761,7 +11764,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11785,7 +11788,7 @@ describe('docx html embed', () => {
       const templateColorStr = '<p style="color: red">...</p>'
 
       it(`${mode} mode - color`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11803,7 +11806,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11826,7 +11829,7 @@ describe('docx html embed', () => {
       const templateColor2Str = '<p style="color: #FF0000">...</p>'
 
       it(`${mode} mode - color #hex`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11844,7 +11847,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11867,7 +11870,7 @@ describe('docx html embed', () => {
       const templateBackgroundColorStr = '<p style="background-color: blue">...</p>'
 
       it(`${mode} mode - background color`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11885,7 +11888,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11915,7 +11918,7 @@ describe('docx html embed', () => {
       const templateBackgroundColor2Str = '<p style="background-color: #0000FF">...</p>'
 
       it(`${mode} mode - background color #hex`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11933,7 +11936,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -11963,7 +11966,7 @@ describe('docx html embed', () => {
       const templateTextDecorationUnderlineStr = '<p style="text-decoration: underline">...</p>'
 
       it(`${mode} mode - text decoration underline`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -11981,7 +11984,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12004,7 +12007,7 @@ describe('docx html embed', () => {
       const templateTextDecorationLineThroughStr = '<p style="text-decoration: line-through">...</p>'
 
       it(`${mode} mode - text decoration line-through`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -12022,7 +12025,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12043,7 +12046,7 @@ describe('docx html embed', () => {
         const templateTextAlignStr = `<p style="text-align: ${textAlign}">...</p>`
 
         it(`${mode} mode - text align ${textAlign}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -12061,7 +12064,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12091,7 +12094,7 @@ describe('docx html embed', () => {
           const templateStr = `<p style="padding-${side}: 50px">...</p>`
 
           it(`${mode} mode - ${prop} ${side}`, async () => {
-            const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+            const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
             const result = await reporter.render({
               template: {
@@ -12109,7 +12112,7 @@ describe('docx html embed', () => {
             })
 
             // Write document for easier debugging
-            fs.writeFileSync('out.docx', result.content)
+            fs.writeFileSync(outputPath, result.content)
 
             const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12151,7 +12154,7 @@ describe('docx html embed', () => {
         const templateShorthandStr = `<p style="${prop}: 50px">...</p>`
 
         it(`${mode} mode - ${prop} shorthand`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const result = await reporter.render({
             template: {
@@ -12169,7 +12172,7 @@ describe('docx html embed', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12202,7 +12205,7 @@ describe('docx html embed', () => {
       const templateBreakBeforePageStr = '<p style="break-before: page">...</p>'
 
       it(`${mode} mode - break before page`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -12220,7 +12223,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12243,7 +12246,7 @@ describe('docx html embed', () => {
       const templateBreakAfterPageStr = '<p style="break-after: page">...</p>'
 
       it(`${mode} mode - break after page`, async () => {
-        const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+        const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
         const result = await reporter.render({
           template: {
@@ -12261,7 +12264,7 @@ describe('docx html embed', () => {
         })
 
         // Write document for easier debugging
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
 
         const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -12306,7 +12309,7 @@ describe('<img> tag', () => {
     }
   })
 
-  const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+  const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
   const imageDataSrc = 'data:image/png;base64,' + imageBuf.toString('base64')
   const imageDimensions = sizeOf(imageBuf)
 
@@ -12315,7 +12318,7 @@ describe('<img> tag', () => {
     height: pxToEMU(imageDimensions.height)
   }
 
-  const image2Buf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+  const image2Buf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
   const image2DataSrc = 'data:image/png;base64,' + image2Buf.toString('base64')
   const image2Dimensions = sizeOf(image2Buf)
 
@@ -12328,7 +12331,7 @@ describe('<img> tag', () => {
     const templateEmptyStr = '<img />'
 
     it(`${mode} mode - <img> ${templateEmptyStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
         template: {
@@ -12346,7 +12349,7 @@ describe('<img> tag', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
       const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -12362,7 +12365,7 @@ describe('<img> tag', () => {
     const displayTemplateStr = `<img src="${imageDataSrc.slice(0, 20)}" />`
 
     it(`${mode} mode - <img> ${displayTemplateStr}...`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
         template: {
@@ -12380,7 +12383,7 @@ describe('<img> tag', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12419,7 +12422,7 @@ describe('<img> tag', () => {
     const displayTemplateMultipleStr = `<img src="${imageDataSrc.slice(0, 20)}" /><img src="${image2DataSrc.slice(0, 20)}" />`
 
     it(`${mode} mode - <img> ${displayTemplateMultipleStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
         template: {
@@ -12437,7 +12440,7 @@ describe('<img> tag', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12470,7 +12473,7 @@ describe('<img> tag', () => {
     const displayTemplateTextStr = `...<img src="${imageDataSrc.slice(0, 20)}" />...`
 
     it(`${mode} mode - <img> ${displayTemplateTextStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
         template: {
@@ -12488,7 +12491,7 @@ describe('<img> tag', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12529,7 +12532,7 @@ describe('<img> tag', () => {
         const displayTemplateCustomSizeStr = `<img src="${imageDataSrc.slice(0, 20)}" style="width: ${targetSize}${unit}; height: ${targetSize}${unit}" />`
 
         it(`${mode} mode - <img> custom size (width, height) ${displayTemplateCustomSizeStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const targetCustomImageSize = {
             width: unit === 'cm' ? cmToEMU(targetSize) : pxToEMU(targetSize),
@@ -12552,7 +12555,7 @@ describe('<img> tag', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12581,7 +12584,7 @@ describe('<img> tag', () => {
         const displayTemplateCustomWidthStr = `<img src="${imageDataSrc.slice(0, 20)}" style="width: ${targetSizeForWidth}${unit}" />`
 
         it(`${mode} mode - <img> custom size (width set and height automatic - keep aspect ratio) ${displayTemplateCustomWidthStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const targetCustomImageSize = {
             width: unit === 'cm' ? cmToEMU(targetSizeForWidth) : pxToEMU(targetSizeForWidth),
@@ -12605,7 +12608,7 @@ describe('<img> tag', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12634,7 +12637,7 @@ describe('<img> tag', () => {
         const displayTemplateCustomHeightStr = `<img src="${imageDataSrc.slice(0, 20)}" style="height: ${targetSizeForHeight}${unit}" />`
 
         it(`${mode} mode - <img> custom size (height set and width automatic - keep aspect ratio) ${displayTemplateCustomHeightStr}`, async () => {
-          const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+          const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
           const targetCustomImageSize = {
             // width is calculated automatically based on aspect ratio of image
@@ -12658,7 +12661,7 @@ describe('<img> tag', () => {
           })
 
           // Write document for easier debugging
-          fs.writeFileSync('out.docx', result.content)
+          fs.writeFileSync(outputPath, result.content)
 
           const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
           const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12688,7 +12691,7 @@ describe('<img> tag', () => {
     const templateUrlStr = '<img src="https://some-server.com/some-image.png" />'
 
     it(`${mode} mode - <img> ${templateUrlStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       reporter.tests.beforeRenderEval((req, res, { require }) => {
         require('nock')('https://some-server.com')
@@ -12710,12 +12713,12 @@ describe('<img> tag', () => {
         },
         data: {
           html: createHtml(templateStr, []),
-          imagePath: path.join(__dirname, 'image.png')
+          imagePath: path.join(docxDirPath, 'image.png')
         }
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12746,7 +12749,7 @@ describe('<img> tag', () => {
     const displayTemplateAltStr = `<img alt="${customAlt}" src="${imageDataSrc.slice(0, 20)}" />`
 
     it(`${mode} mode - <img> ${displayTemplateAltStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
         template: {
@@ -12764,7 +12767,7 @@ describe('<img> tag', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12800,7 +12803,7 @@ describe('<img> tag', () => {
     const displayTemplateLinkStr = `<a href="${customLink}"><img src="${imageDataSrc.slice(0, 20)}"</a>`
 
     it(`${mode} mode - <img> ${displayTemplateLinkStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await reporter.render({
         template: {
@@ -12818,7 +12821,7 @@ describe('<img> tag', () => {
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12882,7 +12885,7 @@ function commonWithText ({
     const templateStr = wrapWithLevel(createTagTemplate(tag, '...'))
 
     it(`${mode} mode - <${tag}>${alias} as ${level} ${templateStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await getReporter().render({
         template: {
@@ -12900,7 +12903,7 @@ function commonWithText ({
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12927,7 +12930,7 @@ function commonWithText ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} preserve properties of element in template ${wrapWithLevel(createTagTemplate(tag, '...'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-preserve-properties' : 'html-embed-inline-preserve-properties'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-preserve-properties' : 'html-embed-inline-preserve-properties'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -12945,7 +12948,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -12972,7 +12975,7 @@ function commonWithText ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} and leading text sibling ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -12990,7 +12993,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13028,7 +13031,7 @@ function commonWithText ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} and trailing text sibling ${wrapWithLevel(`${createTagTemplate(tag, '...')}...`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13046,7 +13049,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13084,7 +13087,7 @@ function commonWithText ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with leading and trailing text siblings ${wrapWithLevel(`...${createTagTemplate(tag, '...')}...`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13102,7 +13105,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13148,7 +13151,7 @@ function commonWithText ({
 
   if (mode === 'inline' && parent == null) {
     it(`${mode} mode - <${tag}> as ${level} with leading text in docx ${wrapWithLevel(createTagTemplate(tag, '...'))}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline-with-leading-text.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline-with-leading-text.docx'))
 
       const result = await getReporter().render({
         template: {
@@ -13166,7 +13169,7 @@ function commonWithText ({
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
@@ -13193,7 +13196,7 @@ function commonWithText ({
     })
 
     it(`${mode} mode - <${tag}> as ${level} with trailing text in docx ${wrapWithLevel(createTagTemplate(tag, '...'))}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline-with-trailing-text.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline-with-trailing-text.docx'))
 
       const result = await getReporter().render({
         template: {
@@ -13211,7 +13214,7 @@ function commonWithText ({
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
@@ -13238,7 +13241,7 @@ function commonWithText ({
     })
 
     it(`${mode} mode - <${tag}> as ${level} with leading and trailing text in docx ${wrapWithLevel(createTagTemplate(tag, '...'))}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, 'html-embed-inline-with-text.docx'))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, 'html-embed-inline-with-text.docx'))
 
       const result = await getReporter().render({
         template: {
@@ -13256,7 +13259,7 @@ function commonWithText ({
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, '{{docxHtml content=html inline=true}}')
@@ -13284,7 +13287,7 @@ function commonWithText ({
   }
 
   it(`${mode} mode - <${tag}> as ${level} in document header ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header' : 'html-embed-inline-header'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-header' : 'html-embed-inline-header'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13303,7 +13306,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc, header1TemplateDoc, header2TemplateDoc, header3TemplateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
     const [doc, header1Doc, header2Doc, header3Doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', ...outputDocuments])
@@ -13373,7 +13376,7 @@ function commonWithText ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} in document footer ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-footer' : 'html-embed-inline-footer'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-footer' : 'html-embed-inline-footer'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13392,7 +13395,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc, footer1TemplateDoc, footer2TemplateDoc, footer3TemplateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
     const [doc, footer1Doc, footer2Doc, footer3Doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml', ...outputDocuments])
@@ -13462,7 +13465,7 @@ function commonWithText ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} in document header and footer ${wrapWithLevel(`...${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block-header-footer' : 'html-embed-inline-header-footer'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block-header-footer' : 'html-embed-inline-header-footer'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13482,7 +13485,7 @@ function commonWithText ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc, header1TemplateDoc, header2TemplateDoc, header3TemplateDoc, footer1TemplateDoc, footer2TemplateDoc, footer3TemplateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'])
     const [doc, header1Doc, header2Doc, header3Doc, footer1Doc, footer2Doc, footer3Doc, ...restOfDocuments] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml', 'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml', ...outputDocuments])
@@ -13568,7 +13571,7 @@ function commonWithInlineAndBlockSiblings ({
   textAssert
 }) {
   it(`${mode} mode - <${tag}> as ${level} and leading inline sibling ${wrapWithLevel(`<span>...</span>${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13586,7 +13589,7 @@ function commonWithInlineAndBlockSiblings ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13624,7 +13627,7 @@ function commonWithInlineAndBlockSiblings ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} and trailing inline sibling ${wrapWithLevel(`${createTagTemplate(tag, '...')}<span>...</span>`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13642,7 +13645,7 @@ function commonWithInlineAndBlockSiblings ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13683,7 +13686,7 @@ function commonWithInlineAndBlockSiblings ({
     const templateStr = wrapWithLevel(`<span>...</span>${createTagTemplate(tag, '...')}<span>...</span>`)
 
     it(`${mode} mode - <${tag}>${alias} as ${level} with leading and trailing inline siblings ${templateStr}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await getReporter().render({
         template: {
@@ -13701,7 +13704,7 @@ function commonWithInlineAndBlockSiblings ({
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13747,7 +13750,7 @@ function commonWithInlineAndBlockSiblings ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} and leading block sibling ${wrapWithLevel(`<p>...</p>${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13765,7 +13768,7 @@ function commonWithInlineAndBlockSiblings ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13803,7 +13806,7 @@ function commonWithInlineAndBlockSiblings ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} and trailing block sibling ${wrapWithLevel(`${createTagTemplate(tag, '...')}<p>...</p>`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13821,7 +13824,7 @@ function commonWithInlineAndBlockSiblings ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13860,7 +13863,7 @@ function commonWithInlineAndBlockSiblings ({
 
   repeatWithAlias(tag, (tag, alias) => {
     it(`${mode} mode - <${tag}>${alias} as ${level} with leading and trailing block siblings ${wrapWithLevel(`<p>...</p>${createTagTemplate(tag, '...')}<p>...</p>`)}`, async () => {
-      const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+      const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
       const result = await getReporter().render({
         template: {
@@ -13878,7 +13881,7 @@ function commonWithInlineAndBlockSiblings ({
       })
 
       // Write document for easier debugging
-      fs.writeFileSync('out.docx', result.content)
+      fs.writeFileSync(outputPath, result.content)
 
       const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
       const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13924,7 +13927,7 @@ function commonWithInlineAndBlockSiblings ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with same as sibling ${wrapWithLevel(`${createTagTemplate(tag, '...')}${createTagTemplate(tag, '...')}`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -13942,7 +13945,7 @@ function commonWithInlineAndBlockSiblings ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -13993,7 +13996,7 @@ function commonWithInlineBlockChildren ({
   textAssert
 }) {
   it(`${mode} mode - <${tag}> as ${level} with leading inline child ${wrapWithLevel(createTagTemplate(tag, '<span>...</span>...'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14011,7 +14014,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14036,7 +14039,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with trailing inline child ${wrapWithLevel(createTagTemplate(tag, '...<span>...</span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14054,7 +14057,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14079,7 +14082,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with leading and trailing inline children ${wrapWithLevel(createTagTemplate(tag, '<span>...</span>...<span>...</span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14097,7 +14100,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14124,7 +14127,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with inline children ${wrapWithLevel(createTagTemplate(tag, '<span>...</span><span>...</span><span>...</span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14142,7 +14145,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14169,7 +14172,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with inline nested child ${wrapWithLevel(createTagTemplate(tag, '<span><span>...</span></span>'))}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14187,7 +14190,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14213,7 +14216,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with leading block child ${wrapWithLevel(createTagTemplate(tag, '<p>...</p>...'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14231,7 +14234,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14269,7 +14272,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with trailing block child ${wrapWithLevel(createTagTemplate(tag, '...<p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14287,7 +14290,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14325,7 +14328,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with leading and trailing block children ${wrapWithLevel(createTagTemplate(tag, '<p>...</p>...<p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14343,7 +14346,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14388,7 +14391,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with block children ${wrapWithLevel(createTagTemplate(tag, '<p>...</p><p>...</p><p>...</p>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14406,7 +14409,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14451,7 +14454,7 @@ function commonWithInlineBlockChildren ({
   })
 
   it(`${mode} mode - <${tag}> as ${level} with block nested child ${wrapWithLevel(createTagTemplate(tag, '<div><div>...</div></div>'), parent === 'block' ? 'div' : null)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14469,7 +14472,7 @@ function commonWithInlineBlockChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)
@@ -14513,7 +14516,7 @@ function commonWithSameNestedChildren ({
   }
 
   it(`${mode} mode - <${tag}> as ${level} with same nested children ${wrapWithLevel(`<${tag}>...<${tag}>...<${tag}>...<${tag}>...</$${tag}><${tag}>...</${tag}>...</${tag}>...</${tag}>...</${tag}>`)}`, async () => {
-    const docxTemplateBuf = fs.readFileSync(path.join(__dirname, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
+    const docxTemplateBuf = fs.readFileSync(path.join(docxDirPath, `${mode === 'block' ? 'html-embed-block' : 'html-embed-inline'}.docx`))
 
     const result = await getReporter().render({
       template: {
@@ -14531,7 +14534,7 @@ function commonWithSameNestedChildren ({
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [templateDoc] = await getDocumentsFromDocxBuf(docxTemplateBuf, ['word/document.xml'])
     const templateTextNodesForDocxHtml = getTextNodesMatching(templateDoc, `{{docxHtml content=html${mode === 'block' ? '' : ' inline=true'}}}`)

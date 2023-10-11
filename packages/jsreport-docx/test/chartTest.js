@@ -8,6 +8,9 @@ const toExcelDate = require('js-excel-date-convert').toExcelDate
 const { nodeListToArray, findChildNode } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx chart', () => {
   let reporter
 
@@ -46,7 +49,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart.docx'))
           }
         }
       },
@@ -94,7 +97,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-data-series.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-data-series.docx'))
           }
         }
       },
@@ -135,7 +138,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-data-series.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-data-series.docx'))
           }
         }
       },
@@ -173,7 +176,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-data-series.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-data-series.docx'))
           }
         }
       },
@@ -218,7 +221,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-options-axis.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-options-axis.docx'))
           }
         }
       },
@@ -278,7 +281,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-options-axis.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-options-axis.docx'))
           }
         }
       },
@@ -341,7 +344,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-options-axis.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-options-axis.docx'))
           }
         }
       },
@@ -405,7 +408,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-options-axis.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-options-axis.docx'))
           }
         }
       },
@@ -471,7 +474,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-options-axis.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-options-axis.docx'))
           }
         }
       },
@@ -529,7 +532,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'basic-scatter-chart-datalabels.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'basic-scatter-chart-datalabels.docx'))
           }
         }
       },
@@ -577,7 +580,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-with-no-style-colors-xml-files.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-with-no-style-colors-xml-files.docx'))
           }
         }
       },
@@ -615,7 +618,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-with-title.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-with-title.docx'))
           }
         }
       },
@@ -627,7 +630,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
@@ -652,7 +655,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-with-dynamic-title.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-with-dynamic-title.docx'))
           }
         }
       },
@@ -665,7 +668,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
@@ -690,7 +693,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-block-check.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-title-if-block-check.docx'))
           }
         }
       },
@@ -702,7 +705,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -740,7 +743,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'scatter-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'scatter-chart.docx'))
           }
         }
       },
@@ -790,7 +793,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'bubble-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'bubble-chart.docx'))
           }
         }
       },
@@ -856,7 +859,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'stock-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'stock-chart.docx'))
           }
         }
       },
@@ -908,7 +911,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'combo-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'combo-chart.docx'))
           }
         }
       },
@@ -920,7 +923,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
     const barChart = doc.getElementsByTagName('c:barChart')[0]
@@ -981,7 +984,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'waterfall-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'waterfall-chart.docx'))
           }
         }
       },
@@ -1056,7 +1059,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'funnel-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'funnel-chart.docx'))
           }
         }
       },
@@ -1157,7 +1160,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'treemap-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'treemap-chart.docx'))
           }
         }
       },
@@ -1260,7 +1263,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'sunburst-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'sunburst-chart.docx'))
           }
         }
       },
@@ -1354,7 +1357,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'clusteredColumn-chart.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'clusteredColumn-chart.docx'))
           }
         }
       },
@@ -1401,7 +1404,7 @@ describe('docx chart', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'chart-error-data.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'chart-error-data.docx'))
             }
           }
         },
@@ -1420,7 +1423,7 @@ describe('docx chart', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'chart-error-data.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'chart-error-data.docx'))
             }
           }
         },
@@ -1439,7 +1442,7 @@ describe('docx chart', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'chart-error-data.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'chart-error-data.docx'))
             }
           }
         },
@@ -1484,7 +1487,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-loop.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-loop.docx'))
           }
         }
       },
@@ -1493,7 +1496,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const chartDrawingEls = nodeListToArray(doc.getElementsByTagName('c:chart'))
@@ -1578,7 +1581,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-loop-axis-titles.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-loop-axis-titles.docx'))
           }
         }
       },
@@ -1587,7 +1590,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const chartDrawingEls = nodeListToArray(doc.getElementsByTagName('c:chart'))
@@ -1690,7 +1693,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-loop-secondary-axis-titles.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-loop-secondary-axis-titles.docx'))
           }
         }
       },
@@ -1699,7 +1702,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const chartDrawingEls = nodeListToArray(doc.getElementsByTagName('c:chart'))
@@ -1785,7 +1788,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-serie-style.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-serie-style.docx'))
           }
         }
       },
@@ -1797,7 +1800,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -1823,7 +1826,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-serie-number-format.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-serie-number-format.docx'))
           }
         }
       },
@@ -1835,7 +1838,7 @@ describe('docx chart', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -1861,7 +1864,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-header.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-header.docx'))
           }
         }
       },
@@ -1882,7 +1885,7 @@ describe('docx chart', () => {
       nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('chart in document footer', async () => {
@@ -1901,7 +1904,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-footer.docx'))
           }
         }
       },
@@ -1922,7 +1925,7 @@ describe('docx chart', () => {
       nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(datasets[idx].data)
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('chart in document header and footer', async () => {
@@ -1954,7 +1957,7 @@ describe('docx chart', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'chart-header-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'chart-header-footer.docx'))
           }
         }
       },
@@ -1981,6 +1984,6 @@ describe('docx chart', () => {
       nodeListToArray(dataEl.getElementsByTagName('c:val')[0].getElementsByTagName('c:v')).map((el) => parseInt(el.textContent, 10)).should.be.eql(chartData2.datasets[idx].data)
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 })

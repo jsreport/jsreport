@@ -5,6 +5,9 @@ const styleAttr = require('style-attr')
 const { nodeListToArray } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx watermark', () => {
   let reporter
 
@@ -34,7 +37,7 @@ describe('docx watermark', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'watermark.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'watermark.docx'))
           }
         }
       },
@@ -43,7 +46,7 @@ describe('docx watermark', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [header1, header2, header3] = await getDocumentsFromDocxBuf(result.content, ['word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -71,7 +74,7 @@ describe('docx watermark', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'watermark-hide.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'watermark-hide.docx'))
           }
         }
       },
@@ -81,7 +84,7 @@ describe('docx watermark', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [header1, header2, header3] = await getDocumentsFromDocxBuf(result.content, ['word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -97,7 +100,7 @@ describe('docx watermark', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'watermark-style.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'watermark-style.docx'))
           }
         }
       },
@@ -113,7 +116,7 @@ describe('docx watermark', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [header1, header2, header3] = await getDocumentsFromDocxBuf(result.content, ['word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -160,7 +163,7 @@ describe('docx watermark', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'watermark-style-transparency.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'watermark-style-transparency.docx'))
           }
         }
       },
@@ -172,7 +175,7 @@ describe('docx watermark', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [header1, header2, header3] = await getDocumentsFromDocxBuf(result.content, ['word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -196,7 +199,7 @@ describe('docx watermark', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'watermark-style-orientation.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'watermark-style-orientation.docx'))
           }
         }
       },
@@ -208,7 +211,7 @@ describe('docx watermark', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [header1, header2, header3] = await getDocumentsFromDocxBuf(result.content, ['word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
@@ -247,7 +250,7 @@ describe('docx watermark', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'watermark-style-orientation.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'watermark-style-orientation.docx'))
           }
         }
       },
@@ -259,7 +262,7 @@ describe('docx watermark', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [header1, header2, header3] = await getDocumentsFromDocxBuf(result.content, ['word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 

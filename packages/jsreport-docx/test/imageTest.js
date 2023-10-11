@@ -6,6 +6,9 @@ const sizeOf = require('image-size')
 const { nodeListToArray, pxToEMU, cmToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { getDocumentsFromDocxBuf, getImageSize } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx image', () => {
   let reporter
 
@@ -29,7 +32,7 @@ describe('docx image', () => {
   })
 
   it('image', async () => {
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
     const imageDimensions = sizeOf(imageBuf)
 
     const targetImageSize = {
@@ -43,7 +46,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
           }
         }
       },
@@ -58,11 +61,11 @@ describe('docx image', () => {
     outputImageSize.width.should.be.eql(targetImageSize.width)
     outputImageSize.height.should.be.eql(targetImageSize.height)
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('image from async result', async () => {
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
     const imageDimensions = sizeOf(imageBuf)
 
     const targetImageSize = {
@@ -76,7 +79,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-async.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-async.docx'))
           }
         },
         helpers: `
@@ -93,12 +96,12 @@ describe('docx image', () => {
     outputImageSize.width.should.be.eql(targetImageSize.width)
     outputImageSize.height.should.be.eql(targetImageSize.height)
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('image with placeholder size (usePlaceholderSize)', async () => {
     const docxBuf = fs.readFileSync(
-      path.join(__dirname, 'image-use-placeholder-size.docx')
+      path.join(docxDirPath, 'image-use-placeholder-size.docx')
     )
 
     const placeholderImageSize = await getImageSize(docxBuf)
@@ -116,7 +119,7 @@ describe('docx image', () => {
       data: {
         src:
           'data:image/png;base64,' +
-          fs.readFileSync(path.join(__dirname, 'image.png')).toString('base64')
+          fs.readFileSync(path.join(docxDirPath, 'image.png')).toString('base64')
       }
     })
 
@@ -125,7 +128,7 @@ describe('docx image', () => {
     outputImageSize.width.should.be.eql(placeholderImageSize.width)
     outputImageSize.height.should.be.eql(placeholderImageSize.height)
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   const units = ['cm', 'px']
@@ -135,7 +138,7 @@ describe('docx image', () => {
       it('image with custom size (width, height)', async () => {
         const docxBuf = fs.readFileSync(
           path.join(
-            __dirname,
+            docxDirPath,
             unit === 'cm'
               ? 'image-custom-size.docx'
               : 'image-custom-size-px.docx'
@@ -162,7 +165,7 @@ describe('docx image', () => {
             src:
               'data:image/png;base64,' +
               fs
-                .readFileSync(path.join(__dirname, 'image.png'))
+                .readFileSync(path.join(docxDirPath, 'image.png'))
                 .toString('base64')
           }
         })
@@ -172,13 +175,13 @@ describe('docx image', () => {
         outputImageSize.width.should.be.eql(targetImageSize.width)
         outputImageSize.height.should.be.eql(targetImageSize.height)
 
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
       })
 
       it('image with custom size (width set and height automatic - keep aspect ratio)', async () => {
         const docxBuf = fs.readFileSync(
           path.join(
-            __dirname,
+            docxDirPath,
             unit === 'cm'
               ? 'image-custom-size-width.docx'
               : 'image-custom-size-width-px.docx'
@@ -209,7 +212,7 @@ describe('docx image', () => {
             src:
               'data:image/png;base64,' +
               fs
-                .readFileSync(path.join(__dirname, 'image.png'))
+                .readFileSync(path.join(docxDirPath, 'image.png'))
                 .toString('base64')
           }
         })
@@ -219,13 +222,13 @@ describe('docx image', () => {
         outputImageSize.width.should.be.eql(targetImageSize.width)
         outputImageSize.height.should.be.eql(targetImageSize.height)
 
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
       })
 
       it('image with custom size (height set and width automatic - keep aspect ratio)', async () => {
         const docxBuf = fs.readFileSync(
           path.join(
-            __dirname,
+            docxDirPath,
             unit === 'cm'
               ? 'image-custom-size-height.docx'
               : 'image-custom-size-height-px.docx'
@@ -256,7 +259,7 @@ describe('docx image', () => {
             src:
               'data:image/png;base64,' +
               fs
-                .readFileSync(path.join(__dirname, 'image.png'))
+                .readFileSync(path.join(docxDirPath, 'image.png'))
                 .toString('base64')
           }
         })
@@ -266,13 +269,13 @@ describe('docx image', () => {
         outputImageSize.width.should.be.eql(targetImageSize.width)
         outputImageSize.height.should.be.eql(targetImageSize.height)
 
-        fs.writeFileSync('out.docx', result.content)
+        fs.writeFileSync(outputPath, result.content)
       })
     })
   })
 
   it('image with hyperlink inside', async () => {
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
 
     const result = await reporter.render({
       template: {
@@ -280,7 +283,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-with-hyperlink.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-with-hyperlink.docx'))
           }
         }
       },
@@ -290,7 +293,7 @@ describe('docx image', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc, docRels] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'])
     const drawingEls = doc.getElementsByTagName('w:drawing')
@@ -323,7 +326,7 @@ describe('docx image', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'image.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
             }
           }
         },
@@ -352,13 +355,13 @@ describe('docx image', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'image.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
             }
           }
         },
         data: {
           src: url,
-          imagePath: path.join(__dirname, 'image.png')
+          imagePath: path.join(docxDirPath, 'image.png')
         }
       }).should.not.be.rejectedWith(/src parameter to be set/)
   })
@@ -381,13 +384,13 @@ describe('docx image', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'image.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
             }
           }
         },
         data: {
           src: url,
-          imagePath: path.join(__dirname, 'image.png')
+          imagePath: path.join(docxDirPath, 'image.png')
         }
       })
 
@@ -403,7 +406,7 @@ describe('docx image', () => {
           recipe: 'docx',
           docx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'image.docx'))
+              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
             }
           }
         },
@@ -425,7 +428,7 @@ describe('docx image', () => {
           docx: {
             templateAsset: {
               content: fs.readFileSync(
-                path.join(__dirname, 'image-with-wrong-width.docx')
+                path.join(docxDirPath, 'image-with-wrong-width.docx')
               )
             }
           }
@@ -434,7 +437,7 @@ describe('docx image', () => {
           src:
             'data:image/png;base64,' +
             fs
-              .readFileSync(path.join(__dirname, 'image.png'))
+              .readFileSync(path.join(docxDirPath, 'image.png'))
               .toString('base64')
         }
       })
@@ -452,7 +455,7 @@ describe('docx image', () => {
           docx: {
             templateAsset: {
               content: fs.readFileSync(
-                path.join(__dirname, 'image-with-wrong-height.docx')
+                path.join(docxDirPath, 'image-with-wrong-height.docx')
               )
             }
           }
@@ -461,7 +464,7 @@ describe('docx image', () => {
           src:
             'data:image/png;base64,' +
             fs
-              .readFileSync(path.join(__dirname, 'image.png'))
+              .readFileSync(path.join(docxDirPath, 'image.png'))
               .toString('base64')
         }
       })
@@ -472,8 +475,8 @@ describe('docx image', () => {
 
   it('image loop', async () => {
     const images = [
-      fs.readFileSync(path.join(__dirname, 'image.png')),
-      fs.readFileSync(path.join(__dirname, 'image2.png'))
+      fs.readFileSync(path.join(docxDirPath, 'image.png')),
+      fs.readFileSync(path.join(docxDirPath, 'image2.png'))
     ]
 
     const result = await reporter.render({
@@ -482,7 +485,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-loop.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-loop.docx'))
           }
         }
       },
@@ -495,7 +498,7 @@ describe('docx image', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
@@ -532,11 +535,11 @@ describe('docx image', () => {
     const images = [
       {
         url: 'https://jsreport.net',
-        buf: fs.readFileSync(path.join(__dirname, 'image.png'))
+        buf: fs.readFileSync(path.join(docxDirPath, 'image.png'))
       },
       {
         url: 'https://www.google.com/intl/es-419/chrome/',
-        buf: fs.readFileSync(path.join(__dirname, 'image2.png'))
+        buf: fs.readFileSync(path.join(docxDirPath, 'image2.png'))
       }
     ]
 
@@ -546,7 +549,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-loop-url.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-loop-url.docx'))
           }
         }
       },
@@ -560,7 +563,7 @@ describe('docx image', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
@@ -599,8 +602,8 @@ describe('docx image', () => {
   })
 
   it('image loop with bookmarks', async () => {
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'cuzco1.jpg'))
-    const image2Buf = fs.readFileSync(path.join(__dirname, 'cuzco2.jpg'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'cuzco1.jpg'))
+    const image2Buf = fs.readFileSync(path.join(docxDirPath, 'cuzco2.jpg'))
 
     const data = {
       rows: [{
@@ -622,14 +625,14 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-bookmark-loop.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-bookmark-loop.docx'))
           }
         }
       },
       data
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
@@ -670,9 +673,9 @@ describe('docx image', () => {
   })
 
   it('image in document header', async () => {
-    const headerImageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const headerImageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
     const headerImageDimensions = sizeOf(headerImageBuf)
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
     const imageDimensions = sizeOf(imageBuf)
 
     const targetHeaderImageSize = {
@@ -691,7 +694,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-header.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-header.docx'))
           }
         }
       },
@@ -725,13 +728,13 @@ describe('docx image', () => {
     withImageInHeader[0].width.should.be.eql(targetHeaderImageSize.width)
     withImageInHeader[0].height.should.be.eql(targetHeaderImageSize.height)
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('image in document footer', async () => {
-    const footerImageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const footerImageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
     const footerImageDimensions = sizeOf(footerImageBuf)
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
     const imageDimensions = sizeOf(imageBuf)
 
     const targetFooterImageSize = {
@@ -750,7 +753,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-footer.docx'))
           }
         }
       },
@@ -784,13 +787,13 @@ describe('docx image', () => {
     withImageInFooter[0].width.should.be.eql(targetFooterImageSize.width)
     withImageInFooter[0].height.should.be.eql(targetFooterImageSize.height)
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('image in document header and footer', async () => {
-    const headerFooterImageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
+    const headerFooterImageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
     const headerFooterImageDimensions = sizeOf(headerFooterImageBuf)
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image2.png'))
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image2.png'))
     const imageDimensions = sizeOf(imageBuf)
 
     const targetHeaderFooterImageSize = {
@@ -809,7 +812,7 @@ describe('docx image', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image-header-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'image-header-footer.docx'))
           }
         }
       },
@@ -862,6 +865,6 @@ describe('docx image', () => {
     withImageInFooter[0].width.should.be.eql(targetHeaderFooterImageSize.width)
     withImageInFooter[0].height.should.be.eql(targetHeaderFooterImageSize.height)
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 })

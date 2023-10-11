@@ -7,6 +7,10 @@ const { getDocumentsFromDocxBuf } = require('./utils')
 const { nodeListToArray } = require('../lib/utils')
 const extractor = new WordExtractor()
 
+const docxDirPath = path.join(__dirname, './docx')
+const dataDirPath = path.join(__dirname, './data')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx table', () => {
   let reporter
 
@@ -36,7 +40,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table.docx'))
           }
         }
       },
@@ -58,7 +62,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan')
     text.should.containEql('Boris')
@@ -72,7 +76,7 @@ describe('docx table', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'table-and-links.docx')
+              path.join(docxDirPath, 'table-and-links.docx')
             )
           }
         }
@@ -104,7 +108,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
 
     text.should.containEql('Go to the site1')
@@ -120,7 +124,7 @@ describe('docx table', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'table-and-endnotes.docx')
+              path.join(docxDirPath, 'table-and-endnotes.docx')
             )
           }
         }
@@ -155,7 +159,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getEndnotes()
 
     text.should.containEql('note site1')
@@ -171,7 +175,7 @@ describe('docx table', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'table-and-footnotes.docx')
+              path.join(docxDirPath, 'table-and-footnotes.docx')
             )
           }
         }
@@ -206,7 +210,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getFootnotes()
 
     text.should.containEql('note site1')
@@ -221,7 +225,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-nested.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-nested.docx'))
           }
         }
       },
@@ -252,7 +256,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const text = (await extractor.extract(result.content)).getBody()
 
@@ -271,7 +275,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-vertical.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-vertical.docx'))
           }
         }
       },
@@ -293,7 +297,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Jan')
     text.should.containEql('jan.blaha@foo.com')
@@ -310,7 +314,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -324,7 +328,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Name')
     text.should.containEql('Email')
@@ -343,7 +347,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns-block.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns-block.docx'))
           }
         }
       },
@@ -357,7 +361,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('Name')
     text.should.containEql('Email')
@@ -376,7 +380,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns-block-index.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns-block-index.docx'))
           }
         }
       },
@@ -390,7 +394,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('0-0')
     text.should.containEql('0-1')
@@ -409,7 +413,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns-block-parent.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns-block-parent.docx'))
           }
         }
       },
@@ -424,7 +428,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     text.should.containEql('My Table - Name')
     text.should.containEql('My Table - Email')
@@ -443,7 +447,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -463,7 +467,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -487,7 +491,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -501,7 +505,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -519,7 +523,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -533,7 +537,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -551,7 +555,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -571,7 +575,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -595,7 +599,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -609,7 +613,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -627,7 +631,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns.docx'))
           }
         }
       },
@@ -644,7 +648,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -665,7 +669,7 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-rows-columns-block-index.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-rows-columns-block-index.docx'))
           }
         }
       },
@@ -682,7 +686,7 @@ describe('docx table', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody().replace(/^\n*|\n*$/g, '')
 
     text.should.be.eql([
@@ -703,14 +707,14 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-conditional-cells-content.docx'))
           }
         }
       },
-      data: JSON.parse(fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content.json'), 'utf8'))
+      data: JSON.parse(fs.readFileSync(path.join(dataDirPath, 'table-conditional-cells-content.json'), 'utf8'))
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const cellEls = nodeListToArray(doc.getElementsByTagName('w:tc'))
@@ -731,14 +735,14 @@ describe('docx table', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content2.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'table-conditional-cells-content2.docx'))
           }
         }
       },
-      data: JSON.parse(fs.readFileSync(path.join(__dirname, 'table-conditional-cells-content.json'), 'utf8'))
+      data: JSON.parse(fs.readFileSync(path.join(dataDirPath, 'table-conditional-cells-content.json'), 'utf8'))
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const cellEls = nodeListToArray(doc.getElementsByTagName('w:tc'))

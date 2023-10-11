@@ -5,6 +5,9 @@ const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx raw', () => {
   let reporter
 
@@ -34,7 +37,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw.docx'))
           }
         }
       },
@@ -51,7 +54,7 @@ describe('docx raw', () => {
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const generalTextElements = nodeListToArray(doc.getElementsByTagName('w:t'))
@@ -129,7 +132,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-no-parameter.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-no-parameter.docx'))
           }
         }
       },
@@ -148,7 +151,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-no-xml-parameter.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-no-xml-parameter.docx'))
           }
         }
       },
@@ -163,7 +166,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-no-replaceParentElement-parameter.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-no-replaceParentElement-parameter.docx'))
           }
         }
       },
@@ -178,7 +181,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-invalid-replaceParentElement-value.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-invalid-replaceParentElement-value.docx'))
           }
         }
       },
@@ -193,7 +196,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-invalid-wtc-location.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-invalid-wtc-location.docx'))
           }
         }
       },
