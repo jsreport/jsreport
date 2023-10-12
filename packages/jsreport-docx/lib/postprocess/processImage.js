@@ -1,7 +1,7 @@
 const { resolveImageSrc, getImageSizeInEMU } = require('../imageUtils')
-const { nodeListToArray, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
+const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
 
-module.exports = async function processImage (files, referenceDrawingEl, relsDoc, newRelIdCounterMap, newBookmarksMap) {
+module.exports = async function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const types = contentTypesFile.doc.getElementsByTagName('Types')[0]
@@ -119,7 +119,9 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
 
   files.push({
     path: `word/media/imageDocx${newImageRelId}.${imageExtension}`,
-    data: imageBuffer
+    data: imageBuffer,
+    // this will make it store the svg file to be stored correctly
+    serializeFromDoc: false
   })
 
   const existsTypeForImageExtension = nodeListToArray(types.getElementsByTagName('Default')).find(
@@ -129,13 +131,13 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
   if (!existsTypeForImageExtension) {
     const newDefault = contentTypesFile.doc.createElement('Default')
     newDefault.setAttribute('Extension', imageExtension)
-    newDefault.setAttribute('ContentType', `image/${imageExtension}`)
+    newDefault.setAttribute('ContentType', `image/${imageExtension}${imageExtension === 'svg' ? '+xml' : ''}`)
     types.appendChild(newDefault)
   }
 
   relsEl.appendChild(relEl)
 
-  const relPlaceholder = pictureEl.getElementsByTagName('a:blip')[0]
+  const blipEl = pictureEl.getElementsByTagName('a:blip')[0]
   const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
   const wpExtentEl = pictureElInfo.wpExtent
 
@@ -156,7 +158,42 @@ module.exports = async function processImage (files, referenceDrawingEl, relsDoc
     imageHeightEMU = imageSizeEMU.height
   }
 
-  relPlaceholder.setAttribute('r:embed', newImageRelId)
+  // when the image is SVG, docx allows that we set here a reference to a fallback png image,
+  // the fallback is used in office versions that don't support SVG (< office 2016).
+  // however since we only have access to the svg file, we don't set any fallback and just
+  // set the reference to the same svg file.
+  // NOTE: office seems to also use the fallback image for the preview (when the office file is shown in the OS file explorer)
+  // so in our implementation (which does not use fallback image) we just see an empty frame in the preview but
+  // the svg image works as expected inside the office
+  blipEl.setAttribute('r:embed', newImageRelId)
+
+  const extLstEl = findOrCreateChildNode(doc, 'a:extLst', blipEl)
+  const existingSVGBlipExt = nodeListToArray(extLstEl.childNodes).find((el) => el.getAttribute('uri') === '{96DAC541-7B7A-43D3-8B79-37D633B846F1}')
+
+  if (imageExtension === 'svg') {
+    blipEl.removeAttribute('cstate')
+
+    if (!existingSVGBlipExt) {
+      const svgBlipExtEl = doc.createElement('a:ext')
+      svgBlipExtEl.setAttribute('uri', '{96DAC541-7B7A-43D3-8B79-37D633B846F1}')
+
+      const asvgBlipEl = doc.createElement('asvg:svgBlip')
+      asvgBlipEl.setAttribute('xmlns:asvg', 'http://schemas.microsoft.com/office/drawing/2016/SVG/main')
+      asvgBlipEl.setAttribute('r:embed', newImageRelId)
+
+      svgBlipExtEl.appendChild(asvgBlipEl)
+      extLstEl.appendChild(svgBlipExtEl)
+    } else {
+      const asvgBlipEl = findOrCreateChildNode(doc, 'asvg:svgBlip', existingSVGBlipExt)
+      asvgBlipEl.setAttribute('xmlns:asvg', 'http://schemas.microsoft.com/office/drawing/2016/SVG/main')
+      asvgBlipEl.setAttribute('r:embed', newImageRelId)
+    }
+  } else {
+    if (existingSVGBlipExt) {
+      // if the placeholder image is svg and the new image is not svg then we remove the svg blip ext
+      existingSVGBlipExt.parentNode.removeChild(existingSVGBlipExt)
+    }
+  }
 
   if (wpExtentEl) {
     wpExtentEl.setAttribute('cx', imageWidthEMU)

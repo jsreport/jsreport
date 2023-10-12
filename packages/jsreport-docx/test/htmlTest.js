@@ -4,7 +4,7 @@ const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
 const WordExtractor = require('word-extractor')
 const sizeOf = require('image-size')
-const { getDocumentsFromDocxBuf, getTextNodesMatching, getImageEl, getImageSize } = require('./utils')
+const { getDocumentsFromDocxBuf, getTextNodesMatching, getImageEl, getImageMeta } = require('./utils')
 const { nodeListToArray, findChildNode, pxToEMU, cmToEMU, emuToTOAP, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
 const { getSectionDetail } = require('../lib/sectionUtils')
 const { SUPPORTED_ELEMENTS, BLOCK_ELEMENTS, ELEMENTS } = require('../lib/postprocess/html/supportedElements')
@@ -12356,7 +12356,8 @@ describe('<img> tag', () => {
 
       should(paragraphNodes.length).eql(mode === 'block' ? 0 : 1)
 
-      const outputImageSize = await getImageSize(result.content)
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta?.size
 
       should(outputImageSize).be.not.ok()
     })
@@ -12398,7 +12399,8 @@ describe('<img> tag', () => {
 
       should(runNodes.length).eql(1)
 
-      const outputImageSize = await getImageSize(result.content)
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta.size
 
       // should preserve original image size by default
       outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -12455,10 +12457,11 @@ describe('<img> tag', () => {
 
       should(runNodes.length).eql(2)
 
-      const outputImageSizes = await getImageSize(result.content, null, true)
+      const outputImagesMeta = await getImageMeta(result.content, null, true)
+      const outputImagesSize = outputImagesMeta.map((item) => item.size)
       const targetImageSizes = [targetImageSize, targetImage2Size]
 
-      for (const [idx, outputImageSize] of outputImageSizes.entries()) {
+      for (const [idx, outputImageSize] of outputImagesSize.entries()) {
         // should preserve original image size by default
         outputImageSize.width.should.be.eql(targetImageSizes[idx].width)
         outputImageSize.height.should.be.eql(targetImageSizes[idx].height)
@@ -12506,7 +12509,8 @@ describe('<img> tag', () => {
 
       should(runNodes.length).eql(3)
 
-      const outputImageSize = await getImageSize(result.content)
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta.size
 
       // should preserve original image size by default
       outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -12570,7 +12574,8 @@ describe('<img> tag', () => {
 
           should(runNodes.length).eql(1)
 
-          const outputImageSize = await getImageSize(result.content)
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
 
           outputImageSize.width.should.be.eql(targetCustomImageSize.width)
           outputImageSize.height.should.be.eql(targetCustomImageSize.height)
@@ -12623,7 +12628,8 @@ describe('<img> tag', () => {
 
           should(runNodes.length).eql(1)
 
-          const outputImageSize = await getImageSize(result.content)
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
 
           outputImageSize.width.should.be.eql(targetCustomImageSize.width)
           outputImageSize.height.should.be.eql(targetCustomImageSize.height)
@@ -12676,7 +12682,8 @@ describe('<img> tag', () => {
 
           should(runNodes.length).eql(1)
 
-          const outputImageSize = await getImageSize(result.content)
+          const outputImageMeta = await getImageMeta(result.content)
+          const outputImageSize = outputImageMeta.size
 
           outputImageSize.width.should.be.eql(targetCustomImageSize.width)
           outputImageSize.height.should.be.eql(targetCustomImageSize.height)
@@ -12733,7 +12740,8 @@ describe('<img> tag', () => {
 
       should(runNodes.length).eql(1)
 
-      const outputImageSize = await getImageSize(result.content)
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta.size
 
       // should preserve original image size by default
       outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -12782,7 +12790,8 @@ describe('<img> tag', () => {
 
       should(runNodes.length).eql(1)
 
-      const outputImageSize = await getImageSize(result.content)
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta.size
 
       // should preserve original image size by default
       outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -12836,7 +12845,8 @@ describe('<img> tag', () => {
 
       should(runNodes.length).eql(1)
 
-      const outputImageSize = await getImageSize(result.content)
+      const outputImageMeta = await getImageMeta(result.content)
+      const outputImageSize = outputImageMeta.size
 
       // should preserve original image size by default
       outputImageSize.width.should.be.eql(targetImageSize.width)

@@ -4,7 +4,7 @@ const path = require('path')
 const jsreport = require('@jsreport/jsreport-core')
 const sizeOf = require('image-size')
 const { nodeListToArray, pxToEMU, cmToEMU, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../lib/utils')
-const { getDocumentsFromDocxBuf, getImageSize } = require('./utils')
+const { getDocumentsFromDocxBuf, getImageMeta } = require('./utils')
 
 const docxDirPath = path.join(__dirname, './docx')
 const outputPath = path.join(__dirname, '../out.docx')
@@ -31,104 +31,202 @@ describe('docx image', () => {
     }
   })
 
-  it('image', async () => {
-    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
-    const imageDimensions = sizeOf(imageBuf)
+  // we are testing the formats we are sure it works because we have test them manually too,
+  // however it is likely that other format of images that are not listed here also work
+  const knownFormats = ['png', 'jpeg', 'svg']
 
-    const targetImageSize = {
-      width: pxToEMU(imageDimensions.width),
-      height: pxToEMU(imageDimensions.height)
-    }
+  knownFormats.forEach(format => {
+    describe(`image format ${format}`, () => {
+      it('image', async () => {
+        const { imageBuf, imageExtension } = readImage(format, 'image')
+        const imageDimensions = sizeOf(imageBuf)
 
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
-          }
+        const targetImageSize = {
+          width: pxToEMU(imageDimensions.width),
+          height: pxToEMU(imageDimensions.height)
         }
-      },
-      data: {
-        src: 'data:image/png;base64,' + imageBuf.toString('base64')
-      }
-    })
 
-    const outputImageSize = await getImageSize(result.content)
-
-    // should preserve original image size by default
-    outputImageSize.width.should.be.eql(targetImageSize.width)
-    outputImageSize.height.should.be.eql(targetImageSize.height)
-
-    fs.writeFileSync(outputPath, result.content)
-  })
-
-  it('image from async result', async () => {
-    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
-    const imageDimensions = sizeOf(imageBuf)
-
-    const targetImageSize = {
-      width: pxToEMU(imageDimensions.width),
-      height: pxToEMU(imageDimensions.height)
-    }
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(docxDirPath, 'image-async.docx'))
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+              }
+            }
+          },
+          data: {
+            src: getImageDataUri(format, imageBuf)
           }
-        },
-        helpers: `
-        function getImage() {
-          return new Promise((resolve) => resolve('data:image/png;base64,${imageBuf.toString('base64')}') )
+        })
+
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
+
+        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        fs.writeFileSync(outputPath, result.content)
+      })
+
+      it('image from async result', async () => {
+        const { imageBuf, imageExtension } = readImage(format, 'image')
+        const imageDimensions = sizeOf(imageBuf)
+
+        const targetImageSize = {
+          width: pxToEMU(imageDimensions.width),
+          height: pxToEMU(imageDimensions.height)
         }
-        `
-      }
-    })
 
-    const outputImageSize = await getImageSize(result.content)
-
-    // should preserve original image size by default
-    outputImageSize.width.should.be.eql(targetImageSize.width)
-    outputImageSize.height.should.be.eql(targetImageSize.height)
-
-    fs.writeFileSync(outputPath, result.content)
-  })
-
-  it('image with placeholder size (usePlaceholderSize)', async () => {
-    const docxBuf = fs.readFileSync(
-      path.join(docxDirPath, 'image-use-placeholder-size.docx')
-    )
-
-    const placeholderImageSize = await getImageSize(docxBuf)
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'docx',
-        docx: {
-          templateAsset: {
-            content: docxBuf
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: fs.readFileSync(path.join(docxDirPath, 'image-async.docx'))
+              }
+            },
+            helpers: `
+            function getImage() {
+              return new Promise((resolve) => resolve('${getImageDataUri(format, imageBuf)}') )
+            }
+            `
           }
-        }
-      },
-      data: {
-        src:
-          'data:image/png;base64,' +
-          fs.readFileSync(path.join(docxDirPath, 'image.png')).toString('base64')
-      }
+        })
+
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
+
+        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+        // should preserve original image size by default
+        outputImageSize.width.should.be.eql(targetImageSize.width)
+        outputImageSize.height.should.be.eql(targetImageSize.height)
+
+        fs.writeFileSync(outputPath, result.content)
+      })
+
+      it('image can render from url', async () => {
+        const url = `https://some-server.com/some-image.${format}`
+
+        reporter.tests.beforeRenderEval((req, res, { require }) => {
+          require('nock')('https://some-server.com')
+            .get(`/some-image.${req.data.imageFormat}`)
+            .replyWithFile(200, req.data.imagePath, {
+              'content-type': req.data.imageMimeType
+            })
+        })
+
+        const { imagePath, imageExtension } = readImage(format, 'image')
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+              }
+            }
+          },
+          data: {
+            src: url,
+            imageFormat: format,
+            imageMimeType: getImageMimeType(format),
+            imagePath
+          }
+        })
+
+        const outputImageMeta = await getImageMeta(result.content)
+
+        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+        fs.writeFileSync(outputPath, result.content)
+      })
+
+      it('image can render from url with returning parametrized content type', async () => {
+        const url = `https://some-server.com/some-image.${format}`
+
+        reporter.tests.beforeRenderEval((req, res, { require }) => {
+          require('nock')('https://some-server.com')
+            .get(`/some-image.${req.data.imageFormat}`)
+            .replyWithFile(200, req.data.imagePath, {
+              'content-type': `${req.data.imageMimeType}; qs=0.7`
+            })
+        })
+
+        const { imagePath, imageExtension } = readImage(format, 'image')
+
+        const result = await reporter
+          .render({
+            template: {
+              engine: 'handlebars',
+              recipe: 'docx',
+              docx: {
+                templateAsset: {
+                  content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+                }
+              }
+            },
+            data: {
+              src: url,
+              imageFormat: format,
+              imageMimeType: getImageMimeType(format),
+              imagePath
+            }
+          })
+
+        const [contentTypesDoc] = await getDocumentsFromDocxBuf(result.content, ['[Content_Types].xml'])
+        contentTypesDoc.toString().should.not.containEql('image/png; qs=0.7')
+
+        const outputImageMeta = await getImageMeta(result.content)
+
+        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+        fs.writeFileSync(outputPath, result.content)
+      })
+
+      it('image with placeholder size (usePlaceholderSize)', async () => {
+        const { imageBuf, imageExtension } = readImage(format, 'image')
+
+        const docxBuf = fs.readFileSync(
+          path.join(docxDirPath, 'image-use-placeholder-size.docx')
+        )
+
+        const placeholderImageMeta = await getImageMeta(docxBuf)
+        const placeholderImageSize = placeholderImageMeta.size
+
+        const result = await reporter.render({
+          template: {
+            engine: 'handlebars',
+            recipe: 'docx',
+            docx: {
+              templateAsset: {
+                content: docxBuf
+              }
+            }
+          },
+          data: {
+            src: getImageDataUri(format, imageBuf)
+          }
+        })
+
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
+
+        outputImageMeta.image.extension.should.be.eql(`.${imageExtension}`)
+
+        outputImageSize.width.should.be.eql(placeholderImageSize.width)
+        outputImageSize.height.should.be.eql(placeholderImageSize.height)
+
+        fs.writeFileSync(outputPath, result.content)
+      })
     })
-
-    const outputImageSize = await getImageSize(result.content)
-
-    outputImageSize.width.should.be.eql(placeholderImageSize.width)
-    outputImageSize.height.should.be.eql(placeholderImageSize.height)
-
-    fs.writeFileSync(outputPath, result.content)
   })
 
   const units = ['cm', 'px']
@@ -170,7 +268,8 @@ describe('docx image', () => {
           }
         })
 
-        const outputImageSize = await getImageSize(result.content)
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
 
         outputImageSize.width.should.be.eql(targetImageSize.width)
         outputImageSize.height.should.be.eql(targetImageSize.height)
@@ -217,7 +316,8 @@ describe('docx image', () => {
           }
         })
 
-        const outputImageSize = await getImageSize(result.content)
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
 
         outputImageSize.width.should.be.eql(targetImageSize.width)
         outputImageSize.height.should.be.eql(targetImageSize.height)
@@ -264,7 +364,8 @@ describe('docx image', () => {
           }
         })
 
-        const outputImageSize = await getImageSize(result.content)
+        const outputImageMeta = await getImageMeta(result.content)
+        const outputImageSize = outputImageMeta.size
 
         outputImageSize.width.should.be.eql(targetImageSize.width)
         outputImageSize.height.should.be.eql(targetImageSize.height)
@@ -335,67 +436,6 @@ describe('docx image', () => {
         }
       })
       .should.be.rejectedWith(/src parameter to be set/)
-  })
-
-  it('image can render from url', async () => {
-    const url = 'https://some-server.com/some-image.png'
-
-    reporter.tests.beforeRenderEval((req, res, { require }) => {
-      require('nock')('https://some-server.com')
-        .get('/some-image.png')
-        .replyWithFile(200, req.data.imagePath, {
-          'content-type': 'image/png'
-        })
-    })
-
-    return reporter
-      .render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'docx',
-          docx: {
-            templateAsset: {
-              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
-            }
-          }
-        },
-        data: {
-          src: url,
-          imagePath: path.join(docxDirPath, 'image.png')
-        }
-      }).should.not.be.rejectedWith(/src parameter to be set/)
-  })
-
-  it('image can render from url with returning parametrized content type', async () => {
-    const url = 'https://some-server.com/some-image.png'
-
-    reporter.tests.beforeRenderEval((req, res, { require }) => {
-      require('nock')('https://some-server.com')
-        .get('/some-image.png')
-        .replyWithFile(200, req.data.imagePath, {
-          'content-type': 'image/png; qs=0.7'
-        })
-    })
-
-    const result = await reporter
-      .render({
-        template: {
-          engine: 'handlebars',
-          recipe: 'docx',
-          docx: {
-            templateAsset: {
-              content: fs.readFileSync(path.join(docxDirPath, 'image.docx'))
-            }
-          }
-        },
-        data: {
-          src: url,
-          imagePath: path.join(docxDirPath, 'image.png')
-        }
-      })
-
-    const [contentTypesDoc] = await getDocumentsFromDocxBuf(result.content, ['[Content_Types].xml'])
-    contentTypesDoc.toString().should.not.containEql('image/png; qs=0.7')
   })
 
   it('image error message when src not valid param', async () => {
@@ -704,7 +744,8 @@ describe('docx image', () => {
       }
     })
 
-    const outputImageSize = await getImageSize(result.content)
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
 
     // should preserve original image size by default
     outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -713,7 +754,8 @@ describe('docx image', () => {
     const withImageInHeader = []
 
     for (const headerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
-      const outputInHeaderImageSize = await getImageSize(result.content, headerPath)
+      const outputInHeaderImageMeta = await getImageMeta(result.content, headerPath)
+      const outputInHeaderImageSize = outputInHeaderImageMeta?.size
 
       if (outputInHeaderImageSize == null) {
         continue
@@ -763,7 +805,8 @@ describe('docx image', () => {
       }
     })
 
-    const outputImageSize = await getImageSize(result.content)
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
 
     // should preserve original image size by default
     outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -772,7 +815,8 @@ describe('docx image', () => {
     const withImageInFooter = []
 
     for (const footerPath of ['word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml']) {
-      const outputInFooterImageSize = await getImageSize(result.content, footerPath)
+      const outputInFooterImageMeta = await getImageMeta(result.content, footerPath)
+      const outputInFooterImageSize = outputInFooterImageMeta?.size
 
       if (outputInFooterImageSize == null) {
         continue
@@ -823,7 +867,8 @@ describe('docx image', () => {
       }
     })
 
-    const outputImageSize = await getImageSize(result.content)
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
 
     // should preserve original image size by default
     outputImageSize.width.should.be.eql(targetImageSize.width)
@@ -832,7 +877,8 @@ describe('docx image', () => {
     const withImageInHeader = []
 
     for (const headerPath of ['word/header1.xml', 'word/header2.xml', 'word/header3.xml']) {
-      const outputInHeaderImageSize = await getImageSize(result.content, headerPath)
+      const outputInHeaderImageMeta = await getImageMeta(result.content, headerPath)
+      const outputInHeaderImageSize = outputInHeaderImageMeta?.size
 
       if (outputInHeaderImageSize == null) {
         continue
@@ -850,7 +896,8 @@ describe('docx image', () => {
     const withImageInFooter = []
 
     for (const footerPath of ['word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml']) {
-      const outputInHeaderImageSize = await getImageSize(result.content, footerPath)
+      const outputInHeaderImageMeta = await getImageMeta(result.content, footerPath)
+      const outputInHeaderImageSize = outputInHeaderImageMeta?.size
 
       if (outputInHeaderImageSize == null) {
         continue
@@ -868,3 +915,32 @@ describe('docx image', () => {
     fs.writeFileSync(outputPath, result.content)
   })
 })
+
+function getImageMimeType (format) {
+  return `image/${format}${format === 'svg' ? '+xml' : ''}`
+}
+
+function getImageDataUri (format, imageBuf) {
+  const mimeType = getImageMimeType(format)
+  return `data:${mimeType};base64,` + imageBuf.toString('base64')
+}
+
+function readImage (format, basename) {
+  const fileExtensions = format === 'jpeg' ? ['jpeg', 'jpg'] : [format]
+
+  while (fileExtensions.length > 0) {
+    const fileExtension = fileExtensions.shift()
+
+    try {
+      const imagePath = path.join(docxDirPath, `${basename}.${fileExtension}`)
+      const buf = fs.readFileSync(imagePath)
+      return { imageBuf: buf, imagePath, imageExtension: fileExtension }
+    } catch (error) {
+      const shouldThrow = error.code !== 'ENOENT' || fileExtensions.length === 0
+
+      if (shouldThrow) {
+        throw error
+      }
+    }
+  }
+}

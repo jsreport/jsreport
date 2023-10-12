@@ -10,6 +10,8 @@ module.exports.resolveImageSrc = async function resolveImageSrc (src) {
     const imageSrc = src
 
     imageExtension = imageSrc.split(';')[0].split('/')[1]
+    // we remove subtypes "+..." from the type, like in the case of "svg+xml"
+    imageExtension = imageExtension.split('+')[0]
 
     imageBuffer = Buffer.from(
       imageSrc.split(';')[1].substring('base64,'.length),
@@ -36,6 +38,8 @@ module.exports.resolveImageSrc = async function resolveImageSrc (src) {
 
     // some servers returns the image content type without the "image/" prefix
     imageExtension = extensionsParts.length === 1 ? extensionsParts[0] : extensionsParts[1]
+    // we remove subtypes "+..." from the type, like in the case of "svg+xml"
+    imageExtension = imageExtension.split('+')[0]
     imageBuffer = Buffer.from(response.data)
   }
 

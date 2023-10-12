@@ -319,11 +319,12 @@ async function docxImage (options) {
   if (
     !options.hash.src.startsWith('data:image/png;base64,') &&
     !options.hash.src.startsWith('data:image/jpeg;base64,') &&
+    !options.hash.src.startsWith('data:image/svg+xml;base64,') &&
     !options.hash.src.startsWith('http://') &&
     !options.hash.src.startsWith('https://')
   ) {
     throw new Error(
-      'docxImage helper requires src parameter to be valid data uri for png or jpeg image or a valid url. Got ' +
+      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
         options.hash.src
     )
   }
