@@ -306,57 +306,98 @@ async function docxImage (options) {
   const jsreport = require('jsreport-proxy')
 
   options.hash.src = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.src)
+  options.hash.fallbackSrc = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.fallbackSrc)
+  options.hash.failurePlaceholderAction = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.failurePlaceholderAction)
   options.hash.width = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.width)
   options.hash.height = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.height)
   options.hash.usePlaceholderSize = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.usePlaceholderSize)
 
-  if (!options.hash.src) {
+  if (
+    options.hash.src == null &&
+    options.hash.fallbackSrc == null &&
+    options.hash.failurePlaceholderAction == null
+  ) {
     throw new Error(
       'docxImage helper requires src parameter to be set'
     )
   }
 
-  if (
-    !options.hash.src.startsWith('data:image/png;base64,') &&
-    !options.hash.src.startsWith('data:image/jpeg;base64,') &&
-    !options.hash.src.startsWith('data:image/svg+xml;base64,') &&
-    !options.hash.src.startsWith('http://') &&
-    !options.hash.src.startsWith('https://')
-  ) {
-    throw new Error(
-      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
-        options.hash.src
+  const isValidSrc = (value) => {
+    return (
+      typeof value === 'string' &&
+      (
+        value.startsWith('data:image/png;base64,') ||
+        value.startsWith('data:image/jpeg;base64,') ||
+        value.startsWith('data:image/svg+xml;base64,') ||
+        value.startsWith('http://') ||
+        value.startsWith('https://')
+      )
     )
   }
 
-  const isValidDimensionUnit = value => {
+  if (
+    options.hash.src != null &&
+    !isValidSrc(options.hash.src)
+  ) {
+    throw new Error(
+      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      options.hash.src
+    )
+  }
+
+  if (
+    options.hash.fallbackSrc != null &&
+    !isValidSrc(options.hash.fallbackSrc)
+  ) {
+    throw new Error(
+      'docxImage helper requires fallbackSrc parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      options.hash.fallbackSrc
+    )
+  }
+
+  if (
+    options.hash.failurePlaceholderAction != null &&
+    (
+      options.hash.failurePlaceholderAction !== 'preserve' &&
+      options.hash.failurePlaceholderAction !== 'remove'
+    )
+  ) {
+    throw new Error(
+      'docxImage helper requires failurePlaceholderAction parameter to be either "preserve" or "remove". Got ' +
+      options.hash.failurePlaceholderAction
+    )
+  }
+
+  const isValidDimensionUnit = (value) => {
     const regexp = /^(\d+(.\d+)?)(cm|px)$/
     return regexp.test(value)
   }
 
   if (
     options.hash.width != null &&
-      !isValidDimensionUnit(options.hash.width)
+    !isValidDimensionUnit(options.hash.width)
   ) {
     throw new Error(
       'docxImage helper requires width parameter to be valid number with unit (cm or px). got ' +
-        options.hash.width
+      options.hash.width
     )
   }
 
   if (
     options.hash.height != null &&
-      !isValidDimensionUnit(options.hash.height)
+    !isValidDimensionUnit(options.hash.height)
   ) {
     throw new Error(
       'docxImage helper requires height parameter to be valid number with unit (cm or px). got ' +
-        options.hash.height
+      options.hash.height
     )
   }
 
   const content = `$docxImage${
     Buffer.from(JSON.stringify({
       src: options.hash.src,
+      fallbackSrc: options.hash.fallbackSrc,
+      failurePlaceholderAction: options.hash.failurePlaceholderAction,
       width: options.hash.width,
       height: options.hash.height,
       usePlaceholderSize:

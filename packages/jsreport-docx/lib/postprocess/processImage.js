@@ -102,7 +102,49 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
     elLinkClick.setAttribute('tooltip', tooltip.replace(match[0], ''))
   }
 
-  const { imageBuffer, imageExtension } = await resolveImageSrc(imageConfig.src)
+  const pendingSources = []
+
+  if (imageConfig.src != null) {
+    pendingSources.push(imageConfig.src)
+  }
+
+  if (imageConfig.fallbackSrc != null) {
+    pendingSources.push(imageConfig.fallbackSrc)
+  }
+
+  let resolveImageSrcError
+  let imageBuffer
+  let imageExtension
+
+  while (pendingSources.length > 0) {
+    const currentSource = pendingSources.shift()
+
+    try {
+      const resolved = await resolveImageSrc(currentSource)
+      imageBuffer = resolved.imageBuffer
+      imageExtension = resolved.imageExtension
+    } catch (resolveError) {
+      if (
+        pendingSources.length === 0 ||
+        resolveError.imageSource !== 'remote'
+      ) {
+        resolveImageSrcError = resolveError
+      }
+    }
+  }
+
+  if (resolveImageSrcError != null || imageBuffer == null) {
+    if (resolveImageSrcError != null && imageConfig.failurePlaceholderAction == null) {
+      throw resolveImageSrcError
+    } else {
+      if (imageConfig.failurePlaceholderAction === 'preserve') {
+        return drawingEl
+      }
+
+      // remove case
+      return ''
+    }
+  }
 
   const newImageRelId = getNewRelId(relsDoc)
 

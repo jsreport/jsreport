@@ -419,6 +419,131 @@ describe('docx image', () => {
     target.should.be.eql('https://jsreport.net')
   })
 
+  it('image with fallbackSrc when remote src can not be resolved', async () => {
+    const format = 'png'
+    const url = `https://some-server.com/some-image.${format}`
+
+    reporter.tests.beforeRenderEval((req, res, { require }) => {
+      require('nock')('https://some-server.com')
+        .get(`/some-image.${req.data.imageFormat}`)
+        .reply(500)
+    })
+
+    const { imageBuf: fallbackImageBuf, imageExtension: fallbackImageExtension } = readImage(format, 'image')
+    const imageDimensions = sizeOf(fallbackImageBuf)
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'image-with-fallback.docx'))
+          }
+        }
+      },
+      data: {
+        src: url,
+        fallbackSrc: getImageDataUri(format, fallbackImageBuf),
+        imageFormat: format
+      }
+    })
+
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
+
+    outputImageMeta.image.extension.should.be.eql(`.${fallbackImageExtension}`)
+
+    // should have the image size of the fallback by default
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    fs.writeFileSync(outputPath, result.content)
+  })
+
+  it('image placeholder should be able to be preserved when remote src can not be resolved', async () => {
+    const format = 'png'
+    const url = `https://some-server.com/some-image.${format}`
+
+    reporter.tests.beforeRenderEval((req, res, { require }) => {
+      require('nock')('https://some-server.com')
+        .get(`/some-image.${req.data.imageFormat}`)
+        .reply(500)
+    })
+
+    const docxInputBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-failure-placeholder-action.docx'))
+    const inputImageMeta = await getImageMeta(docxInputBuf)
+    const targetImageSize = inputImageMeta.size
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxInputBuf
+          }
+        }
+      },
+      data: {
+        src: url,
+        failurePlaceholderAction: 'preserve',
+        imageFormat: format
+      }
+    })
+
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
+
+    outputImageMeta.image.extension.should.be.eql(inputImageMeta.image.extension)
+
+    // should have the image size of the original placeholder in docx
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    fs.writeFileSync(outputPath, result.content)
+  })
+
+  it('image placeholder should be able to be removed when remote src can not be resolved', async () => {
+    const format = 'png'
+    const url = `https://some-server.com/some-image.${format}`
+
+    reporter.tests.beforeRenderEval((req, res, { require }) => {
+      require('nock')('https://some-server.com')
+        .get(`/some-image.${req.data.imageFormat}`)
+        .reply(500)
+    })
+
+    const docxInputBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-failure-placeholder-action.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxInputBuf
+          }
+        }
+      },
+      data: {
+        src: url,
+        failurePlaceholderAction: 'remove',
+        imageFormat: format
+      }
+    })
+
+    const outputImageMeta = await getImageMeta(result.content)
+    should(outputImageMeta).be.not.ok()
+
+    fs.writeFileSync(outputPath, result.content)
+  })
+
   it('image error message when no src provided', async () => {
     return reporter
       .render({
@@ -510,6 +635,122 @@ describe('docx image', () => {
       })
       .should.be.rejectedWith(
         /docxImage helper requires height parameter to be valid number with unit/
+      )
+  })
+
+  it('image should not error when only fallbackSrc is provided', async () => {
+    const format = 'png'
+
+    const { imageBuf: fallbackImageBuf, imageExtension: fallbackImageExtension } = readImage(format, 'image')
+    const imageDimensions = sizeOf(fallbackImageBuf)
+
+    const targetImageSize = {
+      width: pxToEMU(imageDimensions.width),
+      height: pxToEMU(imageDimensions.height)
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'image-with-fallback.docx'))
+          }
+        }
+      },
+      data: {
+        fallbackSrc: getImageDataUri(format, fallbackImageBuf),
+        imageFormat: format
+      }
+    })
+
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
+
+    outputImageMeta.image.extension.should.be.eql(`.${fallbackImageExtension}`)
+
+    // should have the image size of the fallback by default
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    fs.writeFileSync(outputPath, result.content)
+  })
+
+  it('image should not error when only failurePlaceholderAction is provided', async () => {
+    const format = 'png'
+
+    const docxInputBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-failure-placeholder-action.docx'))
+    const inputImageMeta = await getImageMeta(docxInputBuf)
+    const targetImageSize = inputImageMeta.size
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: docxInputBuf
+          }
+        }
+      },
+      data: {
+        failurePlaceholderAction: 'preserve',
+        imageFormat: format
+      }
+    })
+
+    const outputImageMeta = await getImageMeta(result.content)
+    const outputImageSize = outputImageMeta.size
+
+    outputImageMeta.image.extension.should.be.eql(inputImageMeta.image.extension)
+
+    // should have the image size of the original placeholder in docx
+    outputImageSize.width.should.be.eql(targetImageSize.width)
+    outputImageSize.height.should.be.eql(targetImageSize.height)
+
+    fs.writeFileSync(outputPath, result.content)
+  })
+
+  it('image error message when fallbackSrc not valid param', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, 'image-with-fallback.docx'))
+            }
+          }
+        },
+        data: {
+          fallbackSrc: 'data:image/gif;base64,R0lG'
+        }
+      })
+      .should.be.rejectedWith(
+        /docxImage helper requires fallbackSrc parameter to be valid data uri/
+      )
+  })
+
+  it('image error message when failurePlaceholderAction not valid param', async () => {
+    return reporter
+      .render({
+        template: {
+          engine: 'handlebars',
+          recipe: 'docx',
+          docx: {
+            templateAsset: {
+              content: fs.readFileSync(path.join(docxDirPath, 'image-with-failure-placeholder-action.docx'))
+            }
+          }
+        },
+        data: {
+          failurePlaceholderAction: 'invalid'
+        }
+      })
+      .should.be.rejectedWith(
+        /docxImage helper requires failurePlaceholderAction parameter to be either/
       )
   })
 

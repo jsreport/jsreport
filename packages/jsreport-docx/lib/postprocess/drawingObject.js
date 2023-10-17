@@ -40,7 +40,7 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
       const newDrawingEl = await processDrawingEl(drawingEl, doc, documentRelsDoc, hasNestedMatch)
 
       if (newDrawingEl != null) {
-        return serializeXml(newDrawingEl)
+        return newDrawingEl === '' ? newDrawingEl : serializeXml(newDrawingEl)
       }
 
       return val
@@ -62,7 +62,10 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
         continue
       }
 
-      drawingEl.parentNode.insertBefore(newDrawingEl, drawingEl)
+      if (newDrawingEl !== '') {
+        drawingEl.parentNode.insertBefore(newDrawingEl, drawingEl)
+      }
+
       drawingEl.parentNode.removeChild(drawingEl)
     }
   }

@@ -5,45 +5,55 @@ const { pxToEMU, cmToEMU, getDimension } = require('./utils')
 module.exports.resolveImageSrc = async function resolveImageSrc (src) {
   let imageBuffer
   let imageExtension
+  let imageSource
 
-  if (src && src.startsWith('data:')) {
-    const imageSrc = src
+  try {
+    if (src && src.startsWith('data:')) {
+      const imageSrc = src
 
-    imageExtension = imageSrc.split(';')[0].split('/')[1]
-    // we remove subtypes "+..." from the type, like in the case of "svg+xml"
-    imageExtension = imageExtension.split('+')[0]
+      imageSource = 'inline'
 
-    imageBuffer = Buffer.from(
-      imageSrc.split(';')[1].substring('base64,'.length),
-      'base64'
-    )
-  } else {
-    const response = await axios({
-      url: src,
-      responseType: 'arraybuffer',
-      method: 'GET'
-    })
+      imageExtension = imageSrc.split(';')[0].split('/')[1]
+      // we remove subtypes "+..." from the type, like in the case of "svg+xml"
+      imageExtension = imageExtension.split('+')[0]
 
-    const contentType = response.headers['content-type'] || response.headers['Content-Type']
+      imageBuffer = Buffer.from(
+        imageSrc.split(';')[1].substring('base64,'.length),
+        'base64'
+      )
+    } else {
+      imageSource = 'remote'
 
-    if (!contentType) {
-      throw new Error(`Empty content-type for remote image at "${src}"`)
+      const response = await axios({
+        url: src,
+        responseType: 'arraybuffer',
+        method: 'GET'
+      })
+
+      const contentType = response.headers['content-type'] || response.headers['Content-Type']
+
+      if (!contentType) {
+        throw new Error(`Empty content-type for remote image at "${src}"`)
+      }
+
+      const extensionsParts = contentType.split(';')[0].split('/').filter((p) => p)
+
+      if (extensionsParts.length === 0 || extensionsParts.length > 2) {
+        throw new Error(`Invalid content-type "${contentType}" for remote image at "${src}"`)
+      }
+
+      // some servers returns the image content type without the "image/" prefix
+      imageExtension = extensionsParts.length === 1 ? extensionsParts[0] : extensionsParts[1]
+      // we remove subtypes "+..." from the type, like in the case of "svg+xml"
+      imageExtension = imageExtension.split('+')[0]
+      imageBuffer = Buffer.from(response.data)
     }
-
-    const extensionsParts = contentType.split(';')[0].split('/').filter((p) => p)
-
-    if (extensionsParts.length === 0 || extensionsParts.length > 2) {
-      throw new Error(`Invalid content-type "${contentType}" for remote image at "${src}"`)
-    }
-
-    // some servers returns the image content type without the "image/" prefix
-    imageExtension = extensionsParts.length === 1 ? extensionsParts[0] : extensionsParts[1]
-    // we remove subtypes "+..." from the type, like in the case of "svg+xml"
-    imageExtension = imageExtension.split('+')[0]
-    imageBuffer = Buffer.from(response.data)
+  } catch (error) {
+    error.imageSource = imageSource
+    throw error
   }
 
-  return { imageBuffer, imageExtension }
+  return { imageSource, imageBuffer, imageExtension }
 }
 
 module.exports.getImageSizeInEMU = function getImageSizeInEMU (imageBuffer, customSize = {}) {
