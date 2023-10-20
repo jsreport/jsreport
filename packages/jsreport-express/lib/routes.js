@@ -63,14 +63,27 @@ module.exports = (app, reporter, exposedOptions) => {
     }
 
     const abortEmitter = new EventEmitter()
-    req.socket.once('close', () => {
-      abortEmitter.emit('abort')
-    })
 
-    const onReqReady = (req) => res.setTimeout((reporter.getReportTimeout(req) + reporter.options.reportTimeoutMargin) * 1.2)
+    const onReqClose = () => {
+      abortEmitter.emit('abort')
+    }
+
+    req.socket.once('close', onReqClose)
+
+    const onReqReady = (req) => {
+      res.setTimeout((reporter.getReportTimeout(req) + reporter.options.reportTimeoutMargin) * 1.2)
+    }
+
+    const cleanupAfterRender = () => {
+      // clear the res.setTimeout, this internally remove listener from res
+      res.setTimeout(0)
+      req.socket.removeListener('close', onReqClose)
+      abortEmitter.removeAllListeners('abort')
+    }
 
     reporter.render(renderRequest, { abortEmitter, onReqReady }).then((renderResponse) => {
-      abortEmitter.removeAllListeners('abort')
+      cleanupAfterRender()
+
       if (stream) {
         form.append('report', renderResponse.stream, {
           filename: `${renderResponse.meta.reportName}.${renderResponse.meta.fileExtension}`,
@@ -96,7 +109,8 @@ module.exports = (app, reporter, exposedOptions) => {
         })
       }
     }).catch((renderErr) => {
-      abortEmitter.removeAllListeners('abort')
+      cleanupAfterRender()
+
       if (!stream) {
         next(renderErr)
       } else {

@@ -9,7 +9,7 @@ module.exports = (initData) => {
         return
       }
       while (true) {
-        // endles loop
+        // endless loop
       }
     }
   }

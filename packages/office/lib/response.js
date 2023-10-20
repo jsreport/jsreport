@@ -1,8 +1,6 @@
 const axios = require('axios')
 const FormData = require('form-data')
 const toArray = require('stream-to-array')
-const { promisify } = require('util')
-const toArrayAsync = promisify(toArray)
 
 const officeDocuments = {
   docx: {

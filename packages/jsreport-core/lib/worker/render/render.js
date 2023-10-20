@@ -3,7 +3,6 @@
  *
  * Orchestration of the rendering process
  */
-const { Readable } = require('stream')
 const extend = require('node.extend.without.arrays')
 const ExecuteEngine = require('./executeEngine')
 const Request = require('../../shared/request')
@@ -101,10 +100,6 @@ module.exports = (reporter) => {
 
   async function afterRender (reporter, request, response) {
     await reporter.afterRenderListeners.fire(request, response)
-
-    response.stream = Readable.from(response.content)
-    response.result = response.stream
-
     return response
   }
 
