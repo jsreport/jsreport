@@ -2,20 +2,24 @@
   "name": "@jsreport/office",
   "version": "3.0.0",
   "description": "Some helpers for office based jsreport recipes",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib"
-  },
-  "scripts": {
-    "test": "mocha test --timeout 8000 && standard"
-  },
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/office#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jsreport/jsreport.git"
   },
-  "author": "Jan Blaha",
   "license": "MIT",
-  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/office#readme",
+  "author": "Jan Blaha",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha test --timeout 8000 && standard"
+  },
   "dependencies": {
     "archiver": "5.3.0",
     "axios": "0.23.0",
@@ -23,7 +27,6 @@
     "get-stream": "5.1.0",
     "node.extend.without.arrays": "1.1.6",
     "pify": "4.0.1",
-    "stream-to-array": "2.3.0",
     "yauzl": "2.10.0",
     "zip": "1.2.0"
   },
@@ -32,10 +35,6 @@
     "should": "13.2.3",
     "standard": "16.0.4"
   },
-  "files": [
-    "lib",
-    "index.js"
-  ],
   "standard": {
     "env": {
       "mocha": true

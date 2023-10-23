@@ -33,6 +33,7 @@ module.exports = (reporter, definition) => async (req, res) => {
   return response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'docx',
-    buffer: docx.getZip().generate({ type: 'nodebuffer' })
+    buffer: docx.getZip().generate({ type: 'nodebuffer' }),
+    logger: reporter.logger
   }, req, res)
 }

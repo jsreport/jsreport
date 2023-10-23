@@ -1,6 +1,6 @@
+const fs = require('fs/promises')
 const axios = require('axios')
 const FormData = require('form-data')
-const toArray = require('stream-to-array')
 
 const officeDocuments = {
   docx: {
@@ -17,14 +17,14 @@ const officeDocuments = {
 module.exports = async function response ({
   previewOptions: { publicUri, enabled },
   officeDocumentType,
-  stream,
+  filePath,
   buffer,
   logger
 }, req, res) {
   if (buffer) {
     res.content = buffer
   } else {
-    res.content = Buffer.concat(await toArrayAsync(stream))
+    res.content = await fs.readFile(filePath)
   }
 
   if (officeDocuments[officeDocumentType] == null) {
@@ -49,6 +49,8 @@ module.exports = async function response ({
     res.meta.officeDocumentType = officeDocumentType
     return
   }
+
+  logger.debug('preparing office preview', req)
 
   const form = new FormData()
 

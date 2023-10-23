@@ -1,9 +1,8 @@
-const fs = require('fs')
 const { response } = require('@jsreport/office')
 
 module.exports = async (reporter, definition, req, res) => {
   const generate = require('./generation')
-  const xlsxOutputPath = await generate(reporter, definition, req, res)
+  let xlsxOutputPath = await generate(reporter, definition, req, res)
 
   const $xlsxOriginalContent = req.data.$xlsxOriginalContent || ''
 
@@ -12,15 +11,13 @@ module.exports = async (reporter, definition, req, res) => {
 
     res.content = xlsxOutputPath
 
-    await transform(reporter, definition, req, res)
-  } else {
-    res.stream = fs.createReadStream(xlsxOutputPath)
+    xlsxOutputPath = await transform(reporter, definition, req, res)
   }
 
   await response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'xlsx',
-    stream: res.stream,
+    filePath: xlsxOutputPath,
     logger: reporter.logger
   }, req, res)
 }

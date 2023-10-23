@@ -22,6 +22,7 @@ module.exports = (reporter, definition) => async (req, res) => {
   await response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'docx',
-    buffer: Buffer.from(docxContent, 'base64')
+    buffer: Buffer.from(docxContent, 'base64'),
+    logger: reporter.logger
   }, req, res)
 }

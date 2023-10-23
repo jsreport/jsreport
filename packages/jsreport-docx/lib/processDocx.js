@@ -8,7 +8,7 @@ const { contentIsXML } = require('./utils')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 const decodeXML = (str) => decode(str, { level: 'xml' })
 
-module.exports = (reporter) => async (inputs, req) => {
+module.exports = async (reporter, inputs, req) => {
   const { docxTemplateContent, options, outputPath } = inputs
 
   try {
@@ -109,7 +109,7 @@ module.exports = (reporter) => async (inputs, req) => {
       files
     })
 
-    reporter.logger.debug('docx successfully zipped')
+    reporter.logger.debug('docx successfully zipped', req)
 
     return {
       docxFilePath: outputPath
