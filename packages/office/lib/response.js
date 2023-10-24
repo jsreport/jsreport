@@ -65,7 +65,7 @@ module.exports = async function response ({
       headers: form.getHeaders(),
       // axios by default has no limits but there is a bug
       // https://github.com/axios/axios/issues/1362 (when following redirects) in
-      // which the default limit is not taking into account, so we set it explicetly
+      // which the default limit is not taking into account, so we set it explicitly
       maxContentLength: Infinity
     })
   } catch (e) {
