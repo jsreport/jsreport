@@ -125,6 +125,38 @@ describe('docx raw', () => {
     ])
   })
 
+  it('raw with inline xml parameter', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-inline.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const generalTextElements = nodeListToArray(doc.getElementsByTagName('w:t'))
+
+    const found = []
+    for (const textEl of generalTextElements) {
+      if (textEl.textContent.includes('raw xml run')) {
+        found.push(textEl.textContent)
+        should(textEl.parentNode.nodeName).eql('w:r', textEl.textContent)
+        should(textEl.parentNode.parentNode.nodeName).eql('w:p', textEl.textContent)
+        should(textEl.parentNode.parentNode.parentNode.nodeName).eql('w:body', textEl.textContent)
+      }
+    }
+    should(found).eql(['raw xml run'])
+  })
+
   it('raw error no parameter', async () => {
     const result = reporter.render({
       template: {

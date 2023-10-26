@@ -1,12 +1,11 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
-const { decode } = require('html-entities')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const preprocess = require('./preprocess/preprocess.js')
 const postprocess = require('./postprocess/postprocess.js')
 const { contentIsXML } = require('./utils')
+const decodeXML = require('./decodeXML')
 const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
-const decodeXML = (str) => decode(str, { level: 'xml' })
 
 module.exports = async (reporter, inputs, req) => {
   const { docxTemplateContent, options, outputPath } = inputs

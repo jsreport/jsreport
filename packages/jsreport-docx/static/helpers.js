@@ -1,7 +1,6 @@
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
-
 function docxContext (options) {
   const Handlebars = require('handlebars')
   let data
@@ -58,15 +57,20 @@ function docxPageBreak () {
 
 function docxRaw (options) {
   const Handlebars = require('handlebars')
+  const isInlineXML = options.hash.inlineXML === true
+  let xmlInput = options.hash.xml
 
-  if (typeof options.hash.xml === 'string') {
-    if (options.hash.xml.startsWith('<')) {
-      return new Handlebars.SafeString(options.hash.xml)
-    }
+  if (isInlineXML && typeof xmlInput === 'string') {
+    const decodeXML = require('docxDecodeXML')
+    xmlInput = decodeXML(xmlInput)
+  }
+
+  if (typeof xmlInput === 'string' && xmlInput.startsWith('<')) {
+    return new Handlebars.SafeString(xmlInput)
   }
 
   // Wrap not valid XML data as a literal, without any style
-  return new Handlebars.SafeString('<w:r><w:t>' + options.hash.xml + '</w:t></w:r>')
+  return new Handlebars.SafeString('<w:r><w:t>' + xmlInput + '</w:t></w:r>')
 }
 
 function docxList (data, options) {
