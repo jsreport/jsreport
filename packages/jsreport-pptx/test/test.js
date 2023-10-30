@@ -1,14 +1,15 @@
-const fs = require('fs')
-const path = require('path')
+const should = require('should')
 const util = require('util')
-require('should')
-const sizeOf = require('image-size')
+const path = require('path')
+const fs = require('fs')
 const textract = util.promisify(require('textract').fromBufferWithName)
 const { DOMParser } = require('@xmldom/xmldom')
 const { decompress } = require('@jsreport/office')
 const jsreport = require('@jsreport/jsreport-core')
-const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
+const { nodeListToArray } = require('../lib/utils')
+const { getImageDataUri } = require('./utils')
 
+const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
 
 describe('pptx', () => {
@@ -31,7 +32,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'variable.pptx')).toString('base64')
+            content: fs.readFileSync(path.join(pptxDirPath, 'variable.pptx')).toString('base64')
           }
         }
       },
@@ -40,9 +41,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('Jan Blaha')
+    should(text).containEql('Jan Blaha')
   })
 
   it('accept buffer as string with explicit encoding', async () => {
@@ -52,7 +53,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'variable.pptx')).toString('binary'),
+            content: fs.readFileSync(path.join(pptxDirPath, 'variable.pptx')).toString('binary'),
             encoding: 'binary'
           }
         }
@@ -62,19 +63,19 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('Jan Blaha')
+    should(text).containEql('Jan Blaha')
   })
 
   it('throw clear error when template fails to be parsed as pptx', async () => {
-    return reporter.render({
+    return should(reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'variable.pptx')).toString('utf8'),
+            content: fs.readFileSync(path.join(pptxDirPath, 'variable.pptx')).toString('utf8'),
             encoding: 'utf8'
           }
         }
@@ -82,7 +83,7 @@ describe('pptx', () => {
       data: {
         hello: 'Jan Blaha'
       }
-    }).should.be.rejectedWith(/Failed to parse pptx template input/i)
+    })).be.rejectedWith(/Failed to parse pptx template input/i)
   })
 
   it('should propagate lineNumber when error in helper', async () => {
@@ -93,7 +94,7 @@ describe('pptx', () => {
           recipe: 'pptx',
           pptx: {
             templateAsset: {
-              content: fs.readFileSync(path.join(__dirname, 'variable.pptx'))
+              content: fs.readFileSync(path.join(pptxDirPath, 'variable.pptx'))
             }
           },
           helpers: `function hello() {
@@ -103,7 +104,7 @@ describe('pptx', () => {
         }
       })
     } catch (e) {
-      e.lineNumber.should.be.eql(2)
+      should(e.lineNumber).be.eql(2)
     }
   })
 
@@ -114,7 +115,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'variable.pptx'))
+            content: fs.readFileSync(path.join(pptxDirPath, 'variable.pptx'))
           }
         }
       },
@@ -123,9 +124,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('Jan Blaha')
+    should(text).containEql('Jan Blaha')
   })
 
   it('handlebars partials', async () => {
@@ -141,7 +142,7 @@ describe('pptx', () => {
         pptx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'partial.pptx')
+              path.join(pptxDirPath, 'partial.pptx')
             )
           }
         }
@@ -153,7 +154,7 @@ describe('pptx', () => {
 
     fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('Hello world John')
+    should(text).containEql('Hello world John')
   })
 
   it('work normally with NUL character (should remove it)', async () => {
@@ -164,7 +165,7 @@ describe('pptx', () => {
         pptx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable.pptx')
+              path.join(pptxDirPath, 'variable.pptx')
             )
           }
         }
@@ -176,7 +177,7 @@ describe('pptx', () => {
 
     fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('John')
+    should(text).containEql('John')
   })
 
   it('work normally with VERTICAL TAB character (should remove it)', async () => {
@@ -187,7 +188,7 @@ describe('pptx', () => {
         pptx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'variable.pptx')
+              path.join(pptxDirPath, 'variable.pptx')
             )
           }
         }
@@ -199,7 +200,7 @@ describe('pptx', () => {
 
     fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('John')
+    should(text).containEql('John')
   })
 
   it('list', async () => {
@@ -209,7 +210,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'list.pptx'))
+            content: fs.readFileSync(path.join(pptxDirPath, 'list.pptx'))
           }
         }
       },
@@ -224,405 +225,11 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('Jan')
-    text.should.containEql('Boris')
-    text.should.containEql('Pavel')
-  })
-
-  it('image', async () => {
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
-    const imageDimensions = sizeOf(imageBuf)
-
-    const targetImageSize = {
-      width: pxToEMU(imageDimensions.width),
-      height: pxToEMU(imageDimensions.height)
-    }
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'pptx',
-        pptx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image.pptx'))
-          }
-        }
-      },
-      data: {
-        src: 'data:image/png;base64,' + imageBuf.toString('base64')
-      }
-    })
-
-    fs.writeFileSync('out.pptx', result.content)
-
-    const files = await decompress()(result.content)
-
-    const slideDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
-    )
-
-    const blipEls = nodeListToArray(slideDoc.getElementsByTagName('a:blip'))
-
-    blipEls.length.should.be.eql(2)
-
-    for (const [idx, blipEl] of blipEls.entries()) {
-      blipEl.getAttribute('r:embed').should.be.eql(`rId5000${idx + 1}`)
-
-      const outputImageSize = await getImageSize(blipEl)
-
-      // should preserve original image size by default
-      outputImageSize.width.should.be.eql(targetImageSize.width)
-      outputImageSize.height.should.be.eql(targetImageSize.height)
-    }
-  })
-
-  it('image can render from url', async () => {
-    const url = 'https://some-server.com/some-image.png'
-
-    reporter.tests.beforeRenderEval((req, res, { require }) => {
-      require('nock')('https://some-server.com')
-        .get('/some-image.png')
-        .replyWithFile(200, req.data.imagePath, {
-          'content-type': 'image/png'
-        })
-    })
-
-    return reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'pptx',
-        pptx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'image.pptx'))
-          }
-        }
-      },
-      data: {
-        src: url,
-        imagePath: path.join(__dirname, 'image.png')
-      }
-    }).should.not.be.rejectedWith(/src parameter to be set/)
-  })
-
-  it('image with placeholder size (usePlaceholderSize)', async () => {
-    const templateBuf = fs.readFileSync(path.join(__dirname, 'image-use-placeholder-size.pptx'))
-    const templateFiles = await decompress()(templateBuf)
-
-    const templateSlideDoc = new DOMParser().parseFromString(
-      templateFiles.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
-    )
-
-    const templateBlipEls = nodeListToArray(templateSlideDoc.getElementsByTagName('a:blip'))
-
-    const placeholderImageSizes = []
-
-    for (const templateBlipEl of templateBlipEls) {
-      const imageSize = await getImageSize(templateBlipEl)
-      placeholderImageSizes.push(imageSize)
-    }
-
-    const imageBuf = fs.readFileSync(path.join(__dirname, 'image.png'))
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'pptx',
-        pptx: {
-          templateAsset: {
-            content: templateBuf
-          }
-        }
-      },
-      data: {
-        src: 'data:image/png;base64,' + imageBuf.toString('base64')
-      }
-    })
-
-    fs.writeFileSync('out.pptx', result.content)
-
-    const files = await decompress()(result.content)
-
-    const slideDoc = new DOMParser().parseFromString(
-      files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
-    )
-
-    const blipEls = nodeListToArray(slideDoc.getElementsByTagName('a:blip'))
-
-    blipEls.length.should.be.eql(2)
-
-    for (const [idx, blipEl] of blipEls.entries()) {
-      blipEl.getAttribute('r:embed').should.be.eql(`rId5000${idx + 1}`)
-
-      const outputImageSize = await getImageSize(blipEl)
-      const targetImageSize = placeholderImageSizes[idx]
-
-      // should preserve original image size by default
-      outputImageSize.width.should.be.eql(targetImageSize.width)
-      outputImageSize.height.should.be.eql(targetImageSize.height)
-    }
-  })
-
-  const units = ['cm', 'px']
-
-  units.forEach(unit => {
-    describe(`image size in ${unit}`, () => {
-      it('image with custom size (width, height)', async () => {
-        const pptxBuf = fs.readFileSync(
-          path.join(
-            __dirname,
-            unit === 'cm'
-              ? 'image-custom-size.pptx'
-              : 'image-custom-size-px.pptx'
-          )
-        )
-
-        // 3cm defined in the docx
-        const targetImageSize = {
-          width: unit === 'cm' ? cmToEMU(3) : pxToEMU(100),
-          height: unit === 'cm' ? cmToEMU(3) : pxToEMU(100)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'pptx',
-            pptx: {
-              templateAsset: {
-                content: pptxBuf
-              }
-            }
-          },
-          data: {
-            src:
-              'data:image/png;base64,' +
-              fs
-                .readFileSync(path.join(__dirname, 'image.png'))
-                .toString('base64')
-          }
-        })
-
-        fs.writeFileSync('out.pptx', result.content)
-
-        const files = await decompress()(result.content)
-
-        const slideDoc = new DOMParser().parseFromString(
-          files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
-        )
-
-        const blipEls = nodeListToArray(slideDoc.getElementsByTagName('a:blip'))
-
-        blipEls.length.should.be.eql(2)
-
-        for (const blipEl of blipEls) {
-          const outputImageSize = await getImageSize(blipEl)
-          // should preserve original image size by default
-          outputImageSize.width.should.be.eql(targetImageSize.width)
-          outputImageSize.height.should.be.eql(targetImageSize.height)
-        }
-      })
-
-      it('image with custom size (width set and height automatic - keep aspect ratio)', async () => {
-        const pptxBuf = fs.readFileSync(
-          path.join(
-            __dirname,
-            unit === 'cm'
-              ? 'image-custom-size-width.pptx'
-              : 'image-custom-size-width-px.pptx'
-          )
-        )
-
-        const targetImageSize = {
-          // 2cm defined in the docx
-          width: unit === 'cm' ? cmToEMU(2) : pxToEMU(100),
-          // height is calculated automatically based on aspect ratio of image
-          height:
-            unit === 'cm'
-              ? cmToEMU(0.5142851308524194)
-              : pxToEMU(25.714330708661418)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'pptx',
-            pptx: {
-              templateAsset: {
-                content: pptxBuf
-              }
-            }
-          },
-          data: {
-            src:
-              'data:image/png;base64,' +
-              fs
-                .readFileSync(path.join(__dirname, 'image.png'))
-                .toString('base64')
-          }
-        })
-
-        fs.writeFileSync('out.pptx', result.content)
-
-        const files = await decompress()(result.content)
-
-        const slideDoc = new DOMParser().parseFromString(
-          files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
-        )
-
-        const blipEls = nodeListToArray(slideDoc.getElementsByTagName('a:blip'))
-
-        blipEls.length.should.be.eql(2)
-
-        for (const blipEl of blipEls) {
-          const outputImageSize = await getImageSize(blipEl)
-          // should preserve original image size by default
-          outputImageSize.width.should.be.eql(targetImageSize.width)
-          outputImageSize.height.should.be.eql(targetImageSize.height)
-        }
-      })
-
-      it('image with custom size (height set and width automatic - keep aspect ratio)', async () => {
-        const pptxBuf = fs.readFileSync(
-          path.join(
-            __dirname,
-            unit === 'cm'
-              ? 'image-custom-size-height.pptx'
-              : 'image-custom-size-height-px.pptx'
-          )
-        )
-
-        const targetImageSize = {
-          // width is calculated automatically based on aspect ratio of image
-          width:
-            unit === 'cm'
-              ? cmToEMU(7.777781879962101)
-              : pxToEMU(194.4444094488189),
-          // 2cm defined in the docx
-          height: unit === 'cm' ? cmToEMU(2) : pxToEMU(50)
-        }
-
-        const result = await reporter.render({
-          template: {
-            engine: 'handlebars',
-            recipe: 'pptx',
-            pptx: {
-              templateAsset: {
-                content: pptxBuf
-              }
-            }
-          },
-          data: {
-            src:
-              'data:image/png;base64,' +
-              fs
-                .readFileSync(path.join(__dirname, 'image.png'))
-                .toString('base64')
-          }
-        })
-
-        fs.writeFileSync('out.pptx', result.content)
-
-        const files = await decompress()(result.content)
-
-        const slideDoc = new DOMParser().parseFromString(
-          files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
-        )
-
-        const blipEls = nodeListToArray(slideDoc.getElementsByTagName('a:blip'))
-
-        blipEls.length.should.be.eql(2)
-
-        for (const blipEl of blipEls) {
-          const outputImageSize = await getImageSize(blipEl)
-          // should preserve original image size by default
-          outputImageSize.width.should.be.eql(targetImageSize.width)
-          outputImageSize.height.should.be.eql(targetImageSize.height)
-        }
-      })
-    })
-  })
-
-  it('table', async () => {
-    const data = [
-      {
-        name: 'Jan',
-        email: 'jan.blaha@foo.com'
-      },
-      {
-        name: 'Boris',
-        email: 'boris@foo.met'
-      },
-      {
-        name: 'Pavel',
-        email: 'pavel@foo.met'
-      }
-    ]
-
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'pptx',
-        pptx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table.pptx'))
-          }
-        }
-      },
-      data: {
-        people: data
-      }
-    })
-
-    fs.writeFileSync('out.pptx', result.content)
-
-    const text = await textract('test.pptx', result.content)
-
-    for (const item of data) {
-      text.should.containEql(item.name)
-      text.should.containEql(item.email)
-    }
-  })
-
-  it('table vertical', async () => {
-    const result = await reporter.render({
-      template: {
-        engine: 'handlebars',
-        recipe: 'pptx',
-        pptx: {
-          templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'table-vertical.pptx'))
-          }
-        }
-      },
-      data: {
-        people: [
-          {
-            name: 'Jan',
-            email: 'jan.blaha@foo.com'
-          },
-          {
-            name: 'Boris',
-            email: 'boris@foo.met'
-          },
-          {
-            name: 'Pavel',
-            email: 'pavel@foo.met'
-          }
-        ]
-      }
-    })
-
-    fs.writeFileSync('out.pptx', result.content)
-
-    const text = await textract('test.pptx', result.content)
-
-    text.should.containEql('Jan')
-    text.should.containEql('jan.blaha@foo.com')
-    text.should.containEql('Boris')
-    text.should.containEql('boris@foo.met')
-    text.should.containEql('Pavel')
-    text.should.containEql('pavel@foo.met')
+    should(text).containEql('Jan')
+    should(text).containEql('Boris')
+    should(text).containEql('Pavel')
   })
 
   it('slides', async () => {
@@ -632,7 +239,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'slides.pptx'))
+            content: fs.readFileSync(path.join(pptxDirPath, 'slides.pptx'))
           }
         }
       },
@@ -641,12 +248,12 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = await textract('test.pptx', result.content)
-    text.should.containEql('Jan')
-    text.should.containEql('Blaha')
+    should(text).containEql('Jan')
+    should(text).containEql('Blaha')
     // the parser somehow don't find the other items on the first run
-    // text.should.containEql('Boris')
+    // should(text).containEql('Boris')
 
     const files = await decompress()(result.content)
     const presentationStr = files.find(f => f.path === 'ppt/presentation.xml').data.toString()
@@ -654,8 +261,8 @@ describe('pptx', () => {
     const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
     const sldIdEls = nodeListToArray(sldIdLstEl.getElementsByTagName('p:sldId'))
 
-    sldIdEls[2].getAttribute('id').should.be.eql('5001')
-    sldIdEls[3].getAttribute('id').should.be.eql('5002')
+    should(sldIdEls[2].getAttribute('id')).be.eql('5001')
+    should(sldIdEls[3].getAttribute('id')).be.eql('5002')
   })
 
   it('slides when pptxSlide and other handlebars in the same a:t', async () => {
@@ -665,7 +272,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'slides_in_same_node.pptx'))
+            content: fs.readFileSync(path.join(pptxDirPath, 'slides_in_same_node.pptx'))
           }
         }
       },
@@ -680,7 +287,7 @@ describe('pptx', () => {
     const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
     const sldIdEls = nodeListToArray(sldIdLstEl.getElementsByTagName('p:sldId'))
 
-    sldIdEls[1].getAttribute('id').should.be.eql('5001')
+    should(sldIdEls[1].getAttribute('id')).be.eql('5001')
   })
 
   it('slides with image', async () => {
@@ -690,22 +297,22 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'slides_with_image.pptx'))
+            content: fs.readFileSync(path.join(pptxDirPath, 'slides_with_image.pptx'))
           }
         }
       },
       data: {
         list: [{
           text: 'Jan',
-          image1: 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'image.png')).toString('base64')
+          image1: getImageDataUri('png', fs.readFileSync(path.join(pptxDirPath, 'image.png')))
         }, {
           text: 'Boris',
-          image1: 'data:image/jpeg;base64,' + fs.readFileSync(path.join(__dirname, 'image.jpeg')).toString('base64')
+          image1: getImageDataUri('jpeg', fs.readFileSync(path.join(pptxDirPath, 'image.jpeg')))
         }]
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const files = await decompress()(result.content)
     const presentationStr = files.find(f => f.path === 'ppt/presentation.xml').data.toString()
@@ -713,7 +320,7 @@ describe('pptx', () => {
     const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
     const sldIdEls = nodeListToArray(sldIdLstEl.getElementsByTagName('p:sldId'))
 
-    sldIdEls[1].getAttribute('id').should.be.eql('5001')
+    should(sldIdEls[1].getAttribute('id')).be.eql('5001')
   })
 
   it('slides with notes', async () => {
@@ -723,7 +330,7 @@ describe('pptx', () => {
         recipe: 'pptx',
         pptx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'slides_with_notes.pptx'))
+            content: fs.readFileSync(path.join(pptxDirPath, 'slides_with_notes.pptx'))
           }
         }
       },
@@ -732,31 +339,10 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync('out.pptx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const files = await decompress()(result.content)
-    files.find(f => f.path === 'ppt/notesSlides/notesSlide5001.xml').should.be.ok()
-    files.find(f => f.path === 'ppt/notesSlides/notesSlide5002.xml').should.be.ok()
+    should(files.find(f => f.path === 'ppt/notesSlides/notesSlide5001.xml')).be.ok()
+    should(files.find(f => f.path === 'ppt/notesSlides/notesSlide5002.xml')).be.ok()
   })
 })
-
-async function getImageSize (blipEl) {
-  const picEl = blipEl.parentNode.parentNode
-
-  if (picEl.nodeName !== 'p:pic') {
-    return
-  }
-
-  const grpSpEl = picEl.parentNode
-
-  if (grpSpEl.nodeName !== 'p:grpSp') {
-    return
-  }
-
-  const aExtEl = grpSpEl.getElementsByTagName('p:grpSpPr')[0].getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
-
-  return {
-    width: parseFloat(aExtEl.getAttribute('cx')),
-    height: parseFloat(aExtEl.getAttribute('cy'))
-  }
-}
