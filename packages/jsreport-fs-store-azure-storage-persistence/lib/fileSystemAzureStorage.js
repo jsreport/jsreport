@@ -117,6 +117,11 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
       return Promise.all(entriesToRename.map((e) => blobServiceAsync.deleteBlob(container, e.name)))
     },
     exists: async (p) => {
+      if (!p) {
+        // the root dir always exists
+        return true
+      }
+
       const res = await blobServiceAsync.doesBlobExist(container, p)
       return res.exists
     },
@@ -146,7 +151,8 @@ module.exports = ({ accountName, accountKey, container = 'jsreport', lock = {} }
     },
     copyFile: (p, pp) => blobServiceAsync.startCopyBlob(blobService.getUrl(container, p), container, pp),
     path: {
-      join: (...args) => args.filter(a => a).join('/'),
+      // removing leading and trailing slashes
+      join: (...args) => args.filter(a => a).map(a => a.replace(/\/+$/, '').replace(/^\/+/, '')).join('/'),
       sep: '/',
       basename: path.basename
     },
