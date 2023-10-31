@@ -5,6 +5,9 @@ const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx raw', () => {
   let reporter
 
@@ -34,7 +37,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw.docx'))
           }
         }
       },
@@ -51,7 +54,7 @@ describe('docx raw', () => {
     })
 
     // Write document for easier debugging
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const generalTextElements = nodeListToArray(doc.getElementsByTagName('w:t'))
@@ -122,6 +125,38 @@ describe('docx raw', () => {
     ])
   })
 
+  it('raw with inline xml parameter', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-inline.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    // Write document for easier debugging
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const generalTextElements = nodeListToArray(doc.getElementsByTagName('w:t'))
+
+    const found = []
+    for (const textEl of generalTextElements) {
+      if (textEl.textContent.includes('raw xml run')) {
+        found.push(textEl.textContent)
+        should(textEl.parentNode.nodeName).eql('w:r', textEl.textContent)
+        should(textEl.parentNode.parentNode.nodeName).eql('w:p', textEl.textContent)
+        should(textEl.parentNode.parentNode.parentNode.nodeName).eql('w:body', textEl.textContent)
+      }
+    }
+    should(found).eql(['raw xml run'])
+  })
+
   it('raw error no parameter', async () => {
     const result = reporter.render({
       template: {
@@ -129,7 +164,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-no-parameter.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-no-parameter.docx'))
           }
         }
       },
@@ -148,7 +183,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-no-xml-parameter.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-no-xml-parameter.docx'))
           }
         }
       },
@@ -163,7 +198,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-no-replaceParentElement-parameter.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-no-replaceParentElement-parameter.docx'))
           }
         }
       },
@@ -178,7 +213,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-invalid-replaceParentElement-value.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-invalid-replaceParentElement-value.docx'))
           }
         }
       },
@@ -193,7 +228,7 @@ describe('docx raw', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'raw-error-invalid-wtc-location.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'raw-error-invalid-wtc-location.docx'))
           }
         }
       },

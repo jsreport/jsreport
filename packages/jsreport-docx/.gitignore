@@ -34,6 +34,8 @@ node_modules
 
 # jsreport files
 data
+!test/data
+
 logs
 jsreport.config.json
 

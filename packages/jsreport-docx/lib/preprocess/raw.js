@@ -27,6 +27,14 @@ module.exports = (files) => {
       if (!replaceParentElementArg || !replaceParentElementArg[1]) {
         throw new Error('Expected "replaceParentElement" parameter for the docxRaw helper')
       }
+      const rawXML = xmlArg[1]
+
+      // if the xml was specified inline, it means it was stored as part of the xml,
+      // in this case we need to decode the XML at runtime, we specify that by using the inlineXML option
+      if (rawXML.startsWith("'") || rawXML.startsWith('"')) {
+        textEl.textContent = `${textEl.textContent.slice(0, xmlArg.index)}inlineXML=true ${textEl.textContent.slice(xmlArg.index)}`
+      }
+
       const replaceParentElement = replaceParentElementArg[1]
       const helperCall = textEl.textContent.match(regexp)[0]
       const newNode = documentFile.createElement('docxRemove')

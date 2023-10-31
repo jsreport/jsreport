@@ -266,7 +266,7 @@ class MainReporter extends Reporter {
 
       this._workersManager = this._workersManagerFactory
         ? this._workersManagerFactory(workersManagerOptions, workersManagerSystemOptions)
-        : WorkersManager(workersManagerOptions, workersManagerSystemOptions, this.logger)
+        : WorkersManager(workersManagerOptions, workersManagerSystemOptions)
 
       const workersStart = new Date().getTime()
 

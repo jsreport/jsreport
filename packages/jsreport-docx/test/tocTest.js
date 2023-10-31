@@ -6,6 +6,9 @@ const { getDocumentsFromDocxBuf } = require('./utils')
 const WordExtractor = require('word-extractor')
 const extractor = new WordExtractor()
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx TOC', () => {
   let reporter
 
@@ -35,7 +38,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc.docx'))
           }
         }
       },
@@ -50,7 +53,7 @@ describe('docx TOC', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [settingsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/settings.xml'])
     const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
@@ -75,7 +78,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'top-option-updateFields.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'top-option-updateFields.docx'))
           }
         }
       },
@@ -91,7 +94,7 @@ describe('docx TOC', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [settingsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/settings.xml'])
     const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
@@ -116,7 +119,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'top-option-updateFields.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'top-option-updateFields.docx'))
           }
         }
       },
@@ -132,7 +135,7 @@ describe('docx TOC', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [settingsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/settings.xml'])
     const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
@@ -157,7 +160,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-english.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-english.docx'))
           }
         }
       },
@@ -172,7 +175,7 @@ describe('docx TOC', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     const parts = text.split('\n').filter((t) => t)
 
@@ -191,7 +194,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-with-list.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-with-list.docx'))
           }
         }
       },
@@ -206,7 +209,7 @@ describe('docx TOC', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     const parts = text.split('\n').filter((t) => t)
 
@@ -225,7 +228,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-nested.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-nested.docx'))
           }
         }
       },
@@ -246,7 +249,7 @@ describe('docx TOC', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
     const text = (await extractor.extract(result.content)).getBody()
     const parts = text.split('\n').filter((t) => t)
 
@@ -277,7 +280,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-title-if-remove.docx'))
           }
         }
       },
@@ -289,7 +292,7 @@ describe('docx TOC', () => {
 
     should(documentXML.includes('<TOCTitle>')).be.false()
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('should be able to remove TOC Title without producing corrupted document if title is wrapped in condition with closing if on next paragraph (with other condition inside title)', async () => {
@@ -299,7 +302,7 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove2.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-title-if-remove2.docx'))
           }
         }
       },
@@ -311,7 +314,7 @@ describe('docx TOC', () => {
 
     should(documentXML.includes('<TOCTitle>')).be.false()
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
   })
 
   it('should be able to remove TOC Title without producing corrupted document if title is wrapped in condition with closing if on some next paragraph', async () => {
@@ -321,14 +324,14 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove3.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-title-if-remove3.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const documentXML = doc.toString()
@@ -353,14 +356,14 @@ describe('docx TOC', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'toc-title-if-remove4.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-title-if-remove4.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const documentXML = doc.toString()

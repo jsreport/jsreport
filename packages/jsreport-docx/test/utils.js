@@ -1,6 +1,7 @@
+const path = require('path')
 const { DOMParser } = require('@xmldom/xmldom')
 const { decompress } = require('@jsreport/office')
-const { nodeListToArray } = require('../lib/utils')
+const { nodeListToArray, getPictureElInfo } = require('../lib/utils')
 
 module.exports.getDocumentsFromDocxBuf = async function getDocumentsFromDocxBuf (docxBuf, documentPaths, options = {}) {
   const files = await decompress()(docxBuf)
@@ -79,11 +80,16 @@ module.exports.getTextNodesMatching = function getTextNodesMatching (doc, target
   return textNodesMatching.nodes
 }
 
-async function getImageEl (buf, _target, all = false) {
-  const files = await decompress()(buf)
-  const target = _target || 'word/document.xml'
+async function getImageEl (bufOrFile, _target, all = false) {
+  let file
 
-  const file = files.find(f => f.path === target)
+  if (Buffer.isBuffer(bufOrFile)) {
+    const files = await decompress()(bufOrFile)
+    const target = _target || 'word/document.xml'
+    file = files.find(f => f.path === target)
+  } else {
+    file = bufOrFile
+  }
 
   if (file == null) {
     return all ? [] : undefined
@@ -101,13 +107,13 @@ async function getImageEl (buf, _target, all = false) {
   const results = []
 
   for (const drawingEl of drawingEls) {
-    const pictureEl = findDirectPictureChild(drawingEl)
+    const pictureInfo = getPictureElInfo(drawingEl)
 
-    if (pictureEl == null) {
+    if (pictureInfo.picture == null) {
       continue
     }
 
-    results.push(pictureEl)
+    results.push(pictureInfo.picture)
   }
 
   return all ? results : results[0]
@@ -115,47 +121,63 @@ async function getImageEl (buf, _target, all = false) {
 
 module.exports.getImageEl = getImageEl
 
-module.exports.getImageSize = async function getImageSize (buf, _target, all = false) {
-  const pictureEls = await getImageEl(buf, _target, true)
+module.exports.getImageMeta = async function getImageMeta (buf, _target, all = false) {
+  const files = await decompress()(buf)
+  const targetPath = _target || 'word/document.xml'
+  const targetFile = files.find(f => f.path === targetPath)
+  const relsFilename = `${path.posix.basename(targetPath)}.rels`
+  const targetRelsFile = files.find(f => f.path === `word/_rels/${relsFilename}`)
+  let targetRelEls = []
+
+  if (targetRelsFile != null) {
+    const targetRelsDoc = new DOMParser().parseFromString(
+      targetRelsFile.data.toString()
+    )
+
+    const targetRelsEl = targetRelsDoc.getElementsByTagName('Relationships')[0]
+    targetRelEls = nodeListToArray(targetRelsEl.getElementsByTagName('Relationship'))
+  }
+
+  const pictureEls = await getImageEl(targetFile, _target, true)
   const results = []
 
   for (const pictureEl of pictureEls) {
+    const meta = {}
+
+    const blipEl = pictureEl.getElementsByTagName('a:blip')[0]
+    const currentImageRelId = blipEl.getAttribute('r:embed')
+
+    let currentRelEl = targetRelEls.find((el) => el.getAttribute('Id') === currentImageRelId)
+
+    // checks to see if the image is svg
+    const extLstEl = nodeListToArray(blipEl.childNodes).find((el) => el.nodeName === 'a:extLst')
+    const existingSVGBlipExt = nodeListToArray(extLstEl.childNodes).find((el) => el.getAttribute('uri') === '{96DAC541-7B7A-43D3-8B79-37D633B846F1}')
+
+    if (existingSVGBlipExt) {
+      const existingAsvgBlipEl = nodeListToArray(existingSVGBlipExt.childNodes).find((el) => el.nodeName === 'asvg:svgBlip')
+      currentRelEl = targetRelEls.find((el) => el.getAttribute('Id') === existingAsvgBlipEl.getAttribute('r:embed'))
+    }
+
+    if (currentRelEl) {
+      const imagePath = path.posix.join(path.posix.dirname(path.posix.dirname(targetRelsFile.path)), currentRelEl.getAttribute('Target'))
+
+      meta.image = {
+        name: path.posix.basename(imagePath),
+        extension: path.posix.extname(imagePath),
+        path: imagePath,
+        content: files.find(f => f.path === imagePath).data
+      }
+    }
+
     const aExtEl = pictureEl.getElementsByTagName('a:xfrm')[0].getElementsByTagName('a:ext')[0]
 
-    results.push({
+    meta.size = {
       width: parseFloat(aExtEl.getAttribute('cx')),
       height: parseFloat(aExtEl.getAttribute('cy'))
-    })
+    }
+
+    results.push(meta)
   }
 
   return all ? results : results[0]
-}
-
-module.exports.findDirectPictureChild = findDirectPictureChild
-
-function findDirectPictureChild (parentNode) {
-  const childNodes = parentNode.childNodes || []
-  let pictureEl
-
-  for (let i = 0; i < childNodes.length; i++) {
-    const child = childNodes[i]
-
-    if (child.nodeName === 'w:drawing') {
-      break
-    }
-
-    if (child.nodeName === 'pic:pic') {
-      pictureEl = child
-      break
-    }
-
-    const foundInChild = findDirectPictureChild(child)
-
-    if (foundInChild) {
-      pictureEl = foundInChild
-      break
-    }
-  }
-
-  return pictureEl
 }

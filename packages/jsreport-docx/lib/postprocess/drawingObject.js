@@ -28,17 +28,19 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
     '</w:drawing>',
     'g',
     async (val, content, hasNestedMatch) => {
-      const drawingEl = new DOMParser({
+      const doc = new DOMParser({
         xmlns: {
           c: 'http://schemas.openxmlformats.org/drawingml/2006/chart',
           a: 'http://schemas.openxmlformats.org/drawingml/2006/main'
         }
-      }).parseFromString(val).documentElement
+      }).parseFromString(val)
 
-      const newDrawingEl = await processDrawingEl(drawingEl, documentRelsDoc, hasNestedMatch)
+      const drawingEl = doc.documentElement
+
+      const newDrawingEl = await processDrawingEl(drawingEl, doc, documentRelsDoc, hasNestedMatch)
 
       if (newDrawingEl != null) {
-        return serializeXml(newDrawingEl)
+        return newDrawingEl === '' ? newDrawingEl : serializeXml(newDrawingEl)
       }
 
       return val
@@ -54,18 +56,21 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
 
     for (const drawingEl of drawingEls) {
       const hasNestedMatch = nodeListToArray(drawingEl.getElementsByTagName('w:drawing')).length > 0
-      const newDrawingEl = await processDrawingEl(drawingEl, headerFooterRelsDoc, hasNestedMatch)
+      const newDrawingEl = await processDrawingEl(drawingEl, headerFooterDoc, headerFooterRelsDoc, hasNestedMatch)
 
       if (newDrawingEl == null) {
         continue
       }
 
-      drawingEl.parentNode.insertBefore(newDrawingEl, drawingEl)
+      if (newDrawingEl !== '') {
+        drawingEl.parentNode.insertBefore(newDrawingEl, drawingEl)
+      }
+
       drawingEl.parentNode.removeChild(drawingEl)
     }
   }
 
-  async function processDrawingEl (referenceDrawingEl, relsDoc, hasNestedMatch) {
+  async function processDrawingEl (referenceDrawingEl, doc, relsDoc, hasNestedMatch) {
     const drawingEl = referenceDrawingEl.cloneNode(true)
     let changedDocPrId = false
     const docPrEl = getDocPrEl(drawingEl)
@@ -90,7 +95,7 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
       }
     }
 
-    const newImageDrawingEl = await processImage(files, drawingEl, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
+    const newImageDrawingEl = await processImage(files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
 
     if (newImageDrawingEl != null) {
       return newImageDrawingEl

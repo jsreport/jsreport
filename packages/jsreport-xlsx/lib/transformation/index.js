@@ -100,9 +100,11 @@ module.exports = async (reporter, definition, req, res) => {
     }
   })
 
-  await serializeOfficeXmls({ reporter, files, officeDocumentType: 'xlsx' }, req, res)
+  const newOfficeFilePath = await serializeOfficeXmls({ reporter, files, officeDocumentType: 'xlsx' }, req, res)
 
   reporter.logger.info('xlsx transformation was finished', req)
+
+  return newOfficeFilePath
 }
 
 function stringToStream (str) {

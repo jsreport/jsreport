@@ -30,7 +30,7 @@
     "test": "mocha --timeout 5000 test/test.js && standard test/test.js"
   },
   "dependencies": {
-    "ses": "0.18.7"
+    "ses": "0.18.8"
   },
   "devDependencies": {
     "mocha": "10.1.0",

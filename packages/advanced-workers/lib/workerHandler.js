@@ -61,7 +61,7 @@ async function processAndResponse (m, fn) {
   try {
     parentPort.postMessage(message)
   } catch (e) {
-    // the errors are tricky and may contain unserializable props, we should probably omit these somehow but still keep ours
+    // the errors are tricky and may contain un-serializable props, we should probably omit these somehow but still keep ours
     if (message.errorData) {
       parentPort.postMessage({
         type: 'response',
@@ -96,7 +96,9 @@ parentPort.on('message', (m) => {
     return processAndResponse(m, init)
   }
   if (m.systemAction === 'close') {
-    workerModule.close()
+    const closePromise = typeof workerModule.close === 'function' ? workerModule.close() : Promise.resolve()
+
+    closePromise
       .finally(() => {
         // it seems it is important to exit on next tick
         // otherwise the node.js crash with FATAL ERROR
@@ -112,11 +114,15 @@ parentPort.on('message', (m) => {
   if (m.systemAction === 'callback-response') {
     if (!m.errorData) {
       currentCallbackResponseAwaiter.resolve(m.userData)
+      // cleanup to avoid a hanging promise
+      currentCallbackResponseAwaiter = null
     } else {
       const error = new Error(m.errorData.message)
       error.stack = m.errorData.stack
       Object.assign(error, m.errorData)
       currentCallbackResponseAwaiter.reject(error)
+      // cleanup to avoid a hanging promise
+      currentCallbackResponseAwaiter = null
     }
   }
 })

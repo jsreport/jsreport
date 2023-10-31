@@ -1,4 +1,3 @@
-const fs = require('fs')
 const { response } = require('@jsreport/office')
 const processDocx = require('./processDocx')
 
@@ -33,7 +32,7 @@ module.exports = async (reporter, definition, req, res) => {
 
   const { pathToFile: outputPath } = await reporter.writeTempFile((uuid) => `${uuid}.docx`, '')
 
-  const { docxFilePath } = await processDocx(reporter)({
+  const { docxFilePath } = await processDocx(reporter, {
     docxTemplateContent: templateAsset.content,
     options: {
       imageFetchParallelLimit: definition.options.imageFetchParallelLimit
@@ -43,12 +42,10 @@ module.exports = async (reporter, definition, req, res) => {
 
   reporter.logger.info('docx generation was finished', req)
 
-  res.stream = fs.createReadStream(docxFilePath)
-
   await response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'docx',
-    stream: res.stream,
+    filePath: docxFilePath,
     logger: reporter.logger
   }, req, res)
 }

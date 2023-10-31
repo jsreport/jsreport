@@ -29,7 +29,7 @@ module.exports = (reporter) => {
   const profilerRequestMap = new Map()
 
   function runInProfilerChain (fnOrOptions, req) {
-    if (req.context.profiling.mode === 'disabled') {
+    if (req.context.profiling == null || req.context.profiling.mode === 'disabled') {
       return
     }
 
@@ -352,7 +352,7 @@ module.exports = (reporter) => {
                 type: 'log',
                 level: info.level,
                 message: info.message,
-                previousOperationId: req.context.profiling.lastOperationId
+                previousOperationId: req.context.profiling?.lastOperationId
               }, req)],
               log: false
             }, req)

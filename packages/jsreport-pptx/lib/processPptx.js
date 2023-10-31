@@ -7,7 +7,7 @@ const { contentIsXML } = require('./utils.js')
 
 const decodeXML = (str) => decode(str, { level: 'xml' })
 
-module.exports = (reporter) => async (inputs, req) => {
+module.exports = async (reporter, inputs, req) => {
   const { pptxTemplateContent, outputPath } = inputs
 
   try {

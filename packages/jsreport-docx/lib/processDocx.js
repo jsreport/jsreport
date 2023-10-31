@@ -1,13 +1,13 @@
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
-const { decode } = require('html-entities')
+const { customAlphabet } = require('nanoid')
 const { decompress, saveXmlsToOfficeFile } = require('@jsreport/office')
 const preprocess = require('./preprocess/preprocess.js')
 const postprocess = require('./postprocess/postprocess.js')
 const { contentIsXML } = require('./utils')
+const decodeXML = require('./decodeXML')
+const generateRandomId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
 
-const decodeXML = (str) => decode(str, { level: 'xml' })
-
-module.exports = (reporter) => async (inputs, req) => {
+module.exports = async (reporter, inputs, req) => {
   const { docxTemplateContent, options, outputPath } = inputs
 
   try {
@@ -32,7 +32,7 @@ module.exports = (reporter) => async (inputs, req) => {
 
     const filesToRender = files.filter(f => contentIsXML(f.data))
 
-    const contentToRender = filesToRender.map(f => {
+    let contentToRender = filesToRender.map(f => {
       const xmlStr = new XMLSerializer().serializeToString(f.doc, undefined, (node) => {
         // we need to decode the xml entities for the attributes for handlebars to work ok
         if (node.nodeType === 2 && node.nodeValue && node.nodeValue.includes('{{')) {
@@ -55,6 +55,8 @@ module.exports = (reporter) => async (inputs, req) => {
 
       return xmlStr.replace(/<docxRemove>/g, '').replace(/<\/docxRemove>/g, '')
     }).join('$$$docxFile$$$')
+
+    contentToRender = `{{#docxContext type="global" evalId="${generateRandomId()}"}}${contentToRender}{{/docxContext}}`
 
     reporter.logger.debug('Starting child request to render docx dynamic parts', req)
 
@@ -106,7 +108,7 @@ module.exports = (reporter) => async (inputs, req) => {
       files
     })
 
-    reporter.logger.debug('docx successfully zipped')
+    reporter.logger.debug('docx successfully zipped', req)
 
     return {
       docxFilePath: outputPath

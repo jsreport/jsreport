@@ -5,6 +5,9 @@ const path = require('path')
 const { getDocumentsFromDocxBuf } = require('./utils')
 const { nodeListToArray } = require('../lib/utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx child', () => {
   let reporter
 
@@ -34,7 +37,7 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
           }
         }
       },
@@ -45,7 +48,7 @@ describe('docx child', () => {
   it('child and simple paragraph', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'template.docx',
-      content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx'))
     })
 
     const result = await reporter.render({
@@ -54,14 +57,14 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -77,7 +80,7 @@ describe('docx child', () => {
   it('child and simple paragraph with existing content', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'template.docx',
-      content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx'))
     })
 
     const result = await reporter.render({
@@ -86,14 +89,14 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child-with-existing-content.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child-with-existing-content.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -117,7 +120,7 @@ describe('docx child', () => {
   })
 
   it('child dynamic (with object parameter)', async () => {
-    const base64Template = fs.readFileSync(path.join(__dirname, 'child-text-template.docx')).toString('base64')
+    const base64Template = fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx')).toString('base64')
 
     const result = await reporter.render({
       template: {
@@ -125,7 +128,7 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child-dynamic.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child-dynamic.docx'))
           }
         },
         helpers: `
@@ -140,7 +143,7 @@ describe('docx child', () => {
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -156,7 +159,7 @@ describe('docx child', () => {
   it('child and simple paragraph in document header', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'header-template.docx',
-      content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx'))
     })
 
     const result = await reporter.render({
@@ -165,14 +168,14 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child-header.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child-header.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc, headerDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -197,7 +200,7 @@ describe('docx child', () => {
   it('child and simple paragraph in document footer', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'footer-template.docx',
-      content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx'))
     })
 
     const result = await reporter.render({
@@ -206,14 +209,14 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child-footer.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc, footerDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/footer1.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -235,15 +238,15 @@ describe('docx child', () => {
     should(textNodesInHeader[0].textContent).eql('Simple text from template')
   })
 
-  it('child and simple paragraph in document footer', async () => {
+  it('child and simple paragraph in document header and footer', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'header-template.docx',
-      content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx'))
     })
 
     await reporter.documentStore.collection('assets').insert({
       name: 'footer-template.docx',
-      content: fs.readFileSync(path.join(__dirname, 'child-text-template.docx'))
+      content: fs.readFileSync(path.join(docxDirPath, 'child-text-template.docx'))
     })
 
     const result = await reporter.render({
@@ -252,14 +255,14 @@ describe('docx child', () => {
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(__dirname, 'child-header-footer.docx'))
+            content: fs.readFileSync(path.join(docxDirPath, 'child-header-footer.docx'))
           }
         }
       },
       data: {}
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc, headerDoc, footerDoc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/footer1.xml'])
     const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
@@ -288,5 +291,124 @@ describe('docx child', () => {
 
     should(textNodesInHeader.length).eql(1)
     should(textNodesInHeader[0].textContent).eql('Simple text from template')
+  })
+
+  it('child handlebars evaluation', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: fs.readFileSync(path.join(docxDirPath, 'child-handlebars-text-template.docx'))
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
+          }
+        }
+      },
+      data: {
+        price: 50
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(2)
+    should(textNodes[0].textContent).eql('Texte en dur dans le subreport')
+    should(textNodes[1].textContent).eql(' 50')
+  })
+
+  it('child should concat tags for handlebars evaluation', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: fs.readFileSync(path.join(docxDirPath, 'child-handlebars-concat-text-template.docx'))
+    })
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child.docx'))
+          }
+        }
+      },
+      data: {
+        message: 'Hello World'
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(1)
+
+    const textNodes = nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))
+
+    should(textNodes.length).eql(1)
+    should(textNodes[0].textContent).eql('This is a custom message: Hello World')
+  })
+
+  it('child call from loop and handlebars evaluation', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'template.docx',
+      content: fs.readFileSync(path.join(docxDirPath, 'child-handlebars-text-template.docx'))
+    })
+
+    const dataItems = [
+      { price: 50 },
+      { price: 60 },
+      { price: 70 }
+    ]
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'child-loop-call.docx'))
+          }
+        }
+      },
+      data: {
+        items: dataItems
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const paragraphNodes = nodeListToArray(doc.getElementsByTagName('w:p'))
+
+    should(paragraphNodes.length).eql(5)
+
+    should(nodeListToArray(paragraphNodes[0].getElementsByTagName('w:t'))[0].textContent).be.eql('Some previous content')
+
+    const loopNodes = paragraphNodes.slice(1, -1)
+
+    for (let idx = 0; idx < loopNodes.length; idx++) {
+      const loopNode = loopNodes[idx]
+      const textNodes = nodeListToArray(loopNode.getElementsByTagName('w:t'))
+      should(textNodes.length).eql(2)
+
+      should(textNodes[0].textContent).eql('Texte en dur dans le subreport')
+      should(textNodes[1].textContent).eql(` ${dataItems[idx].price}`)
+    }
+
+    should(nodeListToArray(paragraphNodes[paragraphNodes.length - 1].getElementsByTagName('w:t'))[0].textContent).be.eql('Some after content')
   })
 })

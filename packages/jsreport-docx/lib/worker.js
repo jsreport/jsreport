@@ -14,6 +14,16 @@ module.exports = (reporter, definition) => {
 
   let helpersScript
 
+  reporter.options.sandbox.modules.push({
+    alias: 'docxDecodeXML',
+    path: path.join(__dirname, './decodeXML.js')
+  })
+
+  reporter.options.sandbox.modules.push({
+    alias: 'docxProcessChildEmbed',
+    path: path.join(__dirname, './processChildEmbed/index.js')
+  })
+
   reporter.extensionsManager.recipes.push({
     name: 'docx',
     execute: (req, res) => require('./recipe')(reporter, definition, req, res)

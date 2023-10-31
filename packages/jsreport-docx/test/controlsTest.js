@@ -3,6 +3,9 @@ const fs = require('fs')
 const path = require('path')
 const { getDocumentsFromDocxBuf } = require('./utils')
 
+const docxDirPath = path.join(__dirname, './docx')
+const outputPath = path.join(__dirname, '../out.docx')
+
 describe('docx controls', () => {
   let reporter
 
@@ -33,7 +36,7 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-input.docx')
+              path.join(docxDirPath, 'form-control-input.docx')
             )
           }
         }
@@ -43,7 +46,7 @@ describe('docx controls', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -62,7 +65,7 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-checkbox.docx')
+              path.join(docxDirPath, 'form-control-checkbox.docx')
             )
           }
         }
@@ -72,7 +75,7 @@ describe('docx controls', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -95,7 +98,7 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-combo.docx')
+              path.join(docxDirPath, 'form-control-combo.docx')
             )
           }
         }
@@ -105,7 +108,7 @@ describe('docx controls', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -122,14 +125,14 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-combo-constant-value.docx')
+              path.join(docxDirPath, 'form-control-combo-constant-value.docx')
             )
           }
         }
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -146,7 +149,7 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-combo-dynamic-items.docx')
+              path.join(docxDirPath, 'form-control-combo-dynamic-items.docx')
             )
           }
         }
@@ -166,7 +169,7 @@ describe('docx controls', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -183,7 +186,7 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-combo-dynamic-items.docx')
+              path.join(docxDirPath, 'form-control-combo-dynamic-items.docx')
             )
           }
         }
@@ -194,7 +197,7 @@ describe('docx controls', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 
@@ -211,7 +214,7 @@ describe('docx controls', () => {
         docx: {
           templateAsset: {
             content: fs.readFileSync(
-              path.join(__dirname, 'form-control-combo-dynamic-items.docx')
+              path.join(docxDirPath, 'form-control-combo-dynamic-items.docx')
             )
           }
         }
@@ -222,7 +225,7 @@ describe('docx controls', () => {
       }
     })
 
-    fs.writeFileSync('out.docx', result.content)
+    fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
 

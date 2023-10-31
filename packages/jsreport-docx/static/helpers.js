@@ -1,13 +1,16 @@
 /* eslint no-unused-vars: 0 */
 /* eslint no-new-func: 0 */
 /* *global __rootDirectory */
-
 function docxContext (options) {
   const Handlebars = require('handlebars')
   let data
 
-  if (options.hash.type === 'document') {
+  if (options.hash.type === 'global') {
     data = Handlebars.createFrame({})
+    data.evalId = options.hash.evalId
+    data.childCache = new Map()
+  } else if (options.hash.type === 'document') {
+    data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
   } else if (options.hash.type === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
@@ -17,6 +20,8 @@ function docxContext (options) {
     }
 
     return idx
+  } else if (options.hash.type === 'childContentPartial') {
+    return options.data.childPartialId
   }
 
   const context = {}
@@ -25,7 +30,24 @@ function docxContext (options) {
     context.data = data
   }
 
-  return options.fn(this, context)
+  const output = options.fn(this, context)
+
+  // clear the child cache/partials after the global context is processed
+  if (options.hash.type === 'global') {
+    const jsreport = require('jsreport-proxy')
+
+    return jsreport.templatingEngines.waitForAsyncHelpers().then(() => output).finally(() => {
+      const childCache = data.childCache
+
+      for (const partialId of childCache.values()) {
+        Handlebars.unregisterPartial(partialId)
+      }
+
+      childCache.clear()
+    })
+  }
+
+  return output
 }
 
 function docxPageBreak () {
@@ -35,15 +57,20 @@ function docxPageBreak () {
 
 function docxRaw (options) {
   const Handlebars = require('handlebars')
+  const isInlineXML = options.hash.inlineXML === true
+  let xmlInput = options.hash.xml
 
-  if (typeof options.hash.xml === 'string') {
-    if (options.hash.xml.startsWith('<')) {
-      return new Handlebars.SafeString(options.hash.xml)
-    }
+  if (isInlineXML && typeof xmlInput === 'string') {
+    const decodeXML = require('docxDecodeXML')
+    xmlInput = decodeXML(xmlInput)
+  }
+
+  if (typeof xmlInput === 'string' && xmlInput.startsWith('<')) {
+    return new Handlebars.SafeString(xmlInput)
   }
 
   // Wrap not valid XML data as a literal, without any style
-  return new Handlebars.SafeString('<w:r><w:t>' + options.hash.xml + '</w:t></w:r>')
+  return new Handlebars.SafeString('<w:r><w:t>' + xmlInput + '</w:t></w:r>')
 }
 
 function docxList (data, options) {
@@ -283,56 +310,98 @@ async function docxImage (options) {
   const jsreport = require('jsreport-proxy')
 
   options.hash.src = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.src)
+  options.hash.fallbackSrc = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.fallbackSrc)
+  options.hash.failurePlaceholderAction = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.failurePlaceholderAction)
   options.hash.width = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.width)
   options.hash.height = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.height)
   options.hash.usePlaceholderSize = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.usePlaceholderSize)
 
-  if (!options.hash.src) {
+  if (
+    options.hash.src == null &&
+    options.hash.fallbackSrc == null &&
+    options.hash.failurePlaceholderAction == null
+  ) {
     throw new Error(
       'docxImage helper requires src parameter to be set'
     )
   }
 
-  if (
-    !options.hash.src.startsWith('data:image/png;base64,') &&
-    !options.hash.src.startsWith('data:image/jpeg;base64,') &&
-    !options.hash.src.startsWith('http://') &&
-    !options.hash.src.startsWith('https://')
-  ) {
-    throw new Error(
-      'docxImage helper requires src parameter to be valid data uri for png or jpeg image or a valid url. Got ' +
-        options.hash.src
+  const isValidSrc = (value) => {
+    return (
+      typeof value === 'string' &&
+      (
+        value.startsWith('data:image/png;base64,') ||
+        value.startsWith('data:image/jpeg;base64,') ||
+        value.startsWith('data:image/svg+xml;base64,') ||
+        value.startsWith('http://') ||
+        value.startsWith('https://')
+      )
     )
   }
 
-  const isValidDimensionUnit = value => {
+  if (
+    options.hash.src != null &&
+    !isValidSrc(options.hash.src)
+  ) {
+    throw new Error(
+      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      options.hash.src
+    )
+  }
+
+  if (
+    options.hash.fallbackSrc != null &&
+    !isValidSrc(options.hash.fallbackSrc)
+  ) {
+    throw new Error(
+      'docxImage helper requires fallbackSrc parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      options.hash.fallbackSrc
+    )
+  }
+
+  if (
+    options.hash.failurePlaceholderAction != null &&
+    (
+      options.hash.failurePlaceholderAction !== 'preserve' &&
+      options.hash.failurePlaceholderAction !== 'remove'
+    )
+  ) {
+    throw new Error(
+      'docxImage helper requires failurePlaceholderAction parameter to be either "preserve" or "remove". Got ' +
+      options.hash.failurePlaceholderAction
+    )
+  }
+
+  const isValidDimensionUnit = (value) => {
     const regexp = /^(\d+(.\d+)?)(cm|px)$/
     return regexp.test(value)
   }
 
   if (
     options.hash.width != null &&
-      !isValidDimensionUnit(options.hash.width)
+    !isValidDimensionUnit(options.hash.width)
   ) {
     throw new Error(
       'docxImage helper requires width parameter to be valid number with unit (cm or px). got ' +
-        options.hash.width
+      options.hash.width
     )
   }
 
   if (
     options.hash.height != null &&
-      !isValidDimensionUnit(options.hash.height)
+    !isValidDimensionUnit(options.hash.height)
   ) {
     throw new Error(
       'docxImage helper requires height parameter to be valid number with unit (cm or px). got ' +
-        options.hash.height
+      options.hash.height
     )
   }
 
   const content = `$docxImage${
     Buffer.from(JSON.stringify({
       src: options.hash.src,
+      fallbackSrc: options.hash.fallbackSrc,
+      failurePlaceholderAction: options.hash.failurePlaceholderAction,
       width: options.hash.width,
       height: options.hash.height,
       usePlaceholderSize:
@@ -428,33 +497,97 @@ function docxTOCOptions (options) {
   return new Handlebars.SafeString('$docxTOCOptions' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
 
-async function docxChild (assetNamePathOrObject) {
+async function docxSData (data, options) {
   const Handlebars = require('handlebars')
+  const optionsToUse = options == null ? data : options
+  const type = optionsToUse.hash.type
 
-  if (assetNamePathOrObject == null) {
-    throw new Error('docxChild helper requires asset parameter to be set')
+  if (type == null) {
+    throw new Error('docxSData helper type arg is required')
   }
 
-  const docxChildInfo = {}
+  if (
+    arguments.length === 2 &&
+    type === 'child'
+  ) {
+    const evalId = optionsToUse.data.evalId
 
-  if (typeof assetNamePathOrObject === 'object' && assetNamePathOrObject.content != null) {
-    if (typeof assetNamePathOrObject.content !== 'string') {
-      throw new Error('docxChild helper requires when asset parameter is object, a .content property exists and it to be a string')
+    if (evalId == null) {
+      throw new Error('docxSData type="child" helper invalid usage, evalId was not found')
     }
 
-    docxChildInfo.content = assetNamePathOrObject.content
-    docxChildInfo.encoding = assetNamePathOrObject.encoding || 'base64'
-  } else {
-    if (typeof assetNamePathOrObject !== 'string') {
-      throw new Error('docxChild helper requires asset parameter to be a string or an object with .content property')
+    const assetNamePathOrObject = data
+
+    if (assetNamePathOrObject == null) {
+      throw new Error('docxSData type="child" helper needs assetNamePathOrObject arg is required')
     }
 
-    const jsreport = require('jsreport-proxy')
-    const assetBase64Content = await jsreport.assets.read(assetNamePathOrObject, 'base64')
+    const newData = Handlebars.createFrame(optionsToUse.data)
 
-    docxChildInfo.content = assetBase64Content
-    docxChildInfo.encoding = 'base64'
+    const docxChildInfo = {}
+
+    if (typeof assetNamePathOrObject === 'object' && assetNamePathOrObject.content != null) {
+      if (typeof assetNamePathOrObject.content !== 'string') {
+        throw new Error('docxChild helper requires when asset parameter is object, a .content property exists and it to be a string')
+      }
+
+      docxChildInfo.content = assetNamePathOrObject.content
+      docxChildInfo.encoding = assetNamePathOrObject.encoding || 'base64'
+    } else {
+      const jsreport = require('jsreport-proxy')
+
+      if (typeof assetNamePathOrObject !== 'string') {
+        throw new Error('docxChild helper requires asset parameter to be a string or an object with .content property')
+      }
+
+      const assetBase64Content = await jsreport.assets.read(assetNamePathOrObject, 'base64')
+
+      docxChildInfo.content = assetBase64Content
+      docxChildInfo.encoding = 'base64'
+    }
+
+    const childCacheKey = `${docxChildInfo.encoding}:${docxChildInfo.content}`
+
+    if (!newData.childCache.has(childCacheKey)) {
+      const childDocxAwaiter = {}
+
+      childDocxAwaiter.promise = new Promise((resolve, reject) => {
+        childDocxAwaiter.resolve = resolve
+        childDocxAwaiter.reject = reject
+      })
+
+      newData.childCache.set(childCacheKey, childDocxAwaiter)
+
+      try {
+        const childDocxBuf = Buffer.from(docxChildInfo.content, docxChildInfo.encoding)
+        const processChildEmbed = require('docxProcessChildEmbed')
+        const xmlOutput = await processChildEmbed(childDocxBuf)
+        const partialId = `docxChild${evalId}${newData.childCache.size}`
+        Handlebars.registerPartial(partialId, xmlOutput)
+        newData.childCache.set(childCacheKey, partialId)
+        childDocxAwaiter.resolve(partialId)
+      } catch (error) {
+        childDocxAwaiter.reject(error)
+      }
+    }
+
+    const childPartialResult = newData.childCache.get(childCacheKey)
+
+    if (typeof childPartialResult !== 'string') {
+      newData.childPartialId = await childPartialResult.promise
+    } else {
+      newData.childPartialId = childPartialResult
+    }
+
+    return optionsToUse.fn(this, { data: newData })
   }
 
-  return new Handlebars.SafeString(`$docxChild${Buffer.from(JSON.stringify(docxChildInfo)).toString('base64')}$`)
+  if (
+    arguments.length === 1 &&
+    type === 'childCaller'
+  ) {
+    return new Handlebars.SafeString('')
+  }
+
+  throw new Error(`invalid usage of docxSData helper${type != null ? ` (type: ${type})` : ''}`)
 }

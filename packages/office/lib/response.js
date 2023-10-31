@@ -1,8 +1,6 @@
+const fs = require('fs/promises')
 const axios = require('axios')
 const FormData = require('form-data')
-const toArray = require('stream-to-array')
-const { promisify } = require('util')
-const toArrayAsync = promisify(toArray)
 
 const officeDocuments = {
   docx: {
@@ -19,14 +17,14 @@ const officeDocuments = {
 module.exports = async function response ({
   previewOptions: { publicUri, enabled },
   officeDocumentType,
-  stream,
+  filePath,
   buffer,
   logger
 }, req, res) {
   if (buffer) {
     res.content = buffer
   } else {
-    res.content = Buffer.concat(await toArrayAsync(stream))
+    res.content = await fs.readFile(filePath)
   }
 
   if (officeDocuments[officeDocumentType] == null) {
@@ -52,6 +50,8 @@ module.exports = async function response ({
     return
   }
 
+  logger.debug('preparing office preview', req)
+
   const form = new FormData()
 
   form.append('field', res.content, `file.${officeDocumentType}`)
@@ -65,7 +65,7 @@ module.exports = async function response ({
       headers: form.getHeaders(),
       // axios by default has no limits but there is a bug
       // https://github.com/axios/axios/issues/1362 (when following redirects) in
-      // which the default limit is not taking into account, so we set it explicetly
+      // which the default limit is not taking into account, so we set it explicitly
       maxContentLength: Infinity
     })
   } catch (e) {

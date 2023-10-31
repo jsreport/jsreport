@@ -70,7 +70,8 @@ module.exports = function (reporter, definition) {
         await response({
           previewOptions: reporter.options.office != null && reporter.options.office.preview != null ? reporter.options.office.preview : {},
           officeDocumentType: path.extname(asset.filename).slice(1),
-          buffer: asset.buffer
+          buffer: asset.buffer,
+          logger: reporter.logger
         }, req, res)
 
         res.setHeader('Content-Type', res.meta.contentType)

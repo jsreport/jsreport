@@ -1,4 +1,3 @@
-const fs = require('fs')
 const { response } = require('@jsreport/office')
 const htmlToXlsx = require('html-to-xlsx')
 const htmlToXlsxProcess = require('./htmlToXlsxProcess')
@@ -166,12 +165,10 @@ module.exports = async (reporter, definition, req, res) => {
 
   reporter.logger.info('html-to-xlsx generation was finished', req)
 
-  res.stream = fs.createReadStream(result.htmlToXlsxFilePath)
-
   return response({
     previewOptions: definition.options.preview,
     officeDocumentType: 'xlsx',
-    stream: res.stream,
+    filePath: result.htmlToXlsxFilePath,
     logger: reporter.logger
   }, req, res)
 }

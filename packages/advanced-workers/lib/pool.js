@@ -79,17 +79,23 @@ module.exports = ({
         }
       }
 
+      let timeoutId
+
       return new Promise((resolve, reject) => {
         const task = { resolve, reject }
         this.tasksQueue.push(task)
         if (opts && opts.timeout) {
-          setTimeout(() => {
+          timeoutId = setTimeout(() => {
             const taskIndex = this.tasksQueue.indexOf(task)
             if (taskIndex !== -1) {
               this.tasksQueue.splice(taskIndex, 1)
               task.reject(new Error('Timeout when waiting for worker'))
             }
           }, opts.timeout).unref()
+        }
+      }).finally(() => {
+        if (timeoutId != null) {
+          clearTimeout(timeoutId)
         }
       })
     },
