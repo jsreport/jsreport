@@ -34,6 +34,10 @@ Create an azure storage account and copy account name and access key.  Then alte
 
 ## Changelog
 
+### 4.0.1
+
+- fix jsreport v4 regression #1104
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
