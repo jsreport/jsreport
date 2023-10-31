@@ -173,6 +173,10 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
       })))
     },
     exists: async (p) => {
+      if (!p) {
+        // root always exist
+        return true
+      }
       p = pathWithPrefix(p)
       try {
         await s3Async.headObject({ Bucket: bucket, Key: p })
@@ -221,7 +225,8 @@ module.exports = ({ logger, accessKeyId, secretAccessKey, bucket, prefix, lock =
       })
     },
     path: {
-      join: (...args) => args.filter(a => a).join('/'),
+      // removing leading and trailing slashes
+      join: (...args) => args.filter(a => a).map(a => a.replace(/\/+$/, '').replace(/^\/+/, '')).join('/'),
       sep: '/',
       basename: path.basename
     },
