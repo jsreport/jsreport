@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-fs-store-aws-s3-persistence",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Make jsreport fs store using aws s3 to store entities",
   "keywords": [
     "jsreport",

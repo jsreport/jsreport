@@ -46,6 +46,10 @@ This persistence implementation also guarantees consistency for parallel access 
 
 ## Changelog
 
+### 4.0.1
+
+- fix jsreport v4 regression #1104
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
