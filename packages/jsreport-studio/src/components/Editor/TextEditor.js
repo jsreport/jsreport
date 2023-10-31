@@ -30,6 +30,7 @@ class TextEditor extends Component {
     this.editorWillMount = this.editorWillMount.bind(this)
     this.editorDidMount = this.editorDidMount.bind(this)
     this.editorWillUnmount = this.editorWillUnmount.bind(this)
+    this.editorOnChange = this.editorOnChange.bind(this)
     this.calculateEditorLayout = this.calculateEditorLayout.bind(this)
 
     this.state = {
@@ -364,6 +365,11 @@ class TextEditor extends Component {
     this.monacoEditorData = null
   }
 
+  editorOnChange (v) {
+    const { onUpdate } = this.props
+    onUpdate(v)
+  }
+
   getFocus () {
     const self = this
 
@@ -448,7 +454,7 @@ class TextEditor extends Component {
 
   render () {
     const { editorTheme } = this.state
-    const { value, onUpdate, name, mode } = this.props
+    const { value, name, mode } = this.props
 
     const editorOptions = {
       roundedSelection: false,
@@ -474,7 +480,8 @@ class TextEditor extends Component {
         editorDidMount={this.editorDidMount}
         editorWillUnmount={this.editorWillUnmount}
         options={editorOptions}
-        onChange={(v) => onUpdate(v)}
+        // eslint-disable-next-line react/jsx-handler-names
+        onChange={this.editorOnChange}
       />
     )
   }
