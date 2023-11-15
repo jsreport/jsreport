@@ -1,4 +1,4 @@
-const awsSDK = require('aws-sdk')
+const { S3 } = require('@aws-sdk/client-s3');
 
 module.exports = function (reporter, definition) {
   if (reporter.options.blobStorage.provider !== 'aws-s3-storage') {
@@ -16,9 +16,18 @@ module.exports = function (reporter, definition) {
 
   let s3
   if (options.accessKeyId != null && options.secretAccessKey != null) {
-    s3 = new awsSDK.S3({ accessKeyId: options.accessKeyId, secretAccessKey: options.secretAccessKey, ...options.s3Options })
+    s3 = new S3({
+      credentials: {
+        accessKeyId: options.accessKeyId,
+        secretAccessKey: options.secretAccessKey
+      },
+
+      ...options.s3Options
+    })
   } else {
-    s3 = new awsSDK.S3({ ...options.s3Options })
+    s3 = new S3({
+      ...options.s3Options
+    })
   }
 
   reporter.blobStorage.registerProvider({
