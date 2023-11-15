@@ -21,13 +21,10 @@ module.exports = function (reporter, definition) {
         accessKeyId: options.accessKeyId,
         secretAccessKey: options.secretAccessKey
       },
-
       ...options.s3Options
     })
   } else {
-    s3 = new S3({
-      ...options.s3Options
-    })
+    s3 = new S3(options.s3Options)
   }
 
   reporter.blobStorage.registerProvider({
