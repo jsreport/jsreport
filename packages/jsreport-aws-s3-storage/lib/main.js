@@ -1,4 +1,4 @@
-const { S3 } = require('@aws-sdk/client-s3');
+const { S3 } = require('@aws-sdk/client-s3')
 
 module.exports = function (reporter, definition) {
   if (reporter.options.blobStorage.provider !== 'aws-s3-storage') {
