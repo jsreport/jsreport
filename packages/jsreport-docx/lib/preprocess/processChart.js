@@ -1,6 +1,7 @@
+const path = require('path')
 const { nodeListToArray, getChartEl } = require('../utils')
 
-module.exports = function processChart (files, drawingEl, relsDoc) {
+module.exports = function processChart (files, drawingEl, documentFile, relsDoc) {
   // drawing in docx is inline, this means that it seems not possible to
   // have multiple charts in a single drawing,
   // so we still assume to get a single chart from the drawing.
@@ -12,11 +13,12 @@ module.exports = function processChart (files, drawingEl, relsDoc) {
     return
   }
 
+  const documentPath = documentFile.path
   const relsElements = nodeListToArray(relsDoc.getElementsByTagName('Relationship'))
   const chartRId = chartDrawingEl.getAttribute('r:id')
   const chartREl = relsElements.find((r) => r.getAttribute('Id') === chartRId)
-  const chartFilename = `word/${chartREl.getAttribute('Target')}`
-  const chartFile = files.find(f => f.path === chartFilename)
+  const chartPath = path.posix.join(path.posix.dirname(documentPath), chartREl.getAttribute('Target'))
+  const chartFile = files.find(f => f.path === chartPath)
   const chartDoc = chartFile.doc
   const chartTitles = nodeListToArray(chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`))
   const chartMainTitleEl = chartTitles[0]

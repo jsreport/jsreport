@@ -36,9 +36,15 @@ module.exports = (files) => {
 
     for (let i = 1; i < slides.length; i++) {
       slideNumber++
+
+      const newSlideDoc = new DOMParser().parseFromString(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n${slides[i].toString()}`)
+
+      // this attribute is going to be removed later as some of the last steps of postprocess
+      newSlideDoc.documentElement.setAttribute('originalSlideNumber', originalSlideNumber)
+
       files.push({
         path: `ppt/slides/slide${slideNumber}.xml`,
-        doc: slides[i]
+        doc: newSlideDoc
       })
 
       const slideRelsDoc = new DOMParser().parseFromString(originalSlideRelsFile.data)

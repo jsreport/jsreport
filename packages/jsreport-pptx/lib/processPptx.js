@@ -80,15 +80,19 @@ module.exports = async (reporter, inputs, req) => {
     await postprocess(files)
 
     for (const f of files) {
-      let isXML = false
+      let shouldSerializeFromDoc
 
       if (f.data == null) {
-        isXML = f.path.includes('.xml')
+        shouldSerializeFromDoc = f.path.includes('.xml')
       } else {
-        isXML = contentIsXML(f.data)
+        shouldSerializeFromDoc = contentIsXML(f.data)
       }
 
-      if (isXML) {
+      if (f.serializeFromDoc != null) {
+        shouldSerializeFromDoc = f.serializeFromDoc === true
+      }
+
+      if (shouldSerializeFromDoc) {
         f.data = Buffer.from(new XMLSerializer().serializeToString(f.doc))
       }
     }

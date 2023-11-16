@@ -37,7 +37,9 @@
     "@xmldom/xmldom": "0.8.6",
     "axios": "0.24.0",
     "html-entities": "2.4.0",
-    "image-size": "0.7.4"
+    "image-size": "0.7.4",
+    "js-excel-date-convert": "1.0.2",
+    "moment": "2.29.4"
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.0.1",

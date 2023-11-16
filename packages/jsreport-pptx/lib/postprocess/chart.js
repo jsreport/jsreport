@@ -2,29 +2,138 @@ const path = require('path')
 const { DOMParser, XMLSerializer } = require('@xmldom/xmldom')
 const moment = require('moment')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
-const { serializeXml, nodeListToArray, getChartEl, getNewRelIdFromBaseId, clearEl, findChildNode, findOrCreateChildNode } = require('../utils')
 
-module.exports = async function processChart (files, referenceDrawingEl, relsDoc, originalChartsXMLMap, newRelIdCounterMap) {
-  const drawingEl = referenceDrawingEl.cloneNode(true)
+const {
+  nodeListToArray,
+  findOrCreateChildNode,
+  findChildNode,
+  clearEl,
+  serializeXml,
+  getCNvPrEl,
+  getChartEl,
+  getNewRelIdFromBaseId,
+  getNewIdFromBaseId
+} = require('../utils')
+
+module.exports = async (files) => {
+  const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
+  const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
+  const toRemoveMaxCNvPrIdAttributes = new Set()
+  const originalChartsXMLMap = new Map()
+
+  for (const slideFile of allSlideFiles) {
+    const slideDoc = slideFile.doc
+    const slideNumber = parseInt(slideFile.path.replace('ppt/slides/slide', '').replace('.xml', ''))
+    const slideRelsDoc = files.find(f => f.path === `ppt/slides/_rels/slide${slideNumber}.xml.rels`).doc
+    let originalSlideNumber = slideDoc.documentElement.hasAttribute('originalSlideNumber') ? slideDoc.documentElement.getAttribute('originalSlideNumber') : null
+
+    if (originalSlideNumber != null) {
+      originalSlideNumber = parseInt(originalSlideNumber, 10)
+    }
+
+    const fromLoopAndNewSlide = (
+      originalSlideNumber != null &&
+      originalSlideNumber !== slideNumber
+    )
+
+    const maxCNvPrIdAttrName = `slide${fromLoopAndNewSlide ? originalSlideNumber : slideNumber}graphicFrameMaxCNvPrId`
+
+    const context = {
+      fromLoopAndNewSlide,
+      originalSlideNumber,
+      cNvPrIdCounterMap: new Map(),
+      chartsNewRelIdCounterMap: new Map(),
+      originalChartsXMLMap
+    }
+
+    if (contentTypesDoc.documentElement.hasAttribute(maxCNvPrIdAttrName)) {
+      context.maxCNvPrId = parseInt(contentTypesDoc.documentElement.getAttribute(maxCNvPrIdAttrName), 10)
+      toRemoveMaxCNvPrIdAttributes.add(maxCNvPrIdAttrName)
+    }
+
+    const graphicFrameEls = nodeListToArray(slideDoc.getElementsByTagName('p:graphicFrame'))
+
+    for (const graphicFrameEl of graphicFrameEls) {
+      const newGraphicFrameEl = await processGraphicFrame(files, context, graphicFrameEl, slideFile, slideRelsDoc, false)
+
+      if (newGraphicFrameEl == null) {
+        continue
+      }
+
+      if (newGraphicFrameEl === '') {
+        graphicFrameEl.parentNode.removeChild(graphicFrameEl)
+        continue
+      } else {
+        graphicFrameEl.parentNode.replaceChild(newGraphicFrameEl, graphicFrameEl)
+      }
+    }
+  }
+
+  for (const currentAttrName of toRemoveMaxCNvPrIdAttributes) {
+    contentTypesDoc.documentElement.removeAttribute(currentAttrName)
+  }
+}
+
+async function processGraphicFrame (files, context, referenceGraphicFrameEl, slideFile, relsDoc, hasNestedMatch) {
+  const { maxCNvPrId, cNvPrIdCounterMap, chartsNewRelIdCounterMap, originalChartsXMLMap } = context
+  const graphicFrameEl = referenceGraphicFrameEl.cloneNode(true)
+  let changedCNvPrId = false
+  const cNvPrEl = getCNvPrEl(referenceGraphicFrameEl)
+  let cNvPrId
+
+  if (cNvPrEl != null) {
+    const id = parseInt(cNvPrEl.getAttribute('id'), 10)
+
+    if (!isNaN(id)) {
+      cNvPrId = id
+    }
+  }
+
+  // fix id for elements that have been generated after loop
+  if (cNvPrId != null) {
+    const newCNvPrId = getNewIdFromBaseId(cNvPrIdCounterMap, cNvPrId, maxCNvPrId || 0)
+
+    if (newCNvPrId !== cNvPrId) {
+      changedCNvPrId = true
+      context.maxCNvPrId = newCNvPrId
+      cNvPrEl.setAttribute('id', newCNvPrId)
+    }
+  }
+
+  // only process charts it is a standalone drawing element
+  if (hasNestedMatch) {
+    return changedCNvPrId ? graphicFrameEl : null
+  }
+
+  const newChartGraphicFrameEl = await processChart(files, context, graphicFrameEl, slideFile, relsDoc, originalChartsXMLMap, chartsNewRelIdCounterMap)
+
+  if (newChartGraphicFrameEl) {
+    return newChartGraphicFrameEl
+  }
+
+  return changedCNvPrId ? graphicFrameEl : null
+}
+
+async function processChart (files, context, referenceGraphicFrameEl, slideFile, relsDoc, originalChartsXMLMap, newRelIdCounterMap) {
+  const graphicFrameEl = referenceGraphicFrameEl.cloneNode(true)
   const relsEl = relsDoc.getElementsByTagName('Relationships')[0]
-  const documentFile = files.find(f => f.path === 'word/document.xml')
   const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
 
-  // drawing in docx is inline, this means that it seems not possible to
+  // drawing in pptx is inline, this means that it seems not possible to
   // have multiple charts in a single drawing,
   // so we still assume to get a single chart from the drawing.
-  // this was also validated by verifying the output in Word by duplicating
+  // this was also validated by verifying the output in PowerPoint by duplicating
   // a chart, it always create two separate inline drawings with single chart on each
-  const chartDrawingEl = getChartEl(drawingEl)
+  const chartEl = getChartEl(graphicFrameEl)
 
-  if (!chartDrawingEl) {
+  if (!chartEl) {
     return
   }
 
-  const documentPath = documentFile.path
-  let chartRId = chartDrawingEl.getAttribute('r:id')
+  const slidePath = slideFile.path
+  let chartRId = chartEl.getAttribute('r:id')
   let chartREl = nodeListToArray(relsDoc.getElementsByTagName('Relationship')).find((r) => r.getAttribute('Id') === chartRId)
-  let chartPath = path.posix.join(path.posix.dirname(documentPath), chartREl.getAttribute('Target'))
+  let chartPath = path.posix.join(path.posix.dirname(slidePath), chartREl.getAttribute('Target'))
   let chartFile = files.find(f => f.path === chartPath)
   // take the original (not modified) document
   let chartDoc = originalChartsXMLMap.has(chartPath) ? new DOMParser().parseFromString(originalChartsXMLMap.get(chartPath)) : chartFile.doc
@@ -33,7 +142,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
     originalChartsXMLMap.set(chartPath, new XMLSerializer().serializeToString(chartDoc))
   }
 
-  let chartRelsFilename = `word/charts/_rels/${chartPath.split('/').slice(-1)[0]}.rels`
+  let chartRelsFilename = `ppt/charts/_rels/${chartPath.split('/').slice(-1)[0]}.rels`
   // take the original (not modified) document
   let chartRelsDoc = originalChartsXMLMap.has(chartRelsFilename) ? new DOMParser().parseFromString(originalChartsXMLMap.get(chartRelsFilename)) : files.find(f => f.path === chartRelsFilename).doc
 
@@ -48,7 +157,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
   let chartStyleRelFilename
 
   if (chartStyleRelNode) {
-    chartStyleRelFilename = `word/charts/${chartStyleRelNode.getAttribute('Target')}`
+    chartStyleRelFilename = `ppt/charts/${chartStyleRelNode.getAttribute('Target')}`
   }
 
   if (chartStyleRelFilename && !originalChartsXMLMap.has(chartStyleRelFilename)) {
@@ -64,7 +173,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
   let chartColorStyleRelFilename
 
   if (chartColorStyleRelNode) {
-    chartColorStyleRelFilename = `word/charts/${chartColorStyleRelNode.getAttribute('Target')}`
+    chartColorStyleRelFilename = `ppt/charts/${chartColorStyleRelNode.getAttribute('Target')}`
   }
 
   if (chartColorStyleRelFilename && !originalChartsXMLMap.has(chartColorStyleRelFilename)) {
@@ -73,8 +182,8 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
     ))
   }
 
-  if (drawingEl.firstChild.localName === 'docxChartMainReplace') {
-    const newChartMainTitleEl = drawingEl.firstChild.firstChild
+  if (graphicFrameEl.firstChild.localName === 'pptxChartMainReplace') {
+    const newChartMainTitleEl = graphicFrameEl.firstChild.firstChild
     const newChartAxTitleEls = []
     let currentNode = newChartMainTitleEl
 
@@ -88,19 +197,27 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
 
     const newChartRelId = getNewRelIdFromBaseId(relsDoc, newRelIdCounterMap, chartRId)
 
-    if (chartRId !== newChartRelId) {
-      const newRel = nodeListToArray(relsDoc.getElementsByTagName('Relationship')).find((el) => {
+    if (chartRId !== newChartRelId || context.fromLoopAndNewSlide) {
+      const existingRel = nodeListToArray(relsDoc.getElementsByTagName('Relationship')).find((el) => {
         return el.getAttribute('Id') === chartRId
-      }).cloneNode()
+      })
 
-      newRel.setAttribute('Id', newChartRelId)
+      let newRel
+
+      if (!context.fromLoopAndNewSlide) {
+        newRel = existingRel.cloneNode()
+      }
+
+      if (newRel) {
+        newRel.setAttribute('Id', newChartRelId)
+      }
 
       let getIdRegexp
 
-      if (chartDrawingEl.prefix === 'cx') {
-        getIdRegexp = () => /word\/charts\/chartEx(\d+)\.xml/
+      if (chartEl.prefix === 'cx') {
+        getIdRegexp = () => /ppt\/charts\/chartEx(\d+)\.xml/
       } else {
-        getIdRegexp = () => /word\/charts\/chart(\d+)\.xml/
+        getIdRegexp = () => /ppt\/charts\/chart(\d+)\.xml/
       }
 
       const newChartId = files.filter((f) => getIdRegexp().test(f.path)).reduce((lastId, f) => {
@@ -116,13 +233,27 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
 
       let filePrefix = 'chart'
 
-      if (chartDrawingEl.prefix === 'cx') {
+      if (chartEl.prefix === 'cx') {
         filePrefix = 'chartEx'
       }
 
-      newRel.setAttribute('Target', `charts/${filePrefix}${newChartId}.xml`)
+      const newChartPath = path.join(
+        path.posix.relative(
+          path.posix.dirname(slidePath),
+          'ppt/charts'
+        ),
+        `${filePrefix}${newChartId}.xml`
+      )
 
-      relsEl.appendChild(newRel)
+      if (newRel) {
+        newRel.setAttribute('Target', newChartPath)
+      } else {
+        existingRel.setAttribute('Target', newChartPath)
+      }
+
+      if (newRel) {
+        relsEl.appendChild(newRel)
+      }
 
       const originalChartXMLStr = originalChartsXMLMap.get(chartPath)
       const newChartDoc = new DOMParser().parseFromString(originalChartXMLStr)
@@ -130,7 +261,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       chartDoc = newChartDoc
 
       files.push({
-        path: `word/charts/${filePrefix}${newChartId}.xml`,
+        path: `ppt/charts/${filePrefix}${newChartId}.xml`,
         data: originalChartXMLStr,
         // creates new doc
         doc: newChartDoc
@@ -140,7 +271,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       const newChartRelsDoc = new DOMParser().parseFromString(originalChartRelsXMLStr)
 
       files.push({
-        path: `word/charts/_rels/${filePrefix}${newChartId}.xml.rels`,
+        path: `ppt/charts/_rels/${filePrefix}${newChartId}.xml.rels`,
         data: originalChartRelsXMLStr,
         // creates new doc
         doc: newChartRelsDoc
@@ -149,8 +280,8 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       let newChartStyleId
 
       if (chartStyleRelFilename != null) {
-        newChartStyleId = files.filter((f) => /word\/charts\/style(\d+)\.xml/.test(f.path)).reduce((lastId, f) => {
-          const numStr = /word\/charts\/style(\d+)\.xml/.exec(f.path)[1]
+        newChartStyleId = files.filter((f) => /ppt\/charts\/style(\d+)\.xml/.test(f.path)).reduce((lastId, f) => {
+          const numStr = /ppt\/charts\/style(\d+)\.xml/.exec(f.path)[1]
           const num = parseInt(numStr, 10)
 
           if (num > lastId) {
@@ -161,7 +292,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
         }, 0) + 1
 
         files.push({
-          path: `word/charts/style${newChartStyleId}.xml`,
+          path: `ppt/charts/style${newChartStyleId}.xml`,
           data: originalChartsXMLMap.get(chartStyleRelFilename),
           doc: new DOMParser().parseFromString(originalChartsXMLMap.get(chartStyleRelFilename))
         })
@@ -170,8 +301,8 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       let newChartColorStyleId
 
       if (chartColorStyleRelFilename != null) {
-        newChartColorStyleId = files.filter((f) => /word\/charts\/colors(\d+)\.xml/.test(f.path)).reduce((lastId, f) => {
-          const numStr = /word\/charts\/colors(\d+)\.xml/.exec(f.path)[1]
+        newChartColorStyleId = files.filter((f) => /ppt\/charts\/colors(\d+)\.xml/.test(f.path)).reduce((lastId, f) => {
+          const numStr = /ppt\/charts\/colors(\d+)\.xml/.exec(f.path)[1]
           const num = parseInt(numStr, 10)
 
           if (num > lastId) {
@@ -182,7 +313,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
         }, 0) + 1
 
         files.push({
-          path: `word/charts/colors${newChartColorStyleId}.xml`,
+          path: `ppt/charts/colors${newChartColorStyleId}.xml`,
           data: originalChartsXMLMap.get(chartColorStyleRelFilename),
           doc: new DOMParser().parseFromString(originalChartsXMLMap.get(chartColorStyleRelFilename))
         })
@@ -192,7 +323,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
         return el.getAttribute('PartName') === `/${chartPath}`
       }).cloneNode()
 
-      newChartType.setAttribute('PartName', `/word/charts/${filePrefix}${newChartId}.xml`)
+      newChartType.setAttribute('PartName', `/ppt/charts/${filePrefix}${newChartId}.xml`)
 
       let newChartStyleType
 
@@ -201,7 +332,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
           return el.getAttribute('PartName') === `/${chartStyleRelFilename}`
         }).cloneNode()
 
-        newChartStyleType.setAttribute('PartName', `/word/charts/style${newChartStyleId}.xml`)
+        newChartStyleType.setAttribute('PartName', `/ppt/charts/style${newChartStyleId}.xml`)
       }
 
       let newChartColorStyleType
@@ -211,7 +342,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
           return el.getAttribute('PartName') === `/${chartColorStyleRelFilename}`
         }).cloneNode()
 
-        newChartColorStyleType.setAttribute('PartName', `/word/charts/colors${newChartColorStyleId}.xml`)
+        newChartColorStyleType.setAttribute('PartName', `/ppt/charts/colors${newChartColorStyleId}.xml`)
       }
 
       nodeListToArray(newChartRelsDoc.getElementsByTagName('Relationship')).find((el) => {
@@ -239,10 +370,10 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       newChartAxTitleEl.parentNode.removeChild(newChartAxTitleEl)
     }
 
-    chartDrawingEl.setAttribute('r:id', newChartRelId)
+    chartEl.setAttribute('r:id', newChartRelId)
 
-    const existingChartTitles = nodeListToArray(chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`))
-    const existingChartTitleEl = chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`)[0]
+    const existingChartTitles = nodeListToArray(chartDoc.getElementsByTagName(`${chartEl.prefix}:title`))
+    const existingChartTitleEl = chartDoc.getElementsByTagName(`${chartEl.prefix}:title`)[0]
     const existingChartAxTitleEls = []
 
     for (const titleEl of existingChartTitles.slice(1)) {
@@ -261,21 +392,21 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       }
     }
 
-    drawingEl.firstChild.parentNode.removeChild(drawingEl.firstChild)
+    graphicFrameEl.firstChild.parentNode.removeChild(graphicFrameEl.firstChild)
   }
 
-  chartRId = chartDrawingEl.getAttribute('r:id')
+  chartRId = chartEl.getAttribute('r:id')
   chartREl = nodeListToArray(relsDoc.getElementsByTagName('Relationship')).find((r) => r.getAttribute('Id') === chartRId)
-  chartPath = path.posix.join(path.posix.dirname(documentPath), chartREl.getAttribute('Target'))
+  chartPath = path.posix.join(path.posix.dirname(slidePath), chartREl.getAttribute('Target'))
   chartFile = files.find(f => f.path === chartPath)
   chartDoc = chartFile.doc
-  chartRelsFilename = `word/charts/_rels/${chartPath.split('/').slice(-1)[0]}.rels`
+  chartRelsFilename = `ppt/charts/_rels/${chartPath.split('/').slice(-1)[0]}.rels`
   chartRelsDoc = files.find(f => f.path === chartRelsFilename).doc
 
-  const chartTitleEl = chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:title`)[0]
+  const chartTitleEl = chartDoc.getElementsByTagName(`${chartEl.prefix}:title`)[0]
 
   if (!chartTitleEl) {
-    return drawingEl
+    return graphicFrameEl
   }
 
   const chartTitleTextElements = nodeListToArray(chartTitleEl.getElementsByTagName('a:t'))
@@ -283,17 +414,17 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
   for (const chartTitleTextEl of chartTitleTextElements) {
     const textContent = chartTitleTextEl.textContent
 
-    if (!textContent.includes('$docxChart')) {
+    if (!textContent.includes('$pptxChart')) {
       continue
     }
 
-    const match = textContent.match(/\$docxChart([^$]*)\$/)
+    const match = textContent.match(/\$pptxChart([^$]*)\$/)
     const chartConfig = JSON.parse(Buffer.from(match[1], 'base64').toString())
 
     // remove chart helper text
     chartTitleTextEl.textContent = chartTitleTextEl.textContent.replace(match[0], '')
 
-    const externalDataEl = chartDoc.getElementsByTagName(`${chartDrawingEl.prefix}:externalData`)[0]
+    const externalDataEl = chartDoc.getElementsByTagName(`${chartEl.prefix}:externalData`)[0]
 
     if (externalDataEl) {
       const externalDataId = externalDataEl.getAttribute('r:id')
@@ -306,7 +437,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
 
       if (externalXlsxRel) {
         const externalXlsxFilename = externalXlsxRel.getAttribute('Target').split('/').slice(-1)[0]
-        const externalXlsxFileIndex = files.findIndex((f) => f.path === `word/embeddings/${externalXlsxFilename}`)
+        const externalXlsxFileIndex = files.findIndex((f) => f.path === `ppt/embeddings/${externalXlsxFilename}`)
 
         if (externalXlsxFileIndex !== -1) {
           files.splice(externalXlsxFileIndex, 1)
@@ -316,7 +447,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       }
     }
 
-    if (chartDrawingEl.prefix === 'cx') {
+    if (chartEl.prefix === 'cx') {
       const chartSeriesEl = chartDoc.getElementsByTagName('cx:plotArea')[0].getElementsByTagName('cx:series')[0]
       const chartType = chartSeriesEl.getAttribute('layoutId')
       const supportedCharts = ['waterfall', 'treemap', 'sunburst', 'funnel', 'clusteredColumn']
@@ -327,8 +458,8 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
 
       const chartDataEl = chartDoc.getElementsByTagName('cx:chartData')[0]
       const existingDataItemsElements = nodeListToArray(chartDataEl.getElementsByTagName('cx:data'))
-      const dataPlaceholderEl = chartDoc.createElement('docxChartexDataReplace')
-      const seriesPlaceholderEl = chartDoc.createElement('docxChartexSeriesReplace')
+      const dataPlaceholderEl = chartDoc.createElement('pptxChartexDataReplace')
+      const seriesPlaceholderEl = chartDoc.createElement('pptxChartexSeriesReplace')
 
       dataPlaceholderEl.textContent = 'sample'
       seriesPlaceholderEl.textContent = 'sample'
@@ -365,8 +496,8 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       newDataItemElement = serializeXml(newDataItemElement)
       newChartSeriesElement = serializeXml(newChartSeriesElement)
 
-      chartFile.data = chartFile.data.replace(/<docxChartexDataReplace[^>]*>[^]*?(?=<\/docxChartexDataReplace>)<\/docxChartexDataReplace>/g, newDataItemElement)
-      chartFile.data = chartFile.data.replace(/<docxChartexSeriesReplace[^>]*>[^]*?(?=<\/docxChartexSeriesReplace>)<\/docxChartexSeriesReplace>/g, newChartSeriesElement)
+      chartFile.data = chartFile.data.replace(/<pptxChartexDataReplace[^>]*>[^]*?(?=<\/pptxChartexDataReplace>)<\/pptxChartexDataReplace>/g, newDataItemElement)
+      chartFile.data = chartFile.data.replace(/<pptxChartexSeriesReplace[^>]*>[^]*?(?=<\/pptxChartexSeriesReplace>)<\/pptxChartexSeriesReplace>/g, newChartSeriesElement)
     } else {
       const chartPlotAreaEl = chartDoc.getElementsByTagName('c:plotArea')[0]
 
@@ -378,7 +509,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
       const existingChartSeriesElements = nodeListToArray(chartDoc.getElementsByTagName('c:ser'))
 
       if (existingChartSeriesElements.length === 0) {
-        throw new Error(`Base chart in docx must have at least one data serie defined, ref: "${chartPath}"`)
+        throw new Error(`Base chart in pptx must have at least one data serie defined, ref: "${chartPath}"`)
       }
 
       if (chartConfig.options != null) {
@@ -505,7 +636,7 @@ module.exports = async function processChart (files, referenceDrawingEl, relsDoc
     }
   }
 
-  return drawingEl
+  return graphicFrameEl
 }
 
 function configureAxis (chartDoc, axisConfig, axisEl) {

@@ -1,5 +1,30 @@
 const path = require('path')
 const fs = require('fs')
+const { DOMParser } = require('@xmldom/xmldom')
+const { decompress } = require('@jsreport/office')
+
+module.exports.getDocumentsFromPptxBuf = async function getDocumentsFromPptxBuf (pptxBuf, documentPaths, options = {}) {
+  const files = await decompress()(pptxBuf)
+  const targetFiles = []
+
+  for (const documentPath of documentPaths) {
+    const fileRef = files.find((f) => f.path === documentPath)
+    targetFiles.push(fileRef)
+  }
+
+  const result = targetFiles.map((file) => (
+    file != null ? new DOMParser().parseFromString(file.data.toString()) : null
+  ))
+
+  if (options.returnFiles) {
+    return {
+      files,
+      documents: result
+    }
+  }
+
+  return result
+}
 
 module.exports.getImageSize = async function getImageSize (blipEl) {
   const picEl = blipEl.parentNode.parentNode

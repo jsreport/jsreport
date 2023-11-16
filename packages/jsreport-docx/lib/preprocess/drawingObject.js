@@ -3,7 +3,8 @@ const processChart = require('./processChart')
 const { nodeListToArray } = require('../utils')
 
 module.exports = (files, headerFooterRefs) => {
-  const documentDoc = files.find(f => f.path === 'word/document.xml').doc
+  const documentFile = files.find(f => f.path === 'word/document.xml')
+  const documentDoc = documentFile.doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const toProcess = [{ doc: documentDoc, relsDoc: documentRelsDoc }]
@@ -34,7 +35,7 @@ module.exports = (files, headerFooterRefs) => {
       }
 
       processImage(files, drawingEl, targetRelsDoc)
-      processChart(files, drawingEl, targetRelsDoc)
+      processChart(files, drawingEl, documentFile, targetRelsDoc)
     })
   }
 
