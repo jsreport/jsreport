@@ -670,9 +670,9 @@ class PdfUtilsEditor extends Component {
             </div>
           </div>
           <div className={`${styles.tabPanel} ${activeTab === 'pdfAccessibility' ? styles.active : ''}`}>
-            <p style={{ marginTop: '1rem' }}>
-              Copy pdf accessibility tags during operations (beta)
-            </p>
+            <h2 style={{ marginTop: '1rem' }}>
+              copy tags during operations (beta)
+            </h2>
             <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
               <div className='form-group'>
                 <label>
@@ -680,7 +680,29 @@ class PdfUtilsEditor extends Component {
                   <br />
                   <input
                     type='checkbox' checked={pdfAccessibility.enabled === true}
-                    onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfAccessibility: { enabled: v.target.checked } }))}
+                    onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfAccessibility: { ...entity.pdfAccessibility, enabled: v.target.checked } }))}
+                  />
+                </label>
+              </div>
+            </div>
+            <h2 style={{ marginTop: '1rem' }}>
+              pdf/UA (beta)
+            </h2>
+            <p>tasks for the template developer:
+              <ul>
+                <li>html img needs to have the alt attribute</li>
+                <li>the pdf utils meta needs to have filled language</li>
+                <li>"copy tags" needs to be selected</li>
+              </ul>
+            </p>
+            <div style={{ marginTop: '1rem', paddingBottom: '0.5rem' }}>
+              <div className='form-group'>
+                <label>
+                  Enabled
+                  <br />
+                  <input
+                    type='checkbox' checked={pdfAccessibility.pdfUA === true}
+                    onChange={(v) => Studio.updateEntity(Object.assign({}, entity, { pdfAccessibility: { ...entity.pdfAccessibility, pdfUA: v.target.checked } }))}
                   />
                 </label>
               </div>

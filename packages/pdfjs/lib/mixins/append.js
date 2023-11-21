@@ -24,7 +24,7 @@ function append (ext, doc, options = {}) {
 
       unionPageObjects(ext, doc, { copyAccessibilityTags: options.copyAccessibilityTags, newPage: page })
     } else {
-      if (options.copyStructTags) {
+      if (options.copyAccessibilityTags) {
         nullPgRef(doc.catalog.properties.get('StructTreeRoot')?.object, page)
       }
     }

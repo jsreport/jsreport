@@ -21,6 +21,7 @@ module.exports = (reporter, definition) => {
 
   reporter.addRequestContextMetaConfig('pdfUtilsForms', { sandboxHidden: true })
   reporter.addRequestContextMetaConfig('pdfUtilsOutlines', { sandboxHidden: true })
+  reporter.addRequestContextMetaConfig('pdfUtilsAccessibility', { sandboxHidden: true })
 
   reporter.extendProxy(proxyExtend)
 
@@ -94,11 +95,28 @@ module.exports = (reporter, definition) => {
     return helpersScript
   })
 
+  reporter.beforeRenderListeners.add('pdf-utils', (req, res) => {
+    // we use just root template setting for pdfAccessibility
+    // this is because otherwise you need to set the accessibility on every merged/template
+    // the use case when you would want root template to have for example pdf/ua enabled but not some child renders doesn't exist I tihnk
+    if (!req.context.pdfUtilsAccessibility && !req.template.pdfAccessibility) {
+      return
+    }
+
+    if (req.context.pdfUtilsAccessibility) {
+      req.template.pdfAccessibility = req.context.pdfUtilsAccessibility
+    } else {
+      req.context.pdfUtilsAccessibility = req.template.pdfAccessibility
+    }
+  })
+
   // we insert to the front so we can run before reports or scripts
   reporter.afterRenderListeners.insert(0, 'pdf-utils', async (req, res) => {
     if (
       req.template.pdfPassword == null &&
       req.template.pdfMeta == null &&
+      req.template.pdfAccessibility?.enabled !== true &&
+      req.template.pdfAccessibility?.pdfUA !== true &&
       req.template.pdfA?.enabled !== true &&
       req.template.pdfSign == null &&
       (!req.template.pdfOperations || req.template.pdfOperations.length === 0) &&
@@ -181,10 +199,6 @@ module.exports = (reporter, definition) => {
 
     reporter.logger.info('pdf-utils is starting pdf processing', req)
 
-    if (req.template.pdfAccessibility?.enabled) {
-      req.context.pdfAccessibility = { enabled: true }
-    }
-
     try {
       res.content = await (require('./pdfProcessing.js')(
         {
@@ -193,7 +207,7 @@ module.exports = (reporter, definition) => {
           outlines: req.context.pdfUtilsOutlines,
           pdfMeta: req.template.pdfMeta,
           pdfA: req.template.pdfA,
-          pdfAccessibility: req.template.pdfAccessibility || req.context.pdfAccessibility,
+          pdfAccessibility: req.context.pdfUtilsAccessibility,
           pdfPassword,
           pdfSign,
           removeHiddenMarks: !req.options.pdfUtils || req.options.pdfUtils.removeHiddenMarks !== false

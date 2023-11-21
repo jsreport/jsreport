@@ -28,7 +28,8 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.documentStore.registerComplexType('PdfAccessibility', {
-    enabled: { type: 'Edm.Boolean' }
+    enabled: { type: 'Edm.Boolean' },
+    pdfUA: { type: 'Edm.Boolean' }
   })
 
   reporter.documentStore.registerComplexType('PdfPasswordType', {

@@ -1002,11 +1002,11 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       }))
     }))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
       className: `${_PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].tabPanel} ${activeTab === 'pdfAccessibility' ? _PdfUtilsEditor_css__WEBPACK_IMPORTED_MODULE_6__["default"].active : ''}`
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
       style: {
         marginTop: '1rem'
       }
-    }, "Copy pdf accessibility tags during operations (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+    }, "copy tags during operations (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
       style: {
         marginTop: '1rem',
         paddingBottom: '0.5rem'
@@ -1018,7 +1018,28 @@ class PdfUtilsEditor extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       checked: pdfAccessibility.enabled === true,
       onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
         pdfAccessibility: {
+          ...entity.pdfAccessibility,
           enabled: v.target.checked
+        }
+      }))
+    })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("h2", {
+      style: {
+        marginTop: '1rem'
+      }
+    }, "pdf/UA (beta)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("p", null, "tasks for the template developer:", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("ul", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "html img needs to have the alt attribute"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "the pdf utils meta needs to have filled language"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("li", null, "\"copy tags\" needs to be selected"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      style: {
+        marginTop: '1rem',
+        paddingBottom: '0.5rem'
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("label", null, "Enabled", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1___default().createElement("input", {
+      type: "checkbox",
+      checked: pdfAccessibility.pdfUA === true,
+      onChange: v => jsreport_studio__WEBPACK_IMPORTED_MODULE_2___default().updateEntity(Object.assign({}, entity, {
+        pdfAccessibility: {
+          ...entity.pdfAccessibility,
+          pdfUA: v.target.checked
         }
       }))
     })))))));

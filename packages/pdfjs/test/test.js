@@ -318,6 +318,24 @@ describe('pdfjs', () => {
     )
   })
 
+  it('merge followed with prepend should add xobj to the extra item in ParentTree', async () => {
+    let document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))), { copyAccessibilityTags: true })
+    document.merge(new External(fs.readFileSync(path.join(__dirname, 'header.pdf'))), { copyAccessibilityTags: true })
+    const bufBeforePrepent = await document.asBuffer()
+    document = new Document()
+    document.append(new External(fs.readFileSync(path.join(__dirname, 'main.pdf'))), { copyAccessibilityTags: true })
+    document.append(new External(bufBeforePrepent), { copyAccessibilityTags: true })
+
+    const pdf = await document.asBuffer()
+    fs.writeFileSync('out.pdf', pdf)
+
+    const { catalog } = await validate(pdf)
+
+    const structTreeRoot = catalog.properties.get('StructTreeRoot').object
+    structTreeRoot.properties.get('ParentTreeNextKey').should.be.eql(3)
+  })
+
   it('attachment should add buffer', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
@@ -895,7 +913,9 @@ describe('pdfjs', () => {
   it('pdf/A basic', async () => {
     const document = new Document()
     const external = new External(fs.readFileSync(path.join(__dirname, 'main.pdf')))
-    document.append(external)
+    document.append(external, {
+      copyAccessibilityTags: true
+    })
     document.info({
       creationDate: new Date(2021, 2, 2, 5, 30),
       title: 'Foo-title',
@@ -919,6 +939,7 @@ describe('pdfjs', () => {
     metadataXml.should.containEql('2021-03-02T05:30:00')
 
     catalog.properties.get('OutputIntents').should.be.ok()
+    catalog.properties.get('StructTreeRoot').should.be.ok()
   })
 
   it('pdf/A smask', async () => {
@@ -959,5 +980,85 @@ describe('pdfjs', () => {
     df.properties.get('BaseFont').name.should.be.eql('TimesNewRomanPSMT')
     const desc = df.properties.get('FontDescriptor').object
     desc.properties.get('FontName').name.should.be.eql('TimesNewRomanPSMT')
+  })
+
+  it('pdf/UA', async () => {
+    const document = new Document()
+    const external = new External(fs.readFileSync(path.join(__dirname, 'invoice.pdf')))
+    document.append(external, {
+      copyAccessibilityTags: true
+    })
+    document.info({
+      creationDate: new Date(2021, 2, 2, 5, 30),
+      title: 'Foo-title',
+      subject: 'Foo-subject',
+      creator: 'Foo-creator',
+      producer: 'Foo-producer'
+    })
+    document.pdfUA()
+    const buffer = await document.asBuffer()
+    fs.writeFileSync('out.pdf', buffer)
+
+    const { catalog, trailer } = await validate(buffer)
+    trailer.get('ID').should.be.ok()
+    catalog.properties.get('Names').object.properties.has('EmbeddedFiles').should.be.false()
+    const metadataXml = catalog.properties.get('Metadata').object.content.toString()
+    metadataXml.should.containEql('Foo-title')
+    metadataXml.should.containEql('pdfuaid')
+
+    catalog.properties.get('ViewerPreferences').get('DisplayDocTitle').should.be.true()
+
+    const pageContentBuf = catalog.properties.get('Pages').object.properties.get('Kids')[0].object.properties.get('Contents').object.content.content
+    const pageContent = zlib.unzipSync(pageContentBuf).toString('latin1')
+
+    pageContent.should.containEql(
+      ['/Artifact BMC',
+        '404 315 298 1 re',
+        'f',
+        'EMC'].join('\n'))
+
+    pageContent.should.containEql(
+      ['/Artifact BMC',
+        'BT',
+        '/F14 16 Tf',
+        '1 0 0 -1 687.84375 375 Tm',
+        '<0141> Tj',
+        'EMC',
+        'ET'].join('\n'))
+  })
+
+  it('pdf/UA shouldnt be applied twice', async () => {
+    let document = new Document()
+    let external = new External(fs.readFileSync(path.join(__dirname, 'invoice.pdf')))
+    document.append(external, {
+      copyAccessibilityTags: true
+    })
+    document.info({
+      creationDate: new Date(2021, 2, 2, 5, 30),
+      title: 'Foo-title',
+      subject: 'Foo-subject',
+      creator: 'Foo-creator',
+      producer: 'Foo-producer'
+    })
+    document.pdfUA()
+    let buffer = await document.asBuffer()
+
+    document = new Document()
+    external = new External(buffer)
+    document.append(external, {
+      copyAccessibilityTags: true
+    })
+    document.pdfUA()
+    buffer = await document.asBuffer()
+
+    const { catalog } = await validate(buffer)
+
+    const pageContentBuf = catalog.properties.get('Pages').object.properties.get('Kids')[0].object.properties.get('Contents').object.content.content
+    const pageContent = zlib.unzipSync(pageContentBuf).toString('latin1')
+
+    pageContent.should.not.containEql(
+      ['/Artifact BMC',
+        '/Artifact BMC'
+      ].join('\n'))
   })
 })

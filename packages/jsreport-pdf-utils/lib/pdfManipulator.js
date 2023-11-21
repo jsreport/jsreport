@@ -197,6 +197,10 @@ module.exports = (contentBuffer, { pdfMeta, pdfPassword, pdfSign, pdfA, outlines
         doc.pdfA()
       }
 
+      if (pdfAccessibility?.pdfUA === true) {
+        doc.pdfUA()
+      }
+
       try {
         currentBuffer = await doc.asBuffer()
       } catch (e) {

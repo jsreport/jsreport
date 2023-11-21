@@ -52,21 +52,46 @@ function unionStructTree (ext, doc, newPage, originalPage, xobj) {
   const structTreeRoot = doc.catalog.properties.get('StructTreeRoot').object
   const parentTree = structTreeRoot.properties.get('ParentTree').object
 
+  let parentTreeNextKey = structTreeRoot.properties.get('ParentTreeNextKey')
+
   const structsInPage = findStructsForPageAndReplaceOldPg(structTreeRoot, newPage, originalPage, xobj)
 
-  const pageContents = new PDF.Object()
-  pageContents.content = new PDF.Array(structsInPage.map(s => s.toReference()))
+  // the parents from the xobjects are in individual buckets, however this approach as well as putting the parents to the same bucket
+  // as the ones from page content causes Acrobat prefilight error "Inconsistent parent tree mapping"
 
-  const parentTreeNextKey = parentTree.properties.get('Nums')[parentTree.properties.get('Nums').length - 2]
+  const pageContents = new PDF.Object()
+  pageContents.content = new PDF.Array(structsInPage.filter(s => xobj || s.node.get('Stm') == null).map(s => s.parent.toReference()))
+
+  const contentObject = xobj || newPage
+  contentObject.properties.set('StructParents', parentTreeNextKey)
 
   parentTree.properties.set('Nums', new PDF.Array([
     ...parentTree.properties.get('Nums'),
-    parentTreeNextKey + 1,
+    parentTreeNextKey++,
     pageContents.toReference()
   ]))
-  structTreeRoot.properties.set('ParentTreeNextKey', parentTreeNextKey + 2)
-  const contentObject = xobj || newPage
-  contentObject.properties.set('StructParents', parentTreeNextKey + 1)
+
+  if (!xobj) {
+    // every xobject content structure parents goes to individual parent tree bucket
+    const xobjStructsInPage = structsInPage.filter(s => s.node.get('Stm') != null)
+    const groupedStructsByXObj = xobjStructsInPage.reduce(
+      (entryMap, { node, parent }) => entryMap.set(node.get('Stm'), [...entryMap.get(node.get('Stm')) || [], parent]),
+      new Map()
+    )
+
+    for (const [stm, parents] of groupedStructsByXObj) {
+      const xobjContents = new PDF.Object()
+      xobjContents.content = new PDF.Array(parents.map(p => p.toReference()))
+      stm.object.properties.set('StructParents', parentTreeNextKey)
+      parentTree.properties.set('Nums', new PDF.Array([
+        ...parentTree.properties.get('Nums'),
+        parentTreeNextKey++,
+        xobjContents.toReference()
+      ]))
+    }
+  }
+
+  structTreeRoot.properties.set('ParentTreeNextKey', parentTreeNextKey)
 }
 
 function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPage, xobj) {
@@ -77,7 +102,7 @@ function findStructsForPageAndReplaceOldPg (structTreeRoot, newPage, originalPag
       if (xobj) {
         nodeOrDict.set('Stm', xobj.toReference())
       }
-      return structsInPage.push(parent)
+      return structsInPage.push({ parent, node: nodeOrDict })
     }
 
     if (nodeOrDict.object) {

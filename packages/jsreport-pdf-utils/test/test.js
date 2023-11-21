@@ -1689,7 +1689,7 @@ describe('pdf utils', () => {
     doc.catalog.properties.get('Metadata').should.be.ok()
   })
 
-  it('pdfAccessibility should keep StructTreeRoot during operations', async () => {
+  it('pdfAccessibility.enabled should keep StructTreeRoot during operations', async () => {
     const result = await jsreport.render({
       template: {
         content: 'foo',
@@ -1713,6 +1713,25 @@ describe('pdf utils', () => {
     const doc = new External(result.content)
     doc.catalog.properties.get('StructTreeRoot').should.be.ok()
     doc.catalog.properties.get('MarkInfo').should.be.ok()
+  })
+
+  it('pdfAccessibility.pdfUA should produce valid pdf/UA', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: 'foo',
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfAccessibility: {
+          pdfUA: true,
+          enabled: true
+        }
+      }
+    })
+
+    const doc = new External(result.content)
+    const metadataXml = doc.catalog.properties.get('Metadata').object.content.toString()
+    metadataXml.should.containEql('pdfuaid')
   })
 
   it('pdfMeta should work also when another pdf appended using script', async () => {
