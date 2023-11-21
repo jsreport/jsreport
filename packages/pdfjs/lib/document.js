@@ -10,7 +10,7 @@ const info = require('./mixins/info')
 const encrypt = require('./mixins/encrypt/encrypt')
 const sign = require('./mixins/sign')
 const pdfA = require('./mixins/pdfa/pdfA.js')
-const pdfUA = require('./mixins/pdfUA/pdfUA.js')
+const pdfUA = require('./mixins/pdfua/pdfUA.js')
 const DocumentBase = require('./documentBase')
 
 module.exports = class Document extends DocumentBase {
