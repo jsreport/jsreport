@@ -222,6 +222,17 @@ function pptxTable (data, options) {
   return Handlebars.helpers.each(currentData, optionsToUse)
 }
 
+function pptxStyle (options) {
+  const Handlebars = require('handlebars')
+
+  const textColor = options.hash.textColor || ''
+  const backgroundColor = options.hash.backgroundColor || ''
+
+  return new Handlebars.SafeString(
+    `<pptxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" />`
+  )
+}
+
 function pptxSlides (data, options) {
   const Handlebars = require('handlebars')
   return Handlebars.helpers.each(data, options)
