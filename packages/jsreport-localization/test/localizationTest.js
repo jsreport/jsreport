@@ -507,4 +507,36 @@ describe('localization', () => {
       message: 'Hello'
     }))
   })
+
+  it('should support complex objects and nested paths', async () => {
+    await reporter.documentStore.collection('folders').insert({
+      name: 'localization',
+      shortid: 'localization'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'en.json',
+      content: Buffer.from(JSON.stringify({
+        complex: {
+          propA: 'a'
+        },
+        'prop.with.dot': 'b'
+      })),
+      folder: {
+        shortid: 'localization'
+      }
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: "{{localize 'complex.propA' 'localization'}}{{localize 'prop.with.dot' 'localization'}}",
+        engine: 'handlebars',
+        recipe: 'html'
+      },
+      options: {
+        language: 'en'
+      }
+    })
+    res.content.toString().should.be.eql('ab')
+  })
 })

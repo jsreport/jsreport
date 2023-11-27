@@ -1,5 +1,6 @@
 const fs = require('fs').promises
 const path = require('path')
+const _get = require('lodash.get')
 
 module.exports = async (reporter, definition) => {
   let helpers
@@ -83,6 +84,10 @@ module.exports = async (reporter, definition) => {
         }
 
         const localizationData = await cache[localizationCacheKey]
+
+        if (localizationData[key] == null && key.includes('.')) {
+          return _get(localizationData, key)
+        }
 
         return localizationData[key]
       }
