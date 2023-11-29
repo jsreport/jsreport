@@ -12,6 +12,7 @@ module.exports = async (files) => {
   const listIds = new Map()
 
   const tocStyleIdRegExp = /^([^\d]+)(\d+)/
+  const tocOptionalPrefixStyleId = /^([^\d]*)(\d+)$/
 
   const TOCExists = contentTypesDoc.documentElement.getAttribute('TOCExists') === '1'
   let updateFields = true
@@ -83,9 +84,10 @@ module.exports = async (files) => {
       }
 
       let tocTitlePrefix = findDefaultStyleIdForName(stylesDoc, 'heading 1')
-      const tocTitleMatch = tocStyleIdRegExp.exec(tocTitlePrefix)
+      const tocTitleMatch = tocOptionalPrefixStyleId.exec(tocTitlePrefix)
 
       if (tocTitleMatch != null && tocTitleMatch[1] != null) {
+        // it is possible that the prefix is just "" because the identifier may be just a number
         tocTitlePrefix = tocTitleMatch[1]
       } else {
         throw new Error('Could not find default style for heading')
@@ -99,6 +101,7 @@ module.exports = async (files) => {
       if (pPrEl != null) {
         const pStyleEl = nodeListToArray(pPrEl.childNodes).find((el) => el.nodeName === 'w:pStyle')
         const numPrEl = nodeListToArray(pPrEl.childNodes).find((el) => el.nodeName === 'w:numPr')
+        // this regexp works also for the case in which the prefix is empty string
         const titleRegexp = new RegExp(`^${tocTitlePrefix}(\\d+)$`)
 
         if (pStyleEl != null) {

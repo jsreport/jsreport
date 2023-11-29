@@ -273,6 +273,35 @@ describe('docx TOC', () => {
     parts[26].should.be.eql('chapter 3.1.1')
   })
 
+  it('should be able to handle TOC with heading style name without prefix', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'toc-from-chinese-language-setting.docx'))
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [settingsDoc] = await getDocumentsFromDocxBuf(result.content, ['word/settings.xml'])
+    const existingUpdateFieldsEl = settingsDoc.documentElement.getElementsByTagName('w:updateFields')[0]
+
+    existingUpdateFieldsEl.getAttribute('w:val').should.be.eql('true')
+
+    const text = (await extractor.extract(result.content)).getBody()
+    const parts = text.split('\n').filter((t) => t)
+
+    should(parts).have.length(3)
+    parts[1].should.be.eql('Heading\t1')
+    parts[2].should.be.eql('Heading 1')
+  })
+
   it('should be able to remove TOC Title without producing corrupted document if title is wrapped in condition with closing if on next paragraph', async () => {
     const result = await reporter.render({
       template: {

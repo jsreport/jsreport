@@ -15,6 +15,7 @@ module.exports = (files) => {
   }
 
   const tocStyleIdRegExp = /^([^\d]+)(\d+)$/
+  const tocOptionalPrefixStyleId = /^([^\d]*)(\d+)$/
   const tocHeadingStyleId = findDefaultStyleIdForName(stylesDoc, 'TOC Heading')
   let tocAlternativeTitlePrefix = findDefaultStyleIdForName(stylesDoc, 'toc 1')
 
@@ -72,9 +73,10 @@ module.exports = (files) => {
     return
   }
 
-  const tocTitleMatch = tocStyleIdRegExp.exec(tocTitlePrefix)
+  const tocTitleMatch = tocOptionalPrefixStyleId.exec(tocTitlePrefix)
 
   if (tocTitleMatch != null && tocTitleMatch[1] != null) {
+    // it is possible that the prefix is just "" because the identifier may be just a number
     tocTitlePrefix = tocTitleMatch[1]
   } else {
     throw new Error('Could not find default style for heading')
@@ -88,6 +90,7 @@ module.exports = (files) => {
     const paragraphStyleId = getParagraphStyleId(paragraphEl)
 
     if (paragraphStyleId != null) {
+      // this regexp works also for the case in which the prefix is empty string
       const titleRegexp = new RegExp(`^${tocTitlePrefix}(\\d+)$`)
       const result = titleRegexp.exec(paragraphStyleId)
 
