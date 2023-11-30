@@ -14,7 +14,8 @@ describe('response', () => {
     await response({
       previewOptions: { },
       officeDocumentType: 'docx',
-      buffer: Buffer.from('hello')
+      buffer: Buffer.from('hello'),
+      logger: createFakeLogger()
     }, req, res)
 
     res.meta.contentType.should.be.eql('text/html')
@@ -36,13 +37,20 @@ describe('response', () => {
       },
       officeDocumentType: 'docx',
       buffer: Buffer.from('hello'),
-      logger: {
-        error: (m) => {
-          console.error(m)
-        }
-      }
+      logger: createFakeLogger()
     }, req, res)
 
     res.content.toString().should.be.eql('hello')
   })
 })
+
+function createFakeLogger () {
+  return {
+    debug: (m) => {
+      console.log(m)
+    },
+    error: (m) => {
+      console.error(m)
+    }
+  }
+}

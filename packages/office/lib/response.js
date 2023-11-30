@@ -76,6 +76,7 @@ module.exports = async function response ({
     }
     message += ' Returning plain document for download.'
     message += ` (full error: ${e.message})`
+
     logger.error(message, req)
 
     res.meta.fileExtension = officeDocumentType
