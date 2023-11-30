@@ -7,6 +7,14 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.1.0
+
+- fix handling of heading titles that dont have prefix (style ids that use just numbers, like the case when docx is generated when chinese is the default language)
+- `docxRaw` support to get xml from inline string in docx
+- docxImage add support for fallbackSrc, failurePlaceholderAction options
+- add support for svg images in docxImage
+- allow `docxChild` handlebars content to be evaluated as part of the caller document
+
 ### 4.0.1
 
 - remove NUL, VERTICAL TAB characters

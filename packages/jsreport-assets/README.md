@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.0.2
+
+- update @jsreport/office
+
 ### 4.0.1
 
 - fix `jsreport.config.json` requires metadata for v4
@@ -74,4 +78,3 @@ jsreport.assets.read(path)
 jsreport.assets.require(path)
 jsreport.assets.registerHelpers(path)
 ```
-

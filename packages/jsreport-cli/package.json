@@ -71,10 +71,10 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.0.1",
-    "@jsreport/jsreport-core": "4.0.1",
-    "@jsreport/jsreport-express": "4.0.0",
+    "@jsreport/jsreport-core": "4.1.0",
+    "@jsreport/jsreport-express": "4.0.1",
     "@jsreport/jsreport-fs-store": "4.0.1",
-    "@jsreport/jsreport-handlebars": "4.0.0",
+    "@jsreport/jsreport-handlebars": "4.0.1",
     "cross-env": "5.2.1",
     "execa": "1.0.0",
     "handlebars": "4.7.7",

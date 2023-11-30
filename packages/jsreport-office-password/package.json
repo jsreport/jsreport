@@ -36,12 +36,12 @@
     "test": "mocha test --timeout 5000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "3.0.0",
+    "@jsreport/office": "4.0.0",
     "xlsx-populate": "1.21.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.0.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.0.0",
+    "@jsreport/jsreport-core": "4.1.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.0.1",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",
     "puppeteer": "21.3.7",

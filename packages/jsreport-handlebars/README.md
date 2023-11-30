@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/handlebars
 
 ## Changelog
 
+### 4.0.1
+
+- use different cache key for async handlebars
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

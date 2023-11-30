@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.0.1
+
+- fix memory being held when timeouts are large
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

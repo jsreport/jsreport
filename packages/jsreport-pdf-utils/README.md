@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.0.2
+
+- initial support of the pdf/ua
+
 ### 4.0.1
 
 - fix hyperlinks not working when adding password to pdf

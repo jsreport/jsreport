@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.0.2
+
+- fix "was modified previously by another source" dialogs when updating an entity in studio a second time
+
 ### 4.0.1
 
 - fix deleting entity inside a folder does not refresh EntityTree
@@ -97,4 +101,3 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
-

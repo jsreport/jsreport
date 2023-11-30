@@ -7,6 +7,10 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.0.2
+
+- update @jsreport/office
+
 ### 4.0.1
 
 - fix nested loops with closing tags on single line

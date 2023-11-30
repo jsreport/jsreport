@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.1.0
+
+- add pptxStyle support
+- add pptxChart support
+
 ### 4.0.1
 
 - make handlebars partials to work
@@ -42,5 +47,3 @@ See https://jsreport.net/learn/pptx
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
-
-

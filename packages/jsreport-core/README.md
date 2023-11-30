@@ -282,6 +282,13 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.1.0
+
+- update deps to fix npm audit
+- fix memory being held when timeouts are large
+- fix node.js 21 compatibility when sandbox is used (`trustUserCode: false`
+- support using different cache key per template engine if it supports it
+
 ### 4.0.1
 
 - fix parameter mutations passed to store methods producing unexpected changes in store

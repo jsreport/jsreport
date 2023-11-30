@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-handlebars",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "jsreport handlebars templating engine",
   "keywords": [
     "jsreport",
@@ -24,7 +24,7 @@
     "test": "mocha test --timeout=5000 && standard"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.0.1",
+    "@jsreport/jsreport-core": "4.1.0",
     "@jsreport/studio-dev": "4.0.0",
     "handlebars": "4.7.7",
     "mocha": "10.1.0",

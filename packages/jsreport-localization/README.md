@@ -7,6 +7,10 @@ See https://jsreport.net/learn/localization
 
 ## Changelog
 
+### 4.0.1
+
+- support localization with nested objects
+
 ### 4.0.0
 
 - cache localization calls to improve performance
@@ -32,4 +36,3 @@ accept object for localize function and propagate req.template.localization to t
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
-

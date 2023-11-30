@@ -7,6 +7,11 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.0.1
+
+- update chrome-page-eval to fix issues with aws lambda
+- update @jsreport/office
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

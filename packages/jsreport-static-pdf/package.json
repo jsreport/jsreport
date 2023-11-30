@@ -45,9 +45,9 @@
     "file-type": "11.1.0"
   },
   "devDependencies": {
-    "@jsreport/jsreport-assets": "4.0.1",
+    "@jsreport/jsreport-assets": "4.0.2",
     "@jsreport/jsreport-chrome-pdf": "4.0.0",
-    "@jsreport/jsreport-core": "4.0.1",
+    "@jsreport/jsreport-core": "4.1.0",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",
     "puppeteer": "21.3.7",
