@@ -35,7 +35,7 @@
   "dependencies": {
     "@jsreport/office": "3.0.0",
     "@xmldom/xmldom": "0.8.6",
-    "axios": "0.24.0",
+    "axios": "1.6.2",
     "html-entities": "2.4.0",
     "image-size": "0.7.4",
     "js-excel-date-convert": "1.0.2",
