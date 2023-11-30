@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-docxtemplater",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "jsreport recipe using docxtemplater to create docx files",
   "keywords": [
     "jsreport",

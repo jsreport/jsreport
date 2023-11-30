@@ -36,7 +36,6 @@
     "test": "mocha test --timeout 5000 && standard"
   },
   "dependencies": {
-    "@jsreport/office": "4.0.0",
     "xlsx-populate": "1.21.0"
   },
   "devDependencies": {
