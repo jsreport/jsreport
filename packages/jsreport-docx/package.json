@@ -35,7 +35,7 @@
   "dependencies": {
     "@jsreport/office": "3.0.0",
     "@xmldom/xmldom": "0.8.6",
-    "axios": "0.24.0",
+    "axios": "1.6.2",
     "cheerio": "1.0.0-rc.12",
     "escape-string-regexp": "4.0.0",
     "html-entities": "2.4.0",
