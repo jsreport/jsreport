@@ -21,7 +21,7 @@
     "lodash": "4.17.21"
   },
   "devDependencies": {
-    "mocha": "7.0.1",
+    "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

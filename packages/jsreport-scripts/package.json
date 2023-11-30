@@ -34,7 +34,7 @@
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
     "bluebird": "3.7.2",
-    "mocha": "5.2.0",
+    "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

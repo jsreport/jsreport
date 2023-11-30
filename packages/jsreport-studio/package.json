@@ -76,7 +76,7 @@
     "jsdoc-to-markdown": "7.0.1",
     "jsdom": "22.1.0",
     "memoize-one": "6.0.0",
-    "mocha": "7.2.0",
+    "mocha": "10.1.0",
     "mocha-clean": "1.0.0",
     "monaco-editor": "0.40.0",
     "monaco-editor-webpack-plugin": "7.1.0",

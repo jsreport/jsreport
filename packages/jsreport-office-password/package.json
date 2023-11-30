@@ -43,7 +43,7 @@
     "@jsreport/jsreport-core": "4.0.1",
     "@jsreport/jsreport-html-to-xlsx": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
-    "mocha": "7.0.0",
+    "mocha": "10.1.0",
     "puppeteer": "21.3.7",
     "should": "13.2.3",
     "standard": "16.0.4"

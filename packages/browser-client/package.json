@@ -38,7 +38,7 @@
     "@rollup/plugin-node-resolve": "13.0.5",
     "file-saver": "2.0.5",
     "microbundle": "0.14.0",
-    "mocha": "9.1.2",
+    "mocha": "10.1.0",
     "puppeteer": "21.3.7",
     "rollup": "2.58.0",
     "should": "13.2.3",

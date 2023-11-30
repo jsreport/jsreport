@@ -25,8 +25,8 @@
     "pg-promise": "10.8.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.0.1",
-    "mocha": "5.2.0",
+    "@jsreport/jsreport-core": "4.1.0",
+    "mocha": "10.1.0",
     "should": "13.2.3",
     "standard": "16.0.4"
   },

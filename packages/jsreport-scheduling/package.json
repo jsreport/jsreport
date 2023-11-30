@@ -41,7 +41,7 @@
     "cron-builder": "0.3.0",
     "cronstrue": "1.64.0",
     "lodash": "4.17.15",
-    "mocha": "5.2.0",
+    "mocha": "10.1.0",
     "ordinal-number-suffix": "0.1.2",
     "should": "13.2.3",
     "standard": "16.0.4"

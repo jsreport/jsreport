@@ -55,7 +55,7 @@
     "@jsreport/jsreport-handlebars": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",
     "handlebars": "4.7.7",
-    "mocha": "6.1.4",
+    "mocha": "10.1.0",
     "nock": "11.7.2",
     "should": "13.2.3",
     "standard": "16.0.4",
