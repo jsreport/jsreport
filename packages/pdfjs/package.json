@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@jsreport/node-signpdf": "1.4.2",
-    "crypto-js": "4.1.1",
+    "crypto-js": "4.2.0",
     "parse-color": "1.0.0",
     "pdfjs-dist": "2.16.105"
   },
