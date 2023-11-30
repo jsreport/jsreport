@@ -81,6 +81,8 @@ async function collectConfig (input) {
     config.extensionsCommands = []
   }
 
+  await reporter.close()
+
   return config
 }
 
