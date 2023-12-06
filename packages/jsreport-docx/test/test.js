@@ -819,6 +819,33 @@ describe('docx', () => {
     text.should.containEql('This is the second chapter')
   })
 
+  it('loop access to root data', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'loop-root-data.docx'))
+          }
+        }
+      },
+      data: {
+        organization: {
+          name: 'Pet owners'
+        },
+        members: ['Laura', 'Joe', 'Allan']
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const text = (await extractor.extract(result.content)).getBody()
+    text.should.containEql('Laura is a member')
+    text.should.containEql('Joe is a member')
+    text.should.containEql('Allan is a member')
+    text.should.containEql('of Pet owners')
+  })
+
   it('complex', async () => {
     const result = await reporter.render({
       template: {

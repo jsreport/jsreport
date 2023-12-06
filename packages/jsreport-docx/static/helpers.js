@@ -6,7 +6,7 @@ function docxContext (options) {
   let data
 
   if (options.hash.type === 'global') {
-    data = Handlebars.createFrame({})
+    data = Handlebars.createFrame(options.data)
     data.evalId = options.hash.evalId
     data.childCache = new Map()
   } else if (options.hash.type === 'document') {
