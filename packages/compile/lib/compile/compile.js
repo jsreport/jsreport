@@ -215,6 +215,10 @@ async function compileExe (label, config, options) {
   const scripts = [path.relative(process.cwd(), coreWorkerEntryPath)]
   const assets = []
 
+  // NOTE: we need to do this manually because pkg cannot resolve modules with multiple entry points
+  // include the node dist for axios for version that ship with ESM as the new entry
+  scripts.push('**/node_modules/axios/dist/node/*')
+
   // add the main and worker entry points of extensions, it needs to be done this way
   // to tell pkg that these files should be analyzable and inspect its require calls, etc
   config.extensions.forEach((ext) => {
