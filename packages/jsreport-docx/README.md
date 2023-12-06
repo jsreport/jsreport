@@ -7,6 +7,10 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.1.1
+
+- fix data access to @root data variables
+
 ### 4.1.0
 
 - fix handling of heading titles that dont have prefix (style ids that use just numbers, like the case when docx is generated when chinese is the default language)

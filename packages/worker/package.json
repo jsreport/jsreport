@@ -19,7 +19,7 @@
     "@jsreport/jsreport-components": "4.0.0",
     "@jsreport/jsreport-core": "4.1.0",
     "@jsreport/jsreport-data": "4.0.0",
-    "@jsreport/jsreport-docx": "4.1.0",
+    "@jsreport/jsreport-docx": "4.1.1",
     "@jsreport/jsreport-express": "4.0.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-html-to-xlsx": "4.0.1",
