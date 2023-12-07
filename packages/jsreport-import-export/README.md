@@ -7,6 +7,10 @@ See http://jsreport.net/learn/import-export
 
 ## Changelog
 
+### 4.0.2
+
+- update axios to fix npm audit
+
 ### 4.0.1
 
 - fix issues when importing an export that contain folder (and nested entities) inside the same folder

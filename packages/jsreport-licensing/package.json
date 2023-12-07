@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-licensing",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "jsreport extension for enterprise license verification ",
   "keywords": [
     "jsreport"

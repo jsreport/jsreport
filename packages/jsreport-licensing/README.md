@@ -3,6 +3,10 @@ jsreport extension for enterprise license verification
 
 ## Changelog
 
+### 4.0.1
+
+- update axios to fix npm audit
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
@@ -19,4 +23,3 @@ jsreport extension for enterprise license verification
 ### 3.0.0-beta.1
 
 Adaptations for the v3 APIs
-

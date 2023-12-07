@@ -7,6 +7,10 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.0.2
+
+- update nodejs-client to fix npm audit
+
 ### 4.0.1
 
 - fix cli .launch does not exists

@@ -13,6 +13,10 @@
 
 ## Changelog
 
+### 4.0.1
+
+- update axios to fix npm audit
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
