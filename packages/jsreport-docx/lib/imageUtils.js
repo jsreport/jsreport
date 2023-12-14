@@ -1,9 +1,10 @@
+const { pipeline } = require('stream/promises')
 const sizeOf = require('image-size')
 const axios = require('axios')
 const { pxToEMU, cmToEMU, getDimension } = require('./utils')
 
-module.exports.resolveImageSrc = async function resolveImageSrc (src) {
-  let imageBuffer
+module.exports.resolveImageSrc = async function resolveImageSrc (reporter, src) {
+  let imageContent
   let imageExtension
   let imageSource
 
@@ -17,16 +18,19 @@ module.exports.resolveImageSrc = async function resolveImageSrc (src) {
       // we remove subtypes "+..." from the type, like in the case of "svg+xml"
       imageExtension = imageExtension.split('+')[0]
 
-      imageBuffer = Buffer.from(
-        imageSrc.split(';')[1].substring('base64,'.length),
-        'base64'
-      )
+      imageContent = {
+        type: 'buffer',
+        data: Buffer.from(
+          imageSrc.split(';')[1].substring('base64,'.length),
+          'base64'
+        )
+      }
     } else {
       imageSource = 'remote'
 
       const response = await axios({
         url: src,
-        responseType: 'arraybuffer',
+        responseType: 'stream',
         method: 'GET'
       })
 
@@ -46,18 +50,26 @@ module.exports.resolveImageSrc = async function resolveImageSrc (src) {
       imageExtension = extensionsParts.length === 1 ? extensionsParts[0] : extensionsParts[1]
       // we remove subtypes "+..." from the type, like in the case of "svg+xml"
       imageExtension = imageExtension.split('+')[0]
-      imageBuffer = Buffer.from(response.data)
+
+      const { pathToFile: tmpImagePath, stream: tmpImageStream } = await reporter.writeTempFileStream((uuid) => `docx-rmt-img-${uuid}.${imageExtension}`)
+
+      await pipeline(response.data, tmpImageStream)
+
+      imageContent = {
+        type: 'path',
+        data: tmpImagePath
+      }
     }
   } catch (error) {
     error.imageSource = imageSource
     throw error
   }
 
-  return { imageSource, imageBuffer, imageExtension }
+  return { imageSource, imageContent, imageExtension }
 }
 
-module.exports.getImageSizeInEMU = function getImageSizeInEMU (imageBuffer, customSize = {}) {
-  const imageDimension = sizeOf(imageBuffer)
+module.exports.getImageSizeInEMU = function getImageSizeInEMU (imageBufferOrPath, customSize = {}) {
+  const imageDimension = sizeOf(imageBufferOrPath)
   let imageWidthEMU
   let imageHeightEMU
 

@@ -1,5 +1,6 @@
 const path = require('path')
-const fs = require('fs/promises')
+const fs = require('fs')
+const fsAsync = require('fs/promises')
 const { DOMParser } = require('@xmldom/xmldom')
 const { customAlphabet } = require('nanoid')
 const generateRandomSuffix = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4)
@@ -7,7 +8,7 @@ const { resolveImageSrc, getImageSizeInEMU } = require('../../imageUtils')
 const { nodeListToArray, clearEl, createNode, findOrCreateChildNode, findChildNode, findDefaultStyleIdForName, getNewRelId, ptToHalfPoint, ptToTOAP } = require('../../utils')
 const xmlTemplatesCache = new Map()
 
-module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode } = {}) {
+module.exports = async function convertDocxMetaToNodes (reporter, docxMeta, htmlEmbedDef, mode, { docPath, doc, relsDoc: _relsDoc, files, paragraphNode } = {}) {
   if (mode !== 'block' && mode !== 'inline') {
     throw new Error(`Invalid conversion mode "${mode}"`)
   }
@@ -505,7 +506,7 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
       // inherit only the run properties of the html embed call
       clearEl(runEl, (c) => c.nodeName === 'w:rPr')
 
-      const { imageBuffer, imageExtension } = await resolveImageSrc(currentDocxMeta.src)
+      const { imageContent, imageExtension } = await resolveImageSrc(reporter, currentDocxMeta.src)
 
       const newImageRelId = getNewRelId(relsDoc)
 
@@ -522,7 +523,9 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       files.push({
         path: `word/media/imageDocx${newImageRelId}.${imageExtension}`,
-        data: imageBuffer
+        data: imageContent.type === 'path' ? fs.createReadStream(imageContent.data) : imageContent.data,
+        // this will make it store the svg file to be stored correctly
+        serializeFromDoc: false
       })
 
       const existsTypeForImageExtension = nodeListToArray(typesEl.getElementsByTagName('Default')).find(
@@ -538,7 +541,7 @@ module.exports = async function convertDocxMetaToNodes (docxMeta, htmlEmbedDef, 
 
       relsEl.appendChild(relEl)
 
-      const imageSizeEMU = getImageSizeInEMU(imageBuffer, {
+      const imageSizeEMU = getImageSizeInEMU(imageContent.data, {
         width: currentDocxMeta.width,
         height: currentDocxMeta.height
       })
@@ -1359,7 +1362,7 @@ async function loadTemplate (templateName) {
   xmlTemplatesCache.set(templateName, item)
 
   if (item.promise == null) {
-    item.promise = fs.readFile(path.join(__dirname, templateName))
+    item.promise = fsAsync.readFile(path.join(__dirname, templateName))
   }
 
   item.content = (await item.promise).toString()

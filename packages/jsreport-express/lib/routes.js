@@ -84,10 +84,16 @@ module.exports = (app, reporter, exposedOptions) => {
     reporter.render(renderRequest, { abortEmitter, onReqReady }).then((renderResponse) => {
       cleanupAfterRender()
 
+      return Promise.all([renderResponse.output.getStream(), renderResponse.output.getSize()]).then(([resStream, resSize]) => ({
+        stream: resStream,
+        size: resSize,
+        meta: renderResponse.meta
+      }))
+    }).then((renderResponse) => {
       if (stream) {
         form.append('report', renderResponse.stream, {
           filename: `${renderResponse.meta.reportName}.${renderResponse.meta.fileExtension}`,
-          contentLength: renderResponse.content.length,
+          contentLength: renderResponse.size,
           header: {
             'Content-Type': renderResponse.meta.headers['Content-Type'],
             'Content-Disposition': renderResponse.meta.headers['Content-Disposition']

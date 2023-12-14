@@ -6,6 +6,7 @@
 const extend = require('node.extend.without.arrays')
 const ExecuteEngine = require('./executeEngine')
 const Request = require('../../shared/request')
+const Response = require('../../shared/response')
 const generateRequestId = require('../../shared/generateRequestId')
 const resolveReferences = require('./resolveReferences.js')
 const moduleHelper = require('./moduleHelper')
@@ -60,7 +61,7 @@ module.exports = (reporter) => {
 
     const engineRes = await executeEngine(engine, request)
 
-    response.content = Buffer.from(engineRes.content != null ? engineRes.content : '')
+    await response.output.save(Buffer.from(engineRes.content != null ? engineRes.content : ''))
 
     reporter.profiler.emit({
       type: 'operationEnd',
@@ -105,13 +106,16 @@ module.exports = (reporter) => {
 
   return async (req, parentReq) => {
     const request = Request(req, parentReq)
-    const response = { meta: {} }
-    let renderStartProfilerEvent
-    try {
-      if (request.context.id == null) {
-        request.context.id = generateRequestId()
-      }
 
+    if (request.context.id == null) {
+      request.context.id = generateRequestId()
+    }
+
+    const { sealResponse, getResponseFilePath, response } = Response(reporter, request.context.id, {})
+
+    let renderStartProfilerEvent
+
+    try {
       renderStartProfilerEvent = await reporter.profiler.renderStart(request, parentReq, response)
       request.data = resolveReferences(request.data) || {}
 
@@ -153,8 +157,11 @@ module.exports = (reporter) => {
 
       await reporter.profiler.renderEnd(renderStartProfilerEvent.operationId, request, response)
 
-      return response
+      sealResponse()
+
+      return { response, responseFilePath: getResponseFilePath() }
     } catch (e) {
+      sealResponse()
       await reporter.renderErrorListeners.fire(request, response, e)
 
       const logFn = e.weak ? reporter.logger.warn : reporter.logger.error

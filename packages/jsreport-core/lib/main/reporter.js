@@ -27,6 +27,7 @@ const documentStoreActions = require('./store/mainActions')
 const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
 const Request = require('./request')
+const Response = require('../shared/response')
 const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
 const semver = require('semver')
@@ -379,7 +380,9 @@ class MainReporter extends Reporter {
     let worker
     let workerAborted
     let dontCloseProcessing
-    const res = { meta: {} }
+
+    const { sealResponse, response: res } = Response(this, req.context.id, {})
+
     try {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)
 
@@ -472,20 +475,24 @@ class MainReporter extends Reporter {
         worker
       }, req)
 
+      if (responseResult.content != null) {
+        await res.output.save(responseResult.content)
+        delete responseResult.content
+      } else {
+        this.logger.error('Worker did not return render res.content, returned:' + JSON.stringify(responseResult), req)
+      }
+
       Object.assign(res, responseResult)
 
       await this.afterRenderListeners.fire(req, res)
 
-      if (!res.content) {
-        this.logger.error('Worker didnt return render res.content, returned:' + JSON.stringify(responseResult), req)
-      }
-
-      res.stream = Readable.from(res.content)
+      sealResponse()
 
       this._cleanProfileInRequest(req)
 
       return res
     } catch (err) {
+      sealResponse()
       await this._handleRenderError(req, res, err)
       this._cleanProfileInRequest(req)
       throw err

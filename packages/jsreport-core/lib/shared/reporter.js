@@ -82,6 +82,27 @@ class Reporter extends EventEmitter {
     return tempFilesHandler.ensureTempDirectoryExists(this.options.tempAutoCleanupDirectory)
   }
 
+  getTempFilePath (filename) {
+    if (this.options.tempAutoCleanupDirectory == null) {
+      throw new Error('Can not use getTempFilename when tempAutoCleanupDirectory option is not initialized, make sure to initialize jsreport first using jsreport.init()')
+    }
+
+    return tempFilesHandler.getTempFilePath(this.options.tempAutoCleanupDirectory, filename)
+  }
+
+  /**
+   * Synchronously reads a file from the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
+   *
+   * @public
+   */
+  readTempFileSync (filename, opts) {
+    if (this.options.tempAutoCleanupDirectory == null) {
+      throw new Error('Can not use readTempFileSync when tempAutoCleanupDirectory option is not initialized, make sure to initialize jsreport first using jsreport.init()')
+    }
+
+    return tempFilesHandler.readTempFileSync(this.options.tempAutoCleanupDirectory, filename, opts)
+  }
+
   /**
    * Reads a file from the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
    *
@@ -93,6 +114,20 @@ class Reporter extends EventEmitter {
     }
 
     return tempFilesHandler.readTempFile(this.options.tempAutoCleanupDirectory, filename, opts)
+  }
+
+  /**
+   * Synchronously creates a file into the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
+   * ensuring that the directory always exists
+   *
+   * @public
+   */
+  writeTempFileSync (filenameFn, content, opts) {
+    if (this.options.tempAutoCleanupDirectory == null) {
+      throw new Error('Can not use writeTempFileSync when tempAutoCleanupDirectory option is not initialized, make sure to initialize jsreport first using jsreport.init()')
+    }
+
+    return tempFilesHandler.writeTempFileSync(this.options.tempAutoCleanupDirectory, filenameFn, content, opts)
   }
 
   /**
@@ -114,7 +149,7 @@ class Reporter extends EventEmitter {
    *
    * @public
    */
-  async readTempFileStream (filename, opts) {
+  readTempFileStream (filename, opts) {
     if (this.options.tempAutoCleanupDirectory == null) {
       throw new Error('Can not use readTempFileStream when tempAutoCleanupDirectory option is not initialized, make sure to initialize jsreport first using jsreport.init()')
     }
@@ -134,6 +169,20 @@ class Reporter extends EventEmitter {
     }
 
     return tempFilesHandler.writeTempFileStream(this.options.tempAutoCleanupDirectory, filenameFn, opts)
+  }
+
+  /**
+   * Copies a file into the jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
+   * ensuring that the directory always exists
+   *
+   * @public
+   */
+  async copyFileToTempFile (srcFilePath, destFilenameFn, mode) {
+    if (this.options.tempAutoCleanupDirectory == null) {
+      throw new Error('Can not use copyToTempFile when tempAutoCleanupDirectory option is not initialized, make sure to initialize jsreport first using jsreport.init()')
+    }
+
+    return tempFilesHandler.copyFileToTempFile(this.options.tempAutoCleanupDirectory, srcFilePath, destFilenameFn, mode)
   }
 
   async init () {

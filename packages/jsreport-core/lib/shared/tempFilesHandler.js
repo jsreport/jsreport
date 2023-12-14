@@ -13,8 +13,22 @@ module.exports.ensureTempDirectoryExists = async function (tempDirectory) {
   }
 }
 
+module.exports.getTempFilePath = getTempFilePath
+
+module.exports.readTempFileSync = function readTempFileSync (tempDirectory, filename, opts = {}) {
+  const { pathToFile } = getTempFilePath(tempDirectory, filename)
+
+  const content = fs.readFileSync(pathToFile, opts)
+
+  return {
+    pathToFile,
+    filename,
+    content
+  }
+}
+
 module.exports.readTempFile = async function readTempFile (tempDirectory, filename, opts = {}) {
-  const pathToFile = path.join(tempDirectory, filename)
+  const { pathToFile } = getTempFilePath(tempDirectory, filename)
 
   const content = await fsAsync.readFile(pathToFile, opts)
 
@@ -25,51 +39,90 @@ module.exports.readTempFile = async function readTempFile (tempDirectory, filena
   }
 }
 
-module.exports.readTempFileStream = async function readTempFileStream (tempDirectory, filename, opts = {}) {
-  const pathToFile = path.join(tempDirectory, filename)
+module.exports.readTempFileStream = function readTempFileStream (tempDirectory, filename, opts = {}) {
+  const { pathToFile } = getTempFilePath(tempDirectory, filename)
 
-  return new Promise((resolve) => {
-    const stream = fs.createReadStream(pathToFile, opts)
+  const stream = fs.createReadStream(pathToFile, opts)
 
-    resolve({
-      pathToFile,
-      filename,
-      stream
-    })
+  return {
+    pathToFile,
+    filename,
+    stream
+  }
+}
+
+module.exports.writeTempFileSync = function writeTempFileSync (tempDirectory, filenameOrFn, content, opts = {}) {
+  return writeFileSync(tempDirectory, filenameOrFn, content, opts)
+}
+
+module.exports.writeTempFile = async function writeTempFile (tempDirectory, filenameOrFn, content, opts = {}) {
+  return writeFile(tempDirectory, filenameOrFn, content, opts)
+}
+
+module.exports.writeTempFileStream = async function writeTempFileStream (tempDirectory, filenameOrFn, opts = {}) {
+  return writeFile(tempDirectory, filenameOrFn, undefined, opts, true)
+}
+
+module.exports.copyFileToTempFile = async function copyFileToTempFile (tempDirectory, srcFilePath, destFilenameOrFn, mode) {
+  const { pathToFile, filename } = getTempFilePath(tempDirectory, destFilenameOrFn)
+
+  await fsAsync.mkdir(tempDirectory, {
+    recursive: true
   })
+
+  await fsAsync.copyFile(srcFilePath, pathToFile, mode)
+
+  return {
+    pathToFile,
+    filename
+  }
 }
 
-module.exports.writeTempFile = async function writeTempFile (tempDirectory, filenameFn, content, opts = {}) {
-  return writeFile(tempDirectory, filenameFn, content, opts)
-}
-
-module.exports.writeTempFileStream = async function writeTempFileStream (tempDirectory, filenameFn, opts = {}) {
-  return writeFile(tempDirectory, filenameFn, undefined, opts, true)
-}
-
-async function writeFile (tempDirectory, filenameFn, content, opts, asStream = false) {
-  const filename = filenameFn(uuidv4())
+function getTempFilePath (tempDirectory, filenameOrFn) {
+  const filename = typeof filenameOrFn === 'function' ? filenameOrFn(uuidv4()) : filenameOrFn
 
   if (filename == null || filename === '') {
-    throw new Error('No valid filename was returned from filenameFn')
+    throw new Error('No valid filename')
   }
 
   const pathToFile = path.join(tempDirectory, filename)
+
+  return {
+    pathToFile,
+    filename
+  }
+}
+
+function writeFileSync (tempDirectory, filenameOrFn, content, opts) {
+  const { pathToFile, filename } = getTempFilePath(tempDirectory, filenameOrFn)
+
+  fs.mkdirSync(tempDirectory, {
+    recursive: true
+  })
+
+  fs.writeFileSync(pathToFile, content, opts)
+
+  return {
+    pathToFile,
+    filename
+  }
+}
+
+async function writeFile (tempDirectory, filenameOrFn, content, opts, asStream = false) {
+  const { pathToFile, filename } = getTempFilePath(tempDirectory, filenameOrFn)
 
   await fsAsync.mkdir(tempDirectory, {
     recursive: true
   })
 
   if (asStream === true) {
-    return new Promise((resolve) => {
-      const stream = fs.createWriteStream(pathToFile, opts)
+    const stream = fs.createWriteStream(pathToFile, opts)
 
-      resolve({
-        pathToFile,
-        filename,
-        stream
-      })
-    })
+    return {
+      pathToFile,
+      filename,
+      stream
+    }
   } else {
     await fsAsync.writeFile(pathToFile, content, opts)
 

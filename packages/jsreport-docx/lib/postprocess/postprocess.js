@@ -11,7 +11,7 @@ const toc = require('./toc')
 const removeBlockHelper = require('./removeBlockHelper')
 const html = require('./html')
 
-module.exports = async (files, options) => {
+module.exports = async (reporter, files, options) => {
   const newBookmarksMap = new Map()
   const sectionsDetails = await sections(files)
 
@@ -25,12 +25,12 @@ module.exports = async (files, options) => {
 
   // we handle the html step as the first to ensure no other step
   // work with the attribute and comment we put for the <w:p> elements for the html handling
-  await html(files, sectionsDetails)
+  await html(reporter, files, sectionsDetails)
   await bookmark(files, headerFooterRefs, newBookmarksMap)
   await watermark(files)
   await pageBreak(files)
   style(files, headerFooterRefs)
-  await drawingObject(files, headerFooterRefs, newBookmarksMap, options)
+  await drawingObject(reporter, files, headerFooterRefs, newBookmarksMap, options)
   link(files)
   form(files)
   await toc(files)

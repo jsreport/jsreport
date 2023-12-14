@@ -1,7 +1,8 @@
+const fs = require('fs')
 const { resolveImageSrc, getImageSizeInEMU } = require('../imageUtils')
 const { nodeListToArray, findOrCreateChildNode, getNewRelIdFromBaseId, getNewRelId, getDocPrEl, getPictureElInfo, getPictureCnvPrEl } = require('../utils')
 
-module.exports = async function processImage (files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
+module.exports = async function processImage (reporter, files, referenceDrawingEl, doc, relsDoc, newRelIdCounterMap, newBookmarksMap) {
   const drawingEl = referenceDrawingEl.cloneNode(true)
   const contentTypesFile = files.find(f => f.path === '[Content_Types].xml')
   const types = contentTypesFile.doc.getElementsByTagName('Types')[0]
@@ -113,15 +114,15 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
   }
 
   let resolveImageSrcError
-  let imageBuffer
+  let imageContent
   let imageExtension
 
   while (pendingSources.length > 0) {
     const currentSource = pendingSources.shift()
 
     try {
-      const resolved = await resolveImageSrc(currentSource)
-      imageBuffer = resolved.imageBuffer
+      const resolved = await resolveImageSrc(reporter, currentSource)
+      imageContent = resolved.imageContent
       imageExtension = resolved.imageExtension
     } catch (resolveError) {
       if (
@@ -133,7 +134,7 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
     }
   }
 
-  if (resolveImageSrcError != null || imageBuffer == null) {
+  if (resolveImageSrcError != null || imageContent == null) {
     if (resolveImageSrcError != null && imageConfig.failurePlaceholderAction == null) {
       throw resolveImageSrcError
     } else {
@@ -161,7 +162,7 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
 
   files.push({
     path: `word/media/imageDocx${newImageRelId}.${imageExtension}`,
-    data: imageBuffer,
+    data: imageContent.type === 'path' ? fs.createReadStream(imageContent.data) : imageContent.data,
     // this will make it store the svg file to be stored correctly
     serializeFromDoc: false
   })
@@ -191,7 +192,7 @@ module.exports = async function processImage (files, referenceDrawingEl, doc, re
     imageWidthEMU = parseFloat(aExtEl.getAttribute('cx'))
     imageHeightEMU = parseFloat(aExtEl.getAttribute('cy'))
   } else {
-    const imageSizeEMU = getImageSizeInEMU(imageBuffer, {
+    const imageSizeEMU = getImageSizeInEMU(imageContent.data, {
       width: imageConfig.width,
       height: imageConfig.height
     })

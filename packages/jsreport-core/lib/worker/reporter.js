@@ -169,8 +169,9 @@ class WorkerReporter extends Reporter {
     return proxyInstance
   }
 
-  render (req, parentReq) {
-    return this._render(req, parentReq)
+  async render (req, parentReq) {
+    const { response } = await this._render(req, parentReq)
+    return response
   }
 
   async executeMainAction (actionName, data, req) {
@@ -221,16 +222,11 @@ class WorkerReporter extends Reporter {
 
   _registerRenderAction () {
     this.registerWorkerAction('render', async (data, req) => {
-      const res = await this.render(req)
-
-      const sharedBuf = new SharedArrayBuffer(res.content.byteLength)
-      const buf = Buffer.from(sharedBuf)
-
-      res.content.copy(buf)
+      const { response: res, responseFilePath } = await this._render(req)
 
       return {
         meta: res.meta,
-        content: buf
+        content: responseFilePath
       }
     })
   }
