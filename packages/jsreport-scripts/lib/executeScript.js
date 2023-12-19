@@ -4,6 +4,7 @@ const promisify = require('util').promisify
 
 module.exports = async function executeScript (reporter, { script, method, onBeforeExecute }, req, res) {
   let entityPath
+
   if (script._id) {
     entityPath = await reporter.folders.resolveEntityPath(script, 'scripts', req)
   }
@@ -12,7 +13,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   const originalData = req.data
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
-  const resClone = extend(true, {}, res)
+  const resCloneWithNoContent = extend(true, {}, _omit(res, 'content'))
 
   const initialContext = {
     __request: {
@@ -21,7 +22,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
         ...originalData
       }
     },
-    __response: resClone
+    __response: resCloneWithNoContent
   }
 
   // keep the reference to the shared context so it is always update to date
@@ -51,9 +52,30 @@ module.exports = async function executeScript (reporter, { script, method, onBef
     onBeforeExecute(script, topLevelFunctionsNames)
   }
 
+  const resContentInfo = {
+    cached: null,
+    modified: false
+  }
+
+  Object.defineProperty(initialContext.__response, 'content', {
+    get () {
+      if (resContentInfo.cached == null) {
+        resContentInfo.cached = res.content
+      }
+
+      return resContentInfo.cached
+    },
+    set (newContent) {
+      resContentInfo.cached = newContent
+      resContentInfo.modified = true
+    },
+    enumerable: true,
+    configurable: false
+  })
+
   const sandboxManager = {}
 
-  const executionFn = async ({ topLevelFunctions, restore, context }) => {
+  const executionFn = async ({ topLevelFunctions, context }) => {
     const onBeforeExecute = context.__request.__onBeforeExecute
     delete context.__request.__onBeforeExecute
 
@@ -93,6 +115,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
     ) {
       err = new Error('Script invalid assignment: req.data must be an object, make sure you are not changing its value in the script to a non object value')
     }
+
     return {
       shouldRunAfterRender: topLevelFunctions.afterRender != null,
       // we only propagate well known properties from the req executed in scripts
@@ -108,7 +131,12 @@ module.exports = async function executeScript (reporter, { script, method, onBef
       },
       // creating new object avoids passing a proxy object to rest of the
       // execution flow when script is running in in-process strategy
-      res: { ...restoredSandbox.__response },
+      res: {
+        meta: {
+          ...restoredSandbox.__response.meta
+        },
+        content: resContentInfo.modified ? resContentInfo.cached : undefined
+      },
       error: err
         ? {
             message: err.message,

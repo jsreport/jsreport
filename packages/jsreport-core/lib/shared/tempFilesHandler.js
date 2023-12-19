@@ -79,13 +79,14 @@ module.exports.copyFileToTempFile = async function copyFileToTempFile (tempDirec
 }
 
 function getTempFilePath (tempDirectory, filenameOrFn) {
-  const filename = typeof filenameOrFn === 'function' ? filenameOrFn(uuidv4()) : filenameOrFn
+  const filenameResult = typeof filenameOrFn === 'function' ? filenameOrFn(uuidv4()) : filenameOrFn
 
-  if (filename == null || filename === '') {
+  if (filenameResult == null || filenameResult === '') {
     throw new Error('No valid filename')
   }
 
-  const pathToFile = path.join(tempDirectory, filename)
+  const pathToFile = path.isAbsolute(filenameResult) ? filenameResult : path.join(tempDirectory, filenameResult)
+  const filename = path.basename(pathToFile)
 
   return {
     pathToFile,

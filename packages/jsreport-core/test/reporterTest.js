@@ -1001,7 +1001,7 @@ describe('reporter', () => {
 
     await reporter.init()
 
-    return should(reporter.writeTempFile((uuid) => '')).be.rejectedWith(/No valid filename was returned/)
+    return should(reporter.writeTempFile((uuid) => '')).be.rejectedWith(/No valid filename/)
   })
 
   it('should create temp file using writeTempFile (if temp directory is deleted)', async () => {
@@ -1056,7 +1056,7 @@ describe('reporter', () => {
 
     await reporter.init()
 
-    return should(reporter.writeTempFileStream((uuid) => '')).be.rejectedWith(/No valid filename was returned/)
+    return should(reporter.writeTempFileStream((uuid) => '')).be.rejectedWith(/No valid filename/)
   })
 
   it('should create temp file using writeTempFileStream (if temp directory is deleted)', async () => {
@@ -1115,7 +1115,7 @@ describe('reporter', () => {
 
     const { filename } = await reporter.writeTempFile((uuid) => `something-${uuid}.txt`, 'testing')
 
-    const result = await reporter.readTempFileStream(filename)
+    const result = reporter.readTempFileStream(filename)
 
     should(fs.existsSync(result.pathToFile)).be.eql(true)
     should(result.stream).have.property('readable')
@@ -1142,7 +1142,9 @@ describe('reporter', () => {
       rootDirectory: path.join(__dirname, 'extensions/validExtensions')
     })
 
-    return should(reporter.readTempFileStream('something.txt')).be.rejectedWith(/Can not use readTempFileStream/)
+    should(() => {
+      reporter.readTempFileStream('something.txt')
+    }).throw(/Can not use readTempFileStream/)
   })
 
   // executeScript replaced with executeWorkerAction -> needs tests

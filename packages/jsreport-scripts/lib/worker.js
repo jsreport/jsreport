@@ -164,39 +164,24 @@ class Scripts {
       throw error
     }
 
-    function merge (obj, obj2) {
-      for (const key in obj2) {
-        if (typeof obj2[key] === 'undefined') {
-          continue
-        }
-
-        if (Buffer.isBuffer(obj2[key])) {
-          obj[key] = Buffer.from(obj2[key])
-        } else if (Object.prototype.toString.call(obj2[key]) === '[object Uint8Array]') {
-          let newBuf = Buffer.from(obj2[key].buffer)
-
-          if (obj2[key].byteLength !== obj2[key].buffer.byteLength) {
-            newBuf = newBuf.slice(obj2[key].byteOffset, obj2[key].byteOffset + obj2[key].byteLength)
-          }
-
-          obj[key] = newBuf
-        } else if (typeof obj2[key] !== 'object' || typeof obj[key] === 'undefined') {
-          obj[key] = obj2[key]
-        } else {
-          merge(obj[key], obj2[key])
-        }
-      }
-    }
-
     if (method === 'beforeRender') {
       req.data = scriptExecResult.req.data
       delete scriptExecResult.req.data
       merge(req, scriptExecResult.req)
+
+      if (scriptExecResult.res.content != null) {
+        await res.output.save(Buffer.from(scriptExecResult.res.content))
+      }
+
+      delete scriptExecResult.res.content
       merge(res, scriptExecResult.res)
     }
 
     if (method === 'afterRender') {
-      res.content = Buffer.from(scriptExecResult.res.content)
+      if (scriptExecResult.res.content != null) {
+        await res.output.save(Buffer.from(scriptExecResult.res.content))
+      }
+
       delete scriptExecResult.res.content
       merge(res, scriptExecResult.res)
 
@@ -350,5 +335,29 @@ class Scripts {
       ...folderItems,
       ...items
     ]
+  }
+}
+
+function merge (obj, obj2) {
+  for (const key in obj2) {
+    if (typeof obj2[key] === 'undefined') {
+      continue
+    }
+
+    if (Buffer.isBuffer(obj2[key])) {
+      obj[key] = Buffer.from(obj2[key])
+    } else if (Object.prototype.toString.call(obj2[key]) === '[object Uint8Array]') {
+      let newBuf = Buffer.from(obj2[key].buffer)
+
+      if (obj2[key].byteLength !== obj2[key].buffer.byteLength) {
+        newBuf = newBuf.slice(obj2[key].byteOffset, obj2[key].byteOffset + obj2[key].byteLength)
+      }
+
+      obj[key] = newBuf
+    } else if (typeof obj2[key] !== 'object' || typeof obj[key] === 'undefined') {
+      obj[key] = obj2[key]
+    } else {
+      merge(obj[key], obj2[key])
+    }
   }
 }

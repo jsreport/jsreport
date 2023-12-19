@@ -28,7 +28,6 @@ const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
 const Request = require('./request')
 const Response = require('../shared/response')
-const generateRequestId = require('../shared/generateRequestId')
 const Profiler = require('./profiler')
 const semver = require('semver')
 let reportCounter = 0
@@ -371,7 +370,7 @@ class MainReporter extends Reporter {
 
     req = Object.assign({}, req)
     req.context = Object.assign({}, req.context)
-    req.context.rootId = req.context.rootId || generateRequestId()
+    req.context.rootId = req.context.rootId || this.generateRequestId()
     req.context.id = req.context.rootId
     req.context.reportCounter = ++reportCounter
     req.context.startTimestamp = new Date().getTime()
@@ -381,7 +380,7 @@ class MainReporter extends Reporter {
     let workerAborted
     let dontCloseProcessing
 
-    const { sealResponse, response: res } = Response(this, req.context.id, {})
+    const { sealResponse, response: res, transformQueueManager } = Response(this, req.context.id, {}, true)
 
     try {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)
@@ -445,9 +444,18 @@ class MainReporter extends Reporter {
               worker
             }, req)
 
+            if (responseResult.content != null) {
+              await res.output.save(responseResult.content)
+              delete responseResult.content
+            }
+
             Object.assign(res, responseResult)
+
             await this.afterRenderListeners.fire(req, res)
+
+            sealResponse()
           } catch (err) {
+            sealResponse()
             await this._handleRenderError(req, res, err).catch((e) => {})
           } finally {
             this._cleanProfileInRequest(req)
@@ -558,7 +566,7 @@ class MainReporter extends Reporter {
   }
 
   async executeWorkerAction (actionName, data, options = {}, req) {
-    req.context.rootId = req.context.rootId || generateRequestId()
+    req.context.rootId = req.context.rootId || this.generateRequestId()
     const timeout = options.timeout || 60000
 
     const worker = options.worker

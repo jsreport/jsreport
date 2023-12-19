@@ -54,7 +54,8 @@ module.exports = async (reporter, req, res) => {
     })
   }
 
-  res.content = pdfAsset
+  await res.output.save(pdfAsset)
+
   res.meta.contentType = 'application/pdf'
   res.meta.fileExtension = 'pdf'
 }

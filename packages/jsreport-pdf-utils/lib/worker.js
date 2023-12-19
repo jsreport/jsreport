@@ -25,7 +25,7 @@ module.exports = (reporter, definition) => {
 
   reporter.extendProxy(proxyExtend)
 
-  reporter.afterTemplatingEnginesExecutedListeners.add('pdf-utils', (req, res) => {
+  reporter.afterTemplatingEnginesExecutedListeners.add('pdf-utils', async (req, res) => {
     // https://forum.jsreport.net/topic/1284/pdf-outline-with-child-templates
     if (req.template.recipe == null || !req.template.recipe.includes('pdf')) {
       // this skips also the child templates, because we want to get the outlines from final html
@@ -33,24 +33,30 @@ module.exports = (reporter, definition) => {
     }
 
     req.context.shared.pdfUtilsHiddenPageFields = req.context.shared.pdfUtilsHiddenPageFields || {}
-    ;['group', 'item', 'form', 'dest'].forEach(m => {
-      res.content = res.content.toString().replace(new RegExp(`${m}@@@([^@]*)@@@`, 'g'), (match, p1) => {
-        const id = nanoid()
-        req.context.shared.pdfUtilsHiddenPageFields[id] = p1
-        return m + '@@@' + id + '@@@'
-      })
+
+    const fields = ['group', 'item', 'form', 'dest']
+    const fieldsRegExp = new RegExp(`(${fields.join('|')})@@@([^@]*)@@@`, 'g')
+    let content = (await res.output.getBuffer()).toString()
+
+    content = content.replace(fieldsRegExp, (match, g1, g2) => {
+      const id = nanoid()
+
+      if (g1 === 'form') {
+        req.context.pdfUtilsForms = true
+      }
+
+      req.context.shared.pdfUtilsHiddenPageFields[id] = g2
+      return `${g1}@@@${id}@@@`
     })
 
-    if (res.content.includes('form@@@')) {
-      req.context.pdfUtilsForms = true
-    }
+    await res.output.save(Buffer.from(content))
 
-    if (!res.content.includes('data-pdf-outline')) {
+    if (!content.includes('data-pdf-outline')) {
       // optimization, don't do parsing if there is not a single link enabled
       return
     }
 
-    const $ = require('cheerio').load(res.content)
+    const $ = require('cheerio').load(content)
     const anchors = $('a[data-pdf-outline]')
 
     req.context.pdfUtilsOutlines = []
@@ -200,9 +206,11 @@ module.exports = (reporter, definition) => {
     reporter.logger.info('pdf-utils is starting pdf processing', req)
 
     try {
-      res.content = await (require('./pdfProcessing.js')(
+      const pdfContent = await res.output.getBuffer()
+
+      const output = await (require('./pdfProcessing.js')(
         {
-          pdfContent: res.content,
+          pdfContent,
           operations: req.template.pdfOperations || [],
           outlines: req.context.pdfUtilsOutlines,
           pdfMeta: req.template.pdfMeta,
@@ -216,6 +224,8 @@ module.exports = (reporter, definition) => {
         req,
         res
       ))
+
+      await res.output.save(output)
     } catch (e) {
       throw reporter.createError('Error while executing pdf-utils operations', {
         original: e,

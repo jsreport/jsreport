@@ -19,7 +19,8 @@ module.exports = async (inputs, reporter, req, res) => {
     }
 
     const res = await reporter.render({ template: templateToUse, data, options: { pdfUtils: { removeHiddenMarks: false } } }, req)
-    return res.content
+    const content = await res.output.getBuffer()
+    return content
   }
 
   const pdfBuf = pdfContent
@@ -127,13 +128,13 @@ module.exports = async (inputs, reporter, req, res) => {
     }
   }
 
-  reporter.logger.debug('pdf-utils postproces start', req)
+  reporter.logger.debug('pdf-utils postprocess start', req)
 
   await manipulator.postprocess({
     hiddenPageFields: req.context.shared.pdfUtilsHiddenPageFields
   })
 
-  reporter.logger.debug('pdf-utils postproces end', req)
+  reporter.logger.debug('pdf-utils postprocess end', req)
 
   reporter.profiler.emit({
     type: 'operationEnd',

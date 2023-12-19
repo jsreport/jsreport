@@ -38,6 +38,7 @@
     "mime": "2.4.4",
     "minimatch": "5.1.0",
     "react-copy-to-clipboard": "5.0.2",
+    "semaphore-async-await": "1.5.1",
     "strip-bom-buf": "2.0.0"
   },
   "devDependencies": {

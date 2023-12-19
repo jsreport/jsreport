@@ -2,7 +2,7 @@ const conversion = require('./conversion')
 
 module.exports = ({ reporter, puppeteer, options }) => {
   let openedBrowsers = []
-  const execute = async ({ htmlUrl, strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess }) => {
+  const execute = async ({ htmlUrl, strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess, onOutput }) => {
     let browser
 
     try {
@@ -22,10 +22,17 @@ module.exports = ({ reporter, puppeteer, options }) => {
         options: conversionOptions
       })
 
-      return {
+      const output = {
         type: result.type,
         content: result.content
       }
+
+      if (onOutput) {
+        await onOutput(output)
+        delete output.content
+      }
+
+      return output
     } finally {
       if (browser) {
         try {

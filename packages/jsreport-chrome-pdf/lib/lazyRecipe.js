@@ -20,7 +20,9 @@ async function renderHeaderOrFooter (type, reporter, req, content) {
     template
   }, req)
 
-  return res.content.toString()
+  const resContent = await res.output.getBuffer()
+
+  return resContent.toString()
 }
 
 function execute (reporter, definition, puppeteer, strategyCall, imageExecution) {
@@ -49,7 +51,9 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
     if (chrome.url) {
       htmlUrl = chrome.url
     } else {
-      const { pathToFile: htmlPath } = await reporter.writeTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`, res.content.toString())
+      const { pathToFile: htmlPath } = await reporter.writeTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`, '')
+
+      await res.output.toFile(htmlPath)
 
       // when running docker on windows host the isAbsolute is not able to correctly determine
       // if path is absolute
@@ -78,10 +82,11 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
       allowLocalFilesAccess,
       req,
       conversionOptions: chrome,
-      imageExecution
+      imageExecution,
+      onOutput: async ({ content }) => {
+        await res.output.save(content)
+      }
     })
-
-    res.content = result.content
 
     if (imageExecution) {
       res.meta.contentType = `image/${result.type}`

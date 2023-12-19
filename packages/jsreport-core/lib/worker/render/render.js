@@ -7,7 +7,6 @@ const extend = require('node.extend.without.arrays')
 const ExecuteEngine = require('./executeEngine')
 const Request = require('../../shared/request')
 const Response = require('../../shared/response')
-const generateRequestId = require('../../shared/generateRequestId')
 const resolveReferences = require('./resolveReferences.js')
 const moduleHelper = require('./moduleHelper')
 
@@ -108,7 +107,7 @@ module.exports = (reporter) => {
     const request = Request(req, parentReq)
 
     if (request.context.id == null) {
-      request.context.id = generateRequestId()
+      request.context.id = reporter.generateRequestId()
     }
 
     const { sealResponse, getResponseFilePath, response } = Response(reporter, request.context.id, {})

@@ -10,52 +10,8 @@ const path = require('path')
 const fs = require('fs/promises')
 const extend = require('node.extend.without.arrays')
 const asyncReplace = util.promisify(require('async-replace-with-limit'))
+const Semaphore = require('semaphore-async-await').default
 const staticHelpers = require('../static/helpers')
-
-function applyParameters (p1, templateName, req) {
-  if (p1.indexOf(' @') !== -1) {
-    try {
-      const modifications = {}
-
-      const params = p1.replace(templateName, '').split(' @')
-      params.shift()
-
-      params.forEach(function (p) {
-        let separator
-
-        if (p.indexOf('$=') !== -1) {
-          separator = '$='
-        } else {
-          separator = '='
-        }
-
-        const keys = p.slice(0, p.indexOf(separator)).split('.')
-        const rawValue = p.slice(p.indexOf(separator) + separator.length)
-        let value
-
-        if (separator === '$=') {
-          value = staticHelpers.childTemplateParseData(rawValue)
-        } else {
-          value = JSON.parse(`"${rawValue}"`)
-        }
-
-        let modificationsIterator = modifications
-
-        const lastProperty = keys[keys.length - 1]
-        keys.pop()
-
-        keys.forEach((k) => {
-          modificationsIterator = modificationsIterator[k] = modificationsIterator[k] || {}
-        })
-        modificationsIterator[lastProperty] = value
-      })
-
-      extend(true, req, modifications)
-    } catch (e) {
-      throw new Error(`Unable to parse params ${p1} for child template ${templateName}`)
-    }
-  }
-}
 
 module.exports = function (reporter, definition) {
   reporter.beforeRenderListeners.add(definition.name, this, (request, response) => {
@@ -81,7 +37,6 @@ module.exports = function (reporter, definition) {
   }
 
   async function evaluateChildTemplates (reporter, request, response, options) {
-    const childTemplateRegexp = /{#child ([^{}]*)}/g
     let evaluateInTemplateContent
     let parallelLimit
 
@@ -100,9 +55,9 @@ module.exports = function (reporter, definition) {
       parallelLimit = definition.options.parallelLimit
     }
 
-    async function convert (str, p1, offset, s) {
+    async function processChildCall (childCall) {
       let template
-      const templatePath = (p1.indexOf(' @') !== -1) ? p1.substring(0, p1.indexOf(' @')) : p1
+      const templatePath = (childCall.indexOf(' @') !== -1) ? childCall.substring(0, childCall.indexOf(' @')) : childCall
       const templateNameIsPath = templatePath.indexOf('/') !== -1
       const pathParts = templatePath.split('/').filter((p) => p)
 
@@ -150,28 +105,162 @@ module.exports = function (reporter, definition) {
         template
       }
 
-      applyParameters(p1, templateName, req)
+      applyParameters(childCall, templateName, req)
 
       reporter.logger.debug(`Rendering child template ${templateName}`, request)
 
       const resp = await reporter.render(req, request)
-      return resp.content.toString()
+      const content = await resp.output.getBuffer()
+      return content
     }
 
-    const strToReplace = evaluateInTemplateContent ? request.template.content : response.content.toString()
-
-    const result = await asyncReplace({
-      string: strToReplace,
-      parallelLimit
-    }, childTemplateRegexp, (str, p1, offset, s, done) => {
-      Promise.resolve(convert(str, p1, offset, s)).then((result) => done(null, result), (err) => done(err))
-    })
-
     if (evaluateInTemplateContent) {
+      const strToReplace = request.template.content
+
+      const result = await asyncReplace({
+        string: strToReplace,
+        parallelLimit
+      }, getCompleteChildCallRegexp(), (str, p1, offset, s, done) => {
+        processChildCall(p1).then((result) => done(null, result)).catch(done)
+      })
+
       request.template.content = result
       return
     }
 
-    response.content = Buffer.from(result)
+    await response.output.save({
+      transform: async (chunk) => {
+        const chunkStr = chunk.toString()
+        const result = {}
+
+        const matches = [...chunkStr.matchAll(getCompleteChildCallRegexp())]
+
+        if (matches.length === 0) {
+          result.content = chunk
+          result.concat = hasPartialChildCall(chunkStr)
+
+          return result
+        }
+
+        const matchesCount = matches.length
+
+        const semaphore = new Semaphore(parallelLimit)
+        const tasks = []
+        const results = new Map()
+
+        for (let idx = 0; idx < matchesCount; idx++) {
+          const currentIdx = idx
+
+          tasks.push(semaphore.execute(async () => {
+            const match = matches[currentIdx]
+            const left = chunkStr.slice(0, match.index)
+            const right = chunkStr.slice(match.index + match[0].length)
+            const childCallResult = await processChildCall(match[1])
+            results.set(currentIdx, `${left}${childCallResult}${right}`)
+          }))
+        }
+
+        await Promise.all(tasks)
+
+        const newContentParts = []
+
+        for (let idx = 0; idx < matchesCount; idx++) {
+          newContentParts.push(results.get(idx))
+        }
+
+        result.content = Buffer.from(newContentParts.join(''))
+
+        return result
+      }
+    })
   }
+}
+
+function applyParameters (p1, templateName, req) {
+  if (p1.indexOf(' @') !== -1) {
+    try {
+      const modifications = {}
+
+      const params = p1.replace(templateName, '').split(' @')
+      params.shift()
+
+      params.forEach(function (p) {
+        let separator
+
+        if (p.indexOf('$=') !== -1) {
+          separator = '$='
+        } else {
+          separator = '='
+        }
+
+        const keys = p.slice(0, p.indexOf(separator)).split('.')
+        const rawValue = p.slice(p.indexOf(separator) + separator.length)
+        let value
+
+        if (separator === '$=') {
+          value = staticHelpers.childTemplateParseData(rawValue)
+        } else {
+          value = JSON.parse(`"${rawValue}"`)
+        }
+
+        let modificationsIterator = modifications
+
+        const lastProperty = keys[keys.length - 1]
+        keys.pop()
+
+        keys.forEach((k) => {
+          modificationsIterator = modificationsIterator[k] = modificationsIterator[k] || {}
+        })
+        modificationsIterator[lastProperty] = value
+      })
+
+      extend(true, req, modifications)
+    } catch (e) {
+      throw new Error(`Unable to parse params ${p1} for child template ${templateName}`)
+    }
+  }
+}
+
+function hasPartialChildCall (str) {
+  const partialMatch = str.match(getIncompleteChildCallAtEndRegexp())
+  let hasPartialCall = false
+
+  if (partialMatch == null) {
+    hasPartialCall = false
+  } else {
+    const childPart = partialMatch[1]
+    const namePart = partialMatch[2].length
+
+    const checks = [
+      () => childPart.length === 0 && namePart === 0,
+      () => {
+        if (childPart.length === 0) {
+          return false
+        }
+
+        const completeAssetPart = '#child '
+        const containsComplete = childPart.length === completeAssetPart.length
+
+        if (containsComplete) {
+          return true
+        }
+
+        const targetAssetPart = completeAssetPart.slice(0, partialMatch[1].length)
+
+        return childPart === targetAssetPart
+      }
+    ]
+
+    hasPartialCall = checks.some((check) => check())
+  }
+
+  return hasPartialCall
+}
+
+function getCompleteChildCallRegexp () {
+  return /{#child ([^{}]{0,500})}/g
+}
+
+function getIncompleteChildCallAtEndRegexp () {
+  return /{([#child ]{0,7})([^{}]{0,500})$/
 }

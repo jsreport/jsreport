@@ -388,7 +388,7 @@ module.exports = async ({ reporter, getBrowser, htmlUrl, strategy, timeout, req,
       result = await page.screenshot(optionsToUse)
     } else {
       resultType = 'pdf'
-      result = await page.pdf(optionsToUse)
+      result = await page.createPDFStream(optionsToUse)
     }
 
     if (executionInfo.error) {

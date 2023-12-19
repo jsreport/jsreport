@@ -1,6 +1,7 @@
 const EventEmitter = require('events')
 const createListenerCollection = require('./listenerCollection')
 const Request = require('./request')
+const Response = require('./response')
 const Templates = require('./templates')
 const Folders = require('./folders')
 const createOrExtendError = require('./createError')
@@ -15,6 +16,7 @@ class Reporter extends EventEmitter {
 
     this.options = options || {}
     this.Request = Request
+    this.Response = Response
     this.adminRequest = adminRequest
 
     // since `reporter` instance will be used for other extensions,

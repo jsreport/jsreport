@@ -84,10 +84,10 @@ module.exports = async function response ({
 
     // the explicit destroy here allows the http globalAgent to release the socket,
     // which keeps a reference to the input data we send to target public server, (even if a stream)
-    // this reference prevents memory to be release immediately, if the input document is like >100mb
+    // this reference prevents memory to be released immediately, if the input document is like >100mb
     // the explicit destroy here is an improvement, if we don't do this explicit destroy the socket
     // is anyway released in like 1 minute, so this is more an enhancement rather than a bug fix
-    if (!e.request?.destroyed) {
+    if (e.request != null && !e.request.destroyed) {
       e.request.destroy()
     }
 

@@ -10,12 +10,14 @@ const parseXlsx = serialize.parse
 module.exports = async (reporter, definition, req, res) => {
   reporter.logger.info('xlsx transformation is starting', req)
 
-  const xlsxOutputContent = await fs.promises.readFile(res.content)
+  const resContent = await res.output.getBuffer()
+  const xlsxOutputContent = await fs.promises.readFile(resContent)
   req.data.$xlsxTemplate = await parseXlsx(xlsxOutputContent)
 
   reporter.logger.debug('Parsing xlsx content', req)
 
   req.context.asyncHandlebars = true
+
   const contentString = await reporter.templatingEngines.evaluate({
     engine: req.template.engine,
     content: req.data.$xlsxOriginalContent,
@@ -25,14 +27,21 @@ module.exports = async (reporter, definition, req, res) => {
     entity: req.template,
     entitySet: 'templates'
   }, req)
+
   req.context.asyncHandlebars = false
 
   // we need to call afterTemplatingEnginesExecutedListeners to ensure the assets are extracted
-  const fakeRes = { content: Buffer.from(contentString) }
+  const { response: fakeRes } = reporter.Response(reporter, `xlsx-transformation-${req.context.id}`, {}, true)
+
+  await fakeRes.output.save(Buffer.from(contentString))
+
   await reporter.afterTemplatingEnginesExecutedListeners.fire(req, fakeRes)
+
   let content
+
   try {
-    content = JSON.parse(fakeRes.content.toString())
+    content = (await fakeRes.output.getBuffer()).toString()
+    content = JSON.parse(content)
   } catch (e) {
     throw reporter.createError('Error parsing xlsx content, aren\'t you missing {{{xlsxPrint}}}?', {
       statusCode: 400,

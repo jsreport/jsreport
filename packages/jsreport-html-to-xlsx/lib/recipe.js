@@ -127,12 +127,14 @@ module.exports = async (reporter, definition, req, res) => {
   let result
 
   try {
+    const html = (await res.output.getBuffer()).toString()
+
     result = await htmlToXlsxProcess(
       {
         timeout: reporter.getReportTimeout(req),
         tmpDir: definition.options.tmpDir,
         htmlEngine: htmlToXlsxOptions.htmlEngine,
-        html: res.content.toString(),
+        html,
         xlsxTemplateContent: xlsxTemplateBuf,
         chromeOptions,
         phantomOptions,

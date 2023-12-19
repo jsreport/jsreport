@@ -28,8 +28,7 @@
   },
   "dependencies": {
     "electron-html-to": "2.6.1",
-    "lodash.pickby": "4.6.0",
-    "stream-to-array": "2.3.0"
+    "lodash.pickby": "4.6.0"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.1.0",

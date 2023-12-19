@@ -3,10 +3,10 @@ const juice = require('juice')
 const { response } = require('@jsreport/office')
 
 module.exports = (reporter, definition) => async (req, res) => {
-  const htmlContent = res.content.toString()
   let docxContent
 
   try {
+    const htmlContent = (await res.output.getBuffer()).toString()
     const docxBuffer = await htmlDocx.asBlob(juice(htmlContent))
     docxContent = docxBuffer.toString('base64')
   } catch (err) {
