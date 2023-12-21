@@ -677,10 +677,10 @@ module.exports = (files) => {
         continue
       }
 
-      formulaEl.textContent = `{{xlsxSData type='formula' originalCellRef='${cellRef}' originalFormula='${jsStringEscape(formula)}'`
+      formulaEl.textContent = `{{xlsxSData type='formula' originalCellRef='${cellRef}' originalFormula='${jsSingleQuoteEscape(formula)}'`
 
       if (sharedFormula?.type === 'source') {
-        formulaEl.setAttribute('ref', `{{xlsxSData type='formulaSharedRefRange' originalSharedRefRange='${jsStringEscape(sharedFormula.sourceRef)}'}}`)
+        formulaEl.setAttribute('ref', `{{xlsxSData type='formulaSharedRefRange' originalSharedRefRange='${jsSingleQuoteEscape(sharedFormula.sourceRef)}'}}`)
       }
 
       formulaEl.textContent += '}}'
@@ -1290,25 +1290,14 @@ function processClosingTag (doc, refElement, closeCall) {
   return fakeElement
 }
 
-function jsStringEscape (string) {
-  return ('' + string).replace(/["'\\\n\r\u2028\u2029]/g, function (character) {
+function jsSingleQuoteEscape (string) {
+  return ('' + string).replace(/[']/g, function (character) {
     // Escape all characters not included in SingleStringCharacters and
     // DoubleStringCharacters on
     // http://www.ecma-international.org/ecma-262/5.1/#sec-7.8.4
     switch (character) {
-      case '"':
       case "'":
-      case '\\':
         return '\\' + character
-        // Four possible LineTerminator characters need to be escaped:
-      case '\n':
-        return '\\n'
-      case '\r':
-        return '\\r'
-      case '\u2028':
-        return '\\u2028'
-      case '\u2029':
-        return '\\u2029'
     }
   })
 }
