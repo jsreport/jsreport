@@ -519,4 +519,27 @@ describe('xlsx generation - base', () => {
     should(sheet.A4.v).be.eql(40)
     should(sheet.B4.f).be.eql('A4+B!A5')
   })
+
+  it('existing formulas that reference cells from other sheets with name stored with \' string delimiters should be handled', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'xlsx',
+        xlsx: {
+          templateAsset: {
+            content: fs.readFileSync(
+              path.join(xlsxDirPath, 'existing-formula-cross-sheet-reference-with-name-string-delimiter.xlsx')
+            )
+          }
+        }
+      },
+      data: {}
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+    const workbook = xlsx.read(result.content)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]]
+    should(sheet.B2.f).be.eql("'Raw Data'!$B$2")
+    should(sheet.A9.f).be.eql('RawData!$A$15')
+  })
 })
