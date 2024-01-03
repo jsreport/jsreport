@@ -299,29 +299,36 @@ async function evaluateAssets (reporter, definition, contentToReplace, req) {
 
       for (let idx = 0; idx < matchesCount; idx++) {
         const currentIdx = idx
+        const match = matches[currentIdx]
+
+        results.set(currentIdx, {
+          start: match.index,
+          length: match[0].length,
+          newContent: null
+        })
 
         tasks.push(semaphore.execute(async () => {
-          const match = matches[currentIdx]
-          const left = chunkStr.slice(0, match.index)
-          const right = chunkStr.slice(match.index + match[0].length)
-
           const assetCallResult = await processAssetCall(match[1])
-
           replacedAssets.push(assetCallResult.name)
-
-          results.set(currentIdx, `${left}${assetCallResult.content}${right}`)
+          results.get(currentIdx).newContent = assetCallResult.content
         }))
       }
 
       await Promise.all(tasks)
 
-      const newContentParts = []
+      let newContent = chunkStr
+      let diff = 0
 
       for (let idx = 0; idx < matchesCount; idx++) {
-        newContentParts.push(results.get(idx))
+        const resultInfo = results.get(idx)
+        const currentStart = resultInfo.start + diff
+
+        diff += resultInfo.newContent.length - resultInfo.length
+
+        newContent = newContent.slice(0, currentStart) + resultInfo.newContent + newContent.slice(currentStart + resultInfo.length)
       }
 
-      const newContent = await evaluateNestedAssetsIfNeeded(replacedAssets, newContentParts.join(''))
+      newContent = await evaluateNestedAssetsIfNeeded(replacedAssets, newContent)
 
       result.content = Buffer.from(newContent)
       result.concat = hasPartialAssetCall(newContent)

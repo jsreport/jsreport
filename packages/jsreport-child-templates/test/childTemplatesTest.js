@@ -32,6 +32,25 @@ describe('childTemplates', () => {
     res.content.toString().should.be.eql('xx')
   })
 
+  it('should replace child template mark with its content (after template engine)', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      content: 'xx',
+      engine: 'jsrender',
+      recipe: 'html',
+      name: 't1'
+    })
+
+    const request = {
+      template: { content: '{{:childCall}}', engine: 'jsrender', recipe: 'html' },
+      data: {
+        childCall: '{#child t1}'
+      }
+    }
+
+    const res = await reporter.render(request)
+    res.content.toString().should.be.eql('xx')
+  })
+
   it('should handle multiple templates in one', async () => {
     await reporter.documentStore.collection('templates').insert({
       content: '{{>~a()}}',
@@ -42,6 +61,25 @@ describe('childTemplates', () => {
     })
     const request = {
       template: { content: 'a{#child t1}ba{#child t1}', engine: 'none', recipe: 'html' }
+    }
+
+    const res = await reporter.render(request)
+    res.content.toString().should.be.eql('afoobafoo')
+  })
+
+  it('should handle multiple templates in one (after template engine)', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      content: '{{>~a()}}',
+      engine: 'jsrender',
+      helpers: 'function a() { return \'foo\'; }',
+      recipe: 'html',
+      name: 't1'
+    })
+    const request = {
+      template: { content: '{{:childCall}}', engine: 'jsrender', recipe: 'html' },
+      data: {
+        childCall: 'a{#child t1}ba{#child t1}'
+      }
     }
 
     const res = await reporter.render(request)
@@ -65,6 +103,32 @@ describe('childTemplates', () => {
     })
     const request = {
       template: { content: '{#child t2}', engine: 'none', recipe: 'html' }
+    }
+
+    const res = await reporter.render(request)
+    res.content.toString().should.be.eql('foofoo')
+  })
+
+  it('should handle multiple templates in nested one (after template engine)', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      content: '{{>~a()}}',
+      engine: 'jsrender',
+      helpers: 'function a() { return \'foo\'; }',
+      recipe: 'html',
+      name: 't3'
+    })
+
+    await reporter.documentStore.collection('templates').insert({
+      content: '{#child t3}{#child t3}',
+      engine: 'jsrender',
+      recipe: 'html',
+      name: 't2'
+    })
+    const request = {
+      template: { content: '{{:childCall}}', engine: 'jsrender', recipe: 'html' },
+      data: {
+        childCall: '{#child t2}'
+      }
     }
 
     const res = await reporter.render(request)
@@ -98,6 +162,25 @@ describe('childTemplates', () => {
 
     const request = {
       template: { content: '{#child t1 @data.foo=xx}', engine: 'none', recipe: 'html' }
+    }
+
+    const res = await reporter.render(request)
+    res.content.toString().should.be.eql('xx')
+  })
+
+  it('should be able to pass data params to child (after template engine)', async () => {
+    await reporter.documentStore.collection('templates').insert({
+      content: '{{:foo}}',
+      engine: 'jsrender',
+      recipe: 'html',
+      name: 't1'
+    })
+
+    const request = {
+      template: { content: '{{:childCall}}', engine: 'jsrender', recipe: 'html' },
+      data: {
+        childCall: '{#child t1 @data.foo=xx}'
+      }
     }
 
     const res = await reporter.render(request)

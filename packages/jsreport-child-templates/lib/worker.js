@@ -110,7 +110,7 @@ module.exports = function (reporter, definition) {
       reporter.logger.debug(`Rendering child template ${templateName}`, request)
 
       const resp = await reporter.render(req, request)
-      const content = await resp.output.getBuffer()
+      const content = (await resp.output.getBuffer()).toString()
       return content
     }
 
@@ -150,25 +150,35 @@ module.exports = function (reporter, definition) {
 
         for (let idx = 0; idx < matchesCount; idx++) {
           const currentIdx = idx
+          const match = matches[currentIdx]
+
+          results.set(currentIdx, {
+            start: match.index,
+            length: match[0].length,
+            newContent: null
+          })
 
           tasks.push(semaphore.execute(async () => {
-            const match = matches[currentIdx]
-            const left = chunkStr.slice(0, match.index)
-            const right = chunkStr.slice(match.index + match[0].length)
             const childCallResult = await processChildCall(match[1])
-            results.set(currentIdx, `${left}${childCallResult}${right}`)
+            results.get(currentIdx).newContent = childCallResult
           }))
         }
 
         await Promise.all(tasks)
 
-        const newContentParts = []
+        let newContent = chunkStr
+        let diff = 0
 
         for (let idx = 0; idx < matchesCount; idx++) {
-          newContentParts.push(results.get(idx))
+          const resultInfo = results.get(idx)
+          const currentStart = resultInfo.start + diff
+
+          diff += resultInfo.newContent.length - resultInfo.length
+
+          newContent = newContent.slice(0, currentStart) + resultInfo.newContent + newContent.slice(currentStart + resultInfo.length)
         }
 
-        result.content = Buffer.from(newContentParts.join(''))
+        result.content = Buffer.from(newContent)
 
         return result
       }

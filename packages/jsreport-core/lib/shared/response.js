@@ -27,157 +27,12 @@ module.exports = async (reporter, requestId, obj) => {
   let sealed = false
   let hasContent = false
 
-  const runTransform = async (transformFn, chunk) => {
-    const result = await transformFn(chunk)
-
-    if (
-      result == null ||
-      (result.content == null)
-    ) {
-      throw new Error('Invalid transform function, it must return a value')
-    }
-
-    return result
-  }
-
-  const executeTransformsAndSave = async (queue) => {
-    const transformQueue = queue.transforms || []
-
-    if (transformQueue.length === 0) {
-      throw new Error('Invalid call, there are no transforms to execute')
-    }
-
-    const transformQueueCount = transformQueue.length
-
-    // we need to save the transformation to new file to avoid reading and writing to same file (source: response file, target: response file)
-    const { pathToFile: tmpFilePath, stream: tmpFileStream } = await reporter.writeTempFileStream((uuid) => `transform-response-${requestId}-${uuid}.raw-content`)
-    // it is important to create the read stream as the last before doing the pipeline,
-    // otherwise if there is some async task in the middle and the file does not exists
-    // we get uncaught exception because the file is trying to be opened in next tick
-    const responseFileStream = reporter.readTempFileStream(responseFilename).stream
-    const decoder = new Decoder('utf8')
-    const originalTransformSequence = transformQueue.map((_, idx) => idx)
-    let nextTransformSequence = originalTransformSequence
-
-    const lastTransformSequencePerChunk = {
-      executed: [],
-      pending: []
-    }
-
-    let remaining
-
-    const transformApi = {
-      getString (buf) {
-        return decoder.write(buf)
-      }
-    }
-
-    await pipeline(
-      responseFileStream,
-      async function * (source) {
-        for await (const chunk of source) {
-          const chunkStr = decoder.write(chunk)
-          let currentChunk = Buffer.from(chunkStr)
-
-          const transformSequence = [...nextTransformSequence]
-
-          lastTransformSequencePerChunk.executed = []
-          lastTransformSequencePerChunk.pending = [...transformSequence]
-
-          // this mean we have partial utf8 character in the chunk,
-          // we need to wait for the next chunk
-          if (decoder.lastNeed) {
-            remaining = remaining != null ? Buffer.concat([remaining, currentChunk]) : currentChunk
-            continue
-          }
-
-          // reset the decoder state we start clean for the next chunk
-          decoder.end()
-
-          if (remaining != null) {
-            currentChunk = Buffer.concat([remaining, currentChunk])
-            remaining = null
-          }
-
-          for (const currentTransformIdx of transformSequence) {
-            lastTransformSequencePerChunk.pending.shift()
-            lastTransformSequencePerChunk.executed.push(currentTransformIdx)
-
-            const fn = transformQueue[currentTransformIdx]
-
-            const result = await runTransform(fn, currentChunk)
-
-            currentChunk = result.content
-
-            if (result.concat === true) {
-              remaining = currentChunk
-              break
-            }
-          }
-
-          if (remaining != null) {
-            // continue the transforms for the next chunk from the last transform executed position
-            nextTransformSequence = []
-
-            const lastTransformExecutedIdx = lastTransformSequencePerChunk.executed[lastTransformSequencePerChunk.executed.length - 1]
-            const maxTransformIdx = transformQueueCount - 1
-
-            for (let idx = 0; idx < transformQueueCount; idx++) {
-              let transformIdx = lastTransformExecutedIdx + idx
-
-              if (transformIdx > maxTransformIdx) {
-                transformIdx = transformIdx - maxTransformIdx
-              }
-
-              nextTransformSequence.push(transformIdx)
-            }
-          } else {
-            nextTransformSequence = originalTransformSequence
-          }
-
-          yield currentChunk
-        }
-
-        // if we get here it means we have been buffering chunks that always had partial utf8 character
-        // and here we need to capture the remaining text and process it
-        if (decoder.lastNeed) {
-          const lastChunk = Buffer.from(decoder.end())
-
-          if (lastChunk.length > 0) {
-            remaining = remaining != null ? Buffer.concat([remaining, lastChunk]) : lastChunk
-          }
-        }
-
-        if (remaining != null) {
-          let finalChunk = remaining
-
-          // if we end with remaining and pending transforms we ensure to run them here
-          const pendingTransforms = [...lastTransformSequencePerChunk.pending]
-
-          for (const fn of pendingTransforms) {
-            const result = await runTransform(fn, finalChunk)
-            finalChunk = result.content
-          }
-
-          yield finalChunk
-        }
-      },
-      tmpFileStream
-    )
-
-    // we replace the response file with the new content
-    await reporter.copyFileToTempFile(tmpFilePath, responseFilename)
-
-    const endQueue = queue.end || []
-
-    for (const fn of endQueue) {
-      await fn()
-    }
-  }
+  const executeTransformsAndSave = createExecuteTransforms(reporter, requestId, responseFilename)
 
   // NOTE: this property is temporary until we deprecate access to res.content, res.stream
   Object.defineProperty(response, 'content', {
     get () {
+      console.log('-----------READ RESPONSE-----------')
       if (!hasContent) {
         return Buffer.from([])
       }
@@ -187,6 +42,7 @@ module.exports = async (reporter, requestId, obj) => {
       return result.content
     },
     set (newContent) {
+      console.log('-----------WRITE RESPONSE-----------')
       if (sealed) {
         throw new Error('Can not set res.content when render is completed')
       }
@@ -312,6 +168,8 @@ module.exports = async (reporter, requestId, obj) => {
     // NOTE: this property is temporary until we deprecate access to res.content, res.stream
     Object.defineProperty(response, 'stream', {
       get () {
+        console.log('-----------READ STREAM RESPONSE-----------')
+
         if (!hasContent) {
           return Readable.from(Buffer.from([]))
         }
@@ -334,6 +192,150 @@ module.exports = async (reporter, requestId, obj) => {
   await reporter.writeTempFile(responseFilename, Buffer.from([]))
 
   return { response, sealResponse, getResponseFilePath }
+}
+
+function createExecuteTransforms (reporter, requestId, responseFilename) {
+  return async (queue) => {
+    const transformQueue = queue.transforms || []
+
+    if (transformQueue.length === 0) {
+      throw new Error('Invalid call, there are no transforms to execute')
+    }
+
+    const transformQueueCount = transformQueue.length
+
+    // we need to save the transformation to new file to avoid reading and writing to same file (source: response file, target: response file)
+    const { pathToFile: tmpFilePath, stream: tmpFileStream } = await reporter.writeTempFileStream((uuid) => `transform-response-${requestId}-${uuid}.raw-content`)
+    // it is important to create the read stream as the last before doing the pipeline,
+    // otherwise if there is some async task in the middle and the file does not exists
+    // we get uncaught exception because the file is trying to be opened in next tick
+    const responseFileStream = reporter.readTempFileStream(responseFilename).stream
+    const decoder = new Decoder('utf8')
+    const originalTransformSequence = transformQueue.map((_, idx) => idx)
+    let nextTransformSequence = originalTransformSequence
+
+    const lastTransformSequencePerChunk = {
+      executed: [],
+      pending: []
+    }
+
+    let remaining
+
+    await pipeline(
+      responseFileStream,
+      async function * (source) {
+        for await (const chunk of source) {
+          const chunkStr = decoder.write(chunk)
+          let currentChunk = Buffer.from(chunkStr)
+
+          const transformSequence = [...nextTransformSequence]
+
+          lastTransformSequencePerChunk.executed = []
+          lastTransformSequencePerChunk.pending = [...transformSequence]
+
+          // this mean we have partial utf8 character in the chunk,
+          // we need to wait for the next chunk
+          if (decoder.lastNeed) {
+            remaining = remaining != null ? Buffer.concat([remaining, currentChunk]) : currentChunk
+            continue
+          }
+
+          // reset the decoder state we start clean for the next chunk
+          decoder.end()
+
+          if (remaining != null) {
+            currentChunk = Buffer.concat([remaining, currentChunk])
+            remaining = null
+          }
+
+          for (const currentTransformIdx of transformSequence) {
+            lastTransformSequencePerChunk.pending.shift()
+            lastTransformSequencePerChunk.executed.push(currentTransformIdx)
+
+            const fn = transformQueue[currentTransformIdx]
+
+            const result = await runTransform(fn, currentChunk)
+
+            currentChunk = result.content
+
+            if (result.concat === true) {
+              remaining = currentChunk
+              break
+            }
+          }
+
+          if (remaining != null) {
+            // continue the transforms for the next chunk from the last transform executed position
+            nextTransformSequence = []
+
+            const lastTransformExecutedIdx = lastTransformSequencePerChunk.executed[lastTransformSequencePerChunk.executed.length - 1]
+            const maxTransformIdx = transformQueueCount - 1
+
+            for (let idx = 0; idx < transformQueueCount; idx++) {
+              let transformIdx = lastTransformExecutedIdx + idx
+
+              if (transformIdx > maxTransformIdx) {
+                transformIdx = transformIdx - maxTransformIdx
+              }
+
+              nextTransformSequence.push(transformIdx)
+            }
+          } else {
+            nextTransformSequence = originalTransformSequence
+          }
+
+          yield currentChunk
+        }
+
+        // if we get here it means we have been buffering chunks that always had partial utf8 character
+        // and here we need to capture the remaining text and process it
+        if (decoder.lastNeed) {
+          const lastChunk = Buffer.from(decoder.end())
+
+          if (lastChunk.length > 0) {
+            remaining = remaining != null ? Buffer.concat([remaining, lastChunk]) : lastChunk
+          }
+        }
+
+        if (remaining != null) {
+          let finalChunk = remaining
+
+          // if we end with remaining and pending transforms we ensure to run them here
+          const pendingTransforms = [...lastTransformSequencePerChunk.pending]
+
+          for (const fn of pendingTransforms) {
+            const result = await runTransform(fn, finalChunk)
+            finalChunk = result.content
+          }
+
+          yield finalChunk
+        }
+      },
+      tmpFileStream
+    )
+
+    // we replace the response file with the new content
+    await reporter.copyFileToTempFile(tmpFilePath, responseFilename)
+
+    const endQueue = queue.end || []
+
+    for (const fn of endQueue) {
+      await fn()
+    }
+  }
+}
+
+async function runTransform (transformFn, chunk) {
+  const result = await transformFn(chunk)
+
+  if (
+    result == null ||
+    (result.content == null)
+  ) {
+    throw new Error('Invalid transform function, it must return a value')
+  }
+
+  return result
 }
 
 // from https://github.com/sindresorhus/is-stream/blob/main/index.js
