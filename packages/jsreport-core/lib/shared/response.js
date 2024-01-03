@@ -6,7 +6,7 @@ const fs = require('fs/promises')
 const isArrayBufferView = require('util').types.isArrayBufferView
 const extend = require('node.extend.without.arrays')
 
-module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
+module.exports = async (reporter, requestId, obj) => {
   const responseFilename = `response-${requestId}.raw-content`
 
   const getResponseFilePath = () => {
@@ -26,31 +26,6 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
 
   let sealed = false
   let hasContent = false
-
-  const transformQueueState = {
-    active: false,
-    queue: {
-      transforms: [],
-      end: []
-    },
-    manager: null
-  }
-
-  if (supportsTransformQueue) {
-    transformQueueState.manager = {
-      start: () => {
-        transformQueueState.active = true
-      },
-      execute: async () => {
-        const current = transformQueueState.queue
-        await executeTransformsAndSave(current)
-      },
-      end: () => {
-        transformQueueState.active = false
-        transformQueueState.queue = []
-      }
-    }
-  }
 
   const runTransform = async (transformFn, chunk) => {
     const result = await transformFn(chunk)
@@ -204,7 +179,7 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
   Object.defineProperty(response, 'content', {
     get () {
       if (!hasContent) {
-        return
+        return Buffer.from([])
       }
 
       const result = reporter.readTempFileSync(responseFilename)
@@ -217,6 +192,8 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
       }
 
       if (newContent == null) {
+        // no need to return something here, it is always going to return was is passed
+        // no matter if we return something here
         hasContent = false
         return
       }
@@ -234,7 +211,7 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
   const output = {
     getBuffer: async () => {
       if (!hasContent) {
-        return
+        return Buffer.from([])
       }
 
       const result = await reporter.readTempFile(responseFilename)
@@ -243,7 +220,7 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
     },
     getStream: async () => {
       if (!hasContent) {
-        return
+        return Readable.from(Buffer.from([]))
       }
 
       async function * generateResponseContent () {
@@ -261,7 +238,7 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
     },
     getSize: async () => {
       if (!hasContent) {
-        return
+        return 0
       }
 
       const stat = await fs.stat(getResponseFilePath())
@@ -301,21 +278,13 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
         const { stream: responseFileStream } = await reporter.writeTempFileStream(responseFilename)
         await pipeline(newContent, responseFileStream)
       } else if (newContent != null && typeof newContent === 'object' && typeof newContent.transform === 'function') {
-        if (transformQueueState.active) {
-          transformQueueState.queue.transforms.push(newContent.transform)
+        const input = { transforms: [newContent.transform] }
 
-          if (typeof newContent.end === 'function') {
-            transformQueueState.queue.end.push(newContent.end)
-          }
-        } else {
-          const input = { transforms: [newContent.transform] }
-
-          if (typeof newContent.end === 'function') {
-            input.end = [newContent.end]
-          }
-
-          await executeTransformsAndSave(input)
+        if (typeof newContent.end === 'function') {
+          input.end = [newContent.end]
         }
+
+        await executeTransformsAndSave(input)
       } else {
         throw new Error('Invalid content passed to res.output.save')
       }
@@ -344,7 +313,7 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
     Object.defineProperty(response, 'stream', {
       get () {
         if (!hasContent) {
-          return
+          return Readable.from(Buffer.from([]))
         }
 
         if (cachedStream == null) {
@@ -361,13 +330,10 @@ module.exports = (reporter, requestId, obj, supportsTransformQueue = false) => {
     sealed = true
   }
 
-  const result = { response, sealResponse, getResponseFilePath }
+  // ensure the file exists from the beginning
+  await reporter.writeTempFile(responseFilename, Buffer.from([]))
 
-  if (supportsTransformQueue) {
-    result.transformQueueManager = transformQueueState.manager
-  }
-
-  return result
+  return { response, sealResponse, getResponseFilePath }
 }
 
 // from https://github.com/sindresorhus/is-stream/blob/main/index.js

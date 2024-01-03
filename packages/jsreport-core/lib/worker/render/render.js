@@ -110,7 +110,7 @@ module.exports = (reporter) => {
       request.context.id = reporter.generateRequestId()
     }
 
-    const { sealResponse, getResponseFilePath, response } = Response(reporter, request.context.id, {})
+    const { sealResponse, getResponseFilePath, response } = await Response(reporter, request.context.id, {})
 
     let renderStartProfilerEvent
 

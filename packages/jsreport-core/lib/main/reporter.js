@@ -380,7 +380,7 @@ class MainReporter extends Reporter {
     let workerAborted
     let dontCloseProcessing
 
-    const { sealResponse, response: res, transformQueueManager } = Response(this, req.context.id, {}, true)
+    const { sealResponse, response: res } = await Response(this, req.context.id, {})
 
     try {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)

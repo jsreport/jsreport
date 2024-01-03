@@ -1,6 +1,5 @@
 
 const util = require('util')
-const toArray = require('stream-to-array')
 const Conversion = require('phantom-html-to-pdf')
 let conversion
 

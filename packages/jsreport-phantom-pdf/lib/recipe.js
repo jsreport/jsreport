@@ -1,6 +1,5 @@
 const util = require('util')
 const Conversion = require('phantom-html-to-pdf')
-const toArrayAsync = util.promisify(require('stream-to-array'))
 let conversion
 
 const defaultPhantomjsVersion = '1.9.8'
