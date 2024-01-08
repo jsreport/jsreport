@@ -13,7 +13,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   const originalData = req.data
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
-  const resCloneWithNoContent = extend(true, {}, _omit(res, 'content'))
+  const { response: scriptResponse, getResponseFilePath } = await reporter.Response(req.context.id, res)
 
   const initialContext = {
     __request: {
@@ -22,7 +22,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
         ...originalData
       }
     },
-    __response: resCloneWithNoContent
+    __response: scriptResponse
   }
 
   // keep the reference to the shared context so it is always update to date
@@ -51,27 +51,6 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   initialContext.__request.__onBeforeExecute = (topLevelFunctionsNames) => {
     onBeforeExecute(script, topLevelFunctionsNames)
   }
-
-  const resContentInfo = {
-    cached: null,
-    modified: false
-  }
-
-  Object.defineProperty(initialContext.__response, 'content', {
-    get () {
-      if (resContentInfo.cached == null) {
-        resContentInfo.cached = res.content
-      }
-
-      return resContentInfo.cached
-    },
-    set (newContent) {
-      resContentInfo.cached = newContent
-      resContentInfo.modified = true
-    },
-    enumerable: true,
-    configurable: false
-  })
 
   const sandboxManager = {}
 
@@ -135,7 +114,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
         meta: {
           ...restoredSandbox.__response.meta
         },
-        content: resContentInfo.modified ? resContentInfo.cached : undefined
+        content: getResponseFilePath()
       },
       error: err
         ? {

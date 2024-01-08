@@ -12,10 +12,8 @@ module.exports = (reporter) => (proxy, req) => {
       context: {}
     }, req)
 
-    return {
-      content: res.content,
-      meta: res.meta
-    }
+    // expose the response api
+    return res
   }
 
   proxy.documentStore = {

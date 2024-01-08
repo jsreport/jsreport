@@ -16,7 +16,7 @@ class Reporter extends EventEmitter {
 
     this.options = options || {}
     this.Request = Request
-    this.Response = Response
+    this.Response = (...args) => Response(this, ...args)
     this.adminRequest = adminRequest
 
     // since `reporter` instance will be used for other extensions,

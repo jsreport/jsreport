@@ -170,7 +170,7 @@ class Scripts {
       merge(req, scriptExecResult.req)
 
       if (scriptExecResult.res.content != null) {
-        await res.output.save(Buffer.from(scriptExecResult.res.content))
+        await res.output.save(scriptExecResult.res.content)
       }
 
       delete scriptExecResult.res.content
@@ -179,7 +179,7 @@ class Scripts {
 
     if (method === 'afterRender') {
       if (scriptExecResult.res.content != null) {
-        await res.output.save(Buffer.from(scriptExecResult.res.content))
+        await res.output.save(scriptExecResult.res.content)
       }
 
       delete scriptExecResult.res.content

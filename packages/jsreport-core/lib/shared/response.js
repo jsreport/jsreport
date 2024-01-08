@@ -7,6 +7,7 @@ const isArrayBufferView = require('util').types.isArrayBufferView
 const extend = require('node.extend.without.arrays')
 
 module.exports = async (reporter, requestId, obj) => {
+  const isJsreportResponse = obj.__isJsreportResponse__ === true
   const responseFilename = `response-${requestId}.raw-content`
 
   const getResponseFilePath = () => {
@@ -26,6 +27,10 @@ module.exports = async (reporter, requestId, obj) => {
 
   let sealed = false
   let hasContent = false
+
+  if (isJsreportResponse) {
+    hasContent = true
+  }
 
   const executeTransformsAndSave = createExecuteTransforms(reporter, requestId, responseFilename)
 
@@ -188,8 +193,10 @@ module.exports = async (reporter, requestId, obj) => {
     sealed = true
   }
 
-  // ensure the file exists from the beginning
-  await reporter.writeTempFile(responseFilename, Buffer.from([]))
+  // ensure the file exists from the beginning if it is new response
+  if (!isJsreportResponse) {
+    await reporter.writeTempFile(responseFilename, Buffer.from([]))
+  }
 
   return { response, sealResponse, getResponseFilePath }
 }
