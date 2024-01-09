@@ -72,7 +72,15 @@ class Profiler {
     }
 
     if (m.doDiffs !== false && req.context.profiling.mode === 'full' && (m.type === 'operationStart' || m.type === 'operationEnd')) {
-      let content = res.content
+      let originalResContent = res.content
+
+      // if content is empty assume null to keep old logic working without major changes
+      // (here and in studio)
+      if (originalResContent != null && originalResContent.length === 0) {
+        originalResContent = null
+      }
+
+      let content = originalResContent
 
       if (content != null) {
         if (content.length > this.reporter.options.profiler.maxDiffSize) {
@@ -82,12 +90,12 @@ class Profiler {
         } else {
           if (isbinaryfile(content)) {
             content = {
-              content: res.content.toString('base64'),
+              content: originalResContent.toString('base64'),
               encoding: 'base64'
             }
           } else {
             content = {
-              content: createPatch('res', req.context.profiling.resLastVal ? req.context.profiling.resLastVal.toString() : '', res.content.toString(), 0),
+              content: createPatch('res', req.context.profiling.resLastVal ? req.context.profiling.resLastVal.toString() : '', originalResContent.toString(), 0),
               encoding: 'diff'
             }
           }
@@ -107,7 +115,7 @@ class Profiler {
         m.req.diff = createPatch('req', req.context.profiling.reqLastVal || '', stringifiedReq, 0)
       }
 
-      req.context.profiling.resLastVal = (res.content == null || isbinaryfile(res.content) || content.tooLarge) ? null : res.content.toString()
+      req.context.profiling.resLastVal = (originalResContent == null || isbinaryfile(originalResContent) || content.tooLarge) ? null : originalResContent.toString()
       req.context.profiling.resMetaLastVal = stringifiedResMeta
       req.context.profiling.reqLastVal = stringifiedReq
     }

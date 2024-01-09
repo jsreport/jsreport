@@ -50,6 +50,11 @@ function getStateAtProfileOperation (operations, operationId, completed = false)
           currentState.resContent = event.res.content.content
         }
       }
+    } else if (currentState.resContent !== '' && !event.res.content) {
+      // if we get here it means we are getting from a previous response with content to a new empty one
+      // which likely means a new render started
+      currentState.resContent = ''
+      currentState.resContentEncoding = ''
     }
   }
 

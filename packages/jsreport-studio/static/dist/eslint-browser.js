@@ -27823,39 +27823,34 @@ module.exports = {
 /* 74 */
 /***/ ((module, exports, __webpack_require__) => {
 
-"use strict";
 /* provided dependency */ var process = __webpack_require__(6);
-
-
-function _typeof(obj) {
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    _typeof = function _typeof(obj) {
-      return typeof obj;
-    };
-  } else {
-    _typeof = function _typeof(obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-  return _typeof(obj);
-}
-
 /* eslint-env browser */
 
 /**
  * This is the web browser implementation of `debug()`.
  */
-exports.log = log;
+
 exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
 exports.storage = localstorage();
+exports.destroy = (() => {
+  let warned = false;
+  return () => {
+    if (!warned) {
+      warned = true;
+      console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
+    }
+  };
+})();
+
 /**
  * Colors.
  */
 
 exports.colors = ['#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC', '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF', '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC', '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF', '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC', '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033', '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366', '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933', '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC', '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF', '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'];
+
 /**
  * Currently only WebKit-based Web Inspectors, Firefox >= v31,
  * and the Firebug extension (any Firefox version) are known
@@ -27863,21 +27858,23 @@ exports.colors = ['#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066F
  *
  * TODO: add a `localStorage` variable to explicitly enable/disable colors
  */
-// eslint-disable-next-line complexity
 
+// eslint-disable-next-line complexity
 function useColors() {
   // NB: In an Electron preload script, document will be defined but not fully
   // initialized. Since we know we're in Chrome, we'll just detect this case
   // explicitly
   if (typeof window !== 'undefined' && window.process && (window.process.type === 'renderer' || window.process.__nwjs)) {
     return true;
-  } // Internet Explorer and Edge do not support colors.
+  }
 
+  // Internet Explorer and Edge do not support colors.
   if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
     return false;
-  } // Is webkit? http://stackoverflow.com/a/16459606/376773
-  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+  }
 
+  // Is webkit? http://stackoverflow.com/a/16459606/376773
+  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
   return typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance ||
   // Is firebug? http://stackoverflow.com/a/398120/376773
   typeof window !== 'undefined' && window.console && (window.console.firebug || window.console.exception && window.console.table) ||
@@ -27887,6 +27884,7 @@ function useColors() {
   // Double check webkit in userAgent just in case we are in a worker
   typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/);
 }
+
 /**
  * Colorize log arguments if enabled.
  *
@@ -27898,14 +27896,15 @@ function formatArgs(args) {
   if (!this.useColors) {
     return;
   }
-  var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit'); // The final "%c" is somewhat tricky, because there could be other
+  const c = 'color: ' + this.color;
+  args.splice(1, 0, c, 'color: inherit');
+
+  // The final "%c" is somewhat tricky, because there could be other
   // arguments passed either before or after the %c, so we need to
   // figure out the correct index to insert the CSS into
-
-  var index = 0;
-  var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function (match) {
+  let index = 0;
+  let lastC = 0;
+  args[0].replace(/%[a-zA-Z%]/g, match => {
     if (match === '%%') {
       return;
     }
@@ -27918,27 +27917,23 @@ function formatArgs(args) {
   });
   args.splice(lastC, 0, c);
 }
+
 /**
- * Invokes `console.log()` when available.
- * No-op when `console.log` is not a "function".
+ * Invokes `console.debug()` when available.
+ * No-op when `console.debug` is not a "function".
+ * If `console.debug` is not available, falls back
+ * to `console.log`.
  *
  * @api public
  */
+exports.log = console.debug || console.log || (() => {});
 
-function log() {
-  var _console;
-
-  // This hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return (typeof console === "undefined" ? "undefined" : _typeof(console)) === 'object' && console.log && (_console = console).log.apply(_console, arguments);
-}
 /**
  * Save `namespaces`.
  *
  * @param {String} namespaces
  * @api private
  */
-
 function save(namespaces) {
   try {
     if (namespaces) {
@@ -27946,30 +27941,34 @@ function save(namespaces) {
     } else {
       exports.storage.removeItem('debug');
     }
-  } catch (error) {// Swallow
+  } catch (error) {
+    // Swallow
     // XXX (@Qix-) should we be logging these?
   }
 }
+
 /**
  * Load `namespaces`.
  *
  * @return {String} returns the previously persisted debug modes
  * @api private
  */
-
 function load() {
-  var r;
+  let r;
   try {
     r = exports.storage.getItem('debug');
-  } catch (error) {} // Swallow
-  // XXX (@Qix-) should we be logging these?
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+  } catch (error) {
+    // Swallow
+    // XXX (@Qix-) should we be logging these?
+  }
 
+  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
   if (!r && typeof process !== 'undefined' && 'env' in process) {
     r = process.env.DEBUG;
   }
   return r;
 }
+
 /**
  * Localstorage attempts to return the localstorage.
  *
@@ -27986,12 +27985,16 @@ function localstorage() {
     // TVMLKit (Apple TV JS Runtime) does not have a window object, just localStorage in the global context
     // The Browser also has localStorage in the global context.
     return localStorage;
-  } catch (error) {// Swallow
+  } catch (error) {
+    // Swallow
     // XXX (@Qix-) should we be logging these?
   }
 }
 module.exports = __webpack_require__(75)(exports);
-var formatters = module.exports.formatters;
+const {
+  formatters
+} = module.exports;
+
 /**
  * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
  */
@@ -28008,13 +28011,11 @@ formatters.j = function (v) {
 /* 75 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
-
-
 /**
  * This is the common logic for both the Node.js and web browser
  * implementations of `debug()`.
  */
+
 function setup(env) {
   createDebug.debug = createDebug;
   createDebug.default = createDebug;
@@ -28023,37 +28024,34 @@ function setup(env) {
   createDebug.enable = enable;
   createDebug.enabled = enabled;
   createDebug.humanize = __webpack_require__(76);
-  Object.keys(env).forEach(function (key) {
+  createDebug.destroy = destroy;
+  Object.keys(env).forEach(key => {
     createDebug[key] = env[key];
   });
-  /**
-  * Active `debug` instances.
-  */
 
-  createDebug.instances = [];
   /**
   * The currently active debug mode names, and names to skip.
   */
 
   createDebug.names = [];
   createDebug.skips = [];
+
   /**
   * Map of special "%n" handling functions, for the debug "format" argument.
   *
   * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
   */
-
   createDebug.formatters = {};
+
   /**
   * Selects a color for a debug namespace
-  * @param {String} namespace The namespace string for the for the debug instance to be colored
+  * @param {String} namespace The namespace string for the debug instance to be colored
   * @return {Number|String} An ANSI color code for the given namespace
   * @api private
   */
-
   function selectColor(namespace) {
-    var hash = 0;
-    for (var i = 0; i < namespace.length; i++) {
+    let hash = 0;
+    for (let i = 0; i < namespace.length; i++) {
       hash = (hash << 5) - hash + namespace.charCodeAt(i);
       hash |= 0; // Convert to 32bit integer
     }
@@ -28061,6 +28059,7 @@ function setup(env) {
     return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
   }
   createDebug.selectColor = selectColor;
+
   /**
   * Create a debugger with the given `namespace`.
   *
@@ -28068,21 +28067,24 @@ function setup(env) {
   * @return {Function}
   * @api public
   */
-
   function createDebug(namespace) {
-    var prevTime;
+    let prevTime;
+    let enableOverride = null;
+    let namespacesCache;
+    let enabledCache;
     function debug() {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
       // Disabled?
       if (!debug.enabled) {
         return;
       }
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-      var self = debug; // Set `diff` timestamp
+      const self = debug;
 
-      var curr = Number(new Date());
-      var ms = curr - (prevTime || curr);
+      // Set `diff` timestamp
+      const curr = Number(new Date());
+      const ms = curr - (prevTime || curr);
       self.diff = ms;
       self.prev = prevTime;
       self.curr = curr;
@@ -28091,56 +28093,69 @@ function setup(env) {
       if (typeof args[0] !== 'string') {
         // Anything else let's inspect with %O
         args.unshift('%O');
-      } // Apply any `formatters` transformations
+      }
 
-      var index = 0;
-      args[0] = args[0].replace(/%([a-zA-Z%])/g, function (match, format) {
+      // Apply any `formatters` transformations
+      let index = 0;
+      args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
         // If we encounter an escaped % then don't increase the array index
         if (match === '%%') {
-          return match;
+          return '%';
         }
         index++;
-        var formatter = createDebug.formatters[format];
+        const formatter = createDebug.formatters[format];
         if (typeof formatter === 'function') {
-          var val = args[index];
-          match = formatter.call(self, val); // Now we need to remove `args[index]` since it's inlined in the `format`
+          const val = args[index];
+          match = formatter.call(self, val);
 
+          // Now we need to remove `args[index]` since it's inlined in the `format`
           args.splice(index, 1);
           index--;
         }
         return match;
-      }); // Apply env-specific formatting (colors, etc.)
+      });
 
+      // Apply env-specific formatting (colors, etc.)
       createDebug.formatArgs.call(self, args);
-      var logFn = self.log || createDebug.log;
+      const logFn = self.log || createDebug.log;
       logFn.apply(self, args);
     }
     debug.namespace = namespace;
-    debug.enabled = createDebug.enabled(namespace);
     debug.useColors = createDebug.useColors();
-    debug.color = selectColor(namespace);
-    debug.destroy = destroy;
-    debug.extend = extend; // Debug.formatArgs = formatArgs;
-    // debug.rawLog = rawLog;
-    // env-specific initialization logic for debug instances
+    debug.color = createDebug.selectColor(namespace);
+    debug.extend = extend;
+    debug.destroy = createDebug.destroy; // XXX Temporary. Will be removed in the next major release.
 
+    Object.defineProperty(debug, 'enabled', {
+      enumerable: true,
+      configurable: false,
+      get: () => {
+        if (enableOverride !== null) {
+          return enableOverride;
+        }
+        if (namespacesCache !== createDebug.namespaces) {
+          namespacesCache = createDebug.namespaces;
+          enabledCache = createDebug.enabled(namespace);
+        }
+        return enabledCache;
+      },
+      set: v => {
+        enableOverride = v;
+      }
+    });
+
+    // Env-specific initialization logic for debug instances
     if (typeof createDebug.init === 'function') {
       createDebug.init(debug);
     }
-    createDebug.instances.push(debug);
     return debug;
   }
-  function destroy() {
-    var index = createDebug.instances.indexOf(this);
-    if (index !== -1) {
-      createDebug.instances.splice(index, 1);
-      return true;
-    }
-    return false;
-  }
   function extend(namespace, delimiter) {
-    return createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+    const newDebug = createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+    newDebug.log = this.log;
+    return newDebug;
   }
+
   /**
   * Enables a debug mode by namespaces. This can include modes
   * separated by a colon and wildcards.
@@ -28148,14 +28163,14 @@ function setup(env) {
   * @param {String} namespaces
   * @api public
   */
-
   function enable(namespaces) {
     createDebug.save(namespaces);
+    createDebug.namespaces = namespaces;
     createDebug.names = [];
     createDebug.skips = [];
-    var i;
-    var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-    var len = split.length;
+    let i;
+    const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+    const len = split.length;
     for (i = 0; i < len; i++) {
       if (!split[i]) {
         // ignore empty strings
@@ -28163,25 +28178,25 @@ function setup(env) {
       }
       namespaces = split[i].replace(/\*/g, '.*?');
       if (namespaces[0] === '-') {
-        createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+        createDebug.skips.push(new RegExp('^' + namespaces.slice(1) + '$'));
       } else {
         createDebug.names.push(new RegExp('^' + namespaces + '$'));
       }
     }
-    for (i = 0; i < createDebug.instances.length; i++) {
-      var instance = createDebug.instances[i];
-      instance.enabled = createDebug.enabled(instance.namespace);
-    }
   }
+
   /**
   * Disable debug output.
   *
+  * @return {String} namespaces
   * @api public
   */
-
   function disable() {
+    const namespaces = [...createDebug.names.map(toNamespace), ...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)].join(',');
     createDebug.enable('');
+    return namespaces;
   }
+
   /**
   * Returns true if the given mode name is enabled, false otherwise.
   *
@@ -28189,13 +28204,12 @@ function setup(env) {
   * @return {Boolean}
   * @api public
   */
-
   function enabled(name) {
     if (name[name.length - 1] === '*') {
       return true;
     }
-    var i;
-    var len;
+    let i;
+    let len;
     for (i = 0, len = createDebug.skips.length; i < len; i++) {
       if (createDebug.skips[i].test(name)) {
         return false;
@@ -28208,6 +28222,18 @@ function setup(env) {
     }
     return false;
   }
+
+  /**
+  * Convert regexp to namespace
+  *
+  * @param {RegExp} regxep
+  * @return {String} namespace
+  * @api private
+  */
+  function toNamespace(regexp) {
+    return regexp.toString().substring(2, regexp.toString().length - 2).replace(/\.\*\?$/, '*');
+  }
+
   /**
   * Coerce `val`.
   *
@@ -28215,12 +28241,19 @@ function setup(env) {
   * @return {Mixed}
   * @api private
   */
-
   function coerce(val) {
     if (val instanceof Error) {
       return val.stack || val.message;
     }
     return val;
+  }
+
+  /**
+  * XXX DO NOT USE. This is a temporary stub function.
+  * XXX It WILL be removed in the next major release.
+  */
+  function destroy() {
+    console.warn('Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.');
   }
   createDebug.enable(createDebug.load());
   return createDebug;
@@ -30693,12 +30726,14 @@ module.exports = {
 
 module.exports = minimatch;
 minimatch.Minimatch = Minimatch;
-var path = {
+var path = function () {
+  try {
+    return __webpack_require__(86);
+  } catch (e) {}
+}() || {
   sep: '/'
 };
-try {
-  path = __webpack_require__(86);
-} catch (er) {}
+minimatch.sep = path.sep;
 var GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {};
 var expand = __webpack_require__(87);
 var plTypes = {
@@ -30761,59 +30796,70 @@ function filter(pattern, options) {
   };
 }
 function ext(a, b) {
-  a = a || {};
   b = b || {};
   var t = {};
-  Object.keys(b).forEach(function (k) {
-    t[k] = b[k];
-  });
   Object.keys(a).forEach(function (k) {
     t[k] = a[k];
+  });
+  Object.keys(b).forEach(function (k) {
+    t[k] = b[k];
   });
   return t;
 }
 minimatch.defaults = function (def) {
-  if (!def || !Object.keys(def).length) return minimatch;
+  if (!def || typeof def !== 'object' || !Object.keys(def).length) {
+    return minimatch;
+  }
   var orig = minimatch;
   var m = function minimatch(p, pattern, options) {
-    return orig.minimatch(p, pattern, ext(def, options));
+    return orig(p, pattern, ext(def, options));
   };
   m.Minimatch = function Minimatch(pattern, options) {
     return new orig.Minimatch(pattern, ext(def, options));
   };
+  m.Minimatch.defaults = function defaults(options) {
+    return orig.defaults(ext(def, options)).Minimatch;
+  };
+  m.filter = function filter(pattern, options) {
+    return orig.filter(pattern, ext(def, options));
+  };
+  m.defaults = function defaults(options) {
+    return orig.defaults(ext(def, options));
+  };
+  m.makeRe = function makeRe(pattern, options) {
+    return orig.makeRe(pattern, ext(def, options));
+  };
+  m.braceExpand = function braceExpand(pattern, options) {
+    return orig.braceExpand(pattern, ext(def, options));
+  };
+  m.match = function (list, pattern, options) {
+    return orig.match(list, pattern, ext(def, options));
+  };
   return m;
 };
 Minimatch.defaults = function (def) {
-  if (!def || !Object.keys(def).length) return Minimatch;
   return minimatch.defaults(def).Minimatch;
 };
 function minimatch(p, pattern, options) {
-  if (typeof pattern !== 'string') {
-    throw new TypeError('glob pattern string required');
-  }
+  assertValidPattern(pattern);
   if (!options) options = {};
 
   // shortcut: comments match nothing.
   if (!options.nocomment && pattern.charAt(0) === '#') {
     return false;
   }
-
-  // "" only matches ""
-  if (pattern.trim() === '') return p === '';
   return new Minimatch(pattern, options).match(p);
 }
 function Minimatch(pattern, options) {
   if (!(this instanceof Minimatch)) {
     return new Minimatch(pattern, options);
   }
-  if (typeof pattern !== 'string') {
-    throw new TypeError('glob pattern string required');
-  }
+  assertValidPattern(pattern);
   if (!options) options = {};
   pattern = pattern.trim();
 
   // windows support: need to use /, not \
-  if (path.sep !== '/') {
+  if (!options.allowWindowsEscape && path.sep !== '/') {
     pattern = pattern.split(path.sep).join('/');
   }
   this.options = options;
@@ -30823,6 +30869,7 @@ function Minimatch(pattern, options) {
   this.negate = false;
   this.comment = false;
   this.empty = false;
+  this.partial = !!options.partial;
 
   // make the set of regexps etc.
   this.make();
@@ -30830,8 +30877,6 @@ function Minimatch(pattern, options) {
 Minimatch.prototype.debug = function () {};
 Minimatch.prototype.make = make;
 function make() {
-  // don't do it more than once.
-  if (this._made) return;
   var pattern = this.pattern;
   var options = this.options;
 
@@ -30850,7 +30895,9 @@ function make() {
 
   // step 2: expand braces
   var set = this.globSet = this.braceExpand();
-  if (options.debug) this.debug = console.error;
+  if (options.debug) this.debug = function debug() {
+    console.error.apply(console, arguments);
+  };
   this.debug(this.pattern, set);
 
   // step 3: now we have a set, so turn each one into a series of path-portion
@@ -30914,15 +30961,25 @@ function braceExpand(pattern, options) {
     }
   }
   pattern = typeof pattern === 'undefined' ? this.pattern : pattern;
-  if (typeof pattern === 'undefined') {
-    throw new TypeError('undefined pattern');
-  }
-  if (options.nobrace || !pattern.match(/\{.*\}/)) {
+  assertValidPattern(pattern);
+
+  // Thanks to Yeting Li <https://github.com/yetingli> for
+  // improving this regexp to avoid a ReDOS vulnerability.
+  if (options.nobrace || !/\{(?:(?!\{).)*\}/.test(pattern)) {
     // shortcut. no need to expand.
     return [pattern];
   }
   return expand(pattern);
 }
+var MAX_PATTERN_LENGTH = 1024 * 64;
+var assertValidPattern = function (pattern) {
+  if (typeof pattern !== 'string') {
+    throw new TypeError('invalid pattern');
+  }
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    throw new TypeError('pattern is too long');
+  }
+};
 
 // parse a component of the expanded set.
 // At this point, no pattern may contain "/" in it
@@ -30938,13 +30995,13 @@ function braceExpand(pattern, options) {
 Minimatch.prototype.parse = parse;
 var SUBPARSE = {};
 function parse(pattern, isSub) {
-  if (pattern.length > 1024 * 64) {
-    throw new TypeError('pattern is too long');
-  }
+  assertValidPattern(pattern);
   var options = this.options;
 
   // shortcuts
-  if (!options.noglobstar && pattern === '**') return GLOBSTAR;
+  if (pattern === '**') {
+    if (!options.noglobstar) return GLOBSTAR;else pattern = '*';
+  }
   if (pattern === '') return '';
   var re = '';
   var hasMagic = !!options.nocase;
@@ -30993,10 +31050,13 @@ function parse(pattern, isSub) {
       continue;
     }
     switch (c) {
+      /* istanbul ignore next */
       case '/':
-        // completely not allowed, even escaped.
-        // Should already be path-split by now.
-        return false;
+        {
+          // completely not allowed, even escaped.
+          // Should already be path-split by now.
+          return false;
+        }
       case '\\':
         clearStateChar();
         escaping = true;
@@ -31104,25 +31164,23 @@ function parse(pattern, isSub) {
 
         // handle the case where we left a class open.
         // "[z-a]" is valid, equivalent to "\[z-a\]"
-        if (inClass) {
-          // split where the last [ was, make sure we don't have
-          // an invalid re. if so, re-walk the contents of the
-          // would-be class to re-translate any characters that
-          // were passed through as-is
-          // TODO: It would probably be faster to determine this
-          // without a try/catch and a new RegExp, but it's tricky
-          // to do safely.  For now, this is safe and works.
-          var cs = pattern.substring(classStart + 1, i);
-          try {
-            RegExp('[' + cs + ']');
-          } catch (er) {
-            // not a valid class!
-            var sp = this.parse(cs, SUBPARSE);
-            re = re.substr(0, reClassStart) + '\\[' + sp[0] + '\\]';
-            hasMagic = hasMagic || sp[1];
-            inClass = false;
-            continue;
-          }
+        // split where the last [ was, make sure we don't have
+        // an invalid re. if so, re-walk the contents of the
+        // would-be class to re-translate any characters that
+        // were passed through as-is
+        // TODO: It would probably be faster to determine this
+        // without a try/catch and a new RegExp, but it's tricky
+        // to do safely.  For now, this is safe and works.
+        var cs = pattern.substring(classStart + 1, i);
+        try {
+          RegExp('[' + cs + ']');
+        } catch (er) {
+          // not a valid class!
+          var sp = this.parse(cs, SUBPARSE);
+          re = re.substr(0, reClassStart) + '\\[' + sp[0] + '\\]';
+          hasMagic = hasMagic || sp[1];
+          inClass = false;
+          continue;
         }
 
         // finish up the class.
@@ -31197,8 +31255,8 @@ function parse(pattern, isSub) {
   // something that could conceivably capture a dot
   var addPatternStart = false;
   switch (re.charAt(0)) {
-    case '.':
     case '[':
+    case '.':
     case '(':
       addPatternStart = true;
   }
@@ -31257,7 +31315,7 @@ function parse(pattern, isSub) {
   var flags = options.nocase ? 'i' : '';
   try {
     var regExp = new RegExp('^' + re + '$', flags);
-  } catch (er) {
+  } catch (er) /* istanbul ignore next - should be impossible */{
     // If it was an invalid regular expression, then it can't match
     // anything.  This trick looks for a character after the end of
     // the string, which is of course impossible, except in multi-line
@@ -31303,7 +31361,7 @@ function makeRe() {
   if (this.negate) re = '^(?!' + re + ').*$';
   try {
     this.regexp = new RegExp(re, flags);
-  } catch (ex) {
+  } catch (ex) /* istanbul ignore next - should be impossible */{
     this.regexp = false;
   }
   return this.regexp;
@@ -31319,8 +31377,8 @@ minimatch.match = function (list, pattern, options) {
   }
   return list;
 };
-Minimatch.prototype.match = match;
-function match(f, partial) {
+Minimatch.prototype.match = function match(f, partial) {
+  if (typeof partial === 'undefined') partial = this.partial;
   this.debug('match', f, this.pattern);
   // short-circuit in the case of busted things.
   // comments, etc.
@@ -31370,7 +31428,7 @@ function match(f, partial) {
   // pattern, failure otherwise.
   if (options.flipNegate) return false;
   return this.negate;
-}
+};
 
 // set partial to true to test if, for example,
 // "/a/b" matches the start of "/*/b/*/d"
@@ -31393,6 +31451,7 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
 
     // should be impossible.
     // some invalid regexp stuff in the set.
+    /* istanbul ignore if */
     if (p === false) return false;
     if (p === GLOBSTAR) {
       this.debug('GLOBSTAR', [pattern, p, f]);
@@ -31462,6 +31521,7 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
       // no match was found.
       // However, in partial mode, we can't say this is necessarily over.
       // If there's more *pattern* left, then
+      /* istanbul ignore if */
       if (partial) {
         // ran out of file
         this.debug('\n>>> no match, partial?', file, fr, pattern, pr);
@@ -31475,11 +31535,7 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
     // patterns with magic have been turned into regexps.
     var hit;
     if (typeof p === 'string') {
-      if (options.nocase) {
-        hit = f.toLowerCase() === p.toLowerCase();
-      } else {
-        hit = f === p;
-      }
+      hit = f === p;
       this.debug('string match', p, f, hit);
     } else {
       hit = f.match(p);
@@ -31509,16 +31565,16 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
     // this is ok if we're doing the match as part of
     // a glob fs traversal.
     return partial;
-  } else if (pi === pl) {
-    // ran out of pattern, still have file left.
-    // this is only acceptable if we're on the very last
-    // empty segment of a file with a trailing slash.
-    // a/* should match a/b/
-    var emptyFileEnd = fi === fl - 1 && file[fi] === '';
-    return emptyFileEnd;
-  }
+  } else /* istanbul ignore else */if (pi === pl) {
+      // ran out of pattern, still have file left.
+      // this is only acceptable if we're on the very last
+      // empty segment of a file with a trailing slash.
+      // a/* should match a/b/
+      return fi === fl - 1 && file[fi] === '';
+    }
 
   // should be unreachable.
+  /* istanbul ignore next */
   throw new Error('wtf?');
 };
 

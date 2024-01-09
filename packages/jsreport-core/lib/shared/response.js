@@ -37,7 +37,6 @@ module.exports = async (reporter, requestId, obj) => {
   // NOTE: this property is temporary until we deprecate access to res.content, res.stream
   Object.defineProperty(response, 'content', {
     get () {
-      console.log('-----------READ RESPONSE-----------')
       if (!hasContent) {
         return Buffer.from([])
       }
@@ -47,7 +46,6 @@ module.exports = async (reporter, requestId, obj) => {
       return result.content
     },
     set (newContent) {
-      console.log('-----------WRITE RESPONSE-----------')
       if (sealed) {
         throw new Error('Can not set res.content when render is completed')
       }
@@ -173,8 +171,6 @@ module.exports = async (reporter, requestId, obj) => {
     // NOTE: this property is temporary until we deprecate access to res.content, res.stream
     Object.defineProperty(response, 'stream', {
       get () {
-        console.log('-----------READ STREAM RESPONSE-----------')
-
         if (!hasContent) {
           return Readable.from(Buffer.from([]))
         }
