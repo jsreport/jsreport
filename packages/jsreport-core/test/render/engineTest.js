@@ -56,6 +56,28 @@ describe('engine', () => {
     should(res.content.toString()).be.eql('foo')
   })
 
+  it('should be able to use waitForAsyncHelper in async helper', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `
+        const jsreport = require('jsreport-proxy')        
+        async function b() { 
+          return new Promise((resolve) => resolve("foo")); 
+        }
+
+        async function a(helpers) {          
+          return jsreport.templatingEngines.waitForAsyncHelper(helpers.b() + helpers.b() + helpers.b())          
+        }
+        `,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).be.eql('foofoofoo')
+  })
+
   it('should throw valid Error when error from async helper', async () => {
     return should(reporter.render({
       template: {

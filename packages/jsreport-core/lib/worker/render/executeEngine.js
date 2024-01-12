@@ -223,12 +223,15 @@ module.exports = (reporter) => {
 
       const resolvedResultsMap = new Map()
 
-      while (asyncResultMap.size > 0) {
-        await Promise.all([...asyncResultMap.keys()].map(async (k) => {
-          resolvedResultsMap.set(k, `${await asyncResultMap.get(k)}`)
-          asyncResultMap.delete(k)
+      // we need to use the cloned map, becuase there can be a waitForAsyncHelper pending that needs the asyncResultMap values
+      const clonedMap = new Map(asyncResultMap)
+      while (clonedMap.size > 0) {
+        await Promise.all([...clonedMap.keys()].map(async (k) => {
+          resolvedResultsMap.set(k, `${await clonedMap.get(k)}`)
+          clonedMap.delete(k)
         }))
       }
+      asyncResultMap.clear()
 
       while (contentResult.includes('{#asyncHelperResult')) {
         contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
