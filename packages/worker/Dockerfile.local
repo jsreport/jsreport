@@ -1,9 +1,10 @@
-# using xenial for now to be able to use phantom -> with newer ubuntu phantom cannot download images over https
-FROM ubuntu:xenial
+FROM ubuntu:focal
 EXPOSE 2000
 ARG TARGETPLATFORM
 
 RUN adduser --disabled-password --gecos "" jsreport
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-transport-https apt-utils software-properties-common wget gnupg bzip2 git curl && \
@@ -17,7 +18,7 @@ RUN apt-get update && \
     # these extra ppa provide those updated packages
     add-apt-repository ppa:savoury1/ffmpeg4 && add-apt-repository ppa:savoury1/display && add-apt-repository ppa:savoury1/chromium && \
     apt-get update && \
-    apt install -y chromium-browser=1:111.0.5563.147-0ubuntu0.16.04.1sav0 chromium-codecs-ffmpeg=1:111.0.5563.147-0ubuntu0.16.04.1sav0 && \
+    apt install -y chromium-browser=1:120.0.6099.199-0ubuntu0.20.04.1sav0 chromium-codecs-ffmpeg=1:120.0.6099.199-0ubuntu0.20.04.1sav0 && \
     # fonts for chrome
     apt install -y xfonts-base xfonts-75dpi fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst
 
