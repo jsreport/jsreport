@@ -236,9 +236,18 @@ module.exports = (reporter) => {
       while (contentResult.includes('{#asyncHelperResult')) {
         contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
           const asyncResultId = p1
+          // this can happen if a child jsreport.templatingEngines.evaluate receives an async value from outer scope
+          // because every evaluate uses a unique map of async resuts
+          // example is the case when component receives as a value async thing
+          // instead of returning "undefined" we let the outer eval to do the replace
+          if (!resolvedResultsMap.has(asyncResultId)) {
+            // returning asyncUnresolvedHelperResult just to avoid endless loop, after replace we put it back to asyncHelperResult
+            return `{#asyncUnresolvedHelperResult ${asyncResultId}}`
+          }
           return `${resolvedResultsMap.get(asyncResultId)}`
         })
       }
+      contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
 
       return {
         // handlebars escapes single brackets before execution to prevent errors on {#asset}

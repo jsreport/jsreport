@@ -78,6 +78,38 @@ describe('engine', () => {
     should(res.content.toString()).be.eql('foofoofoo')
   })
 
+  it('should be able to pass async result as a value to another evaluation', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `
+        const jsreport = require('jsreport-proxy') 
+        
+        async function b() {
+          return 'foo'
+        }
+        
+        function a(helpers) { 
+          return jsreport.templatingEngines.evaluate({
+            engine: 'data',
+            content: '',
+            helpers: '',
+            data: {
+              a: { val: helpers.b() }
+            }
+          }, {  
+            entity: { _id: 'x' },
+            entitySet: 'templates'          
+          })                    
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).be.eql('foo')
+  })
+
   it('should throw valid Error when error from async helper', async () => {
     return should(reporter.render({
       template: {
