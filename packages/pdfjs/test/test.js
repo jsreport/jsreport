@@ -421,9 +421,24 @@ describe('pdfjs', () => {
     }])
 
     const pdfWithOutlines = await document.asBuffer()
+
     document = new Document()
-    external = new External(pdfWithOutlines)
+    external = new External(fs.readFileSync(path.join(__dirname, 'links2.pdf')))
     document.append(external)
+    document.outlines([{
+      title: '21 title',
+      id: '21'
+    }, {
+      title: '22 title',
+      id: '22',
+      parent: '21'
+    }])
+
+    const pdfWithOutlines2 = await document.asBuffer()
+
+    document = new Document()
+    document.append(new External(pdfWithOutlines))
+    document.append(new External(pdfWithOutlines2))
 
     const pdfBuffer = await document.asBuffer()
 
@@ -431,8 +446,12 @@ describe('pdfjs', () => {
 
     const { catalog } = await validate(pdfBuffer)
     const outlines = catalog.properties.get('Outlines').object
-    const outline1 = outlines.properties.get('First').object
-    outlines.properties.get('Last').object.should.be.eql(outline1)
+    const first = outlines.properties.get('First').object
+    const last = outlines.properties.get('Last').object
+
+    first.should.not.be.eql(last)
+    first.properties.get('Next').object.should.be.eql(last)
+    last.properties.get('Prev').object.should.be.eql(first)
   })
 
   it('merge should union Dests', async () => {

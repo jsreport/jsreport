@@ -1096,6 +1096,96 @@ describe('pdf utils', () => {
     doc.catalog.properties.get('Outlines').object.properties.get('First').object.properties.get('First').object.properties.get('Count').should.be.eql(-2)
   })
 
+  it('should be able to add outlines and append another template with outlines', async () => {
+    const result = await jsreport.render({
+      template: {
+        content: `
+          <a href='#outline1' data-pdf-outline data-pdf-outline-text='outline1'>
+            outline1
+          </a>
+          <br>                  
+          <h1 id='outline1'>outline1</h1>          
+        `,
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfOperations: [{
+          type: 'append',
+          template: {
+            content: `
+            <a href='#outline2' data-pdf-outline data-pdf-outline-text='outline2'>
+              outline2
+            </a>
+            <br>                  
+            <h1 id='outline2'>outline2</h1>          
+          `,
+            engine: 'none',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+
+    const doc = new External(result.content)
+    doc.catalog.properties.get('Outlines').object.properties.get('First').should.not.be.eql(doc.catalog.properties.get('Outlines').object.properties.get('Last'))
+  })
+
+  it('should be able add outlines and merge in another document', async () => {
+    const res = await jsreport.render({
+      template: {
+        content: `
+            <a href='#outline1' data-pdf-outline data-pdf-outline-text='outline1'>
+            outline1
+            </a>
+            <br>
+            <a href='#outline2' data-pdf-outline data-pdf-outline-text='outline2'>
+            outline2
+            </a>
+            <br>
+            <a href='#outline3' data-pdf-outline data-pdf-outline-text='outline3'>
+            outline3
+            </a>
+            <br>
+            <div style='page-break-before: always;'></div>
+            <h1 id='outline1'>outline1</h1>  
+            <div style='page-break-before: always;'></div>
+            <h1 id='outline2'>outline2</h1>  
+            <div style='page-break-before: always;'></div>
+            <h1 id='outline3'>outline3</h1>  
+        `,
+        name: 'content',
+        engine: 'none',
+        recipe: 'chrome-pdf',
+        pdfOperations: [{
+          type: 'merge',
+          mergeWholeDocument: true,
+          template: {
+            content: `
+            <a href='#outline1' data-pdf-outline data-pdf-outline-text='outline1'>
+            outline1
+            </a>
+            <br>
+            <a href='#outline2' data-pdf-outline data-pdf-outline-text='outline2'>
+            outline2
+            </a>
+            <br>
+            <a href='#outline3' data-pdf-outline data-pdf-outline-text='outline3'>
+            outline3
+            </a>
+          `,
+            engine: 'none',
+            recipe: 'chrome-pdf'
+          }
+        }]
+      }
+    })
+
+    require('fs').writeFileSync('out.pdf', res.content)
+
+    const doc = new External(res.content)
+    should(doc.catalog.properties.get('Outlines').object.properties.get('Last').object.properties.get('Last')).be.undefined()
+  })
+
   it('should be able to add outlines through child template', async () => {
     await jsreport.documentStore.collection('templates').insert({
       content: '<a href="#child" id="child" data-pdf-outline data-pdf-outline-parent="root">Child</a>',
@@ -2464,7 +2554,7 @@ describe('pdf utils', () => {
 
   describe('processText with pdf from alpine', () => {
     it('should deal with double f ligature and remove hidden mark', async () => {
-      const manipulator = PdfManipulator(fs.readFileSync(path.join(__dirname, 'alpine.pdf')), { removeHiddenMarks: true })
+      const manipulator = await PdfManipulator(fs.readFileSync(path.join(__dirname, 'alpine.pdf')), { removeHiddenMarks: true })
       await manipulator.postprocess({
         hiddenPageFields: {
           ff2181tsdwkqil98bfi73sks: Buffer.from(JSON.stringify({

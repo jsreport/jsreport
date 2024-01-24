@@ -6,7 +6,6 @@ module.exports = (doc) => {
 function outlines (aoutlines, doc) {
   const rootOutline = new PDF.Object('Outlines')
   rootOutline.data = {}
-  doc.catalog.prop('Outlines', rootOutline.toReference())
 
   const outlinesObjects = [rootOutline]
   for (const { title, parent, id } of aoutlines) {
@@ -22,6 +21,10 @@ function outlines (aoutlines, doc) {
       D: doc.catalog.properties.get('Dests').object.properties.get(id)
     }))
     outlinesObjects.push(outline)
+  }
+
+  if (outlinesObjects.length === 1) {
+    return
   }
 
   for (let i = 0; i < outlinesObjects.length; i++) {
@@ -68,4 +71,19 @@ function outlines (aoutlines, doc) {
 
   // no open outlines at all level by default
   rootOutline.properties.del('Count')
+
+  const docOutline = doc.catalog.properties.get('Outlines')?.object
+  if (docOutline == null) {
+    doc.catalog.prop('Outlines', rootOutline.toReference())
+  } else {
+    // append to existing outlines
+    let currentNext = docOutline.properties.get('First').object
+    while (currentNext?.properties.get('Next')?.object) {
+      currentNext = currentNext.properties.get('Next').object
+    }
+
+    rootOutline.properties.get('First').object.properties.set('Prev', currentNext.toReference())
+    currentNext.properties.set('Next', rootOutline.properties.get('First'))
+    docOutline.properties.set('Last', rootOutline.properties.get('Last'))
+  }
 }

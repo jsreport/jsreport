@@ -96,6 +96,9 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.beforeRenderListeners.add('pdf-utils', (req, res) => {
+    // we need to avoid that nested calls are adding the same root outlines
+    req.context.pdfUtilsOutlines = null
+
     // we use just root template setting for pdfAccessibility
     // this is because otherwise you need to set the accessibility on every merged/template
     // the use case when you would want root template to have for example pdf/ua enabled but not some child renders doesn't exist I tihnk

@@ -20,9 +20,7 @@ module.exports = (doc, ext, options) => {
     embeddedFilesDictionary.set('Names', new PDF.Array([...embeddedFilesDictionary.get('Names'), ...ext.catalog.properties.get('Names').object.properties.get('EmbeddedFiles').get('Names')]))
   }
 
-  if (ext.catalog.properties.get('Outlines')?.object && doc.catalog.properties.get('Outlines') == null) {
-    doc.catalog.properties.set('Outlines', ext.catalog.properties.get('Outlines').object.toReference())
-  }
+  unionOutlines(ext, doc)
 
   if (options.copyAccessibilityTags) {
     mergeStructTree(ext, doc)
@@ -58,6 +56,45 @@ module.exports = (doc, ext, options) => {
         }
       }
     }
+  }
+}
+
+function unionOutlines (ext, doc) {
+  const docOutline = doc.catalog.properties.get('Outlines')?.object
+  const extOutline = ext.catalog.properties.get('Outlines')?.object
+
+  if (extOutline == null) {
+    return
+  }
+
+  if (docOutline == null) {
+    doc.catalog.properties.set('Outlines', extOutline.toReference())
+    return
+  }
+
+  if (docOutline.properties.get('First').object && extOutline.properties.get('Last').object) {
+    const docDests = doc.catalog.properties.get('Dests')?.object
+    const extDests = ext.catalog.properties.get('Dests')?.object
+
+    if (!docDests || !extDests) {
+    // something wrong, there needs to be dests when we want to union outlines
+      return
+    }
+
+    for (const key in extDests.dictionary) {
+      if (extDests.has(key)) {
+        return
+      }
+    }
+
+    let currentNext = docOutline.properties.get('First').object
+    while (currentNext?.properties.get('Next')?.object) {
+      currentNext = currentNext.properties.get('Next').object
+    }
+
+    extOutline.properties.get('First').object.properties.set('Prev', currentNext.toReference())
+    currentNext.properties.set('Next', extOutline.properties.get('First'))
+    docOutline.properties.set('Last', extOutline.properties.get('Last'))
   }
 }
 
