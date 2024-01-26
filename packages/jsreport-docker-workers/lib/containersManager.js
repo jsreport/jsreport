@@ -8,6 +8,7 @@ module.exports = ({
   numberOfWorkers,
   container,
   busyQueueWaitingTimeout,
+  streamResponse,
   logger,
   tempDirectory,
   containerParallelRequestsLimit,
@@ -21,6 +22,7 @@ module.exports = ({
     subnet,
     logger,
     container,
+    streamResponse,
     tempDirectory,
     numberOfWorkers,
     initData

@@ -33,6 +33,7 @@ module.exports = (reporter, {
     numberOfWorkers,
     container,
     busyQueueWaitingTimeout,
+    streamResponse: reporter.options.streamResponse,
     logger: reporter.logger,
     tempDirectory: reporter.options.tempDirectory,
     containerParallelRequestsLimit,

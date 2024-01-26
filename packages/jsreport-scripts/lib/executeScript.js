@@ -114,7 +114,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
         meta: {
           ...restoredSandbox.__response.meta
         },
-        content: getResponseFilePath()
+        content: getResponseFilePath != null ? getResponseFilePath() : scriptResponse.content
       },
       error: err
         ? {

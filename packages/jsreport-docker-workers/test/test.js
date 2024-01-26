@@ -56,7 +56,7 @@ describe('docker manager', () => {
     })
     containers = pool.containers
 
-    reporter = jsreport()
+    reporter = jsreport({ streamResponse: false })
       .use(require('../')({
         customContainersPoolFactory: () => pool,
         discriminatorPath: 'context.tenant'
@@ -488,7 +488,8 @@ describe('docker manager', () => {
 
       remoteReporter = jsreport({
         ip: remoteIp,
-        httpPort: 5489
+        httpPort: 5489,
+        streamResponse: false
       })
         .use(require('../')({
           customContainersPoolFactory: () => pool,

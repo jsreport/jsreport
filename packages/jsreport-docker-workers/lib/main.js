@@ -1,9 +1,25 @@
+const fs = require('fs')
+const fsPromise = require('fs/promises')
+const { pipeline } = require('stream')
+const { FormData } = require('@jsreport/multipart')
 const serializator = require('@jsreport/serializator')
 const _sendToWorker = require('./sendToWorker')
 const createDockerManager = require('./dockerManager')
 const express = require('express')
 
 module.exports = (reporter, definition) => {
+  if (!definition.options.container.sharedTempRewriteRootPathTo) {
+    definition.options.container.sharedTempRewriteRootPathTo = definition.options.container.sharedTempHostBindMountRootPath
+  }
+
+  if (definition.options.container.sharedTempHostBindMountRootPath.endsWith('/')) {
+    definition.options.container.sharedTempHostBindMountRootPath = definition.options.container.sharedTempHostBindMountRootPath.slice(0, -1)
+  }
+
+  if (definition.options.container.sharedTempRewriteRootPathTo.endsWith('/')) {
+    definition.options.container.sharedTempRewriteRootPathTo = definition.options.container.sharedTempRewriteRootPathTo.slice(0, -1)
+  }
+
   reporter.documentStore.registerEntityType('ServerType', {
     ip: { type: 'Edm.String', key: true },
     stack: { type: 'Edm.String' },
@@ -34,8 +50,9 @@ module.exports = (reporter, definition) => {
   reporter.on('after-authentication-express-routes', () => {
     reporter.express.app.post('/api/worker-docker-manager', async (req, res, next) => {
       try {
-        const result = await reporter.dockerManager.executeWorker(typeof req.body === 'string' ? serializator.parse(req.body) : req.body)
-        res.status(201).send(serializator.serialize(result))
+        const reqBody = typeof req.body === 'string' ? serializator.parse(req.body) : req.body
+        const result = await reporter.dockerManager.executeWorker(reqBody)
+        await reporter.dockerManager.handleRemoteHttpResponse(reqBody, res, result)
       } catch (e) {
         next(e)
       }
@@ -49,8 +66,7 @@ module.exports = (reporter, definition) => {
         try {
           const reqBody = serializator.parse(req.body)
           const result = await reporter.dockerManager.executeWorker(reqBody)
-
-          res.status(201).send(serializator.serialize(result))
+          await reporter.dockerManager.handleRemoteHttpResponse(reqBody, res, result)
         } catch (e) {
           next(e)
         }
@@ -72,6 +88,45 @@ module.exports = (reporter, definition) => {
           }
         }
       }
+    }
+
+    const streamResponseEnabled = reporter.options.streamResponse
+
+    reporter.dockerManager.handleRemoteHttpResponse = async function handleRemoteHttpResponse (reqBody, res, workerResult) {
+      if (streamResponseEnabled && reqBody.actionName === 'render') {
+        const form = new FormData()
+
+        const { content, ...restOfResult } = workerResult
+        const toAppend = []
+
+        // we collect the values that we are going to append earlier, because we want that
+        // in case of an error (like invalid serialization) it goes directly to the catch bellow
+        // which invokes next error middleware
+        for (const [key, value] of Object.entries(restOfResult)) {
+          toAppend.push({ name: key, value: serializator.serialize(value), options: { contentType: 'application/json' } })
+        }
+
+        res.status(201).setHeader('Content-Type', form.getDefaultContentType())
+
+        pipeline(form, res, (err) => {
+          if (err) {
+            res.destroy()
+          }
+        })
+
+        for (const item of toAppend) {
+          form.append(item.name, item.value, item.options)
+        }
+
+        const responseFileStat = await fsPromise.stat(content)
+        const responseFileStream = fs.createReadStream(content)
+
+        form.append('content', responseFileStream, { contentLength: responseFileStat.size })
+        form.end()
+        return
+      }
+
+      res.status(201).send(serializator.serialize(workerResult))
     }
 
     reporter.dockerManager.executeWorker = async function executeWorker (payload) {

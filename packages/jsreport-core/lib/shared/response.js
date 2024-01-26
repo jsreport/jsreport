@@ -1,5 +1,5 @@
 const path = require('path')
-const { Readable } = require('stream')
+const { Readable, Writable } = require('stream')
 const { pipeline } = require('stream/promises')
 const Decoder = require('string_decoder').StringDecoder
 const fs = require('fs/promises')
@@ -13,6 +13,7 @@ module.exports = async (reporter, requestId, obj) => {
   const getResponseFilePath = () => {
     return reporter.getTempFilePath(responseFilename).pathToFile
   }
+  const streamResponse = reporter.options.streamResponse
 
   const response = Object.create({}, {
     __isJsreportResponse__: {
@@ -27,18 +28,71 @@ module.exports = async (reporter, requestId, obj) => {
 
   let sealed = false
   let hasContent = false
+  let inMemoryContent
 
   if (isJsreportResponse) {
     hasContent = true
   }
 
-  const executeTransformsAndSave = createExecuteTransforms(reporter, requestId, responseFilename)
+  const createSourceStream = () => {
+    let sourceStream
+
+    if (!streamResponse) {
+      sourceStream = Readable.from(inMemoryContent == null ? Buffer.from([]) : inMemoryContent)
+    } else {
+      sourceStream = reporter.readTempFileStream(responseFilename).stream
+    }
+
+    return sourceStream
+  }
+
+  const createTargetInfoStream = async () => {
+    let info
+
+    if (!streamResponse) {
+      const buffers = []
+
+      info = {
+        stream: new Writable({
+          write (chunk, encoding, callback) {
+            buffers.push(chunk)
+            callback()
+          },
+          final: (callback) => {
+            inMemoryContent = Buffer.concat(buffers)
+            callback()
+          }
+        })
+      }
+    } else {
+      // we need to save the transformation to new file to avoid reading and writing to same file (source: response file, target: response file)
+      const { pathToFile: tmpFilePath, stream: tmpFileStream } = await reporter.writeTempFileStream((uuid) => `transform-response-${requestId}-${uuid}.raw-content`)
+
+      info = {
+        pathToFile: tmpFilePath,
+        stream: tmpFileStream
+      }
+    }
+
+    return info
+  }
+
+  const executeTransformsAndSave = createExecuteTransforms(createSourceStream, createTargetInfoStream, async (targetInfo) => {
+    if (streamResponse) {
+      // we replace the response file with the new content
+      await reporter.copyFileToTempFile(targetInfo.pathToFile, responseFilename)
+    }
+  })
 
   // NOTE: this property is temporary until we deprecate access to res.content, res.stream
   Object.defineProperty(response, 'content', {
     get () {
       if (!hasContent) {
         return Buffer.from([])
+      }
+
+      if (!streamResponse) {
+        return inMemoryContent
       }
 
       const result = reporter.readTempFileSync(responseFilename)
@@ -50,6 +104,10 @@ module.exports = async (reporter, requestId, obj) => {
         throw new Error('Can not set res.content when render is completed')
       }
 
+      if (!streamResponse) {
+        inMemoryContent = newContent
+      }
+
       if (newContent == null) {
         // no need to return something here, it is always going to return was is passed
         // no matter if we return something here
@@ -57,7 +115,9 @@ module.exports = async (reporter, requestId, obj) => {
         return
       }
 
-      reporter.writeTempFileSync(responseFilename, newContent)
+      if (streamResponse) {
+        reporter.writeTempFileSync(responseFilename, newContent)
+      }
 
       if (!hasContent) {
         hasContent = true
@@ -73,6 +133,10 @@ module.exports = async (reporter, requestId, obj) => {
         return Buffer.from([])
       }
 
+      if (!streamResponse) {
+        return inMemoryContent
+      }
+
       const result = await reporter.readTempFile(responseFilename)
 
       return result.content
@@ -80,6 +144,10 @@ module.exports = async (reporter, requestId, obj) => {
     getStream: async () => {
       if (!hasContent) {
         return Readable.from(Buffer.from([]))
+      }
+
+      if (!streamResponse) {
+        return Readable.from(inMemoryContent)
       }
 
       async function * generateResponseContent () {
@@ -100,6 +168,10 @@ module.exports = async (reporter, requestId, obj) => {
         return 0
       }
 
+      if (!streamResponse) {
+        return inMemoryContent.length
+      }
+
       const stat = await fs.stat(getResponseFilePath())
 
       return stat.size
@@ -107,6 +179,11 @@ module.exports = async (reporter, requestId, obj) => {
     toFile: async (destFilePath) => {
       if (!path.isAbsolute(destFilePath)) {
         throw new Error('Invalid parameter passed to res.output.toFile, destFilePath must be an absolute path to a file')
+      }
+
+      if (!streamResponse) {
+        await fs.writeFile(destFilePath, inMemoryContent == null ? Buffer.from([]) : inMemoryContent)
+        return
       }
 
       await reporter.copyFileToTempFile(getResponseFilePath(), destFilePath)
@@ -122,20 +199,38 @@ module.exports = async (reporter, requestId, obj) => {
       }
 
       if (Buffer.isBuffer(newContent) || isArrayBufferView(newContent)) {
-        await reporter.writeTempFile(responseFilename, newContent)
+        if (!streamResponse) {
+          inMemoryContent = newContent
+        } else {
+          await reporter.writeTempFile(responseFilename, newContent)
+        }
       } else if (typeof newContent === 'string') {
         if (!path.isAbsolute(newContent)) {
           throw new Error('Invalid content passed to res.output.save, when content is string it must be an absolute path')
         }
 
-        const isSameFile = newContent === getResponseFilePath()
+        if (!streamResponse) {
+          inMemoryContent = await fs.readFile(newContent)
+        } else {
+          const isSameFile = newContent === getResponseFilePath()
 
-        if (!isSameFile) {
-          await reporter.copyFileToTempFile(newContent, responseFilename)
+          if (!isSameFile) {
+            await reporter.copyFileToTempFile(newContent, responseFilename)
+          }
         }
       } else if (isReadableStream(newContent)) {
-        const { stream: responseFileStream } = await reporter.writeTempFileStream(responseFilename)
-        await pipeline(newContent, responseFileStream)
+        if (!streamResponse) {
+          const buffers = []
+
+          for await (const data of newContent) {
+            buffers.push(data)
+          }
+
+          inMemoryContent = Buffer.concat(buffers)
+        } else {
+          const { stream: responseFileStream } = await reporter.writeTempFileStream(responseFilename)
+          await pipeline(newContent, responseFileStream)
+        }
       } else if (newContent != null && typeof newContent === 'object' && typeof newContent.transform === 'function') {
         const input = { transforms: [newContent.transform] }
 
@@ -176,8 +271,12 @@ module.exports = async (reporter, requestId, obj) => {
         }
 
         if (cachedStream == null) {
-          const result = reporter.readTempFileStream(responseFilename)
-          cachedStream = result.stream
+          if (!streamResponse) {
+            cachedStream = Readable.from(inMemoryContent)
+          } else {
+            const result = reporter.readTempFileStream(responseFilename)
+            cachedStream = result.stream
+          }
         }
 
         return cachedStream
@@ -190,14 +289,20 @@ module.exports = async (reporter, requestId, obj) => {
   }
 
   // ensure the file exists from the beginning if it is new response
-  if (!isJsreportResponse) {
+  if (!isJsreportResponse && streamResponse) {
     await reporter.writeTempFile(responseFilename, Buffer.from([]))
   }
 
-  return { response, sealResponse, getResponseFilePath }
+  const result = { response, sealResponse }
+
+  if (streamResponse) {
+    result.getResponseFilePath = getResponseFilePath
+  }
+
+  return result
 }
 
-function createExecuteTransforms (reporter, requestId, responseFilename) {
+function createExecuteTransforms (createSourceStream, createTargetInfoStream, onTransformsExecuted) {
   return async (queue) => {
     const transformQueue = queue.transforms || []
 
@@ -207,12 +312,12 @@ function createExecuteTransforms (reporter, requestId, responseFilename) {
 
     const transformQueueCount = transformQueue.length
 
-    // we need to save the transformation to new file to avoid reading and writing to same file (source: response file, target: response file)
-    const { pathToFile: tmpFilePath, stream: tmpFileStream } = await reporter.writeTempFileStream((uuid) => `transform-response-${requestId}-${uuid}.raw-content`)
+    const targetInfo = await createTargetInfoStream()
+
     // it is important to create the read stream as the last before doing the pipeline,
     // otherwise if there is some async task in the middle and the file does not exists
     // we get uncaught exception because the file is trying to be opened in next tick
-    const responseFileStream = reporter.readTempFileStream(responseFilename).stream
+    const sourceStream = createSourceStream()
     const decoder = new Decoder('utf8')
     const originalTransformSequence = transformQueue.map((_, idx) => idx)
     let nextTransformSequence = originalTransformSequence
@@ -225,7 +330,7 @@ function createExecuteTransforms (reporter, requestId, responseFilename) {
     let remaining
 
     await pipeline(
-      responseFileStream,
+      sourceStream,
       async function * (source) {
         for await (const chunk of source) {
           const chunkStr = decoder.write(chunk)
@@ -314,11 +419,12 @@ function createExecuteTransforms (reporter, requestId, responseFilename) {
           yield finalChunk
         }
       },
-      tmpFileStream
+      targetInfo.stream
     )
 
-    // we replace the response file with the new content
-    await reporter.copyFileToTempFile(tmpFilePath, responseFilename)
+    if (onTransformsExecuted) {
+      await onTransformsExecuted(targetInfo)
+    }
 
     const endQueue = queue.end || []
 

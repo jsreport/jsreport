@@ -222,11 +222,24 @@ class WorkerReporter extends Reporter {
 
   _registerRenderAction () {
     this.registerWorkerAction('render', async (data, req) => {
+      const streamResponse = this.options.streamResponse
       const { response: res, responseFilePath } = await this._render(req)
+
+      if (streamResponse) {
+        return {
+          meta: res.meta,
+          content: responseFilePath
+        }
+      }
+
+      const sharedBuf = new SharedArrayBuffer(res.content.byteLength)
+      const buf = Buffer.from(sharedBuf)
+
+      res.content.copy(buf)
 
       return {
         meta: res.meta,
-        content: responseFilePath
+        content: buf
       }
     })
   }

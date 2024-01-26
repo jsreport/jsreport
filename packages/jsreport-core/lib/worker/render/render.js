@@ -158,7 +158,7 @@ module.exports = (reporter) => {
 
       sealResponse()
 
-      return { response, responseFilePath: getResponseFilePath() }
+      return { response, responseFilePath: getResponseFilePath != null ? getResponseFilePath() : null }
     } catch (e) {
       sealResponse()
       await reporter.renderErrorListeners.fire(request, response, e)
