@@ -183,6 +183,7 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
 
 async function readStringFromStream (stream) {
   const bufs = []
+
   for await (const chunk of stream) {
     bufs.push(chunk)
   }

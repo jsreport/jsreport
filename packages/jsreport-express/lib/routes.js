@@ -1,8 +1,8 @@
 const { pipeline } = require('stream')
 const omit = require('lodash.omit')
 const serveStatic = require('serve-static')
+const { FormData } = require('@jsreport/multipart')
 const handleError = require('./handleError')
-const FormData = require('./formDataStream')
 const odata = require('./odata')
 const EventEmitter = require('events')
 const archiver = require('archiver')
@@ -47,7 +47,7 @@ module.exports = (app, reporter, exposedOptions) => {
     let profiler
     if (stream) {
       form = new FormData()
-      res.setHeader('Content-Type', `multipart/mixed; boundary=${form.getBoundary()}`)
+      res.setHeader('Content-Type', form.getDefaultContentType())
 
       profiler = reporter.attachProfiler(renderRequest, req.query.profilerMode)
 

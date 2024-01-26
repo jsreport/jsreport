@@ -1,7 +1,7 @@
-import should from 'should'
-import parseStreamingMultipart from '../../src/helpers/parseStreamingMultipart'
+const should = require('should')
+const parseMultipartStream = require('../parseMultipartStream')
 
-describe('parseStreamingMultipart', () => {
+describe('parseMultipartStream', () => {
   it('parse one entry with one chunk in complete state', async () => {
     const boundary = '---------------------------9051914041544843365972754266'
 
@@ -23,7 +23,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(1)
     should(files[0].name).be.eql('log content')
@@ -54,7 +57,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(1)
     should(files[0].name).be.eql('log content')
@@ -102,7 +108,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(1)
     should(files[0].name).be.eql('log content')
@@ -139,7 +148,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(2)
     should(files[0].name).be.eql('log content')
@@ -190,7 +202,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(2)
     should(files[0].name).be.eql('log content')
@@ -267,7 +282,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(2)
     should(files[0].name).be.eql('log content')
@@ -329,7 +347,10 @@ describe('parseStreamingMultipart', () => {
 
     const files = []
 
-    await parseStreamingMultipart(response, (fileInfo) => files.push(fileInfo))
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo))
 
     should(files.length).be.eql(2)
     should(files[0].name).be.eql('log content')
@@ -338,6 +359,64 @@ describe('parseStreamingMultipart', () => {
     should(files[1].name).be.eql('report')
     should(files[1].contentType).be.eql('application/pdf')
     should(new TextDecoder().decode(files[1].rawData)).be.eql(reportContent)
+  })
+
+  it('parse entry content as a stream for file defined as stream file', async () => {
+    const boundary = '---------------------------9051914041544843365972754266'
+
+    const logContent = JSON.stringify({ type: 'log', message: 'this is a test message', level: 'debug' })
+    const reportContentParts = [
+      'report ', 'content1', 'report ', 'content2', 'report ', 'content3',
+      'report ', 'content4', 'report ', 'content5', 'report ', 'content6',
+      'report ', 'content7', 'report ', 'content8', 'report ', 'content9'
+    ]
+
+    const response = createResponseMock(boundary, [
+      new TextEncoder().encode(
+        concat(
+          '\r\n',
+          `--${boundary}\r\n`,
+          'Content-Disposition: form-data; name="log content"\r\n',
+          'Content-Type: application/json\r\n',
+          `Content-Length: ${Buffer.byteLength(logContent)}\r\n`,
+          '\r\n',
+          `${logContent}\r\n`,
+          `--${boundary}\r\n`,
+          'Content-Disposition: form-data; name="report"; filename="main.pdf"\r\n',
+          'Content-Type: application/pdf\r\n',
+          `Content-Length: ${Buffer.byteLength(reportContentParts.join(''))}\r\n`,
+          '\r\n'
+        )
+      ),
+      ...reportContentParts.map((part) => (
+        new TextEncoder().encode(part)
+      )),
+      new TextEncoder().encode('\r\n'),
+      new TextEncoder().encode(`--${boundary}--\r\n`)
+    ])
+
+    const files = []
+
+    await parseMultipartStream({
+      contentType: response.headers.get('Content-Type'),
+      stream: response.body
+    }, (fileInfo) => files.push(fileInfo), { streamFiles: ['report'] })
+
+    should(files.length).be.eql(2)
+    should(files[0].name).be.eql('log content')
+    should(files[0].contentType).be.eql('application/json')
+    should(new TextDecoder().decode(files[0].rawData)).be.eql(logContent)
+    should(files[1].name).be.eql('report')
+    should(files[1].contentType).be.eql('application/pdf')
+    should(files[1].rawOriginType).be.eql('stream')
+
+    const fromStreamParts = []
+
+    for await (const value of files[1].rawData) {
+      fromStreamParts.push(new TextDecoder().decode(value))
+    }
+
+    should(fromStreamParts.join('')).be.eql(reportContentParts.join(''))
   })
 })
 

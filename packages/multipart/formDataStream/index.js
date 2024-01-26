@@ -1,5 +1,4 @@
 const path = require('path')
-const { TextEncoder } = require('util')
 const { Readable } = require('stream')
 const mime = require('mime-types')
 const MultiStream = require('./multistream')
@@ -25,6 +24,10 @@ class FormData extends MultiStream {
     this._queue = []
     this._ended = false
     this._multiStreamFactoryCallback = factoryCallback
+  }
+
+  getDefaultContentType () {
+    return `multipart/mixed; boundary=${this.getBoundary()}`
   }
 
   getBoundary () {

@@ -1,4 +1,4 @@
-import parseStreamingMultipart from './parseStreamingMultipart'
+import parseMultipartStream from '@jsreport/multipart/parseMultipartStream'
 import resolveUrl from './resolveUrl'
 import processItemsInInterval from './processItemsInInterval'
 
@@ -124,7 +124,10 @@ async function streamRender (request, { signal, profilerMode = 'standard', onSta
       let parseErr
 
       try {
-        await parseStreamingMultipart(response, (fileInfo) => {
+        await parseMultipartStream({
+          contentType: response.headers.get('Content-Type'),
+          stream: response.body
+        }, (fileInfo) => {
           files.push(fileInfo)
         })
       } catch (err) {

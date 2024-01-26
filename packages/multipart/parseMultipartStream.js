@@ -1,3 +1,4 @@
+/* global ReadableStream */
 // eslint-disable-next-line no-control-regex
 const PARAM_REGEXP = /;[\x09\x20]*([!#$%&'*+.0-9A-Z^_`a-z|~-]+)[\x09\x20]*=[\x09\x20]*("(?:[\x20!\x23-\x5b\x5d-\x7e\x80-\xff]|\\[\x20-\x7e])*"|[!#$%&'*+.0-9A-Z^_`a-z|~-]+)[\x09\x20]*/g
 // eslint-disable-next-line no-control-regex
@@ -7,12 +8,20 @@ const QESC_REGEXP = /\\([\u0000-\u007f])/g
 const NEW_LINE = '\r\n'
 const NEW_LINE_BUF = new TextEncoder().encode(NEW_LINE)
 
-async function parseStreamingMultipart (response, onFile) {
-  const contentType = response.headers.get('Content-Type')
+async function parseMultipartStream ({ contentType, stream }, onFile, opts = {}) {
+  if (contentType == null) {
+    throw new Error('Missing contentType parameter')
+  }
+
+  if (stream == null) {
+    throw new Error('Missing stream parameter')
+  }
+
   const boundary = getBoundary(contentType)
 
-  const reader = response.body.getReader()
+  const reader = stream.getReader()
   const textDecoder = new TextDecoder()
+  const streamFiles = opts.streamFiles
 
   const parsingProgress = {
     state: 'initial',
@@ -36,7 +45,7 @@ async function parseStreamingMultipart (response, onFile) {
     }
 
     try {
-      parseMultipartHttp(parsingProgress, textDecoder, value, boundaryInfo, onFile)
+      parseMultipartHttp(parsingProgress, textDecoder, value, boundaryInfo, streamFiles, onFile)
     } catch (err) {
       const parseError = new Error(`Stream MultiPart Parsing Error. ${err.message}`)
       parseError.stack = err.stack
@@ -47,9 +56,9 @@ async function parseStreamingMultipart (response, onFile) {
   })
 }
 
-export default parseStreamingMultipart
+module.exports = parseMultipartStream
 
-function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo, onFileFound) {
+function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo, streamFiles, onFileFound) {
   let chunk = concatUInt8Array(parsingProgress.pending, buffer)
 
   do {
@@ -112,16 +121,47 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo,
         parsingProgress.meta.contentType = parsedHeaders['content-type']
         parsingProgress.meta.contentLength = contentLength
         parsingProgress.meta.headers = parsedHeaders
+        parsingProgress.meta.originType = streamFiles != null && streamFiles.includes(parsingProgress.meta.name) ? 'stream' : 'buffer'
         parsingProgress.pending = new Uint8Array(0)
+
+        if (parsingProgress.meta.originType === 'stream') {
+          parsingProgress.meta.streamState = {
+            controller: null,
+            length: 0
+          }
+
+          parsingProgress.meta.streamState.readable = new ReadableStream({
+            start: (controller) => {
+              parsingProgress.meta.streamState.controller = controller
+            }
+          })
+
+          onFileFound(createFileInfo(parsingProgress, parsingProgress.meta.streamState.readable))
+        }
       }
     } else if (parsingProgress.state === 'header') {
-      if (chunk.length < parsingProgress.meta.contentLength) {
-        parsingProgress.pending = chunk
+      const currentLength = parsingProgress.meta.originType === 'stream' ? parsingProgress.meta.streamState.length + chunk.length : chunk.length
+
+      if (currentLength < parsingProgress.meta.contentLength) {
+        if (parsingProgress.meta.originType === 'stream') {
+          parsingProgress.meta.streamState.controller.enqueue(chunk)
+          parsingProgress.meta.streamState.length = currentLength
+        } else {
+          parsingProgress.pending = chunk
+        }
       } else {
         const finalBoundaryDelimiterBuf = boundaryInfo.finalDelimiterBuf
-        const body = chunk.slice(0, parsingProgress.meta.contentLength)
+        let lastContent
 
-        rest = chunk.slice(parsingProgress.meta.contentLength)
+        if (parsingProgress.meta.originType === 'stream') {
+          const remaining = currentLength - parsingProgress.meta.streamState.length
+          parsingProgress.meta.streamState.length = currentLength
+          lastContent = chunk.slice(0, remaining)
+          rest = chunk.slice(remaining)
+        } else {
+          lastContent = chunk.slice(0, parsingProgress.meta.contentLength)
+          rest = chunk.slice(parsingProgress.meta.contentLength)
+        }
 
         if (
           arrayBufferEqual(rest.buffer, finalBoundaryDelimiterBuf.buffer)
@@ -129,17 +169,12 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo,
           rest = undefined
         }
 
-        const part = {
-          name: parsingProgress.meta.name,
-          filename: parsingProgress.meta.filename,
-          contentDispositionType: parsingProgress.meta.contentDispositionType,
-          contentType: parsingProgress.meta.contentType,
-          contentLength: parsingProgress.meta.contentLength,
-          headers: parsingProgress.meta.headers,
-          rawData: body
+        if (parsingProgress.meta.originType === 'stream') {
+          parsingProgress.meta.streamState.controller.enqueue(lastContent)
+          parsingProgress.meta.streamState.controller.close()
+        } else {
+          onFileFound(createFileInfo(parsingProgress, lastContent))
         }
-
-        onFileFound(part)
 
         parsingProgress.state = 'initial'
         parsingProgress.meta = {}
@@ -153,6 +188,21 @@ function parseMultipartHttp (parsingProgress, textDecoder, buffer, boundaryInfo,
       chunk = undefined
     }
   } while (chunk && chunk.length > 0)
+}
+
+function createFileInfo (parsingProgress, rawData) {
+  const part = {
+    name: parsingProgress.meta.name,
+    filename: parsingProgress.meta.filename,
+    contentDispositionType: parsingProgress.meta.contentDispositionType,
+    contentType: parsingProgress.meta.contentType,
+    contentLength: parsingProgress.meta.contentLength,
+    headers: parsingProgress.meta.headers,
+    rawOriginType: parsingProgress.meta.originType,
+    rawData
+  }
+
+  return part
 }
 
 function parseUntilDelimiter (chunk, delimiterChunk) {
