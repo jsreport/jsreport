@@ -7,8 +7,18 @@ const stripBom = require('strip-bom-buf')
 
 module.exports.readFile = readFile
 module.exports.linkPath = linkPath
-module.exports.readAsset = readAsset
+module.exports.readAsset = cachedReadAsset
 module.exports.isAssetPathValid = isAssetPathValid
+
+async function cachedReadAsset (reporter, definition, { id, name, encoding, currentDirectoryPath }, req) {
+  if (!reporter.assets.cache) {
+    // in main we don't cache express routes...
+    return readAsset(reporter, definition, { id, name, encoding, currentDirectoryPath }, req)
+  }
+
+  const key = `${id}:${name}:${encoding}:${currentDirectoryPath}`
+  return reporter.assets.cache.getAndSet(req.context.id, key, () => readAsset(reporter, definition, { id, name, encoding, currentDirectoryPath }, req))
+}
 
 async function readAsset (reporter, definition, { id, name, encoding, currentDirectoryPath }, req) {
   const allowAssetsLinkedToFiles = definition.options.allowAssetsLinkedToFiles !== false

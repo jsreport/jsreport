@@ -6,6 +6,7 @@ const imageTest = /\.(jpeg|jpg|gif|png|svg)$/
 const fontTest = /\.(woff|ttf|otf|eot|woff2)$/
 const fs = require('fs').promises
 const path = require('path')
+const Cache = require('./cache')
 
 function isImage (name) {
   return name.match(imageTest) != null
@@ -77,7 +78,10 @@ async function evaluateAssets (reporter, definition, stringToReplace, req) {
 }
 
 module.exports = (reporter, definition) => {
-  reporter.assets = { options: definition.options }
+  reporter.assets = {
+    options: definition.options,
+    cache: Cache(reporter)
+  }
   reporter.addRequestContextMetaConfig('evaluateAssetsCounter', { sandboxHidden: true })
 
   let assetHelpers

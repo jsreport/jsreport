@@ -923,6 +923,27 @@ describe('assets', function () {
     res.content.toString().should.be.eql(Buffer.from('hello').toString('base64'))
   })
 
+  it('should use cache for reading assets', async () => {
+    let findCalls = 0
+    reporter.documentStore.collection('assets').beforeFindListeners.add('test', (q) => findCalls++)
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+    await reporter.render({
+      template: {
+        content: '{{#each items}}{{asset "foo.html"}}{{/each}}',
+        recipe: 'html',
+        engine: 'handlebars',
+        data: {
+          items: new Array(100).fill(1)
+        }
+      }
+    })
+    findCalls.should.be.lessThan(5)
+  })
+
   it('should expose handlebars asset helper and have default utf8 encoding', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
