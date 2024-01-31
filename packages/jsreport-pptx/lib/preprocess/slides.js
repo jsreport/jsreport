@@ -32,6 +32,8 @@ module.exports = (files) => {
           const toRemove = el.parentNode.parentNode.parentNode.parentNode
           toRemove.parentNode.removeChild(toRemove)
         }
+      } else if (el.textContent.includes('{{#pptxSlides')) {
+        throw new Error('pptxSlides helper must be called as a simple helper call "{{pptxSlides ...}}", block helper call "{{#pptxSlides ...}}" is not supported')
       }
     }
   }

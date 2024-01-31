@@ -345,4 +345,21 @@ describe('pptx', () => {
     should(files.find(f => f.path === 'ppt/notesSlides/notesSlide5001.xml')).be.ok()
     should(files.find(f => f.path === 'ppt/notesSlides/notesSlide5002.xml')).be.ok()
   })
+
+  it('slides block helper call should throw descriptive error', async () => {
+    return should(reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(pptxDirPath, 'slides-block-helper-call.pptx'))
+          }
+        }
+      },
+      data: {
+        items: [{ hello: 'Jan' }, { hello: 'Blaha' }, { hello: 'Boris' }]
+      }
+    })).be.rejectedWith(/pptxSlides helper must be called as a simple helper call/i)
+  })
 })
