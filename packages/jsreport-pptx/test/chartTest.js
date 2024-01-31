@@ -6,7 +6,7 @@ const moment = require('moment')
 const { DOMParser } = require('@xmldom/xmldom')
 const toExcelDate = require('js-excel-date-convert').toExcelDate
 const { nodeListToArray, findChildNode } = require('../lib/utils')
-const { getDocumentsFromPptxBuf } = require('./utils')
+const { getDocumentsFromPptx } = require('./utils')
 
 const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
@@ -61,8 +61,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {
@@ -110,8 +111,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.should.have.length(5)
@@ -152,8 +154,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.should.have.length(2)
@@ -191,8 +194,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.should.have.length(1)
@@ -244,8 +248,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
     const existingAxesNodes = []
@@ -307,8 +312,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
     const existingAxesNodes = []
@@ -371,8 +377,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
     const existingAxesNodes = []
@@ -437,8 +444,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
     const existingAxesNodes = []
@@ -503,8 +511,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
 
     const existingAxesNodes = []
@@ -553,8 +562,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.should.have.length(1)
@@ -602,8 +612,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {
@@ -641,9 +652,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
 
     chartTitleEl.textContent.should.be.eql('DEMO CHART')
@@ -687,8 +698,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {
@@ -738,8 +750,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {
@@ -805,8 +818,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {
@@ -858,9 +872,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const barChart = doc.getElementsByTagName('c:barChart')[0]
     const lineChart = doc.getElementsByTagName('c:lineChart')[0]
 
@@ -931,8 +945,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chartEx1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1007,8 +1022,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chartEx1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1109,8 +1125,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chartEx1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1213,8 +1230,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chartEx1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1308,8 +1326,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chartEx1.xml'])
+    await result.output.toFile(outputPath)
+
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
     const labelElement = (
       doc.getElementsByTagName('cx:series')[0]
@@ -1417,9 +1436,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const { files } = await getDocumentsFromPptxBuf(result.content, [], { returnFiles: true })
+    const { files } = await getDocumentsFromPptx(result, [], { returnFiles: true })
     const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
 
     for (const [slideIdx, slideFile] of allSlideFiles.entries()) {
@@ -1523,9 +1542,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const { files } = await getDocumentsFromPptxBuf(result.content, [], { returnFiles: true })
+    const { files } = await getDocumentsFromPptx(result, [], { returnFiles: true })
     const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
 
     for (const [slideIdx, slideFile] of allSlideFiles.entries()) {
@@ -1648,9 +1667,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const { files } = await getDocumentsFromPptxBuf(result.content, [], { returnFiles: true })
+    const { files } = await getDocumentsFromPptx(result, [], { returnFiles: true })
     const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
 
     for (const [slideIdx, slideFile] of allSlideFiles.entries()) {
@@ -1759,9 +1778,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {
@@ -1797,9 +1816,9 @@ describe('pptx chart', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/charts/chart1.xml'])
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
 
     dataElements.forEach((dataEl, idx) => {

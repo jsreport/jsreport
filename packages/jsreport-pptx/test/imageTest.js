@@ -3,10 +3,9 @@ const path = require('path')
 const fs = require('fs')
 const jsreport = require('@jsreport/jsreport-core')
 const { DOMParser } = require('@xmldom/xmldom')
-const { decompress } = require('@jsreport/office')
 const sizeOf = require('image-size')
 const { nodeListToArray, pxToEMU, cmToEMU } = require('../lib/utils')
-const { getImageSize, getImageDataUri } = require('./utils')
+const { decompressResponse, getImageSize, getImageDataUri } = require('./utils')
 
 const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
@@ -48,9 +47,9 @@ describe('pptx image', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const files = await decompress()(result.content)
+    const files = await decompressResponse(result)
 
     const slideDoc = new DOMParser().parseFromString(
       files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
@@ -101,7 +100,7 @@ describe('pptx image', () => {
 
   it('image with placeholder size (usePlaceholderSize)', async () => {
     const templateBuf = fs.readFileSync(path.join(pptxDirPath, 'image-use-placeholder-size.pptx'))
-    const templateFiles = await decompress()(templateBuf)
+    const templateFiles = await decompressResponse(templateBuf)
 
     const templateSlideDoc = new DOMParser().parseFromString(
       templateFiles.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
@@ -133,9 +132,9 @@ describe('pptx image', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const files = await decompress()(result.content)
+    const files = await decompressResponse(result)
 
     const slideDoc = new DOMParser().parseFromString(
       files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
@@ -192,9 +191,9 @@ describe('pptx image', () => {
           }
         })
 
-        fs.writeFileSync(outputPath, result.content)
+        await result.output.toFile(outputPath)
 
-        const files = await decompress()(result.content)
+        const files = await decompressResponse(result)
 
         const slideDoc = new DOMParser().parseFromString(
           files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
@@ -247,9 +246,9 @@ describe('pptx image', () => {
           }
         })
 
-        fs.writeFileSync(outputPath, result.content)
+        await result.output.toFile(outputPath)
 
-        const files = await decompress()(result.content)
+        const files = await decompressResponse(result)
 
         const slideDoc = new DOMParser().parseFromString(
           files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()
@@ -302,9 +301,9 @@ describe('pptx image', () => {
           }
         })
 
-        fs.writeFileSync(outputPath, result.content)
+        await result.output.toFile(outputPath)
 
-        const files = await decompress()(result.content)
+        const files = await decompressResponse(result)
 
         const slideDoc = new DOMParser().parseFromString(
           files.find(f => f.path === 'ppt/slides/slide1.xml').data.toString()

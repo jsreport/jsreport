@@ -1,13 +1,10 @@
 const should = require('should')
-const util = require('util')
 const path = require('path')
 const fs = require('fs')
-const textract = util.promisify(require('textract').fromBufferWithName)
 const { DOMParser } = require('@xmldom/xmldom')
-const { decompress } = require('@jsreport/office')
 const jsreport = require('@jsreport/jsreport-core')
 const { nodeListToArray } = require('../lib/utils')
-const { getImageDataUri } = require('./utils')
+const { extractTextResponse, decompressResponse, getImageDataUri } = require('./utils')
 
 const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
@@ -41,8 +38,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
     should(text).containEql('Jan Blaha')
   })
 
@@ -63,8 +61,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
     should(text).containEql('Jan Blaha')
   })
 
@@ -124,8 +123,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
     should(text).containEql('Jan Blaha')
   })
 
@@ -152,8 +152,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
     should(text).containEql('Hello world John')
   })
 
@@ -175,8 +176,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
     should(text).containEql('John')
   })
 
@@ -198,8 +200,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
     should(text).containEql('John')
   })
 
@@ -225,8 +228,10 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
+
     should(text).containEql('Jan')
     should(text).containEql('Boris')
     should(text).containEql('Pavel')
@@ -248,14 +253,16 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
-    const text = await textract('test.pptx', result.content)
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
+
     should(text).containEql('Jan')
     should(text).containEql('Blaha')
     // the parser somehow don't find the other items on the first run
     // should(text).containEql('Boris')
 
-    const files = await decompress()(result.content)
+    const files = await decompressResponse(result)
     const presentationStr = files.find(f => f.path === 'ppt/presentation.xml').data.toString()
     const presentation = new DOMParser().parseFromString(presentationStr)
     const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
@@ -281,7 +288,9 @@ describe('pptx', () => {
       }
     })
 
-    const files = await decompress()(result.content)
+    await result.output.toFile(outputPath)
+
+    const files = await decompressResponse(result)
     const presentationStr = files.find(f => f.path === 'ppt/presentation.xml').data.toString()
     const presentation = new DOMParser().parseFromString(presentationStr)
     const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
@@ -312,9 +321,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const files = await decompress()(result.content)
+    const files = await decompressResponse(result)
     const presentationStr = files.find(f => f.path === 'ppt/presentation.xml').data.toString()
     const presentation = new DOMParser().parseFromString(presentationStr)
     const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
@@ -339,9 +348,9 @@ describe('pptx', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await result.output.toFile(outputPath)
 
-    const files = await decompress()(result.content)
+    const files = await decompressResponse(result)
     should(files.find(f => f.path === 'ppt/notesSlides/notesSlide5001.xml')).be.ok()
     should(files.find(f => f.path === 'ppt/notesSlides/notesSlide5002.xml')).be.ok()
   })
