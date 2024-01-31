@@ -272,6 +272,42 @@ describe('pptx', () => {
     should(sldIdEls[3].getAttribute('id')).be.eql('5002')
   })
 
+  it('slides with one item should produce valid slides xml', async () => {
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'pptx',
+        pptx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(pptxDirPath, 'slides.pptx'))
+          }
+        }
+      },
+      data: {
+        items: [{ hello: 'Jan' }]
+      }
+    })
+
+    await result.output.toFile(outputPath)
+
+    const text = await extractTextResponse(result)
+
+    should(text).containEql('Jan')
+
+    const files = await decompressResponse(result)
+    const presentationStr = files.find(f => f.path === 'ppt/presentation.xml').data.toString()
+    const presentation = new DOMParser().parseFromString(presentationStr)
+    const sldIdLstEl = presentation.getElementsByTagName('p:presentation')[0].getElementsByTagName('p:sldIdLst')[0]
+    const sldIdEls = nodeListToArray(sldIdLstEl.getElementsByTagName('p:sldId'))
+
+    should(sldIdEls.length).be.eql(3)
+
+    for (const file of files.filter(f => f.path.includes('ppt/slides/slide'))) {
+      const doc = new DOMParser().parseFromString(file.data.toString())
+      should(doc.documentElement.localName).be.eql('sld')
+    }
+  })
+
   it('slides when pptxSlide and other handlebars in the same a:t', async () => {
     const result = await reporter.render({
       template: {
