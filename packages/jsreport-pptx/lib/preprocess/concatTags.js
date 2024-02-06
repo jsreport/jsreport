@@ -22,7 +22,7 @@ function concatTextNodes (doc, elements) {
     let validSiblings = false
 
     if (concatenating) {
-      if (elements[i].parentNode.previousSibling.localName === 'r') {
+      if (elements[i].parentNode.previousSibling?.localName === 'r') {
         validSiblings = elements[i].parentNode.previousSibling === elements[i - 1].parentNode
       } else {
         // ignore w:proofErr, w:bookmarkStart and other similar self-closed siblings tags
