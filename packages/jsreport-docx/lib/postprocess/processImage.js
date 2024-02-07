@@ -35,18 +35,36 @@ module.exports = async function processImage (reporter, files, referenceDrawingE
     return drawingEl
   }
 
+  const tooltip = linkClickEl.getAttribute('tooltip')
+  let newTooltip = tooltip
+  const hasDocxImageCall = tooltip != null && tooltip.includes('$docxImage')
+  let docxImageMeta
+
+  if (hasDocxImageCall) {
+    const match = tooltip.match(/\$docxImage([^$]*)\$/)
+
+    docxImageMeta = {
+      config: JSON.parse(Buffer.from(match[1], 'base64').toString()),
+      tooltip: tooltip.replace(match[0], '')
+    }
+
+    newTooltip = docxImageMeta.tooltip
+  }
+
   if (pictureEl.firstChild.nodeName === 'Relationship') {
     const hyperlinkRelEl = pictureEl.firstChild
     const newHyperlinkRelId = getNewRelIdFromBaseId(relsDoc, newRelIdCounterMap, hyperlinkRelEl.getAttribute('Id'))
-    let isFirstMatch = false
 
     const hyperlinkRelId = hyperlinkRelEl.getAttribute('Id')
-    const hyperlinkRelTarget = hyperlinkRelEl.getAttribute('Target')
-    const isRefToBookmark = hyperlinkRelTarget.startsWith('#')
+    let defaultTargetBookmarkId = linkClickEl.getAttribute('defaultTargetBookmarkId')
+
+    linkClickEl.removeAttribute('defaultTargetBookmarkId')
+
+    if (defaultTargetBookmarkId != null && defaultTargetBookmarkId !== '' && !isNaN(defaultTargetBookmarkId)) {
+      defaultTargetBookmarkId = parseInt(defaultTargetBookmarkId, 10)
+    }
 
     if (hyperlinkRelId === newHyperlinkRelId) {
-      isFirstMatch = true
-
       // if we get the same id it means that we should replace old rel node
       const oldRelEl = nodeListToArray(relsEl.getElementsByTagName('Relationship')).find((el) => {
         return el.getAttribute('Id') === newHyperlinkRelId
@@ -57,13 +75,29 @@ module.exports = async function processImage (reporter, files, referenceDrawingE
 
     hyperlinkRelEl.setAttribute('Id', newHyperlinkRelId)
 
-    if (isRefToBookmark && !isFirstMatch && newBookmarksMap.has(hyperlinkRelTarget.slice(1))) {
-      const items = newBookmarksMap.get(hyperlinkRelTarget.slice(1))
+    const originalTarget = hyperlinkRelEl.getAttribute('originalTarget')
+    hyperlinkRelEl.removeAttribute('originalTarget')
+
+    if (defaultTargetBookmarkId != null && newBookmarksMap.has(defaultTargetBookmarkId)) {
+      const items = newBookmarksMap.get(defaultTargetBookmarkId)
 
       if (items.length > 0) {
         const newBookmark = items.shift()
-        hyperlinkRelEl.setAttribute('Target', `#${newBookmark.newName}`)
+
+        // when hyperlink has no target then it means it should default to link to
+        // bookmark of image
+        if (!hyperlinkRelEl.hasAttribute('Target')) {
+          hyperlinkRelEl.setAttribute('Target', `#${newBookmark.newName}`)
+        }
       }
+    }
+
+    // if no target still fallback to its original target
+    // this likely happens when image is detected to contain handlebars syntax
+    // in tooltip but it ended not calling docxImage helper, so we need to fallback to the
+    // original target in this case
+    if (!hyperlinkRelEl.hasAttribute('Target')) {
+      hyperlinkRelEl.setAttribute('Target', originalTarget)
     }
 
     hyperlinkRelEl.parentNode.removeChild(hyperlinkRelEl)
@@ -71,15 +105,16 @@ module.exports = async function processImage (reporter, files, referenceDrawingE
     relsEl.appendChild(hyperlinkRelEl)
 
     linkClickEl.setAttribute('r:id', newHyperlinkRelId)
+    linkClickEl.setAttribute('tooltip', newTooltip)
 
+    // somehow there are duplicated linkclick els produced by word, we need to clean them up
     for (let i = 1; i < linkClickEls.length; i++) {
       linkClickEls[i].setAttribute('r:id', newHyperlinkRelId)
+      linkClickEls[i].setAttribute('tooltip', newTooltip)
     }
   }
 
-  const tooltip = linkClickEl.getAttribute('tooltip')
-
-  if (tooltip == null || !tooltip.includes('$docxImage')) {
+  if (!docxImageMeta) {
     return drawingEl
   }
 
@@ -90,18 +125,7 @@ module.exports = async function processImage (reporter, files, referenceDrawingE
     types.appendChild(defaultPng)
   }
 
-  const match = tooltip.match(/\$docxImage([^$]*)\$/)
-
-  linkClickEl.setAttribute('tooltip', tooltip.replace(match[0], ''))
-
-  const imageConfig = JSON.parse(Buffer.from(match[1], 'base64').toString())
-
-  // somehow there are duplicated linkclick els produced by word, we need to clean them up
-  for (let i = 1; i < linkClickEls.length; i++) {
-    const elLinkClick = linkClickEls[i]
-    const match = tooltip.match(/\$docxImage([^$]*)\$/)
-    elLinkClick.setAttribute('tooltip', tooltip.replace(match[0], ''))
-  }
+  const imageConfig = docxImageMeta.config
 
   const pendingSources = []
 

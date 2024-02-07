@@ -16,7 +16,6 @@ const child = require('./child')
 
 module.exports = (files) => {
   concatTags(files)
-  context(files)
 
   const sectionsDetails = sections(files)
 
@@ -28,6 +27,7 @@ module.exports = (files) => {
     return acu
   }, [])
 
+  context(files, headerFooterRefs)
   bookmark(files, headerFooterRefs)
   watermark(files, headerFooterRefs)
   drawingObject(files, headerFooterRefs)

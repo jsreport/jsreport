@@ -60,11 +60,22 @@ module.exports = async (files) => {
           }
         }
 
+        for (const node of nodeListToArray(rNode.childNodes)) {
+          const valid = ['w:bookmarkStart', 'w:bookmarkEnd']
+
+          if (!valid.includes(node.nodeName)) {
+            continue
+          }
+
+          // move bookmark outside the w:r so it can be preserved
+          rNode.parentNode.insertBefore(node, rNode)
+        }
+
         rNode.parentNode.removeChild(rNode)
       }
 
       const childContentNodesLeft = nodeListToArray(paragraphNode.childNodes).filter((node) => {
-        return ['w:r', 'w:fldSimple', 'w:hyperlink'].includes(node.nodeName)
+        return ['w:r', 'w:fldSimple', 'w:hyperlink', 'w:bookmarkStart', 'w:bookmarkEnd'].includes(node.nodeName)
       })
 
       if (

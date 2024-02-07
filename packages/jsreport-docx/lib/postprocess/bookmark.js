@@ -15,12 +15,18 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap) => {
     contentTypesFile.documentElement.removeAttribute('bookmarkMaxId')
   }
 
+  const documentBookmarksMeta = {}
+
   documentFile.data = await stringReplaceAsync(
     documentFile.data.toString(),
     /<w:bookmark(Start|End)[^>]*\/>/g,
     async (val) => {
       const bookmarkEl = new DOMParser().parseFromString(val).documentElement
-      const newBookmarkEl = processBookmarkEl(bookmarkEl)
+      const newBookmarkEl = processBookmarkEl(bookmarkEl, documentBookmarksMeta)
+
+      if (newBookmarkEl === false) {
+        return ''
+      }
 
       if (newBookmarkEl != null) {
         return serializeXml(newBookmarkEl)
@@ -34,9 +40,15 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap) => {
     const bookmarkStartEls = nodeListToArray(headerFooterDoc.getElementsByTagName('w:bookmarkStart'))
     const bookmarkEndEls = nodeListToArray(headerFooterDoc.getElementsByTagName('w:bookmarkEnd'))
     const bookmarkEls = [...bookmarkStartEls, ...bookmarkEndEls]
+    const headerFooterBookmarksMeta = {}
 
     for (const bookmarkEl of bookmarkEls) {
-      const newBookmarkEl = processBookmarkEl(bookmarkEl)
+      const newBookmarkEl = processBookmarkEl(bookmarkEl, headerFooterBookmarksMeta)
+
+      if (newBookmarkEl === false) {
+        bookmarkEl.parentNode.removeChild(bookmarkEl)
+        continue
+      }
 
       if (newBookmarkEl == null) {
         continue
@@ -47,42 +59,98 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap) => {
     }
   }
 
-  function processBookmarkEl (referenceBookmarkEl) {
-    let changedBookmarkId = false
+  function processBookmarkEl (referenceBookmarkEl, bookmarksMeta) {
+    let changedBookmark = false
     const bookmarkEl = referenceBookmarkEl.cloneNode(true)
     const bookmarkId = getBookmarkId(bookmarkEl)
+    const removeAfterFirstInstance = bookmarkEl.getAttribute('removeAfterFirstInstance') === 'true'
+
+    if (removeAfterFirstInstance) {
+      bookmarkEl.removeAttribute('removeAfterFirstInstance')
+    }
+
+    bookmarksMeta.start = bookmarksMeta.start || new Map()
+    bookmarksMeta.end = bookmarksMeta.end || new Map()
 
     // fix id for elements that have been generated after loop
     if (bookmarkId != null) {
       if (bookmarkEl.nodeName === 'w:bookmarkStart') {
         const bookmarkName = bookmarkEl.getAttribute('w:name')
-        const newBookmarkId = getNewIdFromBaseId(bookmarkIdCounterMap, bookmarkId, maxBookmarkId || 0)
 
-        if (newBookmarkId !== bookmarkId) {
-          const newBookmarkName = `${bookmarkName}_c${newBookmarkId}`
-          changedBookmarkId = true
-          maxBookmarkId = newBookmarkId
-          lastBookmarkIdMap.set(bookmarkId, newBookmarkId)
-
-          const existingInNewMap = newBookmarksMap.get(bookmarkName) || []
-
-          existingInNewMap.push({
-            newId: newBookmarkId,
-            newName: newBookmarkName
-          })
-
-          newBookmarksMap.set(bookmarkName, existingInNewMap)
-
-          bookmarkEl.setAttribute('w:id', newBookmarkId)
-          bookmarkEl.setAttribute('w:name', newBookmarkName)
+        if (!bookmarksMeta.start.has(bookmarkId)) {
+          bookmarksMeta.start.set(bookmarkId, [])
         }
-      } else if (bookmarkEl.nodeName === 'w:bookmarkEnd' && lastBookmarkIdMap.has(bookmarkId)) {
-        changedBookmarkId = true
-        bookmarkEl.setAttribute('w:id', lastBookmarkIdMap.get(bookmarkId))
+
+        const currentBookmarkStartMeta = bookmarksMeta.start.get(bookmarkId)
+
+        if (removeAfterFirstInstance && currentBookmarkStartMeta.length > 0) {
+          return false
+        }
+
+        const newBookmarkId = getNewIdFromBaseId(bookmarkIdCounterMap, bookmarkId, maxBookmarkId || 0)
+        const hasNewId = bookmarkId !== newBookmarkId
+        let newBookmarkName = hasNewId ? `${bookmarkName}_c${newBookmarkId}` : bookmarkName
+        changedBookmark = hasNewId
+
+        if (bookmarkEl.hasAttribute('customBookmarkName')) {
+          changedBookmark = true
+          const customBookmarkName = bookmarkEl.getAttribute('customBookmarkName')
+          bookmarkEl.removeAttribute('customBookmarkName')
+
+          if (customBookmarkName !== '') {
+            newBookmarkName = customBookmarkName
+          }
+        }
+
+        if (hasNewId) {
+          maxBookmarkId = newBookmarkId
+        }
+
+        lastBookmarkIdMap.set(bookmarkId, newBookmarkId)
+
+        const existingInNewMap = newBookmarksMap.get(bookmarkId) || []
+
+        currentBookmarkStartMeta.push(newBookmarkId)
+
+        existingInNewMap.push({
+          newId: newBookmarkId,
+          newName: newBookmarkName
+        })
+
+        newBookmarksMap.set(bookmarkId, existingInNewMap)
+
+        bookmarkEl.setAttribute('w:id', newBookmarkId)
+        bookmarkEl.setAttribute('w:name', newBookmarkName)
+      } else if (bookmarkEl.nodeName === 'w:bookmarkEnd') {
+        if (!bookmarksMeta.end.has(bookmarkId)) {
+          bookmarksMeta.end.set(bookmarkId, [])
+        }
+
+        const currentBookmarkEndMeta = bookmarksMeta.end.get(bookmarkId)
+
+        if (removeAfterFirstInstance && currentBookmarkEndMeta.length > 0) {
+          return false
+        }
+
+        const newBookmarkId = lastBookmarkIdMap.get(bookmarkId)
+        const hasNewId = newBookmarkId != null && bookmarkId !== newBookmarkId
+
+        if (hasNewId) {
+          changedBookmark = true
+          bookmarkEl.setAttribute('w:id', newBookmarkId)
+        }
+
+        if (newBookmarkId != null) {
+          currentBookmarkEndMeta.push(newBookmarkId)
+        }
       }
     }
 
-    return changedBookmarkId ? bookmarkEl : null
+    if (removeAfterFirstInstance) {
+      changedBookmark = true
+    }
+
+    return changedBookmark ? bookmarkEl : null
   }
 }
 

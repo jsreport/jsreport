@@ -34,7 +34,7 @@ module.exports = (files, headerFooterRefs) => {
         maxDocPrId = docPrId
       }
 
-      processImage(files, drawingEl, targetRelsDoc)
+      processImage(files, targetDoc, drawingEl, targetRelsDoc)
       processChart(files, drawingEl, documentFile, targetRelsDoc)
     })
   }
