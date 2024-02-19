@@ -65,7 +65,7 @@ describe('data', () => {
     }).should.be.rejectedWith(/data/)
   })
 
-  it('should ignore extension on child request when data is specificed on parent', async () => {
+  it('should ignore extension on child request when data is specified on parent', async () => {
     const dataItem = {
       name: 'test',
       dataJson: JSON.stringify({ b: 'xx' })
@@ -82,6 +82,7 @@ describe('data', () => {
     })
 
     let res
+
     reporter.tests.afterRenderListeners.add('test', this, (req, ares) => {
       if (req.template.content !== 'main') {
         res = ares
