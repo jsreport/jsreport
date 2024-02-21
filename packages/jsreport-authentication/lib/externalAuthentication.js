@@ -269,7 +269,6 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
         return done(null, false)
       }
 
-      let usernameForGroup = `:group/${group.name}`
       let customUsername
 
       if (
@@ -285,12 +284,10 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
         customUsername = userinfo[authorizationServerAuth.usernameField]
       }
 
-      if (customUsername != null) {
-        usernameForGroup += `/${customUsername}`
-      }
-
       resolvedUser = {
-        name: usernameForGroup
+        _id: group._id,
+        name: customUsername != null ? customUsername : group.name,
+        isGroup: true
       }
     } else {
       let usernameFromAuthServer = tokenResponse[authorizationServerAuth.usernameField]
@@ -321,7 +318,10 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
           return done(null, false)
         }
 
-        resolvedUser = user
+        resolvedUser = {
+          _id: user._id,
+          name: user.name
+        }
       }
     }
 

@@ -113,7 +113,7 @@ describe('authentication', () => {
   it('should add the req.context.user', () => {
     return new Promise((resolve, reject) => {
       reporter.documentStore.collection('templates').beforeFindListeners.add('test', this, (q, proj, req) => {
-        if (!req.context.user || !req.context.user.username) {
+        if (!req.context.user || !req.context.user.name) {
           return reject(new Error('req.context.user not set'))
         }
         resolve()

@@ -63,7 +63,14 @@ function addPassport (reporter, app, admin, definition) {
 
     reporter.authentication.usersRepository.authenticate(username, password).then(r => {
       if (r.valid) {
-        return done(null, r.user)
+        const user = r.user.isSuperAdmin
+          ? r.user
+          : {
+              _id: r.user._id,
+              name: r.user.name
+            }
+
+        return done(null, user)
       }
       done(createAuthError({ message: r.message, status: r.status }, false))
     }).catch(e => done(createAuthError({ message: e.message }), false))
@@ -193,7 +200,9 @@ function addPassport (reporter, app, admin, definition) {
     }))
   }
 
-  passport.serializeUser((user, done) => done(null, user.name))
+  passport.serializeUser((user, done) => {
+    done(null, user.name)
+  })
 
   passport.deserializeUser((username, done) => {
     if (username === admin.name) {
@@ -225,7 +234,10 @@ function addPassport (reporter, app, admin, definition) {
         .catch(done)
     } else {
       reporter.authentication.usersRepository.find(username)
-        .then((u) => done(null, u))
+        .then((u) => done(null, {
+          _id: u._id,
+          name: u.name
+        }))
         .catch(done)
     }
   })
