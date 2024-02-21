@@ -121,4 +121,5 @@ jsreportStartup.js
 exe-temp-resources
 compileDetection
 vfs.json
+embeddable-license.txt
 # end exe compilation
