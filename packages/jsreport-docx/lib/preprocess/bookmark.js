@@ -12,7 +12,7 @@ module.exports = (files, headerFooterRefs) => {
   }
 
   for (const { doc: targetDoc, relsDoc: targetRelsDoc } of toProcess) {
-    processBookmark(targetDoc, targetRelsDoc, refs)
+    processBookmarks(targetDoc, targetRelsDoc, refs)
   }
 
   if (refs.maxBookmarkId != null) {
@@ -20,7 +20,7 @@ module.exports = (files, headerFooterRefs) => {
   }
 }
 
-function processBookmark (doc, relsDoc, refs) {
+function processBookmarks (doc, relsDoc, refs) {
   const bookmarkDocxImagesMap = new Map()
   const bookmarksToCreate = []
 
@@ -134,6 +134,11 @@ function processBookmark (doc, relsDoc, refs) {
     }
   }
 
+  // handles case in which document does not contain any previous bookmarks
+  if (refs.maxBookmarkId == null) {
+    refs.maxBookmarkId = 0
+  }
+
   for (const { name: bookmarkName, drawingEl } of bookmarksToCreate) {
     const newBookmarkId = refs.maxBookmarkId + 1
     const newBookmarkStartEl = doc.createElement('w:bookmarkStart')
@@ -155,10 +160,6 @@ function processBookmark (doc, relsDoc, refs) {
       start: newBookmarkStartEl,
       end: newBookmarkEndEl
     })
-  }
-
-  if (bookmarkDocxImagesMap.size > 0 && refs.maxBookmarkId == null) {
-    throw new Error('Could not find the max bookmarkId in document')
   }
 
   for (const [bookmarkName, bookmarkDrawingImages] of bookmarkDocxImagesMap) {
