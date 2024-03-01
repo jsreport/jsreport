@@ -1,7 +1,10 @@
 const Module = require('module')
 const os = require('os')
 const path = require('path')
+const resolveFilename = require('./resolveFilename')
 const isolatedRequire = require('./isolatedRequire')
+
+const REQUIRE_RESOLVE_CACHE = new Map()
 
 module.exports = function createSandboxRequire (safeExecution, isolateModules, modulesCache, {
   rootDirectory,
@@ -15,20 +18,28 @@ module.exports = function createSandboxRequire (safeExecution, isolateModules, m
     throw new Error(`rootDirectory must be an absolute path, path: ${rootDirectory}`)
   }
 
-  // we pass directory with trailing slash to ensure node recognize the path as directory
-  const requireFromRootDirectory = Module.createRequire(ensureTrailingSlash(rootDirectory))
+  const rootProxyPath = path.join(rootDirectory, '___sandbox___')
 
-  let isolatedModulesMeta
+  let modulesMeta
+
+  if (isolateModules) {
+    const rootModule = new isolatedRequire.IsolatedModule(rootProxyPath, null)
+    rootModule.filename = rootProxyPath
+    rootModule.paths = Module._nodeModulePaths(rootProxyPath)
+    rootModule.loaded = true
+
+    modulesMeta = {
+      rootModule,
+      modulesCache
+    }
+  }
+
+  const requireFromRootDirectory = Module.createRequire(rootProxyPath)
 
   if (isolateModules) {
     const requireExtensions = Object.create(null)
-
     isolatedRequire.setDefaultRequireExtensions(requireExtensions, modulesCache, compileScript)
-
-    isolatedModulesMeta = {
-      modulesCache: modulesCache,
-      requireExtensions
-    }
+    modulesMeta.requireExtensions = requireExtensions
   }
 
   return function sandboxRequire (moduleId, { context, useMap = true, allowAllModules = false } = {}) {
@@ -41,13 +52,13 @@ module.exports = function createSandboxRequire (safeExecution, isolateModules, m
     }
 
     if (!safeExecution || allowAllModules || allowedModules === '*') {
-      return doRequire(moduleId, requireFromRootDirectory, requirePaths, isolatedModulesMeta)
+      return doRequire(moduleId, requireFromRootDirectory, requirePaths, modulesMeta)
     }
 
     const m = allowedModules.find(mod => (mod.id || mod) === moduleId)
 
     if (m) {
-      return doRequire(m.path || moduleId, requireFromRootDirectory, requirePaths, isolatedModulesMeta)
+      return doRequire(m.path || moduleId, requireFromRootDirectory, requirePaths, modulesMeta)
     }
 
     const error = new Error(
@@ -62,25 +73,27 @@ module.exports = function createSandboxRequire (safeExecution, isolateModules, m
   }
 }
 
-function doRequire (moduleId, requireFromRootDirectory, _requirePaths, isolatedModulesMeta) {
-  const isolateModules = isolatedModulesMeta != null
+function doRequire (moduleId, requireFromRootDirectory, _requirePaths, modulesMeta) {
+  const isolateModules = modulesMeta != null
   const searchedPaths = []
   const requirePaths = _requirePaths || []
   const _require = isolateModules ? isolatedRequire : requireFromRootDirectory
   const extraRequireParams = []
 
   if (isolateModules) {
-    extraRequireParams.push(requireFromRootDirectory, isolatedModulesMeta)
+    extraRequireParams.push(modulesMeta, requireFromRootDirectory)
   }
 
-  let result = executeRequire(_require, moduleId, searchedPaths, ...extraRequireParams)
+  const resolveModule = requireFromRootDirectory.resolve
+
+  let result = executeRequire(_require, resolveModule, moduleId, searchedPaths, ...extraRequireParams)
 
   if (!result) {
     let pathsSearched = 0
 
     while (!result && pathsSearched < requirePaths.length) {
       const newModuleId = path.join(requirePaths[pathsSearched], moduleId)
-      result = executeRequire(_require, newModuleId, searchedPaths, ...extraRequireParams)
+      result = executeRequire(_require, resolveModule, newModuleId, searchedPaths, ...extraRequireParams)
       pathsSearched++
     }
   }
@@ -92,10 +105,46 @@ function doRequire (moduleId, requireFromRootDirectory, _requirePaths, isolatedM
   return result
 }
 
-function executeRequire (_require, moduleId, searchedPaths, ...restOfParams) {
+function executeRequire (_require, resolveModule, moduleId, searchedPaths, ...restOfParams) {
+  const isolateModules = restOfParams.length > 0
+  const shouldHandleModuleResolveFilenameOptimization = !isolateModules
+
+  const originalModuleResolveFilename = Module._resolveFilename
+
   try {
-    return _require(moduleId, ...restOfParams)
+    if (shouldHandleModuleResolveFilenameOptimization) {
+      // when isolate modules is disabled we add an extra cache here to optimize require resolution,
+      // basically we want to avoid the overhead that node require resolution
+      // adds when trying to resolve the filename/path of a module, because even if the module
+      // is cached in require.cache module filename/path resolution still happens and have a cost
+      const customResolveFilename = (...args) => {
+        const customResolveModule = (...resolveArgs) => {
+          Module._resolveFilename = originalModuleResolveFilename
+          try {
+            return resolveModule(...resolveArgs)
+          } finally {
+            Module._resolveFilename = customResolveFilename
+          }
+        }
+
+        return optimizedResolveFilename(customResolveModule, ...args)
+      }
+
+      Module._resolveFilename = customResolveFilename
+    }
+
+    const result = _require(moduleId, ...restOfParams)
+
+    if (shouldHandleModuleResolveFilenameOptimization) {
+      Module._resolveFilename = originalModuleResolveFilename
+    }
+
+    return result
   } catch (e) {
+    if (shouldHandleModuleResolveFilenameOptimization) {
+      Module._resolveFilename = originalModuleResolveFilename
+    }
+
     if (e.code && e.code === 'MODULE_NOT_FOUND') {
       if (!searchedPaths.includes(moduleId)) {
         searchedPaths.push(moduleId)
@@ -108,10 +157,6 @@ function executeRequire (_require, moduleId, searchedPaths, ...restOfParams) {
   }
 }
 
-function ensureTrailingSlash (fullPath) {
-  if (fullPath.endsWith(path.sep)) {
-    return fullPath
-  }
-
-  return fullPath + path.sep
+function optimizedResolveFilename (resolveModule, request, parent, isMain, options) {
+  return resolveFilename(REQUIRE_RESOLVE_CACHE, resolveModule, request, { parentModulePath: parent?.path, options })
 }

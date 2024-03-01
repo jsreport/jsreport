@@ -1,17 +1,18 @@
 const Module = require('module')
 const path = require('path')
 const fs = require('fs')
+const resolveFilename = require('./resolveFilename')
 
-const REQUIRE_RESOLVE_CACHE = new Map()
-const REQUIRE_SCRIPT_CACHE = new Map()
-const PACKAGE_JSON_CACHE = new Map()
+const ISOLATED_REQUIRE_RESOLVE_CACHE = new Map()
+const ISOLATED_REQUIRE_SCRIPT_CACHE = new Map()
+const ISOLATED_PACKAGE_JSON_CACHE = new Map()
 
 // The isolated require is a function that replicates the node.js require but that does not
 // cache the modules with the standard node.js cache, instead its uses its own cache in order
 // to bring isolated modules across renders and without memory leaks.
 // most of the code is copied from node.js source code and adapted a bit
 // (you will see in some parts specific links to node.js source code counterpart for reference)
-function isolatedRequire (_moduleId, requireFromRootDirectory, isolatedModulesMeta) {
+function isolatedRequire (_moduleId, modulesMeta, requireFromRootDirectory) {
   const parentModule = typeof _moduleId !== 'string' ? _moduleId.parent : null
   const moduleId = parentModule ? _moduleId.moduleId : _moduleId
 
@@ -30,19 +31,26 @@ function isolatedRequire (_moduleId, requireFromRootDirectory, isolatedModulesMe
     return require(moduleId)
   }
 
-  const { modulesCache, requireExtensions } = isolatedModulesMeta
-  const fullModulePath = resolveFilename(requireFromRootDirectory, moduleId, { parentModulePath: parentModule?.path })
+  const { rootModule, modulesCache, requireExtensions } = modulesMeta
+
+  const fullModulePath = resolveFilename(ISOLATED_REQUIRE_RESOLVE_CACHE, requireFromRootDirectory.resolve, moduleId, { parentModulePath: parentModule?.path })
 
   if (modulesCache[fullModulePath]) {
     return modulesCache[fullModulePath].exports
   }
 
-  const mod = new IsolatedModule(fullModulePath, parentModule)
+  let targetParentModule = parentModule
+
+  if (targetParentModule == null) {
+    targetParentModule = rootModule
+  }
+
+  const mod = new IsolatedModule(fullModulePath, targetParentModule)
 
   // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L1133
   // we can not add this to the IsolatedModule.prototype because we need access to other variables
   mod.require = function (id) {
-    return isolatedRequire({ parent: this, moduleId: id }, requireFromRootDirectory, isolatedModulesMeta)
+    return isolatedRequire({ parent: this, moduleId: id }, modulesMeta, requireFromRootDirectory)
   }
 
   modulesCache[fullModulePath] = mod
@@ -88,8 +96,8 @@ function setDefaultRequireExtensions (currentExtensions, requireFromRootDirector
 
     let compiledScript
 
-    if (REQUIRE_SCRIPT_CACHE.has(filename)) {
-      compiledScript = REQUIRE_SCRIPT_CACHE.get(filename)
+    if (ISOLATED_REQUIRE_SCRIPT_CACHE.has(filename)) {
+      compiledScript = ISOLATED_REQUIRE_SCRIPT_CACHE.get(filename)
     } else {
       let moduleContent = fs.readFileSync(filename, 'utf8')
 
@@ -99,7 +107,7 @@ function setDefaultRequireExtensions (currentExtensions, requireFromRootDirector
 
       compiledScript = compileScript(moduleWrappedContent, filename, false)
 
-      REQUIRE_SCRIPT_CACHE.set(filename, compiledScript)
+      ISOLATED_REQUIRE_SCRIPT_CACHE.set(filename, compiledScript)
     }
 
     // we run module in same context than main context because we want to reproduce the same behavior
@@ -163,7 +171,7 @@ function IsolatedModule (id = '', parent) {
   // something here, however if the need appears we can check what we can do about it
   // we should be aware of the expected values it carries according to the node.js docs
   // https://nodejs.org/api/modules.html#moduleparent
-  this.parent = undefined
+  this.parent = parent
 
   // this is always false for our case, because our modules we never run during the
   // Node.js preload phase
@@ -184,7 +192,7 @@ function makeRequireFunction (mod, requireFromRootDirectory, currentExtensions) 
       options
     }
 
-    return resolveFilename(requireFromRootDirectory, request, extra)
+    return resolveFilename(ISOLATED_REQUIRE_RESOLVE_CACHE, requireFromRootDirectory.resolve, request, extra)
   }
 
   requireFn.resolve = resolve
@@ -206,36 +214,6 @@ function makeRequireFunction (mod, requireFromRootDirectory, currentExtensions) 
   requireFn.cache = Object.create(null)
 
   return requireFn
-}
-
-function resolveFilename (requireFromRootDirectory, moduleId, extra) {
-  const { parentModulePath, options } = extra
-  const useCache = options == null
-  const resolveCacheKey = parentModulePath ? `${parentModulePath}::${moduleId}` : moduleId
-  let fullModulePath
-
-  if (useCache && REQUIRE_RESOLVE_CACHE.has(resolveCacheKey)) {
-    fullModulePath = REQUIRE_RESOLVE_CACHE.get(resolveCacheKey)
-  } else {
-    if (parentModulePath) {
-      const optionsToUse = { ...options }
-
-      // search from the parent module path by default if not explicit .paths has been passed
-      if (optionsToUse.paths == null) {
-        optionsToUse.paths = [parentModulePath]
-      }
-
-      fullModulePath = requireFromRootDirectory.resolve(moduleId, optionsToUse)
-    } else {
-      fullModulePath = requireFromRootDirectory.resolve(moduleId)
-    }
-
-    if (useCache) {
-      REQUIRE_RESOLVE_CACHE.set(resolveCacheKey, fullModulePath)
-    }
-  }
-
-  return fullModulePath
 }
 
 // https://github.com/nodejs/node/blob/v18.14.2/lib/internal/modules/cjs/loader.js#L496
@@ -295,7 +273,7 @@ function readPackageScope (checkPath) {
 function readPackage (requestPath) {
   const jsonPath = path.resolve(requestPath, 'package.json')
 
-  const existing = PACKAGE_JSON_CACHE.get(jsonPath)
+  const existing = ISOLATED_PACKAGE_JSON_CACHE.get(jsonPath)
 
   if (existing !== undefined) {
     return existing
@@ -308,7 +286,7 @@ function readPackage (requestPath) {
   } catch (error) {}
 
   if (json === undefined) {
-    PACKAGE_JSON_CACHE.set(jsonPath, false)
+    ISOLATED_PACKAGE_JSON_CACHE.set(jsonPath, false)
     return false
   }
 
@@ -321,7 +299,7 @@ function readPackage (requestPath) {
       'type'
     ])
 
-    PACKAGE_JSON_CACHE.set(jsonPath, filtered)
+    ISOLATED_PACKAGE_JSON_CACHE.set(jsonPath, filtered)
     return filtered
   } catch (e) {
     e.path = jsonPath
@@ -439,4 +417,5 @@ function validateString (value, name) {
 }
 
 module.exports = isolatedRequire
+module.exports.IsolatedModule = IsolatedModule
 module.exports.setDefaultRequireExtensions = setDefaultRequireExtensions
