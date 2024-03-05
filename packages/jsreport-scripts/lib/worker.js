@@ -135,7 +135,7 @@ class Scripts {
   async _runScript (req, res, { script, method, onBeforeExecute, onAfterExecute }) {
     this.reporter.logger.debug(`Executing script ${(script.name || script.shortid || 'anonymous')} (${method})`, req)
 
-    await this.reporter.beforeScriptListeners.fire({ script }, req)
+    await this.reporter.beforeScriptListeners.fire({ script }, req, res)
 
     const scriptExecResult = await (require('./executeScript')(this.reporter, { script, method, onBeforeExecute }, req, res))
 
@@ -169,21 +169,11 @@ class Scripts {
       delete scriptExecResult.req.data
       merge(req, scriptExecResult.req)
 
-      if (scriptExecResult.res.content != null) {
-        await res.output.save(scriptExecResult.res.content)
-      }
-
-      delete scriptExecResult.res.content
-      merge(res, scriptExecResult.res)
+      await res.parseFrom(scriptExecResult.res)
     }
 
     if (method === 'afterRender') {
-      if (scriptExecResult.res.content != null) {
-        await res.output.save(scriptExecResult.res.content)
-      }
-
-      delete scriptExecResult.res.content
-      merge(res, scriptExecResult.res)
+      await res.parseFrom(scriptExecResult.res)
 
       req.data = scriptExecResult.req.data
       delete scriptExecResult.req.data

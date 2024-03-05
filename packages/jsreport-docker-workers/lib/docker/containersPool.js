@@ -8,7 +8,6 @@ module.exports = ({
   network,
   subnet,
   numberOfWorkers,
-  streamResponse,
   tempDirectory,
   logger,
   initData
@@ -54,7 +53,6 @@ module.exports = ({
           debugPort: container.baseDebugPort + i,
           network,
           logger,
-          streamResponse,
           tempDirectory,
           initData
         })

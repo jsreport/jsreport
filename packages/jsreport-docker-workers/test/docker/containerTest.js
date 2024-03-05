@@ -42,7 +42,8 @@ describe('container', () => {
         memory: '420m',
         cpus: '0.5',
         logDriver: 'json-file',
-        tempVolumeTarget: '/tmp'
+        tempVolumeTarget: '/tmp',
+        sharedTempHostBindMountRootPath: path.join(os.tmpdir(), 'jsreport', 'docker')
       }
     })
   })

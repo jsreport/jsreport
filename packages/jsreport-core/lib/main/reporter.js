@@ -380,7 +380,7 @@ class MainReporter extends Reporter {
     let workerAborted
     let dontCloseProcessing
 
-    const { sealResponse, response: res } = await Response(this, req.context.id, {})
+    const res = await Response(this, req.context.id, {})
 
     try {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)
@@ -444,18 +444,10 @@ class MainReporter extends Reporter {
               worker
             }, req)
 
-            if (responseResult.content != null) {
-              await res.output.save(responseResult.content)
-              delete responseResult.content
-            }
-
-            Object.assign(res, responseResult)
+            await res.parseFrom(responseResult)
 
             await this.afterRenderListeners.fire(req, res)
-
-            sealResponse()
           } catch (err) {
-            sealResponse()
             await this._handleRenderError(req, res, err).catch((e) => {})
           } finally {
             this._cleanProfileInRequest(req)
@@ -468,7 +460,8 @@ class MainReporter extends Reporter {
         dontCloseProcessing = true
         const r = {
           ...req.context.clientNotification,
-          stream: Readable.from(req.context.clientNotification.content)
+          stream: Readable.from(req.context.clientNotification.content),
+          content: req.context.clientNotification.content
         }
         delete req.context.clientNotification
         return r
@@ -483,24 +476,14 @@ class MainReporter extends Reporter {
         worker
       }, req)
 
-      if (responseResult.content != null) {
-        await res.output.save(responseResult.content)
-        delete responseResult.content
-      } else {
-        this.logger.error('Worker did not return render res.content, returned:' + JSON.stringify(responseResult), req)
-      }
-
-      Object.assign(res, responseResult)
+      await res.parseFrom(responseResult)
 
       await this.afterRenderListeners.fire(req, res)
-
-      sealResponse()
 
       this._cleanProfileInRequest(req)
 
       return res
     } catch (err) {
-      sealResponse()
       await this._handleRenderError(req, res, err)
       this._cleanProfileInRequest(req)
       throw err

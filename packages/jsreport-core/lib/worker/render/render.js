@@ -59,8 +59,7 @@ module.exports = (reporter) => {
     reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
     const engineRes = await executeEngine(engine, request)
-
-    await response.output.save(Buffer.from(engineRes.content != null ? engineRes.content : ''))
+    await response.output.setBuffer(Buffer.from(engineRes.content != null ? engineRes.content : ''))
 
     reporter.profiler.emit({
       type: 'operationEnd',
@@ -92,6 +91,7 @@ module.exports = (reporter) => {
     reporter.logger.debug('Executing recipe ' + request.template.recipe, request)
 
     await recipe.execute(request, response)
+
     reporter.profiler.emit({
       type: 'operationEnd',
       operationId: recipeProfilerEvent.operationId
@@ -109,8 +109,11 @@ module.exports = (reporter) => {
     if (request.context.id == null) {
       request.context.id = reporter.generateRequestId()
     }
+    if (parentReq == null) {
+      reporter.reqStorage.registerReq(request)
+    }
 
-    const { sealResponse, getResponseFilePath, response } = await Response(reporter, request.context.id, {})
+    const response = Response(reporter, request.context.id, {})
 
     let renderStartProfilerEvent
 
@@ -156,11 +159,8 @@ module.exports = (reporter) => {
 
       await reporter.profiler.renderEnd(renderStartProfilerEvent.operationId, request, response)
 
-      sealResponse()
-
-      return { response, responseFilePath: getResponseFilePath != null ? getResponseFilePath() : null }
+      return response
     } catch (e) {
-      sealResponse()
       await reporter.renderErrorListeners.fire(request, response, e)
 
       const logFn = e.weak ? reporter.logger.warn : reporter.logger.error
@@ -195,6 +195,7 @@ module.exports = (reporter) => {
     } finally {
       if (parentReq == null) {
         reporter.requestModulesCache.delete(request.context.rootId)
+        reporter.reqStorage.unregisterReq(request)
       }
     }
   }

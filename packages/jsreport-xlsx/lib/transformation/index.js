@@ -31,9 +31,9 @@ module.exports = async (reporter, definition, req, res) => {
   req.context.asyncHandlebars = false
 
   // we need to call afterTemplatingEnginesExecutedListeners to ensure the assets are extracted
-  const { response: fakeRes } = await reporter.Response(`xlsx-transformation-${req.context.id}`, {})
+  const fakeRes = reporter.Response(`xlsx-transformation-${req.context.id}`)
 
-  await fakeRes.output.save(Buffer.from(contentString))
+  await fakeRes.output.setBuffer(Buffer.from(contentString))
 
   await reporter.afterTemplatingEnginesExecutedListeners.fire(req, fakeRes)
 

@@ -35,7 +35,6 @@ module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } =
 }
 
 async function _sendToWorker (url, _data, { executeMain, reporter, timeout, originUrl, containerId, systemAction, httpOptions = {}, remote, signal }) {
-  const streamResponseEnabled = reporter.options.streamResponse
   const sharedTempRewriteRootPathTo = reporter.options.extensions['docker-workers'].container.sharedTempRewriteRootPathTo
 
   let data = { ..._data, timeout, systemAction }
@@ -121,7 +120,8 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, orig
       let responseData
 
       try {
-        if (streamResponseEnabled && remote && originalActionName === 'render') {
+        if (remote && originalActionName === 'render') {
+          // parsing response from the remote server and changing the output to what expects reporter.Response
           let parsedContentStream
 
           const { pathToFile: pathToTempFile, stream: tempOutputStream } = await reporter.writeTempFileStream((uuid) => `docker-workers-send-${uuid}`)
@@ -141,7 +141,7 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, orig
 
           if (parsedContentStream) {
             await pipeline(Readable.fromWeb(parsedContentStream), tempOutputStream)
-            responseData.content = pathToTempFile
+            responseData.output = { filePath: pathToTempFile, type: 'stream' }
           }
         } else {
           responseData = await readStringFromStream(res.data)
@@ -155,14 +155,17 @@ async function _sendToWorker (url, _data, { executeMain, reporter, timeout, orig
       if (res.status === 201) {
         isDone = true
 
-        if (streamResponseEnabled && originalActionName === 'render') {
+        if (originalActionName === 'render') {
           if (remote) {
+            // the responseData.output.filePath is already local file
             return responseData
           }
 
           const parsedResponseData = serializator.parse(responseData)
-
-          parsedResponseData.content = parsedResponseData.content.replace('/tmp/', `${sharedTempRewriteRootPathTo}/${containerId}/`)
+          if (parsedResponseData.output.type === 'stream') {
+            // change from container path to the host path
+            parsedResponseData.output.filePath = parsedResponseData.output.filePath.replace('/tmp/jsreport', `${sharedTempRewriteRootPathTo}/${containerId}/`)
+          }
 
           return parsedResponseData
         }

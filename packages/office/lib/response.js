@@ -22,14 +22,7 @@ module.exports = async function response ({
   logger
 }, req, res) {
   const isRenderResponse = res.__isJsreportResponse__ === true
-  let resContent
   let result
-
-  if (buffer) {
-    resContent = { type: 'buffer', value: buffer }
-  } else {
-    resContent = { type: 'path', value: filePath }
-  }
 
   if (officeDocuments[officeDocumentType] == null) {
     throw new Error(`Unsupported office document type "${officeDocumentType}"`)
@@ -49,9 +42,13 @@ module.exports = async function response ({
 
   if (enabled === false || !isOfficePreviewRequest) {
     if (isRenderResponse) {
-      await res.output.save(resContent.value)
+      if (buffer) {
+        await res.output.setBuffer(buffer)
+      } else {
+        await res.switchToStream(fs.createReadStream(filePath))
+      }
     } else {
-      result = resContent.value
+      result = buffer
     }
 
     res.meta.fileExtension = officeDocumentType
@@ -63,7 +60,7 @@ module.exports = async function response ({
   logger.debug('preparing office preview', req)
 
   const form = new FormData()
-  const formContent = resContent.type === 'path' ? fs.createReadStream(resContent.value) : resContent.value
+  const formContent = buffer || fs.createReadStream(filePath)
 
   form.append('field', formContent, `file.${officeDocumentType}`)
 
@@ -100,9 +97,13 @@ module.exports = async function response ({
     logger.error(message, req)
 
     if (isRenderResponse) {
-      await res.output.save(resContent.value)
+      if (buffer) {
+        await res.output.setBuffer(buffer)
+      } else {
+        await res.switchToStream(fs.createReadStream(filePath))
+      }
     } else {
-      result = resContent.value
+      res.content = buffer
     }
 
     res.meta.fileExtension = officeDocumentType
@@ -118,7 +119,7 @@ module.exports = async function response ({
   const htmlBuffer = Buffer.from(`<html><head><title>${res.meta.reportName}</title><body>${iframe}</body></html>`)
 
   if (isRenderResponse) {
-    await res.output.save(htmlBuffer)
+    await res.output.setBuffer(htmlBuffer)
   } else {
     result = htmlBuffer
   }

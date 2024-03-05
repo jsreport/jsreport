@@ -1,11 +1,80 @@
 const util = require('util')
 const asyncReplace = util.promisify(require('async-replace-with-limit'))
-const Semaphore = require('semaphore-async-await').default
 const { readAsset } = require('./assetsShared')
+const test = /{#asset ([^{}]{0,500})}/g
 const imageTest = /\.(jpeg|jpg|gif|png|svg)$/
 const fontTest = /\.(woff|ttf|otf|eot|woff2)$/
 const fs = require('fs').promises
 const path = require('path')
+
+function isImage (name) {
+  return name.match(imageTest) != null
+}
+function isFont (name) {
+  return name.match(fontTest) != null
+}
+
+async function evaluateAssets (reporter, definition, stringToReplace, req) {
+  stringToReplace += ''
+  req.context.evaluateAssetsCounter = req.context.evaluateAssetsCounter || 0
+  req.context.evaluateAssetsCounter++
+
+  const replacedAssets = []
+
+  function convert (str, p1, offset, s, done) {
+    const assetName = ((p1.indexOf(' @') !== -1) ? p1.substring(0, p1.indexOf(' @')) : p1).trim()
+
+    let encoding = 'utf8'
+    if (p1.indexOf(' @') !== -1) {
+      const paramRaw = (p1.replace(assetName, '').replace(' @', '')).trim()
+
+      if (paramRaw.split('=').length !== 2) {
+        throw reporter.createError('Wrong asset param specification, should be {#asset name @encoding=base64}', {
+          statusCode: 400
+        })
+      }
+
+      const paramName = paramRaw.split('=')[0]
+      const paramValue = paramRaw.split('=')[1]
+
+      if (paramName !== 'encoding') {
+        throw reporter.createError('Unsupported param ' + paramName, {
+          statusCode: 400
+        })
+      }
+
+      if (paramValue !== 'base64' && paramValue !== 'utf8' && paramValue !== 'string' && paramValue !== 'link' && paramValue !== 'dataURI') {
+        throw reporter.createError('Unsupported asset encoding param value ' + paramValue + ', supported values are base64, utf8, link, dataURI and string', {
+          statusCode: 400
+        })
+      }
+
+      if (paramValue === 'dataURI' && !isImage(assetName) && !isFont(assetName)) {
+        throw reporter.createError('Asset encoded as dataURI needs to have file extension jpeg|jpg|gif|png|svg|woff|tff|otf|woff2|eot', {
+          statusCode: 400
+        })
+      }
+
+      encoding = paramValue
+    }
+
+    readAsset(reporter, definition, { id: null, name: assetName, encoding }, req).then(function (res) {
+      replacedAssets.push(assetName)
+      done(null, res.content)
+    }).catch(done)
+  }
+
+  const result = await asyncReplace(stringToReplace, test, convert)
+  if (replacedAssets.length) {
+    reporter.logger.debug('Replaced assets ' + JSON.stringify(replacedAssets), req)
+  }
+
+  if (test.test(result) && req.context.evaluateAssetsCounter < 100) {
+    return evaluateAssets(reporter, definition, result, req)
+  }
+
+  return result
+}
 
 module.exports = (reporter, definition) => {
   reporter.assets = { options: definition.options }
@@ -14,6 +83,10 @@ module.exports = (reporter, definition) => {
   let assetHelpers
 
   reporter.beforeRenderListeners.insert({ after: 'scripts' }, definition.name, this, async (req, res) => {
+    if (res.isInStreamingMode) {
+      return
+    }
+
     req.template.content = await evaluateAssets(reporter, definition, req.template.content, req)
 
     if (req.template.helpers && typeof req.template.helpers === 'string') {
@@ -26,15 +99,25 @@ module.exports = (reporter, definition) => {
   })
 
   reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, async (req, res) => {
-    await evaluateAssets(reporter, definition, res, req)
+    if (res.isInStreamingMode) {
+      return
+    }
+
+    const result = await evaluateAssets(reporter, definition, res.content.toString(), req)
+    res.output.setBufferSync(Buffer.from(result))
   })
 
   reporter.initializeListeners.add(definition.name, async () => {
     assetHelpers = (await fs.readFile(path.join(__dirname, '../static/helpers.js'))).toString()
-
     if (reporter.beforeScriptListeners) {
-      reporter.beforeScriptListeners.add(definition.name, async function ({ script }, req) {
-        script.content = await evaluateAssets(reporter, definition, script.content, req)
+      reporter.beforeScriptListeners.add(definition.name, function ({ script }, req, res) {
+        if (res.isInStreamingMode) {
+          return
+        }
+
+        return evaluateAssets(reporter, definition, script.content, req).then(function (result) {
+          script.content = result
+        })
       })
     }
   })
@@ -187,205 +270,4 @@ module.exports = (reporter, definition) => {
       }
     }
   })
-}
-
-async function evaluateAssets (reporter, definition, contentToReplace, req) {
-  const target = {
-    value: contentToReplace
-  }
-
-  if (typeof contentToReplace === 'string') {
-    target.type = 'string'
-  } else if (contentToReplace != null && contentToReplace.__isJsreportResponse__ === true) {
-    target.type = 'streaming'
-  } else {
-    throw new Error('evaluateAssets received invalid contentToReplace')
-  }
-
-  req.context.evaluateAssetsCounter = req.context.evaluateAssetsCounter || 0
-  req.context.evaluateAssetsCounter++
-
-  async function processAssetCall (assetCall) {
-    const assetName = ((assetCall.indexOf(' @') !== -1) ? assetCall.substring(0, assetCall.indexOf(' @')) : assetCall).trim()
-
-    let encoding = 'utf8'
-    if (assetCall.indexOf(' @') !== -1) {
-      const paramRaw = (assetCall.replace(assetName, '').replace(' @', '')).trim()
-
-      if (paramRaw.split('=').length !== 2) {
-        throw reporter.createError('Wrong asset param specification, should be {#asset name @encoding=base64}', {
-          statusCode: 400
-        })
-      }
-
-      const paramName = paramRaw.split('=')[0]
-      const paramValue = paramRaw.split('=')[1]
-
-      if (paramName !== 'encoding') {
-        throw reporter.createError(`Unsupported param ${paramName}`, {
-          statusCode: 400
-        })
-      }
-
-      if (paramValue !== 'base64' && paramValue !== 'utf8' && paramValue !== 'string' && paramValue !== 'link' && paramValue !== 'dataURI') {
-        throw reporter.createError(`Unsupported asset encoding param value ${paramValue}, supported values are base64, utf8, link, dataURI and string`, {
-          statusCode: 400
-        })
-      }
-
-      if (paramValue === 'dataURI' && !isImage(assetName) && !isFont(assetName)) {
-        throw reporter.createError('Asset encoded as dataURI needs to have file extension jpeg|jpg|gif|png|svg|woff|tff|otf|woff2|eot', {
-          statusCode: 400
-        })
-      }
-
-      encoding = paramValue
-    }
-
-    const res = await readAsset(reporter, definition, { id: null, name: assetName, encoding }, req)
-
-    return {
-      name: assetName,
-      content: res.content
-    }
-  }
-
-  async function evaluateNestedAssetsIfNeeded (assetsFound, content) {
-    if (assetsFound.length > 0) {
-      reporter.logger.debug(`Replaced assets ${JSON.stringify(assetsFound)}`, req)
-    }
-
-    if (assetsFound.length > 0 && getCompleteAssetCallRegexp().test(content) && req.context.evaluateAssetsCounter < 100) {
-      return evaluateAssets(reporter, definition, content, req)
-    }
-
-    return content
-  }
-
-  if (target.type === 'string') {
-    const replacedAssets = []
-
-    const result = await asyncReplace(target.value, getCompleteAssetCallRegexp(), function stringConvert (str, p1, offset, s, done) {
-      processAssetCall(p1).then((assetResult) => {
-        replacedAssets.push(assetResult.name)
-        done(null, assetResult.content)
-      }).catch(done)
-    })
-
-    const finalResult = await evaluateNestedAssetsIfNeeded(replacedAssets, result)
-
-    return finalResult
-  }
-
-  await target.value.output.save({
-    transform: async (chunk) => {
-      const chunkStr = chunk.toString()
-      const result = {}
-      const replacedAssets = []
-
-      const matches = [...chunkStr.matchAll(getCompleteAssetCallRegexp())]
-
-      if (matches.length === 0) {
-        result.content = chunk
-        result.concat = hasPartialAssetCall(chunkStr)
-
-        return result
-      }
-
-      const matchesCount = matches.length
-      const semaphore = new Semaphore(Infinity)
-      const tasks = []
-      const results = new Map()
-
-      for (let idx = 0; idx < matchesCount; idx++) {
-        const currentIdx = idx
-        const match = matches[currentIdx]
-
-        results.set(currentIdx, {
-          start: match.index,
-          length: match[0].length,
-          newContent: null
-        })
-
-        tasks.push(semaphore.execute(async () => {
-          const assetCallResult = await processAssetCall(match[1])
-          replacedAssets.push(assetCallResult.name)
-          results.get(currentIdx).newContent = assetCallResult.content
-        }))
-      }
-
-      await Promise.all(tasks)
-
-      let newContent = chunkStr
-      let diff = 0
-
-      for (let idx = 0; idx < matchesCount; idx++) {
-        const resultInfo = results.get(idx)
-        const currentStart = resultInfo.start + diff
-
-        diff += resultInfo.newContent.length - resultInfo.length
-
-        newContent = newContent.slice(0, currentStart) + resultInfo.newContent + newContent.slice(currentStart + resultInfo.length)
-      }
-
-      newContent = await evaluateNestedAssetsIfNeeded(replacedAssets, newContent)
-
-      result.content = Buffer.from(newContent)
-      result.concat = hasPartialAssetCall(newContent)
-
-      return result
-    }
-  })
-}
-
-function hasPartialAssetCall (str) {
-  const partialMatch = str.match(getIncompleteAssetCallAtEndRegexp())
-  let hasPartialCall = false
-
-  if (partialMatch == null) {
-    hasPartialCall = false
-  } else {
-    const assetPart = partialMatch[1]
-    const namePart = partialMatch[2].length
-
-    const checks = [
-      () => assetPart.length === 0 && namePart === 0,
-      () => {
-        if (assetPart.length === 0) {
-          return false
-        }
-
-        const completeAssetPart = '#asset '
-        const containsComplete = assetPart.length === completeAssetPart.length
-
-        if (containsComplete) {
-          return true
-        }
-
-        const targetAssetPart = completeAssetPart.slice(0, partialMatch[1].length)
-
-        return assetPart === targetAssetPart
-      }
-    ]
-
-    hasPartialCall = checks.some((check) => check())
-  }
-
-  return hasPartialCall
-}
-
-function getCompleteAssetCallRegexp () {
-  return /{#asset ([^{}]{0,500})}/g
-}
-
-function getIncompleteAssetCallAtEndRegexp () {
-  return /{([#asset ]{0,7})([^{}]{0,500})$/
-}
-
-function isImage (name) {
-  return name.match(imageTest) != null
-}
-
-function isFont (name) {
-  return name.match(fontTest) != null
 }

@@ -51,9 +51,7 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
     if (chrome.url) {
       htmlUrl = chrome.url
     } else {
-      const { pathToFile: htmlPath } = await reporter.writeTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`, '')
-
-      await res.output.toFile(htmlPath)
+      const { pathToFile } = await res.output.writeToTempFile((uuid) => `${uuid}-${imageExecution ? 'chrome-image' : 'chrome-pdf'}.html`)
 
       // when running docker on windows host the isAbsolute is not able to correctly determine
       // if path is absolute
@@ -61,7 +59,7 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
       //  throw new Error(`generated htmlPath option must be an absolute path to a file. path: ${htmlPath}`)
       // }
 
-      htmlUrl = url.pathToFileURL(htmlPath)
+      htmlUrl = url.pathToFileURL(pathToFile)
     }
 
     if (!imageExecution) {
@@ -83,8 +81,13 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
       req,
       conversionOptions: chrome,
       imageExecution,
+      // we need to copy the stream before the browser instance get recycled
       onOutput: async ({ content }) => {
-        await res.output.save(content)
+        if (Buffer.isBuffer(content)) {
+          await res.output.setBuffer(content)
+        } else {
+          await res.switchToStream(content)
+        }
       }
     })
 

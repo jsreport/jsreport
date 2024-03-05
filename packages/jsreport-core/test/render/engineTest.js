@@ -694,6 +694,44 @@ describe('engine', () => {
 
     should(res.content.toString()).containEql('JSON.parse(')
   })
+
+  it('should expose jsreport.templatingEngines.createStream', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `async function a() {
+          const jsreport = require('jsreport-proxy')
+          const stream = await jsreport.templatingEngines.createStream()
+          await stream.write('hello')
+          return await stream.toResult()
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).containEql('hello')
+  })
+
+  it('should fail when jsreport.templatingEngines.createStream called more than 100x', () => {
+    return reporter.render({
+      template: {
+        content: 'content',
+        helpers: `async function a() {
+          const jsreport = require('jsreport-proxy')
+          let r = ''
+          for (let i = 0; i < 1005; i++) {
+            const stream = await jsreport.templatingEngines.createStream()
+            await stream.write('hello')
+            r += await stream.toResult()
+          }
+          return r
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/max/)
+  })
 })
 
 function createReporter (options) {

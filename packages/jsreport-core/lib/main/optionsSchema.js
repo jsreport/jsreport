@@ -59,7 +59,6 @@ module.exports.getRootSchemaOptions = () => ({
       default: '2s'
     },
     enableRequestReportTimeout: { type: 'boolean', default: false, description: 'option that enables passing a custom report timeout per request using req.options.timeout. this enables that the caller of the report generation control the report timeout so enable it only when you trust the caller' },
-    streamResponse: { type: 'boolean', default: true, description: 'option that controls whetter render response content is stored and handled with streams preventing buffering whole content in memory' },
     trustUserCode: { type: 'boolean', default: false, description: 'option that control whether code sandboxing is enabled or not, code sandboxing has an impact on performance when rendering large reports. when true code sandboxing will be disabled meaning that users can potentially penetrate the local system if you allow code from external users to be part of your reports' },
     allowLocalFilesAccess: { type: 'boolean', default: false },
     encryption: {

@@ -1,6 +1,7 @@
 const path = require('path')
 const childProcess = require('child_process')
 const wkhtmltopdf = require('wkhtmltopdf-installer')
+const fs = require('fs')
 
 module.exports = async (reporter, definition, request, response) => {
   request.template.wkhtmltopdf = request.template.wkhtmltopdf || {}
@@ -10,9 +11,7 @@ module.exports = async (reporter, definition, request, response) => {
 
   try {
     const paths = {}
-    const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.html`, '')
-
-    await response.output.toFile(pathToFile)
+    const { pathToFile } = await response.output.writeToTempFile((uuid) => `${uuid}.html`)
 
     paths.template = pathToFile
 
@@ -23,7 +22,7 @@ module.exports = async (reporter, definition, request, response) => {
     response.meta.contentType = 'application/pdf'
     response.meta.fileExtension = 'pdf'
 
-    await response.output.save(outputPath)
+    await response.switchToStream(fs.createReadStream(outputPath))
   } catch (err) {
     throw reporter.createError('Error while processing wkhtmltopdf', {
       original: err,
@@ -203,11 +202,7 @@ async function processPart (reporter, options, req, type, paths) {
 
     reporter.logger.debug(`Child request to render wkhtmltopdf for ${type} finished`, req)
 
-    const result = await reporter.writeTempFile((uuid) => `${uuid}-${type}.html`, '')
-
-    await res.output.toFile(result.pathToFile)
-
-    paths[`template-${type}`] = result.pathToFile
+    paths[`template-${type}`] = await res.output.getBuffer()
   } catch (err) {
     throw reporter.createError(`Child request render for ${type} failed`, {
       original: err

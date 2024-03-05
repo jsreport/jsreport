@@ -100,7 +100,7 @@ module.exports = (reporter, definition) => async (request, response) => {
     })
   }
 
-  await response.output.save(result.stream)
+  await response.switchToStream(result.stream)
 
   reporter.logger.debug(`electron-pdf recipe finished with ${numberOfPages} pages generated`, request)
 }

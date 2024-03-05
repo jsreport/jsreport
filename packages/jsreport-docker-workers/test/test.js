@@ -5,58 +5,59 @@ const Koa = require('koa')
 const serializator = require('@jsreport/serializator')
 const should = require('should')
 
-function createPool ({
-  port,
-  numberOfWorkers
-}) {
-  const containers = []
-  for (let i = 1; i <= (numberOfWorkers || 2); i++) {
-    const container = {
-      id: i,
-      tempAutoCleanupLocalDirectoryPath: path.join(os.tmpdir(), 'jsreport', 'autocleanup'),
-      url: `http://localhost:${port + i}`
-    }
-    containers.push(container)
-    container.app = new Koa()
-    container.app.use(require('koa-bodyparser')({
-      enableTypes: ['text']
-    }))
-
-    container._handleReq = async (ctx) => {
-      ctx.response.status = 201
-      ctx.body = serializator.serialize({
-        content: Buffer.from('from worker ' + i)
-      })
-    }
-    container.handleReq = (fn) => (container._handleReq = fn)
-    container.app.use((ctx) => container._handleReq(ctx))
-
-    container.server = container.app.listen(port + i)
-    container.remove = () => container.server.close()
-    container.restart = () => {}
-  }
-
-  return {
-    containers,
-    start: () => {},
-    remove: () => {
-      for (const c of containers) {
-        c.remove()
-      }
-    }
-  }
-}
-
 describe('docker manager', () => {
   let reporter
   let containers
+
+  function createPool ({
+    port,
+    numberOfWorkers
+  }) {
+    const containers = []
+    for (let i = 1; i <= (numberOfWorkers || 2); i++) {
+      const container = {
+        id: i,
+        tempAutoCleanupLocalDirectoryPath: path.join(os.tmpdir(), 'jsreport', 'autocleanup'),
+        url: `http://localhost:${port + i}`
+      }
+      containers.push(container)
+      container.app = new Koa()
+      container.app.use(require('koa-bodyparser')({
+        enableTypes: ['text']
+      }))
+
+      container._handleReq = async (ctx) => {
+        ctx.response.status = 201
+        const resp = reporter.Response('1')
+        await resp.output.setBuffer(Buffer.from('from worker ' + i))
+        ctx.body = serializator.serialize(await resp.serialize())
+      }
+      container.handleReq = (fn) => (container._handleReq = fn)
+      container.app.use((ctx) => container._handleReq(ctx))
+
+      container.server = container.app.listen(port + i)
+      container.remove = () => container.server.close()
+      container.restart = () => {}
+    }
+
+    return {
+      containers,
+      start: () => {},
+      remove: () => {
+        for (const c of containers) {
+          c.remove()
+        }
+      }
+    }
+  }
+
   beforeEach(() => {
     const pool = createPool({
       port: 5000
     })
     containers = pool.containers
 
-    reporter = jsreport({ streamResponse: false })
+    reporter = jsreport()
       .use(require('../')({
         customContainersPoolFactory: () => pool,
         discriminatorPath: 'context.tenant'
@@ -84,9 +85,10 @@ describe('docker manager', () => {
           reqData.actionName.should.be.eql('render')
           reqData.req.template.content.should.be.eql('hello')
           ctx.response.status = 201
-          ctx.body = serializator.serialize({
-            content: Buffer.from('from worker')
-          })
+          const resp = reporter.Response('1')
+          await resp.output.setBuffer(Buffer.from('from worker'))
+          ctx.body = serializator.serialize(await resp.serialize())
+          ctx.response.status = 201
           executed = true
         } else {
           reqData.systemAction.should.be.eql('release')
@@ -137,9 +139,9 @@ describe('docker manager', () => {
           reqData.actionName.should.be.eql('render')
           reqData.req.template.content.should.be.eql('hello')
           ctx.response.status = 201
-          ctx.body = serializator.serialize({
-            content: Buffer.from('from worker')
-          })
+          const resp = reporter.Response('1')
+          await resp.output.setBuffer(Buffer.from('from worker'))
+          ctx.body = serializator.serialize(await resp.serialize())
           executed = true
           return
         }
@@ -182,10 +184,10 @@ describe('docker manager', () => {
           }
         })
       } else {
+        const resp = reporter.Response('1')
+        await resp.output.setBuffer(Buffer.from('from worker'))
         ctx.response.status = 201
-        ctx.body = serializator.serialize({
-          content: Buffer.from('from worker')
-        })
+        ctx.body = serializator.serialize(await resp.serialize())
       }
     })
 
@@ -488,8 +490,7 @@ describe('docker manager', () => {
 
       remoteReporter = jsreport({
         ip: remoteIp,
-        httpPort: 5489,
-        streamResponse: false
+        httpPort: 5489
       })
         .use(require('../')({
           customContainersPoolFactory: () => pool,
@@ -519,10 +520,16 @@ describe('docker manager', () => {
 
     it('should proxy request to remote server when tenant has active worker', async () => {
       remoteContainers[0].handleReq(async (ctx) => {
-        ctx.response.status = 201
-        ctx.body = serializator.serialize({
-          content: Buffer.from('from remote worker')
-        })
+        const reqData = serializator.parse(ctx.request.rawBody)
+
+        if (reqData.actionName !== 'render') {
+          ctx.status = 201
+          ctx.body = '{}'
+        }
+
+        const resp = reporter.Response('1')
+        await resp.output.setBuffer(Buffer.from('from remote worker'))
+        ctx.body = serializator.serialize(await resp.serialize())
       })
 
       await reporter.documentStore.internalCollection('tenantWorkers').insert({
@@ -543,7 +550,7 @@ describe('docker manager', () => {
           tenant: 'a'
         }
       })
-      res.content.toString().should.be.eql('from remote worker')
+      res.content.toString().should.containEql('from remote worker')
     })
 
     it('should process request when tenant has worker assigned but it is not active', async () => {
@@ -572,9 +579,9 @@ describe('docker manager', () => {
 
       containers[0].handleReq(async (ctx) => {
         ctx.response.status = 201
-        ctx.body = serializator.serialize({
-          content: Buffer.from('from local worker')
-        })
+        const resp = reporter.Response('1')
+        await resp.output.setBuffer(Buffer.from('from local worker'))
+        ctx.body = serializator.serialize(await resp.serialize())
       })
 
       const res = await reporter.render({

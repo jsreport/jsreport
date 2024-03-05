@@ -2,6 +2,7 @@ const path = require('path')
 const mime = require('mime')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
+const fs = require('fs')
 
 module.exports = function (reporter, definition) {
   reporter.beforeRenderListeners.add('unoconv', (req, res) => {
@@ -22,12 +23,10 @@ module.exports = function (reporter, definition) {
 
       let outputFilename
 
-      const { pathToFile } = await reporter.writeTempFile((uuid) => {
+      const { pathToFile } = await res.output.writeToTempFile((uuid) => {
         outputFilename = `${uuid}.${format}`
         return `${uuid}.${fileExtension}`
-      }, '')
-
-      await res.output.toFile(pathToFile)
+      })
 
       const command = `${definition.options.command} -f ${format} ${pathToFile}`
 
@@ -35,7 +34,7 @@ module.exports = function (reporter, definition) {
 
       const { stdout, stderr } = await exec(command)
 
-      await res.output.save(path.join(path.dirname(pathToFile), outputFilename))
+      await res.switchToStream(fs.createReadStream(path.join(path.dirname(pathToFile), outputFilename)))
 
       res.meta.fileExtension = req.template.unoconv.format
       res.meta.contentType = mime.getType(req.template.unoconv.format)

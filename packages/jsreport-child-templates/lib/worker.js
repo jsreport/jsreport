@@ -10,12 +10,56 @@ const path = require('path')
 const fs = require('fs/promises')
 const extend = require('node.extend.without.arrays')
 const asyncReplace = util.promisify(require('async-replace-with-limit'))
-const Semaphore = require('semaphore-async-await').default
 const staticHelpers = require('../static/helpers')
 
+function applyParameters (p1, templateName, req) {
+  if (p1.indexOf(' @') !== -1) {
+    try {
+      const modifications = {}
+
+      const params = p1.replace(templateName, '').split(' @')
+      params.shift()
+
+      params.forEach(function (p) {
+        let separator
+
+        if (p.indexOf('$=') !== -1) {
+          separator = '$='
+        } else {
+          separator = '='
+        }
+
+        const keys = p.slice(0, p.indexOf(separator)).split('.')
+        const rawValue = p.slice(p.indexOf(separator) + separator.length)
+        let value
+
+        if (separator === '$=') {
+          value = staticHelpers.childTemplateParseData(rawValue)
+        } else {
+          value = JSON.parse(`"${rawValue}"`)
+        }
+
+        let modificationsIterator = modifications
+
+        const lastProperty = keys[keys.length - 1]
+        keys.pop()
+
+        keys.forEach((k) => {
+          modificationsIterator = modificationsIterator[k] = modificationsIterator[k] || {}
+        })
+        modificationsIterator[lastProperty] = value
+      })
+
+      extend(true, req, modifications)
+    } catch (e) {
+      throw new Error(`Unable to parse params ${p1} for child template ${templateName}`)
+    }
+  }
+}
+
 module.exports = function (reporter, definition) {
-  reporter.beforeRenderListeners.add(definition.name, this, (request, response) => {
-    return evaluateChildTemplates(reporter, request, response, { evaluateInTemplateContent: true })
+  reporter.beforeRenderListeners.add(definition.name, this, (req, res) => {
+    return evaluateChildTemplates(reporter, req, res, { evaluateInTemplateContent: true })
   })
 
   let helpersScript
@@ -24,8 +68,8 @@ module.exports = function (reporter, definition) {
     return helpersScript
   })
 
-  reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (request, response) => {
-    return evaluateChildTemplates(reporter, request, response, { evaluateInTemplateContent: false })
+  reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (req, res) => {
+    return evaluateChildTemplates(reporter, req, res, { evaluateInTemplateContent: false })
   })
 
   reporter.initializeListeners.add(definition.name, async () => {
@@ -37,6 +81,11 @@ module.exports = function (reporter, definition) {
   }
 
   async function evaluateChildTemplates (reporter, request, response, options) {
+    if (response.isInStreamingMode) {
+      return
+    }
+
+    const childTemplateRegexp = /{#child ([^{}]*)}/g
     let evaluateInTemplateContent
     let parallelLimit
 
@@ -55,9 +104,9 @@ module.exports = function (reporter, definition) {
       parallelLimit = definition.options.parallelLimit
     }
 
-    async function processChildCall (childCall) {
+    async function convert (str, p1, offset, s) {
       let template
-      const templatePath = (childCall.indexOf(' @') !== -1) ? childCall.substring(0, childCall.indexOf(' @')) : childCall
+      const templatePath = (p1.indexOf(' @') !== -1) ? p1.substring(0, p1.indexOf(' @')) : p1
       const templateNameIsPath = templatePath.indexOf('/') !== -1
       const pathParts = templatePath.split('/').filter((p) => p)
 
@@ -105,172 +154,28 @@ module.exports = function (reporter, definition) {
         template
       }
 
-      applyParameters(childCall, templateName, req)
+      applyParameters(p1, templateName, req)
 
       reporter.logger.debug(`Rendering child template ${templateName}`, request)
 
       const resp = await reporter.render(req, request)
-      const content = (await resp.output.getBuffer()).toString()
-      return content
+      return resp.output.getBufferSync().toString()
     }
 
+    const strToReplace = evaluateInTemplateContent ? request.template.content : response.output.getBufferSync().toString()
+
+    const result = await asyncReplace({
+      string: strToReplace,
+      parallelLimit
+    }, childTemplateRegexp, (str, p1, offset, s, done) => {
+      Promise.resolve(convert(str, p1, offset, s)).then((result) => done(null, result), (err) => done(err))
+    })
+
     if (evaluateInTemplateContent) {
-      const strToReplace = request.template.content
-
-      const result = await asyncReplace({
-        string: strToReplace,
-        parallelLimit
-      }, getCompleteChildCallRegexp(), (str, p1, offset, s, done) => {
-        processChildCall(p1).then((result) => done(null, result)).catch(done)
-      })
-
       request.template.content = result
       return
     }
 
-    await response.output.save({
-      transform: async (chunk) => {
-        const chunkStr = chunk.toString()
-        const result = {}
-
-        const matches = [...chunkStr.matchAll(getCompleteChildCallRegexp())]
-
-        if (matches.length === 0) {
-          result.content = chunk
-          result.concat = hasPartialChildCall(chunkStr)
-
-          return result
-        }
-
-        const matchesCount = matches.length
-
-        const semaphore = new Semaphore(parallelLimit)
-        const tasks = []
-        const results = new Map()
-
-        for (let idx = 0; idx < matchesCount; idx++) {
-          const currentIdx = idx
-          const match = matches[currentIdx]
-
-          results.set(currentIdx, {
-            start: match.index,
-            length: match[0].length,
-            newContent: null
-          })
-
-          tasks.push(semaphore.execute(async () => {
-            const childCallResult = await processChildCall(match[1])
-            results.get(currentIdx).newContent = childCallResult
-          }))
-        }
-
-        await Promise.all(tasks)
-
-        let newContent = chunkStr
-        let diff = 0
-
-        for (let idx = 0; idx < matchesCount; idx++) {
-          const resultInfo = results.get(idx)
-          const currentStart = resultInfo.start + diff
-
-          diff += resultInfo.newContent.length - resultInfo.length
-
-          newContent = newContent.slice(0, currentStart) + resultInfo.newContent + newContent.slice(currentStart + resultInfo.length)
-        }
-
-        result.content = Buffer.from(newContent)
-
-        return result
-      }
-    })
+    response.output.setBuffer(Buffer.from(result))
   }
-}
-
-function applyParameters (p1, templateName, req) {
-  if (p1.indexOf(' @') !== -1) {
-    try {
-      const modifications = {}
-
-      const params = p1.replace(templateName, '').split(' @')
-      params.shift()
-
-      params.forEach(function (p) {
-        let separator
-
-        if (p.indexOf('$=') !== -1) {
-          separator = '$='
-        } else {
-          separator = '='
-        }
-
-        const keys = p.slice(0, p.indexOf(separator)).split('.')
-        const rawValue = p.slice(p.indexOf(separator) + separator.length)
-        let value
-
-        if (separator === '$=') {
-          value = staticHelpers.childTemplateParseData(rawValue)
-        } else {
-          value = JSON.parse(`"${rawValue}"`)
-        }
-
-        let modificationsIterator = modifications
-
-        const lastProperty = keys[keys.length - 1]
-        keys.pop()
-
-        keys.forEach((k) => {
-          modificationsIterator = modificationsIterator[k] = modificationsIterator[k] || {}
-        })
-        modificationsIterator[lastProperty] = value
-      })
-
-      extend(true, req, modifications)
-    } catch (e) {
-      throw new Error(`Unable to parse params ${p1} for child template ${templateName}`)
-    }
-  }
-}
-
-function hasPartialChildCall (str) {
-  const partialMatch = str.match(getIncompleteChildCallAtEndRegexp())
-  let hasPartialCall = false
-
-  if (partialMatch == null) {
-    hasPartialCall = false
-  } else {
-    const childPart = partialMatch[1]
-    const namePart = partialMatch[2].length
-
-    const checks = [
-      () => childPart.length === 0 && namePart === 0,
-      () => {
-        if (childPart.length === 0) {
-          return false
-        }
-
-        const completeAssetPart = '#child '
-        const containsComplete = childPart.length === completeAssetPart.length
-
-        if (containsComplete) {
-          return true
-        }
-
-        const targetAssetPart = completeAssetPart.slice(0, partialMatch[1].length)
-
-        return childPart === targetAssetPart
-      }
-    ]
-
-    hasPartialCall = checks.some((check) => check())
-  }
-
-  return hasPartialCall
-}
-
-function getCompleteChildCallRegexp () {
-  return /{#child ([^{}]{0,500})}/g
-}
-
-function getIncompleteChildCallAtEndRegexp () {
-  return /{([#child ]{0,7})([^{}]{0,500})$/
 }

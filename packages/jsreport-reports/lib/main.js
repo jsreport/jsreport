@@ -269,7 +269,7 @@ class Reports {
       }
     }
 
-    await response.output.save(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
+    await response.output.setBuffer(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
 
     response.meta.contentType = 'text/html'
     response.meta.fileExtension = 'html'

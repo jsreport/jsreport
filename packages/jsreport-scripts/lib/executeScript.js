@@ -13,7 +13,8 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   const originalData = req.data
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
-  const { response: scriptResponse, getResponseFilePath } = await reporter.Response(req.context.id, res)
+  const scriptResponse = await reporter.Response(req.context.id, res)
+  await scriptResponse.parseFrom(await res.serialize())
 
   const initialContext = {
     __request: {
@@ -108,14 +109,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
           ...restoredSandbox.__request.context
         }
       },
-      // creating new object avoids passing a proxy object to rest of the
-      // execution flow when script is running in in-process strategy
-      res: {
-        meta: {
-          ...restoredSandbox.__response.meta
-        },
-        content: getResponseFilePath != null ? getResponseFilePath() : scriptResponse.content
-      },
+      res: restoredSandbox.__response.serialize(),
       error: err
         ? {
             message: err.message,

@@ -27,6 +27,18 @@ module.exports.readTempFileSync = function readTempFileSync (tempDirectory, file
   }
 }
 
+module.exports.openTempFile = async function (tempDirectory, filenameFn, flags) {
+  const { pathToFile, filename } = getTempFilePath(tempDirectory, filenameFn)
+
+  const fileHandle = await fsAsync.open(pathToFile, flags)
+
+  return {
+    pathToFile,
+    filename,
+    fileHandle
+  }
+}
+
 module.exports.readTempFile = async function readTempFile (tempDirectory, filename, opts = {}) {
   const { pathToFile } = getTempFilePath(tempDirectory, filename)
 

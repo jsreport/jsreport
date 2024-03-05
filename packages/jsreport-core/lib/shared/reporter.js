@@ -9,6 +9,7 @@ const tempFilesHandler = require('./tempFilesHandler')
 const encryption = require('./encryption')
 const generateRequestId = require('./generateRequestId')
 const adminRequest = require('./adminRequest')
+const ReqStorage = require('./reqStorage')
 
 class Reporter extends EventEmitter {
   constructor (options) {
@@ -18,6 +19,7 @@ class Reporter extends EventEmitter {
     this.Request = Request
     this.Response = (...args) => Response(this, ...args)
     this.adminRequest = adminRequest
+    this.reqStorage = ReqStorage(this)
 
     // since `reporter` instance will be used for other extensions,
     // it will quickly reach the limit of `10` listeners,
@@ -116,6 +118,19 @@ class Reporter extends EventEmitter {
     }
 
     return tempFilesHandler.readTempFile(this.options.tempAutoCleanupDirectory, filename, opts)
+  }
+
+  /**
+   * Open temp file in jsreport auto-cleanup temp directory (options.tempAutoCleanupDirectory)
+   *
+   * @public
+   */
+  async openTempFile (filename, flags) {
+    if (this.options.tempAutoCleanupDirectory == null) {
+      throw new Error('Can not use openTempFile when tempAutoCleanupDirectory option is not initialized, make sure to initialize jsreport first using jsreport.init()')
+    }
+
+    return tempFilesHandler.openTempFile(this.options.tempAutoCleanupDirectory, filename, flags)
   }
 
   /**

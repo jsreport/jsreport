@@ -1,5 +1,3 @@
-const fs = require('fs')
-const fsPromise = require('fs/promises')
 const { pipeline } = require('stream')
 const { FormData } = require('@jsreport/multipart')
 const serializator = require('@jsreport/serializator')
@@ -52,27 +50,28 @@ module.exports = (reporter, definition) => {
       try {
         const reqBody = typeof req.body === 'string' ? serializator.parse(req.body) : req.body
         const result = await reporter.dockerManager.executeWorker(reqBody)
-        await reporter.dockerManager.handleRemoteHttpResponse(reqBody, res, result)
+        await reporter.dockerManager.handleRemoteHttpResponse(reqBody, result, res)
       } catch (e) {
         next(e)
       }
     })
   })
 
-  const workerRequestMap = new Map()
   reporter.on('after-express-static-configure', () => {
     if (!reporter.authentication) {
       return reporter.express.app.post('/api/worker-docker-manager', express.text(), async (req, res, next) => {
         try {
           const reqBody = serializator.parse(req.body)
           const result = await reporter.dockerManager.executeWorker(reqBody)
-          await reporter.dockerManager.handleRemoteHttpResponse(reqBody, res, result)
+          await reporter.dockerManager.handleRemoteHttpResponse(reqBody, result, res)
         } catch (e) {
           next(e)
         }
       })
     }
   })
+
+  const workerRequestMap = new Map()
 
   reporter.registerWorkersManagerFactory((options, systemOptions) => {
     reporter.dockerManager = createDockerManager(reporter, definition.options, options, systemOptions)
@@ -90,21 +89,16 @@ module.exports = (reporter, definition) => {
       }
     }
 
-    const streamResponseEnabled = reporter.options.streamResponse
+    reporter.dockerManager.handleRemoteHttpResponse = async function handleRemoteHttpResponse (reqBody, workerResult, res) {
+      if (reqBody.actionName === 'render') {
+        // sending local response serialized as multipart to the original remote server
+        // the response output can be buffer or stream, but we always send it as stream output
+        const renderR = reporter.Response(reqBody.req.context.id)
+        await renderR.parseFrom(workerResult)
 
-    reporter.dockerManager.handleRemoteHttpResponse = async function handleRemoteHttpResponse (reqBody, res, workerResult) {
-      if (streamResponseEnabled && reqBody.actionName === 'render') {
         const form = new FormData()
 
-        const { content, ...restOfResult } = workerResult
-        const toAppend = []
-
-        // we collect the values that we are going to append earlier, because we want that
-        // in case of an error (like invalid serialization) it goes directly to the catch bellow
-        // which invokes next error middleware
-        for (const [key, value] of Object.entries(restOfResult)) {
-          toAppend.push({ name: key, value: serializator.serialize(value), options: { contentType: 'application/json' } })
-        }
+        const setializedMeta = serializator.serialize(workerResult.meta)
 
         res.status(201).setHeader('Content-Type', form.getDefaultContentType())
 
@@ -114,14 +108,12 @@ module.exports = (reporter, definition) => {
           }
         })
 
-        for (const item of toAppend) {
-          form.append(item.name, item.value, item.options)
-        }
+        form.append('meta', setializedMeta, { contentType: 'application/json' })
 
-        const responseFileStat = await fsPromise.stat(content)
-        const responseFileStream = fs.createReadStream(content)
+        const responseSize = await renderR.output.getSize()
+        const responseFileStream = await renderR.output.getStream()
 
-        form.append('content', responseFileStream, { contentLength: responseFileStat.size })
+        form.append('content', responseFileStream, { contentLength: responseSize })
         form.end()
         return
       }
