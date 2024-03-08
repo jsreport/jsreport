@@ -12,7 +12,7 @@ module.exports = (reporter, requestId, obj) => {
       this.requestId = requestId
     }
 
-    /** back compatibility methdos **/
+    /** back compatibility methods **/
     get content () {
       return this.output._getBufferSync()
     }
@@ -24,7 +24,7 @@ module.exports = (reporter, requestId, obj) => {
     get stream () {
       return this.output.getStream()
     }
-    /** //// back compatibility methdos **/
+    /** //// back compatibility methods **/
 
     async updateOutput (bufOrStreamOrPath) {
       if (Buffer.isBuffer(bufOrStreamOrPath)) {
@@ -160,6 +160,7 @@ module.exports = (reporter, requestId, obj) => {
         }
       }
 
+      // we produce a new Readable stream to avoid exposing the file stream directly
       return Readable.from(generateResponseContent())
     }
 

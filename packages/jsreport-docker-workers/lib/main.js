@@ -98,7 +98,7 @@ module.exports = (reporter, definition) => {
 
         const form = new FormData()
 
-        const setializedMeta = serializator.serialize(workerResult.meta)
+        const serializedMeta = serializator.serialize(workerResult.meta)
 
         res.status(201).setHeader('Content-Type', form.getDefaultContentType())
 
@@ -108,7 +108,7 @@ module.exports = (reporter, definition) => {
           }
         })
 
-        form.append('meta', setializedMeta, { contentType: 'application/json' })
+        form.append('meta', serializedMeta, { contentType: 'application/json' })
 
         const responseSize = await renderR.output.getSize()
         const responseFileStream = await renderR.output.getStream()

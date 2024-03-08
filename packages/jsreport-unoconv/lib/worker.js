@@ -2,7 +2,6 @@ const path = require('path')
 const mime = require('mime')
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
-const fs = require('fs')
 
 module.exports = function (reporter, definition) {
   reporter.beforeRenderListeners.add('unoconv', (req, res) => {
