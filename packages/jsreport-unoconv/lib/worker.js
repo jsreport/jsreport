@@ -34,7 +34,7 @@ module.exports = function (reporter, definition) {
 
       const { stdout, stderr } = await exec(command)
 
-      await res.switchToStream(fs.createReadStream(path.join(path.dirname(pathToFile), outputFilename)))
+      await res.updateOutput(path.join(path.dirname(pathToFile), outputFilename))
 
       res.meta.fileExtension = req.template.unoconv.format
       res.meta.contentType = mime.getType(req.template.unoconv.format)

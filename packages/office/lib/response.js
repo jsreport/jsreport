@@ -42,11 +42,7 @@ module.exports = async function response ({
 
   if (enabled === false || !isOfficePreviewRequest) {
     if (isRenderResponse) {
-      if (buffer) {
-        await res.output.setBuffer(buffer)
-      } else {
-        await res.switchToStream(fs.createReadStream(filePath))
-      }
+      await res.updateOutput(buffer || filePath)
     } else {
       result = buffer
     }
@@ -97,11 +93,7 @@ module.exports = async function response ({
     logger.error(message, req)
 
     if (isRenderResponse) {
-      if (buffer) {
-        await res.output.setBuffer(buffer)
-      } else {
-        await res.switchToStream(fs.createReadStream(filePath))
-      }
+      await res.updateOutput(buffer || filePath)
     } else {
       res.content = buffer
     }
@@ -119,7 +111,7 @@ module.exports = async function response ({
   const htmlBuffer = Buffer.from(`<html><head><title>${res.meta.reportName}</title><body>${iframe}</body></html>`)
 
   if (isRenderResponse) {
-    await res.output.setBuffer(htmlBuffer)
+    await res.updateOutput(htmlBuffer)
   } else {
     result = htmlBuffer
   }

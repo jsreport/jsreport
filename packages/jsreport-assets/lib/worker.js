@@ -104,7 +104,7 @@ module.exports = (reporter, definition) => {
     }
 
     const result = await evaluateAssets(reporter, definition, res.content.toString(), req)
-    res.output.setBufferSync(Buffer.from(result))
+    await res.updateOutput(Buffer.from(result))
   })
 
   reporter.initializeListeners.add(definition.name, async () => {

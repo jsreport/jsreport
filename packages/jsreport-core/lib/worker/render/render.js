@@ -59,7 +59,7 @@ module.exports = (reporter) => {
     reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
     const engineRes = await executeEngine(engine, request)
-    await response.output.setBuffer(Buffer.from(engineRes.content != null ? engineRes.content : ''))
+    await response.updateOutput(Buffer.from(engineRes.content != null ? engineRes.content : ''))
 
     reporter.profiler.emit({
       type: 'operationEnd',

@@ -9,7 +9,7 @@ module.exports = async (reporter, definition, req, res) => {
   if ($xlsxOriginalContent.trim() !== '') {
     const transform = require('./transformation')
 
-    await res.output.setBuffer(Buffer.from(xlsxOutputPath))
+    await res.updateOutput(Buffer.from(xlsxOutputPath))
 
     xlsxOutputPath = await transform(reporter, definition, req, res)
   }

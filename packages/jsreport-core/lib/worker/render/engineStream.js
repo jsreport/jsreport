@@ -47,7 +47,7 @@ module.exports = (reporter) => {
       }
     }
 
-    await res.switchToStream(Readable.from(transform()))
+    await res.updateOutput(Readable.from(transform()))
   })
 
   reporter.extendProxy((proxy, req, {

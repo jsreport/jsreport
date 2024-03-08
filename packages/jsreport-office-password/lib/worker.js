@@ -54,7 +54,7 @@ module.exports = function (reporter, definition) {
 
       reporter.logger.debug(`office-password finished adding password to office file "${res.meta.officeDocumentType}"`, req)
 
-      await res.output.setBuffer(protectedOfficeBuf)
+      await res.updateOutput(protectedOfficeBuf)
     })
   })
 }

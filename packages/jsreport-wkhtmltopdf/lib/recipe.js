@@ -22,7 +22,7 @@ module.exports = async (reporter, definition, request, response) => {
     response.meta.contentType = 'application/pdf'
     response.meta.fileExtension = 'pdf'
 
-    await response.switchToStream(fs.createReadStream(outputPath))
+    await response.updateOutput(outputPath)
   } catch (err) {
     throw reporter.createError('Error while processing wkhtmltopdf', {
       original: err,

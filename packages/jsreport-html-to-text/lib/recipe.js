@@ -32,7 +32,7 @@ module.exports = (reporter, definition) => async (request, response) => {
     })
   }
 
-  await response.output.setBuffer(Buffer.from(textContent))
+  await response.updateOutput(Buffer.from(textContent))
 
   response.meta.contentType = request.template.contentType || 'text/plain'
   response.meta.fileExtension = request.template.fileExtension || '.txt'
