@@ -287,7 +287,7 @@ async function verifyLicenseUsage (reporter, definition) {
       exposeOptions(reporter, definition)
     }
   } catch (e) {
-    reporter.logger.error('License usage check failed', e.message)
+    // this was bugging users with broken internet connections, so we just skip logging
   }
 }
 
