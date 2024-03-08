@@ -32,7 +32,7 @@
   "dependencies": {
     "body-parser": "1.20.1",
     "client-sessions": "0.8.0",
-    "ejs": "3.1.7",
+    "ejs": "3.1.9",
     "openid-client": "4.9.0",
     "passport": "0.4.0",
     "passport-http": "0.3.0",
