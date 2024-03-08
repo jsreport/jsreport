@@ -748,6 +748,46 @@ describe('engine', () => {
 
     should(res.content.toString()).containEql('JSON.parse(')
   })
+
+  it('async helper rejections when main eval exits before should be handled', async () => {
+    // ses handles unhandled rejections so we need to skip it
+    const reporter2 = createReporter({
+      trustUserCode: true
+    })
+
+    await reporter2.init()
+
+    let workerCrashed = false
+    const originalLog = console.log.bind(console)
+    console.log = function (msg) {
+      if (msg.includes('Worker crashed')) {
+        workerCrashed = true
+      }
+      originalLog(msg)
+    }
+    try {
+      await reporter2.render({
+        template: {
+          engine: 'helpers2',
+          content: 'foo',
+          recipe: 'html',
+          helpers: `async function a1() {                      
+            await new Promise((resolve) => setTimeout(resolve, 100))
+            throw new Error('x')
+          } 
+          function a2() {
+            throw new Error('a2')
+          }`
+        }
+      })
+    } catch (e) {
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    await reporter2.close()
+    console.log = originalLog
+    workerCrashed.should.be.false()
+  })
 })
 
 function createReporter (options) {

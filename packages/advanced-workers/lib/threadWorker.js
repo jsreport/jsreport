@@ -147,6 +147,11 @@ module.exports = ({
   })
 
   worker.on('error', (err) => {
+    if (!currentAsyncAwaiter) {
+      console.warn('Worker crashed after the response was processed.', err)
+      return
+    }
+
     err.code = 'WORKER_CRASHED'
     currentAsyncAwaiter.resolve({
       workerCrashed: true,

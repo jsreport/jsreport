@@ -210,7 +210,7 @@ module.exports = (reporter) => {
 
       for (const h of Object.keys(topLevelFunctions)) {
         // extra wrapping for enhance the error with the helper name
-        wrappedTopLevelFunctions[h] = wrapHelperForHelperNameWhenError(topLevelFunctions[h], h)
+        wrappedTopLevelFunctions[h] = wrapHelperForHelperNameWhenError(topLevelFunctions[h], h, () => executionFnParsedParamsMap.has(req.context.id))
 
         if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
           wrappedTopLevelFunctions[h] = engine.wrapHelper(wrappedTopLevelFunctions[h], { context })
@@ -369,7 +369,7 @@ module.exports = (reporter) => {
     }
   }
 
-  function wrapHelperForHelperNameWhenError (fn, helperName) {
+  function wrapHelperForHelperNameWhenError (fn, helperName, isMainEvalStillRunningFn) {
     return function (...args) {
       let fnResult
 
@@ -387,6 +387,10 @@ module.exports = (reporter) => {
       }
 
       return fnResult.catch((asyncError) => {
+        if (!isMainEvalStillRunningFn()) {
+          // main exec already finished on some error, we just ignore errors of the hanging async calls
+          return
+        }
         throw getEnhancedHelperError(asyncError)
       })
     }

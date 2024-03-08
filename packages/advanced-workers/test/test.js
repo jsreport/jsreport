@@ -299,6 +299,19 @@ describe('advanced workers', () => {
     }
   })
 
+  it('should handle case when worker errors after the response has been sent', async () => {
+    workers = Workers({ }, {
+      workerModule: path.join(__dirname, 'workers', 'errorInAsync.js'),
+      numberOfWorkers: 1
+    })
+    await workers.init()
+    const worker = await workers.allocate()
+    await worker.execute({})
+
+    // if the worker wouldnt be handling this case, there would be a ERR_MOCHA_MULTIPLE_DONE error so we just wait if it happens or not
+    await new Promise((resolve) => setTimeout(() => resolve(), 100))
+  })
+
   it('release when execution in main thread', async () => {
     workers = Workers({ }, {
       workerModule: path.join(__dirname, 'workers', 'executeMain.js'),

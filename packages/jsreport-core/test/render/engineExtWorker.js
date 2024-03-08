@@ -1,11 +1,13 @@
 const path = require('path')
 const createHelpersEngine = require('./helpersEngine')
+const createHelpers2Engine = require('./helpers2Engine')
 const createPassRequireEngine = require('./passRequireEngine')
 const createDataEngine = require('./dataEngine')
 const createDataEngine2 = require('./dataEngine2')
 
 module.exports = (reporter, definition) => {
   const { compile: hCompile, execute: hExecute } = createHelpersEngine()
+  const { compile: h2Compile, execute: h2Execute } = createHelpers2Engine()
   const { compile: pCompile, execute: pExecute } = createPassRequireEngine()
   const { compile: dCompile, execute: dExecute } = createDataEngine()
   const { compile: d2Compile, execute: d2Execute } = createDataEngine2()
@@ -14,6 +16,12 @@ module.exports = (reporter, definition) => {
     name: 'helpers',
     compile: hCompile,
     execute: hExecute
+  })
+
+  reporter.extensionsManager.engines.push({
+    name: 'helpers2',
+    compile: h2Compile,
+    execute: h2Execute
   })
 
   reporter.extensionsManager.engines.push({
