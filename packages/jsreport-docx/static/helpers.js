@@ -303,9 +303,15 @@ function docxStyle (options) {
 
   const textColor = options.hash.textColor || ''
   const backgroundColor = options.hash.backgroundColor || ''
+  const validTargets = ['text', 'paragraph', 'cell', 'row']
+  const target = options.hash.target || 'text'
+
+  if (!validTargets.includes(target)) {
+    throw new Error(`docxStyle helper "target" parameter must be any of these values: ${validTargets.join(', ')}, current: ${target}`)
+  }
 
   return new Handlebars.SafeString(
-    `<docxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" />`
+    `<docxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" target="${target}" />`
   )
 }
 
