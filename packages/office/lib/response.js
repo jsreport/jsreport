@@ -44,7 +44,7 @@ module.exports = async function response ({
     if (isRenderResponse) {
       await res.updateOutput(buffer || filePath)
     } else {
-      result = buffer
+      result = buffer || filePath
     }
 
     res.meta.fileExtension = officeDocumentType
@@ -95,7 +95,7 @@ module.exports = async function response ({
     if (isRenderResponse) {
       await res.updateOutput(buffer || filePath)
     } else {
-      res.content = buffer
+      result = buffer || filePath
     }
 
     res.meta.fileExtension = officeDocumentType
