@@ -16,6 +16,12 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   const scriptResponse = await reporter.Response(req.context.id, res)
   await scriptResponse.parseFrom(await res.serialize())
 
+  const serializeResponse = scriptResponse.serialize
+
+  // we don't expose the serialize to scripts, because it exposes file path of response
+  //  when the output is stream
+  delete scriptResponse.serialize
+
   const initialContext = {
     __request: {
       ...reqCloneWithNoData,
@@ -109,7 +115,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
           ...restoredSandbox.__request.context
         }
       },
-      res: restoredSandbox.__response.serialize(),
+      res: serializeResponse.call(restoredSandbox.__response),
       error: err
         ? {
             message: err.message,
