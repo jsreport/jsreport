@@ -5,30 +5,38 @@ const { pipeline } = require('stream/promises')
 const path = require('path')
 
 module.exports = (reporter, requestId, obj) => {
-  class Response {
-    constructor (requestId, obj) {
-      this.output = new BufferOutput()
-      this.meta = extend(true, {}, (obj || {}).meta)
-      this.requestId = requestId
-    }
+  let output = new BufferOutput(reporter)
+
+  const response = {
+    meta: extend(true, {}, (obj || {}).meta),
 
     /** back compatibility methods **/
     get content () {
-      return this.output._getBufferSync()
-    }
+      return output.getBufferSync()
+    },
 
     set content (v) {
-      this.output._setBufferSync(Buffer.from(v))
-    }
+      output.setBufferSync(Buffer.from(v))
+    },
 
     get stream () {
-      return this.output.getStream()
-    }
+      return output.getStream()
+    },
     /** //// back compatibility methods **/
+
+    get isInStreamingMode () {
+      return output instanceof StreamOutput
+    },
+
+    get __isJsreportResponse__ () {
+      return true
+    },
+
+    output: createPublicOutput(() => output),
 
     async updateOutput (bufOrStreamOrPath) {
       if (Buffer.isBuffer(bufOrStreamOrPath)) {
-        return this.output._setBuffer(bufOrStreamOrPath)
+        return output.setBuffer(bufOrStreamOrPath)
       }
 
       if (typeof bufOrStreamOrPath === 'string') {
@@ -36,174 +44,173 @@ module.exports = (reporter, requestId, obj) => {
           throw new Error('Invalid content passed to res.updateOutput, when content is string it must be an absolute path')
         }
 
-        if (this.output instanceof BufferOutput) {
-          this.output = new StreamOutput(this.requestId)
+        if (output instanceof BufferOutput) {
+          output = new StreamOutput(reporter, requestId)
         }
 
-        await reporter.copyFileToTempFile(bufOrStreamOrPath, this.output._filePath)
+        await reporter.copyFileToTempFile(bufOrStreamOrPath, output.filePath)
       }
 
       if (isReadableStream(bufOrStreamOrPath)) {
-        if (this.output instanceof BufferOutput) {
-          this.output = new StreamOutput(this.requestId)
+        if (output instanceof BufferOutput) {
+          output = new StreamOutput(reporter, requestId)
         }
 
-        return this.output._setStream(bufOrStreamOrPath)
+        return output.setStream(bufOrStreamOrPath)
       }
-    }
-
-    get isInStreamingMode () {
-      return this.output instanceof StreamOutput
-    }
+    },
 
     serialize () {
       return {
         meta: this.meta,
-        output: this.output._serialize()
+        output: output.serialize()
       }
-    }
+    },
 
     async parseFrom (res) {
       Object.assign(this.meta, res.meta)
+
       if (res.output.type === 'buffer') {
-        this.output = await BufferOutput._parse(res.output)
+        output = await BufferOutput.parse(reporter, res.output)
       } else {
-        this.output = await StreamOutput._parse(this.requestId, res.output)
+        output = await StreamOutput.parse(reporter, requestId, res.output)
       }
-    }
-
-    get __isJsreportResponse__ () {
-      return true
     }
   }
 
-  class BufferOutput {
-    constructor () {
-      this._buffer = Buffer.from([])
-    }
+  return response
+}
 
-    getBuffer () {
-      return this._buffer
-    }
+function createPublicOutput (getCurrentOutput) {
+  return {
+    async getBuffer () { return getCurrentOutput().getBuffer() },
+    async getStream () { return getCurrentOutput().getStream() },
+    async getSize () { return getCurrentOutput().getSize() },
+    async writeToTempFile (...args) { return getCurrentOutput().writeToTempFile(...args) }
+  }
+}
 
-    writeToTempFile (tmpNameFn) {
-      return reporter.writeTempFile(tmpNameFn, this._buffer)
-    }
+class BufferOutput {
+  constructor (reporter) {
+    this.reporter = reporter
+    this.buffer = Buffer.from([])
 
-    getSize () {
-      return this._buffer.length
-    }
+    this.getBufferSync = this.getBuffer
+    this.setBufferSync = this.setBuffer
+  }
 
-    getStream () {
-      return Readable.from(this._buffer)
-    }
+  getBuffer () {
+    return this.buffer
+  }
 
-    _serialize () {
-      const sharedBuf = new SharedArrayBuffer(this._buffer.byteLength)
-      const buf = Buffer.from(sharedBuf)
+  setBuffer (buf) {
+    this.buffer = buf
+  }
 
-      this._buffer.copy(buf)
+  writeToTempFile (tmpNameFn) {
+    return this.reporter.writeTempFile(tmpNameFn, this.buffer)
+  }
 
-      return {
-        type: 'buffer',
-        content: buf
-      }
-    }
+  getSize () {
+    return this.buffer.length
+  }
 
-    static _parse (output) {
-      const instance = new BufferOutput()
-      if (output?.content?.length) {
-        instance._setBufferSync(Buffer.from(output?.content))
-      }
-      return instance
-    }
+  getStream () {
+    return Readable.from(this.buffer)
+  }
 
-    _getBufferSync () {
-      return this._buffer
-    }
+  serialize () {
+    const sharedBuf = new SharedArrayBuffer(this.buffer.byteLength)
+    const buf = Buffer.from(sharedBuf)
 
-    _setBufferSync (buf) {
-      this._buffer = buf
-    }
+    this.buffer.copy(buf)
 
-    _setBuffer (buf) {
-      this._buffer = buf
+    return {
+      type: 'buffer',
+      content: buf
     }
   }
 
-  class StreamOutput {
-    constructor (requestId) {
-      this._filename = `response-${requestId}.raw-content`
-      const { pathToFile } = reporter.getTempFilePath(this._filename)
-      this._filePath = pathToFile
+  static parse (reporter, output) {
+    const instance = new BufferOutput(reporter)
+    if (output?.content?.length) {
+      instance.setBufferSync(Buffer.from(output?.content))
     }
+    return instance
+  }
+}
 
-    async getBuffer () {
-      const { content } = await reporter.readTempFile(this._filename)
-      return content
-    }
+class StreamOutput {
+  constructor (reporter, requestId) {
+    this.reporter = reporter
+    this.filename = `response-${requestId}.raw-content`
+    const { pathToFile } = this.reporter.getTempFilePath(this.filename)
+    this.filePath = pathToFile
+  }
 
-    async getSize () {
-      const stat = await fs.stat(this._filePath)
+  async getBuffer () {
+    const { content } = await this.reporter.readTempFile(this.filename)
+    return content
+  }
 
-      return stat.size
-    }
+  setBuffer (buf) {
+    return this.reporter.writeTempFile(this.filename, buf)
+  }
 
-    async getStream () {
-      const filename = this._filename
+  getBufferSync () {
+    const { content } = this.reporter.readTempFileSync(this.filename)
+    return content
+  }
 
-      async function * generateResponseContent () {
-        const responseFileStream = reporter.readTempFileStream(filename).stream
+  setBufferSync (buf) {
+    this.reporter.writeTempFileSync(this.filename, buf)
+  }
 
-        for await (const chunk of responseFileStream) {
-          yield chunk
-        }
-      }
+  writeToTempFile (tmpNameFn) {
+    return this.reporter.copyFileToTempFile(this.filePath, tmpNameFn)
+  }
 
-      // we produce a new Readable stream to avoid exposing the file stream directly
-      return Readable.from(generateResponseContent())
-    }
+  async getSize () {
+    const stat = await fs.stat(this.filePath)
+    return stat.size
+  }
 
-    writeToTempFile (tmpNameFn) {
-      return reporter.copyFileToTempFile(this._filePath, tmpNameFn)
-    }
+  async getStream () {
+    const reporter = this.reporter
+    const filename = this.filename
 
-    static async _parse (requestId, output) {
-      const instance = new StreamOutput(requestId)
+    async function * generateResponseContent () {
+      const responseFileStream = reporter.readTempFileStream(filename).stream
 
-      if (output.filePath !== instance._filePath) {
-        await reporter.copyFileToTempFile(output.filePath, instance._filePath)
-      }
-      return instance
-    }
-
-    _getBufferSync () {
-      const { content } = reporter.readTempFileSync(this._filename)
-      return content
-    }
-
-    _setBufferSync (buf) {
-      reporter.writeTempFileSync(this._filename, buf)
-    }
-
-    _setBuffer (buf) {
-      return reporter.writeTempFile(this._filename, buf)
-    }
-
-    _serialize () {
-      return {
-        type: 'stream',
-        filePath: this._filePath
+      for await (const chunk of responseFileStream) {
+        yield chunk
       }
     }
 
-    async _setStream (stream) {
-      const { stream: responseFileStream } = await reporter.writeTempFileStream(this._filename)
-      await pipeline(stream, responseFileStream)
+    // we produce a new Readable stream to avoid exposing the file stream directly
+    return Readable.from(generateResponseContent())
+  }
+
+  async setStream (stream) {
+    const { stream: responseFileStream } = await this.reporter.writeTempFileStream(this.filename)
+    await pipeline(stream, responseFileStream)
+  }
+
+  serialize () {
+    return {
+      type: 'stream',
+      filePath: this.filePath
     }
   }
 
-  return new Response(requestId, obj)
+  static async parse (reporter, requestId, output) {
+    const instance = new StreamOutput(reporter, requestId)
+
+    if (output.filePath !== instance.filePath) {
+      await reporter.copyFileToTempFile(output.filePath, instance.filePath)
+    }
+    return instance
+  }
 }
 
 // from https://github.com/sindresorhus/is-stream/blob/main/index.js
