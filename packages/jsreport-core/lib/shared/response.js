@@ -3,6 +3,7 @@ const fs = require('fs/promises')
 const { Readable } = require('stream')
 const { pipeline } = require('stream/promises')
 const path = require('path')
+const isArrayBufferView = require('util').types.isArrayBufferView
 
 module.exports = (reporter, requestId, obj) => {
   let output = new BufferOutput(reporter)
@@ -35,7 +36,7 @@ module.exports = (reporter, requestId, obj) => {
     output: createPublicOutput(() => output),
 
     async updateOutput (bufOrStreamOrPath) {
-      if (Buffer.isBuffer(bufOrStreamOrPath)) {
+      if (Buffer.isBuffer(bufOrStreamOrPath) || isArrayBufferView(bufOrStreamOrPath)) {
         return output.setBuffer(bufOrStreamOrPath)
       }
 
@@ -104,7 +105,9 @@ class BufferOutput {
   }
 
   setBuffer (buf) {
-    this.buffer = buf
+    // we need to ensure that the buffer is an actually buffer instance,
+    // so when receiving Uint8Array we convert it to a buffer
+    this.buffer = Buffer.isBuffer(buf) ? buf : Buffer.from(buf)
   }
 
   writeToTempFile (tmpNameFn) {
