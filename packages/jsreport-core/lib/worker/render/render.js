@@ -113,7 +113,7 @@ module.exports = (reporter) => {
       reporter.reqStorage.registerReq(request)
     }
 
-    const response = Response(reporter, request.context.id, {})
+    const response = Response(reporter, request.context.id)
 
     let renderStartProfilerEvent
 

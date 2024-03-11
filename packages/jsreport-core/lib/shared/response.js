@@ -7,6 +7,7 @@ const isArrayBufferView = require('util').types.isArrayBufferView
 
 module.exports = (reporter, requestId, obj) => {
   let output = new BufferOutput(reporter)
+  let cachedStream
 
   const response = {
     meta: extend(true, {}, (obj || {}).meta),
@@ -21,7 +22,11 @@ module.exports = (reporter, requestId, obj) => {
     },
 
     get stream () {
-      return output.getStream()
+      if (cachedStream == null) {
+        cachedStream = output.getStream()
+      }
+
+      return cachedStream
     },
     /** //// back compatibility methods **/
 
@@ -178,7 +183,7 @@ class StreamOutput {
     return stat.size
   }
 
-  async getStream () {
+  getStream () {
     const reporter = this.reporter
     const filename = this.filename
 
