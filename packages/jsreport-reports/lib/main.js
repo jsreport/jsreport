@@ -257,12 +257,12 @@ class Reports {
       public: request.options.reports != null ? request.options.reports.public : false
     }, request)
 
-    await response.updateOutput(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
+    const clientNotification = request.context.clientNotification = this.reporter.Response(request.context.id, response)
 
-    response.meta.contentType = 'text/html'
-    response.meta.fileExtension = 'html'
+    await clientNotification.updateOutput(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
 
-    const clientNotification = request.context.clientNotification = response.serialize()
+    clientNotification.meta.contentType = 'text/html'
+    clientNotification.meta.fileExtension = 'html'
 
     if (request.context.http) {
       if (request.options.reports && request.options.reports.public) {

@@ -4,7 +4,6 @@
  * Reporter main class including all methods jsreport-core exposes.
  */
 const path = require('path')
-const { Readable } = require('stream')
 const Reaper = require('@jsreport/reap')
 const pkg = require('../../package.json')
 const optionsLoad = require('./optionsLoad')
@@ -459,9 +458,7 @@ class MainReporter extends Reporter {
 
         dontCloseProcessing = true
 
-        const r = Response(this, req.context.id)
-
-        await r.parseFrom(req.context.clientNotification)
+        const r = req.context.clientNotification
 
         delete req.context.clientNotification
 
