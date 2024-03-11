@@ -458,12 +458,13 @@ class MainReporter extends Reporter {
         })
 
         dontCloseProcessing = true
-        const r = {
-          ...req.context.clientNotification,
-          stream: Readable.from(req.context.clientNotification.content),
-          content: req.context.clientNotification.content
-        }
+
+        const r = Response(this, req.context.id)
+
+        await r.parseFrom(req.context.clientNotification)
+
         delete req.context.clientNotification
+
         return r
       }
 

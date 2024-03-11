@@ -68,7 +68,7 @@ module.exports = (reporter, requestId, obj) => {
 
     serialize () {
       return {
-        meta: this.meta,
+        meta: extend(true, {}, this.meta),
         output: output.serialize()
       }
     },
