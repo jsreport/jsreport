@@ -1,6 +1,7 @@
 const should = require('should')
 const path = require('path')
 const fs = require('fs')
+const fsAsync = require('fs/promises')
 const jsreport = require('@jsreport/jsreport-core')
 const { DOMParser } = require('@xmldom/xmldom')
 const sizeOf = require('image-size')
@@ -47,7 +48,7 @@ describe('pptx image', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const files = await decompressResponse(result)
 
@@ -132,7 +133,7 @@ describe('pptx image', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const files = await decompressResponse(result)
 
@@ -191,7 +192,7 @@ describe('pptx image', () => {
           }
         })
 
-        await result.output.toFile(outputPath)
+        await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
         const files = await decompressResponse(result)
 
@@ -246,7 +247,7 @@ describe('pptx image', () => {
           }
         })
 
-        await result.output.toFile(outputPath)
+        await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
         const files = await decompressResponse(result)
 
@@ -301,7 +302,7 @@ describe('pptx image', () => {
           }
         })
 
-        await result.output.toFile(outputPath)
+        await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
         const files = await decompressResponse(result)
 

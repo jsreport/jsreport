@@ -50,7 +50,6 @@ module.exports.getTextNodesMatching = function getTextNodesMatching (doc, target
   }
 
   const textNodesMatching = { start: 0, nodes: [], complete: false }
-  const previousTextNodes = []
 
   for (const textNode of allTextNodes) {
     const end = textNodesMatching.start + (textNode.textContent.length - 1)

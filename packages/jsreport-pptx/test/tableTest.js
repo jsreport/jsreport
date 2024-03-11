@@ -1,6 +1,7 @@
 const should = require('should')
 const path = require('path')
 const fs = require('fs')
+const fsAsync = require('fs/promises')
 const jsreport = require('@jsreport/jsreport-core')
 const { extractTextResponse } = require('./utils')
 
@@ -51,7 +52,7 @@ describe('pptx table', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const text = await extractTextResponse(result)
 
@@ -90,7 +91,7 @@ describe('pptx table', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const text = await extractTextResponse(result)
 

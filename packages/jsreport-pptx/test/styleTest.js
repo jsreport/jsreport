@@ -1,5 +1,6 @@
 const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
+const fsAsync = require('fs/promises')
 const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
 const { getDocumentsFromPptx } = require('./utils')
@@ -52,7 +53,7 @@ describe('pptx style', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [slideDoc] = await getDocumentsFromPptx(result, ['ppt/slides/slide1.xml'])
     const aREls = nodeListToArray(slideDoc.getElementsByTagName('a:r'))
@@ -106,7 +107,7 @@ describe('pptx style', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/slides/slide1.xml'])
     const apEls = nodeListToArray(doc.getElementsByTagName('a:p'))
@@ -158,7 +159,7 @@ describe('pptx style', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [slideDoc] = await getDocumentsFromPptx(result, ['ppt/slides/slide1.xml'])
     const aREls = nodeListToArray(slideDoc.getElementsByTagName('a:r'))

@@ -1,6 +1,7 @@
 const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
+const fsAsync = require('fs/promises')
 const path = require('path')
 const moment = require('moment')
 const { DOMParser } = require('@xmldom/xmldom')
@@ -61,7 +62,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -111,7 +112,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -154,7 +155,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -194,7 +195,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -248,7 +249,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
@@ -312,7 +313,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
@@ -377,7 +378,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
@@ -444,7 +445,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
@@ -511,7 +512,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartPlotAreaEl = doc.getElementsByTagName('c:plotArea')[0]
@@ -562,7 +563,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -612,7 +613,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -652,7 +653,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const chartTitleEl = doc.getElementsByTagName('c:title')[0].getElementsByTagName('a:t')[0]
@@ -698,7 +699,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -750,7 +751,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -818,7 +819,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -872,7 +873,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const barChart = doc.getElementsByTagName('c:barChart')[0]
@@ -945,7 +946,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
@@ -1022,7 +1023,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
@@ -1125,7 +1126,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
@@ -1230,7 +1231,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
@@ -1326,7 +1327,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chartEx1.xml'])
 
@@ -1436,7 +1437,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const { files } = await getDocumentsFromPptx(result, [], { returnFiles: true })
     const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
@@ -1542,7 +1543,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const { files } = await getDocumentsFromPptx(result, [], { returnFiles: true })
     const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
@@ -1667,7 +1668,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const { files } = await getDocumentsFromPptx(result, [], { returnFiles: true })
     const allSlideFiles = files.filter(f => f.path.includes('ppt/slides/slide'))
@@ -1778,7 +1779,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
@@ -1816,7 +1817,7 @@ describe('pptx chart', () => {
       }
     })
 
-    await result.output.toFile(outputPath)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
     const [doc] = await getDocumentsFromPptx(result, ['ppt/charts/chart1.xml'])
     const dataElements = nodeListToArray(doc.getElementsByTagName('c:ser'))
