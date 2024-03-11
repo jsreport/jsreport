@@ -237,7 +237,7 @@ async function processChart (files, context, referenceGraphicFrameEl, slideFile,
         filePrefix = 'chartEx'
       }
 
-      const newChartPath = path.join(
+      const newChartPath = path.posix.join(
         path.posix.relative(
           path.posix.dirname(slidePath),
           'ppt/charts'

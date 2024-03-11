@@ -1,5 +1,7 @@
 const { col2num } = require('xlsx-coordinates')
 
+const CELL_REG_REGEXP = /^(?:('?(?:\[([A-Za-z0-9_. ]+\.xlsx)\])?([A-Za-z0-9_. ]+)'?)!)?(\$?[A-Z]+)(\$?\d+)$/
+
 // allows to parse cell expressions like:
 // - B6, $B6 (locked column), B$6 (locked row), $B$6 (locked column and row)
 // - B6:B10 (ranges) and variants with locked columns and rows
@@ -7,15 +9,16 @@ const { col2num } = require('xlsx-coordinates')
 // - [WorkbookName.xlsx]SheetName!B6:B10, '[WorkbookName.xlsx]SheetName'!B6:B10 (workbook name reference) and variants with locked columns and rows
 // - [WorkbookName.xlsx]SheetName!B6:[WorkbookName.xlsx]SheetName!B10, '[WorkbookName.xlsx]SheetName'!B6:'[WorkbookName.xlsx]SheetName'!B10 (workbook name reference) and variants with locked columns and rows
 // result: <complete ref from left>:<complete ref from right>
+// it is returned from a fn because it needs to use the global flag on regexp,
+// and we can not reuse the same regexp instance safely, it needs to be a new one for execution
 const getRangeOrMultiCellRefExpressionRegexp = () => /((?:'?(?:\[(?:[A-Za-z0-9_. ]+\.xlsx)\])?(?:[A-Za-z0-9_. ]+)'?!)?(?:\$?[A-Z]+\$?\d+:))?((?:'?(?:\[(?:[A-Za-z0-9_. ]+\.xlsx)\])?(?:[A-Za-z0-9_. ]+)'?!)?(?:\$?[A-Z]+\$?\d+))/g
 
-function parseCellRef (cellRef, startCellRef) {
+function parseCellRef (cellRef, parsedStartCellRef) {
   // parses single cell ref like:
   // B6, $B6 (locked column), B$6 (locked row), $B$6 (locked column and row)
   // SheetName!B6, 'SheetName'!B6 (sheet name reference) and variants with locked columns and rows
   // [WorkbookName.xlsx]SheetName!B6, '[WorkbookName.xlsx]SheetName'!B6 (workbook name reference) and variants with locked columns and rows
-  const cellRefRegexp = /^(?:('?(?:\[([A-Za-z0-9_. ]+\.xlsx)\])?([A-Za-z0-9_. ]+)'?)!)?(\$?[A-Z]+)(\$?\d+)$/
-  const matches = cellRef.match(cellRefRegexp)
+  const matches = cellRef.match(CELL_REG_REGEXP)
 
   if (matches == null || matches[4] == null) {
     throw new Error(`"${cellRef}" is not a valid cell reference`)
@@ -41,10 +44,10 @@ function parseCellRef (cellRef, startCellRef) {
   sheetName = ownSheetName
   sensitiveName = ownSensitiveName
 
-  if (matches[3] == null && startCellRef != null) {
-    workbookName = startCellRef.workbookName
-    sheetName = startCellRef.sheetName
-    sensitiveName = startCellRef.sensitiveName
+  if (matches[3] == null && parsedStartCellRef != null) {
+    workbookName = parsedStartCellRef.workbookName
+    sheetName = parsedStartCellRef.sheetName
+    sensitiveName = parsedStartCellRef.sensitiveName
   }
 
   return {

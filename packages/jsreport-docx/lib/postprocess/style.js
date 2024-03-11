@@ -1,5 +1,6 @@
 const { DOMParser } = require('@xmldom/xmldom')
 const { nodeListToArray, serializeXml } = require('../utils')
+const { findCommonParent } = require('../styleUtils')
 
 // see the preprocess/styles.js for some explanation
 
@@ -55,35 +56,40 @@ module.exports = (files, headerFooterRefs) => {
 }
 
 function processDocxStylesEl (docxStylesEl, docxStyleEndEl, runEls, doc) {
-  let started = false
-  let currentStyleEl
+  const activeStyles = []
+  const styleEls = nodeListToArray(docxStylesEl.childNodes)
 
   for (let i = 0; i < runEls.length; i++) {
     const wR = runEls[i]
     const ts = wR.getElementsByTagName('w:t')
+
     if (ts.length === 0) {
       continue
     }
 
-    if (started === false && ts[0].textContent.includes('$docxStyleStart')) {
-      started = true
-      const startIdx = ts[0].textContent.indexOf('$docxStyleStart')
-      ts[0].textContent = ts[0].textContent.replace('$docxStyleStart', '')
-      const id = ts[0].textContent.substring(startIdx, ts[0].textContent.indexOf('$'))
-      ts[0].textContent = ts[0].textContent.replace(id + '$', '')
-      currentStyleEl = nodeListToArray(docxStylesEl.childNodes).find(n => n.getAttribute('id') === id)
+    // we only care about checking the first text node, because we have applied normalization
+    // that ensures that for nodes containing docxStyle text it will be in only one text node
+    const mainTextEl = ts[0]
+
+    if (mainTextEl.textContent.includes('$docxStyleStart')) {
+      const startIdx = mainTextEl.textContent.indexOf('$docxStyleStart')
+      mainTextEl.textContent = mainTextEl.textContent.replace('$docxStyleStart', '')
+      const id = mainTextEl.textContent.substring(startIdx, mainTextEl.textContent.indexOf('$'))
+      mainTextEl.textContent = mainTextEl.textContent.replace(id + '$', '')
+      const currentStyleEl = styleEls.find(n => n.getAttribute('id') === id)
+      activeStyles.push(currentStyleEl)
     }
 
-    if (ts[0].textContent.includes('$docxStyleEnd')) {
-      ts[0].setAttribute('xml:space', 'preserve')
-      started = false
-      ts[0].textContent = ts[0].textContent.replace('$docxStyleEnd', '')
+    if (mainTextEl.textContent.includes('$docxStyleEnd') && activeStyles.length > 0) {
+      mainTextEl.setAttribute('xml:space', 'preserve')
+      mainTextEl.textContent = mainTextEl.textContent.replace('$docxStyleEnd', '')
+      const currentStyleEl = activeStyles.pop()
       color(doc, wR, currentStyleEl)
       continue
     }
 
-    if (started === true) {
-      ts[0].setAttribute('xml:space', 'preserve')
+    if (activeStyles.length > 0) {
+      const currentStyleEl = activeStyles[activeStyles.length - 1]
       color(doc, wR, currentStyleEl)
     }
   }
@@ -93,66 +99,119 @@ function processDocxStylesEl (docxStylesEl, docxStyleEndEl, runEls, doc) {
 }
 
 function color (doc, wR, currentStyleEl) {
-  let wp = wR.parentNode
+  const currentTarget = currentStyleEl.getAttribute('target')
 
-  while (wp != null && wp.nodeName !== 'w:p') {
-    wp = wp.parentNode
-  }
+  const validParents = [
+    { target: 'paragraph', tag: 'w:p' },
+    { target: 'cell', tag: 'w:tc' },
+    { target: 'row', tag: 'w:tr' }
+  ]
 
-  if (!wp) {
-    throw new Error('Could not find paragraph node for styles')
-  }
+  const targetMap = [{ target: 'text', tag: 'w:r' }, ...validParents].reduce((acu, item) => {
+    acu[item.target] = item.tag
+    return acu
+  }, {})
 
-  let wRpr = wR.getElementsByTagName('w:rPr')[0]
+  const targetTag = targetMap[currentTarget]
 
-  if (!wRpr) {
-    wRpr = doc.createElement('w:rPr')
-    if (wR.childNodes.length === 0) {
-      wR.appendChild(wRpr)
-    } else {
-      wR.insertBefore(wRpr, wR.getElementsByTagName('w:t')[0])
-    }
+  if (targetTag == null) {
+    throw new Error(`Invalid target "${currentTarget}" for docxStyle`)
   }
 
   const currentBackgroundColor = currentStyleEl.getAttribute('backgroundColor')
-
-  if (currentBackgroundColor != null && currentBackgroundColor !== '') {
-    let wpPr = wp.getElementsByTagName('w:pPr')[0]
-
-    if (!wpPr) {
-      wpPr = doc.createElement('w:pPr')
-      wp.insertBefore(wpPr, wp.firstChild)
-    }
-
-    let wshd = wpPr.getElementsByTagName('w:shd')[0]
-
-    if (!wshd) {
-      wshd = doc.createElement('w:shd')
-      wpPr.insertBefore(wshd, wpPr.firstChild)
-    }
-
-    wshd.setAttribute('w:val', 'clear')
-    wshd.setAttribute('w:color', 'auto')
-    wshd.setAttribute('w:fill', currentBackgroundColor)
-    wshd.removeAttribute('w:themeColor')
-    wshd.removeAttribute('w:themeTint')
-    wshd.removeAttribute('w:themeShade')
-    wshd.removeAttribute('w:themeFill')
-    wshd.removeAttribute('w:themeFillTint')
-    wshd.removeAttribute('w:themeFillShade')
-  }
-
   const currentTextColor = currentStyleEl.getAttribute('textColor')
 
-  if (currentTextColor != null && currentTextColor !== '') {
-    let color = wRpr.getElementsByTagName('w:color')[0]
+  if (currentBackgroundColor == null && currentTextColor == null) {
+    return
+  }
 
-    if (!color) {
-      color = doc.createElement('w:color')
-      wRpr.appendChild(color)
+  const targetParentsHierarchy = (
+    currentTarget === 'text'
+      ? []
+      : validParents.slice(0, validParents.findIndex((item) => item.target === currentTarget) + 1)
+  )
+
+  const targetEl = findCommonParent(wR, targetParentsHierarchy.map((item) => item.tag))
+  let elsForBackground
+  let elsForText
+
+  switch (targetEl.tagName) {
+    case 'w:p':
+      elsForBackground = [targetEl]
+      elsForText = nodeListToArray(targetEl.childNodes).filter((node) => node.tagName === 'w:r')
+      break
+    case 'w:tc':
+      elsForBackground = [targetEl]
+      elsForText = nodeListToArray(targetEl.getElementsByTagName('w:r'))
+      break
+    case 'w:tr':
+      elsForBackground = nodeListToArray(targetEl.childNodes).filter((node) => node.tagName === 'w:tc')
+      elsForText = nodeListToArray(targetEl.getElementsByTagName('w:r'))
+      break
+    default:
+      elsForBackground = [targetEl]
+      elsForText = [targetEl]
+      break
+  }
+
+  const targetPr = {
+    backgroundColor: [],
+    textColor: []
+  }
+
+  for (const { type, els } of [{ type: 'backgroundColor', els: elsForBackground }, { type: 'textColor', els: elsForText }]) {
+    for (const currentEl of els) {
+      const expectedPrTag = `${currentEl.tagName}Pr`
+
+      // we add function to allow the creation of nodes to be lazy and only when really needed
+      targetPr[type].push(() => {
+        let targetPrEl = nodeListToArray(currentEl.childNodes).find((node) => node.tagName === expectedPrTag)
+
+        if (targetPrEl == null) {
+          const newPrEl = doc.createElement(expectedPrTag)
+          currentEl.insertBefore(newPrEl, currentEl.firstChild)
+          targetPrEl = newPrEl
+        }
+
+        return targetPrEl
+      })
     }
+  }
 
-    color.setAttribute('w:val', currentTextColor)
-    color.removeAttribute('w:themeColor')
+  if (currentBackgroundColor != null && currentBackgroundColor !== '') {
+    for (const getTargetPrEl of targetPr.backgroundColor) {
+      const targetPrEl = getTargetPrEl()
+      let wshdEl = nodeListToArray(targetPrEl.childNodes).find((node) => node.tagName === 'w:shd')
+
+      if (!wshdEl) {
+        wshdEl = doc.createElement('w:shd')
+        targetPrEl.insertBefore(wshdEl, targetPrEl.firstChild)
+      }
+
+      wshdEl.setAttribute('w:val', 'clear')
+      wshdEl.setAttribute('w:color', 'auto')
+      wshdEl.setAttribute('w:fill', currentBackgroundColor)
+      wshdEl.removeAttribute('w:themeColor')
+      wshdEl.removeAttribute('w:themeTint')
+      wshdEl.removeAttribute('w:themeShade')
+      wshdEl.removeAttribute('w:themeFill')
+      wshdEl.removeAttribute('w:themeFillTint')
+      wshdEl.removeAttribute('w:themeFillShade')
+    }
+  }
+
+  if (currentTextColor != null && currentTextColor !== '') {
+    for (const getTargetPrEl of targetPr.textColor) {
+      const targetPrEl = getTargetPrEl()
+      let colorEl = nodeListToArray(targetPrEl.childNodes).find((node) => node.tagName === 'w:color')
+
+      if (!colorEl) {
+        colorEl = doc.createElement('w:color')
+        targetPrEl.appendChild(colorEl)
+      }
+
+      colorEl.setAttribute('w:val', currentTextColor)
+      colorEl.removeAttribute('w:themeColor')
+    }
   }
 }

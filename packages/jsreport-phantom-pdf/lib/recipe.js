@@ -1,11 +1,10 @@
 const util = require('util')
 const Conversion = require('phantom-html-to-pdf')
-const toArrayAsync = util.promisify(require('stream-to-array'))
 let conversion
 
 const defaultPhantomjsVersion = '1.9.8'
 
-module.exports = (reporter, definition, request, response) => {
+module.exports = async (reporter, definition, request, response) => {
   if (!conversion) {
     conversion = Conversion(definition.options)
   }
@@ -48,7 +47,9 @@ module.exports = (reporter, definition, request, response) => {
 
   request.template.phantom.waitForJSVarName = 'JSREPORT_READY_TO_START'
 
-  request.template.phantom.html = response.content.toString()
+  const html = (await response.output.getBuffer()).toString()
+
+  request.template.phantom.html = html
 
   request.template.phantom.timeout = reporter.getReportTimeout(request)
 
@@ -89,45 +90,47 @@ module.exports = (reporter, definition, request, response) => {
     return reporter.render({
       template
     }, req).then(function (res) {
-      options[type] = res.content.toString()
+      return res.output.getBuffer()
+    }).then(function (contentBuffer) {
+      options[type] = contentBuffer.toString()
     })
   }
 
-  return processPart(request.template.phantom, request, 'header').then(function () {
-    return processPart(request.template.phantom, request, 'footer')
-  }).then(function () {
-    return util.promisify(conversion)(request.template.phantom)
-  }).then(function (res) {
-    res.logs.forEach(function (m) {
-      const meta = { timestamp: m.timestamp.getTime(), ...request }
-      let targetLevel = m.level
-      let msg = m.message
+  await processPart(request.template.phantom, request, 'header')
+  await processPart(request.template.phantom, request, 'footer')
 
-      if (m.userLevel) {
-        targetLevel = 'debug'
-        meta.userLevel = true
+  const asyncConversion = util.promisify(conversion)
 
-        let consoleType = m.level
+  const res = await asyncConversion(request.template.phantom)
 
-        if (consoleType === 'debug') {
-          consoleType = 'log'
-        } else if (consoleType === 'warn') {
-          consoleType = 'warning'
-        }
+  res.logs.forEach(function (m) {
+    const meta = { timestamp: m.timestamp.getTime(), ...request }
+    let targetLevel = m.level
+    let msg = m.message
 
-        msg = `(console:${consoleType}) ${msg}`
+    if (m.userLevel) {
+      targetLevel = 'debug'
+      meta.userLevel = true
+
+      let consoleType = m.level
+
+      if (consoleType === 'debug') {
+        consoleType = 'log'
+      } else if (consoleType === 'warn') {
+        consoleType = 'warning'
       }
 
-      reporter.logger[targetLevel](msg, meta)
-    })
+      msg = `(console:${consoleType}) ${msg}`
+    }
 
-    response.meta.contentType = 'application/pdf'
-    response.meta.fileExtension = 'pdf'
-    response.meta.numberOfPages = res.numberOfPages
-
-    return toArrayAsync(res.stream).then(function (arr) {
-      response.content = Buffer.concat(arr)
-      reporter.logger.debug('phantom-pdf recipe finished with ' + res.numberOfPages + ' pages generated', request)
-    })
+    reporter.logger[targetLevel](msg, meta)
   })
+
+  response.meta.contentType = 'application/pdf'
+  response.meta.fileExtension = 'pdf'
+  response.meta.numberOfPages = res.numberOfPages
+
+  await response.updateOutput(res.stream)
+
+  reporter.logger.debug('phantom-pdf recipe finished with ' + res.numberOfPages + ' pages generated', request)
 }

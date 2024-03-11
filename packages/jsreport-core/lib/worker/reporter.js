@@ -10,6 +10,7 @@ const Reporter = require('../shared/reporter')
 const BlobStorage = require('./blobStorage.js')
 const Render = require('./render/render')
 const Profiler = require('./render/profiler.js')
+const engineStream = require('./render/engineStream.js')
 
 class WorkerReporter extends Reporter {
   constructor (workerData, executeMain) {
@@ -78,6 +79,8 @@ class WorkerReporter extends Reporter {
       name: 'html',
       execute: htmlRecipe
     })
+
+    engineStream(this)
 
     await this.initializeListeners.fire()
 
@@ -169,8 +172,8 @@ class WorkerReporter extends Reporter {
     return proxyInstance
   }
 
-  render (req, parentReq) {
-    return this._render(req, parentReq)
+  async render (req, parentReq) {
+    return await this._render(req, parentReq)
   }
 
   async executeMainAction (actionName, data, req) {
@@ -221,17 +224,8 @@ class WorkerReporter extends Reporter {
 
   _registerRenderAction () {
     this.registerWorkerAction('render', async (data, req) => {
-      const res = await this.render(req)
-
-      const sharedBuf = new SharedArrayBuffer(res.content.byteLength)
-      const buf = Buffer.from(sharedBuf)
-
-      res.content.copy(buf)
-
-      return {
-        meta: res.meta,
-        content: buf
-      }
+      const response = await this._render(req)
+      return response.serialize()
     })
   }
 

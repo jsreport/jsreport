@@ -49,6 +49,60 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract static asset (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset foo.html}'
+      }
+    })
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract multiple static asset in one', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'foo'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: 'a{#asset foo.html}ba{#asset foo.html}',
+        recipe: 'html',
+        engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql('afoobafoo')
+  })
+
+  it('should extract multiple static asset in one (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'foo'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: 'a{#asset foo.html}ba{#asset foo.html}'
+      }
+    })
+    res.content.toString().should.be.eql('afoobafoo')
+  })
+
   it('should extract static asset with leading space in name', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'foo.html',
@@ -60,6 +114,25 @@ describe('assets', function () {
         content: '{#asset  foo.html}',
         recipe: 'html',
         engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract static asset with leading space in name (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset  foo.html}'
       }
     })
     res.content.toString().should.be.eql('hello')
@@ -79,6 +152,70 @@ describe('assets', function () {
       }
     })
     res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract static asset with trailing space in name (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset foo.html }'
+      }
+    })
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract multiple static asset in nested one', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'foo'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'bar.html',
+      content: '{#asset foo.html}'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{#asset bar.html}{#asset bar.html}',
+        recipe: 'html',
+        engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql('foofoo')
+  })
+
+  it('should extract multiple static asset in nested one (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'foo.html',
+      content: 'foo'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'bar.html',
+      content: '{#asset foo.html}'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset bar.html}{#asset bar.html}'
+      }
+    })
+    res.content.toString().should.be.eql('foofoo')
   })
 
   it('should extract static asset which is marked as shared helper', async () => {
@@ -597,6 +734,53 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract static asset with name constructed by another asset', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'a.html',
+      content: 'b.html'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'b.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{#asset {#asset a.html}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      }
+    })
+
+    res.content.toString().should.be.eql('hello')
+  })
+
+  it('should extract static asset with name constructed by another asset (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'a.html',
+      content: 'b.html'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'b.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset {#asset a.html}}'
+      }
+    })
+
+    res.content.toString().should.be.eql('hello')
+  })
+
   it('should extract assets recursively', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'a.html',
@@ -618,6 +802,30 @@ describe('assets', function () {
     res.content.toString().should.be.eql('hello')
   })
 
+  it('should extract assets recursively (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'a.html',
+      content: '{#asset b.html}'
+    })
+
+    await reporter.documentStore.collection('assets').insert({
+      name: 'b.html',
+      content: 'hello'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset a.html}'
+      }
+    })
+    res.content.toString().should.be.eql('hello')
+  })
+
   it('should not fail with circle in asset references', async () => {
     await reporter.documentStore.collection('assets').insert({
       name: 'a.html',
@@ -633,6 +841,29 @@ describe('assets', function () {
         content: '{#asset a.html}',
         recipe: 'html',
         engine: 'none'
+      }
+    })
+    res.content.toString().should.be.eql('{#asset b.html}')
+  })
+
+  it('should not fail with circle in asset references (after template engine)', async () => {
+    await reporter.documentStore.collection('assets').insert({
+      name: 'a.html',
+      content: '{#asset b.html}'
+    })
+    await reporter.documentStore.collection('assets').insert({
+      name: 'b.html',
+      content: '{#asset a.html}'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{assetCall}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        assetCall: '{#asset a.html}'
       }
     })
     res.content.toString().should.be.eql('{#asset b.html}')

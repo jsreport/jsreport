@@ -9,7 +9,7 @@ module.exports = ({ reporter, puppeteer, options }) => {
     throw new Error('"numberOfWorkers" must be a number greater or equal than 1')
   }
 
-  const execute = async ({ htmlUrl, strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess }) => {
+  const execute = async ({ htmlUrl, strategy, launchOptions, conversionOptions, req, imageExecution, allowLocalFilesAccess, onOutput }) => {
     let browserInfo
     let page
     let releaseBrowser
@@ -46,10 +46,17 @@ module.exports = ({ reporter, puppeteer, options }) => {
 
       page = result.page
 
-      return {
+      const output = {
         type: result.type,
         content: result.content
       }
+
+      if (onOutput) {
+        await onOutput(output)
+        delete output.content
+      }
+
+      return output
     } catch (err) {
       if (err.workerCrashed) {
         crashError = true

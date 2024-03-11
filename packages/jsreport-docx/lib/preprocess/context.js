@@ -1,15 +1,27 @@
 const { findChildNode } = require('../utils')
 
-module.exports = (files) => {
+module.exports = (files, headerFooterRefs) => {
   const documentDoc = files.find(f => f.path === 'word/document.xml').doc
   const bodyEl = findChildNode('w:body', documentDoc.documentElement)
+  const toProcess = [{ doc: documentDoc, startRefEl: bodyEl, endRefEl: bodyEl, contextType: 'document' }]
 
-  const contextStartEl = documentDoc.createElement('docxRemove')
-  contextStartEl.textContent = '{{#docxContext type="document"}}'
+  for (const hfRef of headerFooterRefs) {
+    toProcess.push({
+      doc: hfRef.doc,
+      startRefEl: hfRef.doc.documentElement.firstChild,
+      endRefEl: hfRef.doc.documentElement.lastChild,
+      contextType: hfRef.type
+    })
+  }
 
-  const contextEndEl = documentDoc.createElement('docxRemove')
-  contextEndEl.textContent = '{{/docxContext}}'
+  for (const { doc: targetDoc, startRefEl, endRefEl, contextType } of toProcess) {
+    const contextStartEl = targetDoc.createElement('docxRemove')
+    contextStartEl.textContent = `{{#docxContext type="${contextType}"}}`
 
-  bodyEl.parentNode.insertBefore(contextStartEl, bodyEl)
-  bodyEl.parentNode.insertBefore(contextEndEl, bodyEl.nextSibling)
+    const contextEndEl = documentDoc.createElement('docxRemove')
+    contextEndEl.textContent = '{{/docxContext}}'
+
+    startRefEl.parentNode.insertBefore(contextStartEl, startRefEl)
+    endRefEl.parentNode.insertBefore(contextEndEl, endRefEl.nextSibling)
+  }
 }

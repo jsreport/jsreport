@@ -1,0 +1,37 @@
+{
+  "name": "@jsreport/multipart",
+  "version": "0.0.0",
+  "description": "Some helpers for sending and parsing multipart attachments in streaming flow",
+  "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/multipart#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsreport/jsreport.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "BJR Matos",
+    "email": "bjrmatos@gmail.com"
+  },
+  "main": "index.js",
+  "files": [
+    "formDataStream",
+    "index.js",
+    "parseMultipartStream.js"
+  ],
+  "scripts": {
+    "test": "mocha test --timeout 8000 && standard"
+  },
+  "dependencies": {
+    "mime-types": "2.1.28"
+  },
+  "devDependencies": {
+    "mocha": "10.1.0",
+    "should": "13.2.3",
+    "standard": "16.0.4"
+  },
+  "standard": {
+    "env": {
+      "mocha": true
+    }
+  }
+}

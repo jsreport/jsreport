@@ -1,8 +1,8 @@
 const { pipeline } = require('stream')
 const omit = require('lodash.omit')
 const serveStatic = require('serve-static')
+const { FormData } = require('@jsreport/multipart')
 const handleError = require('./handleError')
-const FormData = require('./formDataStream')
 const odata = require('./odata')
 const EventEmitter = require('events')
 const archiver = require('archiver')
@@ -47,7 +47,7 @@ module.exports = (app, reporter, exposedOptions) => {
     let profiler
     if (stream) {
       form = new FormData()
-      res.setHeader('Content-Type', `multipart/mixed; boundary=${form.getBoundary()}`)
+      res.setHeader('Content-Type', form.getDefaultContentType())
 
       profiler = reporter.attachProfiler(renderRequest, req.query.profilerMode)
 
@@ -84,10 +84,16 @@ module.exports = (app, reporter, exposedOptions) => {
     reporter.render(renderRequest, { abortEmitter, onReqReady }).then((renderResponse) => {
       cleanupAfterRender()
 
+      return Promise.all([renderResponse.output.getStream(), renderResponse.output.getSize()]).then(([resStream, resSize]) => ({
+        stream: resStream,
+        size: resSize,
+        meta: renderResponse.meta
+      }))
+    }).then((renderResponse) => {
       if (stream) {
         form.append('report', renderResponse.stream, {
           filename: `${renderResponse.meta.reportName}.${renderResponse.meta.fileExtension}`,
-          contentLength: renderResponse.content.length,
+          contentLength: renderResponse.size,
           header: {
             'Content-Type': renderResponse.meta.headers['Content-Type'],
             'Content-Disposition': renderResponse.meta.headers['Content-Disposition']

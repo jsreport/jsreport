@@ -1,4 +1,4 @@
-const fs = require('fs/promises')
+const fs = require('fs')
 const axios = require('axios')
 const FormData = require('form-data')
 
@@ -21,11 +21,8 @@ module.exports = async function response ({
   buffer,
   logger
 }, req, res) {
-  if (buffer) {
-    res.content = buffer
-  } else {
-    res.content = await fs.readFile(filePath)
-  }
+  const isRenderResponse = res.__isJsreportResponse__ === true
+  let result
 
   if (officeDocuments[officeDocumentType] == null) {
     throw new Error(`Unsupported office document type "${officeDocumentType}"`)
@@ -44,17 +41,24 @@ module.exports = async function response ({
   }
 
   if (enabled === false || !isOfficePreviewRequest) {
+    if (isRenderResponse) {
+      await res.updateOutput(buffer || filePath)
+    } else {
+      result = buffer || filePath
+    }
+
     res.meta.fileExtension = officeDocumentType
     res.meta.contentType = officeDocuments[officeDocumentType].contentType
     res.meta.officeDocumentType = officeDocumentType
-    return
+    return result
   }
 
   logger.debug('preparing office preview', req)
 
   const form = new FormData()
+  const formContent = buffer || fs.createReadStream(filePath)
 
-  form.append('field', res.content, `file.${officeDocumentType}`)
+  form.append('field', formContent, `file.${officeDocumentType}`)
 
   let resp
 
@@ -71,6 +75,15 @@ module.exports = async function response ({
   } catch (e) {
     let message = `${officeDocumentType} file upload to ${targetPublicUri} failed.`
 
+    // the explicit destroy here allows the http globalAgent to release the socket,
+    // which keeps a reference to the input data we send to target public server, (even if a stream)
+    // this reference prevents memory to be released immediately, if the input document is like >100mb
+    // the explicit destroy here is an improvement, if we don't do this explicit destroy the socket
+    // is anyway released in like 1 minute, so this is more an enhancement rather than a bug fix
+    if (e.request != null && !e.request.destroyed) {
+      e.request.destroy()
+    }
+
     if (e.response && e.response.status && e.response.status === 413) {
       message += ' File is too big and it pass the upload limits of server.'
     }
@@ -79,18 +92,31 @@ module.exports = async function response ({
 
     logger.error(message, req)
 
+    if (isRenderResponse) {
+      await res.updateOutput(buffer || filePath)
+    } else {
+      result = buffer || filePath
+    }
+
     res.meta.fileExtension = officeDocumentType
     res.meta.contentType = officeDocuments[officeDocumentType].contentType
     res.meta.officeDocumentType = officeDocumentType
-    return
+    return result
   }
 
-  const iframe = '<iframe style="height:100%;width:100%" src="https://view.officeapps.live.com/op/view.aspx?src=' +
-    encodeURIComponent((targetPublicUri + '/') + resp.data) + '" />'
+  const iframe = `<iframe style="height:100%;width:100%" src="https://view.officeapps.live.com/op/view.aspx?src=${
+    encodeURIComponent((targetPublicUri + '/') + resp.data)
+  }" />`
 
-  const html = `<html><head><title>${res.meta.reportName}</title><body>${iframe}</body></html>`
+  const htmlBuffer = Buffer.from(`<html><head><title>${res.meta.reportName}</title><body>${iframe}</body></html>`)
 
-  res.content = Buffer.from(html)
+  if (isRenderResponse) {
+    await res.updateOutput(htmlBuffer)
+  } else {
+    result = htmlBuffer
+  }
+
   res.meta.contentType = 'text/html'
   res.meta.fileExtension = '.html'
+  return result
 }

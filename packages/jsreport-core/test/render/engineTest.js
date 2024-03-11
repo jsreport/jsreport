@@ -61,13 +61,13 @@ describe('engine', () => {
       template: {
         content: 'content',
         helpers: `
-        const jsreport = require('jsreport-proxy')        
-        async function b() { 
-          return new Promise((resolve) => resolve("foo")); 
+        const jsreport = require('jsreport-proxy')
+        async function b() {
+          return new Promise((resolve) => resolve("foo"));
         }
 
-        async function a(helpers) {          
-          return jsreport.templatingEngines.waitForAsyncHelper(helpers.b() + helpers.b() + helpers.b())          
+        async function a(helpers) {
+          return jsreport.templatingEngines.waitForAsyncHelper(helpers.b() + helpers.b() + helpers.b())
         }
         `,
         engine: 'helpers',
@@ -83,13 +83,13 @@ describe('engine', () => {
       template: {
         content: 'content',
         helpers: `
-        const jsreport = require('jsreport-proxy') 
-        
+        const jsreport = require('jsreport-proxy')
+
         async function b() {
           return 'foo'
         }
-        
-        function a(helpers) { 
+
+        function a(helpers) {
           return jsreport.templatingEngines.evaluate({
             engine: 'data',
             content: '',
@@ -97,10 +97,10 @@ describe('engine', () => {
             data: {
               a: { val: helpers.b() }
             }
-          }, {  
+          }, {
             entity: { _id: 'x' },
-            entitySet: 'templates'          
-          })                    
+            entitySet: 'templates'
+          })
         }`,
         engine: 'helpers',
         recipe: 'html'
@@ -771,10 +771,10 @@ describe('engine', () => {
           engine: 'helpers2',
           content: 'foo',
           recipe: 'html',
-          helpers: `async function a1() {                      
+          helpers: `async function a1() {
             await new Promise((resolve) => setTimeout(resolve, 100))
             throw new Error('x')
-          } 
+          }
           function a2() {
             throw new Error('a2')
           }`
@@ -787,6 +787,44 @@ describe('engine', () => {
     await reporter2.close()
     console.log = originalLog
     workerCrashed.should.be.false()
+  })
+
+  it('should expose jsreport.templatingEngines.createStream', async () => {
+    const res = await reporter.render({
+      template: {
+        content: 'content',
+        helpers: `async function a() {
+          const jsreport = require('jsreport-proxy')
+          const stream = await jsreport.templatingEngines.createStream()
+          await stream.write('hello')
+          return await stream.toResult()
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    })
+
+    should(res.content.toString()).containEql('hello')
+  })
+
+  it('should fail when jsreport.templatingEngines.createStream called more than 100x', () => {
+    return reporter.render({
+      template: {
+        content: 'content',
+        helpers: `async function a() {
+          const jsreport = require('jsreport-proxy')
+          let r = ''
+          for (let i = 0; i < 1005; i++) {
+            const stream = await jsreport.templatingEngines.createStream()
+            await stream.write('hello')
+            r += await stream.toResult()
+          }
+          return r
+        }`,
+        engine: 'helpers',
+        recipe: 'html'
+      }
+    }).should.be.rejectedWith(/max/)
   })
 })
 

@@ -89,7 +89,7 @@ module.exports = async (reporter, inputs, req) => {
       }
     }
 
-    await postprocess(files, options)
+    await postprocess(reporter, files, options)
 
     for (const f of files) {
       let shouldSerializeFromDoc = contentIsXML(f.data) && f.path !== 'word/document.xml'

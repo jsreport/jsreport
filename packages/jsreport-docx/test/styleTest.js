@@ -1,8 +1,9 @@
+const should = require('should')
 const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
 const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
-const { getDocumentsFromDocxBuf } = require('./utils')
+const { getDocumentsFromDocxBuf, getTextNodesMatching } = require('./utils')
 
 const docxDirPath = path.join(__dirname, './docx')
 const outputPath = path.join(__dirname, '../out.docx')
@@ -57,31 +58,355 @@ describe('docx style', () => {
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
     const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
 
-    wREls.should.matchEach((wREl) => {
-      const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
-      const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wColorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
       const wTEl = wREl.getElementsByTagName('w:t')[0]
 
-      if (wTEl == null || wColorEl == null) {
-        return
+      if (!wTEl || wTEl.textContent === '') {
+        continue
       }
 
       if (wTEl.textContent.includes('blue')) {
-        wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
+        should(wColorEl.getAttribute('w:val')).be.eql(targetColors.one)
       } else if (wTEl.textContent.includes('red')) {
-        wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
+        should(wColorEl.getAttribute('w:val')).be.eql(targetColors.two)
       } else if (
         wTEl.textContent.includes('This is heading') ||
         wTEl.textContent.includes('And this is some kind') ||
         wTEl.textContent.includes('Even with a list')
       ) {
-        wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
+        should(wColorEl.getAttribute('w:val')).be.eql(targetColors.three)
       } else if (wTEl.textContent.includes('Greeen')) {
-        wColorEl.getAttribute('w:val').should.be.eql('92D050')
+        should(wColorEl.getAttribute('w:val')).be.eql('92D050')
       } else if (wTEl.textContent.includes('asd')) {
-        wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        should(wColorEl.getAttribute('w:val')).be.eql(targetColors.four)
+      }
+    }
+  })
+
+  it('style - textColor nested', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-nested.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
       }
     })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wColorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'a':
+        case 'h':
+        case 'i':
+        case 'j':
+        case 'o':
+          should(wColorEl).be.not.ok()
+          break
+        case 'b':
+        case 'c':
+        case 'g':
+        case 'k':
+        case 'n':
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
+          break
+        case 'd':
+        case 'e':
+        case 'f':
+        case 'l':
+        case 'm':
+          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - textColor across table cells', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-across-cells.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wColorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'a':
+        case 'f':
+          should(wColorEl).be.not.ok()
+          break
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+          should(wColorEl.getAttribute('w:val')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - textColor target paragraph', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-target-paragraph.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'c':
+          should(wcolorEl).be.not.ok()
+          break
+        case 'a':
+        case 'b':
+          should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - textColor target cell', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-target-cell.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'c':
+          should(wcolorEl).be.not.ok()
+          break
+        case 'a':
+        case 'b':
+          should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - textColor target row', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-target-row.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'd':
+        case 'e':
+          should(wcolorEl).be.not.ok()
+          break
+        case 'a':
+        case 'b':
+        case 'c':
+          should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it.skip('style - textColor target row with dynamic cells', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-textcolor-target-row-dynamic-cells.docx'))
+          }
+        },
+        helpers: `
+          function getColor (rowIndex, colors) {
+            if (rowIndex % 2 === 0) {
+              return colors.one
+            }
+
+            return colors.two
+          }
+        `
+      },
+      data: {
+        rowsItems: [
+          ['Jan', 'jan.blaha@foo.com'],
+          ['Boris', 'boris@foo.met'],
+          ['Pavel', 'pavel@foo.met']
+        ],
+        columnsItems: ['Name', 'Email'],
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    // const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    // const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    // for (const wREl of wREls) {
+    //   const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+    //   const wcolorEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:color') : undefined
+    //   const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+    //   if (wTEl.textContent === '') {
+    //     continue
+    //   }
+
+    //   switch (wTEl.textContent) {
+    //     case 'c':
+    //       should(wcolorEl).be.not.ok()
+    //       break
+    //     case 'a':
+    //     case 'b':
+    //       should(wcolorEl.getAttribute('w:val')).be.eql(targetColors.one)
+    //       break
+    //     default:
+    //       throw new Error(`Unexpected text "${wTEl.textContent}"`)
+    //   }
+    // }
   })
 
   it('style - backgroundColor', async () => {
@@ -110,30 +435,327 @@ describe('docx style', () => {
     fs.writeFileSync(outputPath, result.content)
 
     const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
-    const wpEls = nodeListToArray(doc.getElementsByTagName('w:p'))
 
-    wpEls.should.matchEach((wpEl) => {
-      const wpPrEl = wpEl.getElementsByTagName('w:pPr')[0]
-      const wshdEl = wpPrEl != null ? wpPrEl.getElementsByTagName('w:shd')[0] : undefined
-      const text = nodeListToArray(wpEl.getElementsByTagName('w:t')).map((tEl) => tEl.textContent).join(' ')
+    const textCases = [
+      'something blue',
+      'color me',
+      'something red',
+      'heading 1',
+      'this some kind of',
+      'Even with a',
+      'With two',
+      'asdadas',
+      'dasdasd'
+    ]
 
-      if (text == null || wshdEl == null) {
-        return
+    const checkBackgroundColor = (textEls, targetBg) => {
+      for (const textEl of textEls) {
+        const wREl = textEl.parentNode
+        const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+        const wshdEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find(node => node.tagName === 'w:shd') : undefined
+
+        if (targetBg != null) {
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetBg)
+        } else {
+          should(wshdEl).be.not.ok()
+        }
+      }
+    }
+
+    for (const textCase of textCases) {
+      const textEls = getTextNodesMatching(doc, textCase)
+
+      if (textEls.length === 0) {
+        throw new Error(`Expected case "${textCase}" to have matching text elements`)
       }
 
-      if (text.includes('blue') || text.includes('red')) {
-        wshdEl.getAttribute('w:fill').should.be.eql(targetColors.two)
-      } else if (
-        text.includes('This is heading') ||
-        text.includes('And this is some kind') ||
-        text.includes('Even with a list')
-      ) {
-        wshdEl.getAttribute('w:fill').should.be.eql(targetColors.three)
-      } else if (text.includes('asd')) {
-        wshdEl.getAttribute('w:fill').should.be.eql(targetColors.four)
+      switch (textCase) {
+        case 'something blue':
+          checkBackgroundColor(textEls, targetColors.one)
+          break
+        case 'color me':
+          checkBackgroundColor(textEls, null)
+          break
+        case 'something red':
+          checkBackgroundColor(textEls, targetColors.two)
+          break
+        case 'heading 1':
+        case 'this some kind of':
+        case 'Even with a':
+        case 'With two':
+          checkBackgroundColor(textEls, targetColors.three)
+          break
+        case 'asdadas':
+        case 'dasdasd':
+          checkBackgroundColor(textEls, targetColors.four)
+          break
+        default:
+          throw new Error(`Unexpected text case "${textCase}"`)
+      }
+    }
+  })
+
+  it('style - backgroundColor nested', async () => {
+    const targetColors = {
+      one: '0000FF',
+      two: 'FF0000'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-nested.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
       }
     })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wshdEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:shd') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'a':
+        case 'h':
+        case 'i':
+        case 'j':
+        case 'o':
+          should(wshdEl).be.not.ok()
+          break
+        case 'b':
+        case 'c':
+        case 'g':
+        case 'k':
+        case 'n':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.one)
+          break
+        case 'd':
+        case 'e':
+        case 'f':
+        case 'l':
+        case 'm':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.two)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
   })
+
+  it('style - backgroundColor across table cells', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-across-cells.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+      const wshdEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find((node) => node.tagName === 'w:shd') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'a':
+        case 'f':
+          should(wshdEl).be.not.ok()
+          break
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - backgroundColor target paragraph', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-target-paragraph.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wpPrEl = nodeListToArray(wREl.parentNode.childNodes).find((node) => node.tagName === 'w:pPr')
+      const wshdEl = wpPrEl != null ? nodeListToArray(wpPrEl.childNodes).find((node) => node.tagName === 'w:shd') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'c':
+          should(wshdEl).be.not.ok()
+          break
+        case 'a':
+        case 'b':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - backgroundColor target cell', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-target-cell.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wtcPrEl = nodeListToArray(wREl.parentNode.parentNode.childNodes).find((node) => node.tagName === 'w:tcPr')
+      const wshdEl = wtcPrEl != null ? nodeListToArray(wtcPrEl.childNodes).find((node) => node.tagName === 'w:shd') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'c':
+          should(wshdEl).be.not.ok()
+          break
+        case 'a':
+        case 'b':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - backgroundColor target row', async () => {
+    const targetColors = {
+      one: '0000FF'
+    }
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: fs.readFileSync(path.join(docxDirPath, 'style-backgroundcolor-target-row.docx'))
+          }
+        }
+      },
+      data: {
+        colors: targetColors
+      }
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [doc] = await getDocumentsFromDocxBuf(result.content, ['word/document.xml'])
+    const wREls = nodeListToArray(doc.getElementsByTagName('w:r'))
+
+    for (const wREl of wREls) {
+      const wtcPrEl = nodeListToArray(wREl.parentNode.parentNode.childNodes).find((node) => node.tagName === 'w:tcPr')
+      const wshdEl = wtcPrEl != null ? nodeListToArray(wtcPrEl.childNodes).find((node) => node.tagName === 'w:shd') : undefined
+      const wTEl = wREl.getElementsByTagName('w:t')[0]
+
+      if (wTEl.textContent === '') {
+        continue
+      }
+
+      switch (wTEl.textContent) {
+        case 'd':
+        case 'e':
+          should(wshdEl).be.not.ok()
+          break
+        case 'a':
+        case 'b':
+        case 'c':
+          should(wshdEl.getAttribute('w:fill')).be.eql(targetColors.one)
+          break
+        default:
+          throw new Error(`Unexpected text "${wTEl.textContent}"`)
+      }
+    }
+  })
+
+  it('style - backgroundColor target row with dynamic cells')
 
   it('style in document header', async () => {
     const targetColors = {
@@ -162,38 +784,72 @@ describe('docx style', () => {
 
     const targetDocs = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/header1.xml', 'word/header2.xml', 'word/header3.xml'])
 
+    const textCases = [
+      'something blue',
+      'color me',
+      'something red',
+      'heading 1',
+      'this some kind of',
+      'Even with a',
+      'With two',
+      'Greeen',
+      'asdadas',
+      'dasdasd'
+    ]
+
+    const checkTextColor = (textEls, targetTc) => {
+      for (const textEl of textEls) {
+        const wREl = textEl.parentNode
+        const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+        const wshdEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find(node => node.tagName === 'w:color') : undefined
+
+        if (targetTc != null) {
+          should(wshdEl.getAttribute('w:val')).be.eql(targetTc)
+        } else {
+          should(wshdEl).be.not.ok()
+        }
+      }
+    }
+
     for (const targetDoc of targetDocs) {
       if (targetDoc == null) {
         continue
       }
 
-      const wREls = nodeListToArray(targetDoc.getElementsByTagName('w:r'))
+      for (const textCase of textCases) {
+        const textEls = getTextNodesMatching(targetDoc, textCase)
 
-      wREls.should.matchEach((wREl) => {
-        const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
-        const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
-        const wTEl = wREl.getElementsByTagName('w:t')[0]
-
-        if (wTEl == null || wColorEl == null) {
-          return
+        if (textEls.length === 0) {
+          throw new Error(`Expected case "${textCase}" to have matching text elements`)
         }
 
-        if (wTEl.textContent.includes('blue')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
-        } else if (wTEl.textContent.includes('red')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
-        } else if (
-          wTEl.textContent.includes('This is heading') ||
-          wTEl.textContent.includes('And this is some kind') ||
-          wTEl.textContent.includes('Even with a list')
-        ) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
-        } else if (wTEl.textContent.includes('Greeen')) {
-          wColorEl.getAttribute('w:val').should.be.eql('92D050')
-        } else if (wTEl.textContent.includes('asd')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        switch (textCase) {
+          case 'something blue':
+            checkTextColor(textEls, targetColors.one)
+            break
+          case 'color me':
+            checkTextColor(textEls, null)
+            break
+          case 'something red':
+            checkTextColor(textEls, targetColors.two)
+            break
+          case 'heading 1':
+          case 'this some kind of':
+          case 'Even with a':
+          case 'With two':
+            checkTextColor(textEls, targetColors.three)
+            break
+          case 'Greeen':
+            checkTextColor(textEls, '92D050')
+            break
+          case 'asdadas':
+          case 'dasdasd':
+            checkTextColor(textEls, targetColors.four)
+            break
+          default:
+            throw new Error(`Unexpected text case "${textCase}"`)
         }
-      })
+      }
     }
   })
 
@@ -229,33 +885,73 @@ describe('docx style', () => {
         continue
       }
 
-      const wREls = nodeListToArray(targetDoc.getElementsByTagName('w:r'))
+      const textCases = [
+        'something blue',
+        'color me',
+        'something red',
+        'heading 1',
+        'this some kind of',
+        'Even with a',
+        'With two',
+        'Greeen',
+        'asdadas',
+        'dasdasd'
+      ]
 
-      wREls.should.matchEach((wREl) => {
-        const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
-        const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
-        const wTEl = wREl.getElementsByTagName('w:t')[0]
+      const checkTextColor = (textEls, targetTc) => {
+        for (const textEl of textEls) {
+          const wREl = textEl.parentNode
+          const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+          const wshdEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find(node => node.tagName === 'w:color') : undefined
 
-        if (wTEl == null || wColorEl == null) {
-          return
+          if (targetTc != null) {
+            should(wshdEl.getAttribute('w:val')).be.eql(targetTc)
+          } else {
+            should(wshdEl).be.not.ok()
+          }
+        }
+      }
+
+      for (const targetDoc of targetDocs) {
+        if (targetDoc == null) {
+          continue
         }
 
-        if (wTEl.textContent.includes('blue')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
-        } else if (wTEl.textContent.includes('red')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
-        } else if (
-          wTEl.textContent.includes('This is heading') ||
-          wTEl.textContent.includes('And this is some kind') ||
-          wTEl.textContent.includes('Even with a list')
-        ) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
-        } else if (wTEl.textContent.includes('Greeen')) {
-          wColorEl.getAttribute('w:val').should.be.eql('92D050')
-        } else if (wTEl.textContent.includes('asd')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        for (const textCase of textCases) {
+          const textEls = getTextNodesMatching(targetDoc, textCase)
+
+          if (textEls.length === 0) {
+            throw new Error(`Expected case "${textCase}" to have matching text elements`)
+          }
+
+          switch (textCase) {
+            case 'something blue':
+              checkTextColor(textEls, targetColors.one)
+              break
+            case 'color me':
+              checkTextColor(textEls, null)
+              break
+            case 'something red':
+              checkTextColor(textEls, targetColors.two)
+              break
+            case 'heading 1':
+            case 'this some kind of':
+            case 'Even with a':
+            case 'With two':
+              checkTextColor(textEls, targetColors.three)
+              break
+            case 'Greeen':
+              checkTextColor(textEls, '92D050')
+              break
+            case 'asdadas':
+            case 'dasdasd':
+              checkTextColor(textEls, targetColors.four)
+              break
+            default:
+              throw new Error(`Unexpected text case "${textCase}"`)
+          }
         }
-      })
+      }
     }
   })
 
@@ -289,38 +985,72 @@ describe('docx style', () => {
       'word/footer1.xml', 'word/footer2.xml', 'word/footer3.xml'
     ])
 
+    const textCases = [
+      'something blue',
+      'color me',
+      'something red',
+      'heading 1',
+      'this some kind of',
+      'Even with a',
+      'With two',
+      'Greeen',
+      'asdadas',
+      'dasdasd'
+    ]
+
+    const checkTextColor = (textEls, targetTc) => {
+      for (const textEl of textEls) {
+        const wREl = textEl.parentNode
+        const wRPrEl = nodeListToArray(wREl.childNodes).find((node) => node.tagName === 'w:rPr')
+        const wshdEl = wRPrEl != null ? nodeListToArray(wRPrEl.childNodes).find(node => node.tagName === 'w:color') : undefined
+
+        if (targetTc != null) {
+          should(wshdEl.getAttribute('w:val')).be.eql(targetTc)
+        } else {
+          should(wshdEl).be.not.ok()
+        }
+      }
+    }
+
     for (const targetDoc of targetDocs) {
       if (targetDoc == null) {
         continue
       }
 
-      const wREls = nodeListToArray(targetDoc.getElementsByTagName('w:r'))
+      for (const textCase of textCases) {
+        const textEls = getTextNodesMatching(targetDoc, textCase)
 
-      wREls.should.matchEach((wREl) => {
-        const wRPrEl = wREl.getElementsByTagName('w:rPr')[0]
-        const wColorEl = wRPrEl != null ? wRPrEl.getElementsByTagName('w:color')[0] : undefined
-        const wTEl = wREl.getElementsByTagName('w:t')[0]
-
-        if (wTEl == null || wColorEl == null) {
-          return
+        if (textEls.length === 0) {
+          throw new Error(`Expected case "${textCase}" to have matching text elements`)
         }
 
-        if (wTEl.textContent.includes('blue')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.one)
-        } else if (wTEl.textContent.includes('red')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.two)
-        } else if (
-          wTEl.textContent.includes('This is heading') ||
-          wTEl.textContent.includes('And this is some kind') ||
-          wTEl.textContent.includes('Even with a list')
-        ) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.three)
-        } else if (wTEl.textContent.includes('Greeen')) {
-          wColorEl.getAttribute('w:val').should.be.eql('92D050')
-        } else if (wTEl.textContent.includes('asd')) {
-          wColorEl.getAttribute('w:val').should.be.eql(targetColors.four)
+        switch (textCase) {
+          case 'something blue':
+            checkTextColor(textEls, targetColors.one)
+            break
+          case 'color me':
+            checkTextColor(textEls, null)
+            break
+          case 'something red':
+            checkTextColor(textEls, targetColors.two)
+            break
+          case 'heading 1':
+          case 'this some kind of':
+          case 'Even with a':
+          case 'With two':
+            checkTextColor(textEls, targetColors.three)
+            break
+          case 'Greeen':
+            checkTextColor(textEls, '92D050')
+            break
+          case 'asdadas':
+          case 'dasdasd':
+            checkTextColor(textEls, targetColors.four)
+            break
+          default:
+            throw new Error(`Unexpected text case "${textCase}"`)
         }
-      })
+      }
     }
   })
 })

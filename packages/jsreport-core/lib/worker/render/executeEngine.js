@@ -16,6 +16,7 @@ module.exports = (reporter) => {
 
   const executionFnParsedParamsMap = new Map()
   const executionAsyncResultsMap = new Map()
+  const executionFinishListenersMap = new Map()
 
   const templatingEnginesEvaluate = async (mainCall, { engine, content, helpers, data }, { entity, entitySet }, req) => {
     const engineImpl = reporter.extensionsManager.engines.find((e) => e.name === engine)
@@ -47,6 +48,7 @@ module.exports = (reporter) => {
       }
 
       executionAsyncResultsMap.delete(executionId)
+      executionFinishListenersMap.delete(executionId)
     }
   }
 
@@ -92,6 +94,11 @@ module.exports = (reporter) => {
         if (context.__executionId != null && executionAsyncResultsMap.has(context.__executionId)) {
           const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
           return Promise.all([...asyncResultMap.keys()].map((k) => asyncResultMap.get(k)))
+        }
+      },
+      addFinishListener: (fn) => {
+        if (executionFinishListenersMap.has(context.__executionId)) {
+          executionFinishListenersMap.get(context.__executionId).add('finish', fn)
         }
       },
       createAsyncHelperResult: (v) => {
@@ -190,6 +197,7 @@ module.exports = (reporter) => {
       context.__executionId = executionId
 
       executionAsyncResultsMap.set(executionId, asyncResultMap)
+      executionFinishListenersMap.set(executionId, reporter.createListenerCollection())
       executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions, context })
 
       const key = engine.buildTemplateCacheKey
@@ -248,6 +256,8 @@ module.exports = (reporter) => {
         })
       }
       contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
+
+      await executionFinishListenersMap.get(context.__executionId).fire()
 
       return {
         // handlebars escapes single brackets before execution to prevent errors on {#asset}

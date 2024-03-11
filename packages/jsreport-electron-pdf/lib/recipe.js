@@ -1,4 +1,3 @@
-const toArray = require('stream-to-array')
 const electronConvert = require('electron-html-to')
 const { promisify } = require('util')
 const pickBy = require('lodash.pickby')
@@ -45,9 +44,11 @@ module.exports = (reporter, definition) => async (request, response) => {
 
   const options = request.template.electron
 
+  const html = (await response.output.getBuffer()).toString()
+
   // TODO: add support for header and footer html when electron support printing header/footer
   const result = await electronConversion({
-    html: response.content,
+    html,
     delay: options.printDelay,
     timeout: options.timeout,
     waitForJS: options.waitForJS != null ? options.waitForJS : false,
@@ -99,9 +100,8 @@ module.exports = (reporter, definition) => async (request, response) => {
     })
   }
 
-  const arr = await toArray(result.stream)
+  await response.updateOutput(result.stream)
 
-  response.content = Buffer.concat(arr)
   reporter.logger.debug(`electron-pdf recipe finished with ${numberOfPages} pages generated`, request)
 }
 

@@ -1,10 +1,9 @@
 
 const util = require('util')
-const toArray = require('stream-to-array')
 const Conversion = require('phantom-html-to-pdf')
 let conversion
 
-module.exports = (reporter, definition, request, response) => {
+module.exports = async (reporter, definition, request, response) => {
   if (conversion == null) {
     conversion = util.promisify(Conversion(definition.options))
   }
@@ -27,41 +26,43 @@ module.exports = (reporter, definition, request, response) => {
   request.template.phantomImage.quality = request.template.phantomImage.quality || '100'
 
   request.template.phantomImage.format = { format: request.template.phantomImage.imageType, quality: request.template.phantomImage.quality }
-  request.template.phantomImage.html = response.content
+
+  const html = (await response.output.getBuffer()).toString()
+
+  request.template.phantomImage.html = html
   request.template.phantomImage.timeout = reporter.getReportTimeout(request)
 
   request.template.phantomImage.waitForJSVarName = 'JSREPORT_READY_TO_START'
 
-  return conversion(request.template.phantomImage).then(function (cres) {
-    cres.logs.forEach(function (m) {
-      const meta = { timestamp: m.timestamp.getTime(), ...request }
-      let targetLevel = m.level
-      let msg = m.message
+  const cres = await conversion(request.template.phantomImage)
 
-      if (m.userLevel) {
-        targetLevel = 'debug'
-        meta.userLevel = true
+  cres.logs.forEach(function (m) {
+    const meta = { timestamp: m.timestamp.getTime(), ...request }
+    let targetLevel = m.level
+    let msg = m.message
 
-        let consoleType = m.level
+    if (m.userLevel) {
+      targetLevel = 'debug'
+      meta.userLevel = true
 
-        if (consoleType === 'debug') {
-          consoleType = 'log'
-        } else if (consoleType === 'warn') {
-          consoleType = 'warning'
-        }
+      let consoleType = m.level
 
-        msg = `(console:${consoleType}) ${msg}`
+      if (consoleType === 'debug') {
+        consoleType = 'log'
+      } else if (consoleType === 'warn') {
+        consoleType = 'warning'
       }
 
-      reporter.logger[targetLevel](msg, meta)
-    })
+      msg = `(console:${consoleType}) ${msg}`
+    }
 
-    response.meta.contentType = 'image/' + request.template.phantomImage.imageType
-    response.meta.fileExtension = request.template.phantomImage.imageType
-
-    return toArray(cres.stream).then(function (arr) {
-      response.content = Buffer.concat(arr)
-      reporter.logger.debug('phantom-image recipe finished.', request)
-    })
+    reporter.logger[targetLevel](msg, meta)
   })
+
+  response.meta.contentType = 'image/' + request.template.phantomImage.imageType
+  response.meta.fileExtension = request.template.phantomImage.imageType
+
+  await response.updateOutput(cres.stream)
+
+  reporter.logger.debug('phantom-image recipe finished.', request)
 }

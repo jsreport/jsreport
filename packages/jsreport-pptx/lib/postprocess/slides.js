@@ -14,7 +14,19 @@ module.exports = (files) => {
     const slides = nodeListToArray(doc.getElementsByTagName('p:sld'))
     const originalSlideNumber = parseInt(file.path.replace('ppt/slides/slide', '').replace('.xml', ''))
 
+    const cleanup = () => {
+      if (slides.length === 0) {
+        return
+      }
+
+      // removing the container to the original slide
+      if (doc.documentElement.localName === 'container') {
+        doc.replaceChild(slides[0], doc.documentElement)
+      }
+    }
+
     if (slides.length <= 1) {
+      cleanup()
       continue
     }
 
@@ -102,7 +114,6 @@ module.exports = (files) => {
       }
     }
 
-    // removing the container to the original slide
-    doc.replaceChild(slides[0], doc.documentElement)
+    cleanup()
   }
 }

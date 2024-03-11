@@ -1,6 +1,9 @@
+const { Readable } = require('stream')
+const { pipeline } = require('stream/promises')
 const axios = require('axios')
 const serializator = require('@jsreport/serializator')
 const { setTimeout } = require('timers/promises')
+const { parseMultipartStream } = require('@jsreport/multipart')
 
 module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } = {}) => {
   return function sendToWorker (url, data, _options = {}) {
@@ -24,11 +27,16 @@ module.exports = (reporter, { originUrl, reportTimeoutMargin, remote = false } =
       options.timeout = options.timeout + reportTimeoutMargin
     }
 
+    options.remote = remote
+    options.reporter = reporter
+
     return _sendToWorker(url, data, options)
   }
 }
 
-async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, systemAction, httpOptions = {}, signal }) {
+async function _sendToWorker (url, _data, { executeMain, reporter, timeout, originUrl, containerId, systemAction, httpOptions = {}, remote, signal }) {
+  const sharedTempRewriteRootPathTo = reporter.options.extensions['docker-workers'].container.sharedTempRewriteRootPathTo
+
   let data = { ..._data, timeout, systemAction }
 
   if (originUrl != null) {
@@ -36,6 +44,8 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
   }
 
   let isDone = false
+
+  const originalActionName = data.actionName
 
   async function run () {
     while (true && !isDone) {
@@ -108,8 +118,34 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
       }
 
       let responseData
+
       try {
-        responseData = await readStringFromStream(res.data)
+        if (remote && originalActionName === 'render') {
+          // parsing response from the remote server and changing the output to what expects reporter.Response
+          let parsedContentStream
+
+          const { pathToFile: pathToTempFile, stream: tempOutputStream } = await reporter.writeTempFileStream((uuid) => `docker-workers-send-${uuid}`)
+
+          await parseMultipartStream({
+            contentType: res.headers['content-type'],
+            stream: Readable.toWeb(res.data)
+          }, (fileInfo) => {
+            if (fileInfo.name === 'content') {
+              parsedContentStream = fileInfo.rawData
+            } else {
+              const value = serializator.parse(new TextDecoder().decode(fileInfo.rawData))
+              responseData = responseData || {}
+              responseData[fileInfo.name] = value
+            }
+          }, { streamFiles: ['content'] })
+
+          if (parsedContentStream) {
+            await pipeline(Readable.fromWeb(parsedContentStream), tempOutputStream)
+            responseData.output = { filePath: pathToTempFile, type: 'stream' }
+          }
+        } else {
+          responseData = await readStringFromStream(res.data)
+        }
       } catch (err) {
         const error = new Error('Error when communicating with worker (unable to read data): ' + err.message)
         error.needRestart = true
@@ -118,6 +154,22 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
 
       if (res.status === 201) {
         isDone = true
+
+        if (originalActionName === 'render') {
+          if (remote) {
+            // the responseData.output.filePath is already local file
+            return responseData
+          }
+
+          const parsedResponseData = serializator.parse(responseData)
+          if (parsedResponseData.output.type === 'stream') {
+            // change from container path to the host path
+            parsedResponseData.output.filePath = parsedResponseData.output.filePath.replace('/tmp/jsreport', `${sharedTempRewriteRootPathTo}/${containerId}/`)
+          }
+
+          return parsedResponseData
+        }
+
         return serializator.parse(responseData)
       }
 
@@ -183,6 +235,7 @@ async function _sendToWorker (url, _data, { executeMain, timeout, originUrl, sys
 
 async function readStringFromStream (stream) {
   const bufs = []
+
   for await (const chunk of stream) {
     bufs.push(chunk)
   }

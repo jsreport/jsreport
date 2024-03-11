@@ -6,7 +6,7 @@
 const extend = require('node.extend.without.arrays')
 const ExecuteEngine = require('./executeEngine')
 const Request = require('../../shared/request')
-const generateRequestId = require('../../shared/generateRequestId')
+const Response = require('../../shared/response')
 const resolveReferences = require('./resolveReferences.js')
 const moduleHelper = require('./moduleHelper')
 
@@ -59,8 +59,7 @@ module.exports = (reporter) => {
     reporter.logger.debug(`Rendering engine ${engine.name}`, request)
 
     const engineRes = await executeEngine(engine, request)
-
-    response.content = Buffer.from(engineRes.content != null ? engineRes.content : '')
+    await response.updateOutput(Buffer.from(engineRes.content != null ? engineRes.content : ''))
 
     reporter.profiler.emit({
       type: 'operationEnd',
@@ -92,6 +91,7 @@ module.exports = (reporter) => {
     reporter.logger.debug('Executing recipe ' + request.template.recipe, request)
 
     await recipe.execute(request, response)
+
     reporter.profiler.emit({
       type: 'operationEnd',
       operationId: recipeProfilerEvent.operationId
@@ -105,13 +105,19 @@ module.exports = (reporter) => {
 
   return async (req, parentReq) => {
     const request = Request(req, parentReq)
-    const response = { meta: {} }
-    let renderStartProfilerEvent
-    try {
-      if (request.context.id == null) {
-        request.context.id = generateRequestId()
-      }
 
+    if (request.context.id == null) {
+      request.context.id = reporter.generateRequestId()
+    }
+    if (parentReq == null) {
+      reporter.reqStorage.registerReq(request)
+    }
+
+    const response = Response(reporter, request.context.id)
+
+    let renderStartProfilerEvent
+
+    try {
       renderStartProfilerEvent = await reporter.profiler.renderStart(request, parentReq, response)
       request.data = resolveReferences(request.data) || {}
 
@@ -189,6 +195,7 @@ module.exports = (reporter) => {
     } finally {
       if (parentReq == null) {
         reporter.requestModulesCache.delete(request.context.rootId)
+        reporter.reqStorage.unregisterReq(request)
       }
     }
   }

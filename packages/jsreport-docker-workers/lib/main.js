@@ -1,9 +1,23 @@
+const { pipeline } = require('stream')
+const { FormData } = require('@jsreport/multipart')
 const serializator = require('@jsreport/serializator')
 const _sendToWorker = require('./sendToWorker')
 const createDockerManager = require('./dockerManager')
 const express = require('express')
 
 module.exports = (reporter, definition) => {
+  if (!definition.options.container.sharedTempRewriteRootPathTo) {
+    definition.options.container.sharedTempRewriteRootPathTo = definition.options.container.sharedTempHostBindMountRootPath
+  }
+
+  if (definition.options.container.sharedTempHostBindMountRootPath.endsWith('/')) {
+    definition.options.container.sharedTempHostBindMountRootPath = definition.options.container.sharedTempHostBindMountRootPath.slice(0, -1)
+  }
+
+  if (definition.options.container.sharedTempRewriteRootPathTo.endsWith('/')) {
+    definition.options.container.sharedTempRewriteRootPathTo = definition.options.container.sharedTempRewriteRootPathTo.slice(0, -1)
+  }
+
   reporter.documentStore.registerEntityType('ServerType', {
     ip: { type: 'Edm.String', key: true },
     stack: { type: 'Edm.String' },
@@ -34,29 +48,30 @@ module.exports = (reporter, definition) => {
   reporter.on('after-authentication-express-routes', () => {
     reporter.express.app.post('/api/worker-docker-manager', async (req, res, next) => {
       try {
-        const result = await reporter.dockerManager.executeWorker(typeof req.body === 'string' ? serializator.parse(req.body) : req.body)
-        res.status(201).send(serializator.serialize(result))
+        const reqBody = typeof req.body === 'string' ? serializator.parse(req.body) : req.body
+        const result = await reporter.dockerManager.executeWorker(reqBody)
+        await reporter.dockerManager.handleRemoteHttpResponse(reqBody, result, res)
       } catch (e) {
         next(e)
       }
     })
   })
 
-  const workerRequestMap = new Map()
   reporter.on('after-express-static-configure', () => {
     if (!reporter.authentication) {
       return reporter.express.app.post('/api/worker-docker-manager', express.text(), async (req, res, next) => {
         try {
           const reqBody = serializator.parse(req.body)
           const result = await reporter.dockerManager.executeWorker(reqBody)
-
-          res.status(201).send(serializator.serialize(result))
+          await reporter.dockerManager.handleRemoteHttpResponse(reqBody, result, res)
         } catch (e) {
           next(e)
         }
       })
     }
   })
+
+  const workerRequestMap = new Map()
 
   reporter.registerWorkersManagerFactory((options, systemOptions) => {
     reporter.dockerManager = createDockerManager(reporter, definition.options, options, systemOptions)
@@ -72,6 +87,38 @@ module.exports = (reporter, definition) => {
           }
         }
       }
+    }
+
+    reporter.dockerManager.handleRemoteHttpResponse = async function handleRemoteHttpResponse (reqBody, workerResult, res) {
+      if (reqBody.actionName === 'render') {
+        // sending local response serialized as multipart to the original remote server
+        // the response output can be buffer or stream, but we always send it as stream output
+        const renderR = reporter.Response(reqBody.req.context.id)
+        await renderR.parseFrom(workerResult)
+
+        const form = new FormData()
+
+        const serializedMeta = serializator.serialize(workerResult.meta)
+
+        res.status(201).setHeader('Content-Type', form.getDefaultContentType())
+
+        pipeline(form, res, (err) => {
+          if (err) {
+            res.destroy()
+          }
+        })
+
+        form.append('meta', serializedMeta, { contentType: 'application/json' })
+
+        const responseSize = await renderR.output.getSize()
+        const responseFileStream = await renderR.output.getStream()
+
+        form.append('content', responseFileStream, { contentLength: responseSize })
+        form.end()
+        return
+      }
+
+      res.status(201).send(serializator.serialize(workerResult))
     }
 
     reporter.dockerManager.executeWorker = async function executeWorker (payload) {

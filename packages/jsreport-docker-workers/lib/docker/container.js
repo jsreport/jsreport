@@ -34,6 +34,7 @@ module.exports = class Container {
     this.cpus = container.cpus
     this.logDriver = container.logDriver
     this.logOpt = container.logOpt || { 'max-size': '1m', 'max-file': '10' }
+    this.sharedTempHostBindMountRootPath = container.sharedTempHostBindMountRootPath
     this.tempDirectory = tempDirectory
 
     this.url = `http://${hostIp}:${port}`
@@ -55,8 +56,11 @@ module.exports = class Container {
       runCMD += ` --expose 9229 -p ${this.debugPort}:9229`
     }
 
+    runCMD += ` --volume=${this.sharedTempHostBindMountRootPath}/${this.id}:/tmp/jsreport`
+    runCMD += ' --tmpfs=/tmp'
+
     // the .config .local .cache are needed for unoconv, I wasn't able to find different way to configure libre office to use different location for temps
-    runCMD += ` --network=${this.network} --tmpfs=/tmp --tmpfs=/root/.npm --tmpfs=/root/.config --tmpfs=/root/.local --tmpfs=/root/.cache --name ${this.id} --read-only`
+    runCMD += ` --network=${this.network} --tmpfs=/root/.npm --tmpfs=/root/.config --tmpfs=/root/.local --tmpfs=/root/.cache --name ${this.id} --read-only`
 
     runCMD += ` --memory="${this.memory}" --memory-swap="${this.memorySwap}" --cpus="${this.cpus}"`
 

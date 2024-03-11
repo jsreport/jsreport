@@ -66,6 +66,22 @@ module.exports = function createRunInSandbox (reporter) {
         const m = reporter.options.sandbox.modules.find((m) => m.alias === moduleName || m.path === moduleName)
 
         if (m) {
+          const cachedModuleFromOutside = require.cache[m.path]
+
+          // this is an optimization, the requireMap always go the built-in node require,
+          // which has an overhead, even if the module you are trying to resolve is already cached
+          // node will try to resolve filename when the require happens from different module than
+          // it was requested first time.
+          // this becomes an issue when you do a lazy require inside helper execution, if this helper
+          // is a hot path (executed multiple times during rendering)
+          // then you are adding extra time per the amount of times you call the helper
+          // (which is big if you call this in a loop for 15K items),
+          // the solution is to try first from the require cache directly, and fallback to built-in require
+          // when not found, we can do this because we are sure the m.path is the path to the resolved filename of module
+          if (cachedModuleFromOutside != null) {
+            return cachedModuleFromOutside.exports
+          }
+
           return require(m.path)
         }
 

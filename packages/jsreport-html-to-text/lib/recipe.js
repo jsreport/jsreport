@@ -20,7 +20,8 @@ module.exports = (reporter, definition) => async (request, response) => {
   let textContent
 
   try {
-    textContent = convert.htmlToText(response.content.toString(), options)
+    const content = (await response.output.getBuffer()).toString()
+    textContent = convert.htmlToText(content, options)
   } catch (e) {
     const error = new Error(e.message)
     error.stack = e.stack
@@ -31,7 +32,7 @@ module.exports = (reporter, definition) => async (request, response) => {
     })
   }
 
-  response.content = Buffer.from(textContent)
+  await response.updateOutput(Buffer.from(textContent))
 
   response.meta.contentType = request.template.contentType || 'text/plain'
   response.meta.fileExtension = request.template.fileExtension || '.txt'

@@ -38,7 +38,7 @@ module.exports = function (reporter, definition) {
       let protectedOfficeBuf
 
       try {
-        const officeBuf = res.content
+        const officeBuf = await res.output.getBuffer()
         const Encryptor = require('xlsx-populate/lib/Encryptor')
         const encryptor = new Encryptor()
         protectedOfficeBuf = encryptor.encrypt(officeBuf, password)
@@ -54,7 +54,7 @@ module.exports = function (reporter, definition) {
 
       reporter.logger.debug(`office-password finished adding password to office file "${res.meta.officeDocumentType}"`, req)
 
-      res.content = protectedOfficeBuf
+      await res.updateOutput(protectedOfficeBuf)
     })
   })
 }

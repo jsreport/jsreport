@@ -58,7 +58,7 @@ module.exports = async (reporter, inputs, req) => {
 
     reporter.logger.debug('Starting child request to render pptx dynamic parts', req)
 
-    const { content: newContent } = await reporter.render({
+    const res = await reporter.render({
       template: {
         content: contentToRender,
         engine: req.template.engine,
@@ -66,6 +66,8 @@ module.exports = async (reporter, inputs, req) => {
         helpers: req.template.helpers
       }
     }, req)
+
+    const newContent = await res.output.getBuffer()
 
     // we remove NUL, VERTICAL TAB unicode characters, which are characters that are illegal in XML.
     // NOTE: we should likely find a way to remove illegal characters more generally, using some kind of unicode ranges

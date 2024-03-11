@@ -1,9 +1,9 @@
 const should = require('should')
-const util = require('util')
 const path = require('path')
 const fs = require('fs')
-const textract = util.promisify(require('textract').fromBufferWithName)
+const fsAsync = require('fs/promises')
 const jsreport = require('@jsreport/jsreport-core')
+const { extractTextResponse } = require('./utils')
 
 const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
@@ -52,9 +52,9 @@ describe('pptx table', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
-    const text = await textract('test.pptx', result.content)
+    const text = await extractTextResponse(result)
 
     for (const item of data) {
       should(text).containEql(item.name)
@@ -91,9 +91,9 @@ describe('pptx table', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
-    const text = await textract('test.pptx', result.content)
+    const text = await extractTextResponse(result)
 
     should(text).containEql('Jan')
     should(text).containEql('jan.blaha@foo.com')

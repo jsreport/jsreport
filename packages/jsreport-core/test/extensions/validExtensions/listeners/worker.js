@@ -7,27 +7,27 @@ const process = require('process')
 module.exports = (reporter, definition) => {
   reporter.initializeListeners.add('test-listeners', () => {
     reporter.beforeRenderListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeMainAction('test-beforeRender-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-beforeRender-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      extend(true, res, result.res)
+      await res.parseFrom(result.res)
     })
 
     reporter.afterRenderListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeMainAction('test-afterRender-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-afterRender-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      extend(true, res, result.res)
+      await res.parseFrom(result.res)
     })
 
     reporter.validateRenderListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeMainAction('test-validateRender-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-validateRender-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      extend(true, res, result.res)
+      await res.parseFrom(result.res)
     })
 
     reporter.afterTemplatingEnginesExecutedListeners.add('listeners', async (req, res) => {
-      const result = await reporter.executeMainAction('test-afterTemplatingEnginesExecuted-listeners', { req, res }, req)
+      const result = await reporter.executeMainAction('test-afterTemplatingEnginesExecuted-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      extend(true, res, result.res)
+      await res.parseFrom(result.res)
     })
 
     const evalInWorker = (code, req, res) => {

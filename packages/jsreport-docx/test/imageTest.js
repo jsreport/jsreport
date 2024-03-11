@@ -375,6 +375,582 @@ describe('docx image', () => {
     })
   })
 
+  it('image with extra static tooltip text', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      src: `data:image/png;base64,${imageBuf.toString('base64')}`
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-extra-tooltip.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('img1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const pictureElInfo = getPictureElInfo(drawingEl)
+      const linkClickEls = pictureElInfo.links
+      const linkClickEl = linkClickEls[0]
+      const tooltip = linkClickEl.getAttribute('tooltip')
+
+      should(tooltip).be.eql('custom tooltip')
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image with extra dynamic tooltip text', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      src: `data:image/png;base64,${imageBuf.toString('base64')}`,
+      tooltip: 'another custom tooltip'
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-extra-dynamic-tooltip.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('img1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const pictureElInfo = getPictureElInfo(drawingEl)
+      const linkClickEls = pictureElInfo.links
+      const linkClickEl = linkClickEls[0]
+      const tooltip = linkClickEl.getAttribute('tooltip')
+
+      should(tooltip).be.eql(data.tooltip)
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('raw image with extra dynamic tooltip text', async () => {
+    const data = {
+      tooltip: 'another custom tooltip'
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'raw-image-with-static-tooltip.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(0)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = outputBookmarkMeta.bookmarkStartEls
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const pictureElInfo = getPictureElInfo(drawingEl)
+      const linkClickEls = pictureElInfo.links
+      const linkClickEl = linkClickEls[0]
+      const tooltip = linkClickEl.getAttribute('tooltip')
+
+      should(tooltip).be.eql(data.tooltip)
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      should(imageFile.path).be.eql('word/media/image1.jpg')
+
+      // compare returns 0 when buffers are equal
+      // Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image should be generated with bookmark that wraps it', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      src: `data:image/png;base64,${imageBuf.toString('base64')}`
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('img1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image should be able to customize generated bookmark name', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      src: `data:image/png;base64,${imageBuf.toString('base64')}`,
+      bookmarkName: 'narutoImage'
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-custom-bookmark.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = [...newBookmarkMeta.bookmarkStartEls]
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(data.bookmarkName)
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image with custom helper', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      src: null
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-custom-helper.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        },
+        helpers: `
+          function customImage (options) {
+            return docxImage.call(this, {
+              ...options,
+              hash: {
+                ...options.hash,
+                src: \`data:image/png;base64,${imageBuf.toString('base64')}\`
+              }
+            })
+          }
+        `
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('img1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image with custom async helper', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      src: null
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-with-custom-helper.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        },
+        helpers: `
+          async function customImage (options) {
+            await new Promise((resolve) => setTimeout(resolve, 400))
+
+            return docxImage.call(this, {
+              ...options,
+              hash: {
+                ...options.hash,
+                src: \`data:image/png;base64,${imageBuf.toString('base64')}\`
+              }
+            })
+          }
+        `
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(1)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('img1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, imageBuf).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
   it('image with hyperlink inside', async () => {
     const imageBuf = fs.readFileSync(path.join(docxDirPath, 'image.png'))
 
@@ -786,7 +1362,7 @@ describe('docx image', () => {
 
     drawingEls.length.should.be.eql(2)
 
-    drawingEls.forEach((drawingEl, idx) => {
+    for (const [idx, drawingEl] of drawingEls.entries()) {
       const docPrEl = getDocPrEl(drawingEl)
       const pictureEl = getPictureElInfo(drawingEl).picture
       const pictureCnvPrEl = getPictureCnvPrEl(pictureEl)
@@ -809,7 +1385,96 @@ describe('docx image', () => {
 
       // compare returns 0 when buffers are equal
       Buffer.compare(imageFile.data, images[idx]).should.be.eql(0)
+    }
+  })
+
+  it('image loop with customized bookmark names', async () => {
+    const images = [
+      fs.readFileSync(path.join(docxDirPath, 'image.png')),
+      fs.readFileSync(path.join(docxDirPath, 'image2.png')),
+      fs.readFileSync(path.join(docxDirPath, 'image.png')),
+      fs.readFileSync(path.join(docxDirPath, 'image2.png'))
+    ]
+
+    const data = {
+      photos: images.map((imageBuf, imageIdx) => {
+        return {
+          src: 'data:image/png;base64,' + imageBuf.toString('base64'),
+          bookmarkName: `customBookmark${imageIdx + 1}`
+        }
+      })
+    }
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-loop-with-custom-bookmark.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
     })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(4)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(4)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('customBookmark'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(data.photos[idx].bookmarkName)
+      should(currentBookmarkEnd.tagName).be.eql('w:bookmarkEnd')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, images[idx]).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
   })
 
   it('image loop and hyperlink inside', async () => {
@@ -824,13 +1489,15 @@ describe('docx image', () => {
       }
     ]
 
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-loop-url.docx'))
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(docxDirPath, 'image-loop-url.docx'))
+            content: templateBuf
           }
         }
       },
@@ -846,15 +1513,38 @@ describe('docx image', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
 
-    drawingEls.length.should.be.eql(2)
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
 
-    drawingEls.forEach((drawingEl, idx) => {
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(2)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(2)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('docxImage1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
       const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
 
       isImg.should.be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      // we are validating here that each docxImage generated from loop has its own bookmark,
+      // even if the link target of image was not pointing to bookmark
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkEnd.tagName).be.eql('w:bookmarkEnd')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
 
       const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
 
@@ -879,7 +1569,191 @@ describe('docx image', () => {
       const target = decodeURIComponent(hyperlinkRelEl.getAttribute('Target'))
 
       target.should.be.eql(images[idx].url)
+    }
+  })
+
+  it('image loop with custom bookmarks and linking between them', async () => {
+    const images = [
+      {
+        url: '#customBookmark2',
+        buf: fs.readFileSync(path.join(docxDirPath, 'image.png')),
+        bookmarkName: 'customBookmark1'
+      },
+      {
+        url: '#customBookmark1',
+        buf: fs.readFileSync(path.join(docxDirPath, 'image2.png')),
+        bookmarkName: 'customBookmark2'
+      }
+    ]
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-loop-url-with-custom-bookmark-linking.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data: {
+        photos: images.map((image) => {
+          return {
+            src: 'data:image/png;base64,' + image.buf.toString('base64'),
+            url: image.url,
+            bookmarkName: image.bookmarkName
+          }
+        })
+      }
     })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(2)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(2)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('customBookmark'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      isImg.should.be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      // we are validating here that each docxImage generated from loop has its own bookmark,
+      // even if the link target of image was not pointing to bookmark
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(images[idx].bookmarkName)
+      should(currentBookmarkEnd.tagName).be.eql('w:bookmarkEnd')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
+
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      imageRelEl.getAttribute('Type').should.be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, images[idx].buf).should.be.eql(0)
+
+      const elLinkClick = drawingEl.getElementsByTagName('a:hlinkClick')[0]
+      const hyperlinkRelId = elLinkClick.getAttribute('r:id')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const target = decodeURIComponent(hyperlinkRelEl.getAttribute('Target'))
+
+      target.should.be.eql(images[idx].url)
+    }
+  })
+
+  it('image loop without existing bookmarks', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+
+    const data = {
+      items: [
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` },
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` },
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` }
+      ]
+    }
+
+    const images = [imageBuf, imageBuf, imageBuf]
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-without-bookmark-loop.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(3)
+
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(3)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('docxImage1'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkEnd.tagName).be.eql('w:bookmarkEnd')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, images[idx]).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql('https://jsreport.net/')
+    }
   })
 
   it('image loop with bookmarks', async () => {
@@ -900,13 +1774,15 @@ describe('docx image', () => {
 
     const images = [imageBuf, image2Buf, imageBuf, image2Buf]
 
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-bookmark-loop.docx'))
+
     const result = await reporter.render({
       template: {
         engine: 'handlebars',
         recipe: 'docx',
         docx: {
           templateAsset: {
-            content: fs.readFileSync(path.join(docxDirPath, 'image-bookmark-loop.docx'))
+            content: templateBuf
           }
         }
       },
@@ -915,17 +1791,22 @@ describe('docx image', () => {
 
     fs.writeFileSync(outputPath, result.content)
 
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
     const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
     const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
 
-    const bookmarkEls = nodeListToArray(doc.getElementsByTagName('w:bookmarkStart')).filter((el) => {
-      return el.getAttribute('w:name').startsWith('image')
-    })
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
 
     should(drawingEls.length).be.eql(4)
-    should(bookmarkEls.length).be.eql(4)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(5)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
 
-    drawingEls.forEach((drawingEl, idx) => {
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:name').startsWith('image'))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
       const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
 
       should(isImg).be.True()
@@ -949,8 +1830,195 @@ describe('docx image', () => {
       // compare returns 0 when buffers are equal
       Buffer.compare(imageFile.data, images[idx]).should.be.eql(0)
 
-      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${bookmarkEls[idx].getAttribute('w:name')}`)
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image loop with bookmarks (ensure bookmarks are normalized inside same container of image', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+    const image2Buf = fs.readFileSync(path.join(docxDirPath, 'naruto2.png'))
+
+    const data = {
+      items: [
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` },
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` },
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` }
+      ],
+      items2: [
+        { src: `data:image/png;base64,${image2Buf.toString('base64')}` },
+        { src: `data:image/png;base64,${image2Buf.toString('base64')}` },
+        { src: `data:image/png;base64,${image2Buf.toString('base64')}` }
+      ]
+    }
+
+    const images = [imageBuf, imageBuf, imageBuf, image2Buf, image2Buf, image2Buf]
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-bookmark-loop-normalize.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
     })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(6)
+
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(6)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => (
+      el.getAttribute('w:name').startsWith('naruto_') ||
+      el.getAttribute('w:name').startsWith('naruto2_')
+    ))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkEnd.tagName).be.eql('w:bookmarkEnd')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, images[idx]).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
+  })
+
+  it('image loop with bookmarks (ensure images that point to same single bookmark are normalized to have its own bookmark)', async () => {
+    const imageBuf = fs.readFileSync(path.join(docxDirPath, 'naruto.png'))
+    const image2Buf = fs.readFileSync(path.join(docxDirPath, 'naruto2.png'))
+
+    const data = {
+      items: [
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` },
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` },
+        { src: `data:image/png;base64,${imageBuf.toString('base64')}` }
+      ],
+      items2: [
+        { src: `data:image/png;base64,${image2Buf.toString('base64')}` },
+        { src: `data:image/png;base64,${image2Buf.toString('base64')}` },
+        { src: `data:image/png;base64,${image2Buf.toString('base64')}` }
+      ]
+    }
+
+    const images = [imageBuf, imageBuf, imageBuf, image2Buf, image2Buf, image2Buf]
+
+    const templateBuf = fs.readFileSync(path.join(docxDirPath, 'image-bookmark-loop-duplicated.docx'))
+
+    const result = await reporter.render({
+      template: {
+        engine: 'handlebars',
+        recipe: 'docx',
+        docx: {
+          templateAsset: {
+            content: templateBuf
+          }
+        }
+      },
+      data
+    })
+
+    fs.writeFileSync(outputPath, result.content)
+
+    const [templateDoc] = await getDocumentsFromDocxBuf(templateBuf, ['word/document.xml'])
+    const { files, documents: [doc, docRels] } = await getDocumentsFromDocxBuf(result.content, ['word/document.xml', 'word/_rels/document.xml.rels'], { returnFiles: true })
+    const drawingEls = nodeListToArray(doc.getElementsByTagName('w:drawing'))
+
+    const templateBookmarkMeta = extractBookmarks(templateDoc)
+    const outputBookmarkMeta = extractBookmarks(doc, { filterGoBack: false })
+
+    const newBookmarkMeta = checkBookmarks(templateBookmarkMeta, outputBookmarkMeta)
+
+    should(drawingEls.length).be.eql(6)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(6)
+    should(newBookmarkMeta.bookmarkStartEls.length).be.eql(newBookmarkMeta.bookmarkEndEls.length)
+
+    const targetBookmarks = newBookmarkMeta.bookmarkStartEls.filter((el) => (
+      el.getAttribute('w:name').startsWith('naruto_r1') ||
+      el.getAttribute('w:name').startsWith('naruto_r2')
+    ))
+
+    for (const [idx, drawingEl] of drawingEls.entries()) {
+      const isImg = drawingEl.getElementsByTagName('pic:pic').length > 0
+
+      should(isImg).be.True()
+
+      const currentBookmarkStart = drawingEl.parentNode.previousSibling
+      const currentBookmarkEnd = drawingEl.parentNode.nextSibling
+
+      should(currentBookmarkStart.tagName).be.eql('w:bookmarkStart')
+      should(currentBookmarkStart.getAttribute('w:id')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:id')).be.eql(targetBookmarks[idx].getAttribute('w:id'))
+      should(currentBookmarkStart.getAttribute('w:name')).be.ok()
+      should(currentBookmarkStart.getAttribute('w:name')).be.eql(targetBookmarks[idx].getAttribute('w:name'))
+      should(currentBookmarkEnd.tagName).be.eql('w:bookmarkEnd')
+      should(currentBookmarkEnd.getAttribute('w:id')).be.eql(currentBookmarkStart.getAttribute('w:id'))
+
+      const hyperlinkRelId = drawingEl.getElementsByTagName('wp:docPr')[0].getElementsByTagName('a:hlinkClick')[0].getAttribute('r:id')
+      const imageRelId = drawingEl.getElementsByTagName('a:blip')[0].getAttribute('r:embed')
+
+      const hyperlinkRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === hyperlinkRelId
+      })
+
+      const imageRelEl = nodeListToArray(docRels.getElementsByTagName('Relationship')).find((el) => {
+        return el.getAttribute('Id') === imageRelId
+      })
+
+      should(hyperlinkRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink')
+      should(imageRelEl.getAttribute('Type')).be.eql('http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+
+      const imageFile = files.find(f => f.path === `word/${imageRelEl.getAttribute('Target')}`)
+
+      // compare returns 0 when buffers are equal
+      Buffer.compare(imageFile.data, images[idx]).should.be.eql(0)
+
+      should(hyperlinkRelEl.getAttribute('Target')).be.eql(`#${targetBookmarks[idx].getAttribute('w:name')}`)
+    }
   })
 
   it('image in document header', async () => {
@@ -1184,4 +2252,80 @@ function readImage (format, basename) {
       }
     }
   }
+}
+
+function checkBookmarks (templateBookmarkMeta, outputBookmarkMeta) {
+  // validates that all bookmarks have a start with a single end
+  for (const bookmarkStartEl of outputBookmarkMeta.bookmarkStartEls) {
+    const matched = outputBookmarkMeta.bookmarkEndEls.filter((el) => el.getAttribute('w:id') === bookmarkStartEl.getAttribute('w:id'))
+    should(matched.length).be.eql(1)
+  }
+
+  should(outputBookmarkMeta.bookmarkStartEls.length).be.eql(outputBookmarkMeta.bookmarkEndEls.length)
+
+  const newBookmark = {
+    bookmarkStartEls: [],
+    bookmarkEndEls: []
+  }
+
+  // validates that the original bookmarks are present in the output
+  for (const bookmarkStartEl of outputBookmarkMeta.bookmarkStartEls) {
+    const matched = templateBookmarkMeta.bookmarkStartEls.filter((el) => el.getAttribute('w:id') === bookmarkStartEl.getAttribute('w:id'))
+
+    if (matched.length === 0) {
+      newBookmark.bookmarkStartEls.push(bookmarkStartEl)
+      continue
+    }
+
+    should(matched.length).be.aboveOrEqual(1)
+  }
+
+  for (const bookmarkStartEl of newBookmark.bookmarkStartEls) {
+    const bookmarkEndEl = outputBookmarkMeta.bookmarkEndEls.find((el) => el.getAttribute('w:id') === bookmarkStartEl.getAttribute('w:id'))
+    should(bookmarkEndEl).be.ok()
+    newBookmark.bookmarkEndEls.push(bookmarkEndEl)
+  }
+
+  return newBookmark
+}
+
+function extractBookmarks (doc, opts = {}) {
+  const { filterGoBack = true } = opts
+
+  let bookmarkStartEls = nodeListToArray(doc.getElementsByTagName('w:bookmarkStart'))
+  let bookmarkEndEls = nodeListToArray(doc.getElementsByTagName('w:bookmarkEnd'))
+
+  if (filterGoBack) {
+    let filtered = []
+    let goBackBookmarkEl
+
+    for (const el of bookmarkStartEls) {
+      if (el.getAttribute('w:name') === '_GoBack') {
+        goBackBookmarkEl = el
+        continue
+      }
+
+      filtered.push(el)
+    }
+
+    bookmarkStartEls = filtered
+    filtered = []
+
+    for (const el of bookmarkEndEls) {
+      if (goBackBookmarkEl != null && el.getAttribute('w:id') === goBackBookmarkEl.getAttribute('w:id')) {
+        continue
+      }
+
+      filtered.push(el)
+    }
+
+    bookmarkEndEls = filtered
+  }
+
+  const result = {
+    bookmarkStartEls,
+    bookmarkEndEls
+  }
+
+  return result
 }

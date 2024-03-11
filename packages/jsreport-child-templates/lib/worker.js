@@ -58,8 +58,8 @@ function applyParameters (p1, templateName, req) {
 }
 
 module.exports = function (reporter, definition) {
-  reporter.beforeRenderListeners.add(definition.name, this, (request, response) => {
-    return evaluateChildTemplates(reporter, request, response, { evaluateInTemplateContent: true })
+  reporter.beforeRenderListeners.add(definition.name, this, (req, res) => {
+    return evaluateChildTemplates(reporter, req, res, { evaluateInTemplateContent: true })
   })
 
   let helpersScript
@@ -68,8 +68,8 @@ module.exports = function (reporter, definition) {
     return helpersScript
   })
 
-  reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (request, response) => {
-    return evaluateChildTemplates(reporter, request, response, { evaluateInTemplateContent: false })
+  reporter.afterTemplatingEnginesExecutedListeners.add(definition.name, this, (req, res) => {
+    return evaluateChildTemplates(reporter, req, res, { evaluateInTemplateContent: false })
   })
 
   reporter.initializeListeners.add(definition.name, async () => {
@@ -81,6 +81,10 @@ module.exports = function (reporter, definition) {
   }
 
   async function evaluateChildTemplates (reporter, request, response, options) {
+    if (response.isInStreamingMode) {
+      return
+    }
+
     const childTemplateRegexp = /{#child ([^{}]*)}/g
     let evaluateInTemplateContent
     let parallelLimit
@@ -155,10 +159,10 @@ module.exports = function (reporter, definition) {
       reporter.logger.debug(`Rendering child template ${templateName}`, request)
 
       const resp = await reporter.render(req, request)
-      return resp.content.toString()
+      return (await resp.output.getBuffer()).toString()
     }
 
-    const strToReplace = evaluateInTemplateContent ? request.template.content : response.content.toString()
+    const strToReplace = evaluateInTemplateContent ? request.template.content : (await response.output.getBuffer()).toString()
 
     const result = await asyncReplace({
       string: strToReplace,
@@ -172,6 +176,6 @@ module.exports = function (reporter, definition) {
       return
     }
 
-    response.content = Buffer.from(result)
+    await response.updateOutput(Buffer.from(result))
   }
 }

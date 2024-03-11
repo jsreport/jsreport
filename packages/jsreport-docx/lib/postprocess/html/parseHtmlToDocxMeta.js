@@ -6,6 +6,7 @@ const parseCssSides = require('parse-css-sides')
 const color = require('tinycolor2')
 const { lengthToPt, getDimension } = require('../../utils')
 const transformTableMeta = require('./transformTableMeta')
+const createOrderedHierarchyCollection = require('./createOrderedHierarchyCollection')
 const { BLOCK_ELEMENTS, INLINE_ELEMENTS, SUPPORTED_ELEMENTS } = require('./supportedElements')
 
 const NODE_TYPES = {
@@ -26,13 +27,14 @@ module.exports = function parseHtmlToDocxMeta (html, mode, sectionDetail) {
 }
 
 function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
+  const orderedHierarchyCollection = createOrderedHierarchyCollection()
   const result = []
   const pending = [{ item: documentNode, collection: result }]
   const elementDataMap = new WeakMap()
   let documentEvaluated = false
 
   while (pending.length > 0) {
-    const { parents = [], collection, data: inheritedData, item: currentNode } = pending.shift()
+    const { parents = [], data: inheritedData, hierarchy, item: currentNode } = pending.shift()
     const parent = parents.length > 0 ? parents[parents.length - 1] : undefined
     const nodeType = currentNode.nodeType
     const data = Object.assign({}, inheritedData)
@@ -206,7 +208,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
       const toInsert = Array.isArray(newItem) ? newItem : [newItem]
 
       if (mode === 'inline') {
-        collection.push(...toInsert)
+        for (const item of toInsert) {
+          orderedHierarchyCollection.add(hierarchy, item)
+        }
       } else {
         if (parent != null) {
           parent.children.push(...toInsert)
@@ -226,17 +230,11 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
     }
 
     const pendingItemsInCurrent = []
-    let targetCollection = collection
     let prevChildNode
     let newParent
 
     if (mode === 'block' && nodeType !== NODE_TYPES.DOCUMENT) {
       newParent = newItem != null && newItem.children != null ? newItem : parent
-    }
-
-    if (mode === 'inline') {
-      targetCollection = []
-      collection.push(targetCollection)
     }
 
     const childData = Object.assign({}, data)
@@ -251,7 +249,14 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
     childData.parentElement = currentNode
 
     for (const [cIdx, childNode] of childNodes.entries()) {
+      const childHierarchy = {
+        parts: hierarchy != null ? [...hierarchy.parts, cIdx] : [cIdx]
+      }
+
+      childHierarchy.id = childHierarchy.parts.join('.')
+
       const pendingItem = {
+        hierarchy: childHierarchy,
         item: childNode,
         data: childData
       }
@@ -294,8 +299,7 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
       if (extraElementResultFromResolver) {
         if (extraElementResultFromResolver.target === 'sibling') {
           newParent = extraElementResultFromResolver.element
-          targetCollection = [newParent]
-          collection.push(targetCollection)
+          orderedHierarchyCollection.add(childHierarchy, newParent)
         } else if (extraElementResultFromResolver.target === 'parent') {
           newParent.children.push(extraElementResultFromResolver.element)
           newParent = extraElementResultFromResolver.element
@@ -306,8 +310,6 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
         pendingItem.parents = newParent !== parent ? [...parents, newParent] : [...parents]
       }
 
-      pendingItem.collection = targetCollection
-
       pendingItemsInCurrent.push(pendingItem)
       prevChildNode = childNode
     }
@@ -317,7 +319,9 @@ function parseHtmlDocumentToMeta ($, documentNode, mode, sectionDetail) {
     }
   }
 
-  return transformMeta(result, sectionDetail)
+  const orderedResult = orderedHierarchyCollection.get()
+
+  return transformMeta(orderedResult, sectionDetail)
 }
 
 function createParagraph () {

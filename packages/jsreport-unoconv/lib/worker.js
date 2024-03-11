@@ -1,8 +1,6 @@
 const path = require('path')
 const mime = require('mime')
 const util = require('util')
-const fs = require('fs')
-const readFile = util.promisify(fs.readFile)
 const exec = util.promisify(require('child_process').exec)
 
 module.exports = function (reporter, definition) {
@@ -23,18 +21,23 @@ module.exports = function (reporter, definition) {
       const format = req.template.unoconv.format
 
       let outputFilename
-      const { pathToFile } = await reporter.writeTempFile((uuid) => {
+
+      const { pathToFile } = await res.output.writeToTempFile((uuid) => {
         outputFilename = `${uuid}.${format}`
         return `${uuid}.${fileExtension}`
-      }, res.content)
+      })
 
       const command = `${definition.options.command} -f ${format} ${pathToFile}`
-      reporter.logger.debug('Executing unoconv commmand ' + command, req)
+
+      reporter.logger.debug('Executing unoconv command ' + command, req)
+
       const { stdout, stderr } = await exec(command)
-      res.content = await readFile(path.join(path.dirname(pathToFile), outputFilename))
+
+      await res.updateOutput(path.join(path.dirname(pathToFile), outputFilename))
 
       res.meta.fileExtension = req.template.unoconv.format
       res.meta.contentType = mime.getType(req.template.unoconv.format)
+
       if (stdout) {
         reporter.logger.debug(stdout, req)
       }

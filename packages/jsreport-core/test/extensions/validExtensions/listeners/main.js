@@ -8,23 +8,31 @@ module.exports = (reporter, definition) => {
 
   reporter.registerMainAction('test-beforeRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.tests.beforeRenderListeners.fire(data.req, data.res)
-    return { req: data.req, res: data.res }
+    const localRes = reporter.Response(data.req.context.id)
+    await localRes.parseFrom(data.res)
+    await reporter.tests.beforeRenderListeners.fire(data.req, localRes)
+    return { req: data.req, res: localRes.serialize() }
   })
   reporter.registerMainAction('test-afterRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.tests.afterRenderListeners.fire(data.req, data.res)
-    return { req: data.req, res: data.res }
+    const localRes = reporter.Response(data.req.context.id)
+    await localRes.parseFrom(data.res)
+    await reporter.tests.afterRenderListeners.fire(data.req, localRes)
+    return { req: data.req, res: localRes.serialize() }
   })
   reporter.registerMainAction('test-validateRender-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.tests.validateRenderListeners.fire(data.req, data.res)
-    return { req: data.req, res: data.res }
+    const localRes = reporter.Response(data.req.context.id)
+    await localRes.parseFrom(data.res)
+    await reporter.tests.validateRenderListeners.fire(data.req, localRes)
+    return { req: data.req, res: localRes.serialize() }
   })
   reporter.registerMainAction('test-afterTemplatingEnginesExecuted-listeners', async (data, req) => {
     data.req = reporter.Request(data.req)
-    await reporter.tests.afterTemplatingEnginesExecutedListeners.fire(data.req, data.res)
-    return { req: data.req, res: data.res }
+    const localRes = reporter.Response(data.req.context.id)
+    await localRes.parseFrom(data.res)
+    await reporter.tests.afterTemplatingEnginesExecutedListeners.fire(data.req, localRes)
+    return { req: data.req, res: localRes.serialize() }
   })
 
   let beforeRenderEval

@@ -4,7 +4,7 @@ const recursiveStringReplaceAsync = require('../recursiveStringReplaceAsync')
 const processImage = require('./processImage')
 const processChart = require('./processChart')
 
-module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
+module.exports = async (reporter, files, headerFooterRefs, newBookmarksMap, options) => {
   const contentTypesDoc = files.find(f => f.path === '[Content_Types].xml').doc
   const documentRelsDoc = files.find(f => f.path === 'word/_rels/document.xml.rels').doc
   const documentFile = files.find(f => f.path === 'word/document.xml')
@@ -37,7 +37,7 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
 
       const drawingEl = doc.documentElement
 
-      const newDrawingEl = await processDrawingEl(drawingEl, doc, documentRelsDoc, hasNestedMatch)
+      const newDrawingEl = await processDrawingEl(reporter, drawingEl, doc, documentRelsDoc, hasNestedMatch)
 
       if (newDrawingEl != null) {
         return newDrawingEl === '' ? newDrawingEl : serializeXml(newDrawingEl)
@@ -56,7 +56,7 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
 
     for (const drawingEl of drawingEls) {
       const hasNestedMatch = nodeListToArray(drawingEl.getElementsByTagName('w:drawing')).length > 0
-      const newDrawingEl = await processDrawingEl(drawingEl, headerFooterDoc, headerFooterRelsDoc, hasNestedMatch)
+      const newDrawingEl = await processDrawingEl(reporter, drawingEl, headerFooterDoc, headerFooterRelsDoc, hasNestedMatch)
 
       if (newDrawingEl == null) {
         continue
@@ -70,7 +70,7 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
     }
   }
 
-  async function processDrawingEl (referenceDrawingEl, doc, relsDoc, hasNestedMatch) {
+  async function processDrawingEl (reporter, referenceDrawingEl, doc, relsDoc, hasNestedMatch) {
     const drawingEl = referenceDrawingEl.cloneNode(true)
     let changedDocPrId = false
     const docPrEl = getDocPrEl(drawingEl)
@@ -95,7 +95,7 @@ module.exports = async (files, headerFooterRefs, newBookmarksMap, options) => {
       }
     }
 
-    const newImageDrawingEl = await processImage(files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
+    const newImageDrawingEl = await processImage(reporter, files, drawingEl, doc, relsDoc, imagesNewRelIdCounterMap, newBookmarksMap)
 
     if (newImageDrawingEl != null) {
       return newImageDrawingEl

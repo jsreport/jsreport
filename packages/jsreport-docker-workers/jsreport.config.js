@@ -41,7 +41,9 @@ module.exports = {
               memorySwap: '512m',
               memory: '420m',
               cpus: '0.5',
-              logDriver: 'json-file'
+              logDriver: 'json-file',
+              sharedTempHostBindMountRootPath: '/tmp/docker-workers',
+              sharedTempRewriteRootPathTo: null
             },
             properties: {
               image: { type: 'string', default: 'jsreport/worker' },
@@ -75,7 +77,9 @@ module.exports = {
               memory: { type: 'string', default: '420m' },
               cpus: { type: 'string', default: '0.5' },
               logDriver: { type: 'string', default: 'json-file' },
-              logOpt: { type: 'object' }
+              logOpt: { type: 'object' },
+              sharedTempHostBindMountRootPath: { type: 'string', default: '/tmp/docker-workers' },
+              sharedTempRewriteRootPathTo: { type: ['string', 'null'], default: null }
             }
           },
           reportTimeoutMargin: {

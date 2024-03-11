@@ -1,5 +1,4 @@
 const path = require('path')
-const fs = require('fs')
 const childProcess = require('child_process')
 const wkhtmltopdf = require('wkhtmltopdf-installer')
 
@@ -11,17 +10,18 @@ module.exports = async (reporter, definition, request, response) => {
 
   try {
     const paths = {}
-    const { pathToFile } = await reporter.writeTempFile((uuid) => `${uuid}.html`, response.content.toString())
+    const { pathToFile } = await response.output.writeToTempFile((uuid) => `${uuid}.html`)
 
     paths.template = pathToFile
 
     await processHeaderAndFooter(reporter, options, request, paths)
 
-    const buf = await conversion(reporter, definition, createParams(reporter, request, options, definition, paths), request)
+    const outputPath = await conversion(reporter, definition, createParams(reporter, request, options, definition, paths), request)
 
     response.meta.contentType = 'application/pdf'
     response.meta.fileExtension = 'pdf'
-    response.content = buf
+
+    await response.updateOutput(outputPath)
   } catch (err) {
     throw reporter.createError('Error while processing wkhtmltopdf', {
       original: err,
@@ -201,9 +201,9 @@ async function processPart (reporter, options, req, type, paths) {
 
     reporter.logger.debug(`Child request to render wkhtmltopdf for ${type} finished`, req)
 
-    const result = await reporter.writeTempFile((uuid) => `${uuid}-${type}.html`, res.content.toString())
+    const { pathToFile } = await res.output.writeToTempFile((uuid) => `${uuid}-${type}.html`)
 
-    paths[`template-${type}`] = result.pathToFile
+    paths[`template-${type}`] = pathToFile
   } catch (err) {
     throw reporter.createError(`Child request render for ${type} failed`, {
       original: err
@@ -254,13 +254,7 @@ function conversion (reporter, definition, parameters, request) {
         return reject(err)
       }
 
-      fs.readFile(parameters[parameters.length - 1], function (err, buf) {
-        if (err) {
-          return reject(err)
-        }
-
-        resolve(buf)
-      })
+      resolve(parameters[parameters.length - 1])
     })
   })
 }

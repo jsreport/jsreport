@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "async-replace-with-limit": "2.0.0",
-    "node.extend.without.arrays": "1.1.6"
+    "node.extend.without.arrays": "1.1.6",
+    "semaphore-async-await": "1.5.1"
   },
   "devDependencies": {
     "@jsreport/jsreport-core": "4.1.0",

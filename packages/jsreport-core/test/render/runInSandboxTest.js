@@ -257,7 +257,7 @@ describe('sandbox', () => {
             a: { b: { c: 'foo' } }
           },
           userCode: 'a.b.d = "add"',
-          executionFn: ({ context, restore }) => {
+          executionFn: ({ context }) => {
             return JSON.stringify(context.a.b)
           },
           propertiesConfig: {
@@ -341,7 +341,7 @@ describe('sandbox', () => {
             a: { b: { c: 'foo' } }
           },
           userCode: 'a.b.bar = "change"',
-          executionFn: ({ context, restore }) => {
+          executionFn: ({ context }) => {
             return JSON.stringify(context.a.b)
           },
           propertiesConfig: {
@@ -375,7 +375,7 @@ describe('sandbox', () => {
             a: { b: { c: { d: 'foo' } } }
           },
           userCode: 'a.b.bar = "change"',
-          executionFn: ({ context, restore }) => {
+          executionFn: ({ context }) => {
             return JSON.stringify(context.a.b)
           },
           propertiesConfig: {
@@ -540,7 +540,7 @@ describe('sandbox', () => {
             a: { b: 'foo' }
           },
           userCode: '',
-          executionFn: ({ context, restore }) => {
+          executionFn: ({ context }) => {
             const beforeRestore = typeof context.a.b
             const restoredContext = sandboxManager.restore()
             const afterRestore = typeof restoredContext.a.b

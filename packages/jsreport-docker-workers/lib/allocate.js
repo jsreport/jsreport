@@ -116,6 +116,7 @@ module.exports = ({ reporter, containersManager, ip, stack, serversChecker, disc
           abortController = new AbortController()
           return await sendToWorker(container.url, userData, {
             ...options,
+            containerId: container.id,
             systemAction: 'execute',
             signal: abortController.signal
           })

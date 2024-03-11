@@ -546,7 +546,9 @@ function xlsxSData (data, options) {
     newData.columnLetter = null
     newData.currentCellRef = null
 
-    return optionsToUse.fn(this, { data: newData })
+    const result = optionsToUse.fn(this, { data: newData })
+
+    return result
   }
 
   if (

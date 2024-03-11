@@ -12,7 +12,7 @@ module.exports = (reporter, definition) => {
     helpersScript = await fs.readFile(path.join(__dirname, '../static/helpers.js'), 'utf8')
   })
 
-  function recipe (request, response) {
+  async function recipe (request, response) {
     response.meta.contentType = 'text/html'
     response.meta.fileExtension = 'html'
 
@@ -24,9 +24,9 @@ module.exports = (reporter, definition) => {
     }
 
     const script = `<script src="${request.context.http.baseUrl}/extension/browser-client/public/js/jsreport.umd.js"></script>`
-    const content = response.content.toString()
+    const content = (await response.output.getBuffer()).toString()
     const endBody = content.search(/<\/body\s*>/)
-    response.content = Buffer.from(endBody === -1 ? (script + content) : content.substring(0, endBody) + script + content.substring(endBody))
+    await response.updateOutput(Buffer.from(endBody === -1 ? (script + content) : content.substring(0, endBody) + script + content.substring(endBody)))
   }
 
   reporter.extensionsManager.recipes.push({

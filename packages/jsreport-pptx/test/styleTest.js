@@ -1,8 +1,9 @@
 const jsreport = require('@jsreport/jsreport-core')
 const fs = require('fs')
+const fsAsync = require('fs/promises')
 const path = require('path')
 const { nodeListToArray } = require('../lib/utils')
-const { getDocumentsFromPptxBuf } = require('./utils')
+const { getDocumentsFromPptx } = require('./utils')
 
 const pptxDirPath = path.join(__dirname, './pptx')
 const outputPath = path.join(__dirname, '../out.pptx')
@@ -52,9 +53,9 @@ describe('pptx style', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
-    const [slideDoc] = await getDocumentsFromPptxBuf(result.content, ['ppt/slides/slide1.xml'])
+    const [slideDoc] = await getDocumentsFromPptx(result, ['ppt/slides/slide1.xml'])
     const aREls = nodeListToArray(slideDoc.getElementsByTagName('a:r'))
 
     aREls.should.matchEach((aREl, aIdx) => {
@@ -106,9 +107,9 @@ describe('pptx style', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
-    const [doc] = await getDocumentsFromPptxBuf(result.content, ['ppt/slides/slide1.xml'])
+    const [doc] = await getDocumentsFromPptx(result, ['ppt/slides/slide1.xml'])
     const apEls = nodeListToArray(doc.getElementsByTagName('a:p'))
 
     apEls.should.matchEach((apEl) => {
@@ -158,9 +159,9 @@ describe('pptx style', () => {
       }
     })
 
-    fs.writeFileSync(outputPath, result.content)
+    await fsAsync.writeFile(outputPath, await result.output.getBuffer())
 
-    const [slideDoc] = await getDocumentsFromPptxBuf(result.content, ['ppt/slides/slide1.xml'])
+    const [slideDoc] = await getDocumentsFromPptx(result, ['ppt/slides/slide1.xml'])
     const aREls = nodeListToArray(slideDoc.getElementsByTagName('a:r'))
 
     aREls.should.matchEach((aREl, aIdx) => {

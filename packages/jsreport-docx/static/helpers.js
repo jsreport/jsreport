@@ -12,6 +12,10 @@ function docxContext (options) {
   } else if (options.hash.type === 'document') {
     data = Handlebars.createFrame(options.data)
     data.currentSectionIdx = 0
+    data.bookmarkStartInstances = []
+  } else if (options.hash.type === 'header' || options.hash.type === 'footer') {
+    data = Handlebars.createFrame(options.data)
+    data.bookmarkStartInstances = []
   } else if (options.hash.type === 'sectionIdx') {
     const idx = options.data.currentSectionIdx
 
@@ -299,118 +303,16 @@ function docxStyle (options) {
 
   const textColor = options.hash.textColor || ''
   const backgroundColor = options.hash.backgroundColor || ''
+  const validTargets = ['text', 'paragraph', 'cell', 'row']
+  const target = options.hash.target || 'text'
+
+  if (!validTargets.includes(target)) {
+    throw new Error(`docxStyle helper "target" parameter must be any of these values: ${validTargets.join(', ')}, current: ${target}`)
+  }
 
   return new Handlebars.SafeString(
-    `<docxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" />`
+    `<docxStyle id="${options.hash.id}" textColor="${textColor}" backgroundColor="${backgroundColor}" target="${target}" />`
   )
-}
-
-async function docxImage (options) {
-  const Handlebars = require('handlebars')
-  const jsreport = require('jsreport-proxy')
-
-  options.hash.src = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.src)
-  options.hash.fallbackSrc = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.fallbackSrc)
-  options.hash.failurePlaceholderAction = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.failurePlaceholderAction)
-  options.hash.width = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.width)
-  options.hash.height = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.height)
-  options.hash.usePlaceholderSize = await jsreport.templatingEngines.waitForAsyncHelper(options.hash.usePlaceholderSize)
-
-  if (
-    options.hash.src == null &&
-    options.hash.fallbackSrc == null &&
-    options.hash.failurePlaceholderAction == null
-  ) {
-    throw new Error(
-      'docxImage helper requires src parameter to be set'
-    )
-  }
-
-  const isValidSrc = (value) => {
-    return (
-      typeof value === 'string' &&
-      (
-        value.startsWith('data:image/png;base64,') ||
-        value.startsWith('data:image/jpeg;base64,') ||
-        value.startsWith('data:image/svg+xml;base64,') ||
-        value.startsWith('http://') ||
-        value.startsWith('https://')
-      )
-    )
-  }
-
-  if (
-    options.hash.src != null &&
-    !isValidSrc(options.hash.src)
-  ) {
-    throw new Error(
-      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
-      options.hash.src
-    )
-  }
-
-  if (
-    options.hash.fallbackSrc != null &&
-    !isValidSrc(options.hash.fallbackSrc)
-  ) {
-    throw new Error(
-      'docxImage helper requires fallbackSrc parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
-      options.hash.fallbackSrc
-    )
-  }
-
-  if (
-    options.hash.failurePlaceholderAction != null &&
-    (
-      options.hash.failurePlaceholderAction !== 'preserve' &&
-      options.hash.failurePlaceholderAction !== 'remove'
-    )
-  ) {
-    throw new Error(
-      'docxImage helper requires failurePlaceholderAction parameter to be either "preserve" or "remove". Got ' +
-      options.hash.failurePlaceholderAction
-    )
-  }
-
-  const isValidDimensionUnit = (value) => {
-    const regexp = /^(\d+(.\d+)?)(cm|px)$/
-    return regexp.test(value)
-  }
-
-  if (
-    options.hash.width != null &&
-    !isValidDimensionUnit(options.hash.width)
-  ) {
-    throw new Error(
-      'docxImage helper requires width parameter to be valid number with unit (cm or px). got ' +
-      options.hash.width
-    )
-  }
-
-  if (
-    options.hash.height != null &&
-    !isValidDimensionUnit(options.hash.height)
-  ) {
-    throw new Error(
-      'docxImage helper requires height parameter to be valid number with unit (cm or px). got ' +
-      options.hash.height
-    )
-  }
-
-  const content = `$docxImage${
-    Buffer.from(JSON.stringify({
-      src: options.hash.src,
-      fallbackSrc: options.hash.fallbackSrc,
-      failurePlaceholderAction: options.hash.failurePlaceholderAction,
-      width: options.hash.width,
-      height: options.hash.height,
-      usePlaceholderSize:
-          options.hash.usePlaceholderSize === true ||
-          options.hash.usePlaceholderSize === 'true'
-    })).toString('base64')
-  }$`
-
-  return new Handlebars.SafeString(content)
 }
 
 function docxCheckbox (options) {
@@ -497,6 +399,123 @@ function docxTOCOptions (options) {
   return new Handlebars.SafeString('$docxTOCOptions' + Buffer.from(JSON.stringify(options.hash)).toString('base64') + '$')
 }
 
+async function docxImage (optionsToUse) {
+  const Handlebars = require('handlebars')
+  const jsreport = require('jsreport-proxy')
+
+  optionsToUse.hash.src = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.src)
+  optionsToUse.hash.fallbackSrc = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.fallbackSrc)
+  optionsToUse.hash.failurePlaceholderAction = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.failurePlaceholderAction)
+  optionsToUse.hash.width = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.width)
+  optionsToUse.hash.height = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.height)
+  optionsToUse.hash.usePlaceholderSize = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.usePlaceholderSize)
+  optionsToUse.hash.bookmarkName = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.hash.bookmarkName)
+
+  if (
+    optionsToUse.hash.src == null &&
+    optionsToUse.hash.fallbackSrc == null &&
+    optionsToUse.hash.failurePlaceholderAction == null
+  ) {
+    throw new Error(
+      'docxImage helper requires src parameter to be set'
+    )
+  }
+
+  const isValidSrc = (value) => {
+    return (
+      typeof value === 'string' &&
+      (
+        value.startsWith('data:image/png;base64,') ||
+        value.startsWith('data:image/jpeg;base64,') ||
+        value.startsWith('data:image/svg+xml;base64,') ||
+        value.startsWith('http://') ||
+        value.startsWith('https://')
+      )
+    )
+  }
+
+  if (
+    optionsToUse.hash.src != null &&
+    !isValidSrc(optionsToUse.hash.src)
+  ) {
+    throw new Error(
+      'docxImage helper requires src parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      optionsToUse.hash.src
+    )
+  }
+
+  if (
+    optionsToUse.hash.fallbackSrc != null &&
+    !isValidSrc(optionsToUse.hash.fallbackSrc)
+  ) {
+    throw new Error(
+      'docxImage helper requires fallbackSrc parameter to be valid data uri for png, jpeg, svg image or a valid url. Got ' +
+      optionsToUse.hash.fallbackSrc
+    )
+  }
+
+  if (
+    optionsToUse.hash.failurePlaceholderAction != null &&
+    (
+      optionsToUse.hash.failurePlaceholderAction !== 'preserve' &&
+      optionsToUse.hash.failurePlaceholderAction !== 'remove'
+    )
+  ) {
+    throw new Error(
+      'docxImage helper requires failurePlaceholderAction parameter to be either "preserve" or "remove". Got ' +
+      optionsToUse.hash.failurePlaceholderAction
+    )
+  }
+
+  const isValidDimensionUnit = (value) => {
+    const regexp = /^(\d+(.\d+)?)(cm|px)$/
+    return regexp.test(value)
+  }
+
+  if (
+    optionsToUse.hash.width != null &&
+    !isValidDimensionUnit(optionsToUse.hash.width)
+  ) {
+    throw new Error(
+      'docxImage helper requires width parameter to be valid number with unit (cm or px). got ' +
+      optionsToUse.hash.width
+    )
+  }
+
+  if (
+    optionsToUse.hash.height != null &&
+    !isValidDimensionUnit(optionsToUse.hash.height)
+  ) {
+    throw new Error(
+      'docxImage helper requires height parameter to be valid number with unit (cm or px). got ' +
+      optionsToUse.hash.height
+    )
+  }
+
+  const imageConfig = {
+    src: optionsToUse.hash.src,
+    fallbackSrc: optionsToUse.hash.fallbackSrc,
+    failurePlaceholderAction: optionsToUse.hash.failurePlaceholderAction,
+    width: optionsToUse.hash.width,
+    height: optionsToUse.hash.height,
+    usePlaceholderSize: (
+      optionsToUse.hash.usePlaceholderSize === true ||
+      optionsToUse.hash.usePlaceholderSize === 'true'
+    ),
+    bookmarkName: optionsToUse.hash.bookmarkName
+  }
+
+  const content = `$docxImage${
+    Buffer.from(JSON.stringify(imageConfig)).toString('base64')
+  }$`
+
+  if (optionsToUse.data.imageWrapperContext) {
+    optionsToUse.data.imageConfig = imageConfig
+  }
+
+  return new Handlebars.SafeString(content)
+}
+
 async function docxSData (data, options) {
   const Handlebars = require('handlebars')
   const optionsToUse = options == null ? data : options
@@ -504,6 +523,110 @@ async function docxSData (data, options) {
 
   if (type == null) {
     throw new Error('docxSData helper type arg is required')
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'bookmarkValidation'
+  ) {
+    const bookmarkType = optionsToUse.hash.bookmarkType
+    let bookmarkId = optionsToUse.hash.bookmarkId
+    const forImage = optionsToUse.hash.bookmarkForImage === 'true'
+
+    if (bookmarkType == null) {
+      throw new Error(
+        'docxSData "bookmarkValidation" helper requires bookmarkType parameter to be set'
+      )
+    }
+
+    if (bookmarkType !== 'start' && bookmarkType !== 'end') {
+      throw new Error(
+        'docxSData "bookmarkValidation" helper requires bookmarkType parameter to be either "start" or "end"'
+      )
+    }
+
+    if (bookmarkId == null) {
+      throw new Error(
+        'docxSData "bookmarkValidation" helper requires bookmarkId parameter to be set'
+      )
+    }
+
+    bookmarkId = parseInt(bookmarkId, 10)
+
+    if (isNaN(bookmarkId)) {
+      throw new Error(
+        'docxSData "bookmarkValidation" helper requires bookmarkId parameter to be a number'
+      )
+    }
+
+    // we immediately remove bookmark if there was not a docxImage call for it
+    if (forImage && optionsToUse.data.imageWrapperContext && optionsToUse.data.imageConfig == null) {
+      return ''
+    }
+
+    let shouldRemove = false
+
+    if (bookmarkType === 'start') {
+      const startInstances = optionsToUse.data.bookmarkStartInstances
+      shouldRemove = startInstances.includes(bookmarkId)
+
+      if (!shouldRemove) {
+        startInstances.push(bookmarkId)
+      }
+    } else {
+      const startInstances = optionsToUse.data.bookmarkStartInstances
+      const startIdx = startInstances.indexOf(bookmarkId)
+      const hasStarted = startIdx !== -1
+
+      if (!hasStarted) {
+        shouldRemove = true
+      } else {
+        startInstances.splice(startIdx, 1)
+      }
+    }
+
+    if (shouldRemove) {
+      return ''
+    }
+
+    return optionsToUse.fn(this, { data: optionsToUse.data })
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'image'
+  ) {
+    const jsreport = require('jsreport-proxy')
+    const newData = Handlebars.createFrame(optionsToUse.data)
+
+    newData.imageWrapperContext = true
+    newData.imageBookmarkName = ''
+    newData.imageTooltip = ''
+
+    const imageTooltip = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: newData }))
+
+    newData.imageTooltip = imageTooltip
+
+    if (
+      newData.imageConfig != null &&
+      newData.imageConfig.bookmarkName != null &&
+      typeof newData.imageConfig.bookmarkName === 'string' &&
+      newData.imageConfig.bookmarkName !== ''
+    ) {
+      newData.imageBookmarkName = newData.imageConfig.bookmarkName
+    }
+
+    const content = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.inverse(this, { data: newData }))
+    return content
+  }
+
+  if (
+    arguments.length === 1 &&
+    type === 'imageTooltip'
+  ) {
+    const jsreport = require('jsreport-proxy')
+    const newTooltip = await jsreport.templatingEngines.waitForAsyncHelper(optionsToUse.fn(this, { data: optionsToUse.data }))
+    return newTooltip
   }
 
   if (

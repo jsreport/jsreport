@@ -137,6 +137,7 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
   try {
     const introspectParams = [token, 'access_token']
     let tokenResponse
+    let tokenErr
 
     if (authorizationServerAuth.introspectionRequest.extraBody != null) {
       introspectParams.push({
@@ -147,6 +148,8 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
     try {
       tokenResponse = await client.introspect(...introspectParams)
     } catch (introspectError) {
+      tokenErr = introspectError
+
       if (introspectError.code === 'ETIMEDOUT' || introspectError.code === 'ESOCKETTIMEDOUT') {
         logger.error(
           'Timeout Error in authorization server request, no response was sent after ' +
@@ -159,17 +162,24 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
     }
 
     if (!tokenResponse || (typeof tokenResponse !== 'object' || Array.isArray(tokenResponse))) {
-      logger.error('Authorization server has sent an invalid response, token assumed as invalid')
+      const msg = 'Authorization server has sent an invalid response, token assumed as invalid'
+
+      if (tokenErr != null) {
+        logger.error(`${msg}. ${tokenErr.message ? `Error: ${tokenErr.message}` : ''}`)
+      } else {
+        logErrorWithResponseBody(msg)
+      }
+
       return done(null, false)
     }
 
     if (tokenResponse.active == null) {
-      logger.error('Authorization server has no "active" field in its response, token assumed as invalid')
+      logErrorWithResponseBody('Authorization server has no "active" field in its response, token assumed as invalid', tokenResponse)
       return done(null, false)
     }
 
     if (tokenResponse.active !== true) {
-      logger.error('Authorization server has responded with a non-true value in "active" field, token assumed as invalid')
+      logErrorWithResponseBody('Authorization server has responded with a non-true value in "active" field, token assumed as invalid', tokenResponse)
       return done(null, false)
     }
 
@@ -178,7 +188,7 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
       let scopeResponse = tokenResponse.scope
 
       if (scopeResponse == null) {
-        logger.error('Authorization server has no "scope" field in its response, token assumed as invalid')
+        logErrorWithResponseBody('Authorization server has no "scope" field in its response, token assumed as invalid', tokenResponse)
         return done(null, false)
       }
 
@@ -192,11 +202,12 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
         })
 
         if (!scopeValid) {
-          logger.error(
+          logErrorWithResponseBody(
             'Authorization server response doesn\'t contain any valid scope: "' +
             scopeResponse.join(', ') +
             '" in "scope" field' +
-            ', valid scopes are: ' + authorizationServerAuth.introspectionRequest.tokenValidScopes.join(', ')
+            ', valid scopes are: ' + authorizationServerAuth.introspectionRequest.tokenValidScopes.join(', '),
+            tokenResponse
           )
           return done(null, false)
         }
@@ -240,12 +251,12 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
       }
 
       if (groupFromAuthServer == null) {
-        logger.error(`Authorization server has no "${authorizationServerAuth.groupField}" field (group) in its response, token assumed as invalid`)
+        logErrorWithResponseBody(`Authorization server has no "${authorizationServerAuth.groupField}" field (group) in its response, token assumed as invalid`, tokenResponse)
         return done(null, false)
       }
 
       if (typeof groupFromAuthServer !== 'string' || groupFromAuthServer.trim() === '') {
-        logger.error(`Authorization server has responded with an invalid value in group field "${authorizationServerAuth.groupField}", token assumed as invalid`)
+        logErrorWithResponseBody(`Authorization server has responded with an invalid value in group field "${authorizationServerAuth.groupField}", token assumed as invalid`, tokenResponse)
         return done(null, false)
       }
 
@@ -254,11 +265,10 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
       }, req)
 
       if (!group) {
-        logger.error(`group "${groupFromAuthServer}" returned from authorization server is not a jsreport group`)
+        logErrorWithResponseBody(`group "${groupFromAuthServer}" returned from authorization server is not a jsreport group`, tokenResponse)
         return done(null, false)
       }
 
-      let usernameForGroup = `:group/${group.name}`
       let customUsername
 
       if (
@@ -274,12 +284,10 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
         customUsername = userinfo[authorizationServerAuth.usernameField]
       }
 
-      if (customUsername != null) {
-        usernameForGroup += `/${customUsername}`
-      }
-
       resolvedUser = {
-        name: usernameForGroup
+        _id: group._id,
+        name: customUsername != null ? customUsername : group.name,
+        isGroup: true
       }
     } else {
       let usernameFromAuthServer = tokenResponse[authorizationServerAuth.usernameField]
@@ -291,12 +299,12 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
       }
 
       if (usernameFromAuthServer == null) {
-        logger.error(`Authorization server has no "${authorizationServerAuth.usernameField}" field in its response, token assumed as invalid`)
+        logErrorWithResponseBody(`Authorization server has no "${authorizationServerAuth.usernameField}" field in its response, token assumed as invalid`, tokenResponse)
         return done(null, false)
       }
 
       if (typeof usernameFromAuthServer !== 'string' || usernameFromAuthServer.trim() === '') {
-        logger.error(`Authorization server has responded with an invalid value in username field "${authorizationServerAuth.usernameField}", token assumed as invalid`)
+        logErrorWithResponseBody(`Authorization server has responded with an invalid value in username field "${authorizationServerAuth.usernameField}", token assumed as invalid`, tokenResponse)
         return done(null, false)
       }
 
@@ -306,11 +314,14 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
         const user = await usersRepository.find(usernameFromAuthServer)
 
         if (!user) {
-          logger.error(`username "${usernameFromAuthServer}" returned from authorization server is not a jsreport user`)
+          logErrorWithResponseBody(`username "${usernameFromAuthServer}" returned from authorization server is not a jsreport user`, tokenResponse)
           return done(null, false)
         }
 
-        resolvedUser = user
+        resolvedUser = {
+          _id: user._id,
+          name: user.name
+        }
       }
     }
 
@@ -320,5 +331,13 @@ module.exports.authenticateToken = ({ authorizationServerAuth, client, documentS
   } catch (err) {
     logger.error(`Error during authorization server request: ${err.message}`)
     return done(err)
+  }
+
+  function logErrorWithResponseBody (msg, tokenResponse) {
+    if (tokenResponse) {
+      logger.debug(`Authorization server introspection response: ${JSON.stringify(tokenResponse)}`)
+    }
+
+    logger.error(msg)
   }
 }

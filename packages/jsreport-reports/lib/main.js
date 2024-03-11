@@ -4,8 +4,6 @@
  * Reports extension allows to store rendering output into storage for later use.
  */
 
-const extend = require('node.extend.without.arrays')
-
 class Reports {
   constructor (reporter, definition) {
     this.reporter = reporter
@@ -259,7 +257,12 @@ class Reports {
       public: request.options.reports != null ? request.options.reports.public : false
     }, request)
 
-    const clientNotification = request.context.clientNotification = extend(true, response)
+    const clientNotification = request.context.clientNotification = this.reporter.Response(request.context.id, response)
+
+    await clientNotification.updateOutput(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
+
+    clientNotification.meta.contentType = 'text/html'
+    clientNotification.meta.fileExtension = 'html'
 
     if (request.context.http) {
       if (request.options.reports && request.options.reports.public) {
@@ -268,10 +271,6 @@ class Reports {
         clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
       }
     }
-
-    response.content = Buffer.from("Async rendering in progress. Use Location response header to check the current status. Check it <a href='" + response.meta.headers.Location + "'>here</a>")
-    response.meta.contentType = 'text/html'
-    response.meta.fileExtension = 'html'
 
     this.reporter.logger.info('Responding with async report location and continue with async report generation', request)
 

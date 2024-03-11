@@ -49,33 +49,35 @@ module.exports.getTextNodesMatching = function getTextNodesMatching (doc, target
     end: match.index + targetText.length - 1
   }
 
-  const textNodesMatching = allTextNodes.reduce((acu, textNode) => {
-    if (acu.complete) {
-      return acu
-    }
+  const textNodesMatching = { start: 0, nodes: [], complete: false }
 
-    const end = acu.start + (textNode.textContent.length - 1)
+  for (const textNode of allTextNodes) {
+    const end = textNodesMatching.start + (textNode.textContent.length - 1)
 
     if (
       (
-        acu.start >= target.start &&
-        acu.start <= target.end
+        textNodesMatching.start >= target.start &&
+        textNodesMatching.start <= target.end
       ) || (
-        acu.end >= target.start &&
-        acu.end <= target.end
+        end >= target.start &&
+        end <= target.end
+      ) || (
+        end > target.end
       )
     ) {
-      acu.nodes.push(textNode)
+      textNodesMatching.nodes.push(textNode)
     }
 
-    acu.start = end + 1
+    textNodesMatching.start = end + 1
 
-    if (acu.start > target.end) {
-      acu.complete = true
+    if (textNodesMatching.start > target.end) {
+      textNodesMatching.complete = true
     }
 
-    return acu
-  }, { start: 0, nodes: [], complete: false })
+    if (textNodesMatching.complete) {
+      break
+    }
+  }
 
   return textNodesMatching.nodes
 }

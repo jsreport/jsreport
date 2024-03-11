@@ -67,7 +67,7 @@ module.exports = function (reporter, definition) {
 
         res.meta = res.meta || {}
 
-        await response({
+        const officeContent = await response({
           previewOptions: reporter.options.office != null && reporter.options.office.preview != null ? reporter.options.office.preview : {},
           officeDocumentType: path.extname(asset.filename).slice(1),
           buffer: asset.buffer,
@@ -76,7 +76,7 @@ module.exports = function (reporter, definition) {
 
         res.setHeader('Content-Type', res.meta.contentType)
 
-        res.end(res.content)
+        res.end(officeContent)
       } catch (e) {
         reporter.logger.warn(`Unable to get office asset content ${e.stack}`)
         res.status(500).end(e.message)

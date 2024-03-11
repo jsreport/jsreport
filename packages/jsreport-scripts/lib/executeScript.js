@@ -4,6 +4,7 @@ const promisify = require('util').promisify
 
 module.exports = async function executeScript (reporter, { script, method, onBeforeExecute }, req, res) {
   let entityPath
+
   if (script._id) {
     entityPath = await reporter.folders.resolveEntityPath(script, 'scripts', req)
   }
@@ -12,7 +13,14 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   const originalData = req.data
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
-  const resClone = extend(true, {}, res)
+  const scriptResponse = await reporter.Response(req.context.id, res)
+  await scriptResponse.parseFrom(await res.serialize())
+
+  const serializeResponse = scriptResponse.serialize
+
+  // we don't expose the serialize to scripts, because it exposes file path of response
+  //  when the output is stream
+  delete scriptResponse.serialize
 
   const initialContext = {
     __request: {
@@ -21,7 +29,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
         ...originalData
       }
     },
-    __response: resClone
+    __response: scriptResponse
   }
 
   // keep the reference to the shared context so it is always update to date
@@ -53,7 +61,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
 
   const sandboxManager = {}
 
-  const executionFn = async ({ topLevelFunctions, restore, context }) => {
+  const executionFn = async ({ topLevelFunctions, context }) => {
     const onBeforeExecute = context.__request.__onBeforeExecute
     delete context.__request.__onBeforeExecute
 
@@ -93,6 +101,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
     ) {
       err = new Error('Script invalid assignment: req.data must be an object, make sure you are not changing its value in the script to a non object value')
     }
+
     return {
       shouldRunAfterRender: topLevelFunctions.afterRender != null,
       // we only propagate well known properties from the req executed in scripts
@@ -106,9 +115,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
           ...restoredSandbox.__request.context
         }
       },
-      // creating new object avoids passing a proxy object to rest of the
-      // execution flow when script is running in in-process strategy
-      res: { ...restoredSandbox.__response },
+      res: serializeResponse.call(restoredSandbox.__response),
       error: err
         ? {
             message: err.message,

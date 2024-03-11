@@ -54,7 +54,9 @@ module.exports = (reporter, definition) => {
         }
       }
 
-      report.blobName = await reporter.blobStorage.write(`${reportBlobName}.${report.fileExtension}`, response.content, request, response)
+      const responseContent = await response.output.getBuffer()
+
+      report.blobName = await reporter.blobStorage.write(`${reportBlobName}.${report.fileExtension}`, responseContent, request, response)
 
       await reporter.documentStore.collection('reports').update({
         _id: report._id

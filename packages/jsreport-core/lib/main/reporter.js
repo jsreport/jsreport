@@ -4,7 +4,6 @@
  * Reporter main class including all methods jsreport-core exposes.
  */
 const path = require('path')
-const { Readable } = require('stream')
 const Reaper = require('@jsreport/reap')
 const pkg = require('../../package.json')
 const optionsLoad = require('./optionsLoad')
@@ -27,7 +26,7 @@ const documentStoreActions = require('./store/mainActions')
 const blobStorageActions = require('./blobStorage/mainActions')
 const Reporter = require('../shared/reporter')
 const Request = require('./request')
-const generateRequestId = require('../shared/generateRequestId')
+const Response = require('../shared/response')
 const Profiler = require('./profiler')
 const semver = require('semver')
 let reportCounter = 0
@@ -370,7 +369,7 @@ class MainReporter extends Reporter {
 
     req = Object.assign({}, req)
     req.context = Object.assign({}, req.context)
-    req.context.rootId = req.context.rootId || generateRequestId()
+    req.context.rootId = req.context.rootId || this.generateRequestId()
     req.context.id = req.context.rootId
     req.context.reportCounter = ++reportCounter
     req.context.startTimestamp = new Date().getTime()
@@ -379,7 +378,9 @@ class MainReporter extends Reporter {
     let worker
     let workerAborted
     let dontCloseProcessing
-    const res = { meta: {} }
+
+    const res = Response(this, req.context.id)
+
     try {
       await this.beforeRenderWorkerAllocatedListeners.fire(req)
 
@@ -442,7 +443,8 @@ class MainReporter extends Reporter {
               worker
             }, req)
 
-            Object.assign(res, responseResult)
+            await res.parseFrom(responseResult)
+
             await this.afterRenderListeners.fire(req, res)
           } catch (err) {
             await this._handleRenderError(req, res, err).catch((e) => {})
@@ -455,11 +457,11 @@ class MainReporter extends Reporter {
         })
 
         dontCloseProcessing = true
-        const r = {
-          ...req.context.clientNotification,
-          stream: Readable.from(req.context.clientNotification.content)
-        }
+
+        const r = req.context.clientNotification
+
         delete req.context.clientNotification
+
         return r
       }
 
@@ -472,15 +474,9 @@ class MainReporter extends Reporter {
         worker
       }, req)
 
-      Object.assign(res, responseResult)
+      await res.parseFrom(responseResult)
 
       await this.afterRenderListeners.fire(req, res)
-
-      if (!res.content) {
-        this.logger.error('Worker didnt return render res.content, returned:' + JSON.stringify(responseResult), req)
-      }
-
-      res.stream = Readable.from(res.content)
 
       this._cleanProfileInRequest(req)
 
@@ -551,7 +547,7 @@ class MainReporter extends Reporter {
   }
 
   async executeWorkerAction (actionName, data, options = {}, req) {
-    req.context.rootId = req.context.rootId || generateRequestId()
+    req.context.rootId = req.context.rootId || this.generateRequestId()
     const timeout = options.timeout || 60000
 
     const worker = options.worker

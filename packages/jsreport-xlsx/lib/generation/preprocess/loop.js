@@ -167,7 +167,10 @@ module.exports = (files) => {
           processOpeningTag(sheetDoc, sheetDataEl.firstChild, tCallEl.textContent)
         }
 
-        if (tEls[0].textContent.endsWith(':')) {
+        if (tEls.length === 1) {
+          const expectedRegexp = /^{{xlsxColAutofit( [^}]*)?}}$/
+          shouldRemoveComment = expectedRegexp.test(tEls[0].textContent)
+        } else if (tEls[0].textContent.endsWith(':')) {
           const remainingText = tEls.slice(1).map((el) => el.textContent).join('')
           const expectedRegexp = /^\r?\n?{{xlsxColAutofit( [^}]*)?}}$/
           shouldRemoveComment = expectedRegexp.test(remainingText)
