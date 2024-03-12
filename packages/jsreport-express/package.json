@@ -25,8 +25,8 @@
     "test": "cross-env DEBUG=jsreport mocha test --timeout 5000 && standard"
   },
   "dependencies": {
-    "@jsreport/multipart": "0.0.0",
-    "archiver": "5.3.0",
+    "@jsreport/multipart": "1.0.0",
+    "archiver": "7.0.1",
     "body-parser": "1.20.1",
     "cookie-parser": "1.4.6",
     "cors": "2.8.5",
