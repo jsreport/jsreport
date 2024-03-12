@@ -77,6 +77,7 @@ function getPriorityOrder () {
     '@bjrmatos/pkg',
     '@jsreport/reap',
     '@jsreport/serializator',
+    '@jsreport/multipart',
     'chrome-page-eval',
     'phantom-page-eval',
     'cheerio-page-eval',
