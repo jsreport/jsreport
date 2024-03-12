@@ -1,4 +1,4 @@
-require('should')
+const should = require('should')
 const response = require('../lib/response')
 
 describe('response', () => {
@@ -8,18 +8,20 @@ describe('response', () => {
         preview: true
       }
     }
+
     const res = {
       meta: {}
     }
-    await response({
+
+    const content = await response({
       previewOptions: { },
       officeDocumentType: 'docx',
       buffer: Buffer.from('hello'),
       logger: createFakeLogger()
     }, req, res)
 
-    res.meta.contentType.should.be.eql('text/html')
-    res.content.toString().should.containEql('<html>')
+    should(res.meta.contentType).be.eql('text/html')
+    should(content.toString()).containEql('<html>')
   })
 
   it('should return content when preview upload fails', async () => {
@@ -28,10 +30,12 @@ describe('response', () => {
         preview: true
       }
     }
+
     const res = {
       meta: {}
     }
-    await response({
+
+    const content = await response({
       previewOptions: {
         publicUri: 'https://notexistingwebxxxyyyyy.com'
       },
@@ -40,7 +44,7 @@ describe('response', () => {
       logger: createFakeLogger()
     }, req, res)
 
-    res.content.toString().should.be.eql('hello')
+    should(content.toString()).be.eql('hello')
   })
 })
 
