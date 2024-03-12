@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-licensing",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "jsreport extension for enterprise license verification ",
   "keywords": [
     "jsreport"
@@ -26,10 +26,10 @@
     "test": "mocha --timeout 10000 --recursive test --exit && standard"
   },
   "dependencies": {
-    "axios": "1.6.2"
+    "axios": "1.6.7"
   },
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.1.0",
+    "@jsreport/jsreport-core": "4.2.0",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",
     "should": "13.2.3",

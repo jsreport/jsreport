@@ -123,6 +123,10 @@ The last example shows how to use the [jsreport borwser client](http://jsreport.
 
 ## Changelog
 
+### 4.1.0
+
+- internal changes to support new `response.output` api
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

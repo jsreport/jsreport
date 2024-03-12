@@ -7,6 +7,15 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.2.0
+
+- add support for docxStyle to target paragraph, cell, row so styles can be applied to container instead of just text
+- docxHtml: fix case when nested ul/li not rendering in the correct order
+- allow customizing bookmark of docxImage and general normalization of bookmarks
+- fix concat tags logic
+- docxImage: optimization when rending a lot of remote images
+- internal changes to support new `response.output` api
+
 ### 4.1.1
 
 - fix data access to @root data variables

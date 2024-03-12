@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-data",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "jsreport extension adding support for using sample data for previewing templates",
   "keywords": [
     "jsreport",
@@ -29,7 +29,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@jsreport/jsreport-core": "4.1.0",
+    "@jsreport/jsreport-core": "4.2.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/studio-dev": "4.0.0",
     "handlebars": "4.7.7",

@@ -282,6 +282,11 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.2.0
+
+- the response object has new structure and api, the `response.output` is new addition and contains different methods to work with the response output. the  `response.content`, `response.stream` are now soft deprecated (will be removed in future versions)
+- the internal architecture has been updated to support working with template content and report output as streams, this means that the render will be able to handle and produce bigger reports without getting hit by out of memory errors
+
 ### 4.1.0
 
 - update deps to fix npm audit

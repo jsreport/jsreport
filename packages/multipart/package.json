@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/multipart",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Some helpers for sending and parsing multipart attachments in streaming flow",
   "homepage": "https://github.com/jsreport/jsreport/tree/master/packages/multipart#readme",
   "repository": {

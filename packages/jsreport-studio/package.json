@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-studio",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "description": "jsreport templates editor and designer",
   "keywords": [
     "jsreport"
@@ -42,7 +42,7 @@
     "ui-test": "mocha test/ui/.setup.js test/ui --recursive --exit --require @babel/register --require mocha-clean --require ignore-styles"
   },
   "dependencies": {
-    "@jsreport/multipart": "0.0.0",
+    "@jsreport/multipart": "1.0.0",
     "compression": "1.7.4",
     "diff2html": "2.5.0",
     "highlight-words-core": "1.2.2",
@@ -56,8 +56,8 @@
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "6.4.0",
-    "@jsreport/jsreport-core": "4.1.0",
-    "@jsreport/jsreport-express": "4.0.1",
+    "@jsreport/jsreport-core": "4.2.0",
+    "@jsreport/jsreport-express": "4.1.0",
     "@jsreport/studio-dev": "4.0.0",
     "@redux-devtools/extension": "3.2.5",
     "@seznam/compose-react-refs": "1.0.6",

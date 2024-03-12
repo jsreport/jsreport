@@ -7,6 +7,14 @@ See the docs https://jsreport.net/learn/xlsx
 
 ## Changelog
 
+### 4.1.0
+
+- performance optimizations
+- remove the xlsxColAutofit comment also if there is no more text in the comment
+- fix concat tags logic in some cases
+- internal changes to support new `response.output` api
+- fix xlsx with formulas stored with `'` string delimiters
+
 ### 4.0.2
 
 - update @jsreport/office

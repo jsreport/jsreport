@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.1.0
+
+- internal changes to support new `response.output` api
+
 ### 4.0.1
 
 - fix memory being held when timeouts are large

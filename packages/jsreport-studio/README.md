@@ -18,6 +18,10 @@ The documentation can be found [here](https://jsreport.net/learn/extending-studi
 
 ## Changelog
 
+### 4.1.0
+
+- internal changes to support new `response.output` api
+
 ### 4.0.2
 
 - fix "was modified previously by another source" dialogs when updating an entity in studio a second time

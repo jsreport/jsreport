@@ -34,10 +34,10 @@
   "devDependencies": {
     "handlebars": "4.7.7",
     "lodash.get": "4.4.2",
-    "@jsreport/jsreport-assets": "4.0.2",
-    "@jsreport/jsreport-core": "4.1.0",
+    "@jsreport/jsreport-assets": "4.1.0",
+    "@jsreport/jsreport-core": "4.2.0",
     "@jsreport/jsreport-components": "4.0.0",
-    "@jsreport/jsreport-child-templates": "4.0.0",
+    "@jsreport/jsreport-child-templates": "4.1.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/studio-dev": "4.0.0",
     "mocha": "10.1.0",

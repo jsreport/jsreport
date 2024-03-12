@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-browser-client",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "jsreport browser client",
   "keywords": [
     "jsreport"
@@ -33,8 +33,8 @@
   },
   "devDependencies": {
     "@jsreport/studio-dev": "4.0.0",
-    "@jsreport/jsreport-core": "4.1.0",
-    "@jsreport/jsreport-express": "4.0.1",
+    "@jsreport/jsreport-core": "4.2.0",
+    "@jsreport/jsreport-express": "4.1.0",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "mocha": "10.1.0",
     "puppeteer": "21.3.7",

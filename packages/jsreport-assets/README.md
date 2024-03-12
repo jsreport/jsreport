@@ -8,6 +8,10 @@ See https://jsreport.net/learn/assets
 
 ## Changelog
 
+### 4.1.0
+
+- internal changes to support new `response.output` api
+
 ### 4.0.2
 
 - update @jsreport/office

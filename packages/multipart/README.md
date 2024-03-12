@@ -4,3 +4,7 @@
 Some helpers for sending and parsing multipart attachments in streaming flow
 
 ## Changelog
+
+### 1.0.0
+
+- initial release

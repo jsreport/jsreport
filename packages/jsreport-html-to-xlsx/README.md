@@ -7,6 +7,12 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.1.0
+
+- performance optimizations
+- update html-to-xlsx to fix audit
+- internal changes to support new `response.output` api
+
 ### 4.0.1
 
 - update chrome-page-eval to fix issues with aws lambda

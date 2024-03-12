@@ -7,6 +7,11 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.1.0
+
+- support merging/appending pdf with outlines
+- internal changes to support new `response.output` api
+
 ### 4.0.2
 
 - initial support of the pdf/ua

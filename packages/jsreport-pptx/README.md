@@ -7,6 +7,13 @@ See https://jsreport.net/learn/pptx
 
 ## Changelog
 
+### 4.2.0
+
+- fix concat tags logic
+- fix can not render report using pptxSlides with one item array
+- throw better error when pptxSlides is used as a block helper call
+- internal changes to support new `response.output` api
+
 ### 4.1.0
 
 - add pptxStyle support

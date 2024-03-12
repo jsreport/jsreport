@@ -7,6 +7,11 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.1.0
+
+- internal changes to support new `response.output` api
+- auth with authorization server logs more errors from http request to remote server
+
 ### 4.0.1
 
 - fix `jsreport.config.json` requires metadata for v4

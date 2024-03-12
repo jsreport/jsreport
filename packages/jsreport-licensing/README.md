@@ -3,6 +3,11 @@ jsreport extension for enterprise license verification
 
 ## Changelog
 
+### 4.0.2
+
+- fix snyk audit
+- dont log failed usage check
+
 ### 4.0.1
 
 - update axios to fix npm audit

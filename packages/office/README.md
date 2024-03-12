@@ -5,6 +5,11 @@ Some helpers for officed based jsreport recipes
 
 ## Changelog
 
+### 4.1.0
+
+- fix snyk audit
+- internal changes to support new `response.output` api
+
 ### 4.0.0
 
 - fix asset office preview throwing error on studio
