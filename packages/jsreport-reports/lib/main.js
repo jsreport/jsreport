@@ -259,7 +259,7 @@ class Reports {
 
     const clientNotification = request.context.clientNotification = this.reporter.Response(request.context.id, response)
 
-    await clientNotification.updateOutput(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
+    await clientNotification.output.update(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
 
     clientNotification.meta.contentType = 'text/html'
     clientNotification.meta.fileExtension = 'html'

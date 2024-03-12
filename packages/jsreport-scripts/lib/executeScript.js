@@ -14,7 +14,7 @@ module.exports = async function executeScript (reporter, { script, method, onBef
   const originalSharedContext = req.context.shared
   const reqCloneWithNoData = extend(true, {}, _omit(req, 'data'))
   const scriptResponse = await reporter.Response(req.context.id, res)
-  await scriptResponse.parseFrom(await res.serialize())
+  await scriptResponse.parse(await res.serialize())
 
   const serializeResponse = scriptResponse.serialize
 

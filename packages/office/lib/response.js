@@ -42,7 +42,7 @@ module.exports = async function response ({
 
   if (enabled === false || !isOfficePreviewRequest) {
     if (isRenderResponse) {
-      await res.updateOutput(buffer || filePath)
+      await res.output.update(buffer || filePath)
     } else {
       result = buffer || filePath
     }
@@ -93,7 +93,7 @@ module.exports = async function response ({
     logger.error(message, req)
 
     if (isRenderResponse) {
-      await res.updateOutput(buffer || filePath)
+      await res.output.update(buffer || filePath)
     } else {
       result = buffer || filePath
     }
@@ -111,7 +111,7 @@ module.exports = async function response ({
   const htmlBuffer = Buffer.from(`<html><head><title>${res.meta.reportName}</title><body>${iframe}</body></html>`)
 
   if (isRenderResponse) {
-    await res.updateOutput(htmlBuffer)
+    await res.output.update(htmlBuffer)
   } else {
     result = htmlBuffer
   }

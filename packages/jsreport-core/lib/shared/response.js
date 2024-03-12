@@ -6,7 +6,7 @@ const path = require('path')
 const isArrayBufferView = require('util').types.isArrayBufferView
 
 module.exports = (reporter, requestId, obj) => {
-  let output = new BufferOutput(reporter)
+  let outputImpl = new BufferOutput (reporter)  
   let cachedStream
 
   const response = {
@@ -14,16 +14,16 @@ module.exports = (reporter, requestId, obj) => {
 
     /** back compatibility methods **/
     get content () {
-      return output.getBufferSync()
+      return outputImpl.getBufferSync()
     },
 
     set content (v) {
-      output.setBufferSync(Buffer.from(v))
+      outputImpl.setBufferSync(Buffer.from(v))
     },
 
     get stream () {
       if (cachedStream == null) {
-        cachedStream = output.getStream()
+        cachedStream = outputImpl.getStream()
       }
 
       return cachedStream
@@ -31,69 +31,64 @@ module.exports = (reporter, requestId, obj) => {
     /** //// back compatibility methods **/
 
     get isInStreamingMode () {
-      return output instanceof StreamOutput
+      return outputImpl instanceof StreamOutput
     },
 
     get __isJsreportResponse__ () {
       return true
     },
 
-    output: createPublicOutput(() => output),
-
-    async updateOutput (bufOrStreamOrPath) {
-      if (Buffer.isBuffer(bufOrStreamOrPath) || isArrayBufferView(bufOrStreamOrPath)) {
-        return output.setBuffer(bufOrStreamOrPath)
-      }
-
-      if (typeof bufOrStreamOrPath === 'string') {
-        if (!path.isAbsolute(bufOrStreamOrPath)) {
-          throw new Error('Invalid content passed to res.updateOutput, when content is string it must be an absolute path')
+    output: {
+      async getBuffer () { return outputImpl.getBuffer() },
+      async getStream () { return outputImpl.getStream() },
+      async getSize () { return outputImpl.getSize() },
+      async writeToTempFile (...args) { return outputImpl.writeToTempFile(...args) },
+      async update (bufOrStreamOrPath) {
+        if (Buffer.isBuffer(bufOrStreamOrPath) || isArrayBufferView(bufOrStreamOrPath)) {
+          return outputImpl.setBuffer(bufOrStreamOrPath)
         }
-
-        if (output instanceof BufferOutput) {
-          output = new StreamOutput(reporter, requestId)
+  
+        if (typeof bufOrStreamOrPath === 'string') {
+          if (!path.isAbsolute(bufOrStreamOrPath)) {
+            throw new Error('Invalid content passed to res.output.update, when content is string it must be an absolute path')
+          }
+  
+          if (outputImpl instanceof BufferOutput) {
+            outputImpl = new StreamOutput(reporter, requestId)
+          }
+  
+          await reporter.copyFileToTempFile(bufOrStreamOrPath, outputImpl.filePath)
         }
-
-        await reporter.copyFileToTempFile(bufOrStreamOrPath, output.filePath)
-      }
-
-      if (isReadableStream(bufOrStreamOrPath)) {
-        if (output instanceof BufferOutput) {
-          output = new StreamOutput(reporter, requestId)
+  
+        if (isReadableStream(bufOrStreamOrPath)) {
+          if (outputImpl instanceof BufferOutput) {
+            outputImpl = new StreamOutput(reporter, requestId)
+          }
+  
+          return outputImpl.setStream(bufOrStreamOrPath)
         }
-
-        return output.setStream(bufOrStreamOrPath)
       }
     },
 
     serialize () {
       return {
-        meta: extend(true, {}, this.meta),
-        output: output.serialize()
+        meta: this.meta,
+        output: outputImpl.serialize()
       }
     },
 
-    async parseFrom (res) {
+    async parse (res) {
       Object.assign(this.meta, res.meta)
 
       if (res.output.type === 'buffer') {
-        output = await BufferOutput.parse(reporter, res.output)
+        outputImpl = await BufferOutput.parse(reporter, res.output)
       } else {
-        output = await StreamOutput.parse(reporter, requestId, res.output)
+        outputImpl = await StreamOutput.parse(reporter, requestId, res.output)
       }
     }
   }
 
   return response
-}
-
-function createPublicOutput (getCurrentOutput) {
-  return {
-    async getBuffer () { return getCurrentOutput().getBuffer() },
-    async getStream () { return getCurrentOutput().getStream() },
-    async getSize () { return getCurrentOutput().getSize() },
-    async writeToTempFile (...args) { return getCurrentOutput().writeToTempFile(...args) }
-  }
 }
 
 class BufferOutput {

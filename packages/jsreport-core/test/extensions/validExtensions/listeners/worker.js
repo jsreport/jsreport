@@ -9,25 +9,25 @@ module.exports = (reporter, definition) => {
     reporter.beforeRenderListeners.add('listeners', async (req, res) => {
       const result = await reporter.executeMainAction('test-beforeRender-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      await res.parseFrom(result.res)
+      await res.parse(result.res)
     })
 
     reporter.afterRenderListeners.add('listeners', async (req, res) => {
       const result = await reporter.executeMainAction('test-afterRender-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      await res.parseFrom(result.res)
+      await res.parse(result.res)
     })
 
     reporter.validateRenderListeners.add('listeners', async (req, res) => {
       const result = await reporter.executeMainAction('test-validateRender-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      await res.parseFrom(result.res)
+      await res.parse(result.res)
     })
 
     reporter.afterTemplatingEnginesExecutedListeners.add('listeners', async (req, res) => {
       const result = await reporter.executeMainAction('test-afterTemplatingEnginesExecuted-listeners', { req, res: await res.serialize() }, req)
       extend(true, req, result.req)
-      await res.parseFrom(result.res)
+      await res.parse(result.res)
     })
 
     const evalInWorker = (code, req, res) => {

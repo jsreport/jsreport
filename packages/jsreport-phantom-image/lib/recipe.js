@@ -62,7 +62,7 @@ module.exports = async (reporter, definition, request, response) => {
   response.meta.contentType = 'image/' + request.template.phantomImage.imageType
   response.meta.fileExtension = request.template.phantomImage.imageType
 
-  await response.updateOutput(cres.stream)
+  await response.output.update(cres.stream)
 
   reporter.logger.debug('phantom-image recipe finished.', request)
 }

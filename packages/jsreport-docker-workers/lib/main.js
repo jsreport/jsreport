@@ -94,7 +94,7 @@ module.exports = (reporter, definition) => {
         // sending local response serialized as multipart to the original remote server
         // the response output can be buffer or stream, but we always send it as stream output
         const renderR = reporter.Response(reqBody.req.context.id)
-        await renderR.parseFrom(workerResult)
+        await renderR.parse(workerResult)
 
         const form = new FormData()
 

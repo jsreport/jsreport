@@ -21,7 +21,7 @@ module.exports = async (reporter, definition, request, response) => {
     response.meta.contentType = 'application/pdf'
     response.meta.fileExtension = 'pdf'
 
-    await response.updateOutput(outputPath)
+    await response.output.update(outputPath)
   } catch (err) {
     throw reporter.createError('Error while processing wkhtmltopdf', {
       original: err,

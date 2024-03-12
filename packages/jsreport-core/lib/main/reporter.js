@@ -443,7 +443,7 @@ class MainReporter extends Reporter {
               worker
             }, req)
 
-            await res.parseFrom(responseResult)
+            await res.parse(responseResult)
 
             await this.afterRenderListeners.fire(req, res)
           } catch (err) {
@@ -474,7 +474,7 @@ class MainReporter extends Reporter {
         worker
       }, req)
 
-      await res.parseFrom(responseResult)
+      await res.parse(responseResult)
 
       await this.afterRenderListeners.fire(req, res)
 

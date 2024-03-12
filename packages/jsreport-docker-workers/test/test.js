@@ -29,7 +29,7 @@ describe('docker manager', () => {
       container._handleReq = async (ctx) => {
         ctx.response.status = 201
         const resp = reporter.Response('1')
-        await resp.updateOutput(Buffer.from('from worker ' + i))
+        await resp.output.update(Buffer.from('from worker ' + i))
         ctx.body = serializator.serialize(await resp.serialize())
       }
       container.handleReq = (fn) => (container._handleReq = fn)
@@ -86,7 +86,7 @@ describe('docker manager', () => {
           reqData.req.template.content.should.be.eql('hello')
           ctx.response.status = 201
           const resp = reporter.Response('1')
-          await resp.updateOutput(Buffer.from('from worker'))
+          await resp.output.update(Buffer.from('from worker'))
           ctx.body = serializator.serialize(await resp.serialize())
           ctx.response.status = 201
           executed = true
@@ -140,7 +140,7 @@ describe('docker manager', () => {
           reqData.req.template.content.should.be.eql('hello')
           ctx.response.status = 201
           const resp = reporter.Response('1')
-          await resp.updateOutput(Buffer.from('from worker'))
+          await resp.output.update(Buffer.from('from worker'))
           ctx.body = serializator.serialize(await resp.serialize())
           executed = true
           return
@@ -185,7 +185,7 @@ describe('docker manager', () => {
         })
       } else {
         const resp = reporter.Response('1')
-        await resp.updateOutput(Buffer.from('from worker'))
+        await resp.output.update(Buffer.from('from worker'))
         ctx.response.status = 201
         ctx.body = serializator.serialize(await resp.serialize())
       }
@@ -528,7 +528,7 @@ describe('docker manager', () => {
         }
 
         const resp = reporter.Response('1')
-        await resp.updateOutput(Buffer.from('from remote worker'))
+        await resp.output.update(Buffer.from('from remote worker'))
         ctx.body = serializator.serialize(await resp.serialize())
       })
 
@@ -580,7 +580,7 @@ describe('docker manager', () => {
       containers[0].handleReq(async (ctx) => {
         ctx.response.status = 201
         const resp = reporter.Response('1')
-        await resp.updateOutput(Buffer.from('from local worker'))
+        await resp.output.update(Buffer.from('from local worker'))
         ctx.body = serializator.serialize(await resp.serialize())
       })
 

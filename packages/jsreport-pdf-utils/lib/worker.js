@@ -49,7 +49,7 @@ module.exports = (reporter, definition) => {
       return `${g1}@@@${id}@@@`
     })
 
-    await res.updateOutput(Buffer.from(content))
+    await res.output.update(Buffer.from(content))
 
     if (!content.includes('data-pdf-outline')) {
       // optimization, don't do parsing if there is not a single link enabled
@@ -228,7 +228,7 @@ module.exports = (reporter, definition) => {
         res
       ))
 
-      await res.updateOutput(output)
+      await res.output.update(output)
     } catch (e) {
       throw reporter.createError('Error while executing pdf-utils operations', {
         original: e,

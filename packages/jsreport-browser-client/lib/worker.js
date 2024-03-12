@@ -26,7 +26,7 @@ module.exports = (reporter, definition) => {
     const script = `<script src="${request.context.http.baseUrl}/extension/browser-client/public/js/jsreport.umd.js"></script>`
     const content = (await response.output.getBuffer()).toString()
     const endBody = content.search(/<\/body\s*>/)
-    await response.updateOutput(Buffer.from(endBody === -1 ? (script + content) : content.substring(0, endBody) + script + content.substring(endBody)))
+    await response.output.update(Buffer.from(endBody === -1 ? (script + content) : content.substring(0, endBody) + script + content.substring(endBody)))
   }
 
   reporter.extensionsManager.recipes.push({

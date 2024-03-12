@@ -83,7 +83,7 @@ function execute (reporter, definition, puppeteer, strategyCall, imageExecution)
       imageExecution,
       // we need to copy the stream before the browser instance get recycled
       onOutput: async ({ content }) => {
-        await res.updateOutput(content)
+        await res.output.update(content)
       }
     })
 

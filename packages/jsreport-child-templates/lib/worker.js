@@ -176,6 +176,6 @@ module.exports = function (reporter, definition) {
       return
     }
 
-    await response.updateOutput(Buffer.from(result))
+    await response.output.update(Buffer.from(result))
   }
 }

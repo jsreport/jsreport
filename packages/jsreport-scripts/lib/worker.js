@@ -169,11 +169,11 @@ class Scripts {
       delete scriptExecResult.req.data
       merge(req, scriptExecResult.req)
 
-      await res.parseFrom(scriptExecResult.res)
+      await res.parse(scriptExecResult.res)
     }
 
     if (method === 'afterRender') {
-      await res.parseFrom(scriptExecResult.res)
+      await res.parse(scriptExecResult.res)
 
       req.data = scriptExecResult.req.data
       delete scriptExecResult.req.data

@@ -130,7 +130,7 @@ module.exports = async (reporter, definition, request, response) => {
   response.meta.fileExtension = 'pdf'
   response.meta.numberOfPages = res.numberOfPages
 
-  await response.updateOutput(res.stream)
+  await response.output.update(res.stream)
 
   reporter.logger.debug('phantom-pdf recipe finished with ' + res.numberOfPages + ' pages generated', request)
 }
