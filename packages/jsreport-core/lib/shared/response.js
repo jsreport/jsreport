@@ -58,6 +58,7 @@ module.exports = (reporter, requestId, obj) => {
           }
 
           await reporter.copyFileToTempFile(bufOrStreamOrPath, outputImpl.filePath)
+          return
         }
 
         if (isReadableStream(bufOrStreamOrPath)) {
@@ -68,7 +69,7 @@ module.exports = (reporter, requestId, obj) => {
           return outputImpl.setStream(bufOrStreamOrPath)
         }
 
-        throw new Error('Invalid content passed to res.output.save')
+        throw new Error('Invalid content passed to res.output.update')
       }
     },
 
