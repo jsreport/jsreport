@@ -6,7 +6,7 @@ const path = require('path')
 const isArrayBufferView = require('util').types.isArrayBufferView
 
 module.exports = (reporter, requestId, obj) => {
-  let outputImpl = new BufferOutput (reporter)  
+  let outputImpl = new BufferOutput(reporter)
   let cachedStream
 
   const response = {
@@ -47,24 +47,24 @@ module.exports = (reporter, requestId, obj) => {
         if (Buffer.isBuffer(bufOrStreamOrPath) || isArrayBufferView(bufOrStreamOrPath)) {
           return outputImpl.setBuffer(bufOrStreamOrPath)
         }
-  
+
         if (typeof bufOrStreamOrPath === 'string') {
           if (!path.isAbsolute(bufOrStreamOrPath)) {
             throw new Error('Invalid content passed to res.output.update, when content is string it must be an absolute path')
           }
-  
+
           if (outputImpl instanceof BufferOutput) {
             outputImpl = new StreamOutput(reporter, requestId)
           }
-  
+
           await reporter.copyFileToTempFile(bufOrStreamOrPath, outputImpl.filePath)
         }
-  
+
         if (isReadableStream(bufOrStreamOrPath)) {
           if (outputImpl instanceof BufferOutput) {
             outputImpl = new StreamOutput(reporter, requestId)
           }
-  
+
           return outputImpl.setStream(bufOrStreamOrPath)
         }
       }
