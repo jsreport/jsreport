@@ -67,12 +67,14 @@ module.exports = (reporter, requestId, obj) => {
 
           return outputImpl.setStream(bufOrStreamOrPath)
         }
+
+        throw new Error('Invalid content passed to res.output.save')
       }
     },
 
     serialize () {
       return {
-        meta: this.meta,
+        meta: extend(true, {}, this.meta),
         output: outputImpl.serialize()
       }
     },
