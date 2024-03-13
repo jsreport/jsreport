@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-phantom-image",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "jsreport recipe which is rendering images from html using phantomjs",
   "scripts": {
     "test": "mocha test --timeout 7000 && standard",

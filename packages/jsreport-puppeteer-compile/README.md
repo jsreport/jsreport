@@ -4,6 +4,10 @@ You should not need this extension, only in case you try to compile your own jsr
 
 ## Changelog
 
+### 4.0.1
+
+- update deps to fix audit
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`

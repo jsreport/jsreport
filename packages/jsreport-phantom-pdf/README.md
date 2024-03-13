@@ -33,6 +33,10 @@ jsreport.use(require('jsreport-phantom-pdf')({ strategy: 'phantom-server' }))
 
 ## Changelog
 
+### 4.1.0
+
+- internal changes to support new `response.output` api
+
 ### 4.0.0
 
 - minimum node.js version is now `18.15.0`
