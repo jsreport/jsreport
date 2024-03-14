@@ -61,7 +61,7 @@ module.exports = (reporter, requestId, obj) => {
           return
         }
 
-        if (isReadableStream(bufOrStreamOrPath)) {
+        if (isNodeReadableStream(bufOrStreamOrPath) || isWebReadableStream(bufOrStreamOrPath)) {
           if (outputImpl instanceof BufferOutput) {
             outputImpl = new StreamOutput(reporter, requestId)
           }
@@ -108,7 +108,7 @@ class BufferOutput {
   }
 
   setBuffer (buf) {
-    // we need to ensure that the buffer is an actually buffer instance,
+    // we need to ensure that the buffer is a buffer instance,
     // so when receiving Uint8Array we convert it to a buffer
     this.buffer = Buffer.isBuffer(buf) ? buf : Buffer.from(buf)
   }
@@ -198,8 +198,11 @@ class StreamOutput {
   }
 
   async setStream (stream) {
+    // we need to ensure that the stream used in pipeline is node.js readable stream instance,
+    // so when receiving Web ReadableStream we convert it to node.js readable stream
+    const inputStream = isNodeReadableStream(stream) ? stream : Readable.fromWeb(stream)
     const { stream: responseFileStream } = await this.reporter.writeTempFileStream(this.filename)
-    await pipeline(stream, responseFileStream)
+    await pipeline(inputStream, responseFileStream)
   }
 
   serialize () {
@@ -220,12 +223,27 @@ class StreamOutput {
 }
 
 // from https://github.com/sindresorhus/is-stream/blob/main/index.js
-function isReadableStream (stream) {
+function isNodeReadableStream (stream) {
   return (
     stream !== null &&
     typeof stream === 'object' &&
     typeof stream.pipe === 'function' &&
-    stream.readable !== false && typeof stream._read === 'function' &&
-    typeof stream._readableState === 'object'
+    typeof stream.read === 'function' &&
+    typeof stream.readable === 'boolean' &&
+    typeof stream.readableObjectMode === 'boolean' &&
+    typeof stream.destroy === 'function' &&
+    typeof stream.destroyed === 'boolean'
+  )
+}
+
+function isWebReadableStream (stream) {
+  return (
+    stream !== null &&
+    typeof stream === 'object' &&
+    typeof stream.locked === 'boolean' &&
+    typeof stream.cancel === 'function' &&
+    typeof stream.getReader === 'function' &&
+    typeof stream.pipeTo === 'function' &&
+    typeof stream.pipeThrough === 'function'
   )
 }

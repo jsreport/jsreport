@@ -81,7 +81,7 @@
         },
         {
             "name": "Attach to node on port",
-            "port": 9230,
+            "port": "${input:targetPort}",
             "request": "attach",
             "skipFiles": [
                 "<node_internals>/**"
@@ -96,6 +96,12 @@
             "type": "promptString",
             "description": "Name of the target package in workspace to run tests against",
             "default": "@jsreport/jsreport-"
+        },
+        {
+            "id": "targetPort",
+            "type": "promptString",
+            "description": "Port number of the node process to attach",
+            "default": "9229"
         }
     ]
 }
