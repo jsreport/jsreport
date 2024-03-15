@@ -1,4 +1,4 @@
-FROM node:18.16-alpine3.18
+FROM node:18.19-alpine3.18
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM

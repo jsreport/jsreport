@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 EXPOSE 5488
 
 # install nodejs
-ADD https://nodejs.org/dist/v18.15.0/node-v18.15.0-x64.msi nodejs.msi
+ADD https://nodejs.org/dist/v18.19.1/node-v18.19.1-x64.msi nodejs.msi
 RUN msiexec.exe /q /i nodejs.msi
 RUN del /f nodejs.msi
 
