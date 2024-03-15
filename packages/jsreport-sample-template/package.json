@@ -33,7 +33,7 @@
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.1.0",
     "@jsreport/jsreport-chrome-pdf": "4.1.0",
-    "@jsreport/jsreport-core": "4.2.0",
+    "@jsreport/jsreport-core": "4.2.1",
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-fs-store": "4.0.1",
     "@jsreport/jsreport-handlebars": "4.0.1",

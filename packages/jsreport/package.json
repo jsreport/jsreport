@@ -49,7 +49,7 @@
     "@jsreport/jsreport-chrome-pdf": "4.1.0",
     "@jsreport/jsreport-cli": "4.0.2",
     "@jsreport/jsreport-components": "4.0.0",
-    "@jsreport/jsreport-core": "4.2.0",
+    "@jsreport/jsreport-core": "4.2.1",
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-docx": "4.2.0",
     "@jsreport/jsreport-express": "4.1.0",

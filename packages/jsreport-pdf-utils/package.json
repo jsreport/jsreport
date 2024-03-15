@@ -45,7 +45,7 @@
     "@jsreport/jsreport-assets": "4.1.0",
     "@jsreport/jsreport-child-templates": "4.1.0",
     "@jsreport/jsreport-chrome-pdf": "4.1.0",
-    "@jsreport/jsreport-core": "4.2.0",
+    "@jsreport/jsreport-core": "4.2.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-scripts": "4.1.0",

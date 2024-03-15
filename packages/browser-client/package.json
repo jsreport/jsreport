@@ -32,7 +32,7 @@
   "devDependencies": {
     "@jsreport/jsreport-authentication": "4.1.0",
     "@jsreport/jsreport-chrome-pdf": "4.1.0",
-    "@jsreport/jsreport-core": "4.2.0",
+    "@jsreport/jsreport-core": "4.2.1",
     "@jsreport/jsreport-express": "4.1.0",
     "@rollup/plugin-commonjs": "21.0.0",
     "@rollup/plugin-node-resolve": "13.0.5",

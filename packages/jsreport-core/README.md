@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.2.1
+
+- response.output.update now accepts Web ReadableStream (which is what new version of puppeteer returns)
+
 ### 4.2.0
 
 - the response object has new structure and api, the `response.output` is new addition and contains different methods to work with the response output. the  `response.content`, `response.stream` are now soft deprecated (will be removed in future versions)
