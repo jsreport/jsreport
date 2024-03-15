@@ -1,4 +1,4 @@
-FROM node:18.19-alpine3.18
+FROM node:18.19-alpine3.19
 EXPOSE 5488
 USER root
 ARG TARGETPLATFORM
@@ -44,12 +44,12 @@ RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
     fi && \
     echo "Installing Chromium $CHROMIUM_TO_INSTALL_VERSION version.." && \
     apk update --no-cache && \
-    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.18/community >> /etc/apk/repositories && \
+    echo @edge http://dl-cdn.alpinelinux.org/alpine/v3.19/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
     echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
     apk add --no-cache \
     libstdc++@edge \
-    chromium@edge=$CHROMIUM_TO_INSTALL_VERSION\
+    chromium@edge=$CHROMIUM_TO_INSTALL_VERSION \
     nss \
     freetype \
     harfbuzz \
