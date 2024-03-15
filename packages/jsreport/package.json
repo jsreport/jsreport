@@ -62,7 +62,7 @@
     "@jsreport/jsreport-licensing": "4.0.2",
     "@jsreport/jsreport-localization": "4.0.1",
     "@jsreport/jsreport-npm": "4.0.0",
-    "@jsreport/jsreport-pdf-utils": "4.1.0",
+    "@jsreport/jsreport-pdf-utils": "4.1.1",
     "@jsreport/jsreport-pptx": "4.2.0",
     "@jsreport/jsreport-public-templates": "4.0.0",
     "@jsreport/jsreport-reports": "4.1.0",

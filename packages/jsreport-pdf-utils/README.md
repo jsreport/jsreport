@@ -7,6 +7,10 @@ See https://jsreport.net/learn/pdf-utils
 
 ## Changelog
 
+### 4.1.1
+
+- dont set lang when it was already filled, fixes compatibility with newer chrome
+
 ### 4.1.0
 
 - support merging/appending pdf with outlines
