@@ -7,6 +7,10 @@ See http://jsreport.net/learn/cli for documentation
 
 ## Changelog
 
+### 4.0.3
+
+- update nodejs-client to fix audit
+
 ### 4.0.2
 
 - update nodejs-client to fix npm audit

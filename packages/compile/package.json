@@ -38,7 +38,7 @@
     "yargs": "13.2.4"
   },
   "devDependencies": {
-    "@jsreport/jsreport-cli": "4.0.2",
+    "@jsreport/jsreport-cli": "4.0.3",
     "@jsreport/jsreport-core": "4.2.1",
     "fs-extra": "2.1.2",
     "mocha": "10.1.0",
