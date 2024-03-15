@@ -56,7 +56,7 @@
     "@jsreport/jsreport-freeze": "4.0.0",
     "@jsreport/jsreport-fs-store": "4.0.1",
     "@jsreport/jsreport-handlebars": "4.0.1",
-    "@jsreport/jsreport-html-to-xlsx": "4.1.0",
+    "@jsreport/jsreport-html-to-xlsx": "4.1.1",
     "@jsreport/jsreport-import-export": "4.0.3",
     "@jsreport/jsreport-jsrender": "4.0.0",
     "@jsreport/jsreport-licensing": "4.0.2",

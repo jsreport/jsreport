@@ -7,6 +7,10 @@ See https://jsreport.net/learn/html-to-xlsx
 
 ## Changelog
 
+### 4.1.1
+
+- update chrome-page-eval to fix compatibility with newer chrome
+
 ### 4.1.0
 
 - performance optimizations
