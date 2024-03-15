@@ -50,7 +50,7 @@
     "test:watch": "mocha --recursive \"./test/*.spec.js\" \"./test/commands/**/*.spec.js\" --timeout 28000 --exit --watch"
   },
   "dependencies": {
-    "@jsreport/nodejs-client": "4.0.1",
+    "@jsreport/nodejs-client": "4.0.2",
     "chalk": "2.4.2",
     "cliui": "7.0.4",
     "inquirer": "8.2.0",

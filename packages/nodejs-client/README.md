@@ -13,6 +13,10 @@
 
 ## Changelog
 
+### 4.0.2
+
+- update axios to fix audit
+
 ### 4.0.1
 
 - update axios to fix npm audit

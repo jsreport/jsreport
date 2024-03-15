@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/nodejs-client",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "jsreport node.js client",
   "homepage": "https://jsreport.net/learn/nodejs-client",
   "repository": {
