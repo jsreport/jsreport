@@ -1,7 +1,6 @@
-const util = require('util')
 const path = require('path')
 const fs = require('fs/promises')
-const rimraf = util.promisify(require('rimraf'))
+const { rimraf } = require('rimraf')
 const FS = require('../lib/fileSystem')
 const should = require('should')
 

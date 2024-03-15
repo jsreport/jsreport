@@ -1,10 +1,9 @@
-const util = require('util')
 const path = require('path')
 const should = require('should')
 const JsReport = require('@jsreport/jsreport-core')
 const IO = require('socket.io-client')
 const fs = require('fs')
-const rimrafAsync = util.promisify(require('rimraf'))
+const { rimraf } = require('rimraf')
 
 describe('extension use', () => {
   let jsreport
@@ -74,7 +73,7 @@ describe('extension sockets', () => {
   let io
 
   beforeEach(async () => {
-    await rimrafAsync(tmpData)
+    await rimraf(tmpData)
     fs.mkdirSync(tmpData)
     io = IO('http://localhost:3000')
     jsreport = JsReport({ store: { provider: 'fs' } })
@@ -84,7 +83,7 @@ describe('extension sockets', () => {
   })
 
   afterEach(async () => {
-    await rimrafAsync(tmpData)
+    await rimraf(tmpData)
     io.close()
     return jsreport.close()
   })

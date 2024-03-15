@@ -1,8 +1,7 @@
-const util = require('util')
 const EventEmitter = require('events').EventEmitter
 const extend = require('node.extend.without.arrays')
 const omit = require('lodash.omit')
-const rimrafAsync = util.promisify(require('rimraf'))
+const { rimraf } = require('rimraf')
 const Transaction = require('./transaction')
 const Persistence = require('./persistence')
 const { uid, lock } = require('./customUtils')
@@ -280,7 +279,7 @@ module.exports = ({
 
     drop () {
       this.close()
-      return rimrafAsync(dataDirectory)
+      return rimraf(dataDirectory)
     },
 
     async _startCompactionInterval () {

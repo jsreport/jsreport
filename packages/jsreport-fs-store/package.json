@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-fs-store",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "File system based templates store",
   "keywords": [
     "jsreport",
@@ -37,7 +37,7 @@
     "mkdirp": "1.0.4",
     "node.extend.without.arrays": "1.1.6",
     "p-map": "4.0.0",
-    "rimraf": "3.0.2",
+    "rimraf": "5.0.5",
     "socket.io": "4.6.2",
     "@jsreport/serializator": "1.0.0"
   },

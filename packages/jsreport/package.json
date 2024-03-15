@@ -54,7 +54,7 @@
     "@jsreport/jsreport-docx": "4.2.0",
     "@jsreport/jsreport-express": "4.1.0",
     "@jsreport/jsreport-freeze": "4.0.0",
-    "@jsreport/jsreport-fs-store": "4.0.1",
+    "@jsreport/jsreport-fs-store": "4.0.2",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/jsreport-html-to-xlsx": "4.1.1",
     "@jsreport/jsreport-import-export": "4.0.3",

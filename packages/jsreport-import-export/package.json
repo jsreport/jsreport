@@ -47,7 +47,7 @@
     "@jsreport/jsreport-core": "4.2.1",
     "@jsreport/jsreport-data": "4.1.0",
     "@jsreport/jsreport-express": "4.1.0",
-    "@jsreport/jsreport-fs-store": "4.0.1",
+    "@jsreport/jsreport-fs-store": "4.0.2",
     "@jsreport/jsreport-mongodb-store": "4.0.0",
     "@jsreport/jsreport-postgres-store": "4.0.0",
     "@jsreport/studio-dev": "4.0.0",

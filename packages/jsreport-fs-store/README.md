@@ -18,6 +18,10 @@ Then alter jsreport configuration
 
 ## Changelog
 
+### 4.0.2
+
+- update rimraf to fix audit
+
 ### 4.0.1
 
 - fix parameter mutations passed to store methods producing unexpected changes in store
