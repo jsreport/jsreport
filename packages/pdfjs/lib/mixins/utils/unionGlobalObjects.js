@@ -11,7 +11,9 @@ module.exports = (doc, ext, options) => {
     }
   }
 
-  if (ext.catalog.properties.get('Lang')) {
+  // chrome generats pdf with default en language, but we want to keep the lang only from the root doc
+  if (!doc.isLanguageFilled && ext.catalog.properties.get('Lang')) {
+    doc.isLanguageFilled = true
     doc.catalog.prop('Lang', ext.catalog.properties.get('Lang'))
   }
 
