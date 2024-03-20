@@ -147,10 +147,6 @@ module.exports = (reporter) => {
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${normalizedHelpers}`
 
     const initFn = async (getTopLevelFunctions, compileScript) => {
-      if (reporter.options.trustUserCode === false) {
-        return null
-      }
-
       if (systemHelpersCache != null) {
         return systemHelpersCache
       }
@@ -287,30 +283,12 @@ module.exports = (reporter) => {
       templatesCache.reset()
     }
 
-    let helpersStr = normalizedHelpers
-    if (reporter.options.trustUserCode === false) {
-      const registerResults = await reporter.registerHelpersListeners.fire()
-      const systemHelpers = []
-
-      for (const result of registerResults) {
-        if (result == null) {
-          continue
-        }
-
-        if (typeof result === 'string') {
-          systemHelpers.push(result)
-        }
-      }
-      const systemHelpersStr = systemHelpers.join('\n')
-      helpersStr = normalizedHelpers + '\n' + systemHelpersStr
-    }
-
     try {
       return await reporter.runInSandbox({
         context: {
           ...(engine.createContext ? engine.createContext(req) : {})
         },
-        userCode: helpersStr,
+        userCode: normalizedHelpers,
         initFn,
         executionFn,
         currentPath: entityPath,
