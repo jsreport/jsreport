@@ -253,7 +253,7 @@ module.exports = (reporter) => {
       }
       contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
 
-      await executionFinishListenersMap.get(context.__executionId).fire()
+      await executionFinishListenersMap.get(executionId).fire()
 
       return {
         // handlebars escapes single brackets before execution to prevent errors on {#asset}

@@ -85,6 +85,38 @@ describe('components', function () {
     res.content.toString().should.be.eql('c1c2myHelper')
   })
 
+  it('should evaluate recursive component using handlebars', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: '{{#each children}}{{component "c1"}}{{/each}}{{name}}',
+      engine: 'handlebars'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{component "c1"}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        children: [
+          {
+            children: [
+              {
+                name: 'john'
+              },
+              {
+                name: 'peter'
+              }
+            ]
+          }
+        ]
+      }
+    })
+
+    res.content.toString().should.be.eql('johnpeter')
+  })
+
   it('should propagate logs from nested components', async () => {
     await reporter.documentStore.collection('components').insert({
       name: 'c1',
