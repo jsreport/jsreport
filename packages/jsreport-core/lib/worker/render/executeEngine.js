@@ -14,8 +14,10 @@ module.exports = (reporter) => {
 
   reporter.templatingEngines = { cache: templatesCache }
 
+  const contextExecutionChainMap = new WeakMap()
   const executionFnParsedParamsMap = new Map()
   const executionAsyncResultsMap = new Map()
+  const executionAsyncCallChainMap = new Map()
   const executionFinishListenersMap = new Map()
 
   const templatingEnginesEvaluate = async (mainCall, { engine, content, helpers, data }, { entity, entitySet }, req) => {
@@ -48,11 +50,14 @@ module.exports = (reporter) => {
       }
 
       executionAsyncResultsMap.delete(executionId)
+      executionAsyncCallChainMap.delete(executionId)
       executionFinishListenersMap.delete(executionId)
     }
   }
 
-  reporter.templatingEngines.evaluate = (executionInfo, entityInfo, req) => templatingEnginesEvaluate(true, executionInfo, entityInfo, req)
+  reporter.templatingEngines.evaluate = (executionInfo, entityInfo, req) => {
+    return templatingEnginesEvaluate(true, executionInfo, entityInfo, req)
+  }
 
   reporter.extendProxy((proxy, req, {
     runInSandbox,
@@ -64,15 +69,18 @@ module.exports = (reporter) => {
         return templatingEnginesEvaluate(false, executionInfo, entityInfo, req)
       },
       waitForAsyncHelper: async (maybeAsyncContent) => {
+        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionId = executionChain[executionChain.length - 1]
+
         if (
-          context.__executionId == null ||
-          !executionAsyncResultsMap.has(context.__executionId) ||
+          executionId == null ||
+          !executionAsyncResultsMap.has(executionId) ||
           typeof maybeAsyncContent !== 'string'
         ) {
           return maybeAsyncContent
         }
 
-        const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
+        const asyncResultMap = executionAsyncResultsMap.get(executionId)
         const asyncHelperResultRegExp = /{#asyncHelperResult ([^{}]+)}/
         let content = maybeAsyncContent
         let matchResult
@@ -91,18 +99,34 @@ module.exports = (reporter) => {
         return content
       },
       waitForAsyncHelpers: async () => {
-        if (context.__executionId != null && executionAsyncResultsMap.has(context.__executionId)) {
-          const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
-          return Promise.all([...asyncResultMap.keys()].map((k) => asyncResultMap.get(k)))
+        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionId = executionChain[executionChain.length - 1]
+
+        if (executionId != null && executionAsyncResultsMap.has(executionId)) {
+          const asyncCallChainSet = executionAsyncCallChainMap.get(executionId)
+          const lastAsyncCall = [...asyncCallChainSet].pop()
+
+          const asyncResultMap = executionAsyncResultsMap.get(executionId)
+          // we should exclude the last async call because if it exists it represents the parent
+          // async call that called .waitForAsyncHelpers, it is not going to be resolved at this point
+          const targetAsyncResultKeys = [...asyncResultMap.keys()].filter((key) => key !== lastAsyncCall)
+
+          return Promise.all(targetAsyncResultKeys.map((k) => asyncResultMap.get(k)))
         }
       },
       addFinishListener: (fn) => {
-        if (executionFinishListenersMap.has(context.__executionId)) {
-          executionFinishListenersMap.get(context.__executionId).add('finish', fn)
+        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionId = executionChain[executionChain.length - 1]
+
+        if (executionId && executionFinishListenersMap.has(executionId)) {
+          executionFinishListenersMap.get(executionId).add('finish', fn)
         }
       },
       createAsyncHelperResult: (v) => {
-        const asyncResultMap = executionAsyncResultsMap.get(context.__executionId)
+        const executionChain = contextExecutionChainMap.get(context) || []
+        const executionId = executionChain[executionChain.length - 1]
+
+        const asyncResultMap = executionAsyncResultsMap.get(executionId)
         const asyncResultId = nanoid(7)
         asyncResultMap.set(asyncResultId, v)
         return `{#asyncHelperResult ${asyncResultId}}`
@@ -133,6 +157,7 @@ module.exports = (reporter) => {
     } finally {
       executionFnParsedParamsMap.delete(req.context.id)
       executionAsyncResultsMap.delete(executionId)
+      executionAsyncCallChainMap.delete(executionId)
     }
   }
 
@@ -147,10 +172,6 @@ module.exports = (reporter) => {
     const executionFnParsedParamsKey = `entity:${entity.shortid || 'anonymous'}:helpers:${normalizedHelpers}`
 
     const initFn = async (getTopLevelFunctions, compileScript) => {
-      if (reporter.options.trustUserCode === false) {
-        return null
-      }
-
       if (systemHelpersCache != null) {
         return systemHelpersCache
       }
@@ -193,10 +214,16 @@ module.exports = (reporter) => {
 
     const executionFn = async ({ require, console, topLevelFunctions, context }) => {
       const asyncResultMap = new Map()
+      const asyncCallChainSet = new Set()
 
-      context.__executionId = executionId
+      if (!contextExecutionChainMap.has(context)) {
+        contextExecutionChainMap.set(context, [])
+      }
+
+      contextExecutionChainMap.get(context).push(executionId)
 
       executionAsyncResultsMap.set(executionId, asyncResultMap)
+      executionAsyncCallChainMap.set(executionId, asyncCallChainSet)
       executionFinishListenersMap.set(executionId, reporter.createListenerCollection())
       executionFnParsedParamsMap.get(req.context.id).get(executionFnParsedParamsKey).resolve({ require, console, topLevelFunctions, context })
 
@@ -223,7 +250,7 @@ module.exports = (reporter) => {
         if (engine.getWrappingHelpersEnabled && engine.getWrappingHelpersEnabled(req) === false) {
           wrappedTopLevelFunctions[h] = engine.wrapHelper(wrappedTopLevelFunctions[h], { context })
         } else {
-          wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], asyncResultMap)
+          wrappedTopLevelFunctions[h] = wrapHelperForAsyncSupport(wrappedTopLevelFunctions[h], asyncResultMap, asyncCallChainSet)
         }
       }
 
@@ -231,11 +258,13 @@ module.exports = (reporter) => {
 
       const resolvedResultsMap = new Map()
 
-      // we need to use the cloned map, becuase there can be a waitForAsyncHelper pending that needs the asyncResultMap values
+      // we need to use the cloned map, because there can be a waitForAsyncHelper pending that needs the asyncResultMap values
       const clonedMap = new Map(asyncResultMap)
       while (clonedMap.size > 0) {
         await Promise.all([...clonedMap.keys()].map(async (k) => {
-          resolvedResultsMap.set(k, `${await clonedMap.get(k)}`)
+          const result = await clonedMap.get(k)
+          asyncCallChainSet.delete(k)
+          resolvedResultsMap.set(k, `${result}`)
           clonedMap.delete(k)
         }))
       }
@@ -245,7 +274,7 @@ module.exports = (reporter) => {
         contentResult = contentResult.replace(/{#asyncHelperResult ([^{}]+)}/g, (str, p1) => {
           const asyncResultId = p1
           // this can happen if a child jsreport.templatingEngines.evaluate receives an async value from outer scope
-          // because every evaluate uses a unique map of async resuts
+          // because every evaluate uses a unique map of async results
           // example is the case when component receives as a value async thing
           // instead of returning "undefined" we let the outer eval to do the replace
           if (!resolvedResultsMap.has(asyncResultId)) {
@@ -257,7 +286,9 @@ module.exports = (reporter) => {
       }
       contentResult = contentResult.replace(/asyncUnresolvedHelperResult/g, 'asyncHelperResult')
 
-      await executionFinishListenersMap.get(context.__executionId).fire()
+      await executionFinishListenersMap.get(executionId).fire()
+
+      contextExecutionChainMap.set(context, contextExecutionChainMap.get(context).filter((id) => id !== executionId))
 
       return {
         // handlebars escapes single brackets before execution to prevent errors on {#asset}
@@ -287,30 +318,12 @@ module.exports = (reporter) => {
       templatesCache.reset()
     }
 
-    let helpersStr = normalizedHelpers
-    if (reporter.options.trustUserCode === false) {
-      const registerResults = await reporter.registerHelpersListeners.fire()
-      const systemHelpers = []
-
-      for (const result of registerResults) {
-        if (result == null) {
-          continue
-        }
-
-        if (typeof result === 'string') {
-          systemHelpers.push(result)
-        }
-      }
-      const systemHelpersStr = systemHelpers.join('\n')
-      helpersStr = normalizedHelpers + '\n' + systemHelpersStr
-    }
-
     try {
       return await reporter.runInSandbox({
         context: {
           ...(engine.createContext ? engine.createContext(req) : {})
         },
-        userCode: helpersStr,
+        userCode: normalizedHelpers,
         initFn,
         executionFn,
         currentPath: entityPath,
@@ -363,7 +376,7 @@ module.exports = (reporter) => {
     }
   }
 
-  function wrapHelperForAsyncSupport (fn, asyncResultMap) {
+  function wrapHelperForAsyncSupport (fn, asyncResultMap, asyncCallChainSet) {
     return function (...args) {
       // important to call the helper with the current this to preserve the same behavior
       const fnResult = fn.call(this, ...args)
@@ -374,6 +387,7 @@ module.exports = (reporter) => {
 
       const asyncResultId = nanoid(7)
       asyncResultMap.set(asyncResultId, fnResult)
+      asyncCallChainSet.add(asyncResultId)
 
       return `{#asyncHelperResult ${asyncResultId}}`
     }

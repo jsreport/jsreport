@@ -85,6 +85,162 @@ describe('components', function () {
     res.content.toString().should.be.eql('c1c2myHelper')
   })
 
+  it('should evaluate recursive component using handlebars', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: '{{#each children}}{{component "c1"}}{{/each}}{{name}}',
+      engine: 'handlebars'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{component "c1"}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        children: [
+          {
+            children: [
+              {
+                name: 'john'
+              },
+              {
+                name: 'peter'
+              }
+            ]
+          }
+        ]
+      }
+    })
+
+    res.content.toString().should.be.eql('johnpeter')
+  })
+
+  it('should evaluate recursive component using handlebars and waitForAsyncHelper should work ', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: '{{#if (isOurTargetItem children)}}{{delay 3000}}{{/if}}{{#each children}}{{component "c1"}}{{/each}}{{name}}{{#if (isOurTargetItem children)}}{{wait (delay 1000)}}{{/if}}',
+      helpers: `
+        function isOurTargetItem (input) {
+          return Array.isArray(input) && input.find((item) => item.name === 'peter') != null
+        }
+
+        async function delay (time) {
+          await new Promise((resolve) => {
+            setTimeout(() => resolve(), time)
+          })
+
+          console.log("delay " + time + " finished")
+          return ''
+        }
+
+        async function wait (input) {
+          const jsreport = require('jsreport-proxy')
+
+          await jsreport.templatingEngines.waitForAsyncHelper(input)
+          console.log('wait finished')
+          return ''
+        }
+      `,
+      engine: 'handlebars'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{component "c1"}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        children: [
+          {
+            children: [
+              {
+                name: 'john'
+              },
+              {
+                name: 'peter'
+              }
+            ]
+          }
+        ]
+      }
+    })
+
+    res.content.toString().should.be.eql('johnpeter')
+
+    const firstLogIdx = res.meta.logs.findIndex((item) => item.message.endsWith('delay 1000 finished'))
+
+    firstLogIdx.should.be.not.eql(-1)
+
+    res.meta.logs[firstLogIdx + 1].message.should.containEql('wait finished')
+    res.meta.logs[firstLogIdx + 2].message.should.containEql('delay 3000 finished')
+  })
+
+  it('should evaluate recursive component using handlebars and waitForAsyncHelpers should work ', async () => {
+    await reporter.documentStore.collection('components').insert({
+      name: 'c1',
+      content: '{{#if (isOurTargetItem children)}}{{delay 3000}}{{/if}}{{#each children}}{{component "c1"}}{{/each}}{{name}}{{#if (isOurTargetItem children)}}{{wait}}{{/if}}',
+      helpers: `
+        function isOurTargetItem (input) {
+          return Array.isArray(input) && input.find((item) => item.name === 'peter') != null
+        }
+
+        async function delay (time) {
+          await new Promise((resolve) => {
+            setTimeout(() => resolve(), time)
+          })
+
+          console.log("delay " + time + " finished")
+          return ''
+        }
+
+        async function wait () {
+          const jsreport = require('jsreport-proxy')
+
+          await delay(1000)
+
+          await jsreport.templatingEngines.waitForAsyncHelpers()
+          console.log('wait finished')
+          return ''
+        }
+      `,
+      engine: 'handlebars'
+    })
+
+    const res = await reporter.render({
+      template: {
+        content: '{{component "c1"}}',
+        recipe: 'html',
+        engine: 'handlebars'
+      },
+      data: {
+        children: [
+          {
+            children: [
+              {
+                name: 'john'
+              },
+              {
+                name: 'peter'
+              }
+            ]
+          }
+        ]
+      }
+    })
+
+    res.content.toString().should.be.eql('johnpeter')
+
+    const firstLogIdx = res.meta.logs.findIndex((item) => item.message.endsWith('delay 1000 finished'))
+
+    firstLogIdx.should.be.not.eql(-1)
+
+    res.meta.logs[firstLogIdx + 1].message.should.containEql('delay 3000 finished')
+    res.meta.logs[firstLogIdx + 2].message.should.containEql('wait finished')
+  })
+
   it('should propagate logs from nested components', async () => {
     await reporter.documentStore.collection('components').insert({
       name: 'c1',
