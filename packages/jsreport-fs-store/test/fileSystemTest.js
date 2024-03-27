@@ -6,11 +6,12 @@ const should = require('should')
 
 describe('fileSystem', () => {
   const tmpDir = path.join(__dirname, 'tmp')
-  const fileSystem = FS({ dataDirectory: tmpDir, externalModificationsSync: true })
+  let fileSystem
 
   beforeEach(async () => {
     await rimraf(tmpDir)
     await fs.mkdir(tmpDir)
+    fileSystem = FS({ dataDirectory: tmpDir, externalModificationsSync: true })
   })
 
   afterEach(async () => {
@@ -79,5 +80,33 @@ describe('fileSystem', () => {
     await fileSystem.remove('foo')
     should(fileSystem.memoryState[path.join(tmpDir, 'foo', 'foo.txt')]).not.be.ok()
     should(fileSystem.memoryState[path.join(tmpDir, 'foo2', 'foo.txt')]).be.ok()
+  })
+
+  it('lock should be periodicaly refreshed to avoid staling when long transaction is still running', async () => {
+    fileSystem.lockOptions = {
+      stale: 100,
+      wait: 100,
+      retries: 10,
+      retryWait: 10
+    }
+
+    let locks = ''
+
+    fileSystem.lock().then(async (l) => {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      locks += '1'
+      return fileSystem.releaseLock(l)
+    }).should.not.be.rejected()
+
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    fileSystem.lock().then((l) => {
+      locks += '2'
+      return fileSystem.releaseLock(l)
+    }).should.not.be.rejected()
+
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    locks.should.be.eql('12')
   })
 })

@@ -30,7 +30,21 @@ module.exports = ({
 
       this.waitAndSync = () => queue.push(() => lock(fs, () => this.sync()))
 
-      this.syncInterval = setInterval(() => this.waitAndSync().catch((e) => logger.warn('Error when syncing fs journal, no worry, we will run again', e)), 10000)
+      let syncing = false
+      this.syncInterval = setInterval(async () => {
+        if (syncing) {
+          return
+        }
+
+        syncing = true
+        try {
+          await this.waitAndSync()
+        } catch (e) {
+          logger.warn('Error when syncing fs journal, no worry, we will run again', e)
+        } finally {
+          syncing = false
+        }
+      }, 10000)
       this.syncInterval.unref()
     },
 

@@ -109,7 +109,7 @@ describe('provider', () => {
         dataDirectory: tmpData,
         blobStorageDirectory,
         externalModificationsSync: true,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         logger: store.options.logger,
         resolveFileExtension: store.resolveFileExtension.bind(store),
         createError: m => new Error(m)
@@ -569,7 +569,7 @@ describe('load', () => {
         dataDirectory: path.join(__dirname, 'data'),
         blobStorageDirectory: path.join(__dirname, 'data', 'storage'),
         logger: store.options.logger,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
         createError: m => new Error(m)
@@ -642,7 +642,7 @@ describe('load and ignore', () => {
         blobStorageDirectory: path.join(__dirname, 'dataWithIgnoredFiles', 'storage'),
         ignore: ['.ci', '.gitignore'],
         logger: store.options.logger,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
         createError: m => new Error(m)
@@ -680,7 +680,7 @@ describe('load cleanup', () => {
         dataDirectory: path.join(__dirname, 'dataToCleanupCopy'),
         blobStorageDirectory: path.join(__dirname, 'dataToCleanupCopy', 'storage'),
         logger: store.options.logger,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
         compactionEnabled: true,
@@ -737,7 +737,7 @@ describe('load cleanup consistent transaction', () => {
         dataDirectory: path.join(__dirname, 'tranDataToCleanupCopy'),
         blobStorageDirectory: path.join(__dirname, 'tranDataToCleanupCopy', 'storage'),
         logger: store.options.logger,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
         createError: m => new Error(m)
@@ -774,7 +774,7 @@ describe('load cleanup inconsistent transaction', () => {
         dataDirectory: path.join(__dirname, 'tranDataToCleanupCopy'),
         blobStorageDirectory: path.join(__dirname, 'tranDataToCleanupCopy', 'storage'),
         logger: store.options.logger,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         sync: { provider: 'fs' },
         resolveFileExtension: store.resolveFileExtension.bind(store),
         createError: m => new Error(m)
@@ -813,7 +813,7 @@ describe('cluster', () => {
         dataDirectory: tmpData,
         blobStorageDirectory,
         externalModificationsSync: true,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         logger: store1.options.logger,
         createError: m => new Error(m),
         resolveFileExtension: () => null
@@ -825,7 +825,7 @@ describe('cluster', () => {
         dataDirectory: tmpData,
         blobStorageDirectory,
         externalModificationsSync: true,
-        persistence: { provider: 'fs' },
+        persistence: { provider: 'fs', lock: { wait: 60000, stale: 5000, retries: 3, retryWait: 100 } },
         logger: store2.options.logger,
         createError: m => new Error(m),
         resolveFileExtension: () => null

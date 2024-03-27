@@ -9,8 +9,17 @@ const callUnlock = util.promisify(lockFile.unlock)
 
 module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   memoryState: {},
-  lockOptions: Object.assign({ stale: 10000, retries: 100, retryWait: 100 }, lock),
-  init: () => mkdirp(dataDirectory),
+  lockOptions: lock,
+  init: () => {
+    if (!lock.stale > 0) {
+      throw new Error('extensions.fs-store.persistence.lock.stale needs to be > 0')
+    }
+    if (!lock.wait > 0) {
+      throw new Error('extensions.fs-store.persistence.lock.wait needs to be > 0')
+    }
+
+    return mkdirp(dataDirectory)
+  },
   readdir: async (p) => {
     const dirs = await fs.readdir(path.join(dataDirectory, p))
     return dirs
@@ -111,9 +120,42 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
   },
   async lock () {
     await mkdirp(dataDirectory)
-    return callLock(path.join(dataDirectory, 'fs.lock'), Object.assign({}, this.lockOptions))
+    try {
+      await callLock(path.join(dataDirectory, 'fs.lock'), Object.assign({}, this.lockOptions))
+    } catch (e) {
+      throw new Error('Failed to acquire fs store file system lock.', { cause: e })
+    }
+
+    // refreshing the lock so we can have a long running transaction
+    const refreshInterval = setInterval(() => touch(path.join(dataDirectory, 'fs.lock')), this.lockOptions.stale / 2)
+    refreshInterval.unref()
+    const undelegateWait = this.lockOptions.wait * (this.lockOptions.retries || 1) + ((this.lockOptions.retries || 1) * (this.lockOptions.retryWait || 0))
+    setTimeout(() => clearInterval(refreshInterval), undelegateWait).unref()
+
+    return { refreshInterval }
   },
-  releaseLock () {
-    return callUnlock(path.join(dataDirectory, 'fs.lock'))
+  async releaseLock (l) {
+    clearInterval(l.refreshInterval)
+    await callUnlock(path.join(dataDirectory, 'fs.lock'))
   }
 })
+
+let touchRunning = false
+async function touch (filename) {
+  if (touchRunning) {
+    return
+  }
+
+  const time = new Date()
+
+  try {
+    touchRunning = true
+    await fs.utimes(filename, time, time)
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.warn('Failed to refresh the file system lock', e)
+    }
+  } finally {
+    touchRunning = false
+  }
+}

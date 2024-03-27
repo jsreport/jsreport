@@ -59,15 +59,28 @@ module.exports = {
                   stale: {
                     type: ['string', 'number'],
                     '$jsreport-acceptsDuration': true,
-                    default: 5000
+                    default: 5000,
+                    description: 'After how long the not refreshed lock is considered as expired.'
                   },
-                  retries: { type: 'number', default: 100 },
+                  wait: {
+                    type: ['string', 'number'],
+                    '$jsreport-acceptsDuration': true,
+                    default: 60000,
+                    description: 'How long to wait before giving up and overwriting the existing lock. Multiplied by retry. This could be increased in cases when a long transaction like import may take longer than 3min.'
+                  },
+                  retries: {
+                    type: 'number',
+                    default: 3,
+                    description: 'Number of retries when acquiring lock fails.'
+                  },
                   retryWait: {
                     type: ['string', 'number'],
                     '$jsreport-acceptsDuration': true,
-                    default: 100
+                    default: 100,
+                    description: 'How long to wait before the retries.'
                   }
-                }
+                },
+                default: {}
               }
             }
           }
