@@ -2577,6 +2577,22 @@
   resolved "https://registry.npmjs.org/@js-joda/core/-/core-3.2.0.tgz"
   integrity sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==
 
+"@jsreport/jsreport-docker-workers@3.8.0":
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/@jsreport/jsreport-docker-workers/-/jsreport-docker-workers-3.8.0.tgz#ebc3e991b3147dddfe3346687f9163fd94cbea66"
+  integrity sha512-0PTXesFdiwvfPR6yQ1PvUf7umkVkr2qn3dwentxKl/oqF/NDu4IttE66HDhZXuH5WjWJ0ila1bdjyLKtMPtP9g==
+  dependencies:
+    axios "0.21.1"
+    express "4.18.2"
+    fs-extra "9.1.0"
+    ip "1.1.5"
+    listener-collection "2.0.0"
+    lodash.get "4.4.2"
+    lodash.omit "4.5.0"
+    node.extend "2.0.2"
+    serializator "1.0.2"
+    uuid "8.3.2"
+
 "@jsreport/mingo@2.4.1":
   version "2.4.1"
   resolved "https://registry.npmjs.org/@jsreport/mingo/-/mingo-2.4.1.tgz"
@@ -16146,6 +16162,11 @@ send@0.18.0:
     on-finished "2.4.1"
     range-parser "~1.2.1"
     statuses "2.0.1"
+
+serializator@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/serializator/-/serializator-1.0.2.tgz#1599e2e50c52bc726f75cb0e97e4b1e6bc0420c2"
+  integrity sha512-MyASDTLqaqNrPLkinrLqUbdexqpulFmVx3XJy8wu1NrWcqj5dl95/tPGBGuHfyW1SnsLCq4Gs8sUGZWfqwIkCw==
 
 serialize-error@^7.0.1:
   version "7.0.1"
