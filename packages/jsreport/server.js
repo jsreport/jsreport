@@ -43,7 +43,7 @@ if (process.env.JSREPORT_CLI) {
     // running
   }).catch((e) => {
     // error during startup
-    console.error(e.stack)
+    console.error(e)
     process.exit(1)
   })
 }

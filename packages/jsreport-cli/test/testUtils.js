@@ -118,7 +118,7 @@ module.exports = ({
         } else {
           createJsreport().init().catch(function (e) {
             console.error("error on jsreport init")
-            console.error(e.stack)
+            console.error(e)
             process.exit(1)
           })
         }
