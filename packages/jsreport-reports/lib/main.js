@@ -259,8 +259,6 @@ class Reports {
 
     const clientNotification = request.context.clientNotification = this.reporter.Response(request.context.id, response)
 
-    await clientNotification.output.update(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${response.meta.headers.Location}'>here</a>`))
-
     clientNotification.meta.contentType = 'text/html'
     clientNotification.meta.fileExtension = 'html'
 
@@ -270,6 +268,9 @@ class Reports {
       } else {
         clientNotification.meta.headers.Location = `${request.context.http.baseUrl}/reports/${r._id}/status`
       }
+      await clientNotification.output.update(Buffer.from(`Async rendering in progress. Use Location response header to check the current status. Check it <a href='${clientNotification.meta.headers.Location}'>here</a>`))
+    } else {
+      await clientNotification.output.update(Buffer.from('Async rendering in progress.'))
     }
 
     this.reporter.logger.info('Responding with async report location and continue with async report generation', request)

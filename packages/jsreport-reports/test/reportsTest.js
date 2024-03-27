@@ -180,8 +180,8 @@ describe('with reports extension', () => {
 
     const response = await reporter.render(request)
     response.content.toString().should.containEql('Async rendering in progress')
+    response.content.toString().should.containEql('http://localhost/reports/')
     response.meta.headers.Location.should.be.ok()
-
     return waitForAsyncFinishPromise
   })
 
