@@ -130,12 +130,15 @@ module.exports = ({ dataDirectory, lock, externalModificationsSync }) => ({
     const refreshInterval = setInterval(() => touch(path.join(dataDirectory, 'fs.lock')), this.lockOptions.stale / 2)
     refreshInterval.unref()
     const undelegateWait = this.lockOptions.wait * (this.lockOptions.retries || 1) + ((this.lockOptions.retries || 1) * (this.lockOptions.retryWait || 0))
-    setTimeout(() => clearInterval(refreshInterval), undelegateWait).unref()
 
-    return { refreshInterval }
+    const clearRefreshIntervalTimeout = setTimeout(() => clearInterval(refreshInterval), undelegateWait)
+    clearRefreshIntervalTimeout.unref()
+
+    return { refreshInterval, clearRefreshIntervalTimeout }
   },
   async releaseLock (l) {
     clearInterval(l.refreshInterval)
+    clearTimeout(l.clearRefreshIntervalTimeout)
     await callUnlock(path.join(dataDirectory, 'fs.lock'))
   }
 })
