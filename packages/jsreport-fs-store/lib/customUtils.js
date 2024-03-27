@@ -83,9 +83,13 @@ async function retry (fn, maxCount = 10) {
   throw error
 }
 
-async function * getEntriesInPath (fs, dir, target) {
+async function * getEntriesInPath (fs, dir, target, ignore) {
   async function * _getEntriesInPath (fs, dir) {
-    const dirEntries = await fs.readdir(dir)
+    let dirEntries = await fs.readdir(dir)
+
+    if (dir === '' || target === '') {
+      dirEntries = dirEntries.filter(e => !ignore.includes(e))
+    }
 
     const stats = await Promise.all(dirEntries.map(async f => {
       const s = await fs.stat(fs.path.join(dir, f))
@@ -119,12 +123,11 @@ async function copy (fs, psource, ptarget, ignore = [], replace = false) {
   // it is a bit different than the ignore option so that is why it is just a hard-coded list
   const filesIgnore = ['fs.lock', 'fs.journal', 'fs.version', '.tran'].concat(ignore)
 
-  for await (const dir of getEntriesInPath(fs, psource, ptarget)) {
+  for await (const dir of getEntriesInPath(fs, psource, ptarget, filesIgnore)) {
     const targetPath = fs.path.join(ptarget, dir.path.replace(psource, ''))
 
     if (replace && (await fs.exists(targetPath))) {
       let targetDirEntries = await fs.readdir(targetPath)
-
       targetDirEntries = targetDirEntries.filter(f => !filesIgnore.includes(f))
 
       // eslint-disable-next-line no-unused-vars
@@ -135,7 +138,7 @@ async function copy (fs, psource, ptarget, ignore = [], replace = false) {
 
     await fs.mkdir(targetPath)
 
-    const files = dir.entries.filter(f => !filesIgnore.includes(f.path) && !f.stat.isDirectory())
+    const files = dir.entries.filter(f => !f.stat.isDirectory())
 
     await Promise.all(files.map(async (f) => {
       const targetPath = fs.path.join(ptarget, f.path.replace(psource, ''))
