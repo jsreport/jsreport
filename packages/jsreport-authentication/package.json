@@ -30,7 +30,7 @@
     "test": "mocha \"./test/*.spec.js\" --timeout 10000 --exit && standard"
   },
   "dependencies": {
-    "body-parser": "1.20.1",
+    "body-parser": "1.20.2",
     "client-sessions": "0.8.0",
     "ejs": "3.1.9",
     "openid-client": "4.9.0",
@@ -44,7 +44,7 @@
     "@jsreport/jsreport-core": "4.2.1",
     "@jsreport/jsreport-express": "4.1.0",
     "@jsreport/studio-dev": "4.0.0",
-    "express": "4.18.2",
+    "express": "4.19.2",
     "lodash.clonedeep": "4.5.0",
     "mocha": "10.1.0",
     "should": "13.2.3",
