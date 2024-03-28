@@ -22,6 +22,8 @@
   "scripts": {
     "build": "jsreport-studio-build",
     "prepublish": "jsreport-studio-build",
+    "build:embed-license": "npm run embed-license && jsreport-studio-build",
+    "embed-license": "node ./scripts/embed-license.js",
     "start": "jsreport-studio-start --httpPort 4300",
     "test": "mocha --timeout 10000 --recursive test --exit && standard"
   },

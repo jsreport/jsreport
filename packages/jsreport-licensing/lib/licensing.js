@@ -4,6 +4,7 @@ const fs = require('fs').promises
 const axios = require('axios')
 const hostname = require('os').hostname()
 const crypto = require('crypto')
+const { embeddedLicense } = require("./embedded-license.js");
 
 async function exists (path) {
   try {
@@ -174,6 +175,13 @@ async function verifyInService (reporter, definition, m, licenseInfoPath) {
         reporter.logger.info(`Storing license verification information to ${licenseInfoPath}`)
         definition.options.licenseInfoSaved = true
 
+        if (embeddedLicense) {
+          // Hiding license key
+          const prefix = licensingInfo.licenseKey.slice(0, 5)
+          const suffix = licensingInfo.licenseKey.slice(5).replace(/./g, "*")
+          licensingInfo.licenseKey = prefix + suffix
+        }
+
         const licensingInfo = {
           licenseKey: m.licenseKey,
           validatedForVersion: reporter.version,
@@ -330,7 +338,8 @@ module.exports = function (reporter, definition) {
   })
 
   reporter.initializeListeners.add('licensing', async () => {
-    const licenseKeyFromOption = reporter.options['license-key'] || reporter.options.licenseKey || definition.options.licenseKey
+    const licenseKeyFromBuild = embeddedLicense;
+    const licenseKeyFromOption = licenseKeyFromBuild || reporter.options['license-key'] || reporter.options.licenseKey || definition.options.licenseKey
 
     if (licenseKeyFromOption) {
       await verifyLicenseKey(reporter, definition, licenseKeyFromOption)
