@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@jsreport/jsreport-assets": "4.1.0",
-    "@jsreport/jsreport-core": "4.2.1",
+    "@jsreport/jsreport-core": "4.2.2",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "@jsreport/studio-dev": "4.0.0",
     "handlebars": "4.7.7",

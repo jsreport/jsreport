@@ -7,6 +7,10 @@ See the documentation https://jsreport.net/learn/docx
 
 ## Changelog
 
+### 4.2.1
+
+- docxHtml: fix title and list not working when having a wrapping <p> tag
+
 ### 4.2.0
 
 - add support for docxStyle to target paragraph, cell, row so styles can be applied to container instead of just text

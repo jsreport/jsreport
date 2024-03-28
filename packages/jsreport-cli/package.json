@@ -1,6 +1,6 @@
 {
   "name": "@jsreport/jsreport-cli",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "description": "Command line interface for jsreport",
   "keywords": [
     "jsreport",
@@ -70,10 +70,10 @@
     "yargs": "17.3.1"
   },
   "devDependencies": {
-    "@jsreport/jsreport-authentication": "4.1.0",
-    "@jsreport/jsreport-core": "4.2.1",
-    "@jsreport/jsreport-express": "4.1.0",
-    "@jsreport/jsreport-fs-store": "4.0.2",
+    "@jsreport/jsreport-authentication": "4.1.1",
+    "@jsreport/jsreport-core": "4.2.2",
+    "@jsreport/jsreport-express": "4.1.1",
+    "@jsreport/jsreport-fs-store": "4.0.3",
     "@jsreport/jsreport-handlebars": "4.0.1",
     "cross-env": "5.2.1",
     "execa": "1.0.0",

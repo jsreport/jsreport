@@ -7,6 +7,10 @@ See the documentation for API https://jsreport.net/learn/api and the node.js dev
 
 ## Changelog
 
+### 4.1.1
+
+- update express to fix audit
+
 ### 4.1.0
 
 - internal changes to support new `response.output` api

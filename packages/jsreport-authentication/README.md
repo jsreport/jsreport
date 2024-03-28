@@ -7,6 +7,10 @@ See https://jsreport.net/learn/authentication
 
 ## Changelog
 
+### 4.1.1
+
+- update express, body-parser to fix npm audit
+
 ### 4.1.0
 
 - internal changes to support new `response.output` api

@@ -282,6 +282,10 @@ jsreport.documentStore.collection('templates')
 
 ## Changelog
 
+### 4.2.2
+
+- fix recursive component rendering
+
 ### 4.2.1
 
 - response.output.update now accepts Web ReadableStream (which is what new version of puppeteer returns)
